@@ -1,0 +1,11 @@
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.GeneratedMSBuildEditorConfig.editorconfig
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.AssemblyInfoInputs.cache
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.AssemblyInfo.cs
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.csproj.CoreCompileInputs.cache
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\bin\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.deps.json
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\bin\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.dll
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\bin\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.pdb
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.dll
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\refint\Vanaheimr.V2G.Exi.Prototype.dll
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\Vanaheimr.V2G.Exi.Prototype.pdb
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.Prototype\obj\Debug\net10.0\ref\Vanaheimr.V2G.Exi.Prototype.dll

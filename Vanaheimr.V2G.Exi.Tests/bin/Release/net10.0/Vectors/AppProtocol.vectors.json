@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "generator": "self-encoded (Python sim of C# codec)",
+  "generatorNote": "These expected bytes prove internal consistency only. Regenerate against cbV2G/OpenV2G to gain wire-format conformance.",
+  "generatedAtUtc": "2026-04-30T17:22:30.924925+00:00",
+  "vectors": [
+    {
+      "name": "req_iso2_only",
+      "description": "Single ISO 15118-2 namespace.",
+      "messageType": "SupportedAppProtocolReq",
+      "input": {
+        "appProtocols": [
+          {
+            "protocolNamespace": "urn:iso:15118:2:2013:MsgDef",
+            "versionNumberMajor": 2,
+            "versionNumberMinor": 0,
+            "schemaId": 1,
+            "priority": 1
+          }
+        ]
+      },
+      "expectedBytes": 33,
+      "expectedHex": "80 0e ba b9 37 1d 34 b9 b7 9d 18 9a 98 98 9c 1d 19 1d 19 18 18 99 9d 26 b9 b3 a2 32 b3 01 00 00 82"
+    },
+    {
+      "name": "req_iso20_only",
+      "description": "Single ISO 15118-20 CommonMessages namespace.",
+      "messageType": "SupportedAppProtocolReq",
+      "input": {
+        "appProtocols": [
+          {
+            "protocolNamespace": "urn:iso:std:iso:15118:-20:CommonMessages",
+            "versionNumberMajor": 1,
+            "versionNumberMinor": 0,
+            "schemaId": 1,
+            "priority": 1
+          }
+        ]
+      },
+      "expectedBytes": 46,
+      "expectedHex": "80 15 3a b9 37 1d 34 b9 b7 9d 39 ba 32 1d 34 b9 b7 9d 18 9a 98 98 9c 1d 16 99 18 1d 21 b7 b6 b6 b7 b7 26 b2 b9 b9 b0 b3 b2 b9 80 80 00 82"
+    },
+    {
+      "name": "req_iso20_and_iso2",
+      "description": "Typical EV advertising both ISO 15118-20 (preferred) and -2 (fallback).",
+      "messageType": "SupportedAppProtocolReq",
+      "input": {
+        "appProtocols": [
+          {
+            "protocolNamespace": "urn:iso:std:iso:15118:-20:CommonMessages",
+            "versionNumberMajor": 1,
+            "versionNumberMinor": 0,
+            "schemaId": 1,
+            "priority": 1
+          },
+          {
+            "protocolNamespace": "urn:iso:15118:2:2013:MsgDef",
+            "versionNumberMajor": 2,
+            "versionNumberMinor": 0,
+            "schemaId": 2,
+            "priority": 2
+          }
+        ]
+      },
+      "expectedBytes": 78,
+      "expectedHex": "80 15 3a b9 37 1d 34 b9 b7 9d 39 ba 32 1d 34 b9 b7 9d 18 9a 98 98 9c 1d 16 99 18 1d 21 b7 b6 b6 b7 b7 26 b2 b9 b9 b0 b3 b2 b9 80 80 00 80 3a ea e4 dc 74 d2 e6 de 74 62 6a 62 62 70 74 64 74 64 60 62 66 74 9a e6 ce 88 ca cc 04 00 04 18"
+    },
+    {
+      "name": "req_priority_boundary_max",
+      "description": "Priority at upper boundary (20) \u2014 exercises the 5-bit n-bit unsigned at its max value.",
+      "messageType": "SupportedAppProtocolReq",
+      "input": {
+        "appProtocols": [
+          {
+            "protocolNamespace": "urn:iso:15118:2:2013:MsgDef",
+            "versionNumberMajor": 2,
+            "versionNumberMinor": 0,
+            "schemaId": 1,
+            "priority": 20
+          }
+        ]
+      },
+      "expectedBytes": 33,
+      "expectedHex": "80 0e ba b9 37 1d 34 b9 b7 9d 18 9a 98 98 9c 1d 19 1d 19 18 18 99 9d 26 b9 b3 a2 32 b3 01 00 00 ce"
+    },
+    {
+      "name": "req_din_spec_70121",
+      "description": "DIN SPEC 70121 (legacy DC fast charging).",
+      "messageType": "SupportedAppProtocolReq",
+      "input": {
+        "appProtocols": [
+          {
+            "protocolNamespace": "urn:din:70121:2012:MsgDef",
+            "versionNumberMajor": 2,
+            "versionNumberMinor": 0,
+            "schemaId": 1,
+            "priority": 1
+          }
+        ]
+      },
+      "expectedBytes": 31,
+      "expectedHex": "80 0d ba b9 37 1d 32 34 b7 1d 1b 98 18 99 18 9d 19 18 18 99 1d 26 b9 b3 a2 32 b3 01 00 00 82"
+    },
+    {
+      "name": "res_ok_with_schemaid",
+      "description": "Successful negotiation, SchemaID present.",
+      "messageType": "SupportedAppProtocolRes",
+      "input": {
+        "code": "OK_SuccessfulNegotiation",
+        "schemaId": 1
+      },
+      "expectedBytes": 3,
+      "expectedHex": "80 a0 10"
+    },
+    {
+      "name": "res_ok_minor_deviation",
+      "description": "Successful with minor deviation \u2014 exercises enum index 2.",
+      "messageType": "SupportedAppProtocolRes",
+      "input": {
+        "code": "OK_SuccessfulNegotiationWithMinorDeviation",
+        "schemaId": 2
+      },
+      "expectedBytes": 3,
+      "expectedHex": "80 c0 20"
+    },
+    {
+      "name": "res_failed_no_schemaid",
+      "description": "Failed_NoNegotiation, SchemaID absent \u2014 exercises optional-element EE branch.",
+      "messageType": "SupportedAppProtocolRes",
+      "input": {
+        "code": "Failed_NoNegotiation",
+        "schemaId": null
+      },
+      "expectedBytes": 2,
+      "expectedHex": "80 90"
+    }
+  ]
+}

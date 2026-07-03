@@ -1,0 +1,10 @@
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.csproj.AssemblyReference.cache
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.GeneratedMSBuildEditorConfig.editorconfig
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.AssemblyInfoInputs.cache
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.AssemblyInfo.cs
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.csproj.CoreCompileInputs.cache
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\bin\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.deps.json
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\bin\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.dll
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\bin\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.pdb
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.dll
+D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi\Vanaheimr.V2G.Exi.SourceGenerator\obj\Debug\netstandard2.0\Vanaheimr.V2G.Exi.SourceGenerator.pdb
