@@ -5,80 +5,48 @@ namespace Vanaheimr.V2G.AppProtocol;
 /// <summary>
 /// Hand-written codec for <c>SupportedAppProtocolReq</c> / <c>SupportedAppProtocolRes</c>.
 /// In production this would be emitted by an <c>IIncrementalGenerator</c> consuming
-/// <c>V2G_CI_AppProtocol.xsd</c>.
+/// <c>V2G_CI_AppProtocol.xsd</c> — the generated codec mirrors this shape byte-for-byte.
 ///
 /// <para>
-/// EXI options: bit-packed alignment, schema-informed strict grammar, no preserve options,
-/// no header options document → header is the single byte <c>0x80</c>.
+/// <b>Wire model: non-strict schema-informed EXI grammar.</b> This is the grammar the
+/// ISO 15118 ecosystem actually uses on the wire, as produced by EVerest's cbexigen /
+/// libcbv2g. It is NOT the fully-optimised "strict" grammar (which would collapse
+/// single-production states to 0-bit event codes). Every structural transition carries
+/// an explicit event-code, because the non-strict grammar reserves an additional
+/// production slot (for the generic/EE alternative) at each state:
 /// </para>
-///
-/// <para>Document grammar (alphabetical order over global elements):</para>
-/// <code>
-///   Document     → SD DocContent
-///   DocContent   → SE(supportedAppProtocolReq) DocEnd : 0      (1 bit, 2 globals)
-///                | SE(supportedAppProtocolRes) DocEnd : 1
-///   DocEnd       → ED                                          (0 bits)
-/// </code>
-///
-/// <para>Body grammars (strict, single-production states have 0-bit event codes):</para>
-/// <code>
-///   Req_0        → SE(AppProtocol) Req_1                       (0 bits, mandatory first)
-///   Req_n  1..19 → SE(AppProtocol) Req_{n+1} : 0               (1 bit)
-///                | EE                       : 1
-///   Req_20       → EE                                          (0 bits)
-///
-///   AppProto_0   → SE(ProtocolNamespace)    AppProto_1         (0 bits)
-///   AppProto_1   → SE(VersionNumberMajor)   AppProto_2         (0 bits)
-///   AppProto_2   → SE(VersionNumberMinor)   AppProto_3         (0 bits)
-///   AppProto_3   → SE(SchemaID)             AppProto_4         (0 bits)
-///   AppProto_4   → SE(Priority)             AppProto_5         (0 bits)
-///   AppProto_5   → EE                                          (0 bits)
-///
-///   Res_0        → SE(ResponseCode)         Res_1              (0 bits)
-///   Res_1        → SE(SchemaID)             Res_2 : 0          (1 bit, optional element)
-///                | EE                              : 1
-///   Res_2        → EE                                          (0 bits)
-/// </code>
-///
-/// <para>Value codings:</para>
 /// <list type="bullet">
-///   <item><c>ProtocolNamespace</c> — String value (miss case: <c>UInt(len+2)</c> + codepoints).</item>
-///   <item><c>VersionNumber*</c>    — Unsigned Integer.</item>
-///   <item><c>SchemaID</c>          — Unsigned Integer (xs:unsignedByte, unrestricted).</item>
-///   <item><c>Priority</c>          — n-bit Unsigned Integer, n=5, stored as <c>value-1</c>
-///                                    (range [1..20] → 20 distinct values, ⌈log₂20⌉=5).</item>
-///   <item><c>ResponseCode</c>      — n-bit Unsigned Integer, n=2, lexicographic enum index.</item>
+///   <item>Document element selector: 2 bits (Req = 0, Res = 1).</item>
+///   <item>Each child element: SE event (1 bit = 0), a value-start event (1 bit = 0),
+///         the value itself, then an EE event (1 bit = 0).</item>
+///   <item>The first item of a required list: 1-bit SE (= 0). Every following item and
+///         the list terminator: 2-bit event code (item = 0, EE = 1).</item>
+///   <item>An optional element: 2-bit event code (present = 0, EE = 1).</item>
 /// </list>
 ///
-/// <para><b>Conformance note.</b> Bit-exact wire compatibility with cbV2G/OpenV2G has not
-/// been validated in this prototype — only internal roundtripping. Before relying on this
-/// against real EVSEs, diff the output byte-by-byte against a reference encoder for a
-/// pinned set of test vectors.</para>
+/// <para>Value codings (as cbexigen emits them):</para>
+/// <list type="bullet">
+///   <item><c>ProtocolNamespace</c> (anyURI) — <c>UInt(len+2)</c> then one octet per
+///         character. ASCII only; cbV2G rejects code points &gt; U+007F.</item>
+///   <item><c>VersionNumber*</c> (xs:unsignedInt) — EXI Unsigned Integer (7-bit chunks).</item>
+///   <item><c>SchemaID</c> (xs:unsignedByte) — 8-bit n-bit unsigned.</item>
+///   <item><c>Priority</c> (range [1..20]) — 5-bit n-bit unsigned, encoded as value-1.</item>
+///   <item><c>ResponseCode</c> — 2-bit n-bit unsigned; index is the enumeration's
+///         <b>declaration order</b> in the XSD (OK = 0, OK-minor = 1, Failed = 2),
+///         NOT a lexicographic sort.</item>
+/// </list>
+///
+/// <para><b>Conformance.</b> The byte layout is validated against libcbv2g (a pinned
+/// commit) via the vector suite; see <c>Vectors/AppProtocol.vectors.json</c> and
+/// <c>tools/cbv2g-ref</c>.</para>
 /// </summary>
 public static class SupportedAppProtocolCodec
 {
     /// <summary>EXI header byte: distinguishing bits 10, no options, format version 0.</summary>
     public const byte ExiHeader = 0x80;
 
+    /// <summary>Schema <c>maxOccurs</c> for the AppProtocol list.</summary>
     private const int MaxAppProtocols = 20;
-
-    // Lexicographic enum order for ResponseCode (how EXI sorts xs:enumeration values).
-    // Encoded as 2-bit unsigned (3 values → ⌈log₂3⌉ = 2 bits; index 3 is invalid).
-    private static int EncodeResponseCode(ResponseCode code) => code switch
-    {
-        ResponseCode.Failed_NoNegotiation                       => 0,
-        ResponseCode.OK_SuccessfulNegotiation                   => 1,
-        ResponseCode.OK_SuccessfulNegotiationWithMinorDeviation => 2,
-        _ => throw new ArgumentOutOfRangeException(nameof(code)),
-    };
-
-    private static ResponseCode DecodeResponseCode(uint idx) => idx switch
-    {
-        0 => ResponseCode.Failed_NoNegotiation,
-        1 => ResponseCode.OK_SuccessfulNegotiation,
-        2 => ResponseCode.OK_SuccessfulNegotiationWithMinorDeviation,
-        _ => throw new InvalidDataException($"Reserved/invalid ResponseCode index: {idx}"),
-    };
 
     // ---------------------------------------------------------------------
     //  Encode
@@ -95,29 +63,19 @@ public static class SupportedAppProtocolCodec
         dest[0] = ExiHeader;
         var w = new BitWriter(dest[1..]);
 
-        // DocContent → SE(supportedAppProtocolReq) : event code 0 in 1 bit.
-        w.WriteBits(0, 1);
+        // Document: SE(supportedAppProtocolReq) — 2-bit event code 0.
+        w.WriteBits(0, 2);
 
-        // SE(supportedAppProtocolReq) is implicit (no event code: only one production).
-        // Now in Req_0.
         for (int i = 0; i < msg.AppProtocols.Count; i++)
         {
-            // Req_0 has only "SE(AppProtocol)" → 0 bits.
-            // Req_1..Req_19 add "EE" alternative → 1 bit (write 0 = continue).
-            if (i > 0)
-                w.WriteBits(0, 1);
-
+            // First entry: 1-bit SE(AppProtocol) = 0.
+            // Subsequent entries: 2-bit loop event code = 0.
+            w.WriteBits(0, i == 0 ? 1 : 2);
             EncodeAppProtocol(ref w, msg.AppProtocols[i]);
         }
 
-        // Terminate the AppProtocol list.
-        // If we wrote N < 20 entries, we are in Req_N which needs an explicit EE (1 bit = 1).
-        // If N == 20, we are in Req_20 whose only production is EE (0 bits).
-        if (msg.AppProtocols.Count < MaxAppProtocols)
-            w.WriteBits(1, 1);
-
-        // EE for supportedAppProtocolReq element and ED for the document are both 0-bit
-        // transitions in strict mode — nothing more to write.
+        // List terminator: 2-bit EE = 1 (the supportedAppProtocolReq element's EE).
+        w.WriteBits(1, 2);
 
         w.AlignToByte();
         bytesWritten = 1 + w.BytesWritten;
@@ -126,17 +84,36 @@ public static class SupportedAppProtocolCodec
 
     private static void EncodeAppProtocol(ref BitWriter w, AppProtocolEntry e)
     {
-        // All five SE transitions and their EEs are 0-bit in strict mode;
-        // we only write the actual values.
-
-        ExiPrimitives.WriteStringValue(ref w, e.ProtocolNamespace);
-        ExiPrimitives.WriteUnsignedInteger(ref w, e.VersionNumberMajor);
-        ExiPrimitives.WriteUnsignedInteger(ref w, e.VersionNumberMinor);
-        ExiPrimitives.WriteUnsignedInteger(ref w, e.SchemaID);
-
         if (e.Priority is < 1 or > 20)
-            throw new ArgumentOutOfRangeException(nameof(e.Priority), "Priority must be in [1..20].");
+            throw new ArgumentOutOfRangeException(nameof(e), "Priority must be in [1..20].");
+
+        // ProtocolNamespace (anyURI): SE, value-start, UInt(len+2)+octets, EE.
+        w.WriteBits(0, 1); w.WriteBits(0, 1);
+        ExiPrimitives.WriteStringValue(ref w, e.ProtocolNamespace);
+        w.WriteBits(0, 1);
+
+        // VersionNumberMajor (unsignedInt): SE, value-start, Unsigned Integer, EE.
+        w.WriteBits(0, 1); w.WriteBits(0, 1);
+        ExiPrimitives.WriteUnsignedInteger(ref w, e.VersionNumberMajor);
+        w.WriteBits(0, 1);
+
+        // VersionNumberMinor (unsignedInt).
+        w.WriteBits(0, 1); w.WriteBits(0, 1);
+        ExiPrimitives.WriteUnsignedInteger(ref w, e.VersionNumberMinor);
+        w.WriteBits(0, 1);
+
+        // SchemaID (unsignedByte): SE, value-start, 8-bit, EE.
+        w.WriteBits(0, 1); w.WriteBits(0, 1);
+        w.WriteBits(e.SchemaID, 8);
+        w.WriteBits(0, 1);
+
+        // Priority (range [1..20]): SE, value-start, 5-bit (value-1), EE.
+        w.WriteBits(0, 1); w.WriteBits(0, 1);
         w.WriteBits((uint)(e.Priority - 1), 5);
+        w.WriteBits(0, 1);
+
+        // EE of the AppProtocol element.
+        w.WriteBits(0, 1);
     }
 
     public static bool TryEncodeResponse(
@@ -148,21 +125,26 @@ public static class SupportedAppProtocolCodec
         dest[0] = ExiHeader;
         var w = new BitWriter(dest[1..]);
 
-        // DocContent → SE(supportedAppProtocolRes) : event code 1 in 1 bit.
-        w.WriteBits(1, 1);
+        // Document: SE(supportedAppProtocolRes) — 2-bit event code 1.
+        w.WriteBits(1, 2);
 
-        // ResponseCode (2-bit enum index)
-        w.WriteBits((uint)EncodeResponseCode(msg.Code), 2);
+        // ResponseCode: SE, value-start, 2-bit enum (declaration index), EE.
+        w.WriteBits(0, 1); w.WriteBits(0, 1);
+        w.WriteBits((uint)msg.Code, 2);   // enum values already match XSD declaration order
+        w.WriteBits(0, 1);
 
-        // Optional SchemaID
+        // Optional SchemaID: 2-bit event code (present = 0, EE = 1).
         if (msg.SchemaID is byte schemaId)
         {
-            w.WriteBits(0, 1); // 0 = SE(SchemaID)
-            ExiPrimitives.WriteUnsignedInteger(ref w, schemaId);
+            w.WriteBits(0, 2);            // SE(SchemaID)
+            w.WriteBits(0, 1);           // value-start
+            w.WriteBits(schemaId, 8);
+            w.WriteBits(0, 1);           // EE of SchemaID element
+            w.WriteBits(0, 1);           // EE of supportedAppProtocolRes element
         }
         else
         {
-            w.WriteBits(1, 1); // 1 = EE
+            w.WriteBits(1, 2);           // EE of supportedAppProtocolRes element
         }
 
         w.AlignToByte();
@@ -183,9 +165,14 @@ public static class SupportedAppProtocolCodec
             throw new InvalidDataException("Invalid EXI header for AppProtocol stream.");
 
         var r = new BitReader(src[1..]);
-        uint sel = r.ReadBits(1); // 0 = Req, 1 = Res
+        uint sel = r.ReadBits(2); // document element selector: 0 = Req, 1 = Res
 
-        object result = sel == 0 ? DecodeRequestBody(ref r) : DecodeResponseBody(ref r);
+        object result = sel switch
+        {
+            0 => DecodeRequestBody(ref r),
+            1 => DecodeResponseBody(ref r),
+            _ => throw new InvalidDataException($"Unknown document element index {sel}."),
+        };
         bytesConsumed = 1 + r.BytesConsumed;
         return result;
     }
@@ -194,40 +181,73 @@ public static class SupportedAppProtocolCodec
     {
         var entries = new List<AppProtocolEntry>(capacity: 4);
 
-        // First entry mandatory (Req_0 has 0-bit event code).
+        // First entry mandatory: 1-bit SE.
+        r.ReadBits(1);
         entries.Add(DecodeAppProtocol(ref r));
 
-        // Up to 19 further entries, each preceded by a 1-bit event code.
-        while (entries.Count < MaxAppProtocols)
+        // Following entries / terminator: 2-bit loop event code.
+        while (true)
         {
-            uint ec = r.ReadBits(1);
+            uint ec = r.ReadBits(2);
             if (ec == 1) break;          // EE
+            if (ec != 0)
+                throw new InvalidDataException($"Unexpected AppProtocol list event code {ec}.");
+            if (entries.Count >= MaxAppProtocols)
+                throw new InvalidDataException("AppProtocol list exceeds maxOccurs (20).");
             entries.Add(DecodeAppProtocol(ref r));
         }
-        // If we reached 20, Req_20 → EE (0 bits) terminates implicitly.
 
         return new SupportedAppProtocolReq(entries);
     }
 
     private static AppProtocolEntry DecodeAppProtocol(ref BitReader r)
     {
-        var ns       = ExiPrimitives.ReadStringValue(ref r);
-        var verMaj   = checked((uint)ExiPrimitives.ReadUnsignedInteger(ref r));
-        var verMin   = checked((uint)ExiPrimitives.ReadUnsignedInteger(ref r));
-        var schemaId = checked((byte)ExiPrimitives.ReadUnsignedInteger(ref r));
+        r.ReadBits(1); r.ReadBits(1);                             // SE, value-start
+        var ns = ExiPrimitives.ReadStringValue(ref r);
+        r.ReadBits(1);                                            // EE
+
+        r.ReadBits(1); r.ReadBits(1);
+        var verMaj = checked((uint)ExiPrimitives.ReadUnsignedInteger(ref r));
+        r.ReadBits(1);
+
+        r.ReadBits(1); r.ReadBits(1);
+        var verMin = checked((uint)ExiPrimitives.ReadUnsignedInteger(ref r));
+        r.ReadBits(1);
+
+        r.ReadBits(1); r.ReadBits(1);
+        var schemaId = (byte)r.ReadBits(8);
+        r.ReadBits(1);
+
+        r.ReadBits(1); r.ReadBits(1);
         var priority = (byte)(r.ReadBits(5) + 1);
+        r.ReadBits(1);
+
+        r.ReadBits(1);                                           // EE of the AppProtocol element
         return new AppProtocolEntry(ns, verMaj, verMin, schemaId, priority);
     }
 
     private static SupportedAppProtocolRes DecodeResponseBody(ref BitReader r)
     {
-        var code = DecodeResponseCode(r.ReadBits(2));
+        r.ReadBits(1); r.ReadBits(1);                            // SE(ResponseCode), value-start
+        uint idx = r.ReadBits(2);
+        if (idx > 2)
+            throw new InvalidDataException($"Reserved/invalid ResponseCode index {idx}.");
+        var code = (ResponseCode)idx;
+        r.ReadBits(1);                                          // EE(ResponseCode)
 
         byte? schemaId = null;
-        uint ec = r.ReadBits(1);
+        uint ec = r.ReadBits(2);                               // present = 0, EE = 1
         if (ec == 0)
-            schemaId = checked((byte)ExiPrimitives.ReadUnsignedInteger(ref r));
-        // ec == 1 → EE, no SchemaID
+        {
+            r.ReadBits(1);                                     // value-start
+            schemaId = (byte)r.ReadBits(8);
+            r.ReadBits(1);                                     // EE of SchemaID element
+            r.ReadBits(1);                                     // EE of supportedAppProtocolRes
+        }
+        else if (ec != 1)
+        {
+            throw new InvalidDataException($"Unexpected SchemaID event code {ec}.");
+        }
 
         return new SupportedAppProtocolRes(code, schemaId);
     }

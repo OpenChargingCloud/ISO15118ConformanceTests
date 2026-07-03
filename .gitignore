@@ -1,0 +1,34 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test / coverage results
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# OS cruft
+Thumbs.db
+.DS_Store
+
+# cbv2g-ref: the fetched libcbv2g and CMake build tree live outside the repo
+# (WSL ~/cbv2g-ref-build). Nothing to ignore here, but keep local build dirs out:
+tools/**/build/
+tools/**/cmake-build-*/

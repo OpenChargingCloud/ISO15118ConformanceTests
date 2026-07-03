@@ -1,5 +1,15 @@
 # Aufgabe: Source Generator auf die reale ISO-15118-2-Schemawelt heben (Phase 2)
 
+> **Update nach Phase 0 (2026-07-03):** Das EXI-Grammatik-Modell wurde bereits
+> korrigiert. GrammarBuilder und CodecEmitter erzeugen jetzt die **nicht-strikte**
+> schema-informed Grammatik von cbexigen/cbV2G (2-Bit-Dokument-Selektor; pro simplem
+> Feld SE-, Value-Start- und EE-Event-Bit; 2-Bit-Loop/Optional-Codes; Enum-Index =
+> XSD-Deklarationsreihenfolge; unsignedByte → nbit(8)). Details in
+> `docs/roadmap.md`, README-Abschnitt „The wire model", und der Memory-Notiz
+> `exi-grammar-model-nonstrict`. Der „echte Grammatikbau nach §8.5.4" in dieser
+> Phase baut darauf auf, statt ihn neu zu entdecken — verifiziere weiterhin jedes
+> Konstrukt gegen cbV2G.
+
 ## Kontext
 
 Du arbeitest im Repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — eine .NET-10-Bibliothek,

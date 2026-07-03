@@ -1,64 +1,40 @@
-# Replacing Seed Vectors with cbV2G Reference Output
+# Vector provenance: cbV2G reference output
 
-The vectors in `AppProtocol.vectors.json` were initially **self-encoded by the
-codec under test**. They prove only internal self-consistency — not wire
-conformance. To upgrade them to true conformance vectors, regenerate
-`expectedHex` using cbV2G (or OpenV2G) as the external reference encoder.
+**Status: done (Phase 0).** The vectors in `AppProtocol.vectors.json` are no longer
+self-encoded. Their `expectedHex` is produced by EVerest's **libcbv2g** at a pinned
+commit, so a green test run proves wire conformance against the de-facto ISO 15118
+reference codec — not merely internal self-consistency.
 
-## Recommended workflow
+## Regenerate
 
-1. **Build cbV2G locally** as a small CLI that takes the vector input JSON on
-   stdin and emits hex on stdout. cbV2G already has a SAP (Supported App
-   Protocol) encoder — just wire it to your input shape.
+The reference oracle and the regeneration driver live in `tools/`:
 
-2. **Pin a cbV2G commit** in the test repo. Wire-format conformance is only
-   meaningful relative to a specific reference; pin the SHA in
-   `vectors_seed.json` under a new `referenceEncoder` field, e.g.:
+```sh
+# 1. build the oracle (once; needs a C toolchain — WSL works well on Windows)
+wsl -d Debian -- bash /mnt/d/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi/tools/cbv2g-ref/build.sh
 
-   ```json
-   "referenceEncoder": {
-     "name": "cbV2G",
-     "repo": "https://github.com/EVerest/cbv2g",
-     "commit": "abc1234...",
-     "buildFlags": "-DCBV2G_DEBUG_OUTPUT=ON"
-   }
-   ```
+# 2. regenerate expectedHex for every vector (also verifies each round-trips)
+wsl -d Debian -- python3 /mnt/d/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi/tools/regenerate-appprotocol-vectors.py
+```
 
-3. **Regenerate** for every vector in `AppProtocol.vectors.json`:
+The pinned commit is recorded in `AppProtocol.vectors.json` under
+`referenceEncoder.commit` and in `tools/cbv2g-ref/CMakeLists.txt` (`CBV2G_GIT_TAG`).
+Bump both together. See `tools/cbv2g-ref/README.md` for details.
 
-   ```bash
-   for v in $(jq -c '.vectors[]' AppProtocol.vectors.json); do
-       hex=$(echo "$v" | jq '.input' | ./cbv2g_encode_sap)
-       # patch back into JSON via jq
-   done
-   ```
+## Known limitations of cbV2G as an oracle
 
-4. **Strip the `generatorNote`** that warns about self-encoding once the
-   vectors come from cbV2G. Update `generator` to `"cbV2G@<sha>"`.
+- **ASCII only.** cbV2G rejects code points > U+007F, so a non-ASCII-namespace
+  vector cannot be generated against it. Multi-byte rune encoding is left to
+  dedicated C# unit tests (Phase 1), which have no external oracle yet.
+- **Max 5 AppProtocol entries.** cbV2G caps the array at 5 (a buffer limit). The
+  wire grammar itself terminates the list with a 2-bit EE at any count, so there is
+  no special "at maxOccurs" case to exercise; the 5-entry vector covers the loop.
 
-5. **Run the test suite.** Mismatches are now meaningful: each failure is a
-   bug in the C# codec relative to the reference. The `HexUtil.Diff` output
-   will pinpoint the first differing bit.
-
-## Vector inputs that should be added before this is "done"
-
-Beyond what's in the seed file, conformance against cbV2G needs:
+## What the vectors cover
 
 - All three `ResponseCode` values × {SchemaID present, absent}.
-- Maximum-size request (20 entries) — exercises the `Req_20` 0-bit terminator.
-- Single-entry request — exercises `Req_0` followed by EE, the most common
-  real-world path.
-- `Priority` at every boundary: 1, 2, 19, 20.
-- Long protocol namespaces near the schema's `maxLength="100"` limit.
-- Non-ASCII characters in the namespace (legal per xs:string, will exercise
-  multi-byte rune encoding).
-
-## On the divergence between Python sim and C# codec
-
-If the Python simulator and the C# codec ever produce different bytes, the
-seed vectors will fail in CI. That's a feature, not a bug: it means one of
-the two has drifted. Resolve by inspection (the Python simulator is deliberately
-the same shape as the C# code so a diff is short) and only **then** regenerate.
-
-Once cbV2G is the reference, the Python simulator can be deleted — its only job
-was to bootstrap the test harness before the external encoder was wired up.
+- Single-entry, two-entry and five-entry requests (the list-loop event codes).
+- `Priority` at 1, 2, 19, 20 (the 5-bit n-bit-unsigned boundaries).
+- A 99-character ASCII namespace (long character run) near `maxLength=100`.
+- Version numbers above 127 (multi-byte EXI Unsigned Integer).
+- DIN SPEC 70121, ISO 15118-2 and ISO 15118-20 namespaces.

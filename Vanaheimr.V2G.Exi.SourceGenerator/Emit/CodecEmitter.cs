@@ -12,6 +12,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit;
 /// static codec class. The generated codec mirrors the structure of the
 /// hand-written <c>SupportedAppProtocolCodec</c> so the AppProtocol bytes
 /// are byte-equivalent.
+///
+/// <para>
+/// <b>Wire model: non-strict schema-informed EXI grammar</b>, as produced by
+/// EVerest's cbexigen / libcbv2g (the de-facto ISO 15118 reference). Every
+/// structural transition carries an explicit event code:
+/// </para>
+/// <list type="bullet">
+///   <item>Document element selector: <c>ceil(log2(globals+1))</c> bits (cbexigen
+///         reserves one slot for the generic production).</item>
+///   <item>Simple child element: SE (1 bit = 0), value-start (1 bit = 0), value,
+///         child EE (1 bit = 0).</item>
+///   <item>Complex child element: SE (1 bit = 0) then the nested content (which
+///         emits its own element EE).</item>
+///   <item>Required list: first item 1-bit SE, following items and the terminator
+///         a 2-bit event code (item = 0, EE = 1).</item>
+///   <item>Trailing optional element: 2-bit event code (present = 0, EE = 1).</item>
+///   <item>Element EE of a sequence that does not end in a list/optional: 1 bit = 0.</item>
+/// </list>
 /// </summary>
 internal sealed class CodecEmitter
 {
@@ -46,7 +64,7 @@ internal sealed class CodecEmitter
     }
 
     // -----------------------------------------------------------------------
-    //  Enums
+    //  Enums — declaration order; the enum value IS the EXI n-bit index.
     // -----------------------------------------------------------------------
 
     private void EmitEnums()
@@ -128,7 +146,8 @@ internal sealed class CodecEmitter
         var globals = _plan.GlobalElements
                            .OrderBy(g => g.XsdName, StringComparer.Ordinal)
                            .ToList();
-        int docBits = BitsForChoices(globals.Count);
+        // Non-strict document grammar: reserve one extra production slot.
+        int docBits = BitsForChoices(globals.Count + 1);
 
         // Public encode entry points (one extension method per global element).
         for (int idx = 0; idx < globals.Count; idx++)
@@ -147,10 +166,6 @@ internal sealed class CodecEmitter
             EmitDecodeMethod(sp);
         }
 
-        // Lex-index helpers, one block per enum.
-        foreach (var e in _plan.Enums)
-            EmitEnumLexHelpers(e);
-
         _sb.AppendLine("}");
     }
 
@@ -165,7 +180,7 @@ internal sealed class CodecEmitter
         _sb.AppendLine("        dest[0] = ExiHeader;");
         _sb.AppendLine("        var w = new BitWriter(dest[1..]);");
         if (docBits > 0)
-            _sb.Append("        w.WriteBits(").Append(idx).Append(", ").Append(docBits).AppendLine(");");
+            _sb.Append("        w.WriteBits(").Append(idx).Append(", ").Append(docBits).AppendLine(");   // document element selector");
         _sb.Append("        Encode_").Append(g.Body.CSharpRecordName).AppendLine("(ref w, msg);");
         _sb.AppendLine("        w.AlignToByte();");
         _sb.AppendLine("        bytesWritten = 1 + w.BytesWritten;");
@@ -208,7 +223,7 @@ internal sealed class CodecEmitter
     }
 
     // -----------------------------------------------------------------------
-    //  Encode_/Decode_<RecordName> per complex type
+    //  Encode_<RecordName>
     // -----------------------------------------------------------------------
 
     private void EmitEncodeMethod(SequencePlan sp)
@@ -225,91 +240,76 @@ internal sealed class CodecEmitter
                .AppendLine(") throw new ArgumentOutOfRangeException(nameof(msg));");
             _sb.AppendLine("        for (int i = 0; i < list.Count; i++)");
             _sb.AppendLine("        {");
-            _sb.AppendLine("            if (i > 0) w.WriteBits(0, 1);");
-            EmitWriteValue(rep, "list[i]", "            ");
+            _sb.AppendLine("            w.WriteBits(0, i == 0 ? 1 : 2);   // SE(item): 1-bit first, 2-bit loop");
+            EmitEncodeContent(rep, "list[i]", "            ");
             _sb.AppendLine("        }");
-            _sb.Append("        if (list.Count < ").Append(sp.ListMax).AppendLine(") w.WriteBits(1, 1);");
+            _sb.AppendLine("        w.WriteBits(1, 2);   // list terminator / element EE");
         }
         else
         {
-            foreach (var c in sp.Children)
+            bool endsWithOptional = sp.Children.Count > 0 &&
+                                    sp.Children[sp.Children.Count - 1].Shape == ChildShape.OptionalSingle;
+            for (int ci = 0; ci < sp.Children.Count; ci++)
             {
+                var c = sp.Children[ci];
                 if (c.Shape == ChildShape.OptionalSingle)
                 {
-                    string presence = c.IsCSharpNullable
-                        ? $"msg.{c.FieldName}.HasValue"
-                        : $"msg.{c.FieldName} is not null";
-                    string accessor = c.IsCSharpNullable
-                        ? $"msg.{c.FieldName}!.Value"
-                        : $"msg.{c.FieldName}!";
-                    _sb.Append("        if (").Append(presence).AppendLine(")");
-                    _sb.AppendLine("        {");
-                    _sb.AppendLine("            w.WriteBits(0, 1);");
-                    EmitWriteValue(c, accessor, "            ");
-                    _sb.AppendLine("        }");
-                    _sb.AppendLine("        else { w.WriteBits(1, 1); }");
+                    if (ci != sp.Children.Count - 1)
+                        throw new NotSupportedException(
+                            $"complexType '{sp.CSharpRecordName}': optional element '{c.FieldName}' " +
+                            "is only supported as the final child of a sequence in this prototype.");
+                    EmitEncodeOptionalTrailing(c);
                 }
                 else
                 {
-                    EmitWriteValue(c, $"msg.{c.FieldName}", "        ");
+                    _sb.AppendLine("        w.WriteBits(0, 1);   // SE");
+                    EmitEncodeContent(c, "msg." + c.FieldName, "        ");
                 }
             }
+            if (!endsWithOptional)
+                _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
         }
 
         _sb.AppendLine("    }");
         _sb.AppendLine();
     }
 
-    private void EmitDecodeMethod(SequencePlan sp)
+    /// <summary>
+    /// Emits the content of a child element after its SE event has been written:
+    /// for a complex child the nested encode call (which contains its own EE);
+    /// for a simple child the value-start event, the value, and the child EE.
+    /// </summary>
+    private void EmitEncodeContent(ChildPlan c, string accessor, string indent)
     {
-        _sb.Append("    private static ").Append(sp.CSharpRecordName)
-           .Append(" Decode_").Append(sp.CSharpRecordName).AppendLine("(ref BitReader r)");
-        _sb.AppendLine("    {");
-
-        if (IsBoundedRepeating(sp, out var rep))
+        if (c.Value is ValueEncoding.ComplexRef cr)
         {
-            _sb.Append("        var list = new List<").Append(rep.CSharpType).AppendLine(">();");
-            EmitReadValue(rep, "first", "        ", declare: true);
-            _sb.AppendLine("        list.Add(first);");
-            _sb.Append("        while (list.Count < ").Append(sp.ListMax).AppendLine(")");
-            _sb.AppendLine("        {");
-            _sb.AppendLine("            uint ec = r.ReadBits(1);");
-            _sb.AppendLine("            if (ec == 1) break;");
-            EmitReadValue(rep, "next", "            ", declare: true);
-            _sb.AppendLine("            list.Add(next);");
-            _sb.AppendLine("        }");
-            _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
+            _sb.Append(indent).Append("Encode_").Append(cr.TypeName)
+               .Append("(ref w, ").Append(accessor).AppendLine(");");
         }
         else
         {
-            var locals = new List<string>();
-            foreach (var c in sp.Children)
-            {
-                string local = "_" + c.FieldName;
-                locals.Add(local);
-
-                if (c.Shape == ChildShape.OptionalSingle)
-                {
-                    _sb.Append("        ").Append(c.CSharpType).Append("? ").Append(local).AppendLine(" = default;");
-                    _sb.AppendLine("        {");
-                    _sb.AppendLine("            uint ec = r.ReadBits(1);");
-                    _sb.AppendLine("            if (ec == 0)");
-                    _sb.AppendLine("            {");
-                    EmitReadValue(c, local, "                ", declare: false);
-                    _sb.AppendLine("            }");
-                    _sb.AppendLine("        }");
-                }
-                else
-                {
-                    EmitReadValue(c, local, "        ", declare: true);
-                }
-            }
-            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
-               .Append(string.Join(", ", locals)).AppendLine(");");
+            _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // value-start");
+            EmitWriteValue(c, accessor, indent);
+            _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // child EE");
         }
+    }
 
-        _sb.AppendLine("    }");
-        _sb.AppendLine();
+    private void EmitEncodeOptionalTrailing(ChildPlan c)
+    {
+        string presence = c.IsCSharpNullable
+            ? $"msg.{c.FieldName}.HasValue"
+            : $"msg.{c.FieldName} is not null";
+        string accessor = c.IsCSharpNullable
+            ? $"msg.{c.FieldName}!.Value"
+            : $"msg.{c.FieldName}!";
+
+        _sb.Append("        if (").Append(presence).AppendLine(")");
+        _sb.AppendLine("        {");
+        _sb.AppendLine("            w.WriteBits(0, 2);   // SE(optional present)");
+        EmitEncodeContent(c, accessor, "            ");
+        _sb.AppendLine("            w.WriteBits(0, 1);   // element EE");
+        _sb.AppendLine("        }");
+        _sb.AppendLine("        else { w.WriteBits(1, 2); }   // element EE (optional absent)");
     }
 
     private void EmitWriteValue(ChildPlan c, string accessor, string indent)
@@ -334,22 +334,107 @@ internal sealed class CodecEmitter
                    .Append(", ").Append(nb.BitWidth).AppendLine(");");
                 break;
             case ValueEncoding.EnumIndex ei:
-                _sb.Append(indent).Append("w.WriteBits((uint)LexIndex_").Append(ei.EnumName)
-                   .Append('(').Append(accessor).Append("), ").Append(ei.BitWidth).AppendLine(");");
-                break;
-            case ValueEncoding.ComplexRef cr:
-                _sb.Append(indent).Append("Encode_").Append(cr.TypeName).Append("(ref w, ")
-                   .Append(accessor).AppendLine(");");
+                // The C# enum value equals the XSD declaration index == the EXI n-bit index.
+                _sb.Append(indent).Append("w.WriteBits((uint)").Append(accessor)
+                   .Append(", ").Append(ei.BitWidth).AppendLine(");");
                 break;
         }
     }
 
-    private void EmitReadValue(ChildPlan c, string local, string indent, bool declare)
-    {
-        _sb.Append(indent);
-        if (declare) _sb.Append("var ").Append(local).Append(" = ");
-        else         _sb.Append(local).Append(" = ");
+    // -----------------------------------------------------------------------
+    //  Decode_<RecordName>
+    // -----------------------------------------------------------------------
 
+    private void EmitDecodeMethod(SequencePlan sp)
+    {
+        _sb.Append("    private static ").Append(sp.CSharpRecordName)
+           .Append(" Decode_").Append(sp.CSharpRecordName).AppendLine("(ref BitReader r)");
+        _sb.AppendLine("    {");
+
+        if (IsBoundedRepeating(sp, out var rep))
+        {
+            _sb.Append("        var list = new List<").Append(rep.CSharpType).AppendLine(">();");
+            _sb.AppendLine("        r.ReadBits(1);   // SE(item) first");
+            EmitDecodeContent(rep, "first", "        ", declare: true);
+            _sb.AppendLine("        list.Add(first);");
+            _sb.AppendLine("        while (true)");
+            _sb.AppendLine("        {");
+            _sb.AppendLine("            uint ec = r.ReadBits(2);");
+            _sb.AppendLine("            if (ec == 1) break;   // element EE");
+            _sb.Append("            if (ec != 0 || list.Count >= ").Append(sp.ListMax)
+               .AppendLine(") throw new InvalidDataException(\"Invalid AppProtocol list event code.\");");
+            EmitDecodeContent(rep, "next", "            ", declare: true);
+            _sb.AppendLine("            list.Add(next);");
+            _sb.AppendLine("        }");
+            _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
+        }
+        else
+        {
+            var locals = new List<string>();
+            bool endsWithOptional = sp.Children.Count > 0 &&
+                                    sp.Children[sp.Children.Count - 1].Shape == ChildShape.OptionalSingle;
+
+            foreach (var c in sp.Children)
+            {
+                string local = "_" + c.FieldName;
+                locals.Add(local);
+
+                if (c.Shape == ChildShape.OptionalSingle)
+                {
+                    _sb.Append("        ").Append(c.CSharpType).Append("? ").Append(local).AppendLine(" = default;");
+                    _sb.AppendLine("        {");
+                    _sb.AppendLine("            uint ec = r.ReadBits(2);   // present = 0, EE = 1");
+                    _sb.AppendLine("            if (ec == 0)");
+                    _sb.AppendLine("            {");
+                    EmitDecodeContent(c, local, "                ", declare: false);
+                    _sb.AppendLine("                r.ReadBits(1);   // element EE");
+                    _sb.AppendLine("            }");
+                    _sb.AppendLine("        }");
+                }
+                else
+                {
+                    _sb.AppendLine("        r.ReadBits(1);   // SE");
+                    EmitDecodeContent(c, local, "        ", declare: true);
+                }
+            }
+
+            if (!endsWithOptional)
+                _sb.AppendLine("        r.ReadBits(1);   // element EE");
+
+            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+               .Append(string.Join(", ", locals)).AppendLine(");");
+        }
+
+        _sb.AppendLine("    }");
+        _sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Reads the content of a child element after its SE event has been consumed.
+    /// Complex child: nested decode (consumes its own EE). Simple child: value-start,
+    /// value, child EE. When <paramref name="declare"/> is false the value is assigned
+    /// to an existing local (used for optional elements).
+    /// </summary>
+    private void EmitDecodeContent(ChildPlan c, string local, string indent, bool declare)
+    {
+        if (c.Value is ValueEncoding.ComplexRef cr)
+        {
+            _sb.Append(indent);
+            _sb.Append(declare ? "var " : "").Append(local).Append(" = Decode_")
+               .Append(cr.TypeName).AppendLine("(ref r);");
+            return;
+        }
+
+        _sb.Append(indent).AppendLine("r.ReadBits(1);   // value-start");
+        _sb.Append(indent);
+        _sb.Append(declare ? "var " : "").Append(local).Append(" = ");
+        AppendReadValueExpr(c);
+        _sb.AppendLine(";");
+        _sb.Append(indent).AppendLine("r.ReadBits(1);   // child EE");
+    }
+
+    private void AppendReadValueExpr(ChildPlan c)
+    {
         switch (c.Value)
         {
             case ValueEncoding.UnsignedInt:
@@ -367,51 +452,9 @@ internal sealed class CodecEmitter
                 _sb.Append('(').Append(c.CSharpType).Append(")r.ReadBits(").Append(nb.BitWidth).Append(')');
                 break;
             case ValueEncoding.EnumIndex ei:
-                _sb.Append("FromLexIndex_").Append(ei.EnumName)
-                   .Append("(r.ReadBits(").Append(ei.BitWidth).Append("))");
-                break;
-            case ValueEncoding.ComplexRef cr:
-                _sb.Append("Decode_").Append(cr.TypeName).Append("(ref r)");
+                _sb.Append('(').Append(ei.EnumName).Append(")r.ReadBits(").Append(ei.BitWidth).Append(')');
                 break;
         }
-        _sb.AppendLine(";");
-    }
-
-    // -----------------------------------------------------------------------
-    //  Enum lex-index helpers
-    // -----------------------------------------------------------------------
-
-    private void EmitEnumLexHelpers(EnumPlan e)
-    {
-        // (declaration name, lex index)
-        var lexSorted = e.Members
-            .Select((name, declIdx) => (name, declIdx))
-            .OrderBy(t => t.name, StringComparer.Ordinal)
-            .ToList();
-
-        _sb.Append("    private static int LexIndex_").Append(e.Name)
-           .Append('(').Append(e.Name).AppendLine(" v) => v switch");
-        _sb.AppendLine("    {");
-        for (int lex = 0; lex < lexSorted.Count; lex++)
-        {
-            _sb.Append("        ").Append(e.Name).Append('.').Append(lexSorted[lex].name)
-               .Append(" => ").Append(lex).AppendLine(",");
-        }
-        _sb.AppendLine("        _ => throw new ArgumentOutOfRangeException(nameof(v)),");
-        _sb.AppendLine("    };");
-        _sb.AppendLine();
-
-        _sb.Append("    private static ").Append(e.Name)
-           .Append(" FromLexIndex_").Append(e.Name).AppendLine("(uint idx) => idx switch");
-        _sb.AppendLine("    {");
-        for (int lex = 0; lex < lexSorted.Count; lex++)
-        {
-            _sb.Append("        ").Append(lex).Append("u => ").Append(e.Name)
-               .Append('.').Append(lexSorted[lex].name).AppendLine(",");
-        }
-        _sb.AppendLine("        _ => throw new InvalidDataException($\"Reserved enum index: {idx}\"),");
-        _sb.AppendLine("    };");
-        _sb.AppendLine();
     }
 
     // -----------------------------------------------------------------------

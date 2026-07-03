@@ -204,7 +204,9 @@ internal static class GrammarBuilder
         return xsType switch
         {
             "xs:string"        => ("string", new ValueEncoding.StringValue(), false),
-            "xs:unsignedByte"  => ("byte",   new ValueEncoding.UnsignedInt(),  true),
+            // cbexigen encodes unsignedByte as a fixed 8-bit n-bit unsigned (its value
+            // space is [0..255]), not as a multi-byte EXI Unsigned Integer.
+            "xs:unsignedByte"  => ("byte",   new ValueEncoding.NBitUnsigned(8, 0), true),
             "xs:unsignedShort" => ("ushort", new ValueEncoding.UnsignedInt(),  true),
             "xs:unsignedInt"   => ("uint",   new ValueEncoding.UnsignedInt(),  true),
             "xs:unsignedLong"  => ("ulong",  new ValueEncoding.UnsignedInt(),  true),
