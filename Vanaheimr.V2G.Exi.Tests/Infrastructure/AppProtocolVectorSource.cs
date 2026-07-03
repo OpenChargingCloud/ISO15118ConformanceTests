@@ -19,7 +19,9 @@ public static class AppProtocolVectorSource
 
         var jsonOpts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-        foreach (var file in Directory.EnumerateFiles(dir, "*.vectors.json"))
+        // Only the AppProtocol vector files — other *.vectors.json (e.g. Primitives) have
+        // their own shape and their own test source.
+        foreach (var file in Directory.EnumerateFiles(dir, "AppProtocol*.vectors.json"))
         {
             var doc = JsonSerializer.Deserialize<VectorFile>(File.ReadAllText(file), jsonOpts)
                       ?? throw new InvalidDataException($"Empty vector file: {file}");

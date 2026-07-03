@@ -66,23 +66,39 @@ that byte (MSB-first, matching the EXI bit-packed convention). This is the
 output you want when staring at the third byte of `0xFE` wondering whether the
 Priority field shifted by one.
 
+## EXI primitive datatypes (Phase 1)
+
+`ExiPrimitives` now covers Unsigned Integer, **Signed Integer** (§7.1.5), **Binary**
+(hex/base64, §7.1.1), **Boolean** (§7.1.2), n-bit Unsigned, and miss-only String values.
+Float/Decimal/DateTime are deliberately absent — the ISO 15118 schemas don't use them.
+
+**String value tables** are implemented in `ExiStringTable` (full EXI §7.3.3: local +
+global partitions, hit/miss both directions). But note a key finding: the ISO 15118
+reference codec **cbV2G does not use value tables** — it always encodes strings as a miss
+and its decoder rejects hits (`EXI_ERROR__STRINGVALUES_NOT_SUPPORTED`). So our *encode*
+path is deliberately miss-only (byte-identical to cbV2G); `ExiStringTable` exists to
+*decode* streams from stacks that do emit hits (EXIficient/Josev) and to round-trip the
+full behaviour in tests.
+
+Coverage: hand-computed bit vectors (`ExiDatatypeTests`), value-table scenarios
+(`ExiStringTableTests`), property-based round-trips via CsCheck (`PrimitivePropertyTests`),
+and a self-encoded `Primitives.vectors.json` staged for an EXIficient cross-check
+(see `Vectors/PRIMITIVES_VECTORS.md`).
+
 ## What this prototype still does NOT do
 
-- EXI string value tables (only "miss" — fine for AppProtocol, blocker for -2/-20).
-- Non-ASCII string values (cbV2G rejects code points > U+007F; our codec would
-  encode them rune-wise, but that path has no reference oracle yet).
-- Lenient decoder mode for interop debugging.
+- Non-ASCII string values on the wire against a reference oracle (our codec encodes them
+  rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
+- EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
-- The real schema surface (imports, choice, substitution groups, attributes,
-  XMLDSig) — the generator still only handles the small AppProtocol XSD subset.
+- The real schema surface (imports, choice, substitution groups, attributes, XMLDSig) —
+  the generator still only handles the small AppProtocol XSD subset.
 
 ## Next milestones
 
-Phase 0 (wire conformance for SupportedAppProtocol) is **done**: the vectors come
-from cbV2G, and both codecs match it. See `docs/roadmap.md` and `docs/prompts/` for
-the full plan. Immediate next steps:
+Phase 0 (SupportedAppProtocol wire conformance vs cbV2G) and Phase 1 (EXI primitive layer)
+are **done**. See `docs/roadmap.md` and `docs/prompts/` for the full plan. Next:
 
-1. String value tables (local + global partitions) — mandatory for -2/-20.
-2. Remaining EXI datatypes (signed integer, binary, boolean) + W3C EXI testsuite.
-3. Grow the source generator to the real ISO 15118-2 schema set (Phase 2).
-4. ISO 15118-2 messages + XMLDSig (Phase 3), then ISO 15118-20 (Phase 4).
+1. Grow the source generator to the real ISO 15118-2 schema set (Phase 2).
+2. ISO 15118-2 messages + XMLDSig over EXI fragments (Phase 3).
+3. ISO 15118-20 multi-schema codecs (Phase 4), then EV↔EVSE simulation (Phase 5).
