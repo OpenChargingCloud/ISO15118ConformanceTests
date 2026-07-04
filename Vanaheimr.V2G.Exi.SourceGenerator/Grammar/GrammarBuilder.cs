@@ -15,6 +15,12 @@ internal abstract record ValueEncoding
     public sealed record SignedInt : ValueEncoding;            // xs:byte/short/int/long → EXI Integer
     public sealed record Binary : ValueEncoding;               // xs:hexBinary / xs:base64Binary → byte[]
     public sealed record StringValue : ValueEncoding;
+
+    /// <summary>
+    /// An attribute (AT) value carried inside an optional run: unlike an element, it is a bare
+    /// string with no SE / value-start / child-EE wrapper — only the run's event code precedes it.
+    /// </summary>
+    public sealed record AttributeValue : ValueEncoding;
     public sealed record NBitUnsigned(int BitWidth, long Bias) : ValueEncoding;
     public sealed record EnumIndex(string EnumName, int BitWidth, IReadOnlyList<string> Members) : ValueEncoding;
     public sealed record ComplexRef(string TypeName) : ValueEncoding;

@@ -105,8 +105,18 @@ remaining optionals are absent it takes the highest code); reached via the last 
 at its own 1-bit state. This subsumes the previously byte-verified single-trailing-optional (2-bit)
 and required-single (1-bit) cases.
 
+## Attribute grammar unified with the optional run (construct 9)
+
+An optional attribute is not a separate grammar prefix — cbexigen makes the AT event the first
+production of the content's initial state (verified against `AuthorizationReqType` grammar 222/223:
+`{Id, GenChallenge, EE}` is one 2-bit state). So the optional attribute is modelled as the *leading
+optional* of the content run, differing only in value encoding (a bare AT string: no
+SE / value-start / child-EE). This unifies the previously separate attribute path with the
+optional-run machine and lifts its restriction that the first content child be required — now
+**attribute + optional content** works, while **attribute + required content**
+(`CertificateChainType`) stays byte-identical.
+
 Not yet supported (later constructs, surfaced by the integration gate in order): an optional run
-terminated by a **substitution reference** (`ChargeParameterDiscoveryResType`), and the attribute
-grammar beyond a single required/optional attribute over required content — **attribute + optional
-content** (`AuthorizationReqType`), **attribute + choice** (`ParameterType`), **attribute +
-repeating** (`SalesTariffType`).
+terminated by a **substitution reference** (`ChargeParameterDiscoveryResType` →
+`EVPowerDeliveryParameter`), **attribute + choice** (`ParameterType`), and **attribute + repeating**
+(`SalesTariffType`).

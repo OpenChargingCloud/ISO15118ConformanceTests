@@ -500,6 +500,53 @@ public class GeneratorGrammarTests
         Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // element EE"));
     }
 
+    // ---- construct #9: optional attribute + optional content ----
+
+    private const string AuthReqSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="urn:test:auth" targetNamespace="urn:test:auth">
+          <xs:element name="root" type="AuthReqType"/>
+          <xs:complexType name="AuthReqType">
+            <xs:sequence>
+              <xs:element name="GenChallenge" type="xs:base64Binary" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="Id" type="xs:ID"/>
+          </xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void OptionalAttributeWithOptionalContent_FoldsAtIntoContentRun()
+    {
+        // AuthorizationReqType shape: optional Id attribute + optional GenChallenge element. cbV2G
+        // grammar 222/223: the AT event is the first production of the content's initial state, so
+        // {Id, GenChallenge, EE} is a 3-production (2-bit) state — the attribute is just the leading
+        // optional of the run. This used to fail loud ("first content child must be required").
+        var r = GeneratorHarness.Run(("auth.xsd", AuthReqSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // Record: attribute first (nullable), then the optional element.
+        Assert.That(src, Does.Contain("string? Id"));
+        Assert.That(src, Does.Contain("byte[]? GenChallenge"));
+        // State 0 {Id, GenChallenge, EE}: Id at code 0, all-absent EE at code 2, both 2-bit.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Id"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // element EE"));
+        // The AT value is a bare string — no value-start bit, unlike an element value.
+        Assert.That(src, Does.Contain("ExiPrimitives.WriteStringValue(ref w, msg.Id!);"));
+        Assert.That(src, Does.Contain("_Id = ExiPrimitives.ReadStringValue(ref r);"));
+    }
+
+    [Test]
+    public void OptionalAttributeWithOptionalContent_GeneratedCodeCompiles()
+    {
+        var r = GeneratorHarness.Run(("auth.xsd", AuthReqSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty,
+            r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]
