@@ -92,6 +92,15 @@ internal static class XsdReader
                 t.Enumeration ??= new List<string>();
                 t.Enumeration.Add(Required(f, "value"));
             }
+            // Length/pattern/whitespace facets constrain the value space but do not change the
+            // EXI wire encoding (length-prefixed strings/binary are encoded the same way), so
+            // they are recognised and ignored — not silently skipped.
+            else if (f.Name == Xs + "length"     || f.Name == Xs + "minLength" ||
+                     f.Name == Xs + "pattern"    || f.Name == Xs + "whiteSpace" ||
+                     f.Name == Xs + "totalDigits"|| f.Name == Xs + "fractionDigits")
+            {
+                // no wire effect
+            }
             else
                 throw new XsdReaderException(
                     $"simpleType '{name}': unsupported facet {f.Name.LocalName}.");
