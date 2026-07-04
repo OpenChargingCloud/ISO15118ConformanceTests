@@ -111,10 +111,14 @@ internal static class GrammarBuilder
     private static SequencePlan BuildSequence(
         string ctName, XsdComplexType ct, XsdSchema schema, List<EnumPlan> enums)
     {
+        // Flatten inherited particles: for xs:complexContent/xs:extension the base type's
+        // particles come first, then this type's own — this is the EXI content order.
+        var particles = FlattenParticles(ct, schema);
+
         // Detect "single repeating element" pattern (e.g. AppProtocolType list inside Req).
-        if (ct.Sequence.Count == 1 && ct.Sequence[0].MaxOccurs > 1)
+        if (particles.Count == 1 && particles[0].MaxOccurs > 1)
         {
-            var only = ct.Sequence[0];
+            var only = particles[0];
             var (csType, val, _) = ResolveTypeRef(only.TypeRef, schema, enums, only.Name);
 
             // For bounded repeating, the "child" represents the repeating element type;
@@ -135,7 +139,7 @@ internal static class GrammarBuilder
 
         // Otherwise, treat each child individually.
         var children = new List<ChildPlan>();
-        foreach (var el in ct.Sequence)
+        foreach (var el in particles)
         {
             if (el.MaxOccurs > 1)
                 throw new NotSupportedException(
@@ -243,6 +247,26 @@ internal static class GrammarBuilder
     {
         int i = s.IndexOf(':');
         return i < 0 ? s : s.Substring(i + 1);
+    }
+
+    /// <summary>
+    /// The full ordered particle list of a complex type: for an extension, the base type's
+    /// (recursively flattened) particles followed by this type's own. Non-derived types just
+    /// return their own sequence.
+    /// </summary>
+    private static IReadOnlyList<XsdElement> FlattenParticles(XsdComplexType ct, XsdSchema schema)
+    {
+        if (ct.BaseTypeRef is null)
+            return ct.Sequence;
+
+        var baseLocal = StripPrefix(ct.BaseTypeRef);
+        if (!schema.ComplexTypes.TryGetValue(baseLocal, out var baseCt))
+            throw new InvalidOperationException(
+                $"complexType '{ct.Name}': unknown xs:extension base '{ct.BaseTypeRef}'.");
+
+        var result = new List<XsdElement>(FlattenParticles(baseCt, schema));
+        result.AddRange(ct.Sequence);
+        return result;
     }
 }
 

@@ -107,12 +107,34 @@ internal static class XsdReader
     private static XsdComplexType ParseComplexType(XElement ct)
     {
         var name = (string?)ct.Attribute("name") ?? "";
-        var seq = ct.Element(Xs + "sequence")
-            ?? throw new XsdReaderException(
-                $"complexType '{name}': only xs:sequence is supported in this prototype.");
+        bool isAbstract = string.Equals((string?)ct.Attribute("abstract"), "true", StringComparison.Ordinal);
 
-        var elements = seq.Elements(Xs + "element").Select(ParseElement).ToList();
-        return new XsdComplexType(name, elements);
+        // xs:complexContent / xs:extension base="..."
+        var complexContent = ct.Element(Xs + "complexContent");
+        if (complexContent is not null)
+        {
+            var ext = complexContent.Element(Xs + "extension")
+                ?? throw new XsdReaderException(
+                    $"complexType '{name}': only xs:extension is supported inside xs:complexContent.");
+            var baseRef = Required(ext, "base");
+            var seq = ext.Element(Xs + "sequence");
+            var els = seq?.Elements(Xs + "element").Select(ParseElement).ToList()
+                      ?? new List<XsdElement>();
+            return new XsdComplexType(name, els, baseRef, isAbstract);
+        }
+
+        // Direct xs:sequence, or an empty complexType (e.g. the abstract BodyBaseType).
+        var directSeq = ct.Element(Xs + "sequence");
+        if (directSeq is null)
+        {
+            if (!ct.Elements().Any(e => e.Name.Namespace == Xs && e.Name.LocalName != "annotation"))
+                return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract);
+            throw new XsdReaderException(
+                $"complexType '{name}': only xs:sequence or xs:complexContent/xs:extension is supported.");
+        }
+
+        var elements = directSeq.Elements(Xs + "element").Select(ParseElement).ToList();
+        return new XsdComplexType(name, elements, null, isAbstract);
     }
 
     private static XsdElement ParseElement(XElement el)

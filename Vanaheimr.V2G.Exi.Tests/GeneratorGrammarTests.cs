@@ -78,6 +78,63 @@ public class GeneratorGrammarTests
         Assert.That(r.GeneratedSource, Does.Contain("Encode_Foo"));
     }
 
+    // ---- construct #2: complexContent / extension -------------------------
+
+    [Test]
+    public void Extension_MergesBaseThenDerivedParticles()
+    {
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:e" targetNamespace="urn:test:e">
+              <xs:element name="root" type="DerivedType"/>
+              <xs:complexType name="BaseType">
+                <xs:sequence><xs:element name="BaseField" type="xs:unsignedInt"/></xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="DerivedType">
+                <xs:complexContent>
+                  <xs:extension base="BaseType">
+                    <xs:sequence><xs:element name="DerivedField" type="xs:unsignedInt"/></xs:sequence>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("e.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+
+        // The record carries both fields, and the base field is encoded first.
+        Assert.That(r.GeneratedSource, Does.Contain("BaseField"));
+        Assert.That(r.GeneratedSource, Does.Contain("DerivedField"));
+        int enc = r.GeneratedSource.IndexOf("Encode_Derived", StringComparison.Ordinal);
+        int baseAt = r.GeneratedSource.IndexOf("msg.BaseField", enc, StringComparison.Ordinal);
+        int derivedAt = r.GeneratedSource.IndexOf("msg.DerivedField", enc, StringComparison.Ordinal);
+        Assert.That(baseAt, Is.GreaterThan(-1).And.LessThan(derivedAt),
+            "base particle must be encoded before the derived particle");
+    }
+
+    [Test]
+    public void Extension_OfEmptyAbstractBase_YieldsOwnParticlesOnly()
+    {
+        // Mirrors the ISO 15118-2 shape: an abstract empty BodyBaseType extended by a body.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:e" targetNamespace="urn:test:e">
+              <xs:element name="root" type="MsgType"/>
+              <xs:complexType name="BaseType" abstract="true"/>
+              <xs:complexType name="MsgType">
+                <xs:complexContent>
+                  <xs:extension base="BaseType">
+                    <xs:sequence><xs:element name="Only" type="xs:unsignedInt"/></xs:sequence>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("e.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        Assert.That(r.GeneratedSource, Does.Contain("Only"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

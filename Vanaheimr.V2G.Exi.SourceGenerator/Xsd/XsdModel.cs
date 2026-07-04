@@ -22,9 +22,16 @@ internal sealed record XsdElement(
     int    MaxOccurs,       // int.MaxValue ≡ "unbounded"
     XsdComplexType? InlineType);
 
+/// <summary>
+/// A complex type with element content. <see cref="Sequence"/> holds the type's OWN
+/// particles; if <see cref="BaseTypeRef"/> is set (xs:complexContent/xs:extension), the
+/// grammar builder prepends the (recursively flattened) base particles.
+/// </summary>
 internal sealed record XsdComplexType(
-    string                Name,
-    IReadOnlyList<XsdElement> Sequence);
+    string                    Name,
+    IReadOnlyList<XsdElement>  Sequence,
+    string?                   BaseTypeRef = null,   // extension base (may carry a prefix)
+    bool                      IsAbstract  = false);
 
 /// <summary>
 /// Simple type derived by restriction from a single base. Value-space facets cover
