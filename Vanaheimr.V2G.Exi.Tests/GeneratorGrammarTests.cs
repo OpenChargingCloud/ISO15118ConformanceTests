@@ -335,6 +335,40 @@ public class GeneratorGrammarTests
         Assert.That(src, Does.Contain("switch (r.ReadBits(2))"));
     }
 
+    // ---- construct #7: xs:simpleContent extension -------------------------
+
+    [Test]
+    public void SimpleContent_ValuePlusRequiredAttribute()
+    {
+        // Mirrors ContractSignatureEncryptedPrivateKeyType: a base64 value with a required Id.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:sc" targetNamespace="urn:test:sc">
+              <xs:element name="root" type="EncKeyType"/>
+              <xs:complexType name="EncKeyType">
+                <xs:simpleContent>
+                  <xs:extension base="keyType">
+                    <xs:attribute name="Id" type="xs:ID" use="required"/>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+              <xs:simpleType name="keyType">
+                <xs:restriction base="xs:base64Binary"><xs:maxLength value="48"/></xs:restriction>
+              </xs:simpleType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("sc.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("string? Id"));
+        Assert.That(src, Does.Contain("byte[] Value"));
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // AT(required attribute)"));
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // CONTENT event"));
+        Assert.That(src, Does.Contain("ExiPrimitives.WriteBinary(ref w, msg.Value)"));
+        Assert.That(src, Does.Contain("var _Value = ExiPrimitives.ReadBinary(ref r)"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

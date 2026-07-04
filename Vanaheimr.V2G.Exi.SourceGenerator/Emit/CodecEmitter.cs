@@ -138,6 +138,8 @@ internal sealed class CodecEmitter
         if (sp.Attributes is not null)
             foreach (var a in sp.Attributes)
                 parameters.Add($"{a.CSharpType}? {a.FieldName}");
+        if (sp.SimpleContent is not null)
+            parameters.Add($"{sp.SimpleContentType} Value");
         foreach (var c in sp.Children)
         {
             string typeText = c.Shape switch
@@ -280,13 +282,18 @@ internal sealed class CodecEmitter
             _sb.AppendLine("        }");
             _sb.AppendLine("        w.WriteBits(1, 2);   // list terminator / element EE");
         }
+        else if (sp.SimpleContent is not null)
+        {
+            EmitRequiredAttributePrefix(sp);   // no-op when there are no attributes
+            var valueChild = new ChildPlan("Value", sp.SimpleContentType!, false,
+                                           ChildShape.RequiredSingle, sp.SimpleContent!);
+            _sb.AppendLine("        w.WriteBits(0, 1);   // CONTENT event");
+            EmitWriteValue(valueChild, "msg.Value", "        ");
+            _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+        }
         else if (sp.Attributes is { Count: 1 } && sp.Attributes[0].Required)
         {
-            // A required attribute is always present: a 1-bit AT event, then the value (no
-            // value-start), then the content proceeds normally.
-            var attr = sp.Attributes[0];
-            _sb.AppendLine("        w.WriteBits(0, 1);   // AT(required attribute)");
-            _sb.Append("        ExiPrimitives.WriteStringValue(ref w, msg.").Append(attr.FieldName).AppendLine("!);");
+            EmitRequiredAttributePrefix(sp);
             EmitEncodeContentBody(sp);
         }
         else if (sp.Attributes is not null)
@@ -300,6 +307,15 @@ internal sealed class CodecEmitter
 
         _sb.AppendLine("    }");
         _sb.AppendLine();
+    }
+
+    /// <summary>A required attribute is always present: a 1-bit AT event, then its value.</summary>
+    private void EmitRequiredAttributePrefix(SequencePlan sp)
+    {
+        if (sp.Attributes is not { Count: 1 } || !sp.Attributes[0].Required) return;
+        var attr = sp.Attributes[0];
+        _sb.AppendLine("        w.WriteBits(0, 1);   // AT(required attribute)");
+        _sb.Append("        ExiPrimitives.WriteStringValue(ref w, msg.").Append(attr.FieldName).AppendLine("!);");
     }
 
     /// <summary>Emit a complex type's content (an xs:choice or an xs:sequence) plus its element EE.</summary>
@@ -661,6 +677,27 @@ internal sealed class CodecEmitter
             _sb.AppendLine("            list.Add(next);");
             _sb.AppendLine("        }");
             _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
+        }
+        else if (sp.SimpleContent is not null)
+        {
+            var locals = new List<string>();
+            if (sp.Attributes is { Count: 1 } && sp.Attributes[0].Required)
+            {
+                var attr = sp.Attributes[0];
+                _sb.AppendLine("        r.ReadBits(1);   // AT(required attribute)");
+                _sb.Append("        var _").Append(attr.FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+                locals.Add("_" + attr.FieldName);
+            }
+            _sb.AppendLine("        r.ReadBits(1);   // CONTENT event");
+            var valueChild = new ChildPlan("Value", sp.SimpleContentType!, false,
+                                           ChildShape.RequiredSingle, sp.SimpleContent!);
+            _sb.Append("        var _Value = ");
+            AppendReadValueExpr(valueChild);
+            _sb.AppendLine(";");
+            locals.Add("_Value");
+            _sb.AppendLine("        r.ReadBits(1);   // element EE");
+            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+               .Append(string.Join(", ", locals)).AppendLine(");");
         }
         else if (sp.Attributes is { Count: 1 } && sp.Attributes[0].Required)
         {

@@ -61,7 +61,9 @@ internal sealed record SequencePlan(
     bool                     IsAbstract = false, // emit as `abstract record`
     string?                  BaseRecordName = null, // extension/substitution base record
     IReadOnlyList<AttrPlan>? Attributes = null,    // AT events (sorted by name), before content
-    bool                     IsChoice = false);     // Children are mutually-exclusive xs:choice alternatives
+    bool                     IsChoice = false,      // Children are mutually-exclusive xs:choice alternatives
+    ValueEncoding?           SimpleContent = null,  // xs:simpleContent: the single content value's encoding
+    string?                  SimpleContentType = null);
 
 /// <summary>An attribute (AT event) of a complex type.</summary>
 internal sealed record AttrPlan(string FieldName, string CSharpType, ValueEncoding Value, bool Required = false);
@@ -152,13 +154,22 @@ internal static class GrammarBuilder
             attrPlans = list;
         }
 
+        // xs:simpleContent — a single content value plus attributes.
+        if (ct.SimpleContentBase is not null)
+        {
+            var (scType, scVal, _) = ResolveTypeRef(ct.SimpleContentBase, schema, enums, ctName);
+            return new SequencePlan(PascalCase(ctName), System.Array.Empty<ChildPlan>(),
+                IsAbstract: ct.IsAbstract, BaseRecordName: baseRecord, Attributes: attrPlans,
+                SimpleContent: scVal, SimpleContentType: scType);
+        }
+
         // xs:choice content — the alternatives become mutually-exclusive nullable fields.
         if (ct.Choice is not null)
         {
             var alts = new List<ChildPlan>();
             foreach (var el in ct.Choice)
             {
-                var (csType, val, isVal) = ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
+                var (csType, val, isVal) = ResolveElementType(el, schema, enums);
                 alts.Add(new ChildPlan(
                     FieldName       : PascalCase(el.Name),
                     CSharpType      : csType,
@@ -181,7 +192,7 @@ internal static class GrammarBuilder
                 throw new NotSupportedException(
                     $"complexType '{ctName}': attributes on a repeating-content type are not supported yet.");
             var only = particles[0];
-            var (csType, val, _) = ResolveTypeRef(only.TypeRef, schema, enums, only.Name);
+            var (csType, val, _) = ResolveElementType(only, schema, enums);
 
             // For bounded repeating, the "child" represents the repeating element type;
             // the emitter handles the loop using ListMin/ListMax.
@@ -212,7 +223,7 @@ internal static class GrammarBuilder
                 if (!ReferenceEquals(el, particles[particles.Count - 1]))
                     throw new NotSupportedException(
                         $"complexType '{ctName}': repeating element '{el.Name}' must be the last child of the sequence.");
-                var (repType, repVal, _) = ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
+                var (repType, repVal, _) = ResolveElementType(el, schema, enums);
                 children.Add(new ChildPlan(
                     FieldName : PascalCase(el.Name),
                     CSharpType: repType,
@@ -244,7 +255,7 @@ internal static class GrammarBuilder
                 continue;
             }
 
-            var (csType, val, isValueType) = ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
+            var (csType, val, isValueType) = ResolveElementType(el, schema, enums);
             var shape = el.MinOccurs == 0 ? ChildShape.OptionalSingle : ChildShape.RequiredSingle;
 
             children.Add(new ChildPlan(
@@ -303,29 +314,7 @@ internal static class GrammarBuilder
 
         // Named simpleType: walk through restriction.
         if (schema.SimpleTypes.TryGetValue(typeRef, out var st))
-        {
-            // String enumeration → C# enum.
-            if (st.Enumeration is { Count: > 0 } members)
-            {
-                var enumName = PascalCase(st.Name).TrimSuffix("Type");
-                if (!enums.Any(e => e.Name == enumName))
-                    enums.Add(new EnumPlan(enumName, members));
-                int width = BitsForChoices(members.Count);
-                return (enumName, new ValueEncoding.EnumIndex(enumName, width, members), true);
-            }
-
-            // Bounded integer range → n-bit unsigned with bias.
-            if (st.MinInclusive is long min && st.MaxInclusive is long max && max >= min)
-            {
-                long range = max - min + 1;
-                int width = BitsForChoices(checked((int)range));
-                var (csType, _, isVal) = ResolveBuiltin(st.Base);
-                return (csType, new ValueEncoding.NBitUnsigned(width, min), isVal);
-            }
-
-            // Otherwise: inherit the base built-in's encoding (string or unsigned integer).
-            return ResolveBuiltin(st.Base);
-        }
+            return ResolveSimpleType(st, enums);
 
         // Named complexType → field is the corresponding C# record.
         if (schema.ComplexTypes.ContainsKey(typeRef))
@@ -334,7 +323,53 @@ internal static class GrammarBuilder
             return (typeName, new ValueEncoding.ComplexRef(typeName), false);
         }
 
-        throw new InvalidOperationException($"Cannot resolve type reference '{typeRef}'.");
+        throw new InvalidOperationException($"Cannot resolve type reference '{typeRef}' for element '{ownerName}'.");
+    }
+
+    /// <summary>Resolve a (named or inline) simpleType's restriction to a value encoding.</summary>
+    private static (string CSharpType, ValueEncoding Value, bool IsValueType) ResolveSimpleType(
+        XsdSimpleType st, List<EnumPlan> enums)
+    {
+        // String enumeration → C# enum.
+        if (st.Enumeration is { Count: > 0 } members)
+        {
+            var enumName = PascalCase(st.Name).TrimSuffix("Type").TrimSuffix("_inline");
+            if (!enums.Any(e => e.Name == enumName))
+                enums.Add(new EnumPlan(enumName, members));
+            int enumWidth = BitsForChoices(members.Count);
+            return (enumName, new ValueEncoding.EnumIndex(enumName, enumWidth, members), true);
+        }
+
+        // Bounded integer range → n-bit unsigned with bias.
+        if (st.MinInclusive is long min && st.MaxInclusive is long max && max >= min)
+        {
+            long range = max - min + 1;
+            int width = BitsForChoices(checked((int)range));
+            var (csType, _, isVal) = ResolveBuiltin(st.Base);
+            return (csType, new ValueEncoding.NBitUnsigned(width, min), isVal);
+        }
+
+        // Otherwise: inherit the base built-in's encoding (string, unsigned/signed integer, …).
+        return ResolveBuiltin(NormaliseBuiltin(st.Base));
+    }
+
+    /// <summary>Resolve an element's type — its inline simpleType if present, else its type ref.</summary>
+    private static (string CSharpType, ValueEncoding Value, bool IsValueType) ResolveElementType(
+        XsdElement el, XsdSchema schema, List<EnumPlan> enums)
+    {
+        if (el.InlineSimpleType is not null)
+            return ResolveSimpleType(el.InlineSimpleType, enums);
+
+        // A plain element reference (e.g. a repeating ref="SalesTariffEntry") resolves to the
+        // referenced global element's type.
+        if (el.Ref is not null)
+        {
+            var target = schema.GlobalElements.FirstOrDefault(g => g.Ref is null && g.Name == el.Ref)
+                ?? throw new InvalidOperationException($"element ref '{el.Ref}' not found.");
+            return ResolveTypeRef(target.TypeRef, schema, enums, target.Name);
+        }
+
+        return ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
     }
 
     private static (string CSharpType, ValueEncoding Value, bool IsValueType) ResolveBuiltin(string xsType)

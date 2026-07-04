@@ -75,7 +75,12 @@ internal static class XsdReader
 
     private static void ParseNamedSimpleType(XElement st, XsdSchema schema)
     {
-        var name = Required(st, "name");
+        var t = ParseSimpleType(st, Required(st, "name"));
+        schema.SimpleTypes[t.Name] = t;
+    }
+
+    private static XsdSimpleType ParseSimpleType(XElement st, string name)
+    {
         var restriction = st.Element(Xs + "restriction")
             ?? throw new XsdReaderException(
                 $"simpleType '{name}': only restriction-based types are supported in this prototype.");
@@ -110,7 +115,7 @@ internal static class XsdReader
         // but we keep declaration order here; the emitter computes the lex-index
         // mapping at code-gen time.
 
-        schema.SimpleTypes[name] = t;
+        return t;
     }
 
     private static XsdComplexType ParseComplexType(XElement ct)
@@ -130,6 +135,18 @@ internal static class XsdReader
             var els = seq?.Elements(Xs + "element").Select(ParseElement).ToList()
                       ?? new List<XsdElement>();
             return new XsdComplexType(name, els, baseRef, isAbstract, ParseAttributes(ext));
+        }
+
+        // xs:simpleContent / xs:extension base="..." — a simple value plus attributes
+        // (e.g. ContractSignatureEncryptedPrivateKeyType: a base64 value with a required Id).
+        var simpleContent = ct.Element(Xs + "simpleContent");
+        if (simpleContent is not null)
+        {
+            var ext = simpleContent.Element(Xs + "extension")
+                ?? throw new XsdReaderException(
+                    $"complexType '{name}': only xs:extension is supported inside xs:simpleContent.");
+            return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract,
+                ParseAttributes(ext), null, SimpleContentBase: Required(ext, "base"));
         }
 
         var attributes = ParseAttributes(ct);
@@ -190,18 +207,25 @@ internal static class XsdReader
         bool isAbstract = string.Equals((string?)el.Attribute("abstract"), "true", StringComparison.Ordinal);
 
         XsdComplexType? inline = null;
+        XsdSimpleType?  inlineSimple = null;
         if (string.IsNullOrEmpty(typeRef))
         {
-            var ct = el.Element(Xs + "complexType")
-                ?? throw new XsdReaderException(
-                    $"element '{name}': must have either a type attribute or an inline complexType.");
-            inline = ParseComplexType(ct);
+            var ctElem = el.Element(Xs + "complexType");
+            var stElem = el.Element(Xs + "simpleType");
+            if (ctElem is not null)
+                inline = ParseComplexType(ctElem);
+            else if (stElem is not null)
+                inlineSimple = ParseSimpleType(stElem, name + "_inline");
+            else
+                throw new XsdReaderException(
+                    $"element '{name}': must have a type attribute or an inline simpleType/complexType.");
         }
 
         return new XsdElement(name, typeRef, minOccurs, maxOccurs, inline,
             Ref: null,
             SubstitutionGroup: subst is null ? null : StripPrefix(subst),
-            IsAbstract: isAbstract);
+            IsAbstract: isAbstract,
+            InlineSimpleType: inlineSimple);
     }
 
     private static string StripPrefix(string s)

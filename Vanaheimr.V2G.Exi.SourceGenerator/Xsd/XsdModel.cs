@@ -23,7 +23,8 @@ internal sealed record XsdElement(
     XsdComplexType? InlineType,
     string? Ref              = null,   // <xs:element ref="Head"/> — local name of the referenced element
     string? SubstitutionGroup = null,  // on a global element: the head it substitutes (local name)
-    bool    IsAbstract        = false);// on a global element: abstract="true" (substitution head)
+    bool    IsAbstract        = false, // on a global element: abstract="true" (substitution head)
+    XsdSimpleType? InlineSimpleType = null); // anonymous inline xs:simpleType
 
 /// <summary>
 /// A complex type with element content. <see cref="Sequence"/> holds the type's OWN
@@ -36,7 +37,8 @@ internal sealed record XsdComplexType(
     string?                   BaseTypeRef = null,   // extension base (may carry a prefix)
     bool                      IsAbstract  = false,
     IReadOnlyList<XsdAttribute>? Attributes = null,
-    IReadOnlyList<XsdElement>? Choice = null);       // xs:choice content (mutually exclusive with Sequence)
+    IReadOnlyList<XsdElement>? Choice = null,        // xs:choice content (mutually exclusive with Sequence)
+    string?                   SimpleContentBase = null); // xs:simpleContent/xs:extension base (a value + attributes)
 
 /// <summary>An <c>&lt;xs:attribute name="..." type="..." use="..."/&gt;</c> on a complex type.</summary>
 internal sealed record XsdAttribute(string Name, string TypeRef, bool Required);
