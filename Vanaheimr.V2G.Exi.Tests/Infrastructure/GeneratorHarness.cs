@@ -44,6 +44,32 @@ public static class GeneratorHarness
         return new Result(perGenerator.Diagnostics, source);
     }
 
+    /// <summary>
+    /// Compiles generated codec source against the runtime + a set of extra assemblies (the
+    /// Prototype, for <c>BitWriter</c>/<c>ExiPrimitives</c>), returning only the compile errors.
+    /// Lets grammar tests assert that generated C# for a construct actually builds, not just that
+    /// its text matches — important for paths the checked-in vector projects don't yet exercise.
+    /// </summary>
+    public static ImmutableArray<Diagnostic> CompileErrors(string generatedSource, params Type[] extraReferenceTypes)
+    {
+        var tpa = ((string)System.AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+            .Split(System.IO.Path.PathSeparator);
+        var refs = tpa.Where(p => p.EndsWith(".dll", System.StringComparison.OrdinalIgnoreCase))
+                      .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p))
+                      .ToList();
+        foreach (var t in extraReferenceTypes)
+            refs.Add(MetadataReference.CreateFromFile(t.Assembly.Location));
+
+        var tree = CSharpSyntaxTree.ParseText(generatedSource,
+            new CSharpParseOptions(LanguageVersion.Preview));
+        var comp = CSharpCompilation.Create("GenCompileAsm", new[] { tree }, refs,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        return comp.GetDiagnostics()
+                   .Where(d => d.Severity == DiagnosticSeverity.Error)
+                   .ToImmutableArray();
+    }
+
     private sealed class InMemoryAdditionalText : AdditionalText
     {
         private readonly string _text;

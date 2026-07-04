@@ -20,6 +20,14 @@ internal abstract record ValueEncoding
     public sealed record ComplexRef(string TypeName) : ValueEncoding;
 
     /// <summary>
+    /// A reference to an element in an opaque namespace (XMLDSig). Its grammar is not modelled;
+    /// the child is only ever encoded/decoded as <em>absent</em>. Encoding or decoding a present
+    /// instance fails loud — full fidelity is deferred to Phase 3. <see cref="TypeName"/> is the
+    /// generated empty placeholder record.
+    /// </summary>
+    public sealed record OpaqueElement(string TypeName) : ValueEncoding;
+
+    /// <summary>
     /// A reference to a substitution-group head: the value is one of several concrete member
     /// types, selected by an n-bit event code. Members are sorted by element name and include
     /// the abstract head element itself (cbexigen assigns it a production slot too).
@@ -83,7 +91,8 @@ internal sealed record SchemaPlan(
     string                          TargetNamespace,
     IReadOnlyList<GlobalElementPlan> GlobalElements,
     IReadOnlyDictionary<string, SequencePlan> ComplexTypes,
-    IReadOnlyList<EnumPlan>         Enums);
+    IReadOnlyList<EnumPlan>         Enums,
+    IReadOnlyList<string>           OpaqueTypes); // empty placeholder records for opaque refs
 
 internal sealed record EnumPlan(string Name, IReadOnlyList<string> Members);
 
@@ -96,11 +105,12 @@ internal static class GrammarBuilder
     public static SchemaPlan Build(XsdSchema schema)
     {
         var enums = new List<EnumPlan>();
+        var opaqueTypes = new List<string>();
 
         // Build per-named-complexType plans.
         var complex = new Dictionary<string, SequencePlan>();
         foreach (var kv in schema.ComplexTypes)
-            complex[kv.Key] = BuildSequence(kv.Key, kv.Value, schema, enums);
+            complex[kv.Key] = BuildSequence(kv.Key, kv.Value, schema, enums, opaqueTypes);
 
         // Build global-element plans. Only true document roots become document-grammar
         // productions — an abstract substitution head (BodyElement) and its members
@@ -116,7 +126,7 @@ internal static class GrammarBuilder
             SequencePlan body;
             if (ge.InlineType is not null)
             {
-                body = BuildSequence(typeName, ge.InlineType, schema, enums);
+                body = BuildSequence(typeName, ge.InlineType, schema, enums, opaqueTypes);
                 complex[typeName] = body;
             }
             else if (complex.TryGetValue(StripPrefix(ge.TypeRef), out var named))
@@ -133,11 +143,13 @@ internal static class GrammarBuilder
             globals.Add(new GlobalElementPlan(ge.Name, typeName, body));
         }
 
-        return new SchemaPlan(schema.TargetNamespace, globals, complex, enums);
+        return new SchemaPlan(schema.TargetNamespace, globals, complex, enums,
+            opaqueTypes.Distinct().ToList());
     }
 
     private static SequencePlan BuildSequence(
-        string ctName, XsdComplexType ct, XsdSchema schema, List<EnumPlan> enums)
+        string ctName, XsdComplexType ct, XsdSchema schema, List<EnumPlan> enums,
+        List<string> opaqueTypes)
     {
         var baseRecord = ct.BaseTypeRef is null ? null : PascalCase(StripPrefix(ct.BaseTypeRef));
 
@@ -239,20 +251,39 @@ internal static class GrammarBuilder
             // choice among the head's members.
             if (el.Ref is not null)
             {
-                var subst = TryBuildSubstitution(schema, el.Ref)
-                    ?? throw new NotSupportedException(
-                        $"complexType '{ctName}': element ref '{el.Ref}' is not a substitution-group head " +
-                        "(plain element references are not supported yet).");
+                var subst = TryBuildSubstitution(schema, el.Ref);
+                if (subst is { } s)
+                {
+                    children.Add(new ChildPlan(
+                        FieldName       : PascalCase(el.Ref),
+                        CSharpType      : s.BaseType,
+                        IsCSharpNullable: false,
+                        // cbexigen models the choice as a mandatory selection: the n-bit event
+                        // code has no 'absent' production even when minOccurs=0.
+                        Shape           : ChildShape.RequiredSingle,
+                        Value           : s.Choice));
+                    continue;
+                }
 
-                children.Add(new ChildPlan(
-                    FieldName       : PascalCase(el.Ref),
-                    CSharpType      : subst.BaseType,
-                    IsCSharpNullable: false,
-                    // cbexigen models the choice as a mandatory selection: the n-bit event
-                    // code has no 'absent' production even when minOccurs=0.
-                    Shape           : ChildShape.RequiredSingle,
-                    Value           : subst.Choice));
-                continue;
+                // A reference into an opaque namespace (ds:Signature in the message header):
+                // model it as an opaque, encode-absent child. It is optional in the schema and
+                // always absent for the Phase 2 messages.
+                if (schema.OpaqueElementNames.Contains(el.Ref))
+                {
+                    var opaqueType = PascalCase(el.Ref);
+                    opaqueTypes.Add(opaqueType);
+                    children.Add(new ChildPlan(
+                        FieldName       : PascalCase(el.Ref),
+                        CSharpType      : opaqueType,
+                        IsCSharpNullable: false, // reference type; nullability comes from Shape
+                        Shape           : el.MinOccurs == 0 ? ChildShape.OptionalSingle : ChildShape.RequiredSingle,
+                        Value           : new ValueEncoding.OpaqueElement(opaqueType)));
+                    continue;
+                }
+
+                throw new NotSupportedException(
+                    $"complexType '{ctName}': element ref '{el.Ref}' is not a substitution-group head " +
+                    "and not an opaque-namespace element (plain element references are not supported yet).");
             }
 
             var (csType, val, isValueType) = ResolveElementType(el, schema, enums);

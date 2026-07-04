@@ -39,6 +39,7 @@ internal sealed class CodecEmitter
     private readonly SchemaPlan _plan;
     private readonly HashSet<string> _emittedRecords = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SequencePlan> _byRecordName = new(StringComparer.Ordinal);
+    private int _runCounter; // unique suffixes for optional-run state locals
 
     private CodecEmitter(SchemaPlan plan)
     {
@@ -63,10 +64,28 @@ internal sealed class CodecEmitter
         _sb.AppendLine();
 
         EmitEnums();
+        EmitOpaqueTypes();
         EmitRecords();
         EmitCodec();
 
         return _sb.ToString();
+    }
+
+    // -----------------------------------------------------------------------
+    //  Opaque placeholder records — for references into an un-modelled namespace
+    //  (XMLDSig). They exist so the containing record is structurally typed and
+    //  round-trips while the element is absent; a present instance fails loud.
+    // -----------------------------------------------------------------------
+
+    private void EmitOpaqueTypes()
+    {
+        foreach (var t in _plan.OpaqueTypes)
+        {
+            _sb.Append("/// <summary>Opaque placeholder for the un-modelled XMLDSig element <c>")
+               .Append(t).AppendLine("</c> (full grammar deferred to Phase 3).</summary>");
+            _sb.Append("public sealed record ").Append(t).AppendLine("();");
+            _sb.AppendLine();
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -328,34 +347,149 @@ internal sealed class CodecEmitter
             return;
         }
 
-        bool lastTerminates = LastChildTerminatesElement(sp);
-        for (int ci = 0; ci < sp.Children.Count; ci++)
+        bool terminated = EmitEncodeSequenceChildren(sp.Children, "        ");
+        if (!terminated)
+            _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+    }
+
+    /// <summary>
+    /// Walks a sequence's particles left to right, emitting each segment: a required element
+    /// (1-bit SE + content or a substitution machine), a bounded-repeating list (its own EE),
+    /// or a run of consecutive optional elements (a flat grammar-state machine, see
+    /// <see cref="EmitEncodeOptionalRun"/>). Returns whether the element's END event has already
+    /// been written (a list terminator or an EE-terminated optional run doubles as it).
+    /// </summary>
+    private bool EmitEncodeSequenceChildren(IReadOnlyList<ChildPlan> children, string indent)
+    {
+        bool terminated = false;
+        int i = 0;
+        while (i < children.Count)
         {
-            var c = sp.Children[ci];
-            if (c.Shape == ChildShape.OptionalSingle)
+            var c = children[i];
+            switch (c.Shape)
             {
-                if (ci != sp.Children.Count - 1)
-                    throw new NotSupportedException(
-                        $"complexType '{sp.CSharpRecordName}': optional element '{c.FieldName}' " +
-                        "is only supported as the final child of a sequence in this prototype.");
-                EmitEncodeOptionalTrailing(c);
-            }
-            else if (c.Shape == ChildShape.BoundedRepeating)
-            {
-                EmitEncodeRepeatingChild(c, "        ");
-            }
-            else if (c.Value is ValueEncoding.SubstitutionChoice sc)
-            {
-                EmitEncodeSubstitution(c, sc);
-            }
-            else
-            {
-                _sb.AppendLine("        w.WriteBits(0, 1);   // SE");
-                EmitEncodeContent(c, "msg." + c.FieldName, "        ");
+                case ChildShape.BoundedRepeating:
+                    EmitEncodeRepeatingChild(c, indent);
+                    terminated = true;
+                    i++;
+                    break;
+
+                case ChildShape.RequiredSingle:
+                    if (c.Value is ValueEncoding.SubstitutionChoice sc)
+                        EmitEncodeSubstitution(c, sc);
+                    else
+                    {
+                        _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // SE");
+                        EmitEncodeContent(c, "msg." + c.FieldName, indent);
+                    }
+                    terminated = false;
+                    i++;
+                    break;
+
+                default: // OptionalSingle — the head of a run of consecutive optionals
+                    int j = i;
+                    while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
+                    bool endsElement = j == children.Count;
+                    EmitEncodeOptionalRun(children, i, j, indent);
+                    terminated = endsElement;
+                    i = endsElement ? j : j + 1;
+                    break;
             }
         }
-        if (!lastTerminates)
-            _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+        return terminated;
+    }
+
+    /// <summary>
+    /// Emits the flat EXI grammar-state machine for a run of optional elements
+    /// <c>children[s..e)</c>. The terminator is either the element's EE (when the run ends the
+    /// sequence) or the following required element <c>children[e]</c>, whose SE is folded into
+    /// the run's event codes. At each state the productions are the remaining optionals plus the
+    /// terminator; the event-code width is <c>ceil(log2(productions+1))</c> (cbexigen's non-strict
+    /// grammar, verified against MessageHeaderType and CurrentDemandResType). The terminator's
+    /// content is emitted inside this machine; the caller continues after <c>children[e]</c>.
+    /// </summary>
+    private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> children, int s, int e, string indent)
+    {
+        int m = e - s;                       // number of optionals in the run
+        bool endsElement = e == children.Count;
+        ChildPlan? term = endsElement ? null : children[e];
+        if (term is not null &&
+            (term.Shape != ChildShape.RequiredSingle || term.Value is ValueEncoding.SubstitutionChoice))
+            throw new NotSupportedException(
+                $"optional run before '{term.FieldName}': a run of optionals may only be terminated by the " +
+                "element EE or a required simple/complex element (substitution/repeating terminators are not supported yet).");
+
+        int id = _runCounter++;
+        string st = "_ost" + id, done = "_odone" + id;
+        string inner = indent + "    ";
+        string body = inner + "    ";
+
+        _sb.Append(indent).Append("int ").Append(st).AppendLine(" = 0;");
+        _sb.Append(indent).Append("bool ").Append(done).AppendLine(" = false;");
+        _sb.Append(indent).Append("while (!").Append(done).AppendLine(")");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(inner).Append("switch (").Append(st).AppendLine(")");
+        _sb.Append(inner).AppendLine("{");
+
+        for (int k = 0; k < m; k++)
+        {
+            int remaining = m - k;
+            // Productions at this state = remaining optionals + 1 terminator; cbexigen's
+            // non-strict grammar widths it as ceil(log2(productions + 1)) = BitsForChoices(remaining + 2).
+            int width = BitsForChoices(remaining + 2);
+            _sb.Append(body).Append("case ").Append(k).AppendLine(":");
+            for (int p = s + k; p < e; p++)
+            {
+                var o = children[p];
+                int code = p - (s + k);
+                bool last = p == e - 1;
+                string presence = o.IsCSharpNullable ? $"msg.{o.FieldName}.HasValue" : $"msg.{o.FieldName} is not null";
+                string accessor = o.IsCSharpNullable ? $"msg.{o.FieldName}!.Value" : $"msg.{o.FieldName}!";
+                _sb.Append(body).Append("    ").Append(code == 0 ? "if" : "else if")
+                   .Append(" (").Append(presence).AppendLine(")");
+                _sb.Append(body).AppendLine("    {");
+                _sb.Append(body).Append("        w.WriteBits(").Append(code).Append(", ").Append(width)
+                   .Append(");   // ").AppendLine(o.FieldName);
+                EmitEncodeContent(o, accessor, body + "        ");
+                if (last)
+                {
+                    EmitEncodeRunTerminator(term, body + "        ");
+                    _sb.Append(body).Append("        ").Append(done).AppendLine(" = true;");
+                }
+                else
+                {
+                    _sb.Append(body).Append("        ").Append(st).Append(" = ").Append(p - s + 1).AppendLine(";");
+                }
+                _sb.Append(body).AppendLine("    }");
+            }
+            // All remaining optionals absent: the terminator takes the highest event code.
+            _sb.Append(body).AppendLine("    else");
+            _sb.Append(body).AppendLine("    {");
+            _sb.Append(body).Append("        w.WriteBits(").Append(remaining).Append(", ").Append(width)
+               .Append(");   // ").AppendLine(endsElement ? "element EE" : term!.FieldName);
+            if (!endsElement)
+                EmitEncodeContent(term!, "msg." + term!.FieldName, body + "        ");
+            _sb.Append(body).Append("        ").Append(done).AppendLine(" = true;");
+            _sb.Append(body).AppendLine("    }");
+            _sb.Append(body).AppendLine("    break;");
+        }
+
+        _sb.Append(inner).AppendLine("}");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>After the last optional of a run was emitted, write the terminator at its own
+    /// single-production state: a 1-bit element EE, or a 1-bit SE plus the required terminator's
+    /// content.</summary>
+    private void EmitEncodeRunTerminator(ChildPlan? term, string indent)
+    {
+        if (term is null)
+        {
+            _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // element EE");
+            return;
+        }
+        _sb.Append(indent).Append("w.WriteBits(0, 1);   // SE(").Append(term.FieldName).AppendLine(")");
+        EmitEncodeContent(term, "msg." + term.FieldName, indent);
     }
 
     /// <summary>
@@ -388,7 +522,13 @@ internal sealed class CodecEmitter
     /// </summary>
     private void EmitEncodeContent(ChildPlan c, string accessor, string indent)
     {
-        if (c.Value is ValueEncoding.ComplexRef cr)
+        if (c.Value is ValueEncoding.OpaqueElement oe)
+        {
+            // Reached only if a present (signed) instance is supplied — not modelled in Phase 2.
+            _sb.Append(indent).Append("throw new NotSupportedException(\"Encoding a present ")
+               .Append(oe.TypeName).AppendLine(" (XMLDSig) is deferred to Phase 3.\");");
+        }
+        else if (c.Value is ValueEncoding.ComplexRef cr)
         {
             _sb.Append(indent).Append("Encode_").Append(cr.TypeName)
                .Append("(ref w, ").Append(accessor).AppendLine(");");
@@ -551,13 +691,6 @@ internal sealed class CodecEmitter
             if (c.Shape == ChildShape.BoundedRepeating)
                 throw new NotSupportedException($"{sp.CSharpRecordName}: attributes with repeating content are not supported yet.");
         return a;
-    }
-
-    private static bool LastChildTerminatesElement(SequencePlan sp)
-    {
-        if (sp.Children.Count == 0) return false;
-        var last = sp.Children[sp.Children.Count - 1].Shape;
-        return last is ChildShape.OptionalSingle or ChildShape.BoundedRepeating;
     }
 
     /// <summary>
@@ -749,44 +882,159 @@ internal sealed class CodecEmitter
             return;
         }
 
-        bool lastTerminates = LastChildTerminatesElement(sp);
-        foreach (var c in sp.Children)
-        {
-            string local = "_" + c.FieldName;
-            locals.Add(local);
-
-            if (c.Shape == ChildShape.OptionalSingle)
-            {
-                _sb.Append("        ").Append(c.CSharpType).Append("? ").Append(local).AppendLine(" = default;");
-                _sb.AppendLine("        {");
-                _sb.AppendLine("            uint ec = r.ReadBits(2);   // present = 0, EE = 1");
-                _sb.AppendLine("            if (ec == 0)");
-                _sb.AppendLine("            {");
-                EmitDecodeContent(c, local, "                ", declare: false);
-                _sb.AppendLine("                r.ReadBits(1);   // element EE");
-                _sb.AppendLine("            }");
-                _sb.AppendLine("        }");
-            }
-            else if (c.Shape == ChildShape.BoundedRepeating)
-            {
-                EmitDecodeRepeatingChild(c, local, "        ");
-            }
-            else if (c.Value is ValueEncoding.SubstitutionChoice sc)
-            {
-                EmitDecodeSubstitution(c, local, sc);
-            }
-            else
-            {
-                _sb.AppendLine("        r.ReadBits(1);   // SE");
-                EmitDecodeContent(c, local, "        ", declare: true);
-            }
-        }
-
-        if (!lastTerminates)
+        bool terminated = EmitDecodeSequenceChildren(sp.Children, "        ", locals);
+        if (!terminated)
             _sb.AppendLine("        r.ReadBits(1);   // element EE");
 
         _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
            .Append(string.Join(", ", locals)).AppendLine(");");
+    }
+
+    /// <summary>
+    /// Decode mirror of <see cref="EmitEncodeSequenceChildren"/>: walks the sequence, declaring a
+    /// local per particle (in record-constructor order) and reading each segment. Returns whether
+    /// the element's END event was already consumed.
+    /// </summary>
+    private bool EmitDecodeSequenceChildren(IReadOnlyList<ChildPlan> children, string indent, List<string> locals)
+    {
+        bool terminated = false;
+        int i = 0;
+        while (i < children.Count)
+        {
+            var c = children[i];
+            string local = "_" + c.FieldName;
+            switch (c.Shape)
+            {
+                case ChildShape.BoundedRepeating:
+                    EmitDecodeRepeatingChild(c, local, indent);
+                    locals.Add(local);
+                    terminated = true;
+                    i++;
+                    break;
+
+                case ChildShape.RequiredSingle:
+                    if (c.Value is ValueEncoding.SubstitutionChoice sc)
+                        EmitDecodeSubstitution(c, local, sc);
+                    else
+                    {
+                        _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE");
+                        EmitDecodeContent(c, local, indent, declare: true);
+                    }
+                    locals.Add(local);
+                    terminated = false;
+                    i++;
+                    break;
+
+                default: // OptionalSingle — head of a run
+                    int j = i;
+                    while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
+                    bool endsElement = j == children.Count;
+                    EmitDecodeOptionalRun(children, i, j, indent, locals);
+                    terminated = endsElement;
+                    i = endsElement ? j : j + 1;
+                    break;
+            }
+        }
+        return terminated;
+    }
+
+    /// <summary>Decode side of <see cref="EmitEncodeOptionalRun"/>. Declares a nullable local per
+    /// optional (and the required terminator, if any), then reads the flat state machine, filling
+    /// locals by the event code read at each state.</summary>
+    private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> children, int s, int e, string indent, List<string> locals)
+    {
+        int m = e - s;
+        bool endsElement = e == children.Count;
+        ChildPlan? term = endsElement ? null : children[e];
+        if (term is not null &&
+            (term.Shape != ChildShape.RequiredSingle || term.Value is ValueEncoding.SubstitutionChoice))
+            throw new NotSupportedException(
+                $"optional run before '{term.FieldName}': a run of optionals may only be terminated by the " +
+                "element EE or a required simple/complex element (substitution/repeating terminators are not supported yet).");
+
+        // Declare the locals in record order: each optional (nullable), then the terminator.
+        for (int p = s; p < e; p++)
+        {
+            var o = children[p];
+            _sb.Append(indent).Append(o.CSharpType).Append("? _").Append(o.FieldName).AppendLine(" = default;");
+            locals.Add("_" + o.FieldName);
+        }
+        if (term is not null)
+        {
+            _sb.Append(indent).Append(term.CSharpType).Append(" _").Append(term.FieldName).AppendLine(" = default!;");
+            locals.Add("_" + term.FieldName);
+        }
+
+        int id = _runCounter++;
+        string st = "_ist" + id, done = "_idone" + id, code = "_ic" + id;
+        string inner = indent + "    ";
+        string body = inner + "    ";
+
+        _sb.Append(indent).Append("int ").Append(st).AppendLine(" = 0;");
+        _sb.Append(indent).Append("bool ").Append(done).AppendLine(" = false;");
+        _sb.Append(indent).Append("while (!").Append(done).AppendLine(")");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(inner).Append("switch (").Append(st).AppendLine(")");
+        _sb.Append(inner).AppendLine("{");
+
+        for (int k = 0; k < m; k++)
+        {
+            int remaining = m - k;
+            int width = BitsForChoices(remaining + 2);
+            _sb.Append(body).Append("case ").Append(k).AppendLine(":");
+            _sb.Append(body).AppendLine("{");
+            _sb.Append(body).Append("    uint ").Append(code).Append(" = r.ReadBits(").Append(width).AppendLine(");");
+            _sb.Append(body).Append("    if (").Append(code).Append(" < ").Append(remaining).AppendLine("u)");
+            _sb.Append(body).AppendLine("    {");
+            _sb.Append(body).Append("        switch (").Append(code).AppendLine(")");
+            _sb.Append(body).AppendLine("        {");
+            for (int p = s + k; p < e; p++)
+            {
+                var o = children[p];
+                int c2 = p - (s + k);
+                bool last = p == e - 1;
+                _sb.Append(body).Append("            case ").Append(c2).AppendLine("u:");
+                EmitDecodeContent(o, "_" + o.FieldName, body + "                ", declare: false);
+                if (last)
+                {
+                    EmitDecodeRunTerminator(term, body + "                ");
+                    _sb.Append(body).Append("                ").Append(done).AppendLine(" = true;");
+                }
+                else
+                {
+                    _sb.Append(body).Append("                ").Append(st).Append(" = ").Append(p - s + 1).AppendLine(";");
+                }
+                _sb.Append(body).AppendLine("                break;");
+            }
+            _sb.Append(body).AppendLine("        }");
+            _sb.Append(body).AppendLine("    }");
+            _sb.Append(body).Append("    else if (").Append(code).Append(" == ").Append(remaining).AppendLine("u)");
+            _sb.Append(body).AppendLine("    {");
+            // Terminator selected (all remaining optionals absent); the event code was its SE.
+            if (!endsElement)
+                EmitDecodeContent(term!, "_" + term!.FieldName, body + "        ", declare: false);
+            _sb.Append(body).Append("        ").Append(done).AppendLine(" = true;");
+            _sb.Append(body).AppendLine("    }");
+            _sb.Append(body).AppendLine("    else throw new InvalidDataException(\"invalid optional-run event code\");");
+            _sb.Append(body).AppendLine("    break;");
+            _sb.Append(body).AppendLine("}");
+        }
+
+        _sb.Append(inner).AppendLine("}");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>After the last optional was decoded, consume the terminator at its own single-
+    /// production state: a 1-bit element EE, or a 1-bit SE plus the required terminator's content.</summary>
+    private void EmitDecodeRunTerminator(ChildPlan? term, string indent)
+    {
+        if (term is null)
+        {
+            _sb.Append(indent).AppendLine("r.ReadBits(1);   // element EE");
+            return;
+        }
+        _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE(terminator)");
+        EmitDecodeContent(term, "_" + term.FieldName, indent, declare: false);
     }
 
     /// <summary>
@@ -797,6 +1045,15 @@ internal sealed class CodecEmitter
     /// </summary>
     private void EmitDecodeContent(ChildPlan c, string local, string indent, bool declare)
     {
+        if (c.Value is ValueEncoding.OpaqueElement oe)
+        {
+            // Reached only if the wire carries a present (signed) instance — not modelled in Phase 2.
+            if (declare)
+                _sb.Append(indent).Append(oe.TypeName).Append(' ').Append(local).AppendLine(" = default!;");
+            _sb.Append(indent).Append("throw new NotSupportedException(\"Decoding a present ")
+               .Append(oe.TypeName).AppendLine(" (XMLDSig) is deferred to Phase 3.\");");
+            return;
+        }
         if (c.Value is ValueEncoding.ComplexRef cr)
         {
             _sb.Append(indent);

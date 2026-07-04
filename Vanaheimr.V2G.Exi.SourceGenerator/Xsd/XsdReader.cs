@@ -25,6 +25,15 @@ internal static class XsdReader
 {
     private static readonly XNamespace Xs = "http://www.w3.org/2001/XMLSchema";
 
+    /// <summary>
+    /// Namespaces whose full grammar the generator does not model yet. XMLDSig carries
+    /// xs:any / mixed / recursive types that ISO 15118-2 only needs for signed messages
+    /// (Phase 3). For Phase 2 the header's optional <c>ds:Signature</c> is always absent,
+    /// so the whole namespace is treated as opaque: its types are not built, and the single
+    /// reference to it becomes an encode-absent/round-trip-only child.
+    /// </summary>
+    private const string XmlDsigNamespace = "http://www.w3.org/2000/09/xmldsig#";
+
     /// <summary>Parse a single XSD document into its own schema.</summary>
     public static XsdSchema Parse(string xml)
     {
@@ -63,6 +72,13 @@ internal static class XsdReader
         if (isFirst)
             schema.TargetNamespace = (string?)root.Attribute("targetNamespace") ?? "";
 
+        var targetNs = (string?)root.Attribute("targetNamespace") ?? "";
+        if (targetNs == XmlDsigNamespace)
+        {
+            AppendOpaqueDsigDocument(schema, root);
+            return;
+        }
+
         foreach (var st in root.Elements(Xs + "simpleType"))
             ParseNamedSimpleType(st, schema);
 
@@ -71,6 +87,80 @@ internal static class XsdReader
 
         foreach (var el in root.Elements(Xs + "element"))
             schema.GlobalElements.Add(ParseElement(el));
+    }
+
+    /// <summary>
+    /// Processes the opaque XMLDSig schema. Every global element name is recorded as opaque (so a
+    /// reference to one — the header's <c>ds:Signature</c> — becomes an encode-absent child), and
+    /// its elements are NOT added as document roots. From its types only <em>self-contained data
+    /// types</em> are exposed — a plain sequence of built-in-typed fields with no reference into the
+    /// signature subtree (this is exactly <c>X509IssuerSerialType</c>, which ISO 15118-2's
+    /// PaymentDetails genuinely uses). The signature plumbing (xs:any / mixed / recursive, reachable
+    /// only through the opaque Signature element) is left unmodelled by design, not silently skipped.
+    /// </summary>
+    private static void AppendOpaqueDsigDocument(XsdSchema schema, XElement root)
+    {
+        foreach (var el in root.Elements(Xs + "element"))
+        {
+            var n = (string?)el.Attribute("name");
+            if (n is not null) schema.OpaqueElementNames.Add(n);
+        }
+
+        foreach (var ct in root.Elements(Xs + "complexType"))
+            if (IsSelfContainedDataType(ct))
+                schema.ComplexTypes[Required(ct, "name")] = ParseComplexType(ct);
+    }
+
+    /// <summary>
+    /// True for a complex type that is a plain <c>xs:sequence</c> of built-in-typed elements — no
+    /// attributes, no inheritance/choice/simpleContent, no element references, no inline types, no
+    /// wildcards. Such a type can be modelled standalone; anything else in the opaque namespace
+    /// pulls in the signature subtree and stays opaque.
+    /// </summary>
+    private static bool IsSelfContainedDataType(XElement ct)
+    {
+        if (ct.Elements(Xs + "attribute").Any()) return false;
+        if (ct.Element(Xs + "complexContent") is not null ||
+            ct.Element(Xs + "simpleContent")  is not null ||
+            ct.Element(Xs + "choice")         is not null) return false;
+
+        var seq = ct.Element(Xs + "sequence");
+        if (seq is null) return false;
+
+        // Only xs:element children, each with a built-in xs:* type and no ref/inline.
+        foreach (var child in seq.Elements())
+        {
+            if (child.Name != Xs + "element") return false;               // e.g. xs:any
+            if ((string?)child.Attribute("ref") is not null) return false;
+            var resolved = ResolveTypeName(child, (string?)child.Attribute("type") ?? "");
+            if (!resolved.StartsWith("xs:", StringComparison.Ordinal)) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Resolves a type QName against its element's in-scope namespace bindings and returns a
+    /// normalised reference: <c>"xs:localName"</c> for the XML Schema namespace (built-ins, whether
+    /// written <c>xs:int</c>, <c>xsd:int</c>, or unprefixed under a default XSD namespace as in
+    /// XMLDSig), otherwise the bare local name (resolved by local name across the collected set).
+    /// </summary>
+    private static string ResolveTypeName(XElement context, string qname)
+    {
+        if (string.IsNullOrEmpty(qname)) return qname;
+        int i = qname.IndexOf(':');
+        XNamespace ns;
+        string local;
+        if (i < 0)
+        {
+            local = qname;
+            ns = context.GetDefaultNamespace();
+        }
+        else
+        {
+            local = qname.Substring(i + 1);
+            ns = context.GetNamespaceOfPrefix(qname.Substring(0, i)) ?? XNamespace.None;
+        }
+        return ns == Xs ? "xs:" + local : local;
     }
 
     private static void ParseNamedSimpleType(XElement st, XsdSchema schema)
@@ -85,7 +175,7 @@ internal static class XsdReader
             ?? throw new XsdReaderException(
                 $"simpleType '{name}': only restriction-based types are supported in this prototype.");
 
-        var t = new XsdSimpleType { Name = name, Base = Required(restriction, "base") };
+        var t = new XsdSimpleType { Name = name, Base = ResolveTypeName(restriction, Required(restriction, "base")) };
 
         foreach (var f in restriction.Elements())
         {
@@ -130,7 +220,7 @@ internal static class XsdReader
             var ext = complexContent.Element(Xs + "extension")
                 ?? throw new XsdReaderException(
                     $"complexType '{name}': only xs:extension is supported inside xs:complexContent.");
-            var baseRef = Required(ext, "base");
+            var baseRef = ResolveTypeName(ext, Required(ext, "base"));
             var seq = ext.Element(Xs + "sequence");
             var els = seq?.Elements(Xs + "element").Select(ParseElement).ToList()
                       ?? new List<XsdElement>();
@@ -146,7 +236,7 @@ internal static class XsdReader
                 ?? throw new XsdReaderException(
                     $"complexType '{name}': only xs:extension is supported inside xs:simpleContent.");
             return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract,
-                ParseAttributes(ext), null, SimpleContentBase: Required(ext, "base"));
+                ParseAttributes(ext), null, SimpleContentBase: ResolveTypeName(ext, Required(ext, "base")));
         }
 
         var attributes = ParseAttributes(ct);
@@ -179,7 +269,7 @@ internal static class XsdReader
     {
         var attrs = container.Elements(Xs + "attribute").Select(a => new XsdAttribute(
             Required(a, "name"),
-            (string?)a.Attribute("type") ?? "xs:string",
+            ResolveTypeName(a, (string?)a.Attribute("type") ?? "xs:string"),
             string.Equals((string?)a.Attribute("use"), "required", StringComparison.Ordinal))).ToList();
         return attrs.Count == 0 ? null : attrs;
     }
@@ -202,7 +292,7 @@ internal static class XsdReader
         }
 
         var name = Required(el, "name");
-        var typeRef = (string?)el.Attribute("type") ?? "";
+        var typeRef = ResolveTypeName(el, (string?)el.Attribute("type") ?? "");
         var subst = (string?)el.Attribute("substitutionGroup");
         bool isAbstract = string.Equals((string?)el.Attribute("abstract"), "true", StringComparison.Ordinal);
 

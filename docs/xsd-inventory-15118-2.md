@@ -70,18 +70,43 @@ grammar unit test before touching the real schema.
 9. New built-ins: signed (`byte`/`short`/`int`/`long` → `sbyte`/`short`/`int`/`long`),
    `hexBinary`/`base64Binary` → `byte[]`, `boolean`, `xs:ID` → string.
 
-## The XMLDSig complication (scope call for Phase 2)
+## The XMLDSig complication — resolved (construct 8)
 
 `xmldsig-core-schema.xsd` is the outlier: it is where **all 12 `xs:any`**, **6 of 7
 `choice`**, and most **mixed** content live, plus recursive types (`Object`, `SignatureType`).
 The -2 schemas `import` it because the `V2G_Message` **Header carries an optional
-`ds:Signature`**. But:
+`ds:Signature`**, and PaymentDetails references `ds:X509IssuerSerialType`.
 
-- SessionSetup and ServiceDiscovery (the Phase 2 target messages) do **not** sign — their
-  Signature is absent, so only the optional-element "absent" bit is exercised.
-- Full XMLDSig grammar (xs:any / mixed) + signature computation is explicitly **Phase 3**.
+Resolution (implemented): XMLDSig is treated as an **opaque namespace**.
 
-So the open decision is how to make the set generate without diagnostics *now* without
-implementing xs:any/mixed: e.g. model `ds:Signature` as an opaque, structurally-typed
-element that we can encode-absent / round-trip, and defer full fidelity to Phase 3. This
-is flagged for the user before the generator work proceeds.
+- **`ds:Signature`** (the header reference) is modelled as an opaque, structurally-typed
+  element: an empty placeholder record and a nullable field. It is only ever encoded/decoded
+  as *absent* (its optional-element slot), which is exactly what the Phase 2 messages need
+  since they never sign; a present instance fails loud. Full XMLDSig grammar (xs:any / mixed)
+  and signature computation remain **Phase 3**.
+- The signature subtree (`SignatureType`, `SignedInfoType`, `Object`, …, everything reachable
+  only through the opaque Signature element) is **not** modelled — by design, not silently
+  skipped.
+- **Self-contained data types** from the namespace — a plain `xs:sequence` of built-in-typed
+  fields with no reference into the subtree — *are* exposed, because -2 genuinely uses them.
+  This is exactly `X509IssuerSerialType` (`X509IssuerName` string + `X509SerialNumber` integer).
+  Its unprefixed built-in field types resolve via namespace-aware QName resolution (the schema's
+  default namespace is the XSD namespace).
+
+## Trailing/interleaved optionals — the non-strict grammar rule (construct 8)
+
+The message header (`SessionID` required, then optional `Notification` and `Signature`) needed a
+general **run of optionals**, not just a single trailing optional. cbexigen's non-strict grammar,
+verified against `MessageHeaderType` (grammar 195/196/3) and `CurrentDemandResType`/
+`ChargingStatusResType`: at each state the productions are the remaining optionals plus one
+terminator (the next required element, or the element EE), and the event-code width is
+`ceil(log2(productions + 1))`. The terminator's SE is folded into the run's event codes (when all
+remaining optionals are absent it takes the highest code); reached via the last optional it sits
+at its own 1-bit state. This subsumes the previously byte-verified single-trailing-optional (2-bit)
+and required-single (1-bit) cases.
+
+Not yet supported (later constructs, surfaced by the integration gate in order): an optional run
+terminated by a **substitution reference** (`ChargeParameterDiscoveryResType`), and the attribute
+grammar beyond a single required/optional attribute over required content — **attribute + optional
+content** (`AuthorizationReqType`), **attribute + choice** (`ParameterType`), **attribute +
+repeating** (`SalesTariffType`).

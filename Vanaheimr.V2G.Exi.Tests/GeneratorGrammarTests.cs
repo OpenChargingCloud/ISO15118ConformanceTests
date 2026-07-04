@@ -369,6 +369,137 @@ public class GeneratorGrammarTests
         Assert.That(src, Does.Contain("var _Value = ExiPrimitives.ReadBinary(ref r)"));
     }
 
+    // ---- construct #8: opaque XMLDSig reference + runs of trailing optionals ----
+
+    private const string DsigSchema = """
+        <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                targetNamespace="http://www.w3.org/2000/09/xmldsig#" elementFormDefault="qualified">
+          <!-- Opaque signature subtree: xs:any / refs, never modelled. -->
+          <element name="Signature" type="ds:SignatureType"/>
+          <complexType name="SignatureType">
+            <sequence><any processContents="lax"/></sequence>
+            <attribute name="Id" type="ID"/>
+          </complexType>
+          <!-- A self-contained data type genuinely referenced by the main schema (like
+               X509IssuerSerialType): unprefixed built-in field types resolve via the default
+               XSD namespace. -->
+          <complexType name="X509IssuerSerialType">
+            <sequence>
+              <element name="X509IssuerName" type="string"/>
+              <element name="X509SerialNumber" type="integer"/>
+            </sequence>
+          </complexType>
+        </schema>
+        """;
+
+    private const string HeaderSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                   xmlns="urn:test:h" targetNamespace="urn:test:h" elementFormDefault="qualified">
+          <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="dsig.xsd"/>
+          <xs:element name="root" type="HeaderType"/>
+          <xs:complexType name="HeaderType">
+            <xs:sequence>
+              <xs:element name="SessionID" type="xs:hexBinary"/>
+              <xs:element name="Note" type="xs:unsignedInt" minOccurs="0"/>
+              <xs:element ref="ds:Signature" minOccurs="0"/>
+              <xs:element name="CertId" type="ds:X509IssuerSerialType" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void OpaqueReference_ModelledAsAbsentPlaceholder()
+    {
+        var r = GeneratorHarness.Run(("h.xsd", HeaderSchema), ("dsig.xsd", DsigSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // The opaque Signature element becomes an empty placeholder record and a nullable field;
+        // encoding/decoding a present instance fails loud (deferred to Phase 3).
+        Assert.That(src, Does.Contain("public sealed record Signature();"));
+        Assert.That(src, Does.Contain("Signature? Signature"));
+        Assert.That(src, Does.Contain("(XMLDSig) is deferred to Phase 3"));
+        // The self-contained data type from the opaque namespace IS modelled (unprefixed built-ins
+        // resolved via the default XSD namespace: string -> string, integer -> long/EXI Integer).
+        Assert.That(src, Does.Contain("record X509IssuerSerialType"));
+        Assert.That(src, Does.Contain("string X509IssuerName"));
+        Assert.That(src, Does.Contain("long X509SerialNumber"));
+        Assert.That(src, Does.Contain("ExiPrimitives.WriteSignedInteger"));
+    }
+
+    [Test]
+    public void TrailingOptionalRun_UsesCbV2GEventCodeWidths()
+    {
+        // SessionID (required) + a run of trailing optionals (Note, Signature, CertId) ending in
+        // the element EE — the ISO 15118-2 message-header shape. cbexigen widths each state at
+        // ceil(log2(productions+1)): 3 optionals + EE = 4 productions -> 3 bits, and the terminating
+        // EE for the all-absent path takes the highest event code at that width.
+        var r = GeneratorHarness.Run(("h.xsd", HeaderSchema), ("dsig.xsd", DsigSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // State 0 (Note, Signature, CertId, EE): 4 productions -> 3-bit codes; all-absent EE = code 3.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 3);   // Note"));
+        Assert.That(src, Does.Contain("w.WriteBits(3, 3);   // element EE"));
+        // A later state (Signature, CertId, EE): 3 productions -> 2-bit codes.
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // element EE"));
+        // Final state after the last optional (CertId) present: 1-bit EE.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // element EE"));
+        // Decode reads the same widths.
+        Assert.That(src, Does.Contain("r.ReadBits(3)"));
+        Assert.That(src, Does.Contain("r.ReadBits(2)"));
+    }
+
+    [Test]
+    public void OptionalRunAndOpaque_GeneratedCodeCompiles()
+    {
+        // The multi-optional-run, opaque-placeholder, and complex-terminator paths are not
+        // exercised by the checked-in AppProtocol codec — compile the generated source directly
+        // (against the Prototype's BitWriter/ExiPrimitives) to prove it builds.
+        var r = GeneratorHarness.Run(("h.xsd", HeaderSchema), ("dsig.xsd", DsigSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+
+        var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty,
+            r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    [Test]
+    public void OptionalRunBeforeRequired_FoldsTerminatorSeIntoEventCode()
+    {
+        // A run of optionals terminated by a required element (CurrentDemandResType shape): the
+        // required element's SE is folded into the run's event codes. 2 optionals + the required
+        // terminator + EE-phantom = width ceil(log2(3+1)) = 2 bits at the first state; the
+        // terminator takes the highest code when all optionals are absent.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:o" targetNamespace="urn:test:o">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="A" type="xs:unsignedInt"/>
+                  <xs:element name="Opt1" type="xs:unsignedInt" minOccurs="0"/>
+                  <xs:element name="Opt2" type="xs:unsignedInt" minOccurs="0"/>
+                  <xs:element name="Req"  type="xs:unsignedInt"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("o.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // State 0 (Opt1, Opt2, Req): 3 productions -> 2 bits; Req (all optionals absent) = code 2.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Opt1"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // Req"));
+        // Reached via the last optional present, Req is at its own 1-bit SE state.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // SE(Req)"));
+        // The required terminator's content is emitted (not skipped) and the element still ends
+        // with its own EE afterwards.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // element EE"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

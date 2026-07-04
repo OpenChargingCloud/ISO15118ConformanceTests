@@ -12,6 +12,15 @@ internal sealed class XsdSchema
     public List<XsdElement> GlobalElements { get; } = new();
     public Dictionary<string, XsdSimpleType> SimpleTypes { get; } = new();
     public Dictionary<string, XsdComplexType> ComplexTypes { get; } = new();
+
+    /// <summary>
+    /// Local names of global elements declared in an <em>opaque</em> namespace — one whose
+    /// full grammar the generator deliberately does not model yet (currently only XMLDSig).
+    /// Types from such a namespace are never built; a reference to one of these elements
+    /// becomes an opaque, encode-absent/round-trip-only child (see the Signature reference
+    /// in the ISO 15118-2 message header). Full fidelity is deferred to Phase 3.
+    /// </summary>
+    public HashSet<string> OpaqueElementNames { get; } = new();
 }
 
 /// <summary>An element declaration: <c>&lt;xs:element name="..." type="..." minOccurs maxOccurs/&gt;</c>.</summary>
