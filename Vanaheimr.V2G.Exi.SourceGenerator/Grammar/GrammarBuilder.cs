@@ -57,7 +57,11 @@ internal sealed record SequencePlan(
     int                      ListMin = 0,
     int                      ListMax = 0,
     bool                     IsAbstract = false, // emit as `abstract record`
-    string?                  BaseRecordName = null); // extension/substitution base record
+    string?                  BaseRecordName = null, // extension/substitution base record
+    IReadOnlyList<AttrPlan>? Attributes = null);   // AT events (sorted by name), before content
+
+/// <summary>An attribute (AT event) of a complex type. Currently only optional attributes.</summary>
+internal sealed record AttrPlan(string FieldName, string CSharpType, ValueEncoding Value);
 
 /// <summary>
 /// Top-level plan for a global element.
@@ -132,6 +136,23 @@ internal static class GrammarBuilder
     {
         var baseRecord = ct.BaseTypeRef is null ? null : PascalCase(StripPrefix(ct.BaseTypeRef));
 
+        // Attributes (AT events) precede the content, in lexicographic name order. Only
+        // optional attributes are supported here (required attributes arrive with simpleContent).
+        IReadOnlyList<AttrPlan>? attrPlans = null;
+        if (ct.Attributes is { Count: > 0 })
+        {
+            var list = new List<AttrPlan>();
+            foreach (var a in ct.Attributes.OrderBy(a => a.Name, StringComparer.Ordinal))
+            {
+                if (a.Required)
+                    throw new NotSupportedException(
+                        $"complexType '{ctName}': required attribute '{a.Name}' is not supported yet.");
+                var (csType, val, _) = ResolveTypeRef(a.TypeRef, schema, enums, a.Name);
+                list.Add(new AttrPlan(PascalCase(a.Name), csType, val));
+            }
+            attrPlans = list;
+        }
+
         // Flatten inherited particles: for xs:complexContent/xs:extension the base type's
         // particles come first, then this type's own — this is the EXI content order.
         var particles = FlattenParticles(ct, schema);
@@ -139,6 +160,9 @@ internal static class GrammarBuilder
         // Detect "single repeating element" pattern (e.g. AppProtocolType list inside Req).
         if (particles.Count == 1 && particles[0].MaxOccurs > 1 && particles[0].Ref is null)
         {
+            if (attrPlans is not null)
+                throw new NotSupportedException(
+                    $"complexType '{ctName}': attributes on a repeating-content type are not supported yet.");
             var only = particles[0];
             var (csType, val, _) = ResolveTypeRef(only.TypeRef, schema, enums, only.Name);
 
@@ -200,7 +224,7 @@ internal static class GrammarBuilder
         }
 
         return new SequencePlan(PascalCase(ctName), children,
-            IsAbstract: ct.IsAbstract, BaseRecordName: baseRecord);
+            IsAbstract: ct.IsAbstract, BaseRecordName: baseRecord, Attributes: attrPlans);
     }
 
     /// <summary>
@@ -287,6 +311,13 @@ internal static class GrammarBuilder
         {
             "xs:string"        => ("string", new ValueEncoding.StringValue(), false),
             "xs:anyURI"        => ("string", new ValueEncoding.StringValue(), false),
+            // String-ish built-ins used by attributes (xs:ID / NCName / token …).
+            "xs:ID"            => ("string", new ValueEncoding.StringValue(), false),
+            "xs:IDREF"         => ("string", new ValueEncoding.StringValue(), false),
+            "xs:NCName"        => ("string", new ValueEncoding.StringValue(), false),
+            "xs:Name"          => ("string", new ValueEncoding.StringValue(), false),
+            "xs:token"         => ("string", new ValueEncoding.StringValue(), false),
+            "xs:normalizedString" => ("string", new ValueEncoding.StringValue(), false),
             // cbexigen encodes unsignedByte as a fixed 8-bit n-bit unsigned (its value
             // space is [0..255]), not as a multi-byte EXI Unsigned Integer.
             "xs:unsignedByte"  => ("byte",   new ValueEncoding.NBitUnsigned(8, 0), true),

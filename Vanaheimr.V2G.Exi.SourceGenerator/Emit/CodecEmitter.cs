@@ -133,7 +133,23 @@ internal sealed class CodecEmitter
             baseClause = $" : {sp.BaseRecordName}({baseArgs})";
         }
 
-        if (sp.Children.Count == 0)
+        // Parameters: optional attributes first (nullable), then the content particles.
+        var parameters = new List<string>();
+        if (sp.Attributes is not null)
+            foreach (var a in sp.Attributes)
+                parameters.Add($"{a.CSharpType}? {a.FieldName}");
+        foreach (var c in sp.Children)
+        {
+            string typeText = c.Shape switch
+            {
+                ChildShape.BoundedRepeating => $"IReadOnlyList<{c.CSharpType}>",
+                ChildShape.OptionalSingle   => c.CSharpType + "?",
+                _                           => c.CSharpType,
+            };
+            parameters.Add($"{typeText} {c.FieldName}");
+        }
+
+        if (parameters.Count == 0)
         {
             _sb.Append("public ").Append(keyword).Append(" record ").Append(sp.CSharpRecordName)
                .Append("()").Append(baseClause).AppendLine(";");
@@ -142,18 +158,10 @@ internal sealed class CodecEmitter
         }
 
         _sb.Append("public ").Append(keyword).Append(" record ").Append(sp.CSharpRecordName).AppendLine("(");
-
-        for (int i = 0; i < sp.Children.Count; i++)
+        for (int i = 0; i < parameters.Count; i++)
         {
-            var c = sp.Children[i];
-            string typeText = c.Shape switch
-            {
-                ChildShape.BoundedRepeating => $"IReadOnlyList<{c.CSharpType}>",
-                ChildShape.OptionalSingle   => c.CSharpType + "?",
-                _                           => c.CSharpType,
-            };
-            _sb.Append("    ").Append(typeText).Append(' ').Append(c.FieldName);
-            _sb.AppendLine(i + 1 < sp.Children.Count ? "," : "");
+            _sb.Append("    ").Append(parameters[i]);
+            _sb.AppendLine(i + 1 < parameters.Count ? "," : "");
         }
         _sb.Append(")").Append(baseClause).AppendLine(";");
         _sb.AppendLine();
@@ -272,6 +280,10 @@ internal sealed class CodecEmitter
             _sb.AppendLine("        }");
             _sb.AppendLine("        w.WriteBits(1, 2);   // list terminator / element EE");
         }
+        else if (sp.Attributes is not null)
+        {
+            EmitEncodeWithAttributes(sp);
+        }
         else
         {
             bool endsWithOptional = sp.Children.Count > 0 &&
@@ -348,6 +360,130 @@ internal sealed class CodecEmitter
         _sb.Append("            default: throw new ArgumentException(\"Unsupported substitution member for ")
            .Append(c.FieldName).AppendLine("\");");
         _sb.AppendLine("        }");
+    }
+
+    // -----------------------------------------------------------------------
+    //  Attributes (AT events): a single optional attribute preceding the content.
+    //  The initial grammar state chooses between AT(attr) and SE(first content); when the
+    //  attribute is absent the same n-bit code doubles as that first SE (cbexigen model,
+    //  verified against CertificateChainType). Attribute values carry no value-start bit.
+    // -----------------------------------------------------------------------
+
+    private void EmitEncodeWithAttributes(SequencePlan sp)
+    {
+        var a = SingleStringAttribute(sp);
+        int w = BitsForChoices(sp.Attributes!.Count + 2);
+        int absentCode = sp.Attributes.Count;
+
+        _sb.Append("        if (msg.").Append(a.FieldName).AppendLine(" is not null)");
+        _sb.AppendLine("        {");
+        _sb.Append("            w.WriteBits(0, ").Append(w).AppendLine(");   // AT(attribute)");
+        _sb.Append("            ExiPrimitives.WriteStringValue(ref w, msg.").Append(a.FieldName).AppendLine("!);");
+        _sb.AppendLine("            w.WriteBits(0, 1);   // SE(first content)");
+        EmitEncodeContentTail(sp, "            ");
+        _sb.AppendLine("        }");
+        _sb.AppendLine("        else");
+        _sb.AppendLine("        {");
+        _sb.Append("            w.WriteBits(").Append(absentCode).Append(", ").Append(w)
+           .AppendLine(");   // SE(first content), attribute absent");
+        EmitEncodeContentTail(sp, "            ");
+        _sb.AppendLine("        }");
+    }
+
+    /// <summary>Encode the content particles after the first child's SE has already been written.</summary>
+    private void EmitEncodeContentTail(SequencePlan sp, string indent)
+    {
+        var c0 = sp.Children[0];
+        EmitEncodeContent(c0, "msg." + c0.FieldName, indent);
+
+        bool endsWithOptional = sp.Children[sp.Children.Count - 1].Shape == ChildShape.OptionalSingle;
+        for (int i = 1; i < sp.Children.Count; i++)
+        {
+            var c = sp.Children[i];
+            if (c.Shape == ChildShape.OptionalSingle)
+            {
+                if (i != sp.Children.Count - 1)
+                    throw new NotSupportedException(
+                        $"{sp.CSharpRecordName}: optional element '{c.FieldName}' must be the last child.");
+                EmitEncodeOptionalTrailing(c);
+            }
+            else
+            {
+                _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // SE");
+                EmitEncodeContent(c, "msg." + c.FieldName, indent);
+            }
+        }
+        if (!endsWithOptional)
+            _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // element EE");
+    }
+
+    private void EmitDecodeWithAttributes(SequencePlan sp)
+    {
+        var a = SingleStringAttribute(sp);
+        int w = BitsForChoices(sp.Attributes!.Count + 2);
+        int absentCode = sp.Attributes.Count;
+        var c0 = sp.Children[0];
+
+        _sb.Append("        ").Append(a.CSharpType).Append("? _").Append(a.FieldName).AppendLine(" = default;");
+        _sb.Append("        ").Append(c0.CSharpType).Append(" _").Append(c0.FieldName).AppendLine(" = default!;");
+        _sb.Append("        switch (r.ReadBits(").Append(w).AppendLine("))");
+        _sb.AppendLine("        {");
+        _sb.AppendLine("            case 0u:   // AT(attribute) present");
+        _sb.Append("                _").Append(a.FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+        _sb.AppendLine("                r.ReadBits(1);   // SE(first content)");
+        EmitDecodeContent(c0, "_" + c0.FieldName, "                ", declare: false);
+        _sb.AppendLine("                break;");
+        _sb.Append("            case ").Append(absentCode).AppendLine("u:   // SE(first content), attribute absent");
+        EmitDecodeContent(c0, "_" + c0.FieldName, "                ", declare: false);
+        _sb.AppendLine("                break;");
+        _sb.AppendLine("            default: throw new InvalidDataException(\"invalid attribute/first-element event code\");");
+        _sb.AppendLine("        }");
+
+        var locals = new List<string> { "_" + a.FieldName, "_" + c0.FieldName };
+        bool endsWithOptional = sp.Children[sp.Children.Count - 1].Shape == ChildShape.OptionalSingle;
+        for (int i = 1; i < sp.Children.Count; i++)
+        {
+            var c = sp.Children[i];
+            string local = "_" + c.FieldName;
+            locals.Add(local);
+            if (c.Shape == ChildShape.OptionalSingle)
+            {
+                _sb.Append("        ").Append(c.CSharpType).Append("? ").Append(local).AppendLine(" = default;");
+                _sb.AppendLine("        {");
+                _sb.AppendLine("            uint ec = r.ReadBits(2);   // present = 0, EE = 1");
+                _sb.AppendLine("            if (ec == 0)");
+                _sb.AppendLine("            {");
+                EmitDecodeContent(c, local, "                ", declare: false);
+                _sb.AppendLine("                r.ReadBits(1);   // element EE");
+                _sb.AppendLine("            }");
+                _sb.AppendLine("        }");
+            }
+            else
+            {
+                _sb.AppendLine("        r.ReadBits(1);   // SE");
+                EmitDecodeContent(c, local, "        ", declare: true);
+            }
+        }
+        if (!endsWithOptional)
+            _sb.AppendLine("        r.ReadBits(1);   // element EE");
+
+        _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+           .Append(string.Join(", ", locals)).AppendLine(");");
+    }
+
+    private static AttrPlan SingleStringAttribute(SequencePlan sp)
+    {
+        if (sp.Attributes!.Count != 1)
+            throw new NotSupportedException($"{sp.CSharpRecordName}: only a single attribute is supported yet.");
+        if (sp.Children.Count == 0)
+            throw new NotSupportedException($"{sp.CSharpRecordName}: attribute-only complex types are not supported yet.");
+        var a = sp.Attributes[0];
+        if (a.Value is not ValueEncoding.StringValue)
+            throw new NotSupportedException($"{sp.CSharpRecordName}: only string-typed attributes are supported yet.");
+        var c0 = sp.Children[0];
+        if (c0.Shape != ChildShape.RequiredSingle || c0.Value is ValueEncoding.SubstitutionChoice)
+            throw new NotSupportedException($"{sp.CSharpRecordName}: the first content child must be a required, non-substitution element.");
+        return a;
     }
 
     private void EmitEncodeOptionalTrailing(ChildPlan c)
@@ -431,6 +567,10 @@ internal sealed class CodecEmitter
             _sb.AppendLine("            list.Add(next);");
             _sb.AppendLine("        }");
             _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
+        }
+        else if (sp.Attributes is not null)
+        {
+            EmitDecodeWithAttributes(sp);
         }
         else
         {

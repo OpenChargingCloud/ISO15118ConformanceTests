@@ -227,6 +227,40 @@ public class GeneratorGrammarTests
         Assert.That(src, Does.Contain("ExiPrimitives.ReadBinary"));
     }
 
+    // ---- construct #4: optional attribute (AT event) ---------------------
+
+    [Test]
+    public void OptionalAttribute_EmittedAsMergedInitialState()
+    {
+        // Mirrors CertificateChainType: optional Id attribute + a required first content
+        // element + a trailing optional element.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:a" targetNamespace="urn:test:a">
+              <xs:element name="root" type="ChainType"/>
+              <xs:complexType name="ChainType">
+                <xs:sequence>
+                  <xs:element name="Certificate" type="xs:base64Binary"/>
+                  <xs:element name="Extra" type="xs:unsignedInt" minOccurs="0"/>
+                </xs:sequence>
+                <xs:attribute name="Id" type="xs:ID"/>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("a.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // Nullable attribute parameter, encoded as a string value with a 2-bit AT/SE selector.
+        Assert.That(src, Does.Contain("string? Id"));
+        Assert.That(src, Does.Contain("if (msg.Id is not null)"));
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2)"), "AT(Id) event code");
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2)"), "SE(first content) when attribute absent");
+        // Decode reads the same 2-bit selector.
+        Assert.That(src, Does.Contain("r.ReadBits(2)"));
+        Assert.That(src, Does.Contain("_Id = ExiPrimitives.ReadStringValue"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

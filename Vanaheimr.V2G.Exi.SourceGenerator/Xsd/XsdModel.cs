@@ -34,7 +34,11 @@ internal sealed record XsdComplexType(
     string                    Name,
     IReadOnlyList<XsdElement>  Sequence,
     string?                   BaseTypeRef = null,   // extension base (may carry a prefix)
-    bool                      IsAbstract  = false);
+    bool                      IsAbstract  = false,
+    IReadOnlyList<XsdAttribute>? Attributes = null);
+
+/// <summary>An <c>&lt;xs:attribute name="..." type="..." use="..."/&gt;</c> on a complex type.</summary>
+internal sealed record XsdAttribute(string Name, string TypeRef, bool Required);
 
 /// <summary>
 /// Simple type derived by restriction from a single base. Value-space facets cover

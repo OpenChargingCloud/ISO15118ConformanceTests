@@ -120,21 +120,34 @@ internal static class XsdReader
             var seq = ext.Element(Xs + "sequence");
             var els = seq?.Elements(Xs + "element").Select(ParseElement).ToList()
                       ?? new List<XsdElement>();
-            return new XsdComplexType(name, els, baseRef, isAbstract);
+            return new XsdComplexType(name, els, baseRef, isAbstract, ParseAttributes(ext));
         }
 
-        // Direct xs:sequence, or an empty complexType (e.g. the abstract BodyBaseType).
+        var attributes = ParseAttributes(ct);
+
+        // Direct xs:sequence, or an attribute-only / empty complexType (e.g. abstract BodyBaseType).
         var directSeq = ct.Element(Xs + "sequence");
         if (directSeq is null)
         {
-            if (!ct.Elements().Any(e => e.Name.Namespace == Xs && e.Name.LocalName != "annotation"))
-                return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract);
+            if (!ct.Elements().Any(e => e.Name.Namespace == Xs &&
+                                        e.Name.LocalName != "annotation" &&
+                                        e.Name.LocalName != "attribute"))
+                return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract, attributes);
             throw new XsdReaderException(
                 $"complexType '{name}': only xs:sequence or xs:complexContent/xs:extension is supported.");
         }
 
         var elements = directSeq.Elements(Xs + "element").Select(ParseElement).ToList();
-        return new XsdComplexType(name, elements, null, isAbstract);
+        return new XsdComplexType(name, elements, null, isAbstract, attributes);
+    }
+
+    private static IReadOnlyList<XsdAttribute>? ParseAttributes(XElement container)
+    {
+        var attrs = container.Elements(Xs + "attribute").Select(a => new XsdAttribute(
+            Required(a, "name"),
+            (string?)a.Attribute("type") ?? "xs:string",
+            string.Equals((string?)a.Attribute("use"), "required", StringComparison.Ordinal))).ToList();
+        return attrs.Count == 0 ? null : attrs;
     }
 
     private static XsdElement ParseElement(XElement el)
