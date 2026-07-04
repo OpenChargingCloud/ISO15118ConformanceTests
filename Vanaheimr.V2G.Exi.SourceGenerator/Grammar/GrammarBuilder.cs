@@ -60,10 +60,11 @@ internal sealed record SequencePlan(
     int                      ListMax = 0,
     bool                     IsAbstract = false, // emit as `abstract record`
     string?                  BaseRecordName = null, // extension/substitution base record
-    IReadOnlyList<AttrPlan>? Attributes = null);   // AT events (sorted by name), before content
+    IReadOnlyList<AttrPlan>? Attributes = null,    // AT events (sorted by name), before content
+    bool                     IsChoice = false);     // Children are mutually-exclusive xs:choice alternatives
 
-/// <summary>An attribute (AT event) of a complex type. Currently only optional attributes.</summary>
-internal sealed record AttrPlan(string FieldName, string CSharpType, ValueEncoding Value);
+/// <summary>An attribute (AT event) of a complex type.</summary>
+internal sealed record AttrPlan(string FieldName, string CSharpType, ValueEncoding Value, bool Required = false);
 
 /// <summary>
 /// Top-level plan for a global element.
@@ -138,21 +139,35 @@ internal static class GrammarBuilder
     {
         var baseRecord = ct.BaseTypeRef is null ? null : PascalCase(StripPrefix(ct.BaseTypeRef));
 
-        // Attributes (AT events) precede the content, in lexicographic name order. Only
-        // optional attributes are supported here (required attributes arrive with simpleContent).
+        // Attributes (AT events) precede the content, in lexicographic name order.
         IReadOnlyList<AttrPlan>? attrPlans = null;
         if (ct.Attributes is { Count: > 0 })
         {
             var list = new List<AttrPlan>();
             foreach (var a in ct.Attributes.OrderBy(a => a.Name, StringComparer.Ordinal))
             {
-                if (a.Required)
-                    throw new NotSupportedException(
-                        $"complexType '{ctName}': required attribute '{a.Name}' is not supported yet.");
                 var (csType, val, _) = ResolveTypeRef(a.TypeRef, schema, enums, a.Name);
-                list.Add(new AttrPlan(PascalCase(a.Name), csType, val));
+                list.Add(new AttrPlan(PascalCase(a.Name), csType, val, a.Required));
             }
             attrPlans = list;
+        }
+
+        // xs:choice content — the alternatives become mutually-exclusive nullable fields.
+        if (ct.Choice is not null)
+        {
+            var alts = new List<ChildPlan>();
+            foreach (var el in ct.Choice)
+            {
+                var (csType, val, isVal) = ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
+                alts.Add(new ChildPlan(
+                    FieldName       : PascalCase(el.Name),
+                    CSharpType      : csType,
+                    IsCSharpNullable: isVal,
+                    Shape           : ChildShape.OptionalSingle, // renders the field as nullable
+                    Value           : val));
+            }
+            return new SequencePlan(PascalCase(ctName), alts,
+                IsAbstract: ct.IsAbstract, BaseRecordName: baseRecord, Attributes: attrPlans, IsChoice: true);
         }
 
         // Flatten inherited particles: for xs:complexContent/xs:extension the base type's
@@ -341,8 +356,9 @@ internal static class GrammarBuilder
             "xs:unsignedShort" => ("ushort", new ValueEncoding.UnsignedInt(),  true),
             "xs:unsignedInt"   => ("uint",   new ValueEncoding.UnsignedInt(),  true),
             "xs:unsignedLong"  => ("ulong",  new ValueEncoding.UnsignedInt(),  true),
-            // Signed built-ins → EXI Integer (sign bit + Unsigned Integer magnitude).
-            "xs:byte"          => ("sbyte",  new ValueEncoding.SignedInt(), true),
+            // xs:byte is bounded [-128..127] → 8-bit n-bit unsigned with bias (cbexigen model).
+            "xs:byte"          => ("sbyte",  new ValueEncoding.NBitUnsigned(8, -128), true),
+            // Wider signed built-ins → EXI Integer (sign bit + Unsigned Integer magnitude).
             "xs:short"         => ("short",  new ValueEncoding.SignedInt(), true),
             "xs:int"           => ("int",    new ValueEncoding.SignedInt(), true),
             "xs:long"          => ("long",   new ValueEncoding.SignedInt(), true),

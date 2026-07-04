@@ -280,44 +280,89 @@ internal sealed class CodecEmitter
             _sb.AppendLine("        }");
             _sb.AppendLine("        w.WriteBits(1, 2);   // list terminator / element EE");
         }
+        else if (sp.Attributes is { Count: 1 } && sp.Attributes[0].Required)
+        {
+            // A required attribute is always present: a 1-bit AT event, then the value (no
+            // value-start), then the content proceeds normally.
+            var attr = sp.Attributes[0];
+            _sb.AppendLine("        w.WriteBits(0, 1);   // AT(required attribute)");
+            _sb.Append("        ExiPrimitives.WriteStringValue(ref w, msg.").Append(attr.FieldName).AppendLine("!);");
+            EmitEncodeContentBody(sp);
+        }
         else if (sp.Attributes is not null)
         {
-            EmitEncodeWithAttributes(sp);
+            EmitEncodeWithAttributes(sp);   // optional attribute (merged with the first content SE)
         }
         else
         {
-            bool lastTerminates = LastChildTerminatesElement(sp);
-            for (int ci = 0; ci < sp.Children.Count; ci++)
-            {
-                var c = sp.Children[ci];
-                if (c.Shape == ChildShape.OptionalSingle)
-                {
-                    if (ci != sp.Children.Count - 1)
-                        throw new NotSupportedException(
-                            $"complexType '{sp.CSharpRecordName}': optional element '{c.FieldName}' " +
-                            "is only supported as the final child of a sequence in this prototype.");
-                    EmitEncodeOptionalTrailing(c);
-                }
-                else if (c.Shape == ChildShape.BoundedRepeating)
-                {
-                    EmitEncodeRepeatingChild(c, "        ");
-                }
-                else if (c.Value is ValueEncoding.SubstitutionChoice sc)
-                {
-                    EmitEncodeSubstitution(c, sc);
-                }
-                else
-                {
-                    _sb.AppendLine("        w.WriteBits(0, 1);   // SE");
-                    EmitEncodeContent(c, "msg." + c.FieldName, "        ");
-                }
-            }
-            if (!lastTerminates)
-                _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+            EmitEncodeContentBody(sp);
         }
 
         _sb.AppendLine("    }");
         _sb.AppendLine();
+    }
+
+    /// <summary>Emit a complex type's content (an xs:choice or an xs:sequence) plus its element EE.</summary>
+    private void EmitEncodeContentBody(SequencePlan sp)
+    {
+        if (sp.IsChoice)
+        {
+            EmitEncodeChoice(sp);
+            _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+            return;
+        }
+
+        bool lastTerminates = LastChildTerminatesElement(sp);
+        for (int ci = 0; ci < sp.Children.Count; ci++)
+        {
+            var c = sp.Children[ci];
+            if (c.Shape == ChildShape.OptionalSingle)
+            {
+                if (ci != sp.Children.Count - 1)
+                    throw new NotSupportedException(
+                        $"complexType '{sp.CSharpRecordName}': optional element '{c.FieldName}' " +
+                        "is only supported as the final child of a sequence in this prototype.");
+                EmitEncodeOptionalTrailing(c);
+            }
+            else if (c.Shape == ChildShape.BoundedRepeating)
+            {
+                EmitEncodeRepeatingChild(c, "        ");
+            }
+            else if (c.Value is ValueEncoding.SubstitutionChoice sc)
+            {
+                EmitEncodeSubstitution(c, sc);
+            }
+            else
+            {
+                _sb.AppendLine("        w.WriteBits(0, 1);   // SE");
+                EmitEncodeContent(c, "msg." + c.FieldName, "        ");
+            }
+        }
+        if (!lastTerminates)
+            _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+    }
+
+    /// <summary>
+    /// xs:choice: exactly one alternative is set. An n-bit event code (declaration order)
+    /// selects it, followed by its content (no surrounding SE — the code is the selector).
+    /// </summary>
+    private void EmitEncodeChoice(SequencePlan sp)
+    {
+        int width = BitsForChoices(sp.Children.Count + 1);
+        for (int i = 0; i < sp.Children.Count; i++)
+        {
+            var c = sp.Children[i];
+            string accessor = c.IsCSharpNullable ? $"msg.{c.FieldName}!.Value" : $"msg.{c.FieldName}!";
+            _sb.Append("        ").Append(i == 0 ? "if" : "else if")
+               .Append(" (msg.").Append(c.FieldName).AppendLine(" is not null)");
+            _sb.AppendLine("        {");
+            _sb.Append("            w.WriteBits(").Append(i).Append(", ").Append(width)
+               .Append(");   // ").AppendLine(c.FieldName);
+            EmitEncodeContent(c, accessor, "            ");
+            _sb.AppendLine("        }");
+        }
+        _sb.Append("        else throw new ArgumentException(\"no choice alternative set for ")
+           .Append(sp.CSharpRecordName).AppendLine("\");");
     }
 
     /// <summary>
@@ -617,56 +662,94 @@ internal sealed class CodecEmitter
             _sb.AppendLine("        }");
             _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
         }
+        else if (sp.Attributes is { Count: 1 } && sp.Attributes[0].Required)
+        {
+            var attr = sp.Attributes[0];
+            _sb.AppendLine("        r.ReadBits(1);   // AT(required attribute)");
+            _sb.Append("        var _").Append(attr.FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+            EmitDecodeContentBody(sp, new List<string> { "_" + attr.FieldName });
+        }
         else if (sp.Attributes is not null)
         {
             EmitDecodeWithAttributes(sp);
         }
         else
         {
-            var locals = new List<string>();
-            bool lastTerminates = LastChildTerminatesElement(sp);
-
-            foreach (var c in sp.Children)
-            {
-                string local = "_" + c.FieldName;
-                locals.Add(local);
-
-                if (c.Shape == ChildShape.OptionalSingle)
-                {
-                    _sb.Append("        ").Append(c.CSharpType).Append("? ").Append(local).AppendLine(" = default;");
-                    _sb.AppendLine("        {");
-                    _sb.AppendLine("            uint ec = r.ReadBits(2);   // present = 0, EE = 1");
-                    _sb.AppendLine("            if (ec == 0)");
-                    _sb.AppendLine("            {");
-                    EmitDecodeContent(c, local, "                ", declare: false);
-                    _sb.AppendLine("                r.ReadBits(1);   // element EE");
-                    _sb.AppendLine("            }");
-                    _sb.AppendLine("        }");
-                }
-                else if (c.Shape == ChildShape.BoundedRepeating)
-                {
-                    EmitDecodeRepeatingChild(c, local, "        ");
-                }
-                else if (c.Value is ValueEncoding.SubstitutionChoice sc)
-                {
-                    EmitDecodeSubstitution(c, local, sc);
-                }
-                else
-                {
-                    _sb.AppendLine("        r.ReadBits(1);   // SE");
-                    EmitDecodeContent(c, local, "        ", declare: true);
-                }
-            }
-
-            if (!lastTerminates)
-                _sb.AppendLine("        r.ReadBits(1);   // element EE");
-
-            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
-               .Append(string.Join(", ", locals)).AppendLine(");");
+            EmitDecodeContentBody(sp, new List<string>());
         }
 
         _sb.AppendLine("    }");
         _sb.AppendLine();
+    }
+
+    /// <summary>Decode a complex type's content (xs:choice or xs:sequence) and emit the record return.</summary>
+    private void EmitDecodeContentBody(SequencePlan sp, List<string> prefixLocals)
+    {
+        var locals = new List<string>(prefixLocals);
+
+        if (sp.IsChoice)
+        {
+            int width = BitsForChoices(sp.Children.Count + 1);
+            foreach (var c in sp.Children)
+            {
+                _sb.Append("        ").Append(c.CSharpType).Append("? _").Append(c.FieldName).AppendLine(" = default;");
+                locals.Add("_" + c.FieldName);
+            }
+            _sb.Append("        switch (r.ReadBits(").Append(width).AppendLine("))");
+            _sb.AppendLine("        {");
+            for (int i = 0; i < sp.Children.Count; i++)
+            {
+                var c = sp.Children[i];
+                _sb.Append("            case ").Append(i).AppendLine("u:");
+                EmitDecodeContent(c, "_" + c.FieldName, "                ", declare: false);
+                _sb.AppendLine("                break;");
+            }
+            _sb.AppendLine("            default: throw new InvalidDataException(\"unknown choice event code\");");
+            _sb.AppendLine("        }");
+            _sb.AppendLine("        r.ReadBits(1);   // element EE");
+            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+               .Append(string.Join(", ", locals)).AppendLine(");");
+            return;
+        }
+
+        bool lastTerminates = LastChildTerminatesElement(sp);
+        foreach (var c in sp.Children)
+        {
+            string local = "_" + c.FieldName;
+            locals.Add(local);
+
+            if (c.Shape == ChildShape.OptionalSingle)
+            {
+                _sb.Append("        ").Append(c.CSharpType).Append("? ").Append(local).AppendLine(" = default;");
+                _sb.AppendLine("        {");
+                _sb.AppendLine("            uint ec = r.ReadBits(2);   // present = 0, EE = 1");
+                _sb.AppendLine("            if (ec == 0)");
+                _sb.AppendLine("            {");
+                EmitDecodeContent(c, local, "                ", declare: false);
+                _sb.AppendLine("                r.ReadBits(1);   // element EE");
+                _sb.AppendLine("            }");
+                _sb.AppendLine("        }");
+            }
+            else if (c.Shape == ChildShape.BoundedRepeating)
+            {
+                EmitDecodeRepeatingChild(c, local, "        ");
+            }
+            else if (c.Value is ValueEncoding.SubstitutionChoice sc)
+            {
+                EmitDecodeSubstitution(c, local, sc);
+            }
+            else
+            {
+                _sb.AppendLine("        r.ReadBits(1);   // SE");
+                EmitDecodeContent(c, local, "        ", declare: true);
+            }
+        }
+
+        if (!lastTerminates)
+            _sb.AppendLine("        r.ReadBits(1);   // element EE");
+
+        _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+           .Append(string.Join(", ", locals)).AppendLine(");");
     }
 
     /// <summary>

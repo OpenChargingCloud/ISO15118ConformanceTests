@@ -134,6 +134,14 @@ internal static class XsdReader
 
         var attributes = ParseAttributes(ct);
 
+        // Direct xs:choice content (e.g. ParameterType).
+        var directChoice = ct.Element(Xs + "choice");
+        if (directChoice is not null)
+        {
+            var choiceEls = directChoice.Elements(Xs + "element").Select(ParseElement).ToList();
+            return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract, attributes, choiceEls);
+        }
+
         // Direct xs:sequence, or an attribute-only / empty complexType (e.g. abstract BodyBaseType).
         var directSeq = ct.Element(Xs + "sequence");
         if (directSeq is null)

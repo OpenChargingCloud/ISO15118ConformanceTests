@@ -298,25 +298,62 @@ public class GeneratorGrammarTests
         Assert.That(setId, Is.GreaterThan(-1).And.LessThan(loop));
     }
 
+    // ---- construct #6: xs:choice + required attribute ---------------------
+
+    [Test]
+    public void ChoiceWithRequiredAttribute_EmitsSelectorAndPrefix()
+    {
+        // Mirrors ParameterType: a required Name attribute followed by a choice of typed values.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:c" targetNamespace="urn:test:c">
+              <xs:element name="root" type="ParamType"/>
+              <xs:complexType name="ParamType">
+                <xs:choice>
+                  <xs:element name="boolValue"   type="xs:boolean"/>
+                  <xs:element name="intValue"    type="xs:int"/>
+                  <xs:element name="stringValue" type="xs:string"/>
+                </xs:choice>
+                <xs:attribute name="Name" type="xs:string" use="required"/>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("c.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // Record: required attr + mutually-exclusive nullable alternatives (field names are
+        // PascalCased by the generator).
+        Assert.That(src, Does.Contain("string? Name"));
+        Assert.That(src, Does.Contain("bool? BoolValue"));
+        Assert.That(src, Does.Contain("int? IntValue"));
+        Assert.That(src, Does.Contain("string? StringValue"));
+        // Required-attribute prefix (1-bit AT) then a 2-bit choice selector (3 alts -> 2 bits).
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // AT(required attribute)"));
+        Assert.That(src, Does.Contain("if (msg.BoolValue is not null)"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2)"), "IntValue at choice index 1");
+        Assert.That(src, Does.Contain("switch (r.ReadBits(2))"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]
     public void UnknownConstruct_RaisesDiagnostic()
     {
-        const string withChoice = """
+        const string withAll = """
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
                        xmlns="urn:test:c" targetNamespace="urn:test:c">
               <xs:element name="root" type="RootType"/>
               <xs:complexType name="RootType">
-                <xs:choice>
+                <xs:all>
                   <xs:element name="A" type="xs:unsignedInt"/>
                   <xs:element name="B" type="xs:unsignedInt"/>
-                </xs:choice>
+                </xs:all>
               </xs:complexType>
             </xs:schema>
             """;
-        var r = GeneratorHarness.Run(("c.xsd", withChoice));
-        // xs:choice is not implemented yet — the generator must fail loud, not silently skip.
+        var r = GeneratorHarness.Run(("c.xsd", withAll));
+        // xs:all is not implemented — the generator must fail loud, not silently skip.
         Assert.That(r.Diagnostics, Is.Not.Empty);
     }
 }

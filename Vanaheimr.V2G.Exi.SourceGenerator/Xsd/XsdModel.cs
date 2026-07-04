@@ -35,7 +35,8 @@ internal sealed record XsdComplexType(
     IReadOnlyList<XsdElement>  Sequence,
     string?                   BaseTypeRef = null,   // extension base (may carry a prefix)
     bool                      IsAbstract  = false,
-    IReadOnlyList<XsdAttribute>? Attributes = null);
+    IReadOnlyList<XsdAttribute>? Attributes = null,
+    IReadOnlyList<XsdElement>? Choice = null);       // xs:choice content (mutually exclusive with Sequence)
 
 /// <summary>An <c>&lt;xs:attribute name="..." type="..." use="..."/&gt;</c> on a complex type.</summary>
 internal sealed record XsdAttribute(string Name, string TypeRef, bool Required);
