@@ -91,7 +91,7 @@ internal static class GrammarBuilder
                 body = BuildSequence(typeName, ge.InlineType, schema, enums);
                 complex[typeName] = body;
             }
-            else if (complex.TryGetValue(ge.TypeRef, out var named))
+            else if (complex.TryGetValue(StripPrefix(ge.TypeRef), out var named))
             {
                 body = named with { CSharpRecordName = typeName };
                 complex[typeName] = body;
@@ -163,6 +163,10 @@ internal static class GrammarBuilder
             typeRef.StartsWith("xsd:", StringComparison.Ordinal))
             return ResolveBuiltin(NormaliseBuiltin(typeRef));
 
+        // Cross-namespace references carry a prefix (e.g. "v2gci_t:FooType"); the collected
+        // set resolves them by local name.
+        typeRef = StripPrefix(typeRef);
+
         // Named simpleType: walk through restriction.
         if (schema.SimpleTypes.TryGetValue(typeRef, out var st))
         {
@@ -233,6 +237,13 @@ internal static class GrammarBuilder
 
     private static string PascalCase(string s) =>
         string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
+
+    /// <summary>Drop an XML namespace prefix (<c>"ns:Local"</c> → <c>"Local"</c>).</summary>
+    private static string StripPrefix(string s)
+    {
+        int i = s.IndexOf(':');
+        return i < 0 ? s : s.Substring(i + 1);
+    }
 }
 
 internal static class StringExt

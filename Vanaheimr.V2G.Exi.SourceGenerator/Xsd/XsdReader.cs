@@ -25,17 +25,43 @@ internal static class XsdReader
 {
     private static readonly XNamespace Xs = "http://www.w3.org/2001/XMLSchema";
 
+    /// <summary>Parse a single XSD document into its own schema.</summary>
     public static XsdSchema Parse(string xml)
+    {
+        var schema = new XsdSchema();
+        AppendDocument(schema, xml, isFirst: true);
+        return schema;
+    }
+
+    /// <summary>
+    /// Parse a set of XSD documents (linked by <c>xs:import</c>) into ONE schema model.
+    /// Named types and global elements from every file are merged; <c>xs:import</c> /
+    /// <c>xs:include</c> are dependency declarations and need no action because all types
+    /// are resolved across the collected set.
+    /// </summary>
+    public static XsdSchema ParseSet(IEnumerable<string> documents)
+    {
+        var schema = new XsdSchema();
+        bool first = true;
+        foreach (var xml in documents)
+        {
+            AppendDocument(schema, xml, isFirst: first);
+            first = false;
+        }
+        return schema;
+    }
+
+    private static void AppendDocument(XsdSchema schema, string xml, bool isFirst)
     {
         var doc = XDocument.Parse(xml);
         var root = doc.Root ?? throw new XsdReaderException("XSD has no root element.");
         if (root.Name != Xs + "schema")
             throw new XsdReaderException($"Root must be xs:schema (got {root.Name}).");
 
-        var schema = new XsdSchema
-        {
-            TargetNamespace = (string?)root.Attribute("targetNamespace") ?? "",
-        };
+        // The first document's targetNamespace names the set (used only for diagnostics; the
+        // emitter picks its own C# namespace).
+        if (isFirst)
+            schema.TargetNamespace = (string?)root.Attribute("targetNamespace") ?? "";
 
         foreach (var st in root.Elements(Xs + "simpleType"))
             ParseNamedSimpleType(st, schema);
@@ -45,8 +71,6 @@ internal static class XsdReader
 
         foreach (var el in root.Elements(Xs + "element"))
             schema.GlobalElements.Add(ParseElement(el));
-
-        return schema;
     }
 
     private static void ParseNamedSimpleType(XElement st, XsdSchema schema)

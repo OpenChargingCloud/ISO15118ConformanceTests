@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Vanaheimr.V2G.Exi.SourceGenerator.Emit;
@@ -27,36 +29,38 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // Collect ALL .xsd AdditionalFiles of the compilation as one schema set. A set may
+        // span several files and namespaces linked by <xs:import>; types are resolved across
+        // the whole set. (A project with a single XSD — e.g. AppProtocol — is a set of one.)
         var xsdFiles = context.AdditionalTextsProvider
             .Where(f => Path.GetExtension(f.Path).Equals(".xsd", StringComparison.OrdinalIgnoreCase))
-            .Select((f, ct) =>
-            {
-                var src = f.GetText(ct)?.ToString() ?? "";
-                return (Path: f.Path, Content: src);
-            });
+            .Select((f, ct) => (Path: f.Path, Content: f.GetText(ct)?.ToString() ?? ""))
+            .Collect();
 
-        context.RegisterSourceOutput(xsdFiles, (spc, file) => Generate(spc, file.Path, file.Content));
+        context.RegisterSourceOutput(xsdFiles, (spc, files) => Generate(spc, files));
     }
 
-    private static void Generate(SourceProductionContext spc, string path, string content)
+    private static void Generate(SourceProductionContext spc, ImmutableArray<(string Path, string Content)> files)
     {
-        var fileName = Path.GetFileNameWithoutExtension(path);
+        if (files.IsDefaultOrEmpty) return;
+
+        var label = Path.GetFileNameWithoutExtension(files[0].Path);
 
         XsdSchema schema;
         try
         {
-            schema = XsdReader.Parse(content);
+            schema = XsdReader.ParseSet(files.Select(f => f.Content));
         }
         catch (XsdReaderException ex)
         {
             spc.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.UnsupportedConstruct, Location.None, fileName, ex.Message));
+                Diagnostics.UnsupportedConstruct, Location.None, label, ex.Message));
             return;
         }
         catch (Exception ex)
         {
             spc.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.XsdParseError, Location.None, fileName, ex.Message));
+                Diagnostics.XsdParseError, Location.None, label, ex.Message));
             return;
         }
 
@@ -68,13 +72,13 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
         catch (NotSupportedException ex)
         {
             spc.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.UnsupportedConstruct, Location.None, fileName, ex.Message));
+                Diagnostics.UnsupportedConstruct, Location.None, label, ex.Message));
             return;
         }
         catch (Exception ex)
         {
             spc.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.InternalError, Location.None, fileName, ex.Message));
+                Diagnostics.InternalError, Location.None, label, ex.Message));
             return;
         }
 
@@ -86,10 +90,10 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
         catch (Exception ex)
         {
             spc.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.InternalError, Location.None, fileName, ex.Message));
+                Diagnostics.InternalError, Location.None, label, ex.Message));
             return;
         }
 
-        spc.AddSource($"{fileName}.g.cs", SourceText.From(source, System.Text.Encoding.UTF8));
+        spc.AddSource($"{label}.g.cs", SourceText.From(source, System.Text.Encoding.UTF8));
     }
 }
