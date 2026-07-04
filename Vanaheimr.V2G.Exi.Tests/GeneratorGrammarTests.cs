@@ -195,6 +195,38 @@ public class GeneratorGrammarTests
         Assert.That(src, Does.Contain("abstract substitution head cannot be decoded"));
     }
 
+    // ---- construct: additional built-in datatypes -------------------------
+
+    [Test]
+    public void Builtins_BinaryAndSigned_MapToPrimitives()
+    {
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:b" targetNamespace="urn:test:b">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="Bin"   type="xs:hexBinary"/>
+                  <xs:element name="Key"   type="xs:base64Binary"/>
+                  <xs:element name="Stamp" type="xs:long"/>
+                  <xs:element name="Delta" type="xs:int"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("b.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("byte[] Bin"));
+        Assert.That(src, Does.Contain("byte[] Key"));
+        Assert.That(src, Does.Contain("long Stamp"));
+        Assert.That(src, Does.Contain("int Delta"));
+        Assert.That(src, Does.Contain("ExiPrimitives.WriteBinary"));
+        Assert.That(src, Does.Contain("ExiPrimitives.WriteSignedInteger"));
+        Assert.That(src, Does.Contain("ExiPrimitives.ReadBinary"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

@@ -12,6 +12,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar;
 internal abstract record ValueEncoding
 {
     public sealed record UnsignedInt : ValueEncoding;
+    public sealed record SignedInt : ValueEncoding;            // xs:byte/short/int/long → EXI Integer
+    public sealed record Binary : ValueEncoding;               // xs:hexBinary / xs:base64Binary → byte[]
     public sealed record StringValue : ValueEncoding;
     public sealed record NBitUnsigned(int BitWidth, long Bias) : ValueEncoding;
     public sealed record EnumIndex(string EnumName, int BitWidth, IReadOnlyList<string> Members) : ValueEncoding;
@@ -284,13 +286,23 @@ internal static class GrammarBuilder
         return xsType switch
         {
             "xs:string"        => ("string", new ValueEncoding.StringValue(), false),
+            "xs:anyURI"        => ("string", new ValueEncoding.StringValue(), false),
             // cbexigen encodes unsignedByte as a fixed 8-bit n-bit unsigned (its value
             // space is [0..255]), not as a multi-byte EXI Unsigned Integer.
             "xs:unsignedByte"  => ("byte",   new ValueEncoding.NBitUnsigned(8, 0), true),
             "xs:unsignedShort" => ("ushort", new ValueEncoding.UnsignedInt(),  true),
             "xs:unsignedInt"   => ("uint",   new ValueEncoding.UnsignedInt(),  true),
             "xs:unsignedLong"  => ("ulong",  new ValueEncoding.UnsignedInt(),  true),
+            // Signed built-ins → EXI Integer (sign bit + Unsigned Integer magnitude).
+            "xs:byte"          => ("sbyte",  new ValueEncoding.SignedInt(), true),
+            "xs:short"         => ("short",  new ValueEncoding.SignedInt(), true),
+            "xs:int"           => ("int",    new ValueEncoding.SignedInt(), true),
+            "xs:long"          => ("long",   new ValueEncoding.SignedInt(), true),
+            "xs:integer"       => ("long",   new ValueEncoding.SignedInt(), true),
             "xs:boolean"       => ("bool",   new ValueEncoding.NBitUnsigned(1, 0), true),
+            // hexBinary and base64Binary are identical on the wire (length + raw octets).
+            "xs:hexBinary"     => ("byte[]", new ValueEncoding.Binary(), false),
+            "xs:base64Binary"  => ("byte[]", new ValueEncoding.Binary(), false),
             _ => throw new NotSupportedException($"Unsupported XSD built-in '{xsType}'."),
         };
     }

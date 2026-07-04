@@ -376,6 +376,14 @@ internal sealed class CodecEmitter
                 _sb.Append(indent).Append("ExiPrimitives.WriteUnsignedInteger(ref w, (ulong)")
                    .Append(accessor).AppendLine(");");
                 break;
+            case ValueEncoding.SignedInt:
+                _sb.Append(indent).Append("ExiPrimitives.WriteSignedInteger(ref w, (long)")
+                   .Append(accessor).AppendLine(");");
+                break;
+            case ValueEncoding.Binary:
+                _sb.Append(indent).Append("ExiPrimitives.WriteBinary(ref w, ")
+                   .Append(accessor).AppendLine(");");
+                break;
             case ValueEncoding.StringValue:
                 _sb.Append(indent).Append("ExiPrimitives.WriteStringValue(ref w, ")
                    .Append(accessor).AppendLine(");");
@@ -521,6 +529,13 @@ internal sealed class CodecEmitter
             case ValueEncoding.UnsignedInt:
                 _sb.Append('(').Append(c.CSharpType)
                    .Append(")ExiPrimitives.ReadUnsignedInteger(ref r)");
+                break;
+            case ValueEncoding.SignedInt:
+                _sb.Append('(').Append(c.CSharpType)
+                   .Append(")ExiPrimitives.ReadSignedInteger(ref r)");
+                break;
+            case ValueEncoding.Binary:
+                _sb.Append("ExiPrimitives.ReadBinary(ref r)");
                 break;
             case ValueEncoding.StringValue:
                 _sb.Append("ExiPrimitives.ReadStringValue(ref r)");
