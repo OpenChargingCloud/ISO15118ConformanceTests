@@ -16,7 +16,17 @@ internal abstract record ValueEncoding
     public sealed record NBitUnsigned(int BitWidth, long Bias) : ValueEncoding;
     public sealed record EnumIndex(string EnumName, int BitWidth, IReadOnlyList<string> Members) : ValueEncoding;
     public sealed record ComplexRef(string TypeName) : ValueEncoding;
+
+    /// <summary>
+    /// A reference to a substitution-group head: the value is one of several concrete member
+    /// types, selected by an n-bit event code. Members are sorted by element name and include
+    /// the abstract head element itself (cbexigen assigns it a production slot too).
+    /// </summary>
+    public sealed record SubstitutionChoice(int BitWidth, IReadOnlyList<SubstMember> Members) : ValueEncoding;
 }
+
+/// <summary>One production of a <see cref="ValueEncoding.SubstitutionChoice"/>.</summary>
+internal sealed record SubstMember(string ElementName, string CSharpTypeName, bool IsAbstractHead);
 
 /// <summary>
 /// Per-child plan inside a sequence — combines the value encoding with the EXI
@@ -43,7 +53,9 @@ internal sealed record SequencePlan(
     string                   CSharpRecordName,  // e.g. "AppProtocolEntry"
     IReadOnlyList<ChildPlan> Children,
     int                      ListMin = 0,
-    int                      ListMax = 0);
+    int                      ListMax = 0,
+    bool                     IsAbstract = false, // emit as `abstract record`
+    string?                  BaseRecordName = null); // extension/substitution base record
 
 /// <summary>
 /// Top-level plan for a global element.
@@ -79,10 +91,15 @@ internal static class GrammarBuilder
         foreach (var kv in schema.ComplexTypes)
             complex[kv.Key] = BuildSequence(kv.Key, kv.Value, schema, enums);
 
-        // Build global-element plans (each wraps a sequence).
+        // Build global-element plans. Only true document roots become document-grammar
+        // productions — an abstract substitution head (BodyElement) and its members
+        // (SessionSetupReq, …) are reached through the substitution choice, not as roots.
         var globals = new List<GlobalElementPlan>();
         foreach (var ge in schema.GlobalElements)
         {
+            if (ge.IsAbstract || ge.SubstitutionGroup is not null || ge.Ref is not null)
+                continue;
+
             var typeName = PascalCase(ge.Name);
 
             SequencePlan body;
@@ -111,12 +128,14 @@ internal static class GrammarBuilder
     private static SequencePlan BuildSequence(
         string ctName, XsdComplexType ct, XsdSchema schema, List<EnumPlan> enums)
     {
+        var baseRecord = ct.BaseTypeRef is null ? null : PascalCase(StripPrefix(ct.BaseTypeRef));
+
         // Flatten inherited particles: for xs:complexContent/xs:extension the base type's
         // particles come first, then this type's own — this is the EXI content order.
         var particles = FlattenParticles(ct, schema);
 
         // Detect "single repeating element" pattern (e.g. AppProtocolType list inside Req).
-        if (particles.Count == 1 && particles[0].MaxOccurs > 1)
+        if (particles.Count == 1 && particles[0].MaxOccurs > 1 && particles[0].Ref is null)
         {
             var only = particles[0];
             var (csType, val, _) = ResolveTypeRef(only.TypeRef, schema, enums, only.Name);
@@ -134,7 +153,9 @@ internal static class GrammarBuilder
                 CSharpRecordName: PascalCase(ctName),
                 Children        : new[] { child },
                 ListMin         : only.MinOccurs,
-                ListMax         : only.MaxOccurs);
+                ListMax         : only.MaxOccurs,
+                IsAbstract      : ct.IsAbstract,
+                BaseRecordName  : baseRecord);
         }
 
         // Otherwise, treat each child individually.
@@ -144,6 +165,26 @@ internal static class GrammarBuilder
             if (el.MaxOccurs > 1)
                 throw new NotSupportedException(
                     $"complexType '{ctName}': repeating element '{el.Name}' is only supported as the single member of a sequence in this prototype.");
+
+            // <xs:element ref="Head"/> pointing at a substitution-group head → a polymorphic
+            // choice among the head's members.
+            if (el.Ref is not null)
+            {
+                var subst = TryBuildSubstitution(schema, el.Ref)
+                    ?? throw new NotSupportedException(
+                        $"complexType '{ctName}': element ref '{el.Ref}' is not a substitution-group head " +
+                        "(plain element references are not supported yet).");
+
+                children.Add(new ChildPlan(
+                    FieldName       : PascalCase(el.Ref),
+                    CSharpType      : subst.BaseType,
+                    IsCSharpNullable: false,
+                    // cbexigen models the choice as a mandatory selection: the n-bit event
+                    // code has no 'absent' production even when minOccurs=0.
+                    Shape           : ChildShape.RequiredSingle,
+                    Value           : subst.Choice));
+                continue;
+            }
 
             var (csType, val, isValueType) = ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
             var shape = el.MinOccurs == 0 ? ChildShape.OptionalSingle : ChildShape.RequiredSingle;
@@ -156,7 +197,38 @@ internal static class GrammarBuilder
                 Value           : val));
         }
 
-        return new SequencePlan(PascalCase(ctName), children);
+        return new SequencePlan(PascalCase(ctName), children,
+            IsAbstract: ct.IsAbstract, BaseRecordName: baseRecord);
+    }
+
+    /// <summary>
+    /// If <paramref name="headName"/> names a substitution-group head (an abstract element
+    /// and/or one that others substitute), build the sorted production list. cbexigen includes
+    /// the head element itself as a production and sorts by element name.
+    /// </summary>
+    private static (string BaseType, ValueEncoding.SubstitutionChoice Choice)? TryBuildSubstitution(
+        XsdSchema schema, string headName)
+    {
+        var head = schema.GlobalElements.FirstOrDefault(g => g.Ref is null && g.Name == headName);
+        if (head is null) return null;
+
+        var productions = new List<XsdElement> { head };
+        productions.AddRange(schema.GlobalElements.Where(g => g.Ref is null && g.SubstitutionGroup == headName));
+
+        if (productions.Count <= 1 && !head.IsAbstract)
+            return null; // a plain global element, not a substitution point
+
+        productions.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+
+        var members = productions
+            .Select(e => new SubstMember(
+                ElementName    : e.Name,
+                CSharpTypeName : PascalCase(StripPrefix(e.TypeRef)),
+                IsAbstractHead : e.Name == headName && head.IsAbstract))
+            .ToList();
+
+        var choice = new ValueEncoding.SubstitutionChoice(BitsForChoices(members.Count), members);
+        return (PascalCase(StripPrefix(head.TypeRef)), choice);
     }
 
     private static (string CSharpType, ValueEncoding Value, bool IsValueType) ResolveTypeRef(

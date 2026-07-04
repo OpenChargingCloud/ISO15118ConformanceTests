@@ -20,7 +20,10 @@ internal sealed record XsdElement(
     string TypeRef,         // "xs:unsignedInt", "AppProtocolType", or "" if inline complex type
     int    MinOccurs,
     int    MaxOccurs,       // int.MaxValue ≡ "unbounded"
-    XsdComplexType? InlineType);
+    XsdComplexType? InlineType,
+    string? Ref              = null,   // <xs:element ref="Head"/> — local name of the referenced element
+    string? SubstitutionGroup = null,  // on a global element: the head it substitutes (local name)
+    bool    IsAbstract        = false);// on a global element: abstract="true" (substitution head)
 
 /// <summary>
 /// A complex type with element content. <see cref="Sequence"/> holds the type's OWN

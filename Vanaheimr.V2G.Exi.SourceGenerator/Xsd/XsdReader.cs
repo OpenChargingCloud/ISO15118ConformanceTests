@@ -139,13 +139,25 @@ internal static class XsdReader
 
     private static XsdElement ParseElement(XElement el)
     {
-        var name = Required(el, "name");
-        var typeRef = (string?)el.Attribute("type") ?? "";
         int minOccurs = int.Parse((string?)el.Attribute("minOccurs") ?? "1");
         var maxAttr = (string?)el.Attribute("maxOccurs") ?? "1";
         int maxOccurs = string.Equals(maxAttr, "unbounded", StringComparison.OrdinalIgnoreCase)
             ? int.MaxValue
             : int.Parse(maxAttr);
+
+        // <xs:element ref="Head"/> — a reference to a (usually abstract, substitution-group)
+        // global element. Carries no name/type of its own.
+        var refAttr = (string?)el.Attribute("ref");
+        if (refAttr is not null)
+        {
+            var local = StripPrefix(refAttr);
+            return new XsdElement(local, "", minOccurs, maxOccurs, null, Ref: local);
+        }
+
+        var name = Required(el, "name");
+        var typeRef = (string?)el.Attribute("type") ?? "";
+        var subst = (string?)el.Attribute("substitutionGroup");
+        bool isAbstract = string.Equals((string?)el.Attribute("abstract"), "true", StringComparison.Ordinal);
 
         XsdComplexType? inline = null;
         if (string.IsNullOrEmpty(typeRef))
@@ -156,7 +168,16 @@ internal static class XsdReader
             inline = ParseComplexType(ct);
         }
 
-        return new XsdElement(name, typeRef, minOccurs, maxOccurs, inline);
+        return new XsdElement(name, typeRef, minOccurs, maxOccurs, inline,
+            Ref: null,
+            SubstitutionGroup: subst is null ? null : StripPrefix(subst),
+            IsAbstract: isAbstract);
+    }
+
+    private static string StripPrefix(string s)
+    {
+        int i = s.IndexOf(':');
+        return i < 0 ? s : s.Substring(i + 1);
     }
 
     private static string Required(XElement el, string attr) =>

@@ -38,8 +38,14 @@ internal sealed class CodecEmitter
     private readonly StringBuilder _sb = new();
     private readonly SchemaPlan _plan;
     private readonly HashSet<string> _emittedRecords = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, SequencePlan> _byRecordName = new(StringComparer.Ordinal);
 
-    private CodecEmitter(SchemaPlan plan) { _plan = plan; }
+    private CodecEmitter(SchemaPlan plan)
+    {
+        _plan = plan;
+        foreach (var sp in plan.ComplexTypes.Values)
+            _byRecordName[sp.CSharpRecordName] = sp;
+    }
 
     public static string Emit(SchemaPlan plan) => new CodecEmitter(plan).Run();
 
@@ -114,7 +120,28 @@ internal sealed class CodecEmitter
     {
         if (!_emittedRecords.Add(sp.CSharpRecordName)) return;
 
-        _sb.Append("public sealed record ").Append(sp.CSharpRecordName).AppendLine("(");
+        string keyword = sp.IsAbstract ? "abstract" : "sealed";
+
+        // Inheritance: the first N flattened children are the base type's, so they are passed
+        // straight through to the base record's constructor (C# positional-record pattern).
+        string baseClause = "";
+        if (sp.BaseRecordName is not null)
+        {
+            var baseArgs = _byRecordName.TryGetValue(sp.BaseRecordName, out var basePlan)
+                ? string.Join(", ", basePlan.Children.Select(bc => bc.FieldName))
+                : "";
+            baseClause = $" : {sp.BaseRecordName}({baseArgs})";
+        }
+
+        if (sp.Children.Count == 0)
+        {
+            _sb.Append("public ").Append(keyword).Append(" record ").Append(sp.CSharpRecordName)
+               .Append("()").Append(baseClause).AppendLine(";");
+            _sb.AppendLine();
+            return;
+        }
+
+        _sb.Append("public ").Append(keyword).Append(" record ").Append(sp.CSharpRecordName).AppendLine("(");
 
         for (int i = 0; i < sp.Children.Count; i++)
         {
@@ -128,7 +155,7 @@ internal sealed class CodecEmitter
             _sb.Append("    ").Append(typeText).Append(' ').Append(c.FieldName);
             _sb.AppendLine(i + 1 < sp.Children.Count ? "," : "");
         }
-        _sb.AppendLine(");");
+        _sb.Append(")").Append(baseClause).AppendLine(";");
         _sb.AppendLine();
     }
 
@@ -260,6 +287,10 @@ internal sealed class CodecEmitter
                             "is only supported as the final child of a sequence in this prototype.");
                     EmitEncodeOptionalTrailing(c);
                 }
+                else if (c.Value is ValueEncoding.SubstitutionChoice sc)
+                {
+                    EmitEncodeSubstitution(c, sc);
+                }
                 else
                 {
                     _sb.AppendLine("        w.WriteBits(0, 1);   // SE");
@@ -292,6 +323,31 @@ internal sealed class CodecEmitter
             EmitWriteValue(c, accessor, indent);
             _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // child EE");
         }
+    }
+
+    /// <summary>
+    /// Substitution-group choice: an n-bit event code selects the concrete member type, then
+    /// its content is encoded directly (no surrounding SE/EE — the event code IS the selector).
+    /// Dispatch is by runtime type; the abstract head has a production slot but no case.
+    /// </summary>
+    private void EmitEncodeSubstitution(ChildPlan c, ValueEncoding.SubstitutionChoice sc)
+    {
+        _sb.Append("        switch (msg.").Append(c.FieldName).AppendLine(")");
+        _sb.AppendLine("        {");
+        for (int i = 0; i < sc.Members.Count; i++)
+        {
+            var m = sc.Members[i];
+            if (m.IsAbstractHead) continue; // abstract — never a runtime instance
+            _sb.Append("            case ").Append(m.CSharpTypeName).Append(" v:");
+            _sb.AppendLine();
+            _sb.Append("                w.WriteBits(").Append(i).Append(", ").Append(sc.BitWidth)
+               .Append(");   // ").Append(m.ElementName).AppendLine();
+            _sb.Append("                Encode_").Append(m.CSharpTypeName).AppendLine("(ref w, v);");
+            _sb.AppendLine("                break;");
+        }
+        _sb.Append("            default: throw new ArgumentException(\"Unsupported substitution member for ")
+           .Append(c.FieldName).AppendLine("\");");
+        _sb.AppendLine("        }");
     }
 
     private void EmitEncodeOptionalTrailing(ChildPlan c)
@@ -391,6 +447,10 @@ internal sealed class CodecEmitter
                     _sb.AppendLine("            }");
                     _sb.AppendLine("        }");
                 }
+                else if (c.Value is ValueEncoding.SubstitutionChoice sc)
+                {
+                    EmitDecodeSubstitution(c, local, sc);
+                }
                 else
                 {
                     _sb.AppendLine("        r.ReadBits(1);   // SE");
@@ -431,6 +491,27 @@ internal sealed class CodecEmitter
         AppendReadValueExpr(c);
         _sb.AppendLine(";");
         _sb.Append(indent).AppendLine("r.ReadBits(1);   // child EE");
+    }
+
+    /// <summary>Decode side of <see cref="EmitEncodeSubstitution"/>: read the event code and
+    /// dispatch to the selected member's decoder.</summary>
+    private void EmitDecodeSubstitution(ChildPlan c, string local, ValueEncoding.SubstitutionChoice sc)
+    {
+        _sb.Append("        ").Append(c.CSharpType).Append(' ').Append(local).AppendLine(";");
+        _sb.Append("        switch (r.ReadBits(").Append(sc.BitWidth).AppendLine("))");
+        _sb.AppendLine("        {");
+        for (int i = 0; i < sc.Members.Count; i++)
+        {
+            var m = sc.Members[i];
+            if (m.IsAbstractHead)
+                _sb.Append("            case ").Append(i)
+                   .AppendLine("u: throw new InvalidDataException(\"abstract substitution head cannot be decoded\");");
+            else
+                _sb.Append("            case ").Append(i).Append("u: ").Append(local)
+                   .Append(" = Decode_").Append(m.CSharpTypeName).AppendLine("(ref r); break;");
+        }
+        _sb.AppendLine("            default: throw new InvalidDataException(\"unknown substitution index\");");
+        _sb.AppendLine("        }");
     }
 
     private void AppendReadValueExpr(ChildPlan c)

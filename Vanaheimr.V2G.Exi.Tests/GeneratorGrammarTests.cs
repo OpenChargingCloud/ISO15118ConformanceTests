@@ -135,6 +135,66 @@ public class GeneratorGrammarTests
         Assert.That(r.GeneratedSource, Does.Contain("Only"));
     }
 
+    // ---- construct #3: substitutionGroup + abstract head + element ref ----
+
+    private const string SubstSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="urn:test:s" targetNamespace="urn:test:s">
+          <xs:element name="root" type="ContainerType"/>
+          <xs:complexType name="ContainerType">
+            <xs:sequence><xs:element ref="Head"/></xs:sequence>
+          </xs:complexType>
+
+          <xs:element name="Head" type="HeadBaseType" abstract="true"/>
+          <xs:complexType name="HeadBaseType" abstract="true"/>
+
+          <xs:element name="Alpha" type="AlphaType" substitutionGroup="Head"/>
+          <xs:complexType name="AlphaType">
+            <xs:complexContent><xs:extension base="HeadBaseType">
+              <xs:sequence><xs:element name="A" type="xs:unsignedInt"/></xs:sequence>
+            </xs:extension></xs:complexContent>
+          </xs:complexType>
+
+          <xs:element name="Beta" type="BetaType" substitutionGroup="Head"/>
+          <xs:complexType name="BetaType">
+            <xs:complexContent><xs:extension base="HeadBaseType">
+              <xs:sequence><xs:element name="B" type="xs:unsignedInt"/></xs:sequence>
+            </xs:extension></xs:complexContent>
+          </xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void SubstitutionGroup_EmitsAbstractBase_AndPolymorphicDispatch()
+    {
+        var r = GeneratorHarness.Run(("s.xsd", SubstSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // Abstract base record + members inheriting from it.
+        Assert.That(src, Does.Contain("abstract record HeadBaseType"));
+        Assert.That(src, Does.Contain(": HeadBaseType"));
+        // Polymorphic encode: a case per concrete member (not the abstract head).
+        Assert.That(src, Does.Contain("case AlphaType v:"));
+        Assert.That(src, Does.Contain("case BetaType v:"));
+    }
+
+    [Test]
+    public void SubstitutionGroup_IncludesAbstractHead_InEventCodeWidth()
+    {
+        // Members sorted by element name: Alpha(0), Beta(1), Head(2). Including the abstract
+        // head makes 3 productions -> 2-bit event code (2 members alone would be 1 bit).
+        var r = GeneratorHarness.Run(("s.xsd", SubstSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2)"), "Alpha at index 0, width 2");
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2)"), "Beta at index 1, width 2");
+        // Decode reads the same 2-bit selector and rejects the abstract head slot (index 2).
+        Assert.That(src, Does.Contain("r.ReadBits(2)"));
+        Assert.That(src, Does.Contain("abstract substitution head cannot be decoded"));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]
