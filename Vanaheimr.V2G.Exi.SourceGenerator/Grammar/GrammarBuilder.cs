@@ -39,7 +39,9 @@ internal sealed record ChildPlan(
     string         CSharpType,       // "uint", "byte", "string", "AppProtocolEntry"
     bool           IsCSharpNullable, // for optional value-types only
     ChildShape     Shape,
-    ValueEncoding  Value);
+    ValueEncoding  Value,
+    int            ListMin = 0,      // for BoundedRepeating children
+    int            ListMax = 0);
 
 internal enum ChildShape
 {
@@ -188,9 +190,24 @@ internal static class GrammarBuilder
         var children = new List<ChildPlan>();
         foreach (var el in particles)
         {
+            // A repeating element (maxOccurs > 1) among other children: supported when it is the
+            // last particle (cbexigen encodes it as a list after the preceding children).
             if (el.MaxOccurs > 1)
-                throw new NotSupportedException(
-                    $"complexType '{ctName}': repeating element '{el.Name}' is only supported as the single member of a sequence in this prototype.");
+            {
+                if (!ReferenceEquals(el, particles[particles.Count - 1]))
+                    throw new NotSupportedException(
+                        $"complexType '{ctName}': repeating element '{el.Name}' must be the last child of the sequence.");
+                var (repType, repVal, _) = ResolveTypeRef(el.TypeRef, schema, enums, el.Name);
+                children.Add(new ChildPlan(
+                    FieldName : PascalCase(el.Name),
+                    CSharpType: repType,
+                    IsCSharpNullable: false,
+                    Shape     : ChildShape.BoundedRepeating,
+                    Value     : repVal,
+                    ListMin   : el.MinOccurs,
+                    ListMax   : el.MaxOccurs));
+                continue;
+            }
 
             // <xs:element ref="Head"/> pointing at a substitution-group head → a polymorphic
             // choice among the head's members.

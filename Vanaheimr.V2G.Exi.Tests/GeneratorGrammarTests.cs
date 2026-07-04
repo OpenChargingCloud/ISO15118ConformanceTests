@@ -261,6 +261,43 @@ public class GeneratorGrammarTests
         Assert.That(src, Does.Contain("_Id = ExiPrimitives.ReadStringValue"));
     }
 
+    // ---- construct: repeating element within a sequence -------------------
+
+    [Test]
+    public void RepeatingElement_AsLastChild_EmittedAsList()
+    {
+        // Mirrors ParameterSetType: a leading scalar followed by a bounded-repeating element.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:r" targetNamespace="urn:test:r">
+              <xs:element name="root" type="SetType"/>
+              <xs:complexType name="SetType">
+                <xs:sequence>
+                  <xs:element name="SetID" type="xs:short"/>
+                  <xs:element name="Item"  type="ItemType" maxOccurs="16"/>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="ItemType">
+                <xs:sequence><xs:element name="V" type="xs:unsignedInt"/></xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("r.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("short SetID"));
+        Assert.That(src, Does.Contain("IReadOnlyList<ItemType> Item"));
+        // The scalar is encoded before the list, and the list uses the 1-bit-first / 2-bit-loop
+        // event codes with a 2-bit terminator.
+        Assert.That(src, Does.Contain("w.WriteBits(0, i == 0 ? 1 : 2)"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2)"));
+        int enc = src.IndexOf("Encode_SetType", StringComparison.Ordinal);
+        int setId = src.IndexOf("msg.SetID", enc, StringComparison.Ordinal);
+        int loop  = src.IndexOf("Item_list", enc, StringComparison.Ordinal);
+        Assert.That(setId, Is.GreaterThan(-1).And.LessThan(loop));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

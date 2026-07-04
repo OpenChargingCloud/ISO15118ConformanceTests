@@ -286,8 +286,7 @@ internal sealed class CodecEmitter
         }
         else
         {
-            bool endsWithOptional = sp.Children.Count > 0 &&
-                                    sp.Children[sp.Children.Count - 1].Shape == ChildShape.OptionalSingle;
+            bool lastTerminates = LastChildTerminatesElement(sp);
             for (int ci = 0; ci < sp.Children.Count; ci++)
             {
                 var c = sp.Children[ci];
@@ -299,6 +298,10 @@ internal sealed class CodecEmitter
                             "is only supported as the final child of a sequence in this prototype.");
                     EmitEncodeOptionalTrailing(c);
                 }
+                else if (c.Shape == ChildShape.BoundedRepeating)
+                {
+                    EmitEncodeRepeatingChild(c, "        ");
+                }
                 else if (c.Value is ValueEncoding.SubstitutionChoice sc)
                 {
                     EmitEncodeSubstitution(c, sc);
@@ -309,7 +312,7 @@ internal sealed class CodecEmitter
                     EmitEncodeContent(c, "msg." + c.FieldName, "        ");
                 }
             }
-            if (!endsWithOptional)
+            if (!lastTerminates)
                 _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
         }
 
@@ -483,7 +486,53 @@ internal sealed class CodecEmitter
         var c0 = sp.Children[0];
         if (c0.Shape != ChildShape.RequiredSingle || c0.Value is ValueEncoding.SubstitutionChoice)
             throw new NotSupportedException($"{sp.CSharpRecordName}: the first content child must be a required, non-substitution element.");
+        foreach (var c in sp.Children)
+            if (c.Shape == ChildShape.BoundedRepeating)
+                throw new NotSupportedException($"{sp.CSharpRecordName}: attributes with repeating content are not supported yet.");
         return a;
+    }
+
+    private static bool LastChildTerminatesElement(SequencePlan sp)
+    {
+        if (sp.Children.Count == 0) return false;
+        var last = sp.Children[sp.Children.Count - 1].Shape;
+        return last is ChildShape.OptionalSingle or ChildShape.BoundedRepeating;
+    }
+
+    /// <summary>
+    /// A repeating element occurring as the last child of a sequence: the first item is
+    /// preceded by a 1-bit SE, each further item by a 2-bit loop code, and a 2-bit code
+    /// terminates the list (which also serves as the element EE).
+    /// </summary>
+    private void EmitEncodeRepeatingChild(ChildPlan c, string indent)
+    {
+        string list = c.FieldName + "_list";
+        _sb.Append(indent).Append("var ").Append(list).Append(" = msg.").Append(c.FieldName).AppendLine(";");
+        _sb.Append(indent).Append("if (").Append(list).Append(".Count is < ").Append(Math.Max(1, c.ListMin))
+           .Append(" or > ").Append(c.ListMax).AppendLine(") throw new ArgumentOutOfRangeException(nameof(msg));");
+        _sb.Append(indent).Append("for (int i = 0; i < ").Append(list).AppendLine(".Count; i++)");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).AppendLine("    w.WriteBits(0, i == 0 ? 1 : 2);   // SE(item): 1-bit first, 2-bit loop");
+        EmitEncodeContent(c, list + "[i]", indent + "    ");
+        _sb.Append(indent).AppendLine("}");
+        _sb.Append(indent).AppendLine("w.WriteBits(1, 2);   // list terminator / element EE");
+    }
+
+    private void EmitDecodeRepeatingChild(ChildPlan c, string local, string indent)
+    {
+        _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(c.CSharpType).AppendLine(">();");
+        _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE(item) first");
+        EmitDecodeContent(c, local + "_first", indent, declare: true);
+        _sb.Append(indent).Append(local).Append(".Add(").Append(local).AppendLine("_first);");
+        _sb.Append(indent).AppendLine("while (true)");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).AppendLine("    uint ec = r.ReadBits(2);");
+        _sb.Append(indent).AppendLine("    if (ec == 1) break;   // element EE");
+        _sb.Append(indent).Append("    if (ec != 0 || ").Append(local).Append(".Count >= ").Append(c.ListMax)
+           .AppendLine(") throw new InvalidDataException(\"invalid repeating-element event code\");");
+        EmitDecodeContent(c, local + "_next", indent + "    ", declare: true);
+        _sb.Append(indent).Append("    ").Append(local).Append(".Add(").Append(local).AppendLine("_next);");
+        _sb.Append(indent).AppendLine("}");
     }
 
     private void EmitEncodeOptionalTrailing(ChildPlan c)
@@ -575,8 +624,7 @@ internal sealed class CodecEmitter
         else
         {
             var locals = new List<string>();
-            bool endsWithOptional = sp.Children.Count > 0 &&
-                                    sp.Children[sp.Children.Count - 1].Shape == ChildShape.OptionalSingle;
+            bool lastTerminates = LastChildTerminatesElement(sp);
 
             foreach (var c in sp.Children)
             {
@@ -595,6 +643,10 @@ internal sealed class CodecEmitter
                     _sb.AppendLine("            }");
                     _sb.AppendLine("        }");
                 }
+                else if (c.Shape == ChildShape.BoundedRepeating)
+                {
+                    EmitDecodeRepeatingChild(c, local, "        ");
+                }
                 else if (c.Value is ValueEncoding.SubstitutionChoice sc)
                 {
                     EmitDecodeSubstitution(c, local, sc);
@@ -606,7 +658,7 @@ internal sealed class CodecEmitter
                 }
             }
 
-            if (!endsWithOptional)
+            if (!lastTerminates)
                 _sb.AppendLine("        r.ReadBits(1);   // element EE");
 
             _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
