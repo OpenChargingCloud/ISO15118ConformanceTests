@@ -1,0 +1,87 @@
+using System.Security.Cryptography;
+
+using NUnit.Framework;
+
+using Vanaheimr.V2G.Iso15118_2;
+using Vanaheimr.V2G.Iso15118_2.Generated;
+
+namespace Vanaheimr.V2G.Exi.Tests;
+
+/// <summary>
+/// ISO 15118-2 XMLDSig signing/verification (§7.9): SHA-256 over an element's EXI fragment feeds a
+/// SignedInfo Reference; the SignedInfo fragment is ECDSA-P256 signed, with the SignatureValue as raw
+/// r‖s. These exercise the crypto on top of the byte-exact fragment codecs; the fragment octets
+/// themselves are pinned to cbV2G in <see cref="Iso15118_2FragmentTests"/>.
+/// </summary>
+[TestFixture]
+public class V2GSignatureTests
+{
+    private static ReferenceType SignedElementReference(out byte[] fragment)
+    {
+        // A signable AuthorizationReq (Id="ID1"), digested over its EXI fragment.
+        var content = new AuthorizationReqType(Id: "ID1",
+            GenChallenge: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+        var buf = new byte[512];
+        Assert.That(Iso2Codec.EncodeFragment_AuthorizationReq(content, buf, out int n), Is.True);
+        fragment = buf.AsSpan(0, n).ToArray();
+        var digest = V2GSignature.Digest(fragment);
+        return new ReferenceType(Id: null, Type: null, URI: "#ID1", Transforms: null,
+            DigestMethod: new DigestMethodType(Algorithm: V2GSignature.Sha256, ANY: null),
+            DigestValue: digest);
+    }
+
+    [Test]
+    public void SignThenVerify_RoundTrips()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue);
+
+        var signatureValue = V2GSignature.Sign(signedInfo, key);
+
+        Assert.That(signatureValue.Length, Is.EqualTo(64), "P-256 r‖s is 32+32 bytes");
+        Assert.That(V2GSignature.Verify(signedInfo, signatureValue, key), Is.True);
+    }
+
+    [Test]
+    public void Verify_FailsForTamperedSignature()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue);
+        var signatureValue = V2GSignature.Sign(signedInfo, key);
+
+        signatureValue[0] ^= 0xFF;   // flip a byte of r
+
+        Assert.That(V2GSignature.Verify(signedInfo, signatureValue, key), Is.False);
+    }
+
+    [Test]
+    public void Verify_FailsForWrongKey()
+    {
+        using var signer   = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var attacker = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue);
+        var signatureValue = V2GSignature.Sign(signedInfo, signer);
+
+        Assert.That(V2GSignature.Verify(signedInfo, signatureValue, attacker), Is.False);
+    }
+
+    [Test]
+    public void VerifyReference_MatchesSignedElementDigest()
+    {
+        var reference = SignedElementReference(out var fragment);
+
+        Assert.That(V2GSignature.VerifyReference(reference, fragment), Is.True);
+
+        var tampered = (byte[])fragment.Clone();
+        tampered[^1] ^= 0x01;
+        Assert.That(V2GSignature.VerifyReference(reference, tampered), Is.False);
+    }
+
+    [Test]
+    public void SignedInfoDigest_IsStableForSameContent()
+    {
+        var a = V2GSignature.SignedInfoFragment(V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue));
+        var b = V2GSignature.SignedInfoFragment(V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue));
+        Assert.That(a, Is.EqualTo(b), "identical SignedInfo content must yield identical fragment octets");
+    }
+}
