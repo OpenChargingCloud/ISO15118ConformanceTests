@@ -260,13 +260,16 @@ internal static class GrammarBuilder
                 var subst = TryBuildSubstitution(schema, el.Ref);
                 if (subst is { } s)
                 {
+                    // A substitution reference expands to one grammar production per member (and the
+                    // abstract head); an optional reference (minOccurs=0) joins the surrounding
+                    // optional run and gains an EE alternative, a required one terminates it. The
+                    // emitter flattens the members into the run's grammar state (cbexigen model,
+                    // verified against PowerDeliveryReqType and ChargeParameterDiscoveryResType).
                     children.Add(new ChildPlan(
                         FieldName       : PascalCase(el.Ref),
                         CSharpType      : s.BaseType,
                         IsCSharpNullable: false,
-                        // cbexigen models the choice as a mandatory selection: the n-bit event
-                        // code has no 'absent' production even when minOccurs=0.
-                        Shape           : ChildShape.RequiredSingle,
+                        Shape           : el.MinOccurs == 0 ? ChildShape.OptionalSingle : ChildShape.RequiredSingle,
                         Value           : s.Choice));
                     continue;
                 }
@@ -333,7 +336,10 @@ internal static class GrammarBuilder
                 IsAbstractHead : e.Name == headName && head.IsAbstract))
             .ToList();
 
-        var choice = new ValueEncoding.SubstitutionChoice(BitsForChoices(members.Count), members);
+        // Standalone width: n member productions + the non-strict phantom -> ceil(log2(n+1)).
+        // (When the reference sits inside an optional run the emitter recomputes the width from
+        // the whole state's production count and this value is unused.)
+        var choice = new ValueEncoding.SubstitutionChoice(BitsForChoices(members.Count + 1), members);
         return (PascalCase(StripPrefix(head.TypeRef)), choice);
     }
 

@@ -492,7 +492,7 @@ public class GeneratorGrammarTests
 
         // State 0 (Opt1, Opt2, Req): 3 productions -> 2 bits; Req (all optionals absent) = code 2.
         Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Opt1"));
-        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // Req"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // SE(Req)"));
         // Reached via the last optional present, Req is at its own 1-bit SE state.
         Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // SE(Req)"));
         // The required terminator's content is emitted (not skipped) and the element still ends
@@ -545,6 +545,112 @@ public class GeneratorGrammarTests
         var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
         Assert.That(errors, Is.Empty,
             r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    // ---- construct #10: substitution references flattened into optional runs ----
+
+    private const string OptionalSubstSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="urn:test:pd" targetNamespace="urn:test:pd">
+          <xs:element name="root" type="PdType"/>
+          <xs:complexType name="PdType">
+            <xs:sequence>
+              <xs:element name="Req1" type="xs:unsignedInt"/>
+              <xs:element name="Opt1" type="xs:unsignedInt" minOccurs="0"/>
+              <xs:element ref="EVParam" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+          <xs:element name="EVParam" type="EVParamBase" abstract="true"/>
+          <xs:complexType name="EVParamBase" abstract="true"/>
+          <xs:element name="DC_EVParam" type="DCEVParamType" substitutionGroup="EVParam"/>
+          <xs:complexType name="DCEVParamType">
+            <xs:complexContent><xs:extension base="EVParamBase">
+              <xs:sequence><xs:element name="X" type="xs:unsignedInt"/></xs:sequence>
+            </xs:extension></xs:complexContent>
+          </xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void OptionalSubstitutionInRun_FlattensMembersAsProductions()
+    {
+        // PowerDeliveryReqType shape: an optional element (Opt1) then an optional substitution
+        // reference (EVParam, member DC_EVParam + abstract head), ending in EE. cbV2G grammar
+        // 199/200: the members are individual productions in the run's grammar state alongside the
+        // sibling optional and the EE — {Opt1, DC_EVParam, head, EE} is one 3-bit state.
+        var r = GeneratorHarness.Run(("pd.xsd", OptionalSubstSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // State 0 {Opt1, DC_EVParam, head, EE} = 4 productions -> 3 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 3);   // Opt1"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 3);   // DC_EVParam"));
+        Assert.That(src, Does.Contain("w.WriteBits(3, 3);   // element EE"));
+        // State 1 (Opt1 consumed) {DC_EVParam, head, EE} = 3 productions -> 2 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // DC_EVParam"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // element EE"));
+        // Dispatch is by runtime type; the abstract head reserves its slot but has no branch.
+        Assert.That(src, Does.Contain("msg.EVParam is DCEVParamType"));
+    }
+
+    private const string RequiredSubstTerminatorSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="urn:test:cpd" targetNamespace="urn:test:cpd">
+          <xs:element name="root" type="CpdType"/>
+          <xs:complexType name="CpdType">
+            <xs:sequence>
+              <xs:element name="Req1" type="xs:unsignedInt"/>
+              <xs:element ref="SASch" minOccurs="0"/>
+              <xs:element ref="EVSEParam"/>
+            </xs:sequence>
+          </xs:complexType>
+          <xs:element name="SASch" type="SASchBase" abstract="true"/>
+          <xs:complexType name="SASchBase" abstract="true"/>
+          <xs:element name="SAList" type="SAListType" substitutionGroup="SASch"/>
+          <xs:complexType name="SAListType"><xs:complexContent><xs:extension base="SASchBase">
+            <xs:sequence><xs:element name="Y" type="xs:unsignedInt"/></xs:sequence></xs:extension></xs:complexContent></xs:complexType>
+          <xs:element name="EVSEParam" type="EVSEParamBase" abstract="true"/>
+          <xs:complexType name="EVSEParamBase" abstract="true"/>
+          <xs:element name="AC_EVSEParam" type="ACEVSEParamType" substitutionGroup="EVSEParam"/>
+          <xs:complexType name="ACEVSEParamType"><xs:complexContent><xs:extension base="EVSEParamBase">
+            <xs:sequence><xs:element name="A" type="xs:unsignedInt"/></xs:sequence></xs:extension></xs:complexContent></xs:complexType>
+          <xs:element name="DC_EVSEParam" type="DCEVSEParamType" substitutionGroup="EVSEParam"/>
+          <xs:complexType name="DCEVSEParamType"><xs:complexContent><xs:extension base="EVSEParamBase">
+            <xs:sequence><xs:element name="D" type="xs:unsignedInt"/></xs:sequence></xs:extension></xs:complexContent></xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void RequiredSubstitutionTerminatesRun_FoldsMembersIntoState()
+    {
+        // ChargeParameterDiscoveryResType shape: an optional substitution reference (SASch) followed
+        // by a required substitution reference (EVSEParam). cbV2G grammar 284/285: both expansions
+        // share the state — {SAList, SASch-head, AC, DC, EVSEParam-head} = 5 productions -> 3 bits;
+        // once SASch is consumed, only the required terminator's members remain (3 -> 2 bits).
+        var r = GeneratorHarness.Run(("cpd.xsd", RequiredSubstTerminatorSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // State 0: SAList(0), SASch-head(1, reserved), AC(2), DC(3), EVSEParam-head(4, reserved).
+        Assert.That(src, Does.Contain("w.WriteBits(0, 3);   // SAList"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 3);   // AC_EVSEParam"));
+        Assert.That(src, Does.Contain("w.WriteBits(3, 3);   // DC_EVSEParam"));
+        // State 1 (SASch consumed): the required terminator's members AC(0), DC(1) at 2 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // AC_EVSEParam"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // DC_EVSEParam"));
+    }
+
+    [Test]
+    public void SubstitutionInRuns_GeneratedCodeCompiles()
+    {
+        foreach (var (name, xsd) in new[] { ("pd.xsd", OptionalSubstSchema), ("cpd.xsd", RequiredSubstTerminatorSchema) })
+        {
+            var r = GeneratorHarness.Run((name, xsd));
+            Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+            var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            Assert.That(errors, Is.Empty,
+                r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+        }
     }
 
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----

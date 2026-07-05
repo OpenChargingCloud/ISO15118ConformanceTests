@@ -116,7 +116,24 @@ optional-run machine and lifts its restriction that the first content child be r
 **attribute + optional content** works, while **attribute + required content**
 (`CertificateChainType`) stays byte-identical.
 
+## Substitution references flattened into the run (construct 10)
+
+A substitution-group reference is not one production with a nested selector — cbexigen inlines its
+members (each concrete member **and** the abstract head, sorted by element name) as individual
+productions in the enclosing grammar state, mixed with sibling optionals and the EE. Verified
+against `PowerDeliveryReqType` (grammar 199/200: `{ChargingProfile, DC_EVPowerDeliveryParameter,
+EVPowerDeliveryParameter-head, EE}` is one 3-bit state) and `ChargeParameterDiscoveryResType`
+(grammar 284/285: an optional `SASchedules` reference and a required `EVSEChargeParameter`
+reference share the state, 5 productions → 3 bits). So the optional-run machine now works on
+**productions**, not particles: each particle contributes one production except a substitution
+reference, which contributes one per member; the width stays `ceil(log2(totalProductions + 1))`.
+An optional reference (minOccurs=0) joins the run and gains an EE alternative; a required one is the
+run's terminator. Dispatch is by runtime type; the abstract head reserves its event-code slot but
+has no branch (unreachable). Standalone required references keep the direct selector, with the
+width corrected to `ceil(log2(members + 1))`. Abstract types (heads, extension bases) no longer emit
+their own (dead, uncompilable) codec methods.
+
 Not yet supported (later constructs, surfaced by the integration gate in order): an optional run
-terminated by a **substitution reference** (`ChargeParameterDiscoveryResType` →
-`EVPowerDeliveryParameter`), **attribute + choice** (`ParameterType`), and **attribute + repeating**
+that contains a **bounded-repeating** element (`SalesTariffEntryType` → `ConsumptionCost`,
+minOccurs=0 maxOccurs=3), **attribute + choice** (`ParameterType`), and **attribute + repeating**
 (`SalesTariffType`).

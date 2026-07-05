@@ -212,11 +212,15 @@ internal sealed class CodecEmitter
         // DecodeAny dispatcher.
         EmitDecodeDispatcher(globals, docBits);
 
-        // Per-complex-type encode/decode methods, deduplicated by record name.
+        // Per-complex-type encode/decode methods, deduplicated by record name. Abstract types
+        // (substitution heads, extension bases) are never encoded/decoded directly — only their
+        // concrete members are — so emitting their codec methods would just be dead, uncompilable
+        // code (a `new AbstractType(...)`). Skip them.
         var seenComplex = new HashSet<string>(StringComparer.Ordinal);
         foreach (var sp in _plan.ComplexTypes.Values
                                   .OrderBy(s => s.CSharpRecordName, StringComparer.Ordinal))
         {
+            if (sp.IsAbstract) continue;
             if (!seenComplex.Add(sp.CSharpRecordName)) continue;
             EmitEncodeMethod(sp);
             EmitDecodeMethod(sp);
@@ -433,29 +437,31 @@ internal sealed class CodecEmitter
     }
 
     /// <summary>
-    /// Emits the flat EXI grammar-state machine for a run of optional elements
-    /// <c>children[s..e)</c>. The terminator is either the element's EE (when the run ends the
-    /// sequence) or the following required element <c>children[e]</c>, whose SE is folded into
-    /// the run's event codes. At each state the productions are the remaining optionals plus the
-    /// terminator; the event-code width is <c>ceil(log2(productions+1))</c> (cbexigen's non-strict
-    /// grammar, verified against MessageHeaderType and CurrentDemandResType). The terminator's
-    /// content is emitted inside this machine; the caller continues after <c>children[e]</c>.
+    /// Emits the flat EXI grammar-state machine for a run of optional particles
+    /// <c>children[s..e)</c> terminated by the element EE (when the run ends the sequence) or the
+    /// following required particle <c>children[e]</c>. Each particle contributes one grammar
+    /// production, except a substitution reference, which flattens into one production per member
+    /// (and the abstract head); the event-code width at each state is
+    /// <c>ceil(log2(totalProductions + 1))</c> — cbexigen's non-strict grammar, verified against
+    /// MessageHeaderType, CurrentDemandResType, PowerDeliveryReqType and ChargeParameterDiscoveryResType.
+    /// State <c>k</c> covers optional particles from cursor <c>s+k</c> plus the terminator; choosing
+    /// a production advances the cursor past its particle. The terminator's content is emitted here;
+    /// the caller continues after <c>children[e]</c>.
     /// </summary>
     private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> children, int s, int e, string indent)
     {
-        int m = e - s;                       // number of optionals in the run
+        int m = e - s;                       // number of optional particles in the run
         bool endsElement = e == children.Count;
         ChildPlan? term = endsElement ? null : children[e];
-        if (term is not null &&
-            (term.Shape != ChildShape.RequiredSingle || term.Value is ValueEncoding.SubstitutionChoice))
+        if (term is not null && term.Shape != ChildShape.RequiredSingle)
             throw new NotSupportedException(
-                $"optional run before '{term.FieldName}': a run of optionals may only be terminated by the " +
-                "element EE or a required simple/complex element (substitution/repeating terminators are not supported yet).");
+                $"optional run before '{term.FieldName}': the terminator must be the element EE or a required particle.");
 
         int id = _runCounter++;
         string st = "_ost" + id, done = "_odone" + id;
         string inner = indent + "    ";
         string body = inner + "    ";
+        string br   = body + "    ";
 
         _sb.Append(indent).Append("int ").Append(st).AppendLine(" = 0;");
         _sb.Append(indent).Append("bool ").Append(done).AppendLine(" = false;");
@@ -464,66 +470,93 @@ internal sealed class CodecEmitter
         _sb.Append(inner).Append("switch (").Append(st).AppendLine(")");
         _sb.Append(inner).AppendLine("{");
 
-        for (int k = 0; k < m; k++)
+        for (int k = 0; k <= m; k++)   // state k: cursor at optional particle s+k (k==m: terminator only)
         {
-            int remaining = m - k;
-            // Productions at this state = remaining optionals + 1 terminator; cbexigen's
-            // non-strict grammar widths it as ceil(log2(productions + 1)) = BitsForChoices(remaining + 2).
-            int width = BitsForChoices(remaining + 2);
+            int totalProd = endsElement ? 1 : ProductionCount(term!);
+            for (int i = k; i < m; i++) totalProd += ProductionCount(children[s + i]);
+            int width = BitsForChoices(totalProd + 1);
+
             _sb.Append(body).Append("case ").Append(k).AppendLine(":");
-            for (int p = s + k; p < e; p++)
+            _sb.Append(body).AppendLine("{");
+            int code = 0;
+            bool first = true;
+
+            for (int i = k; i < m; i++)
+                code = EmitEncodeRunParticle(children[s + i], code, width, ref first, br, st + " = " + (i + 1) + ";");
+
+            // Terminator productions occupy the highest event codes.
+            if (endsElement)
+                EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + width + ");   // element EE", done);
+            else if (term!.Value is ValueEncoding.SubstitutionChoice)
             {
-                var o = children[p];
-                int code = p - (s + k);
-                bool last = p == e - 1;
-                string presence = o.IsCSharpNullable ? $"msg.{o.FieldName}.HasValue" : $"msg.{o.FieldName} is not null";
-                string accessor = o.IsCSharpNullable ? $"msg.{o.FieldName}!.Value" : $"msg.{o.FieldName}!";
-                _sb.Append(body).Append("    ").Append(code == 0 ? "if" : "else if")
-                   .Append(" (").Append(presence).AppendLine(")");
-                _sb.Append(body).AppendLine("    {");
-                _sb.Append(body).Append("        w.WriteBits(").Append(code).Append(", ").Append(width)
-                   .Append(");   // ").AppendLine(o.FieldName);
-                EmitEncodeContent(o, accessor, body + "        ");
-                if (last)
-                {
-                    EmitEncodeRunTerminator(term, body + "        ");
-                    _sb.Append(body).Append("        ").Append(done).AppendLine(" = true;");
-                }
-                else
-                {
-                    _sb.Append(body).Append("        ").Append(st).Append(" = ").Append(p - s + 1).AppendLine(";");
-                }
-                _sb.Append(body).AppendLine("    }");
+                code = EmitEncodeRunParticle(term, code, width, ref first, br, done + " = true;");
+                _sb.Append(br).Append("else throw new ArgumentException(\"no value set for ")
+                   .Append(term.FieldName).AppendLine("\");");
             }
-            // All remaining optionals absent: the terminator takes the highest event code.
-            _sb.Append(body).AppendLine("    else");
-            _sb.Append(body).AppendLine("    {");
-            _sb.Append(body).Append("        w.WriteBits(").Append(remaining).Append(", ").Append(width)
-               .Append(");   // ").AppendLine(endsElement ? "element EE" : term!.FieldName);
-            if (!endsElement)
-                EmitEncodeContent(term!, "msg." + term!.FieldName, body + "        ");
-            _sb.Append(body).Append("        ").Append(done).AppendLine(" = true;");
-            _sb.Append(body).AppendLine("    }");
+            else
+                EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + width + ");   // SE(" + term.FieldName + ")",
+                                  done, term);
             _sb.Append(body).AppendLine("    break;");
+            _sb.Append(body).AppendLine("}");
         }
 
         _sb.Append(inner).AppendLine("}");
         _sb.Append(indent).AppendLine("}");
     }
 
-    /// <summary>After the last optional of a run was emitted, write the terminator at its own
-    /// single-production state: a 1-bit element EE, or a 1-bit SE plus the required terminator's
-    /// content.</summary>
-    private void EmitEncodeRunTerminator(ChildPlan? term, string indent)
+    /// <summary>Emits the presence/type-dispatch branch(es) for one run particle: an optional
+    /// element (one production), or a substitution reference (one production per concrete member,
+    /// with the abstract head reserving a code slot but no branch). Returns the next event code.</summary>
+    private int EmitEncodeRunParticle(ChildPlan p, int code, int width, ref bool first, string indent, string after)
     {
-        if (term is null)
+        if (p.Value is ValueEncoding.SubstitutionChoice sc)
         {
-            _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // element EE");
-            return;
+            foreach (var mbr in sc.Members)
+            {
+                if (mbr.IsAbstractHead) { code++; continue; }   // abstract — reserve the slot, no runtime branch
+                string v = "v" + code;   // unique per branch (pattern variables share the case scope)
+                _sb.Append(indent).Append(first ? "if" : "else if")
+                   .Append(" (msg.").Append(p.FieldName).Append(" is ").Append(mbr.CSharpTypeName)
+                   .Append(' ').Append(v).AppendLine(")");
+                _sb.Append(indent).AppendLine("{");
+                _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
+                   .Append(");   // ").AppendLine(mbr.ElementName);
+                _sb.Append(indent).Append("    Encode_").Append(mbr.CSharpTypeName).Append("(ref w, ").Append(v).AppendLine(");");
+                _sb.Append(indent).Append("    ").AppendLine(after);
+                _sb.Append(indent).AppendLine("}");
+                first = false; code++;
+            }
+            return code;
         }
-        _sb.Append(indent).Append("w.WriteBits(0, 1);   // SE(").Append(term.FieldName).AppendLine(")");
-        EmitEncodeContent(term, "msg." + term.FieldName, indent);
+
+        string presence = p.IsCSharpNullable ? $"msg.{p.FieldName}.HasValue" : $"msg.{p.FieldName} is not null";
+        string accessor = p.IsCSharpNullable ? $"msg.{p.FieldName}!.Value" : $"msg.{p.FieldName}!";
+        _sb.Append(indent).Append(first ? "if" : "else if").Append(" (").Append(presence).AppendLine(")");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
+           .Append(");   // ").AppendLine(p.FieldName);
+        EmitEncodeContent(p, accessor, indent + "    ");
+        _sb.Append(indent).Append("    ").AppendLine(after);
+        _sb.Append(indent).AppendLine("}");
+        first = false;
+        return code + 1;
     }
+
+    /// <summary>Emits the terminator (element EE, or a required simple/complex element) as either a
+    /// standalone block (when no optional branch preceded it) or the trailing <c>else</c>.</summary>
+    private void EmitEncodeRunTail(bool first, string indent, string writeBits, string done, ChildPlan? content = null)
+    {
+        if (!first) _sb.Append(indent).AppendLine("else");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).Append("    ").Append(writeBits).AppendLine();
+        if (content is not null)
+            EmitEncodeContent(content, "msg." + content.FieldName, indent + "    ");
+        _sb.Append(indent).Append("    ").Append(done).AppendLine(" = true;");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    private static int ProductionCount(ChildPlan c) =>
+        c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count : 1;
 
     /// <summary>
     /// xs:choice: exactly one alternative is set. An n-bit event code (declaration order)
@@ -845,19 +878,18 @@ internal sealed class CodecEmitter
         return terminated;
     }
 
-    /// <summary>Decode side of <see cref="EmitEncodeOptionalRun"/>. Declares a nullable local per
-    /// optional (and the required terminator, if any), then reads the flat state machine, filling
-    /// locals by the event code read at each state.</summary>
+    /// <summary>Decode side of <see cref="EmitEncodeOptionalRun"/>. Declares a local per particle
+    /// (in record-constructor order), then reads the flat state machine: at each state it reads the
+    /// width-bit event code and dispatches it to the production it selects (an optional element, a
+    /// substitution member, the required terminator, or the element EE).</summary>
     private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> children, int s, int e, string indent, List<string> locals)
     {
         int m = e - s;
         bool endsElement = e == children.Count;
         ChildPlan? term = endsElement ? null : children[e];
-        if (term is not null &&
-            (term.Shape != ChildShape.RequiredSingle || term.Value is ValueEncoding.SubstitutionChoice))
+        if (term is not null && term.Shape != ChildShape.RequiredSingle)
             throw new NotSupportedException(
-                $"optional run before '{term.FieldName}': a run of optionals may only be terminated by the " +
-                "element EE or a required simple/complex element (substitution/repeating terminators are not supported yet).");
+                $"optional run before '{term.FieldName}': the terminator must be the element EE or a required particle.");
 
         // Declare the locals in record order: each optional (nullable), then the terminator.
         for (int p = s; p < e; p++)
@@ -876,6 +908,8 @@ internal sealed class CodecEmitter
         string st = "_ist" + id, done = "_idone" + id, code = "_ic" + id;
         string inner = indent + "    ";
         string body = inner + "    ";
+        string sw = body + "    ";
+        string ca = sw + "    ";
 
         _sb.Append(indent).Append("int ").Append(st).AppendLine(" = 0;");
         _sb.Append(indent).Append("bool ").Append(done).AppendLine(" = false;");
@@ -884,46 +918,35 @@ internal sealed class CodecEmitter
         _sb.Append(inner).Append("switch (").Append(st).AppendLine(")");
         _sb.Append(inner).AppendLine("{");
 
-        for (int k = 0; k < m; k++)
+        for (int k = 0; k <= m; k++)
         {
-            int remaining = m - k;
-            int width = BitsForChoices(remaining + 2);
+            int totalProd = endsElement ? 1 : ProductionCount(term!);
+            for (int i = k; i < m; i++) totalProd += ProductionCount(children[s + i]);
+            int width = BitsForChoices(totalProd + 1);
+
             _sb.Append(body).Append("case ").Append(k).AppendLine(":");
             _sb.Append(body).AppendLine("{");
-            _sb.Append(body).Append("    uint ").Append(code).Append(" = r.ReadBits(").Append(width).AppendLine(");");
-            _sb.Append(body).Append("    if (").Append(code).Append(" < ").Append(remaining).AppendLine("u)");
-            _sb.Append(body).AppendLine("    {");
-            _sb.Append(body).Append("        switch (").Append(code).AppendLine(")");
-            _sb.Append(body).AppendLine("        {");
-            for (int p = s + k; p < e; p++)
+            _sb.Append(sw).Append("uint ").Append(code).Append(" = r.ReadBits(").Append(width).AppendLine(");");
+            _sb.Append(sw).Append("switch (").Append(code).AppendLine(")");
+            _sb.Append(sw).AppendLine("{");
+
+            int c = 0;
+            for (int i = k; i < m; i++)
+                c = EmitDecodeRunParticle(children[s + i], c, ca, st + " = " + (i + 1) + ";");
+
+            if (endsElement)
             {
-                var o = children[p];
-                int c2 = p - (s + k);
-                bool last = p == e - 1;
-                _sb.Append(body).Append("            case ").Append(c2).AppendLine("u:");
-                EmitDecodeContent(o, "_" + o.FieldName, body + "                ", declare: false);
-                if (last)
-                {
-                    EmitDecodeRunTerminator(term, body + "                ");
-                    _sb.Append(body).Append("                ").Append(done).AppendLine(" = true;");
-                }
-                else
-                {
-                    _sb.Append(body).Append("                ").Append(st).Append(" = ").Append(p - s + 1).AppendLine(";");
-                }
-                _sb.Append(body).AppendLine("                break;");
+                _sb.Append(ca).Append("case ").Append(c).AppendLine("u:");   // element EE
+                _sb.Append(ca).Append("    ").Append(done).AppendLine(" = true; break;");
             }
-            _sb.Append(body).AppendLine("        }");
-            _sb.Append(body).AppendLine("    }");
-            _sb.Append(body).Append("    else if (").Append(code).Append(" == ").Append(remaining).AppendLine("u)");
-            _sb.Append(body).AppendLine("    {");
-            // Terminator selected (all remaining optionals absent); the event code was its SE.
-            if (!endsElement)
-                EmitDecodeContent(term!, "_" + term!.FieldName, body + "        ", declare: false);
-            _sb.Append(body).Append("        ").Append(done).AppendLine(" = true;");
-            _sb.Append(body).AppendLine("    }");
-            _sb.Append(body).AppendLine("    else throw new InvalidDataException(\"invalid optional-run event code\");");
-            _sb.Append(body).AppendLine("    break;");
+            else
+            {
+                c = EmitDecodeRunParticle(term!, c, ca, done + " = true;");
+            }
+
+            _sb.Append(ca).AppendLine("default: throw new InvalidDataException(\"invalid optional-run event code\");");
+            _sb.Append(sw).AppendLine("}");
+            _sb.Append(sw).AppendLine("break;");
             _sb.Append(body).AppendLine("}");
         }
 
@@ -931,17 +954,36 @@ internal sealed class CodecEmitter
         _sb.Append(indent).AppendLine("}");
     }
 
-    /// <summary>After the last optional was decoded, consume the terminator at its own single-
-    /// production state: a 1-bit element EE, or a 1-bit SE plus the required terminator's content.</summary>
-    private void EmitDecodeRunTerminator(ChildPlan? term, string indent)
+    /// <summary>Emits the decode <c>switch</c> case(s) for one run particle: an optional element
+    /// (one case reading its content), or a substitution reference (one case per member, decoding
+    /// into the base-typed local; the abstract head's slot throws). Returns the next event code.</summary>
+    private int EmitDecodeRunParticle(ChildPlan p, int code, string indent, string after)
     {
-        if (term is null)
+        string local = "_" + p.FieldName;
+        if (p.Value is ValueEncoding.SubstitutionChoice sc)
         {
-            _sb.Append(indent).AppendLine("r.ReadBits(1);   // element EE");
-            return;
+            foreach (var mbr in sc.Members)
+            {
+                _sb.Append(indent).Append("case ").Append(code).AppendLine("u:");
+                if (mbr.IsAbstractHead)
+                    _sb.Append(indent).AppendLine("    throw new InvalidDataException(\"abstract substitution head cannot be decoded\");");
+                else
+                {
+                    _sb.Append(indent).Append("    ").Append(local).Append(" = Decode_")
+                       .Append(mbr.CSharpTypeName).AppendLine("(ref r);");
+                    _sb.Append(indent).Append("    ").AppendLine(after);
+                    _sb.Append(indent).AppendLine("    break;");
+                }
+                code++;
+            }
+            return code;
         }
-        _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE(terminator)");
-        EmitDecodeContent(term, "_" + term.FieldName, indent, declare: false);
+
+        _sb.Append(indent).Append("case ").Append(code).AppendLine("u:");
+        EmitDecodeContent(p, local, indent + "    ", declare: false);
+        _sb.Append(indent).Append("    ").AppendLine(after);
+        _sb.Append(indent).AppendLine("    break;");
+        return code + 1;
     }
 
     /// <summary>
