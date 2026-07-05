@@ -13,6 +13,8 @@ Vanaheimr.V2G.Exi.slnx
 │   ├─ V2GTP/                           8-byte transport header
 │   └─ AppProtocol/                     Messages + hand-written codec
 ├─ Vanaheimr.V2G.Exi.SourceGenerator/   Roslyn generator (XSD → codec)
+├─ Vanaheimr.V2G.Exi.Iso15118_2/        ISO 15118-2 codec (5 XSDs → generated assembly)
+│   └─ Schemas/                         V2G_CI_Msg{Def,Header,Body,DataTypes} + xmldsig
 ├─ Vanaheimr.V2G.Exi.Tests/             NUnit test project
 │   ├─ Infrastructure/
 │   │   ├─ HexUtil.cs                   hex parse + bit-level diff for failures
@@ -85,20 +87,41 @@ Coverage: hand-computed bit vectors (`ExiDatatypeTests`), value-table scenarios
 and a self-encoded `Primitives.vectors.json` staged for an EXIficient cross-check
 (see `Vectors/PRIMITIVES_VECTORS.md`).
 
+## ISO 15118-2 (Phase 2)
+
+The source generator now consumes the **full ISO 15118-2 schema set** (`V2G_CI_MsgDef`,
+`MsgHeader`, `MsgBody`, `MsgDataTypes`, `xmldsig-core-schema`) and emits the codec for the
+`Vanaheimr.V2G.Exi.Iso15118_2` assembly. It handles the real schema surface: multi-file /
+multi-namespace `import`, `complexContent`/`extension`, `substitutionGroup` + abstract
+heads, attributes, `xs:choice`, bounded and unbounded repetition, `simpleContent`, the
+signed/binary/boolean built-ins, and the `V2G_Message` document/header/body/substitution
+dispatch. XMLDSig is treated as an opaque namespace (the header's `ds:Signature` is
+encode-absent; full signature fidelity is Phase 3).
+
+The whole set generates without diagnostics and compiles (`SchemaSetIntegrationTests`),
+and the target messages are **byte-exact against cbV2G**: SessionSetupReq/Res and
+ServiceDiscoveryReq/Res (six vectors incl. optional-field variants) in
+`Iso15118_2VectorTests`, plus encode → decode → re-encode round-trips in
+`Iso15118_2RoundtripTests`. The reference hex is produced by a second oracle,
+`tools/cbv2g-ref/cbv2g_iso2` (`main_iso2.c`). How each XSD construct maps to C# and to the
+wire is documented in [`docs/xsd-to-csharp-mapping.md`](docs/xsd-to-csharp-mapping.md);
+the grammar findings (event-code widths, sort orders, the bounded-unroll quirk, …) are in
+[`docs/xsd-inventory-15118-2.md`](docs/xsd-inventory-15118-2.md).
+
 ## What this prototype still does NOT do
 
 - Non-ASCII string values on the wire against a reference oracle (our codec encodes them
   rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
-- The real schema surface (imports, choice, substitution groups, attributes, XMLDSig) —
-  the generator still only handles the small AppProtocol XSD subset.
+- XMLDSig signatures over EXI fragments, and the -2 messages beyond the byte-verified
+  four (the generator handles them; only these four have checked-in cbV2G vectors so far).
 
 ## Next milestones
 
-Phase 0 (SupportedAppProtocol wire conformance vs cbV2G) and Phase 1 (EXI primitive layer)
-are **done**. See `docs/roadmap.md` and `docs/prompts/` for the full plan. Next:
+Phase 0 (SupportedAppProtocol wire conformance vs cbV2G), Phase 1 (EXI primitive layer),
+and Phase 2 (source generator on the real ISO 15118-2 schema set) are **done**. See
+`docs/roadmap.md` and `docs/prompts/` for the full plan. Next:
 
-1. Grow the source generator to the real ISO 15118-2 schema set (Phase 2).
-2. ISO 15118-2 messages + XMLDSig over EXI fragments (Phase 3).
-3. ISO 15118-20 multi-schema codecs (Phase 4), then EV↔EVSE simulation (Phase 5).
+1. Complete ISO 15118-2: all 17 message pairs + XMLDSig over EXI fragments (Phase 3).
+2. ISO 15118-20 multi-schema codecs (Phase 4), then EV↔EVSE simulation (Phase 5).

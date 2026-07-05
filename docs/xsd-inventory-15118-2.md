@@ -164,6 +164,42 @@ both tests). Two latent bugs surfaced by adding the full-set compile gate were f
 `ParameterType` (required attribute + `xs:choice`) needed no new work — it already goes through the
 required-attribute + choice path (construct 6).
 
-**Still open for Phase 2**: per-message byte conformance against cbV2G (the differential vectors —
-SessionSetupReq/Res, ServiceDiscoveryReq/Res through the `V2G_Message` wrapper), Definition of Done
-#3. Generation and compilation (#1) are done; the wire bytes are not yet asserted end to end.
+## Phase 2 completion report
+
+All Definition-of-Done items are met. The whole set generates without diagnostics and compiles
+(#1); every construct has a grammar unit test (#2); SessionSetupReq/Res and ServiceDiscoveryReq/Res
+are **byte-exact against cbV2G@03350be** — encode diffed against checked-in vectors and
+encode→decode→re-encode round-trips (#3, `Iso15118_2VectorTests` / `Iso15118_2RoundtripTests`);
+`docs/xsd-inventory-15118-2.md` and `docs/xsd-to-csharp-mapping.md` exist (#5); the README records
+the -2 coverage (#6).
+
+### EXI grammar details that deviated from the naive expectation
+
+Each was pinned to cbV2G's byte output, never to spec prose:
+
+1. **Non-strict widths carry a phantom production.** An n-production state is `ceil(log2(n+1))` bits
+   wide, not `ceil(log2(n))` — a required single SE is 1 bit, a lone trailing optional is 2 bits.
+   Definitively shown by PowerDeliveryReqType grammar 199 (4 productions, 3 bits).
+2. **Optionals interleave as productions, not nested choices.** A run of optionals (and an optional
+   attribute, whose AT event is the run's first production) shares one grammar state with the next
+   required particle or the EE; event codes renumber as the cursor advances.
+3. **Substitution members flatten into the enclosing state.** A `ref` to a head contributes one
+   production per member *and* the abstract head (sorted by element name), inline — not a 1-bit SE
+   plus a nested selector.
+4. **`unsignedByte` → 8-bit n-bit unsigned; `byte` → 8-bit with bias −128.** Not multi-byte EXI
+   integers.
+5. **The document selector counts every global element of the set.** Sorted by name then namespace;
+   `V2G_Message` is index 76 of 80 (7 bits), even though it is the only decodable root.
+6. **`maxOccurs=2` is bounded-unrolled.** A full 2-item list ends with a 1-bit EE (the max-reached
+   state); `maxOccurs≥3` self-loops and ends with the 2-bit loop EE. This was the one bug the
+   differential vectors caught after the grammar tests were all green — the value of diffing bytes,
+   not just structure.
+7. **XMLDSig is opaque by decision, not omission.** The header's `ds:Signature` is encode-absent;
+   the self-contained `X509IssuerSerialType` (needed by PaymentDetails) is modelled; the signature
+   subtree is deferred to Phase 3.
+
+### Not yet asserted at byte level
+
+The generator handles all 17 message pairs, but only the four Phase 2 target messages have
+checked-in cbV2G vectors. Extending the vector set (and the `main_iso2.c` oracle) to the remaining
+messages, plus XMLDSig signatures over EXI fragments, is Phase 3.
