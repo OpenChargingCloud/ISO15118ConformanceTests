@@ -37,10 +37,22 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
             .Select((f, ct) => (Path: f.Path, Content: f.GetText(ct)?.ToString() ?? ""))
             .Collect();
 
-        context.RegisterSourceOutput(xsdFiles, (spc, files) => Generate(spc, files));
+        // The generated C# namespace and codec class name are configurable so that several codecs
+        // (AppProtocol, ISO 15118-2, …) can coexist in one solution without colliding. Defaults keep
+        // the AppProtocol prototype working unchanged.
+        var config = context.AnalyzerConfigOptionsProvider.Select((p, _) =>
+        (
+            Ns:    p.GlobalOptions.TryGetValue("build_property.ExiGeneratedNamespace", out var ns) && ns.Length > 0
+                       ? ns : "Vanaheimr.V2G.AppProtocol.Generated",
+            Codec: p.GlobalOptions.TryGetValue("build_property.ExiCodecClassName", out var cc) && cc.Length > 0
+                       ? cc : "SupportedAppProtocolCodec"
+        ));
+
+        context.RegisterSourceOutput(xsdFiles.Combine(config), (spc, pair) => Generate(spc, pair.Left, pair.Right.Ns, pair.Right.Codec));
     }
 
-    private static void Generate(SourceProductionContext spc, ImmutableArray<(string Path, string Content)> files)
+    private static void Generate(SourceProductionContext spc, ImmutableArray<(string Path, string Content)> files,
+                                 string generatedNamespace, string codecClass)
     {
         if (files.IsDefaultOrEmpty) return;
 
@@ -85,7 +97,7 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
         string source;
         try
         {
-            source = CodecEmitter.Emit(plan);
+            source = CodecEmitter.Emit(plan, generatedNamespace, codecClass);
         }
         catch (Exception ex)
         {
