@@ -133,7 +133,18 @@ has no branch (unreachable). Standalone required references keep the direct sele
 width corrected to `ceil(log2(members + 1))`. Abstract types (heads, extension bases) no longer emit
 their own (dead, uncompilable) codec methods.
 
+## Optional bounded-repeating element inside a run (construct 11)
+
+A `minOccurs=0 maxOccurs=n` element (`SalesTariffEntryType` → `ConsumptionCost`) is not
+count-unrolled. cbexigen makes the **first** item a production of the enclosing run's grammar state
+(grammar 39: `{EPriceLevel, ConsumptionCost, EE}`, 2 bits) and loops the rest through a self-looping
+`{item = 0, EE = 1}` 2-bit state (grammar 40/42); the maxOccurs bound is enforced by the array
+length, not the grammar. So an optional repeating element joins the run as its last member,
+contributing one production (the first-item SE); encoding then walks the list in a C# loop and
+decoding reads until the 2-bit EE. The byte-verified required list (`minOccurs≥1`, e.g. AppProtocol)
+keeps the 1-bit-first / 2-bit-loop path.
+
 Not yet supported (later constructs, surfaced by the integration gate in order): an optional run
-that contains a **bounded-repeating** element (`SalesTariffEntryType` → `ConsumptionCost`,
-minOccurs=0 maxOccurs=3), **attribute + choice** (`ParameterType`), and **attribute + repeating**
+terminated by a **required** bounded-repeating element combined with attributes (`SalesTariffType` →
+`SalesTariffEntry`), **attribute + choice** (`ParameterType`), and **attribute + repeating**
 (`SalesTariffType`).

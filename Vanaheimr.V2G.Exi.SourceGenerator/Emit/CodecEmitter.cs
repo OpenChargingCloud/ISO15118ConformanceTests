@@ -40,6 +40,7 @@ internal sealed class CodecEmitter
     private readonly HashSet<string> _emittedRecords = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SequencePlan> _byRecordName = new(StringComparer.Ordinal);
     private int _runCounter; // unique suffixes for optional-run state locals
+    private int _tmpCounter; // unique suffixes for decode temporaries
 
     private CodecEmitter(SchemaPlan plan)
     {
@@ -405,8 +406,8 @@ internal sealed class CodecEmitter
             var c = children[i];
             switch (c.Shape)
             {
-                case ChildShape.BoundedRepeating:
-                    EmitEncodeRepeatingChild(c, indent);
+                case ChildShape.BoundedRepeating when c.ListMin > 0:
+                    EmitEncodeRepeatingChild(c, indent);   // required list: 1-bit first / 2-bit loop
                     terminated = true;
                     i++;
                     break;
@@ -423,9 +424,8 @@ internal sealed class CodecEmitter
                     i++;
                     break;
 
-                default: // OptionalSingle — the head of a run of consecutive optionals
-                    int j = i;
-                    while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
+                default: // OptionalSingle (or an optional bounded-repeating list) — the head of a run
+                    int j = RunEnd(children, i);
                     bool endsElement = j == children.Count;
                     EmitEncodeOptionalRun(children, i, j, indent);
                     terminated = endsElement;
@@ -456,6 +456,12 @@ internal sealed class CodecEmitter
         if (term is not null && term.Shape != ChildShape.RequiredSingle)
             throw new NotSupportedException(
                 $"optional run before '{term.FieldName}': the terminator must be the element EE or a required particle.");
+        // A bounded-repeating member is only supported as the last member of an EE-terminated run
+        // (its loop consumes the element EE).
+        for (int p = s; p < e; p++)
+            if (children[p].Shape == ChildShape.BoundedRepeating && (p != e - 1 || !endsElement))
+                throw new NotSupportedException(
+                    $"repeating element '{children[p].FieldName}' in an optional run must be its last member and end the sequence.");
 
         int id = _runCounter++;
         string st = "_ost" + id, done = "_odone" + id;
@@ -482,7 +488,13 @@ internal sealed class CodecEmitter
             bool first = true;
 
             for (int i = k; i < m; i++)
-                code = EmitEncodeRunParticle(children[s + i], code, width, ref first, br, st + " = " + (i + 1) + ";");
+            {
+                // A repeating member enters its own loop and ends the element; others advance the cursor.
+                string after = children[s + i].Shape == ChildShape.BoundedRepeating
+                    ? done + " = true;"
+                    : st + " = " + (i + 1) + ";";
+                code = EmitEncodeRunParticle(children[s + i], code, width, ref first, br, after);
+            }
 
             // Terminator productions occupy the highest event codes.
             if (endsElement)
@@ -509,6 +521,30 @@ internal sealed class CodecEmitter
     /// with the abstract head reserving a code slot but no branch). Returns the next event code.</summary>
     private int EmitEncodeRunParticle(ChildPlan p, int code, int width, ref bool first, string indent, string after)
     {
+        if (p.Shape == ChildShape.BoundedRepeating)
+        {
+            // First item takes this state's event code; further items and the terminating EE use the
+            // 2-bit loop code {item = 0, EE = 1} (cbexigen model).
+            string list = "msg." + p.FieldName;
+            _sb.Append(indent).Append(first ? "if" : "else if").Append(" (").Append(list).AppendLine(".Count > 0)");
+            _sb.Append(indent).AppendLine("{");
+            _sb.Append(indent).Append("    if (").Append(list).Append(".Count > ").Append(p.ListMax)
+               .AppendLine(") throw new ArgumentOutOfRangeException(nameof(msg));");
+            _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
+               .Append(");   // ").AppendLine(p.FieldName);
+            EmitEncodeContent(p, list + "[0]", indent + "    ");
+            _sb.Append(indent).Append("    for (int ci = 1; ci < ").Append(list).AppendLine(".Count; ci++)");
+            _sb.Append(indent).AppendLine("    {");
+            _sb.Append(indent).Append("        w.WriteBits(0, 2);   // ").AppendLine(p.FieldName);
+            EmitEncodeContent(p, list + "[ci]", indent + "        ");
+            _sb.Append(indent).AppendLine("    }");
+            _sb.Append(indent).AppendLine("    w.WriteBits(1, 2);   // element EE (list end)");
+            _sb.Append(indent).Append("    ").AppendLine(after);
+            _sb.Append(indent).AppendLine("}");
+            first = false;
+            return code + 1;
+        }
+
         if (p.Value is ValueEncoding.SubstitutionChoice sc)
         {
             foreach (var mbr in sc.Members)
@@ -557,6 +593,20 @@ internal sealed class CodecEmitter
 
     private static int ProductionCount(ChildPlan c) =>
         c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count : 1;
+
+    /// <summary>
+    /// The exclusive end of the optional run starting at <paramref name="i"/>: consecutive
+    /// <see cref="ChildShape.OptionalSingle"/> particles, plus one trailing optional
+    /// (<c>minOccurs=0</c>) bounded-repeating list — its first item is a production of the run's
+    /// grammar state and further items loop (cbexigen model, verified against SalesTariffEntryType).
+    /// </summary>
+    private static int RunEnd(IReadOnlyList<ChildPlan> children, int i)
+    {
+        int j = i;
+        while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
+        if (j < children.Count && children[j].Shape == ChildShape.BoundedRepeating && children[j].ListMin == 0) j++;
+        return j;
+    }
 
     /// <summary>
     /// xs:choice: exactly one alternative is set. An n-bit event code (declaration order)
@@ -845,8 +895,8 @@ internal sealed class CodecEmitter
             string local = "_" + c.FieldName;
             switch (c.Shape)
             {
-                case ChildShape.BoundedRepeating:
-                    EmitDecodeRepeatingChild(c, local, indent);
+                case ChildShape.BoundedRepeating when c.ListMin > 0:
+                    EmitDecodeRepeatingChild(c, local, indent);   // required list
                     locals.Add(local);
                     terminated = true;
                     i++;
@@ -865,9 +915,8 @@ internal sealed class CodecEmitter
                     i++;
                     break;
 
-                default: // OptionalSingle — head of a run
-                    int j = i;
-                    while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
+                default: // OptionalSingle (or an optional bounded-repeating list) — head of a run
+                    int j = RunEnd(children, i);
                     bool endsElement = j == children.Count;
                     EmitDecodeOptionalRun(children, i, j, indent, locals);
                     terminated = endsElement;
@@ -891,11 +940,16 @@ internal sealed class CodecEmitter
             throw new NotSupportedException(
                 $"optional run before '{term.FieldName}': the terminator must be the element EE or a required particle.");
 
-        // Declare the locals in record order: each optional (nullable), then the terminator.
+        // Declare the locals in record order: each optional (nullable), a repeating member as a
+        // list, then the terminator.
         for (int p = s; p < e; p++)
         {
             var o = children[p];
-            _sb.Append(indent).Append(o.CSharpType).Append("? _").Append(o.FieldName).AppendLine(" = default;");
+            if (o.Shape == ChildShape.BoundedRepeating)
+                _sb.Append(indent).Append("var _").Append(o.FieldName)
+                   .Append(" = new List<").Append(o.CSharpType).AppendLine(">();");
+            else
+                _sb.Append(indent).Append(o.CSharpType).Append("? _").Append(o.FieldName).AppendLine(" = default;");
             locals.Add("_" + o.FieldName);
         }
         if (term is not null)
@@ -932,7 +986,12 @@ internal sealed class CodecEmitter
 
             int c = 0;
             for (int i = k; i < m; i++)
-                c = EmitDecodeRunParticle(children[s + i], c, ca, st + " = " + (i + 1) + ";");
+            {
+                string after = children[s + i].Shape == ChildShape.BoundedRepeating
+                    ? done + " = true;"
+                    : st + " = " + (i + 1) + ";";
+                c = EmitDecodeRunParticle(children[s + i], c, ca, after);
+            }
 
             if (endsElement)
             {
@@ -960,6 +1019,28 @@ internal sealed class CodecEmitter
     private int EmitDecodeRunParticle(ChildPlan p, int code, string indent, string after)
     {
         string local = "_" + p.FieldName;
+        if (p.Shape == ChildShape.BoundedRepeating)
+        {
+            string it0 = "_it" + _tmpCounter++;
+            string itn = "_it" + _tmpCounter++;
+            _sb.Append(indent).Append("case ").Append(code).AppendLine("u:");
+            _sb.Append(indent).AppendLine("{");
+            EmitDecodeContent(p, it0, indent + "    ", declare: true);   // first item (event code was its SE)
+            _sb.Append(indent).Append("    ").Append(local).Append(".Add(").Append(it0).AppendLine(");");
+            _sb.Append(indent).AppendLine("    while (true)");
+            _sb.Append(indent).AppendLine("    {");
+            _sb.Append(indent).AppendLine("        uint lc = r.ReadBits(2);");
+            _sb.Append(indent).AppendLine("        if (lc == 1) break;   // element EE (list end)");
+            _sb.Append(indent).Append("        if (lc != 0 || ").Append(local).Append(".Count >= ").Append(p.ListMax)
+               .AppendLine(") throw new InvalidDataException(\"invalid repeating-element event code\");");
+            EmitDecodeContent(p, itn, indent + "        ", declare: true);
+            _sb.Append(indent).Append("        ").Append(local).Append(".Add(").Append(itn).AppendLine(");");
+            _sb.Append(indent).AppendLine("    }");
+            _sb.Append(indent).Append("    ").AppendLine(after);
+            _sb.Append(indent).AppendLine("    break;");
+            _sb.Append(indent).AppendLine("}");
+            return code + 1;
+        }
         if (p.Value is ValueEncoding.SubstitutionChoice sc)
         {
             foreach (var mbr in sc.Members)

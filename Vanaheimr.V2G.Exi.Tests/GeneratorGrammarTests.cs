@@ -653,6 +653,58 @@ public class GeneratorGrammarTests
         }
     }
 
+    // ---- construct #11: an optional bounded-repeating element inside an optional run ----
+
+    private const string OptionalRepeatingSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="urn:test:st" targetNamespace="urn:test:st">
+          <xs:element name="root" type="EntryT"/>
+          <xs:complexType name="EntryT">
+            <xs:sequence>
+              <xs:element name="Req1" type="xs:unsignedInt"/>
+              <xs:element name="EPrice" type="xs:unsignedByte" minOccurs="0"/>
+              <xs:element name="Cost" type="CostT" minOccurs="0" maxOccurs="3"/>
+            </xs:sequence>
+          </xs:complexType>
+          <xs:complexType name="CostT">
+            <xs:sequence><xs:element name="V" type="xs:unsignedInt"/></xs:sequence>
+          </xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void OptionalRepeatingInRun_FirstItemIsAStateProduction_RestLoop()
+    {
+        // SalesTariffEntryType shape: an optional element (EPrice) then an optional bounded-repeating
+        // element (Cost, maxOccurs=3), ending in EE. cbV2G grammar 39-42: the FIRST Cost item is a
+        // production of the run's grammar state {EPrice, Cost, EE}; further items and the terminating
+        // EE use the 2-bit loop {item=0, EE=1}. The bound is enforced by the array, not the grammar.
+        var r = GeneratorHarness.Run(("st.xsd", OptionalRepeatingSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("IReadOnlyList<CostT> Cost"));
+        // State 0 {EPrice(0), Cost-first(1), EE(2)} = 3 productions -> 2 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // EPrice"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // Cost"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // element EE"));
+        // The loop: further items at code 0, the list-terminating EE at code 1 (both 2-bit).
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // element EE (list end)"));
+        Assert.That(src, Does.Contain("for (int ci = 1; ci < msg.Cost.Count; ci++)"));
+        // Decode reads the first item then loops until the EE.
+        Assert.That(src, Does.Contain("if (lc == 1) break;   // element EE (list end)"));
+    }
+
+    [Test]
+    public void OptionalRepeatingInRun_GeneratedCodeCompiles()
+    {
+        var r = GeneratorHarness.Run(("st.xsd", OptionalRepeatingSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty,
+            r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]
