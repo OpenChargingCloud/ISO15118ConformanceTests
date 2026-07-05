@@ -705,6 +705,58 @@ public class GeneratorGrammarTests
             r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
     }
 
+    // ---- construct #12: optional run terminated by a required repeating element ----
+
+    private const string RequiredRepeatingTerminatorSchema = """
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns="urn:test:tar" targetNamespace="urn:test:tar">
+          <xs:element name="root" type="TarT"/>
+          <xs:complexType name="TarT">
+            <xs:sequence>
+              <xs:element name="Req1" type="xs:unsignedInt"/>
+              <xs:element name="Desc" type="xs:string" minOccurs="0"/>
+              <xs:element name="Num" type="xs:unsignedByte" minOccurs="0"/>
+              <xs:element name="Entry" type="EntryT" maxOccurs="4"/>
+            </xs:sequence>
+            <xs:attribute name="Id" type="xs:ID"/>
+          </xs:complexType>
+          <xs:complexType name="EntryT">
+            <xs:sequence><xs:element name="V" type="xs:unsignedInt"/></xs:sequence>
+          </xs:complexType>
+        </xs:schema>
+        """;
+
+    [Test]
+    public void RequiredRepeatingTerminatesRun_FirstItemIsAStateProduction()
+    {
+        // SalesTariffType shape: an optional run {Desc, Num} terminated by a REQUIRED repeating
+        // element (Entry, minOccurs=1). cbV2G grammar 58-63: since Entry is required there is no EE
+        // production in the run; its first item is the highest-code production of each state
+        // ({Desc, Num, Entry} = 2 bits; then {Num, Entry}; then {Entry} = 1 bit), and further items
+        // and the terminating EE use the 2-bit loop.
+        var r = GeneratorHarness.Run(("tar.xsd", RequiredRepeatingTerminatorSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("IReadOnlyList<EntryT> Entry"));
+        // State {Desc(0), Num(1), Entry(2)}: Entry first item at code 2, 2 bits (all optionals absent).
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // Entry"));
+        // Final state {Entry} = 1 production -> 1 bit.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // Entry"));
+        // Further items and the list-terminating EE at the 2-bit loop code.
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // element EE (list end)"));
+    }
+
+    [Test]
+    public void RequiredRepeatingTerminator_GeneratedCodeCompiles()
+    {
+        var r = GeneratorHarness.Run(("tar.xsd", RequiredRepeatingTerminatorSchema));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty,
+            r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

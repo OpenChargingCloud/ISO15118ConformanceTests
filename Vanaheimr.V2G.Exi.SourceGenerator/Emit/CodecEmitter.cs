@@ -39,6 +39,7 @@ internal sealed class CodecEmitter
     private readonly SchemaPlan _plan;
     private readonly HashSet<string> _emittedRecords = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SequencePlan> _byRecordName = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _baseRecordNames = new(StringComparer.Ordinal); // types other types extend
     private int _runCounter; // unique suffixes for optional-run state locals
     private int _tmpCounter; // unique suffixes for decode temporaries
 
@@ -46,7 +47,11 @@ internal sealed class CodecEmitter
     {
         _plan = plan;
         foreach (var sp in plan.ComplexTypes.Values)
+        {
             _byRecordName[sp.CSharpRecordName] = sp;
+            if (sp.BaseRecordName is not null)
+                _baseRecordNames.Add(sp.BaseRecordName);
+        }
     }
 
     public static string Emit(SchemaPlan plan) => new CodecEmitter(plan).Run();
@@ -140,7 +145,11 @@ internal sealed class CodecEmitter
     {
         if (!_emittedRecords.Add(sp.CSharpRecordName)) return;
 
-        string keyword = sp.IsAbstract ? "abstract" : "sealed";
+        // A concrete type that other types extend (e.g. ServiceType, base of ChargeServiceType)
+        // must not be sealed; only leaf concrete records are.
+        string keyword = sp.IsAbstract ? "abstract "
+                       : _baseRecordNames.Contains(sp.CSharpRecordName) ? ""
+                       : "sealed ";
 
         // Inheritance: the first N flattened children are the base type's, so they are passed
         // straight through to the base record's constructor (C# positional-record pattern).
@@ -173,13 +182,13 @@ internal sealed class CodecEmitter
 
         if (parameters.Count == 0)
         {
-            _sb.Append("public ").Append(keyword).Append(" record ").Append(sp.CSharpRecordName)
+            _sb.Append("public ").Append(keyword).Append("record ").Append(sp.CSharpRecordName)
                .Append("()").Append(baseClause).AppendLine(";");
             _sb.AppendLine();
             return;
         }
 
-        _sb.Append("public ").Append(keyword).Append(" record ").Append(sp.CSharpRecordName).AppendLine("(");
+        _sb.Append("public ").Append(keyword).Append("record ").Append(sp.CSharpRecordName).AppendLine("(");
         for (int i = 0; i < parameters.Count; i++)
         {
             _sb.Append("    ").Append(parameters[i]);
@@ -428,7 +437,9 @@ internal sealed class CodecEmitter
                     int j = RunEnd(children, i);
                     bool endsElement = j == children.Count;
                     EmitEncodeOptionalRun(children, i, j, indent);
-                    terminated = endsElement;
+                    // A required repeating terminator's loop emits the element EE itself.
+                    bool repTerm = !endsElement && children[j].Shape == ChildShape.BoundedRepeating;
+                    terminated = endsElement || repTerm;
                     i = endsElement ? j : j + 1;
                     break;
             }
@@ -453,9 +464,12 @@ internal sealed class CodecEmitter
         int m = e - s;                       // number of optional particles in the run
         bool endsElement = e == children.Count;
         ChildPlan? term = endsElement ? null : children[e];
-        if (term is not null && term.Shape != ChildShape.RequiredSingle)
+        if (term is not null && term.Shape is not (ChildShape.RequiredSingle or ChildShape.BoundedRepeating))
             throw new NotSupportedException(
                 $"optional run before '{term.FieldName}': the terminator must be the element EE or a required particle.");
+        if (term is not null && term.Shape == ChildShape.BoundedRepeating && e != children.Count - 1)
+            throw new NotSupportedException(
+                $"repeating terminator '{term.FieldName}' must be the last child of the sequence (its loop ends the element).");
         // A bounded-repeating member is only supported as the last member of an EE-terminated run
         // (its loop consumes the element EE).
         for (int p = s; p < e; p++)
@@ -505,6 +519,8 @@ internal sealed class CodecEmitter
                 _sb.Append(br).Append("else throw new ArgumentException(\"no value set for ")
                    .Append(term.FieldName).AppendLine("\");");
             }
+            else if (term.Shape == ChildShape.BoundedRepeating)
+                EmitEncodeRunTailRepeating(first, br, term, code, width, done);
             else
                 EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + width + ");   // SE(" + term.FieldName + ")",
                                   done, term);
@@ -524,22 +540,14 @@ internal sealed class CodecEmitter
         if (p.Shape == ChildShape.BoundedRepeating)
         {
             // First item takes this state's event code; further items and the terminating EE use the
-            // 2-bit loop code {item = 0, EE = 1} (cbexigen model).
+            // 2-bit loop code {item = 0, EE = 1} (cbexigen model). Optional member: guarded by a
+            // non-empty check (an empty list means the element is absent).
             string list = "msg." + p.FieldName;
             _sb.Append(indent).Append(first ? "if" : "else if").Append(" (").Append(list).AppendLine(".Count > 0)");
             _sb.Append(indent).AppendLine("{");
             _sb.Append(indent).Append("    if (").Append(list).Append(".Count > ").Append(p.ListMax)
                .AppendLine(") throw new ArgumentOutOfRangeException(nameof(msg));");
-            _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
-               .Append(");   // ").AppendLine(p.FieldName);
-            EmitEncodeContent(p, list + "[0]", indent + "    ");
-            _sb.Append(indent).Append("    for (int ci = 1; ci < ").Append(list).AppendLine(".Count; ci++)");
-            _sb.Append(indent).AppendLine("    {");
-            _sb.Append(indent).Append("        w.WriteBits(0, 2);   // ").AppendLine(p.FieldName);
-            EmitEncodeContent(p, list + "[ci]", indent + "        ");
-            _sb.Append(indent).AppendLine("    }");
-            _sb.Append(indent).AppendLine("    w.WriteBits(1, 2);   // element EE (list end)");
-            _sb.Append(indent).Append("    ").AppendLine(after);
+            EmitEncodeRepeatingItems(p, code, width, indent + "    ", after);
             _sb.Append(indent).AppendLine("}");
             first = false;
             return code + 1;
@@ -588,6 +596,38 @@ internal sealed class CodecEmitter
         if (content is not null)
             EmitEncodeContent(content, "msg." + content.FieldName, indent + "    ");
         _sb.Append(indent).Append("    ").Append(done).AppendLine(" = true;");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>Emits the wire form of a bounded-repeating element: the first item at
+    /// <paramref name="firstCode"/>/<paramref name="width"/> (its grammar-state event code), then
+    /// each further item and the terminating EE at the 2-bit loop code {item = 0, EE = 1}.</summary>
+    private void EmitEncodeRepeatingItems(ChildPlan p, int firstCode, int width, string indent, string after)
+    {
+        string list = "msg." + p.FieldName;
+        _sb.Append(indent).Append("w.WriteBits(").Append(firstCode).Append(", ").Append(width)
+           .Append(");   // ").AppendLine(p.FieldName);
+        EmitEncodeContent(p, list + "[0]", indent);
+        _sb.Append(indent).Append("for (int ci = 1; ci < ").Append(list).AppendLine(".Count; ci++)");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).Append("    w.WriteBits(0, 2);   // ").AppendLine(p.FieldName);
+        EmitEncodeContent(p, list + "[ci]", indent + "    ");
+        _sb.Append(indent).AppendLine("}");
+        _sb.Append(indent).AppendLine("w.WriteBits(1, 2);   // element EE (list end)");
+        _sb.Append(indent).Append(after).AppendLine();
+    }
+
+    /// <summary>Terminator variant of <see cref="EmitEncodeRepeatingItems"/>: a required
+    /// (<c>minOccurs≥1</c>) repeating element that ends the run — emitted unconditionally as the
+    /// trailing <c>else</c> (all optionals absent) or a standalone block.</summary>
+    private void EmitEncodeRunTailRepeating(bool first, string indent, ChildPlan term, int code, int width, string done)
+    {
+        string list = "msg." + term.FieldName;
+        if (!first) _sb.Append(indent).AppendLine("else");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).Append("    if (").Append(list).Append(".Count is < 1 or > ").Append(term.ListMax)
+           .AppendLine(") throw new ArgumentOutOfRangeException(nameof(msg));");
+        EmitEncodeRepeatingItems(term, code, width, indent + "    ", done + " = true;");
         _sb.Append(indent).AppendLine("}");
     }
 
@@ -749,6 +789,11 @@ internal sealed class CodecEmitter
             case ValueEncoding.StringValue:
                 _sb.Append(indent).Append("ExiPrimitives.WriteStringValue(ref w, ")
                    .Append(accessor).AppendLine(");");
+                break;
+            case ValueEncoding.NBitUnsigned nb when c.CSharpType == "bool":
+                // xs:boolean is a 1-bit n-bit unsigned; bool has no numeric conversion in C#.
+                _sb.Append(indent).Append("w.WriteBits(").Append(accessor).Append(" ? 1u : 0u, ")
+                   .Append(nb.BitWidth).AppendLine(");");
                 break;
             case ValueEncoding.NBitUnsigned nb when nb.Bias != 0:
                 _sb.Append(indent).Append("w.WriteBits((uint)((long)")
@@ -919,7 +964,8 @@ internal sealed class CodecEmitter
                     int j = RunEnd(children, i);
                     bool endsElement = j == children.Count;
                     EmitDecodeOptionalRun(children, i, j, indent, locals);
-                    terminated = endsElement;
+                    bool repTerm = !endsElement && children[j].Shape == ChildShape.BoundedRepeating;
+                    terminated = endsElement || repTerm;
                     i = endsElement ? j : j + 1;
                     break;
             }
@@ -936,9 +982,12 @@ internal sealed class CodecEmitter
         int m = e - s;
         bool endsElement = e == children.Count;
         ChildPlan? term = endsElement ? null : children[e];
-        if (term is not null && term.Shape != ChildShape.RequiredSingle)
+        if (term is not null && term.Shape is not (ChildShape.RequiredSingle or ChildShape.BoundedRepeating))
             throw new NotSupportedException(
                 $"optional run before '{term.FieldName}': the terminator must be the element EE or a required particle.");
+        if (term is not null && term.Shape == ChildShape.BoundedRepeating && e != children.Count - 1)
+            throw new NotSupportedException(
+                $"repeating terminator '{term.FieldName}' must be the last child of the sequence (its loop ends the element).");
 
         // Declare the locals in record order: each optional (nullable), a repeating member as a
         // list, then the terminator.
@@ -954,7 +1003,11 @@ internal sealed class CodecEmitter
         }
         if (term is not null)
         {
-            _sb.Append(indent).Append(term.CSharpType).Append(" _").Append(term.FieldName).AppendLine(" = default!;");
+            if (term.Shape == ChildShape.BoundedRepeating)
+                _sb.Append(indent).Append("var _").Append(term.FieldName)
+                   .Append(" = new List<").Append(term.CSharpType).AppendLine(">();");
+            else
+                _sb.Append(indent).Append(term.CSharpType).Append(" _").Append(term.FieldName).AppendLine(" = default!;");
             locals.Add("_" + term.FieldName);
         }
 
@@ -1145,6 +1198,9 @@ internal sealed class CodecEmitter
                 break;
             case ValueEncoding.StringValue:
                 _sb.Append("ExiPrimitives.ReadStringValue(ref r)");
+                break;
+            case ValueEncoding.NBitUnsigned nb when c.CSharpType == "bool":
+                _sb.Append("r.ReadBits(").Append(nb.BitWidth).Append(") != 0u");
                 break;
             case ValueEncoding.NBitUnsigned nb when nb.Bias != 0:
                 _sb.Append('(').Append(c.CSharpType).Append(")((long)r.ReadBits(")

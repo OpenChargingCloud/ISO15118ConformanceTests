@@ -4,16 +4,14 @@ using Vanaheimr.V2G.Exi.Tests.Infrastructure;
 namespace Vanaheimr.V2G.Exi.Tests;
 
 /// <summary>
-/// Phase 2 integration gate: run the generator over the full ISO 15118-2 schema set and
-/// require zero diagnostics. Marked <c>[Explicit]</c> because the generator does not yet
-/// handle every construct in the set — run it manually to see which constructs remain
-/// (the failure message lists them). When it goes green the whole set generates.
+/// Phase 2 integration gate: run the generator over the full ISO 15118-2 schema set and require
+/// zero diagnostics AND that the generated codec compiles (Phase 2 Definition of Done #1). The
+/// per-message byte conformance against cbV2G is a separate step (differential vectors).
 /// </summary>
 [TestFixture]
 public class SchemaSetIntegrationTests
 {
-    [Test, Explicit("Full -2 schema set; run to list remaining unsupported constructs.")]
-    public void FullIso2SchemaSet_GeneratesWithoutDiagnostics()
+    private static (string GeneratedSource, Microsoft.CodeAnalysis.Diagnostic[] Diagnostics) GenerateFullSet()
     {
         var root = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
         while (root is not null && !Directory.Exists(Path.Combine(root.FullName, "Vanaheimr.V2G.Exi.Iso15118_2")))
@@ -26,10 +24,28 @@ public class SchemaSetIntegrationTests
             files.Add((Path.GetFileName(f), File.ReadAllText(f)));
 
         var r = GeneratorHarness.Run(files.ToArray());
+        return (r.GeneratedSource, r.Diagnostics.ToArray());
+    }
 
-        var msg = $"{r.Diagnostics.Length} diagnostics, {r.GeneratedSource.Length} generated chars:\n";
-        foreach (var d in r.Diagnostics)
+    [Test]
+    public void FullIso2SchemaSet_GeneratesWithoutDiagnostics()
+    {
+        var (_, diagnostics) = GenerateFullSet();
+
+        var msg = $"{diagnostics.Length} diagnostics:\n";
+        foreach (var d in diagnostics)
             msg += "  " + d.GetMessage() + "\n";
-        Assert.That(r.Diagnostics.Length, Is.Zero, msg);
+        Assert.That(diagnostics.Length, Is.Zero, msg);
+    }
+
+    [Test]
+    public void FullIso2SchemaSet_GeneratedCodecCompiles()
+    {
+        var (source, diagnostics) = GenerateFullSet();
+        Assert.That(diagnostics.Length, Is.Zero, "generation must be diagnostic-free first");
+
+        var errors = GeneratorHarness.CompileErrors(source, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty,
+            string.Join("\n", errors.Select(e => e.ToString())));
     }
 }

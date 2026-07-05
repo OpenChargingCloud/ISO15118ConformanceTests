@@ -144,7 +144,26 @@ contributing one production (the first-item SE); encoding then walks the list in
 decoding reads until the 2-bit EE. The byte-verified required list (`minOccurs≥1`, e.g. AppProtocol)
 keeps the 1-bit-first / 2-bit-loop path.
 
-Not yet supported (later constructs, surfaced by the integration gate in order): an optional run
-terminated by a **required** bounded-repeating element combined with attributes (`SalesTariffType` →
-`SalesTariffEntry`), **attribute + choice** (`ParameterType`), and **attribute + repeating**
-(`SalesTariffType`).
+## Required repeating terminator — full set generates and compiles (construct 12)
+
+The last blocker was `SalesTariffType`: an optional run `{SalesTariffDescription, NumEPriceLevels}`
+terminated by a **required** (`minOccurs≥1`) repeating element `SalesTariffEntry`, under an optional
+`Id` attribute. cbV2G grammar 58-63: since the terminator is required there is no run-level EE
+production; its first item is the highest-code production of each state (`{Desc, Num, Entry}` → 2
+bits, then `{Num, Entry}`, then `{Entry}` → 1 bit), further items and the terminating EE use the
+2-bit loop. This is `EmitEncodeRunTailRepeating` / the repeating case of the run's decoder.
+
+With this, **Phase 2 Definition of Done #1 is met**: all five ISO 15118-2 XSDs run through the
+generator with zero diagnostics *and* the generated codec compiles (`SchemaSetIntegrationTests`,
+both tests). Two latent bugs surfaced by adding the full-set compile gate were fixed alongside:
+
+- a concrete type that others extend (e.g. `ServiceType`, base of `ChargeServiceType`) must not be
+  emitted `sealed`;
+- `xs:boolean` encodes/decodes via `x ? 1u : 0u` / `ReadBits(1) != 0` (C# has no `(uint)bool`).
+
+`ParameterType` (required attribute + `xs:choice`) needed no new work — it already goes through the
+required-attribute + choice path (construct 6).
+
+**Still open for Phase 2**: per-message byte conformance against cbV2G (the differential vectors —
+SessionSetupReq/Res, ServiceDiscoveryReq/Res through the `V2G_Message` wrapper), Definition of Done
+#3. Generation and compilation (#1) are done; the wire bytes are not yet asserted end to end.
