@@ -51,3 +51,20 @@ add_executable(cbv2g_ref
 )
 
 target_include_directories(cbv2g_ref PRIVATE "${CBV2G_SRC}/include")
+
+# --- ISO 15118-2 reference encoder --------------------------------------------
+# A second tool for the -2 message vectors (SessionSetup / ServiceDiscovery).
+add_executable(cbv2g_iso2
+    main_iso2.c
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_basetypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_basetypes_decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_basetypes_encoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_bitstream.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_header.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_types_decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_2/iso2_msgDefDatatypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_2/iso2_msgDefEncoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_2/iso2_msgDefDecoder.c"
+)
+
+target_include_directories(cbv2g_iso2 PRIVATE "${CBV2G_SRC}/include")

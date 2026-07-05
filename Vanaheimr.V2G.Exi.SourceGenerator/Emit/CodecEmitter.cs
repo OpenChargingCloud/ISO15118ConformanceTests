@@ -320,7 +320,7 @@ internal sealed class CodecEmitter
             _sb.AppendLine("            w.WriteBits(0, i == 0 ? 1 : 2);   // SE(item): 1-bit first, 2-bit loop");
             EmitEncodeContent(rep, "list[i]", "            ");
             _sb.AppendLine("        }");
-            _sb.AppendLine("        w.WriteBits(1, 2);   // list terminator / element EE");
+            EmitEncodeListTerminator("        ", "list", sp.ListMax);
         }
         else if (sp.SimpleContent is not null)
         {
@@ -638,6 +638,37 @@ internal sealed class CodecEmitter
         _sb.Append(indent).AppendLine("}");
     }
 
+    /// <summary>
+    /// Emits the EE that terminates a repeating element. cbexigen bounded-unrolls a
+    /// <c>maxOccurs=2</c> list, so a full (2-item) list ends with the 1-bit END of the
+    /// max-reached grammar state; every other list length, and any larger max (self-looping
+    /// grammar), ends with the 2-bit loop EE (verified against PaymentOptionListType vs
+    /// SupportedEnergyTransferModeType).
+    /// </summary>
+    private void EmitEncodeListTerminator(string indent, string listExpr, int listMax)
+    {
+        if (listMax == 2)
+        {
+            _sb.Append(indent).Append("if (").Append(listExpr)
+               .AppendLine(".Count >= 2) w.WriteBits(0, 1);   // element EE (list at max)");
+            _sb.Append(indent).AppendLine("else w.WriteBits(1, 2);   // element EE");
+        }
+        else
+        {
+            _sb.Append(indent).AppendLine("w.WriteBits(1, 2);   // list terminator / element EE");
+        }
+    }
+
+    /// <summary>Decode counterpart of the <c>maxOccurs=2</c> bounded unroll: once the list holds
+    /// the maximum, the terminator is the 1-bit END of the max-reached state, not the 2-bit loop
+    /// EE. Emitted at the top of the decode loop; a no-op for larger (self-looping) maxima.</summary>
+    private void EmitDecodeListMaxCheck(string indent, string listExpr, int listMax)
+    {
+        if (listMax == 2)
+            _sb.Append(indent).Append("if (").Append(listExpr)
+               .AppendLine(".Count >= 2) { r.ReadBits(1); break; }   // element EE (list at max)");
+    }
+
     private static int ProductionCount(ChildPlan c) =>
         c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count : 1;
 
@@ -757,7 +788,7 @@ internal sealed class CodecEmitter
         _sb.Append(indent).AppendLine("    w.WriteBits(0, i == 0 ? 1 : 2);   // SE(item): 1-bit first, 2-bit loop");
         EmitEncodeContent(c, list + "[i]", indent + "    ");
         _sb.Append(indent).AppendLine("}");
-        _sb.Append(indent).AppendLine("w.WriteBits(1, 2);   // list terminator / element EE");
+        EmitEncodeListTerminator(indent, list, c.ListMax);
     }
 
     private void EmitDecodeRepeatingChild(ChildPlan c, string local, string indent)
@@ -768,6 +799,7 @@ internal sealed class CodecEmitter
         _sb.Append(indent).Append(local).Append(".Add(").Append(local).AppendLine("_first);");
         _sb.Append(indent).AppendLine("while (true)");
         _sb.Append(indent).AppendLine("{");
+        EmitDecodeListMaxCheck(indent + "    ", local, c.ListMax);
         _sb.Append(indent).AppendLine("    uint ec = r.ReadBits(2);");
         _sb.Append(indent).AppendLine("    if (ec == 1) break;   // element EE");
         _sb.Append(indent).Append("    if (ec != 0 || ").Append(local).Append(".Count >= ").Append(c.ListMax)
@@ -837,10 +869,11 @@ internal sealed class CodecEmitter
             _sb.AppendLine("        list.Add(first);");
             _sb.AppendLine("        while (true)");
             _sb.AppendLine("        {");
+            EmitDecodeListMaxCheck("            ", "list", sp.ListMax);
             _sb.AppendLine("            uint ec = r.ReadBits(2);");
             _sb.AppendLine("            if (ec == 1) break;   // element EE");
             _sb.Append("            if (ec != 0 || list.Count >= ").Append(sp.ListMax)
-               .AppendLine(") throw new InvalidDataException(\"Invalid AppProtocol list event code.\");");
+               .AppendLine(") throw new InvalidDataException(\"invalid repeating-element event code\");");
             EmitDecodeContent(rep, "next", "            ", declare: true);
             _sb.AppendLine("            list.Add(next);");
             _sb.AppendLine("        }");

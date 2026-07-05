@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "generator": "cbV2G@03350be048b3 (iso_2)",
+  "referenceEncoder": {
+    "name": "cbV2G",
+    "repo": "https://github.com/EVerest/libcbv2g",
+    "commit": "03350be048b35b179905129005a97144a4bdcf93",
+    "note": "Wire-conformant ISO 15118-2 reference. Each vector is a fixed message emitted by tools/cbv2g-ref/main_iso2.c (build: tools/cbv2g-ref/build.sh, run: cbv2g_iso2 <name>). Header SessionID is 8x0x00. The C# test builds the matching V2G_Message by name and diffs its bytes."
+  },
+  "vectors": [
+    {
+      "name": "SessionSetupReq",
+      "messageType": "SessionSetupReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 d0 1a af 37 bc 04 08 0c 00"
+    },
+    {
+      "name": "SessionSetupRes_ts",
+      "messageType": "SessionSetupRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 e0 20 45 11 14 a9 05 09 0c a9 14 c4 c8 cc d0 d4 a8 c4 10 14 1f 1f 40 a0"
+    },
+    {
+      "name": "SessionSetupRes_nots",
+      "messageType": "SessionSetupRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 e0 00 1d 15 59 4d 14 c4 80"
+    },
+    {
+      "name": "ServiceDiscoveryReq_absent",
+      "messageType": "ServiceDiscoveryReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 b8"
+    },
+    {
+      "name": "ServiceDiscoveryReq_present",
+      "messageType": "ServiceDiscoveryReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 b0 20 ea e4 dc 74 e6 c6 de e0 ca 74 e8 ca e6 e8 00 00"
+    },
+    {
+      "name": "ServiceDiscoveryRes",
+      "messageType": "ServiceDiscoveryRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 c0 00 08 00 40 11 05 0c 05 00 04 90"
+    }
+  ]
+}
