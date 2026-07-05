@@ -228,6 +228,9 @@ internal sealed class CodecEmitter
         // DecodeAny dispatcher.
         EmitDecodeDispatcher(globals, docBits);
 
+        // EXI fragment codecs for the signable elements (XMLDSig).
+        EmitFragmentCodecs();
+
         // Per-complex-type encode/decode methods, deduplicated by record name. Abstract types
         // (substitution heads, extension bases) are never encoded/decoded directly — only their
         // concrete members are — so emitting their codec methods would just be dead, uncompilable
@@ -243,6 +246,54 @@ internal sealed class CodecEmitter
         }
 
         _sb.AppendLine("}");
+    }
+
+    /// <summary>
+    /// Emits an EXI fragment encoder/decoder per signable element. A fragment is the EXI header,
+    /// then the element's fragment-grammar event code (§8.5.3, a selector over every element
+    /// declaration of the set), then the element's content — no document/body wrapper. Used to
+    /// digest a signable element for XMLDSig. Verified against cbV2G's encode_iso2_exiFragment.
+    /// </summary>
+    private void EmitFragmentCodecs()
+    {
+        foreach (var f in _plan.Fragments)
+        {
+            int bits = _plan.FragmentSelectorBits;
+
+            _sb.Append("    public static bool EncodeFragment_").Append(f.ElementName)
+               .Append("(").Append(f.CSharpTypeName).AppendLine(" content, Span<byte> dest, out int bytesWritten)");
+            _sb.AppendLine("    {");
+            _sb.AppendLine("        bytesWritten = 0;");
+            _sb.AppendLine("        if (dest.Length < 1) return false;");
+            _sb.AppendLine("        dest[0] = ExiHeader;");
+            _sb.AppendLine("        var w = new BitWriter(dest[1..]);");
+            _sb.Append("        w.WriteBits(").Append(f.EventCode).Append(", ").Append(bits)
+               .Append(");   // fragment SE(").Append(f.ElementName).AppendLine(")");
+            _sb.Append("        Encode_").Append(f.CSharpTypeName).AppendLine("(ref w, content);");
+            _sb.Append("        w.WriteBits(").Append(_plan.FragmentEndCode).Append(", ").Append(bits)
+               .AppendLine(");   // End Fragment (ED)");
+            _sb.AppendLine("        w.AlignToByte();");
+            _sb.AppendLine("        bytesWritten = 1 + w.BytesWritten;");
+            _sb.AppendLine("        return true;");
+            _sb.AppendLine("    }");
+            _sb.AppendLine();
+
+            _sb.Append("    public static ").Append(f.CSharpTypeName).Append(" DecodeFragment_")
+               .Append(f.ElementName).AppendLine("(ReadOnlySpan<byte> src, out int bytesConsumed)");
+            _sb.AppendLine("    {");
+            _sb.AppendLine("        if (src.Length < 1 || src[0] != ExiHeader)");
+            _sb.AppendLine("            throw new InvalidDataException(\"Invalid EXI header.\");");
+            _sb.AppendLine("        var r = new BitReader(src[1..]);");
+            _sb.Append("        if (r.ReadBits(").Append(bits).Append(") != ").Append(f.EventCode).AppendLine("u)");
+            _sb.Append("            throw new InvalidDataException(\"Not a ").Append(f.ElementName).AppendLine(" fragment.\");");
+            _sb.Append("        var result = Decode_").Append(f.CSharpTypeName).AppendLine("(ref r);");
+            _sb.Append("        if (r.ReadBits(").Append(bits).Append(") != ").Append(_plan.FragmentEndCode)
+               .AppendLine("u) throw new InvalidDataException(\"missing End Fragment.\");");
+            _sb.AppendLine("        bytesConsumed = 1 + r.BytesConsumed;");
+            _sb.AppendLine("        return result;");
+            _sb.AppendLine("    }");
+            _sb.AppendLine();
+        }
     }
 
     private void EmitEncodeEntryPoint(GlobalElementPlan g, int docBits)

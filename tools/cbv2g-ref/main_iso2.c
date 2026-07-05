@@ -65,12 +65,75 @@ static void set_ac_evsestatus(struct iso2_AC_EVSEStatusType* s) {
     s->RCD                  = 0;
 }
 
+/* Encodes a signable element as a standalone EXI fragment (encode_iso2_exiFragment), matching the
+ * generated EncodeFragment_<Element>. Content mirrors the body fixtures. */
+static int do_fragment(const char* elem) {
+    struct iso2_exiFragment frag;
+    memset(&frag, 0, sizeof(frag));
+
+    if (strcmp(elem, "AuthorizationReq") == 0) {
+        frag.AuthorizationReq_isUsed = 1u;
+        frag.AuthorizationReq.Id_isUsed = 0u;
+        for (int i = 0; i < 16; i++) frag.AuthorizationReq.GenChallenge.bytes[i] = (uint8_t)(i + 1);
+        frag.AuthorizationReq.GenChallenge.bytesLen = 16;
+        frag.AuthorizationReq.GenChallenge_isUsed   = 1u;
+
+    } else if (strcmp(elem, "MeteringReceiptReq") == 0) {
+        frag.MeteringReceiptReq_isUsed = 1u;
+        struct iso2_MeteringReceiptReqType* q = &frag.MeteringReceiptReq;
+        q->Id_isUsed = 0u;
+        memset(q->SessionID.bytes, 0, iso2_sessionIDType_BYTES_SIZE);
+        q->SessionID.bytesLen = iso2_sessionIDType_BYTES_SIZE;
+        q->SAScheduleTupleID        = 1;
+        q->SAScheduleTupleID_isUsed = 1u;
+        set_str(q->MeterInfo.MeterID.characters, &q->MeterInfo.MeterID.charactersLen, "M1");
+        q->MeterInfo.MeterReading_isUsed    = 0u;
+        q->MeterInfo.SigMeterReading_isUsed = 0u;
+        q->MeterInfo.MeterStatus_isUsed     = 0u;
+        q->MeterInfo.TMeter_isUsed          = 0u;
+
+    } else if (strcmp(elem, "SalesTariff") == 0) {
+        frag.SalesTariff_isUsed = 1u;
+        struct iso2_SalesTariffType* t = &frag.SalesTariff;
+        t->Id_isUsed = 0u;
+        t->SalesTariffID = 1;
+        t->SalesTariffDescription_isUsed = 0u;
+        t->NumEPriceLevels_isUsed        = 0u;
+        t->SalesTariffEntry.arrayLen = 1;
+        struct iso2_SalesTariffEntryType* e = &t->SalesTariffEntry.array[0];
+        e->RelativeTimeInterval_isUsed = 1u;
+        e->RelativeTimeInterval.start          = 0;
+        e->RelativeTimeInterval.duration_isUsed = 0u;
+        e->TimeInterval_isUsed  = 0u;
+        e->EPriceLevel_isUsed   = 0u;
+        e->ConsumptionCost.arrayLen = 0;
+
+    } else {
+        fprintf(stderr, "cbv2g-iso2: unknown fragment element '%s'\n", elem);
+        return 1;
+    }
+
+    uint8_t out[OUT_BUF_SIZE];
+    exi_bitstream_t stream;
+    exi_bitstream_init(&stream, out, sizeof(out), 0, NULL);
+    int error = encode_iso2_exiFragment(&stream, &frag);
+    if (error != 0) {
+        fprintf(stderr, "cbv2g-iso2: fragment encode failed with error %d\n", error);
+        return 3;
+    }
+    print_hex(out, exi_bitstream_get_length(&stream));
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <vector>\n", argv[0]);
         return 1;
     }
     const char* v = argv[1];
+
+    if (strncmp(v, "Fragment_", 9) == 0)
+        return do_fragment(v + 9);
 
     struct iso2_exiDocument doc;
     init_iso2_exiDocument(&doc);

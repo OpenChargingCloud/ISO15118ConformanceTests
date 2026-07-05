@@ -100,7 +100,14 @@ internal sealed record SchemaPlan(
     IReadOnlyDictionary<string, SequencePlan> ComplexTypes,
     IReadOnlyList<EnumPlan>         Enums,
     IReadOnlyList<string>           OpaqueTypes,   // empty placeholder records for opaque refs
-    int                             DocumentSelectorBits); // width of the document element selector
+    int                             DocumentSelectorBits, // width of the document element selector
+    int                             FragmentSelectorBits, // width of the EXI fragment element selector
+    int                             FragmentEndCode,      // "End Fragment" (ED) event code
+    IReadOnlyList<FragmentPlan>     Fragments);    // signable elements to emit fragment codecs for
+
+/// <summary>A signable element that gets an EXI fragment encoder/decoder: its fragment-grammar
+/// event code and the C# record that carries its content.</summary>
+internal sealed record FragmentPlan(string ElementName, string CSharpTypeName, int EventCode);
 
 internal sealed record EnumPlan(string Name, IReadOnlyList<string> Members);
 
@@ -110,7 +117,9 @@ internal sealed record EnumPlan(string Name, IReadOnlyList<string> Members);
 /// </summary>
 internal static class GrammarBuilder
 {
-    public static SchemaPlan Build(XsdSchema schema)
+    public static SchemaPlan Build(XsdSchema schema) => Build(schema, System.Array.Empty<string>());
+
+    public static SchemaPlan Build(XsdSchema schema, IReadOnlyList<string> fragmentElements)
     {
         var enums = new List<EnumPlan>();
         var opaqueTypes = new List<string>();
@@ -166,8 +175,38 @@ internal static class GrammarBuilder
             globals.Add(new GlobalElementPlan(ge.Name, typeName, body, docIndex));
         }
 
+        // Fragment grammar: every element declaration of the set (global + local, all namespaces),
+        // sorted by name then namespace, gets an event code. Signable elements named by the caller
+        // get a fragment codec (their content encoder already exists).
+        var fragOrder = schema.AllElementDeclarations
+            .OrderBy(x => x.Name, StringComparer.Ordinal)
+            .ThenBy(x => x.Namespace, StringComparer.Ordinal)
+            .ToList();
+        int fragBits = BitsForChoices(fragOrder.Count + 1);
+        // FragmentContent productions: one SE per element (0..n-1), a generic slot (n), then ED (n+1)
+        // — cbexigen's non-strict fragment grammar; the End-Fragment event code is n+1.
+        int fragEnd = fragOrder.Count + 1;
+
+        var fragments = new List<FragmentPlan>();
+        foreach (var name in fragmentElements)
+        {
+            var decls = fragOrder.Where(x => x.Name == name).ToList();
+            if (decls.Count != 1)
+                throw new InvalidOperationException(decls.Count == 0
+                    ? $"fragment element '{name}' is not an element declaration of the set."
+                    : $"fragment element '{name}' is declared in {decls.Count} namespaces; disambiguation not supported.");
+            var key = decls[0];
+            int code = fragOrder.IndexOf(key);
+            if (!schema.ElementTypeRefs.TryGetValue(key, out var typeRef))
+                throw new InvalidOperationException($"fragment element '{name}' has no named type (inline types are not supported).");
+            var local = StripPrefix(typeRef);
+            if (!complex.ContainsKey(local))
+                throw new InvalidOperationException($"fragment element '{name}': type '{typeRef}' is not modelled.");
+            fragments.Add(new FragmentPlan(name, PascalCase(local), code));
+        }
+
         return new SchemaPlan(schema.TargetNamespace, globals, complex, enums,
-            opaqueTypes.Distinct().ToList(), docBits);
+            opaqueTypes.Distinct().ToList(), docBits, fragBits, fragEnd, fragments);
     }
 
     private static SequencePlan BuildSequence(
@@ -400,8 +439,11 @@ internal static class GrammarBuilder
             return (enumName, new ValueEncoding.EnumIndex(enumName, enumWidth, members), true);
         }
 
-        // Bounded integer range → n-bit unsigned with bias.
-        if (st.MinInclusive is long min && st.MaxInclusive is long max && max >= min)
+        // Bounded integer range → n-bit unsigned with bias, but ONLY when the range has ≤ 4096
+        // values (EXI §7.1.10). A wider bounded range (e.g. RelativeTimeInterval's start, 0..16777214)
+        // falls back to the base built-in's integer encoding — cbexigen encodes it as an EXI Unsigned
+        // Integer, not a 24-bit n-bit field.
+        if (st.MinInclusive is long min && st.MaxInclusive is long max && max >= min && max - min + 1 <= 4096)
         {
             long range = max - min + 1;
             int width = BitsForChoices(checked((int)range));

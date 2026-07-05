@@ -45,14 +45,19 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
             Ns:    p.GlobalOptions.TryGetValue("build_property.ExiGeneratedNamespace", out var ns) && ns.Length > 0
                        ? ns : "Vanaheimr.V2G.AppProtocol.Generated",
             Codec: p.GlobalOptions.TryGetValue("build_property.ExiCodecClassName", out var cc) && cc.Length > 0
-                       ? cc : "SupportedAppProtocolCodec"
+                       ? cc : "SupportedAppProtocolCodec",
+            // Comma/space-separated global element names to emit EXI fragment codecs for (XMLDSig).
+            Fragments: p.GlobalOptions.TryGetValue("build_property.ExiFragmentElements", out var fe) && fe.Length > 0
+                       ? fe.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                       : System.Array.Empty<string>()
         ));
 
-        context.RegisterSourceOutput(xsdFiles.Combine(config), (spc, pair) => Generate(spc, pair.Left, pair.Right.Ns, pair.Right.Codec));
+        context.RegisterSourceOutput(xsdFiles.Combine(config),
+            (spc, pair) => Generate(spc, pair.Left, pair.Right.Ns, pair.Right.Codec, pair.Right.Fragments));
     }
 
     private static void Generate(SourceProductionContext spc, ImmutableArray<(string Path, string Content)> files,
-                                 string generatedNamespace, string codecClass)
+                                 string generatedNamespace, string codecClass, string[] fragmentElements)
     {
         if (files.IsDefaultOrEmpty) return;
 
@@ -79,7 +84,7 @@ public sealed class ExiCodecGenerator : IIncrementalGenerator
         SchemaPlan plan;
         try
         {
-            plan = GrammarBuilder.Build(schema);
+            plan = GrammarBuilder.Build(schema, fragmentElements);
         }
         catch (NotSupportedException ex)
         {

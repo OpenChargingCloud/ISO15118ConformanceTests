@@ -21,6 +21,18 @@ internal sealed class XsdSchema
     /// in the ISO 15118-2 message header). Full fidelity is deferred to Phase 3.
     /// </summary>
     public HashSet<string> OpaqueElementNames { get; } = new();
+
+    /// <summary>
+    /// Every element declaration of the collected set (global AND local, all namespaces incl.
+    /// XMLDSig), as (localName, namespace) pairs. This is the production set of the EXI fragment
+    /// grammar (§8.5.3): sorted by name then namespace, each gets an event code (used to encode a
+    /// signable element as a standalone fragment for XMLDSig).
+    /// </summary>
+    public HashSet<(string Name, string Namespace)> AllElementDeclarations { get; } = new();
+
+    /// <summary>Maps an element declaration (name, namespace) to its <c>type</c> reference, so a
+    /// signable fragment element (which may be local, e.g. SalesTariff) can be tied to its record.</summary>
+    public Dictionary<(string Name, string Namespace), string> ElementTypeRefs { get; } = new();
 }
 
 /// <summary>An element declaration: <c>&lt;xs:element name="..." type="..." minOccurs maxOccurs/&gt;</c>.</summary>

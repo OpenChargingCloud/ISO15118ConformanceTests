@@ -73,6 +73,10 @@ internal static class XsdReader
             schema.TargetNamespace = (string?)root.Attribute("targetNamespace") ?? "";
 
         var targetNs = (string?)root.Attribute("targetNamespace") ?? "";
+
+        // Record every element declaration (global + local) of this document for the fragment grammar.
+        CollectElementDeclarations(schema, root, targetNs);
+
         if (targetNs == XmlDsigNamespace)
         {
             AppendOpaqueDsigDocument(schema, root);
@@ -166,6 +170,22 @@ internal static class XsdReader
             ns = context.GetNamespaceOfPrefix(qname.Substring(0, i)) ?? XNamespace.None;
         }
         return ns == Xs ? "xs:" + local : local;
+    }
+
+    /// <summary>Records every named element declaration (global or local) in the document under its
+    /// target namespace (elementFormDefault is "qualified" throughout the -2 set), for the fragment
+    /// grammar. Element <em>references</em> carry no declaration and are skipped.</summary>
+    private static void CollectElementDeclarations(XsdSchema schema, XElement root, string targetNs)
+    {
+        foreach (var el in root.Descendants(Xs + "element"))
+        {
+            var name = (string?)el.Attribute("name");
+            if (name is null) continue;
+            schema.AllElementDeclarations.Add((name, targetNs));
+            var type = (string?)el.Attribute("type");
+            if (type is not null)
+                schema.ElementTypeRefs[(name, targetNs)] = ResolveTypeName(el, type);
+        }
     }
 
     private static void ParseNamedSimpleType(XElement st, XsdSchema schema)
