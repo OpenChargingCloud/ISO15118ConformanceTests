@@ -99,14 +99,35 @@ dispatch. XMLDSig is treated as an opaque namespace (the header's `ds:Signature`
 encode-absent; full signature fidelity is Phase 3).
 
 The whole set generates without diagnostics and compiles (`SchemaSetIntegrationTests`),
-and the target messages are **byte-exact against cbV2G**: SessionSetupReq/Res and
-ServiceDiscoveryReq/Res (six vectors incl. optional-field variants) in
-`Iso15118_2VectorTests`, plus encode → decode → re-encode round-trips in
+and the messages are **byte-exact against cbV2G** in `Iso15118_2VectorTests` (encode diff
+against checked-in vectors) plus encode → decode → re-encode round-trips in
 `Iso15118_2RoundtripTests`. The reference hex is produced by a second oracle,
 `tools/cbv2g-ref/cbv2g_iso2` (`main_iso2.c`). How each XSD construct maps to C# and to the
 wire is documented in [`docs/xsd-to-csharp-mapping.md`](docs/xsd-to-csharp-mapping.md);
 the grammar findings (event-code widths, sort orders, the bounded-unroll quirk, …) are in
 [`docs/xsd-inventory-15118-2.md`](docs/xsd-inventory-15118-2.md).
+
+### Message coverage (byte-verified vs cbV2G)
+
+15 of the 17 request/response pairs are byte-exact (`✓`); the two certificate messages
+carry the XMLDSig multi-reference case and wait on Phase 3 part B (`—`). Signed requests
+(Authorization, MeteringReceipt) are verified for their bodies — the header signature is
+a separate, absent element.
+
+| Message | Req | Res | | Message | Req | Res |
+|---|:-:|:-:|---|---|:-:|:-:|
+| SessionSetup | ✓ | ✓ | | PowerDelivery | ✓ | ✓ |
+| ServiceDiscovery | ✓ | ✓ | | MeteringReceipt | ✓ | ✓ |
+| ServiceDetail | ✓ | ✓ | | SessionStop | ✓ | ✓ |
+| PaymentServiceSelection | ✓ | ✓ | | ChargingStatus | ✓ | ✓ |
+| PaymentDetails | ✓ | ✓ | | CableCheck | ✓ | ✓ |
+| Authorization | ✓ | ✓ | | PreCharge | ✓ | ✓ |
+| ChargeParameterDiscovery | ✓ | ✓ | | CurrentDemand | ✓ | ✓ |
+| CertificateInstallation | — | — | | WeldingDetection | ✓ | ✓ |
+| CertificateUpdate | — | — | | | | |
+
+`PhysicalValue.Of` / `.ToDecimal` give an ergonomic decimal ↔ scaled-integer bridge for
+`PhysicalValueType`.
 
 ## What this prototype still does NOT do
 
