@@ -86,6 +86,34 @@ public class ExiPrimitiveTests
         Assert.That(buf[0], Is.EqualTo(0x81));
     }
 
+    [Test]
+    public void BitWriter_OverwritesDirtyBuffer()
+    {
+        // WriteBit must overwrite each target bit (clear 0s, set 1s), not only OR-in 1s — otherwise a
+        // reused/non-zeroed destination keeps stale 1-bits and corrupts the output. Regression for the
+        // buffer-reuse corruption found by the charging simulation (a 0x81 pattern on a 0xFF buffer
+        // would read back as 0xFF without the clear).
+        Span<byte> buf = stackalloc byte[1];
+        buf[0] = 0xFF;
+        var w = new BitWriter(buf);
+        w.WriteBit(true);
+        for (int i = 0; i < 6; i++) w.WriteBit(false);
+        w.WriteBit(true);
+        Assert.That(buf[0], Is.EqualTo(0x81), "0-bits must be cleared, not left set from prior buffer content");
+
+        // And a full primitive encode into a dirty buffer must match the clean-buffer encoding.
+        Span<byte> clean = stackalloc byte[16];
+        Span<byte> dirty = stackalloc byte[16];
+        dirty.Fill(0xFF);
+        var wc = new BitWriter(clean);
+        var wd = new BitWriter(dirty);
+        ExiPrimitives.WriteUnsignedInteger(ref wc, 16384UL);
+        ExiPrimitives.WriteUnsignedInteger(ref wd, 16384UL);
+        wc.AlignToByte();
+        wd.AlignToByte();
+        Assert.That(dirty[..wd.BytesWritten].ToArray(), Is.EqualTo(clean[..wc.BytesWritten].ToArray()));
+    }
+
     // ---- helpers ----------------------------------------------------------
     // BitWriter / BitReader are ref structs (cannot live across yields or be
     // returned as fields). These small helpers keep them stack-local while

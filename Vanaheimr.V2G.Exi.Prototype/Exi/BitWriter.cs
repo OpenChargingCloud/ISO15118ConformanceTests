@@ -41,9 +41,13 @@ public ref struct BitWriter
     public void WriteBit(bool b)
     {
         int byteIdx = _bitPos >> 3;
-        int bitInByte = _bitPos & 7;
+        int mask = 1 << (7 - (_bitPos & 7));
+        // Overwrite the target bit (set for 1, clear for 0) rather than only OR-ing 1s — otherwise a
+        // reused (non-zeroed) destination buffer keeps stale 1-bits and corrupts the output.
         if (b)
-            _buffer[byteIdx] |= (byte)(1 << (7 - bitInByte));
+            _buffer[byteIdx] |= (byte)mask;
+        else
+            _buffer[byteIdx] &= (byte)~mask;
         _bitPos++;
     }
 
