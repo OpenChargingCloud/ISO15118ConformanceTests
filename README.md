@@ -131,6 +131,21 @@ ECDSA-P256 over the SignedInfo EXI fragment) is covered end to end.
 `PhysicalValue.Of` / `.ToDecimal` give an ergonomic decimal ↔ scaled-integer bridge for
 `PhysicalValueType`.
 
+### Charging-session simulation
+
+`Vanaheimr.V2G.Exi.Simulation` is a small console app that drives a full AC or DC session
+end to end — SessionSetup → ServiceDiscovery → PaymentServiceSelection → Authorization →
+ChargeParameterDiscovery → (DC: CableCheck/PreCharge) → PowerDelivery → charging loop
+(CurrentDemand / ChargingStatus) → (DC: WeldingDetection) → SessionStop. Every step is a
+real EXI encode → decode round-trip; the EVCC applies a per-message timeout and the SECC is
+sequence-guarded (out-of-order requests are rejected). Run it with:
+
+```
+dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc          # or: ac
+dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --slow            # trips the EV timeout
+dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --break-sequence  # trips the SECC guard
+```
+
 ## What this prototype still does NOT do
 
 - Non-ASCII string values on the wire against a reference oracle (our codec encodes them

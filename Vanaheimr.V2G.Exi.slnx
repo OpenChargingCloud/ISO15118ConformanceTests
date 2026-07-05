@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="Vanaheimr.V2G.Exi.Iso15118_2/Vanaheimr.V2G.Exi.Iso15118_2.csproj" />
+  <Project Path="Vanaheimr.V2G.Exi.Simulation/Vanaheimr.V2G.Exi.Simulation.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Prototype/Vanaheimr.V2G.Exi.Prototype.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.SourceGenerator/Vanaheimr.V2G.Exi.SourceGenerator.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Tests/Vanaheimr.V2G.Exi.Tests.csproj" />
