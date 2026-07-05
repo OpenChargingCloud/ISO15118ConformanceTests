@@ -394,6 +394,46 @@ int main(int argc, char** argv) {
         set_pv(&r->AC_EVSEChargeParameter.EVSENominalVoltage, 0, iso2_unitSymbolType_V, 230);
         set_pv(&r->AC_EVSEChargeParameter.EVSEMaxCurrent,     0, iso2_unitSymbolType_A, 32);
 
+    } else if (strcmp(v, "ChargeParameterDiscoveryReq_DC") == 0) {
+        body->ChargeParameterDiscoveryReq_isUsed = 1u;
+        struct iso2_ChargeParameterDiscoveryReqType* q = &body->ChargeParameterDiscoveryReq;
+        q->MaxEntriesSAScheduleTuple_isUsed = 0u;
+        q->RequestedEnergyTransferMode      = iso2_EnergyTransferModeType_DC_extended;
+        q->AC_EVChargeParameter_isUsed = 0u;
+        q->EVChargeParameter_isUsed    = 0u;
+        q->DC_EVChargeParameter_isUsed = 1u;
+        struct iso2_DC_EVChargeParameterType* p = &q->DC_EVChargeParameter;
+        p->DepartureTime_isUsed = 0u;
+        set_dc_evstatus(&p->DC_EVStatus);
+        set_pv(&p->EVMaximumCurrentLimit, 0, iso2_unitSymbolType_A, 200);
+        p->EVMaximumPowerLimit_isUsed = 0u;
+        set_pv(&p->EVMaximumVoltageLimit, 0, iso2_unitSymbolType_V, 500);
+        p->EVEnergyCapacity_isUsed = 0u;
+        p->EVEnergyRequest_isUsed  = 0u;
+        p->FullSOC = 100; p->FullSOC_isUsed = 1u;
+        p->BulkSOC = 80;  p->BulkSOC_isUsed = 1u;
+
+    } else if (strcmp(v, "ChargeParameterDiscoveryRes_DC") == 0) {
+        body->ChargeParameterDiscoveryRes_isUsed = 1u;
+        struct iso2_ChargeParameterDiscoveryResType* r = &body->ChargeParameterDiscoveryRes;
+        r->ResponseCode   = iso2_responseCodeType_OK;
+        r->EVSEProcessing = iso2_EVSEProcessingType_Finished;
+        r->SAScheduleList_isUsed = 0u;
+        r->SASchedules_isUsed    = 0u;
+        r->AC_EVSEChargeParameter_isUsed = 0u;
+        r->EVSEChargeParameter_isUsed    = 0u;
+        r->DC_EVSEChargeParameter_isUsed = 1u;
+        struct iso2_DC_EVSEChargeParameterType* p = &r->DC_EVSEChargeParameter;
+        set_dc_evsestatus(&p->DC_EVSEStatus);
+        set_pv(&p->EVSEMaximumCurrentLimit, 0, iso2_unitSymbolType_A, 200);
+        set_pv(&p->EVSEMaximumPowerLimit,   1, iso2_unitSymbolType_W, 15000);
+        set_pv(&p->EVSEMaximumVoltageLimit, 0, iso2_unitSymbolType_V, 500);
+        set_pv(&p->EVSEMinimumCurrentLimit, 0, iso2_unitSymbolType_A, 0);
+        set_pv(&p->EVSEMinimumVoltageLimit, 0, iso2_unitSymbolType_V, 200);
+        p->EVSECurrentRegulationTolerance_isUsed = 0u;
+        set_pv(&p->EVSEPeakCurrentRipple, 0, iso2_unitSymbolType_A, 1);
+        p->EVSEEnergyToBeDelivered_isUsed = 0u;
+
     } else if (strcmp(v, "ChargingStatusReq") == 0) {
         body->ChargingStatusReq_isUsed = 1u;   /* empty body */
 

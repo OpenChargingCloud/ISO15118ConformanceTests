@@ -139,6 +139,16 @@
       "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 a0 00 20 00 00 03 10 39 80 40 c3 02 00 00"
     },
     {
+      "name": "ChargeParameterDiscoveryReq_DC",
+      "messageType": "ChargeParameterDiscoveryReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 94 ca 40 06 40 61 86 40 08 8c 40 f4 03 13 20 50 00"
+    },
+    {
+      "name": "ChargeParameterDiscoveryRes_DC",
+      "messageType": "ChargeParameterDiscoveryRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 a0 00 30 00 02 10 30 c3 20 04 10 50 98 75 03 10 3d 00 c0 c3 00 00 31 03 20 04 46 18 00 88"
+    },
+    {
       "name": "ChargingStatusReq",
       "messageType": "ChargingStatusReq",
       "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 b0"

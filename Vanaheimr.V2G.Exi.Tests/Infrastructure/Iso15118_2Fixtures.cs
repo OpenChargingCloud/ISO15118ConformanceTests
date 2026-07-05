@@ -175,6 +175,29 @@ public static class Iso15118_2Fixtures
                     EVSENominalVoltage: new PhysicalValueType(0, UnitSymbol.V, 230),
                     EVSEMaxCurrent:     new PhysicalValueType(0, UnitSymbol.A, 32))))),
 
+        ["ChargeParameterDiscoveryReq_DC"] = new V2G_Message(Header(),
+            new BodyType(new ChargeParameterDiscoveryReqType(
+                MaxEntriesSAScheduleTuple: null, EnergyTransferMode.DC_extended,
+                new DC_EVChargeParameterType(DepartureTime: null, DcEvStatus(),
+                    EVMaximumCurrentLimit: new PhysicalValueType(0, UnitSymbol.A, 200),
+                    EVMaximumPowerLimit: null,
+                    EVMaximumVoltageLimit: new PhysicalValueType(0, UnitSymbol.V, 500),
+                    EVEnergyCapacity: null, EVEnergyRequest: null,
+                    FullSOC: 100, BulkSOC: 80)))),
+
+        ["ChargeParameterDiscoveryRes_DC"] = new V2G_Message(Header(),
+            new BodyType(new ChargeParameterDiscoveryResType(
+                ResponseCode.OK, EVSEProcessing.Finished, SASchedules: null,
+                new DC_EVSEChargeParameterType(DcEvseStatus(),
+                    EVSEMaximumCurrentLimit: new PhysicalValueType(0, UnitSymbol.A, 200),
+                    EVSEMaximumPowerLimit:   new PhysicalValueType(1, UnitSymbol.W, 15000),
+                    EVSEMaximumVoltageLimit: new PhysicalValueType(0, UnitSymbol.V, 500),
+                    EVSEMinimumCurrentLimit: new PhysicalValueType(0, UnitSymbol.A, 0),
+                    EVSEMinimumVoltageLimit: new PhysicalValueType(0, UnitSymbol.V, 200),
+                    EVSECurrentRegulationTolerance: null,
+                    EVSEPeakCurrentRipple: new PhysicalValueType(0, UnitSymbol.A, 1),
+                    EVSEEnergyToBeDelivered: null)))),
+
         ["ChargingStatusReq"] = new V2G_Message(Header(),
             new BodyType(new ChargingStatusReqType())),
 
