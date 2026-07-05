@@ -38,5 +38,85 @@ public static class Iso15118_2Fixtures
                     ServiceScope: null, FreeService: true,
                     new SupportedEnergyTransferModeType(new[] { EnergyTransferMode.AC_single_phase_core, EnergyTransferMode.AC_three_phase_core })),
                 ServiceList: null))),
+
+        ["SessionStopReq"] = new V2G_Message(Header(),
+            new BodyType(new SessionStopReqType(ChargingSession.Terminate))),
+
+        ["SessionStopRes"] = new V2G_Message(Header(),
+            new BodyType(new SessionStopResType(ResponseCode.OK))),
+
+        ["CableCheckReq"] = new V2G_Message(Header(),
+            new BodyType(new CableCheckReqType(DcEvStatus()))),
+
+        ["CableCheckRes"] = new V2G_Message(Header(),
+            new BodyType(new CableCheckResType(ResponseCode.OK, DcEvseStatus(), EVSEProcessing.Ongoing))),
+
+        ["PreChargeReq"] = new V2G_Message(Header(),
+            new BodyType(new PreChargeReqType(DcEvStatus(),
+                new PhysicalValueType(0, UnitSymbol.V, 400),
+                new PhysicalValueType(0, UnitSymbol.A, 10)))),
+
+        ["PreChargeRes"] = new V2G_Message(Header(),
+            new BodyType(new PreChargeResType(ResponseCode.OK, DcEvseStatus(),
+                new PhysicalValueType(0, UnitSymbol.V, 395)))),
+
+        ["WeldingDetectionReq"] = new V2G_Message(Header(),
+            new BodyType(new WeldingDetectionReqType(DcEvStatus()))),
+
+        ["WeldingDetectionRes"] = new V2G_Message(Header(),
+            new BodyType(new WeldingDetectionResType(ResponseCode.OK, DcEvseStatus(),
+                new PhysicalValueType(0, UnitSymbol.V, 400)))),
+
+        ["PowerDeliveryReq"] = new V2G_Message(Header(),
+            new BodyType(new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 1,
+                ChargingProfile: null, EVPowerDeliveryParameter: null))),
+
+        ["PowerDeliveryRes"] = new V2G_Message(Header(),
+            new BodyType(new PowerDeliveryResType(ResponseCode.OK, DcEvseStatus()))),
+
+        ["ChargingStatusRes"] = new V2G_Message(Header(),
+            new BodyType(new ChargingStatusResType(ResponseCode.OK, "EVSE1", SAScheduleTupleID: 1,
+                EVSEMaxCurrent: null, MeterInfo: null, ReceiptRequired: null,
+                new AC_EVSEStatusType(NotificationMaxDelay: 0, EVSENotification.None, RCD: false)))),
+
+        ["CurrentDemandReq"] = new V2G_Message(Header(),
+            new BodyType(new CurrentDemandReqType(DcEvStatus(),
+                EVTargetCurrent: new PhysicalValueType(0, UnitSymbol.A, 10),
+                EVMaximumVoltageLimit: null, EVMaximumCurrentLimit: null, EVMaximumPowerLimit: null,
+                BulkChargingComplete: null, ChargingComplete: false,
+                RemainingTimeToFullSoC: null, RemainingTimeToBulkSoC: null,
+                EVTargetVoltage: new PhysicalValueType(0, UnitSymbol.V, 400)))),
+
+        ["CurrentDemandRes"] = new V2G_Message(Header(),
+            new BodyType(new CurrentDemandResType(ResponseCode.OK, DcEvseStatus(),
+                EVSEPresentVoltage: new PhysicalValueType(0, UnitSymbol.V, 395),
+                EVSEPresentCurrent: new PhysicalValueType(0, UnitSymbol.A, 10),
+                EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false, EVSEPowerLimitAchieved: false,
+                EVSEMaximumVoltageLimit: null, EVSEMaximumCurrentLimit: null, EVSEMaximumPowerLimit: null,
+                EVSEID: "EVSE1", SAScheduleTupleID: 1, MeterInfo: null, ReceiptRequired: null))),
+
+        ["ChargeParameterDiscoveryReq"] = new V2G_Message(Header(),
+            new BodyType(new ChargeParameterDiscoveryReqType(
+                MaxEntriesSAScheduleTuple: null,
+                EnergyTransferMode.AC_single_phase_core,
+                new AC_EVChargeParameterType(DepartureTime: null,
+                    EAmount:      new PhysicalValueType(0, UnitSymbol.Wh, 1000),
+                    EVMaxVoltage: new PhysicalValueType(0, UnitSymbol.V, 400),
+                    EVMaxCurrent: new PhysicalValueType(0, UnitSymbol.A, 16),
+                    EVMinCurrent: new PhysicalValueType(0, UnitSymbol.A, 2))))),
+
+        ["ChargeParameterDiscoveryRes"] = new V2G_Message(Header(),
+            new BodyType(new ChargeParameterDiscoveryResType(
+                ResponseCode.OK, EVSEProcessing.Finished, SASchedules: null,
+                new AC_EVSEChargeParameterType(
+                    new AC_EVSEStatusType(NotificationMaxDelay: 0, EVSENotification.None, RCD: false),
+                    EVSENominalVoltage: new PhysicalValueType(0, UnitSymbol.V, 230),
+                    EVSEMaxCurrent:     new PhysicalValueType(0, UnitSymbol.A, 32))))),
     };
+
+    private static DC_EVStatusType DcEvStatus() =>
+        new(EVReady: true, DC_EVErrorCode.NO_ERROR, EVRESSSOC: 50);
+
+    private static DC_EVSEStatusType DcEvseStatus() =>
+        new(NotificationMaxDelay: 0, EVSENotification.None, EVSEIsolationStatus: null, DC_EVSEStatusCode.EVSE_Ready);
 }

@@ -37,6 +37,81 @@
       "name": "ServiceDiscoveryRes",
       "messageType": "ServiceDiscoveryRes",
       "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 c0 00 08 00 40 11 05 0c 05 00 04 90"
+    },
+    {
+      "name": "SessionStopReq",
+      "messageType": "SessionStopReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 f0 00"
+    },
+    {
+      "name": "SessionStopRes",
+      "messageType": "SessionStopRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 12 00 00"
+    },
+    {
+      "name": "CableCheckReq",
+      "messageType": "CableCheckReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 31 00 19 00"
+    },
+    {
+      "name": "CableCheckRes",
+      "messageType": "CableCheckRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 40 00 00 02 10 40"
+    },
+    {
+      "name": "PreChargeReq",
+      "messageType": "PreChargeReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 71 00 19 01 88 12 00 60 61 80 50 00"
+    },
+    {
+      "name": "PreChargeRes",
+      "messageType": "PreChargeRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 80 00 00 02 10 31 02 2c 0c 00"
+    },
+    {
+      "name": "WeldingDetectionReq",
+      "messageType": "WeldingDetectionReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 12 11 00 19 00"
+    },
+    {
+      "name": "WeldingDetectionRes",
+      "messageType": "WeldingDetectionRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 12 20 00 00 02 10 31 02 40 0c 00"
+    },
+    {
+      "name": "PowerDeliveryReq",
+      "messageType": "PowerDeliveryReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 50 00 06 00"
+    },
+    {
+      "name": "PowerDeliveryRes",
+      "messageType": "PowerDeliveryRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 60 04 00 01 08 00"
+    },
+    {
+      "name": "ChargingStatusRes",
+      "messageType": "ChargingStatusRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 c0 00 1d 15 59 4d 14 c4 00 18 00 00 00"
+    },
+    {
+      "name": "CurrentDemandReq",
+      "messageType": "CurrentDemandReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 d1 00 19 01 86 01 44 10 c4 09 00 30 00"
+    },
+    {
+      "name": "CurrentDemandRes",
+      "messageType": "CurrentDemandRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 e0 00 00 02 10 31 02 2c 0c 0c 30 0a 00 01 81 d1 55 94 d1 4c 40 02 00"
+    },
+    {
+      "name": "ChargeParameterDiscoveryReq",
+      "messageType": "ChargeParameterDiscoveryReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 94 02 31 83 a0 1c 0c 40 90 03 03 0c 04 00 c3 00 20 00"
+    },
+    {
+      "name": "ChargeParameterDiscoveryRes",
+      "messageType": "ChargeParameterDiscoveryRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 a0 00 20 00 00 03 10 39 80 40 c3 02 00 00"
     }
   ]
 }
