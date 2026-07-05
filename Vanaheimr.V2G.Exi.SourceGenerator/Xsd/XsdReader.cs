@@ -86,7 +86,7 @@ internal static class XsdReader
             schema.ComplexTypes[Required(ct, "name")] = ParseComplexType(ct);
 
         foreach (var el in root.Elements(Xs + "element"))
-            schema.GlobalElements.Add(ParseElement(el));
+            schema.GlobalElements.Add(ParseElement(el) with { Namespace = targetNs });
     }
 
     /// <summary>
@@ -100,10 +100,15 @@ internal static class XsdReader
     /// </summary>
     private static void AppendOpaqueDsigDocument(XsdSchema schema, XElement root)
     {
+        var targetNs = (string?)root.Attribute("targetNamespace") ?? "";
         foreach (var el in root.Elements(Xs + "element"))
         {
             var n = (string?)el.Attribute("name");
-            if (n is not null) schema.OpaqueElementNames.Add(n);
+            if (n is null) continue;
+            schema.OpaqueElementNames.Add(n);
+            // Opaque elements are not document roots (skipped by the grammar builder) but they DO
+            // occupy a production in cbexigen's document grammar, so they must be counted there.
+            schema.GlobalElements.Add(new XsdElement(n, "", 1, 1, null) { Namespace = targetNs });
         }
 
         foreach (var ct in root.Elements(Xs + "complexType"))

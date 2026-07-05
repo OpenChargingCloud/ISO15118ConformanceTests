@@ -33,7 +33,12 @@ internal sealed record XsdElement(
     string? Ref              = null,   // <xs:element ref="Head"/> — local name of the referenced element
     string? SubstitutionGroup = null,  // on a global element: the head it substitutes (local name)
     bool    IsAbstract        = false, // on a global element: abstract="true" (substitution head)
-    XsdSimpleType? InlineSimpleType = null); // anonymous inline xs:simpleType
+    XsdSimpleType? InlineSimpleType = null) // anonymous inline xs:simpleType
+{
+    /// <summary>For a global element: its target namespace (used to order the document grammar,
+    /// which enumerates every global element across the collected set).</summary>
+    public string Namespace { get; init; } = "";
+}
 
 /// <summary>
 /// A complex type with element content. <see cref="Sequence"/> holds the type's OWN

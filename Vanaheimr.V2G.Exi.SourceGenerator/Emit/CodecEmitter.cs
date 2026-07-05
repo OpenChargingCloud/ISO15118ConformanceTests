@@ -217,14 +217,13 @@ internal sealed class CodecEmitter
         _sb.AppendLine();
 
         var globals = _plan.GlobalElements
-                           .OrderBy(g => g.XsdName, StringComparer.Ordinal)
+                           .OrderBy(g => g.DocumentIndex)
                            .ToList();
-        // Non-strict document grammar: reserve one extra production slot.
-        int docBits = BitsForChoices(globals.Count + 1);
+        int docBits = _plan.DocumentSelectorBits;
 
-        // Public encode entry points (one extension method per global element).
-        for (int idx = 0; idx < globals.Count; idx++)
-            EmitEncodeEntryPoint(globals[idx], idx, docBits);
+        // Public encode entry points (one extension method per decodable document root).
+        foreach (var g in globals)
+            EmitEncodeEntryPoint(g, docBits);
 
         // DecodeAny dispatcher.
         EmitDecodeDispatcher(globals, docBits);
@@ -246,7 +245,7 @@ internal sealed class CodecEmitter
         _sb.AppendLine("}");
     }
 
-    private void EmitEncodeEntryPoint(GlobalElementPlan g, int idx, int docBits)
+    private void EmitEncodeEntryPoint(GlobalElementPlan g, int docBits)
     {
         _sb.Append("    public static bool TryEncode(this ")
            .Append(g.CSharpTypeName)
@@ -257,7 +256,8 @@ internal sealed class CodecEmitter
         _sb.AppendLine("        dest[0] = ExiHeader;");
         _sb.AppendLine("        var w = new BitWriter(dest[1..]);");
         if (docBits > 0)
-            _sb.Append("        w.WriteBits(").Append(idx).Append(", ").Append(docBits).AppendLine(");   // document element selector");
+            _sb.Append("        w.WriteBits(").Append(g.DocumentIndex).Append(", ").Append(docBits)
+               .AppendLine(");   // document element selector");
         _sb.Append("        Encode_").Append(g.Body.CSharpRecordName).AppendLine("(ref w, msg);");
         _sb.AppendLine("        w.AlignToByte();");
         _sb.AppendLine("        bytesWritten = 1 + w.BytesWritten;");
@@ -279,10 +279,10 @@ internal sealed class CodecEmitter
             _sb.Append("        uint sel = r.ReadBits(").Append(docBits).AppendLine(");");
             _sb.AppendLine("        object result = sel switch");
             _sb.AppendLine("        {");
-            for (int idx = 0; idx < globals.Count; idx++)
+            foreach (var g in globals)
             {
-                _sb.Append("            ").Append(idx).Append("u => Decode_")
-                   .Append(globals[idx].Body.CSharpRecordName).AppendLine("(ref r),");
+                _sb.Append("            ").Append(g.DocumentIndex).Append("u => Decode_")
+                   .Append(g.Body.CSharpRecordName).AppendLine("(ref r),");
             }
             _sb.AppendLine("            _ => throw new InvalidDataException($\"Unknown document index {sel}.\"),");
             _sb.AppendLine("        };");

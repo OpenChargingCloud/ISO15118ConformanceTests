@@ -88,7 +88,8 @@ internal sealed record AttrPlan(string FieldName, string CSharpType, ValueEncodi
 internal sealed record GlobalElementPlan(
     string        XsdName,            // e.g. "supportedAppProtocolReq"
     string        CSharpTypeName,     // "SupportedAppProtocolReq"
-    SequencePlan  Body);
+    SequencePlan  Body,
+    int           DocumentIndex);     // production index in the (full) document grammar
 
 /// <summary>
 /// The full plan for one schema, ready for emission.
@@ -98,7 +99,8 @@ internal sealed record SchemaPlan(
     IReadOnlyList<GlobalElementPlan> GlobalElements,
     IReadOnlyDictionary<string, SequencePlan> ComplexTypes,
     IReadOnlyList<EnumPlan>         Enums,
-    IReadOnlyList<string>           OpaqueTypes); // empty placeholder records for opaque refs
+    IReadOnlyList<string>           OpaqueTypes,   // empty placeholder records for opaque refs
+    int                             DocumentSelectorBits); // width of the document element selector
 
 internal sealed record EnumPlan(string Name, IReadOnlyList<string> Members);
 
@@ -118,13 +120,27 @@ internal static class GrammarBuilder
         foreach (var kv in schema.ComplexTypes)
             complex[kv.Key] = BuildSequence(kv.Key, kv.Value, schema, enums, opaqueTypes);
 
-        // Build global-element plans. Only true document roots become document-grammar
-        // productions — an abstract substitution head (BodyElement) and its members
-        // (SessionSetupReq, …) are reached through the substitution choice, not as roots.
+        // The document grammar enumerates EVERY global element of the collected set (abstract
+        // substitution heads, their members, opaque XMLDSig elements, …), sorted by element name
+        // then namespace — cbexigen assigns each a production even though only true roots are
+        // decodable. The selector width and each root's index come from this full list (verified
+        // against cbV2G: V2G_Message is index 76 of 80, a 7-bit selector).
+        var docOrder = schema.GlobalElements
+            .Select(g => (g.Name, g.Namespace))
+            .OrderBy(x => x.Name, StringComparer.Ordinal)
+            .ThenBy(x => x.Namespace, StringComparer.Ordinal)
+            .ToList();
+        int docBits = BitsForChoices(docOrder.Count + 1);
+
+        // Build global-element plans for the true document roots — a concrete, non-substituting,
+        // non-opaque global element (V2G_Message; supportedAppProtocolReq/Res). Abstract heads and
+        // substitution members are reached through the substitution choice, not as roots.
         var globals = new List<GlobalElementPlan>();
         foreach (var ge in schema.GlobalElements)
         {
             if (ge.IsAbstract || ge.SubstitutionGroup is not null || ge.Ref is not null)
+                continue;
+            if (schema.OpaqueElementNames.Contains(ge.Name))
                 continue;
 
             var typeName = PascalCase(ge.Name);
@@ -146,11 +162,12 @@ internal static class GrammarBuilder
                     $"Global element '{ge.Name}' references unknown complex type '{ge.TypeRef}'.");
             }
 
-            globals.Add(new GlobalElementPlan(ge.Name, typeName, body));
+            int docIndex = docOrder.FindIndex(x => x.Name == ge.Name && x.Namespace == ge.Namespace);
+            globals.Add(new GlobalElementPlan(ge.Name, typeName, body, docIndex));
         }
 
         return new SchemaPlan(schema.TargetNamespace, globals, complex, enums,
-            opaqueTypes.Distinct().ToList());
+            opaqueTypes.Distinct().ToList(), docBits);
     }
 
     private static SequencePlan BuildSequence(

@@ -48,4 +48,17 @@ public class SchemaSetIntegrationTests
         Assert.That(errors, Is.Empty,
             string.Join("\n", errors.Select(e => e.ToString())));
     }
+
+    [Test]
+    public void FullIso2SchemaSet_DocumentSelectorMatchesCbV2G()
+    {
+        var (source, diagnostics) = GenerateFullSet();
+        Assert.That(diagnostics.Length, Is.Zero);
+
+        // The document grammar enumerates all 80 global elements of the set; V2G_Message is index 76
+        // at a 7-bit selector (cbV2G iso2_exiDocument: nbit(7, 76)).
+        Assert.That(source, Does.Contain("w.WriteBits(76, 7);   // document element selector"));
+        Assert.That(source, Does.Contain("uint sel = r.ReadBits(7);"));
+        Assert.That(source, Does.Contain("76u => Decode_V2G_Message(ref r)"));
+    }
 }
