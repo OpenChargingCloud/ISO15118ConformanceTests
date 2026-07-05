@@ -14,6 +14,26 @@
       "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 d0 1a af 37 bc 04 08 0c 00"
     },
     {
+      "name": "CertificateInstallationReq",
+      "messageType": "CertificateInstallationReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 50 2a 4a 21 88 08 61 04 04 06 00 c4 34 e3 d5 26 f6 f7 42 04 34 10 b9 60 10"
+    },
+    {
+      "name": "CertificateInstallationRes",
+      "messageType": "CertificateInstallationRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 60 02 04 30 82 01 02 24 08 61 04 02 04 00 43 08 20 30 42 01 52 51 0c 82 14 14 34 54 74 94 b4 d4 f5 15 35 55 75 95 b5 d5 e0 15 25 10 cc 11 61 63 65 67 69 6b 6d 6e 01 52 51 0d 02 28 88 a8 28 28 26 06 06 06 26 46 66 86 a6 c6 e0"
+    },
+    {
+      "name": "CertificateUpdateReq",
+      "messageType": "CertificateUpdateReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 70 2a 4a 21 89 02 18 41 00 81 10 45 11 15 05 05 04 c0 c0 c0 c4 c8 cc d0 d4 d8 dc 01 88 69 c7 aa 4d ed ee 84 08 68 21 72 c0 20"
+    },
+    {
+      "name": "CertificateUpdateRes",
+      "messageType": "CertificateUpdateRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 80 02 04 30 82 01 02 24 08 61 04 02 04 00 43 08 20 30 42 01 52 51 0c 82 14 14 34 54 74 94 b4 d4 f5 15 35 55 75 95 b5 d5 e0 15 25 10 cc 11 61 63 65 67 69 6b 6d 6e 01 52 51 0d 02 28 88 a8 28 28 26 06 06 06 26 46 66 86 a6 c6 e0 03 00"
+    },
+    {
       "name": "AuthorizationReq_Signed",
       "messageType": "AuthorizationReq",
       "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 0a 89 5a 1d 1d 1c 0e 8b cb dd dd dd cb 9d cc cb 9b dc 99 cb d5 14 8b d8 d8 5b 9b db 9a 58 d8 5b 0b 59 5e 1a 4b d0 d5 a1 d1 d1 c0 e8 bc bd dd dd dc b9 dc cc b9 bd c9 9c bc c8 c0 c0 c4 bc c0 d0 bd e1 b5 b1 91 cd a5 9c b5 b5 bd c9 94 8d 95 8d 91 cd 84 b5 cd a1 84 c8 d4 d9 10 31 1a 4a 21 8a 29 68 74 74 70 3a 2f 2f 77 77 77 2e 77 33 2e 6f 72 67 2f 32 30 30 31 2f 30 34 2f 78 6d 6c 65 6e 63 23 73 68 61 32 35 36 42 00 10 20 30 40 50 60 70 80 90 a0 b0 c0 d0 e0 f1 01 11 21 31 41 51 61 71 81 91 a1 b1 c1 d1 e1 f2 01 28 00 20 40 60 80 a0 c0 e1 01 21 41 61 81 a1 c1 e2 02 22 42 62 82 a2 c2 e3 03 23 43 63 83 a3 c3 e4 04 24 44 64 84 a4 c4 e5 05 25 45 65 85 a5 c5 e6 06 26 46 66 86 a6 c6 e7 07 27 47 67 87 a7 c7 e8 08 01 08 00 81 01 82 02 83 03 84 04 85 05 86 06 87 07 88 00"

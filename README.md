@@ -110,11 +110,11 @@ the grammar findings (event-code widths, sort orders, the bounded-unroll quirk, 
 
 ### Message coverage (byte-verified vs cbV2G)
 
-15 of the 17 request/response pairs are byte-exact (`✓`); the two certificate messages
-carry the XMLDSig multi-reference case and wait on the rest of Phase 3 part B (`—`). A
+**All 17** request/response pairs are byte-exact against cbV2G (`✓`), including the
+certificate messages (chains, encrypted private key, DH public key, root-cert list). A
 **fully signed** message (`AuthorizationReq` with a header `SignedInfo` + ECDSA
-`SignatureValue`) is byte-exact against cbV2G and round-trips; signing/verification
-(`V2GSignature`, ECDSA-P256 over the SignedInfo EXI fragment) is covered end to end.
+`SignatureValue`) is byte-exact and round-trips; signing/verification (`V2GSignature`,
+ECDSA-P256 over the SignedInfo EXI fragment) is covered end to end.
 
 | Message | Req | Res | | Message | Req | Res |
 |---|:-:|:-:|---|---|:-:|:-:|
@@ -125,8 +125,8 @@ carry the XMLDSig multi-reference case and wait on the rest of Phase 3 part B (`
 | PaymentDetails | ✓ | ✓ | | CableCheck | ✓ | ✓ |
 | Authorization | ✓ | ✓ | | PreCharge | ✓ | ✓ |
 | ChargeParameterDiscovery | ✓ | ✓ | | CurrentDemand | ✓ | ✓ |
-| CertificateInstallation | — | — | | WeldingDetection | ✓ | ✓ |
-| CertificateUpdate | — | — | | | | |
+| CertificateInstallation | ✓ | ✓ | | WeldingDetection | ✓ | ✓ |
+| CertificateUpdate | ✓ | ✓ | | | | |
 
 `PhysicalValue.Of` / `.ToDecimal` give an ergonomic decimal ↔ scaled-integer bridge for
 `PhysicalValueType`.
@@ -137,8 +137,8 @@ carry the XMLDSig multi-reference case and wait on the rest of Phase 3 part B (`
   rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
-- The CertificateInstallation/Update messages (the XMLDSig multi-reference case) and
-  external cross-validation of signatures (EXIficient/Josev) — the rest of Phase 3 part B.
+- External cross-validation of signatures against a second toolchain (EXIficient/Josev) —
+  the remaining Phase 3 part B item; the ECDSA path is only self-checked so far.
 
 ## Next milestones
 

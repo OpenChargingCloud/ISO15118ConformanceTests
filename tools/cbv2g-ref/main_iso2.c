@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 #include "cbv2g/common/exi_bitstream.h"
+#include "cbv2g/common/exi_basetypes.h"
 #include "cbv2g/iso_2/iso2_msgDefDatatypes.h"
 #include "cbv2g/iso_2/iso2_msgDefEncoder.h"
 
@@ -64,6 +65,52 @@ static void set_ac_evsestatus(struct iso2_AC_EVSEStatusType* s) {
     s->EVSENotification     = iso2_EVSENotificationType_None;
     s->RCD                  = 0;
 }
+/* A ListOfRootCertificateIDs with a single X509 root cert id (CN=Root CA, serial 12345). */
+static void set_rootcerts(struct iso2_ListOfRootCertificateIDsType* l) {
+    l->RootCertificateID.arrayLen = 1;
+    struct iso2_X509IssuerSerialType* x = &l->RootCertificateID.array[0];
+    set_str(x->X509IssuerName.characters, &x->X509IssuerName.charactersLen, "CN=Root CA");
+    /* exi_signed_t data.octets are RAW big-endian value bytes; the encoder re-groups them into EXI
+     * 7-bit octets. (The convert_to_* helpers pre-flag and must NOT be used here.) 12345 = 0x3039. */
+    x->X509SerialNumber.is_negative = 0u;
+    x->X509SerialNumber.data.octets[0] = 0x30;
+    x->X509SerialNumber.data.octets[1] = 0x39;
+    x->X509SerialNumber.data.octets_count = 2;
+}
+/* A certificate chain: Certificate {30 82 01 02}, and optionally one SubCertificate {30 82 03 04}.
+ * The chain's own Id attribute stays absent. */
+static void set_certchain(struct iso2_CertificateChainType* c, int with_sub) {
+    static const uint8_t cert[4] = { 0x30, 0x82, 0x01, 0x02 };
+    c->Id_isUsed = 0u;
+    memcpy(c->Certificate.bytes, cert, 4);
+    c->Certificate.bytesLen = 4;
+    if (with_sub) {
+        static const uint8_t sub[4] = { 0x30, 0x82, 0x03, 0x04 };
+        c->SubCertificates_isUsed = 1u;
+        c->SubCertificates.Certificate.arrayLen = 1;
+        memcpy(c->SubCertificates.Certificate.array[0].bytes, sub, 4);
+        c->SubCertificates.Certificate.array[0].bytesLen = 4;
+    } else {
+        c->SubCertificates_isUsed = 0u;
+    }
+}
+/* The shared tail of both certificate Res messages: encrypted private key, DH public key and eMAID
+ * (each with a fixed Id and fixed content). */
+static void set_encprivkey(struct iso2_ContractSignatureEncryptedPrivateKeyType* k) {
+    set_str(k->Id.characters, &k->Id.charactersLen, "ID2");
+    for (int i = 0; i < 16; i++) k->CONTENT.bytes[i] = (uint8_t)(0xA0 + i);
+    k->CONTENT.bytesLen = 16;
+}
+static void set_dhkey(struct iso2_DiffieHellmanPublickeyType* d) {
+    set_str(d->Id.characters, &d->Id.charactersLen, "ID3");
+    for (int i = 0; i < 8; i++) d->CONTENT.bytes[i] = (uint8_t)(0xB0 + i);
+    d->CONTENT.bytesLen = 8;
+}
+static void set_emaid_ct(struct iso2_EMAIDType* e) {
+    set_str(e->Id.characters, &e->Id.charactersLen, "ID4");
+    set_str(e->CONTENT.characters, &e->CONTENT.charactersLen, "DEAAA0001234567");
+}
+
 /* A fixed SignedInfo (EXI-C14N, ECDSA-SHA256, one Reference URI="#ID1" over a 32-byte digest),
  * mirroring the C# V2GSignature fixtures. */
 static void set_test_signedinfo(struct iso2_SignedInfoType* s) {
@@ -441,6 +488,45 @@ int main(int argc, char** argv) {
         body->MeteringReceiptRes.EVSEStatus_isUsed    = 0u;
         body->MeteringReceiptRes.DC_EVSEStatus_isUsed = 1u;
         set_dc_evsestatus(&body->MeteringReceiptRes.DC_EVSEStatus);
+
+    } else if (strcmp(v, "CertificateInstallationReq") == 0) {
+        body->CertificateInstallationReq_isUsed = 1u;
+        struct iso2_CertificateInstallationReqType* q = &body->CertificateInstallationReq;
+        set_str(q->Id.characters, &q->Id.charactersLen, "ID1");
+        static const uint8_t oem[4] = { 0x30, 0x82, 0x02, 0x03 };
+        memcpy(q->OEMProvisioningCert.bytes, oem, 4);
+        q->OEMProvisioningCert.bytesLen = 4;
+        set_rootcerts(&q->ListOfRootCertificateIDs);
+
+    } else if (strcmp(v, "CertificateInstallationRes") == 0) {
+        body->CertificateInstallationRes_isUsed = 1u;
+        struct iso2_CertificateInstallationResType* r = &body->CertificateInstallationRes;
+        r->ResponseCode = iso2_responseCodeType_OK;
+        set_certchain(&r->SAProvisioningCertificateChain, 0);
+        set_certchain(&r->ContractSignatureCertChain, 1);
+        set_encprivkey(&r->ContractSignatureEncryptedPrivateKey);
+        set_dhkey(&r->DHpublickey);
+        set_emaid_ct(&r->eMAID);
+
+    } else if (strcmp(v, "CertificateUpdateReq") == 0) {
+        body->CertificateUpdateReq_isUsed = 1u;
+        struct iso2_CertificateUpdateReqType* q = &body->CertificateUpdateReq;
+        set_str(q->Id.characters, &q->Id.charactersLen, "ID1");
+        set_certchain(&q->ContractSignatureCertChain, 0);
+        set_str(q->eMAID.characters, &q->eMAID.charactersLen, "DEAAA0001234567");
+        set_rootcerts(&q->ListOfRootCertificateIDs);
+
+    } else if (strcmp(v, "CertificateUpdateRes") == 0) {
+        body->CertificateUpdateRes_isUsed = 1u;
+        struct iso2_CertificateUpdateResType* r = &body->CertificateUpdateRes;
+        r->ResponseCode = iso2_responseCodeType_OK;
+        set_certchain(&r->SAProvisioningCertificateChain, 0);
+        set_certchain(&r->ContractSignatureCertChain, 1);
+        set_encprivkey(&r->ContractSignatureEncryptedPrivateKey);
+        set_dhkey(&r->DHpublickey);
+        set_emaid_ct(&r->eMAID);
+        r->RetryCounter        = 3;
+        r->RetryCounter_isUsed = 1u;
 
     } else {
         fprintf(stderr, "cbv2g-iso2: unknown vector '%s'\n", v);

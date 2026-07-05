@@ -17,6 +17,17 @@ public static class Iso15118_2Fixtures
         new(SessionID: new byte[8], Notification: null, Signature: null);
 
     private static byte[] Ramp(int n) => Enumerable.Range(1, n).Select(i => (byte)i).ToArray();
+    private static byte[] Ramp(int start, int n) => Enumerable.Range(start, n).Select(i => (byte)i).ToArray();
+
+    // ---- certificate message helpers (mirror tools/cbv2g-ref/main_iso2.c) ----
+    private static CertificateChainType Chain(bool withSub) =>
+        new(Id: null, Certificate: new byte[] { 0x30, 0x82, 0x01, 0x02 },
+            SubCertificates: withSub
+                ? new SubCertificatesType(new[] { new byte[] { 0x30, 0x82, 0x03, 0x04 } })
+                : null);
+
+    private static ListOfRootCertificateIDsType RootCerts() =>
+        new(new[] { new X509IssuerSerialType("CN=Root CA", 12345) });
 
     /// <summary>A header carrying a full signature: SignedInfo over a 32-byte digest plus a 64-byte
     /// (r‖s) SignatureValue, KeyInfo/Object absent — the ISO 15118-2 signed-message shape.</summary>
@@ -57,6 +68,38 @@ public static class Iso15118_2Fixtures
 
         ["AuthorizationReq_Signed"] = new V2G_Message(SignedHeader(),
             new BodyType(new AuthorizationReqType(Id: null, GenChallenge: Ramp(16)))),
+
+        ["CertificateInstallationReq"] = new V2G_Message(Header(),
+            new BodyType(new CertificateInstallationReqType(
+                Id: "ID1",
+                OEMProvisioningCert: new byte[] { 0x30, 0x82, 0x02, 0x03 },
+                ListOfRootCertificateIDs: RootCerts()))),
+
+        ["CertificateInstallationRes"] = new V2G_Message(Header(),
+            new BodyType(new CertificateInstallationResType(
+                ResponseCode.OK,
+                SAProvisioningCertificateChain: Chain(withSub: false),
+                ContractSignatureCertChain: Chain(withSub: true),
+                ContractSignatureEncryptedPrivateKey: new ContractSignatureEncryptedPrivateKeyType("ID2", Ramp(0xA0, 16)),
+                DHpublickey: new DiffieHellmanPublickeyType("ID3", Ramp(0xB0, 8)),
+                EMAID: new EMAIDType("ID4", "DEAAA0001234567")))),
+
+        ["CertificateUpdateReq"] = new V2G_Message(Header(),
+            new BodyType(new CertificateUpdateReqType(
+                Id: "ID1",
+                ContractSignatureCertChain: Chain(withSub: false),
+                EMAID: "DEAAA0001234567",
+                ListOfRootCertificateIDs: RootCerts()))),
+
+        ["CertificateUpdateRes"] = new V2G_Message(Header(),
+            new BodyType(new CertificateUpdateResType(
+                ResponseCode.OK,
+                SAProvisioningCertificateChain: Chain(withSub: false),
+                ContractSignatureCertChain: Chain(withSub: true),
+                ContractSignatureEncryptedPrivateKey: new ContractSignatureEncryptedPrivateKeyType("ID2", Ramp(0xA0, 16)),
+                DHpublickey: new DiffieHellmanPublickeyType("ID3", Ramp(0xB0, 8)),
+                EMAID: new EMAIDType("ID4", "DEAAA0001234567"),
+                RetryCounter: 3))),
 
         ["SessionStopReq"] = new V2G_Message(Header(),
             new BodyType(new SessionStopReqType(ChargingSession.Terminate))),
