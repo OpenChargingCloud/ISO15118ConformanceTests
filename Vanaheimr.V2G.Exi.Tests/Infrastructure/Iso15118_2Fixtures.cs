@@ -112,6 +112,49 @@ public static class Iso15118_2Fixtures
                     new AC_EVSEStatusType(NotificationMaxDelay: 0, EVSENotification.None, RCD: false),
                     EVSENominalVoltage: new PhysicalValueType(0, UnitSymbol.V, 230),
                     EVSEMaxCurrent:     new PhysicalValueType(0, UnitSymbol.A, 32))))),
+
+        ["ChargingStatusReq"] = new V2G_Message(Header(),
+            new BodyType(new ChargingStatusReqType())),
+
+        ["ServiceDetailReq"] = new V2G_Message(Header(),
+            new BodyType(new ServiceDetailReqType(ServiceID: 2))),
+
+        ["ServiceDetailRes"] = new V2G_Message(Header(),
+            new BodyType(new ServiceDetailResType(ResponseCode.OK, ServiceID: 2, ServiceParameterList: null))),
+
+        ["PaymentServiceSelectionReq"] = new V2G_Message(Header(),
+            new BodyType(new PaymentServiceSelectionReqType(PaymentOption.Contract,
+                new SelectedServiceListType(new[] { new SelectedServiceType(ServiceID: 1, ParameterSetID: null) })))),
+
+        ["PaymentServiceSelectionRes"] = new V2G_Message(Header(),
+            new BodyType(new PaymentServiceSelectionResType(ResponseCode.OK))),
+
+        ["PaymentDetailsReq"] = new V2G_Message(Header(),
+            new BodyType(new PaymentDetailsReqType(EMAID: "DEAAA0001234567",
+                new CertificateChainType(Id: null,
+                    Certificate: new byte[] { 0x30, 0x82, 0x01, 0x02 },
+                    SubCertificates: null)))),
+
+        ["PaymentDetailsRes"] = new V2G_Message(Header(),
+            new BodyType(new PaymentDetailsResType(ResponseCode.OK,
+                GenChallenge: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
+                EVSETimeStamp: 1_600_000_000L))),
+
+        // The bodies of the signed requests encode independently of the (absent) header signature.
+        ["AuthorizationReq"] = new V2G_Message(Header(),
+            new BodyType(new AuthorizationReqType(Id: null,
+                GenChallenge: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }))),
+
+        ["AuthorizationRes"] = new V2G_Message(Header(),
+            new BodyType(new AuthorizationResType(ResponseCode.OK, EVSEProcessing.Finished))),
+
+        ["MeteringReceiptReq"] = new V2G_Message(Header(),
+            new BodyType(new MeteringReceiptReqType(Id: null, SessionID: new byte[8], SAScheduleTupleID: 1,
+                new MeterInfoType(MeterID: "M1", MeterReading: null, SigMeterReading: null,
+                    MeterStatus: null, TMeter: null)))),
+
+        ["MeteringReceiptRes"] = new V2G_Message(Header(),
+            new BodyType(new MeteringReceiptResType(ResponseCode.OK, DcEvseStatus()))),
     };
 
     private static DC_EVStatusType DcEvStatus() =>

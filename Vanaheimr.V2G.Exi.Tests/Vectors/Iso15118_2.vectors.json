@@ -112,6 +112,61 @@
       "name": "ChargeParameterDiscoveryRes",
       "messageType": "ChargeParameterDiscoveryRes",
       "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 a0 00 20 00 00 03 10 39 80 40 c3 02 00 00"
+    },
+    {
+      "name": "ChargingStatusReq",
+      "messageType": "ChargingStatusReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 b0"
+    },
+    {
+      "name": "ServiceDetailReq",
+      "messageType": "ServiceDetailReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 90 08 00"
+    },
+    {
+      "name": "ServiceDetailRes",
+      "messageType": "ServiceDetailRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 a0 00 08 80"
+    },
+    {
+      "name": "PaymentServiceSelectionReq",
+      "messageType": "PaymentServiceSelectionReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 30 00 12 80"
+    },
+    {
+      "name": "PaymentServiceSelectionRes",
+      "messageType": "PaymentServiceSelectionRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 40 00"
+    },
+    {
+      "name": "PaymentDetailsReq",
+      "messageType": "PaymentDetailsReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 10 45 11 15 05 05 04 c0 c0 c0 c4 c8 cc d0 d4 d8 dc 40 86 10 40 20 44 00"
+    },
+    {
+      "name": "PaymentDetailsRes",
+      "messageType": "PaymentDetailsRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 20 00 40 04 08 0c 10 14 18 1c 20 24 28 2c 30 34 38 3c 40 20 28 3e 3e 81 40"
+    },
+    {
+      "name": "AuthorizationReq",
+      "messageType": "AuthorizationReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 04 20 02 04 06 08 0a 0c 0e 10 12 14 16 18 1a 1c 1e 20 00"
+    },
+    {
+      "name": "AuthorizationRes",
+      "messageType": "AuthorizationRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 10 00 00"
+    },
+    {
+      "name": "MeteringReceiptReq",
+      "messageType": "MeteringReceiptReq",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 10 f4 10 00 00 00 00 00 00 00 00 00 00 08 9a 62 80"
+    },
+    {
+      "name": "MeteringReceiptRes",
+      "messageType": "MeteringReceiptRes",
+      "expectedHex": "80 98 02 00 00 00 00 00 00 00 00 11 00 04 00 01 08 00"
     }
   ]
 }

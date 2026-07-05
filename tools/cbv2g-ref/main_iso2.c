@@ -253,6 +253,83 @@ int main(int argc, char** argv) {
         set_pv(&r->AC_EVSEChargeParameter.EVSENominalVoltage, 0, iso2_unitSymbolType_V, 230);
         set_pv(&r->AC_EVSEChargeParameter.EVSEMaxCurrent,     0, iso2_unitSymbolType_A, 32);
 
+    } else if (strcmp(v, "ChargingStatusReq") == 0) {
+        body->ChargingStatusReq_isUsed = 1u;   /* empty body */
+
+    } else if (strcmp(v, "ServiceDetailReq") == 0) {
+        body->ServiceDetailReq_isUsed = 1u;
+        body->ServiceDetailReq.ServiceID = 2;
+
+    } else if (strcmp(v, "ServiceDetailRes") == 0) {
+        body->ServiceDetailRes_isUsed = 1u;
+        body->ServiceDetailRes.ResponseCode = iso2_responseCodeType_OK;
+        body->ServiceDetailRes.ServiceID    = 2;
+        body->ServiceDetailRes.ServiceParameterList_isUsed = 0u;
+
+    } else if (strcmp(v, "PaymentServiceSelectionReq") == 0) {
+        body->PaymentServiceSelectionReq_isUsed = 1u;
+        struct iso2_PaymentServiceSelectionReqType* q = &body->PaymentServiceSelectionReq;
+        q->SelectedPaymentOption = iso2_paymentOptionType_Contract;
+        q->SelectedServiceList.SelectedService.arrayLen = 1;
+        q->SelectedServiceList.SelectedService.array[0].ServiceID = 1;
+        q->SelectedServiceList.SelectedService.array[0].ParameterSetID_isUsed = 0u;
+
+    } else if (strcmp(v, "PaymentServiceSelectionRes") == 0) {
+        body->PaymentServiceSelectionRes_isUsed = 1u;
+        body->PaymentServiceSelectionRes.ResponseCode = iso2_responseCodeType_OK;
+
+    } else if (strcmp(v, "PaymentDetailsReq") == 0) {
+        body->PaymentDetailsReq_isUsed = 1u;
+        struct iso2_PaymentDetailsReqType* q = &body->PaymentDetailsReq;
+        set_str(q->eMAID.characters, &q->eMAID.charactersLen, "DEAAA0001234567");
+        q->ContractSignatureCertChain.Id_isUsed = 0u;
+        static const uint8_t cert[4] = { 0x30, 0x82, 0x01, 0x02 };
+        memcpy(q->ContractSignatureCertChain.Certificate.bytes, cert, sizeof(cert));
+        q->ContractSignatureCertChain.Certificate.bytesLen = (uint16_t)sizeof(cert);
+        q->ContractSignatureCertChain.SubCertificates_isUsed = 0u;
+
+    } else if (strcmp(v, "PaymentDetailsRes") == 0) {
+        body->PaymentDetailsRes_isUsed = 1u;
+        struct iso2_PaymentDetailsResType* r = &body->PaymentDetailsRes;
+        r->ResponseCode = iso2_responseCodeType_OK;
+        for (int i = 0; i < 16; i++) r->GenChallenge.bytes[i] = (uint8_t)(i + 1);
+        r->GenChallenge.bytesLen = 16;
+        r->EVSETimeStamp = 1600000000;
+
+    } else if (strcmp(v, "AuthorizationReq") == 0) {
+        body->AuthorizationReq_isUsed = 1u;
+        body->AuthorizationReq.Id_isUsed = 0u;
+        for (int i = 0; i < 16; i++) body->AuthorizationReq.GenChallenge.bytes[i] = (uint8_t)(i + 1);
+        body->AuthorizationReq.GenChallenge.bytesLen  = 16;
+        body->AuthorizationReq.GenChallenge_isUsed    = 1u;
+
+    } else if (strcmp(v, "AuthorizationRes") == 0) {
+        body->AuthorizationRes_isUsed = 1u;
+        body->AuthorizationRes.ResponseCode   = iso2_responseCodeType_OK;
+        body->AuthorizationRes.EVSEProcessing = iso2_EVSEProcessingType_Finished;
+
+    } else if (strcmp(v, "MeteringReceiptReq") == 0) {
+        body->MeteringReceiptReq_isUsed = 1u;
+        struct iso2_MeteringReceiptReqType* q = &body->MeteringReceiptReq;
+        q->Id_isUsed = 0u;
+        memset(q->SessionID.bytes, 0, iso2_sessionIDType_BYTES_SIZE);
+        q->SessionID.bytesLen = iso2_sessionIDType_BYTES_SIZE;
+        q->SAScheduleTupleID        = 1;
+        q->SAScheduleTupleID_isUsed = 1u;
+        set_str(q->MeterInfo.MeterID.characters, &q->MeterInfo.MeterID.charactersLen, "M1");
+        q->MeterInfo.MeterReading_isUsed    = 0u;
+        q->MeterInfo.SigMeterReading_isUsed = 0u;
+        q->MeterInfo.MeterStatus_isUsed     = 0u;
+        q->MeterInfo.TMeter_isUsed          = 0u;
+
+    } else if (strcmp(v, "MeteringReceiptRes") == 0) {
+        body->MeteringReceiptRes_isUsed = 1u;
+        body->MeteringReceiptRes.ResponseCode = iso2_responseCodeType_OK;
+        body->MeteringReceiptRes.AC_EVSEStatus_isUsed = 0u;
+        body->MeteringReceiptRes.EVSEStatus_isUsed    = 0u;
+        body->MeteringReceiptRes.DC_EVSEStatus_isUsed = 1u;
+        set_dc_evsestatus(&body->MeteringReceiptRes.DC_EVSEStatus);
+
     } else {
         fprintf(stderr, "cbv2g-iso2: unknown vector '%s'\n", v);
         return 1;
