@@ -95,8 +95,9 @@ The source generator now consumes the **full ISO 15118-2 schema set** (`V2G_CI_M
 multi-namespace `import`, `complexContent`/`extension`, `substitutionGroup` + abstract
 heads, attributes, `xs:choice`, bounded and unbounded repetition, `simpleContent`, the
 signed/binary/boolean built-ins, and the `V2G_Message` document/header/body/substitution
-dispatch. XMLDSig is treated as an opaque namespace (the header's `ds:Signature` is
-encode-absent; full signature fidelity is Phase 3).
+dispatch. The XMLDSig `Signature`/`SignedInfo` subtree is now modelled concretely (Phase 3,
+part B) — a signed message is byte-exact against cbV2G — while the rest of the dsig namespace
+(`KeyInfo`, `Object`, …) stays opaque and encode-absent.
 
 The whole set generates without diagnostics and compiles (`SchemaSetIntegrationTests`),
 and the messages are **byte-exact against cbV2G** in `Iso15118_2VectorTests` (encode diff
@@ -110,9 +111,10 @@ the grammar findings (event-code widths, sort orders, the bounded-unroll quirk, 
 ### Message coverage (byte-verified vs cbV2G)
 
 15 of the 17 request/response pairs are byte-exact (`✓`); the two certificate messages
-carry the XMLDSig multi-reference case and wait on Phase 3 part B (`—`). Signed requests
-(Authorization, MeteringReceipt) are verified for their bodies — the header signature is
-a separate, absent element.
+carry the XMLDSig multi-reference case and wait on the rest of Phase 3 part B (`—`). A
+**fully signed** message (`AuthorizationReq` with a header `SignedInfo` + ECDSA
+`SignatureValue`) is byte-exact against cbV2G and round-trips; signing/verification
+(`V2GSignature`, ECDSA-P256 over the SignedInfo EXI fragment) is covered end to end.
 
 | Message | Req | Res | | Message | Req | Res |
 |---|:-:|:-:|---|---|:-:|:-:|
@@ -135,8 +137,8 @@ a separate, absent element.
   rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
-- XMLDSig signatures over EXI fragments, and the -2 messages beyond the byte-verified
-  four (the generator handles them; only these four have checked-in cbV2G vectors so far).
+- The CertificateInstallation/Update messages (the XMLDSig multi-reference case) and
+  external cross-validation of signatures (EXIficient/Josev) — the rest of Phase 3 part B.
 
 ## Next milestones
 

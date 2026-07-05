@@ -10,7 +10,7 @@ abarbeiten. Gesamtplan und Standortbestimmung: [../roadmap.md](../roadmap.md).
 | 0 | [phase0.md](phase0.md) | SAP-Seed-Vektoren durch cbV2G-Referenzoutput ersetzen (Wire-Konformität) | **erledigt @2026-07-03** |
 | 1 | [phase1.md](phase1.md) | EXI-Primitivschicht vervollständigen (String Value Tables, Signed Integer, Binary, Boolean) | **erledigt @2026-07-03** (Value Tables: miss-only encode + lenient decode, cbV2G nutzt keine Tables) |
 | 2 | [phase2.md](phase2.md) | Source Generator auf den realen ISO-15118-2-Schemasatz heben (import/choice/extension/substitutionGroup/Attribute) | **erledigt @2026-07-05** (ganzer Satz generiert + kompiliert; SessionSetup/ServiceDiscovery byte-exakt gegen cbV2G) |
-| 3 | [phase3.md](phase3.md) | ISO 15118-2 komplettieren (alle 17 Nachrichtenpaare) + XMLDSig über EXI-Fragmente | offen |
+| 3 | [phase3.md](phase3.md) | ISO 15118-2 komplettieren (alle 17 Nachrichtenpaare) + XMLDSig über EXI-Fragmente | **läuft** (Teil A: 15/17 Paare byte-exakt; Teil B: SignedInfo-/Signature-Subtree modelliert, signierte Nachricht byte-exakt gegen cbV2G, ECDSA-P256 Sign/Verify. Offen: CertificateInstallation/Update, externe Cross-Validierung EXIficient/Josev) |
 | 4 | [phase4.md](phase4.md) | ISO 15118-20: Multi-Schema-Codecs (CommonMessages/DC/AC) + V2GTP-Dispatch | offen |
 | 5 | [phase5.md](phase5.md) | EV↔EVSE-Simulation: SDP, TCP/TLS, Zustandsmaschinen, Interop gegen Josev | offen |
 
