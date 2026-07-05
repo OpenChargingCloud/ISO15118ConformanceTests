@@ -49,6 +49,38 @@ public class Iso15118_2FragmentTests
         AssertFragment("80 ae 40 08 00 0c fa 00", buf.AsSpan(0, n).ToArray());
     }
 
+    [Test]
+    public void SignedInfo_Fragment_MatchesCbV2G()
+    {
+        // The XMLDSig SignedInfo subtree ISO 15118-2 actually puts on the wire: EXI-canonical
+        // C14N, ECDSA-SHA256 signature method, and a single Reference (no Transforms) over a
+        // 32-byte SHA-256 digest. Mirrors tools/cbv2g-ref do_fragment("SignedInfo").
+        var content = new SignedInfoType(
+            Id: null,
+            CanonicalizationMethod: new CanonicalizationMethodType(
+                Algorithm: "http://www.w3.org/TR/canonical-exi/", ANY: null),
+            SignatureMethod: new SignatureMethodType(
+                Algorithm: "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256",
+                HMACOutputLength: null, ANY: null),
+            Reference: new[]
+            {
+                new ReferenceType(Id: null, Type: null, URI: "#ID1", Transforms: null,
+                    DigestMethod: new DigestMethodType(
+                        Algorithm: "http://www.w3.org/2001/04/xmlenc#sha256", ANY: null),
+                    DigestValue: Enumerable.Range(1, 32).Select(i => (byte)i).ToArray()),
+            });
+        var buf = new byte[512];
+        Assert.That(Iso2Codec.EncodeFragment_SignedInfo(content, buf, out int n), Is.True);
+        AssertFragment(
+            "80 d0 44 ad 0e 8e 8e 07 45 e5 ee ee ee e5 ce e6 65 cd ee 4c e5 ea 8a 45 ec 6c 2d cd ed " +
+            "cd 2c 6c 2d 85 ac af 0d 25 e8 6a d0 e8 e8 e0 74 5e 5e ee ee ee 5c ee 66 5c de e4 ce 5e " +
+            "64 60 60 62 5e 60 68 5e f0 da d8 c8 e6 d2 ce 5a da de e4 ca 46 ca c6 c8 e6 c2 5a e6 d0 " +
+            "c2 64 6a 6c 88 18 8d 25 10 c5 14 b4 3a 3a 38 1d 17 97 bb bb bb 97 3b 99 97 37 b9 33 97 " +
+            "99 18 18 18 97 98 1a 17 bc 36 b6 32 b7 31 91 b9 b4 30 99 1a 9b 21 00 08 10 18 20 28 30 " +
+            "38 40 48 50 58 60 68 70 78 80 88 90 98 a0 a8 b0 b8 c0 c8 d0 d8 e0 e8 f0 f9 00 fa 00",
+            buf.AsSpan(0, n).ToArray());
+    }
+
     // ---- helpers ----
 
     private static void AssertFragment(string expectedHex, byte[]? actual)

@@ -55,7 +55,8 @@ internal sealed record ChildPlan(
     ChildShape     Shape,
     ValueEncoding  Value,
     int            ListMin = 0,      // for BoundedRepeating children
-    int            ListMax = 0);
+    int            ListMax = 0,
+    bool           IsWildcardAny = false);   // synthetic ANY from an xs:any wildcard (two productions)
 
 internal enum ChildShape
 {
@@ -117,6 +118,8 @@ internal sealed record EnumPlan(string Name, IReadOnlyList<string> Members);
 /// </summary>
 internal static class GrammarBuilder
 {
+    private const string XmlDsigNamespace = "http://www.w3.org/2000/09/xmldsig#";
+
     public static SchemaPlan Build(XsdSchema schema) => Build(schema, System.Array.Empty<string>());
 
     public static SchemaPlan Build(XsdSchema schema, IReadOnlyList<string> fragmentElements)
@@ -150,6 +153,11 @@ internal static class GrammarBuilder
             if (ge.IsAbstract || ge.SubstitutionGroup is not null || ge.Ref is not null)
                 continue;
             if (schema.OpaqueElementNames.Contains(ge.Name))
+                continue;
+            // Whitelisted XMLDSig SignedInfo-subtree elements are modelled (their type codecs exist)
+            // but are never V2G document roots — they are reached only through a fragment or a
+            // containing type. They still occupy a document-grammar production (counted above).
+            if (ge.Namespace == XmlDsigNamespace)
                 continue;
 
             var typeName = PascalCase(ge.Name);
@@ -346,6 +354,23 @@ internal static class GrammarBuilder
                     continue;
                 }
 
+                // A plain reference to a modelled (whitelisted) global element — resolve to that
+                // element's type, exactly like a named child. Used by the XMLDSig SignedInfo subtree
+                // (SignedInfoType → CanonicalizationMethod/SignatureMethod, ReferenceType → …).
+                var refTarget = schema.GlobalElements.FirstOrDefault(g => g.Ref is null && g.Name == el.Ref);
+                if (refTarget is not null && !string.IsNullOrEmpty(refTarget.TypeRef))
+                {
+                    var (refType, refVal, refIsValueType) = ResolveElementType(el, schema, enums);
+                    var refShape = el.MinOccurs == 0 ? ChildShape.OptionalSingle : ChildShape.RequiredSingle;
+                    children.Add(new ChildPlan(
+                        FieldName       : PascalCase(el.Ref),
+                        CSharpType      : refType,
+                        IsCSharpNullable: refShape == ChildShape.OptionalSingle && refIsValueType,
+                        Shape           : refShape,
+                        Value           : refVal));
+                    continue;
+                }
+
                 throw new NotSupportedException(
                     $"complexType '{ctName}': element ref '{el.Ref}' is not a substitution-group head " +
                     "and not an opaque-namespace element (plain element references are not supported yet).");
@@ -359,7 +384,8 @@ internal static class GrammarBuilder
                 CSharpType      : csType,
                 IsCSharpNullable: shape == ChildShape.OptionalSingle && isValueType,
                 Shape           : shape,
-                Value           : val));
+                Value           : val,
+                IsWildcardAny   : el.IsWildcard));
         }
 
         return new SequencePlan(PascalCase(ctName), children,

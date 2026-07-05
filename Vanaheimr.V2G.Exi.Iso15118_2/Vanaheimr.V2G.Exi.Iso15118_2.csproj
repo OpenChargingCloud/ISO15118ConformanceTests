@@ -13,7 +13,7 @@
     <ExiGeneratedNamespace>Vanaheimr.V2G.Iso15118_2.Generated</ExiGeneratedNamespace>
     <ExiCodecClassName>Iso2Codec</ExiCodecClassName>
     <!-- Signable elements that get an EXI fragment codec (XMLDSig, §8.5.3). -->
-    <ExiFragmentElements>AuthorizationReq MeteringReceiptReq SalesTariff</ExiFragmentElements>
+    <ExiFragmentElements>AuthorizationReq MeteringReceiptReq SalesTariff SignedInfo</ExiFragmentElements>
 
     <!-- Write the generated codec to obj/ for inspection. -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>

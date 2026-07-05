@@ -50,6 +50,12 @@ internal sealed record XsdElement(
     /// <summary>For a global element: its target namespace (used to order the document grammar,
     /// which enumerates every global element across the collected set).</summary>
     public string Namespace { get; init; } = "";
+
+    /// <summary>True for the synthetic <c>ANY</c> element standing in for an <c>xs:any</c> wildcard.
+    /// cbexigen expands a wildcard into TWO grammar productions — a generic wildcard event and the
+    /// typed element it simplifies to — with the element EE between them, so such an element counts
+    /// as two productions when sizing a grammar state's event code.</summary>
+    public bool IsWildcard { get; init; }
 }
 
 /// <summary>

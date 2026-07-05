@@ -109,16 +109,44 @@ internal static class XsdReader
         {
             var n = (string?)el.Attribute("name");
             if (n is null) continue;
+
+            if (DsigSignedInfoElements.Contains(n))
+            {
+                // Whitelisted SignedInfo-subtree element: model it as a real global with its type,
+                // so a reference to it resolves to a concrete child (not an opaque absent).
+                schema.GlobalElements.Add(ParseElement(el) with { Namespace = targetNs });
+                continue;
+            }
+
             schema.OpaqueElementNames.Add(n);
             // Opaque elements are not document roots (skipped by the grammar builder) but they DO
             // occupy a production in cbexigen's document grammar, so they must be counted there.
             schema.GlobalElements.Add(new XsdElement(n, "", 1, 1, null) { Namespace = targetNs });
         }
 
+        foreach (var st in root.Elements(Xs + "simpleType"))
+            if (DsigSignedInfoTypes.Contains(Required(st, "name")))
+                ParseNamedSimpleType(st, schema);
+
         foreach (var ct in root.Elements(Xs + "complexType"))
-            if (IsSelfContainedDataType(ct))
+            if (DsigSignedInfoTypes.Contains(Required(ct, "name")) || IsSelfContainedDataType(ct))
                 schema.ComplexTypes[Required(ct, "name")] = ParseComplexType(ct);
     }
+
+    /// <summary>The XMLDSig <c>SignedInfo</c> subtree — the only signature elements ISO 15118-2
+    /// actually puts on the wire (the digest is over a SignedInfo fragment). These are modelled
+    /// concretely; everything else in the dsig namespace stays opaque.</summary>
+    private static readonly HashSet<string> DsigSignedInfoElements = new()
+    {
+        "SignedInfo", "CanonicalizationMethod", "SignatureMethod", "Reference",
+        "Transforms", "Transform", "DigestMethod", "DigestValue",
+    };
+
+    private static readonly HashSet<string> DsigSignedInfoTypes = new()
+    {
+        "SignedInfoType", "CanonicalizationMethodType", "SignatureMethodType", "ReferenceType",
+        "TransformsType", "TransformType", "DigestMethodType", "DigestValueType", "HMACOutputLengthType",
+    };
 
     /// <summary>
     /// True for a complex type that is a plain <c>xs:sequence</c> of built-in-typed elements — no
@@ -297,7 +325,7 @@ internal static class XsdReader
     {
         var els = container.Elements(Xs + "element").Select(ParseElement).ToList();
         if (container.Elements(Xs + "any").Any())
-            els.Add(new XsdElement("ANY", "xs:base64Binary", 0, 1, null));
+            els.Add(new XsdElement("ANY", "xs:base64Binary", 0, 1, null) { IsWildcard = true });
         return els;
     }
 

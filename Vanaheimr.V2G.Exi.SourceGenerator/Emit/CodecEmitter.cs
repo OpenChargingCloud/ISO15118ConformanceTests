@@ -535,6 +535,15 @@ internal sealed class CodecEmitter
                 throw new NotSupportedException(
                     $"repeating element '{children[p].FieldName}' in an optional run must be its last member and end the sequence.");
 
+        // An xs:any wildcard (the synthetic ANY) is only supported as the last member of an
+        // EE-terminated run: cbexigen splits it into a generic wildcard event and the typed element,
+        // with the element EE between them (verified against SignatureMethodType / DigestMethodType).
+        for (int p = s; p < e; p++)
+            if (children[p].IsWildcardAny && (p != e - 1 || !endsElement))
+                throw new NotSupportedException(
+                    $"xs:any wildcard '{children[p].FieldName}' must be the last child of an EE-terminated sequence.");
+        bool trailingAny = endsElement && m > 0 && children[e - 1].IsWildcardAny;
+
         int id = _runCounter++;
         string st = "_ost" + id, done = "_odone" + id;
         string inner = indent + "    ";
@@ -559,7 +568,9 @@ internal sealed class CodecEmitter
             int code = 0;
             bool first = true;
 
-            for (int i = k; i < m; i++)
+            // The trailing wildcard ANY is handled after the EE below, so stop the normal loop before it.
+            int optEnd = trailingAny ? m - 1 : m;
+            for (int i = k; i < optEnd; i++)
             {
                 // A repeating member enters its own loop and ends the element; others advance the cursor.
                 string after = children[s + i].Shape == ChildShape.BoundedRepeating
@@ -569,7 +580,16 @@ internal sealed class CodecEmitter
             }
 
             // Terminator productions occupy the highest event codes.
-            if (endsElement)
+            if (trailingAny && k <= m - 1)
+            {
+                // cbexigen ordering: [normal optionals] generic-wildcard (reserved, never emitted),
+                // element EE, then the typed ANY element. Selecting ANY advances to the EE-only state m.
+                int eeCode    = code + 1;   // code == generic-wildcard slot
+                int typedCode = code + 2;
+                EmitEncodeRunParticle(children[e - 1], typedCode, width, ref first, br, st + " = " + m + ";");
+                EmitEncodeRunTail(first, br, "w.WriteBits(" + eeCode + ", " + width + ");   // element EE", done);
+            }
+            else if (endsElement)
                 EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + width + ");   // element EE", done);
             else if (term!.Value is ValueEncoding.SubstitutionChoice)
             {
@@ -721,7 +741,9 @@ internal sealed class CodecEmitter
     }
 
     private static int ProductionCount(ChildPlan c) =>
-        c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count : 1;
+        c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count
+        : c.IsWildcardAny ? 2   // xs:any → generic wildcard event + typed element (cbexigen)
+        : 1;
 
     /// <summary>
     /// The exclusive end of the optional run starting at <paramref name="i"/>: consecutive
@@ -1079,6 +1101,7 @@ internal sealed class CodecEmitter
         if (term is not null && term.Shape == ChildShape.BoundedRepeating && e != children.Count - 1)
             throw new NotSupportedException(
                 $"repeating terminator '{term.FieldName}' must be the last child of the sequence (its loop ends the element).");
+        bool trailingAny = endsElement && m > 0 && children[e - 1].IsWildcardAny;
 
         // Declare the locals in record order: each optional (nullable), a repeating member as a
         // list, then the terminator.
@@ -1129,7 +1152,8 @@ internal sealed class CodecEmitter
             _sb.Append(sw).AppendLine("{");
 
             int c = 0;
-            for (int i = k; i < m; i++)
+            int optEnd = trailingAny ? m - 1 : m;
+            for (int i = k; i < optEnd; i++)
             {
                 string after = children[s + i].Shape == ChildShape.BoundedRepeating
                     ? done + " = true;"
@@ -1137,7 +1161,15 @@ internal sealed class CodecEmitter
                 c = EmitDecodeRunParticle(children[s + i], c, ca, after);
             }
 
-            if (endsElement)
+            if (trailingAny && k <= m - 1)
+            {
+                // c == generic-wildcard slot (no case; a generic wildcard event is unsupported and
+                // falls through to default). Element EE at c+1, then the typed ANY element at c+2.
+                _sb.Append(ca).Append("case ").Append(c + 1).AppendLine("u:");   // element EE
+                _sb.Append(ca).Append("    ").Append(done).AppendLine(" = true; break;");
+                EmitDecodeRunParticle(children[e - 1], c + 2, ca, st + " = " + m + ";");
+            }
+            else if (endsElement)
             {
                 _sb.Append(ca).Append("case ").Append(c).AppendLine("u:");   // element EE
                 _sb.Append(ca).Append("    ").Append(done).AppendLine(" = true; break;");

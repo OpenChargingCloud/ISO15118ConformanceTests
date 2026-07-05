@@ -108,6 +108,33 @@ static int do_fragment(const char* elem) {
         e->EPriceLevel_isUsed   = 0u;
         e->ConsumptionCost.arrayLen = 0;
 
+    } else if (strcmp(elem, "SignedInfo") == 0) {
+        frag.SignedInfo_isUsed = 1u;
+        struct iso2_SignedInfoType* s = &frag.SignedInfo;
+        s->Id_isUsed = 0u;
+        set_str(s->CanonicalizationMethod.Algorithm.characters,
+                &s->CanonicalizationMethod.Algorithm.charactersLen,
+                "http://www.w3.org/TR/canonical-exi/");
+        s->CanonicalizationMethod.ANY_isUsed = 0u;
+        set_str(s->SignatureMethod.Algorithm.characters,
+                &s->SignatureMethod.Algorithm.charactersLen,
+                "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256");
+        s->SignatureMethod.HMACOutputLength_isUsed = 0u;
+        s->SignatureMethod.ANY_isUsed             = 0u;
+        s->Reference.arrayLen = 1;
+        struct iso2_ReferenceType* ref = &s->Reference.array[0];
+        ref->Id_isUsed   = 0u;
+        ref->Type_isUsed = 0u;
+        set_str(ref->URI.characters, &ref->URI.charactersLen, "#ID1");
+        ref->URI_isUsed        = 1u;
+        ref->Transforms_isUsed = 0u;
+        set_str(ref->DigestMethod.Algorithm.characters,
+                &ref->DigestMethod.Algorithm.charactersLen,
+                "http://www.w3.org/2001/04/xmlenc#sha256");
+        ref->DigestMethod.ANY_isUsed = 0u;
+        for (int i = 0; i < 32; i++) ref->DigestValue.bytes[i] = (uint8_t)(i + 1);
+        ref->DigestValue.bytesLen = 32;
+
     } else {
         fprintf(stderr, "cbv2g-iso2: unknown fragment element '%s'\n", elem);
         return 1;

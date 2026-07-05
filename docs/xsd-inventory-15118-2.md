@@ -203,3 +203,32 @@ Each was pinned to cbV2G's byte output, never to spec prose:
 The generator handles all 17 message pairs, but only the four Phase 2 target messages have
 checked-in cbV2G vectors. Extending the vector set (and the `main_iso2.c` oracle) to the remaining
 messages, plus XMLDSig signatures over EXI fragments, is Phase 3.
+
+## The XMLDSig SignedInfo subtree — modelled (Phase 3, part B)
+
+The digest a signature covers is an EXI *fragment* of the signed element, and the signature itself
+is over a `SignedInfo` fragment — so `SignedInfo` and everything it contains must be modelled
+concretely, unlike the rest of the (still opaque) dsig namespace. `XsdReader` whitelists the subtree
+(`SignedInfoType`, `CanonicalizationMethodType`, `SignatureMethodType`, `ReferenceType`,
+`TransformsType`, `TransformType`, `DigestMethodType`, plus `DigestValueType` / `HMACOutputLengthType`
+and their global elements) and parses those types like any other; the grammar builder resolves a
+plain (non-substitution, non-opaque) `ref` to a modelled global as that element's type. These dsig
+globals occupy a document-grammar production (as before) but are never document roots — reached only
+through a fragment or a containing type.
+
+`EncodeFragment_SignedInfo` is **byte-exact against cbV2G@03350be** (`Fragment_SignedInfo`,
+`Iso15118_2FragmentTests`): EXI-canonical C14N, ECDSA-SHA256 method, one Reference (no Transforms)
+over a 32-byte digest.
+
+### One more deviation the byte diff caught
+
+8. **An `xs:any` wildcard is *two* productions, with the element EE between them.** cbexigen expands
+   a wildcard into a generic wildcard event *and* the typed element it simplifies to (the synthetic
+   `ANY` base64 field), ordered `… generic, EE, typed`. So a state containing an `ANY` is one
+   production wider than the naive count: `SignatureMethodType` grammar 27 is
+   `{HMACOutputLength, ANY(generic), EE, ANY(typed)}` → **3 bits**, not 2. For a lone trailing `ANY`
+   (as in `Canonicalization-`/`DigestMethodType`) this happens to coincide with the naive 2-bit EE,
+   so it only surfaced once `SignatureMethodType` put an optional *before* the wildcard — found by the
+   `SignedInfo` fragment diff. The generator marks the synthetic `ANY` as a wildcard
+   (`ChildPlan.IsWildcardAny`), counts it as two productions, and reserves the generic slot without
+   emitting a branch (a generic wildcard event is never encoded and fails loud on decode).
