@@ -232,3 +232,26 @@ over a 32-byte digest.
    `SignedInfo` fragment diff. The generator marks the synthetic `ANY` as a wildcard
    (`ChildPlan.IsWildcardAny`), counts it as two productions, and reserves the generic slot without
    emitting a branch (a generic wildcard event is never encoded and fails loud on decode).
+
+## The full Signature — modelled end to end (Phase 3, part B)
+
+With `SignedInfo` in place, the enclosing `SignatureType` (`SignedInfo`, `SignatureValue`, then the
+optional `KeyInfo` and repeating `Object`) and `SignatureValueType` are whitelisted too, so the
+header's `ds:Signature` is a *real* optional element rather than an opaque placeholder. `KeyInfo` and
+`Object` stay opaque and encode-absent — `Object`'s `maxOccurs="unbounded"` is modelled as an opaque
+optional single, which is byte-identical while absent (its first-occurrence SE is one production of
+`SignatureType` state 124; the repeat only matters once present, which ISO 15118-2 never does). A
+present `KeyInfo`/`Object` fails loud.
+
+A complete signed `AuthorizationReq` (header `SignedInfo` + 64-byte `SignatureValue`) is **byte-exact
+against cbV2G** (`AuthorizationReq_Signed` vector) and round-trips. The signing itself
+(`V2GSignature`, ECDSA-P256 over the SignedInfo fragment, `r‖s` SignatureValue) sits on top; an
+end-to-end test signs, encodes, decodes and verifies against a generated key.
+
+9. **simpleContent with an *optional* attribute is an optional run, not a fixed prefix.** A required
+   attribute is written unconditionally (a 1-bit AT), but an optional `Id` (as on `SignatureValueType`)
+   joins the content grammar as the leading optional of a run whose terminator is the CONTENT value —
+   `SignatureValueType` state 96 is `{Id, CONTENT}` (2 bits), state 97 `{CONTENT}` (1 bit), then a
+   separate 1-bit EE. The CONTENT value is written bare (its event code doubles as the value marker; no
+   value-start / child EE). The earlier simpleContent path only handled required/no attributes and
+   mis-built the record constructor for the optional case — fixed with a dedicated emitter.

@@ -84,4 +84,41 @@ public class V2GSignatureTests
         var b = V2GSignature.SignedInfoFragment(V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue));
         Assert.That(a, Is.EqualTo(b), "identical SignedInfo content must yield identical fragment octets");
     }
+
+    [Test]
+    public void EndToEnd_SignEncodeDecodeVerify()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
+        // 1. Sign the AuthorizationReq body (digest its fragment, sign the SignedInfo).
+        var body = new AuthorizationReqType(Id: "ID1",
+            GenChallenge: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+        var fragBuf = new byte[512];
+        Assert.That(Iso2Codec.EncodeFragment_AuthorizationReq(body, fragBuf, out int fn), Is.True);
+        var bodyFragment = fragBuf.AsSpan(0, fn).ToArray();
+
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", V2GSignature.Digest(bodyFragment));
+        var signatureValue = V2GSignature.Sign(signedInfo, key);
+
+        // 2. Assemble the signed V2G_Message and encode it.
+        var message = new V2G_Message(
+            new MessageHeaderType(SessionID: new byte[8], Notification: null,
+                                  Signature: V2GSignature.BuildSignature(signedInfo, signatureValue)),
+            new BodyType(body));
+        var buf = new byte[1024];
+        Assert.That(message.TryEncode(buf, out int n), Is.True);
+
+        // 3. Decode it and verify the signature end to end.
+        var decoded = (V2G_Message)Iso2Codec.DecodeAny(buf.AsSpan(0, n), out _);
+        var sig = decoded.Header.Signature;
+        Assert.That(sig, Is.Not.Null);
+
+        Assert.That(V2GSignature.Verify(sig!.SignedInfo, sig.SignatureValue.Value, key), Is.True,
+            "ECDSA over the decoded SignedInfo must verify");
+
+        // The decoded body re-encodes to the same fragment, and its digest matches the reference.
+        Assert.That(Iso2Codec.EncodeFragment_AuthorizationReq((AuthorizationReqType)decoded.Body.BodyElement!, fragBuf, out int fn2), Is.True);
+        Assert.That(V2GSignature.VerifyReference(sig.SignedInfo.Reference[0], fragBuf.AsSpan(0, fn2)), Is.True,
+            "the reference digest must match the signed element");
+    }
 }

@@ -374,9 +374,10 @@ public class GeneratorGrammarTests
     private const string DsigSchema = """
         <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                 targetNamespace="http://www.w3.org/2000/09/xmldsig#" elementFormDefault="qualified">
-          <!-- Opaque signature subtree: xs:any / refs, never modelled. -->
-          <element name="Signature" type="ds:SignatureType"/>
-          <complexType name="SignatureType">
+          <!-- Opaque signature subtree: xs:any / refs, never modelled. KeyInfo (unlike the now
+               modelled SignedInfo subtree) stays opaque. -->
+          <element name="KeyInfo" type="ds:KeyInfoType"/>
+          <complexType name="KeyInfoType">
             <sequence><any processContents="lax"/></sequence>
             <attribute name="Id" type="ID"/>
           </complexType>
@@ -401,7 +402,7 @@ public class GeneratorGrammarTests
             <xs:sequence>
               <xs:element name="SessionID" type="xs:hexBinary"/>
               <xs:element name="Note" type="xs:unsignedInt" minOccurs="0"/>
-              <xs:element ref="ds:Signature" minOccurs="0"/>
+              <xs:element ref="ds:KeyInfo" minOccurs="0"/>
               <xs:element name="CertId" type="ds:X509IssuerSerialType" minOccurs="0"/>
             </xs:sequence>
           </xs:complexType>
@@ -415,10 +416,10 @@ public class GeneratorGrammarTests
         Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
         var src = r.GeneratedSource;
 
-        // The opaque Signature element becomes an empty placeholder record and a nullable field;
+        // The opaque KeyInfo element becomes an empty placeholder record and a nullable field;
         // encoding/decoding a present instance fails loud (deferred to Phase 3).
-        Assert.That(src, Does.Contain("public sealed record Signature();"));
-        Assert.That(src, Does.Contain("Signature? Signature"));
+        Assert.That(src, Does.Contain("public sealed record KeyInfo();"));
+        Assert.That(src, Does.Contain("KeyInfo? KeyInfo"));
         Assert.That(src, Does.Contain("(XMLDSig) is deferred to Phase 3"));
         // The self-contained data type from the opaque namespace IS modelled (unprefixed built-ins
         // resolved via the default XSD namespace: string -> string, integer -> long/EXI Integer).

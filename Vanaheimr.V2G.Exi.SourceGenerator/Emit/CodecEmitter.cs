@@ -373,6 +373,10 @@ internal sealed class CodecEmitter
             _sb.AppendLine("        }");
             EmitEncodeListTerminator("        ", "list", sp.ListMax);
         }
+        else if (sp.SimpleContent is not null && sp.Attributes is not null && sp.Attributes.Any(a => !a.Required))
+        {
+            EmitEncodeSimpleContentOptionalAttrs(sp);
+        }
         else if (sp.SimpleContent is not null)
         {
             EmitRequiredAttributePrefix(sp);   // no-op when there are no attributes
@@ -440,6 +444,119 @@ internal sealed class CodecEmitter
         var attr = sp.Attributes[0];
         _sb.AppendLine("        w.WriteBits(0, 1);   // AT(required attribute)");
         _sb.Append("        ExiPrimitives.WriteStringValue(ref w, msg.").Append(attr.FieldName).AppendLine("!);");
+    }
+
+    /// <summary>
+    /// simpleContent with optional attribute(s): a bare value (CONTENT) preceded by an optional-run of
+    /// AT productions. cbexigen's grammar (verified against SignatureValueType 96/97): state k holds
+    /// <c>{attr_k … attr_{n-1}, CONTENT}</c> at <c>ceil(log2(count+1))</c> bits; choosing CONTENT
+    /// writes its event code then the bare value (no value-start / child EE), and the element EE is a
+    /// separate 1-bit production.
+    /// </summary>
+    private void EmitEncodeSimpleContentOptionalAttrs(SequencePlan sp)
+    {
+        var oa = sp.Attributes!;   // all optional (the required/none cases take the simpler path)
+        foreach (var a in oa)
+            if (a.Required || a.Value is not ValueEncoding.StringValue)
+                throw new NotSupportedException(
+                    $"{sp.CSharpRecordName}: simpleContent supports only string-typed optional attributes.");
+        var valueChild = new ChildPlan("Value", sp.SimpleContentType!, false,
+                                       ChildShape.RequiredSingle, sp.SimpleContent!);
+        int n = oa.Count;
+        int id = _runCounter++;
+        string st = "_ost" + id, done = "_odone" + id;
+
+        _sb.Append("        int ").Append(st).AppendLine(" = 0;");
+        _sb.Append("        bool ").Append(done).AppendLine(" = false;");
+        _sb.Append("        while (!").Append(done).AppendLine(")");
+        _sb.AppendLine("        {");
+        _sb.Append("            switch (").Append(st).AppendLine(")");
+        _sb.AppendLine("            {");
+        for (int k = 0; k <= n; k++)
+        {
+            int width = BitsForChoices((n - k + 1) + 1);   // remaining optional attrs + CONTENT + phantom
+            _sb.Append("                case ").Append(k).AppendLine(":");
+            _sb.AppendLine("                {");
+            int code = 0;
+            bool first = true;
+            for (int i = k; i < n; i++, code++, first = false)
+            {
+                _sb.Append("                    ").Append(first ? "if" : "else if")
+                   .Append(" (msg.").Append(oa[i].FieldName).AppendLine(" is not null)");
+                _sb.AppendLine("                    {");
+                _sb.Append("                        w.WriteBits(").Append(code).Append(", ").Append(width)
+                   .Append(");   // AT(").Append(oa[i].FieldName).AppendLine(")");
+                _sb.Append("                        ExiPrimitives.WriteStringValue(ref w, msg.")
+                   .Append(oa[i].FieldName).AppendLine("!);");
+                _sb.Append("                        ").Append(st).Append(" = ").Append(i + 1).AppendLine(";");
+                _sb.AppendLine("                    }");
+            }
+            if (!first) _sb.AppendLine("                    else");
+            _sb.AppendLine("                    {");
+            _sb.Append("                        w.WriteBits(").Append(code).Append(", ").Append(width)
+               .AppendLine(");   // CONTENT");
+            EmitWriteValue(valueChild, "msg.Value", "                        ");
+            _sb.Append("                        ").Append(done).AppendLine(" = true;");
+            _sb.AppendLine("                    }");
+            _sb.AppendLine("                    break;");
+            _sb.AppendLine("                }");
+        }
+        _sb.AppendLine("            }");
+        _sb.AppendLine("        }");
+        _sb.AppendLine("        w.WriteBits(0, 1);   // element EE");
+    }
+
+    /// <summary>Decode counterpart of <see cref="EmitEncodeSimpleContentOptionalAttrs"/>.</summary>
+    private void EmitDecodeSimpleContentOptionalAttrs(SequencePlan sp)
+    {
+        var oa = sp.Attributes!;
+        var valueChild = new ChildPlan("Value", sp.SimpleContentType!, false,
+                                       ChildShape.RequiredSingle, sp.SimpleContent!);
+        int n = oa.Count;
+        int id = _runCounter++;
+        string st = "_ist" + id, done = "_idone" + id, code = "_ic" + id;
+
+        foreach (var a in oa)
+            _sb.Append("        ").Append(a.CSharpType).Append("? _").Append(a.FieldName).AppendLine(" = default;");
+        _sb.Append("        ").Append(sp.SimpleContentType).Append(" _Value = default!;");
+        _sb.AppendLine();
+        _sb.Append("        int ").Append(st).AppendLine(" = 0;");
+        _sb.Append("        bool ").Append(done).AppendLine(" = false;");
+        _sb.Append("        while (!").Append(done).AppendLine(")");
+        _sb.AppendLine("        {");
+        _sb.Append("            switch (").Append(st).AppendLine(")");
+        _sb.AppendLine("            {");
+        for (int k = 0; k <= n; k++)
+        {
+            int width = BitsForChoices((n - k + 1) + 1);
+            _sb.Append("                case ").Append(k).AppendLine(":");
+            _sb.AppendLine("                {");
+            _sb.Append("                    uint ").Append(code).Append(" = r.ReadBits(").Append(width).AppendLine(");");
+            _sb.Append("                    switch (").Append(code).AppendLine(")");
+            _sb.AppendLine("                    {");
+            for (int i = k; i < n; i++)
+            {
+                _sb.Append("                        case ").Append(i - k).AppendLine("u:");
+                _sb.Append("                            _").Append(oa[i].FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+                _sb.Append("                            ").Append(st).Append(" = ").Append(i + 1).AppendLine(";");
+                _sb.AppendLine("                            break;");
+            }
+            _sb.Append("                        case ").Append(n - k).AppendLine("u:");
+            _sb.Append("                            _Value = ");
+            AppendReadValueExpr(valueChild);
+            _sb.AppendLine(";");
+            _sb.Append("                            ").Append(done).AppendLine(" = true; break;");
+            _sb.AppendLine("                        default: throw new InvalidDataException(\"invalid simpleContent event code\");");
+            _sb.AppendLine("                    }");
+            _sb.AppendLine("                    break;");
+            _sb.AppendLine("                }");
+        }
+        _sb.AppendLine("            }");
+        _sb.AppendLine("        }");
+        _sb.AppendLine("        r.ReadBits(1);   // element EE");
+        var locals = oa.Select(a => "_" + a.FieldName).Append("_Value");
+        _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+           .Append(string.Join(", ", locals)).AppendLine(");");
     }
 
     /// <summary>Emit a complex type's content (an xs:choice or an xs:sequence) plus its element EE.</summary>
@@ -951,6 +1068,10 @@ internal sealed class CodecEmitter
             _sb.AppendLine("            list.Add(next);");
             _sb.AppendLine("        }");
             _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
+        }
+        else if (sp.SimpleContent is not null && sp.Attributes is not null && sp.Attributes.Any(a => !a.Required))
+        {
+            EmitDecodeSimpleContentOptionalAttrs(sp);
         }
         else if (sp.SimpleContent is not null)
         {

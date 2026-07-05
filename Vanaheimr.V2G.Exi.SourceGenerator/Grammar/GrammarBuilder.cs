@@ -298,6 +298,23 @@ internal static class GrammarBuilder
         var children = new List<ChildPlan>();
         foreach (var el in particles)
         {
+            // A repeating reference into an opaque namespace (SignatureType's Object): always absent
+            // in ISO 15118-2, so it is modelled as an opaque optional single. While absent this is
+            // byte-identical — its first-occurrence SE is one production of the enclosing state; the
+            // repeat only matters once present, which never happens. A present instance fails loud.
+            if (el.MaxOccurs > 1 && el.Ref is not null && schema.OpaqueElementNames.Contains(el.Ref))
+            {
+                var opaqueType = PascalCase(el.Ref);
+                opaqueTypes.Add(opaqueType);
+                children.Add(new ChildPlan(
+                    FieldName       : PascalCase(el.Ref),
+                    CSharpType      : opaqueType,
+                    IsCSharpNullable: false,
+                    Shape           : ChildShape.OptionalSingle,
+                    Value           : new ValueEncoding.OpaqueElement(opaqueType)));
+                continue;
+            }
+
             // A repeating element (maxOccurs > 1) among other children: supported when it is the
             // last particle (cbexigen encodes it as a list after the preceding children).
             if (el.MaxOccurs > 1)

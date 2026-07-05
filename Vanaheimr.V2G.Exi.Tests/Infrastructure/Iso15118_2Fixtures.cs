@@ -1,3 +1,6 @@
+using System.Linq;
+
+using Vanaheimr.V2G.Iso15118_2;
 using Vanaheimr.V2G.Iso15118_2.Generated;
 
 namespace Vanaheimr.V2G.Exi.Tests.Infrastructure;
@@ -12,6 +15,19 @@ public static class Iso15118_2Fixtures
 {
     private static MessageHeaderType Header() =>
         new(SessionID: new byte[8], Notification: null, Signature: null);
+
+    private static byte[] Ramp(int n) => Enumerable.Range(1, n).Select(i => (byte)i).ToArray();
+
+    /// <summary>A header carrying a full signature: SignedInfo over a 32-byte digest plus a 64-byte
+    /// (r‖s) SignatureValue, KeyInfo/Object absent — the ISO 15118-2 signed-message shape.</summary>
+    private static MessageHeaderType SignedHeader() =>
+        new(SessionID: new byte[8], Notification: null,
+            Signature: new SignatureType(
+                Id: null,
+                SignedInfo: V2GSignature.BuildSignedInfo("ID1", Ramp(32)),
+                SignatureValue: new SignatureValueType(Id: null, Value: Ramp(64)),
+                KeyInfo: null,
+                Object: null));
 
     public static readonly IReadOnlyDictionary<string, V2G_Message> ByName = new Dictionary<string, V2G_Message>
     {
@@ -38,6 +54,9 @@ public static class Iso15118_2Fixtures
                     ServiceScope: null, FreeService: true,
                     new SupportedEnergyTransferModeType(new[] { EnergyTransferMode.AC_single_phase_core, EnergyTransferMode.AC_three_phase_core })),
                 ServiceList: null))),
+
+        ["AuthorizationReq_Signed"] = new V2G_Message(SignedHeader(),
+            new BodyType(new AuthorizationReqType(Id: null, GenChallenge: Ramp(16)))),
 
         ["SessionStopReq"] = new V2G_Message(Header(),
             new BodyType(new SessionStopReqType(ChargingSession.Terminate))),

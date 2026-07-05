@@ -138,12 +138,14 @@ internal static class XsdReader
     /// concretely; everything else in the dsig namespace stays opaque.</summary>
     private static readonly HashSet<string> DsigSignedInfoElements = new()
     {
+        "Signature", "SignatureValue",
         "SignedInfo", "CanonicalizationMethod", "SignatureMethod", "Reference",
         "Transforms", "Transform", "DigestMethod", "DigestValue",
     };
 
     private static readonly HashSet<string> DsigSignedInfoTypes = new()
     {
+        "SignatureType", "SignatureValueType",
         "SignedInfoType", "CanonicalizationMethodType", "SignatureMethodType", "ReferenceType",
         "TransformsType", "TransformType", "DigestMethodType", "DigestValueType", "HMACOutputLengthType",
     };

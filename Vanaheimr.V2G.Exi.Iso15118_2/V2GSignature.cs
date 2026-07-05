@@ -53,6 +53,15 @@ public static class V2GSignature
                     DigestValue: digest),
             });
 
+    /// <summary>Assembles the header <see cref="SignatureType"/> from a signed <c>SignedInfo</c> and
+    /// its raw <c>r‖s</c> <c>SignatureValue</c> (KeyInfo/Object absent, as ISO 15118-2 uses).</summary>
+    public static SignatureType BuildSignature(SignedInfoType signedInfo, byte[] signatureValue) =>
+        new(Id: null,
+            SignedInfo: signedInfo,
+            SignatureValue: new SignatureValueType(Id: null, Value: signatureValue),
+            KeyInfo: null,
+            Object: null);
+
     /// <summary>Encodes a <see cref="SignedInfoType"/> as its EXI fragment — the exact octets that are
     /// SHA-256'd and signed (or verified).</summary>
     public static byte[] SignedInfoFragment(SignedInfoType signedInfo)

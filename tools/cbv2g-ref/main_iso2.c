@@ -64,6 +64,33 @@ static void set_ac_evsestatus(struct iso2_AC_EVSEStatusType* s) {
     s->EVSENotification     = iso2_EVSENotificationType_None;
     s->RCD                  = 0;
 }
+/* A fixed SignedInfo (EXI-C14N, ECDSA-SHA256, one Reference URI="#ID1" over a 32-byte digest),
+ * mirroring the C# V2GSignature fixtures. */
+static void set_test_signedinfo(struct iso2_SignedInfoType* s) {
+    s->Id_isUsed = 0u;
+    set_str(s->CanonicalizationMethod.Algorithm.characters,
+            &s->CanonicalizationMethod.Algorithm.charactersLen,
+            "http://www.w3.org/TR/canonical-exi/");
+    s->CanonicalizationMethod.ANY_isUsed = 0u;
+    set_str(s->SignatureMethod.Algorithm.characters,
+            &s->SignatureMethod.Algorithm.charactersLen,
+            "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256");
+    s->SignatureMethod.HMACOutputLength_isUsed = 0u;
+    s->SignatureMethod.ANY_isUsed             = 0u;
+    s->Reference.arrayLen = 1;
+    struct iso2_ReferenceType* ref = &s->Reference.array[0];
+    ref->Id_isUsed   = 0u;
+    ref->Type_isUsed = 0u;
+    set_str(ref->URI.characters, &ref->URI.charactersLen, "#ID1");
+    ref->URI_isUsed        = 1u;
+    ref->Transforms_isUsed = 0u;
+    set_str(ref->DigestMethod.Algorithm.characters,
+            &ref->DigestMethod.Algorithm.charactersLen,
+            "http://www.w3.org/2001/04/xmlenc#sha256");
+    ref->DigestMethod.ANY_isUsed = 0u;
+    for (int i = 0; i < 32; i++) ref->DigestValue.bytes[i] = (uint8_t)(i + 1);
+    ref->DigestValue.bytesLen = 32;
+}
 
 /* Encodes a signable element as a standalone EXI fragment (encode_iso2_exiFragment), matching the
  * generated EncodeFragment_<Element>. Content mirrors the body fixtures. */
@@ -110,30 +137,7 @@ static int do_fragment(const char* elem) {
 
     } else if (strcmp(elem, "SignedInfo") == 0) {
         frag.SignedInfo_isUsed = 1u;
-        struct iso2_SignedInfoType* s = &frag.SignedInfo;
-        s->Id_isUsed = 0u;
-        set_str(s->CanonicalizationMethod.Algorithm.characters,
-                &s->CanonicalizationMethod.Algorithm.charactersLen,
-                "http://www.w3.org/TR/canonical-exi/");
-        s->CanonicalizationMethod.ANY_isUsed = 0u;
-        set_str(s->SignatureMethod.Algorithm.characters,
-                &s->SignatureMethod.Algorithm.charactersLen,
-                "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256");
-        s->SignatureMethod.HMACOutputLength_isUsed = 0u;
-        s->SignatureMethod.ANY_isUsed             = 0u;
-        s->Reference.arrayLen = 1;
-        struct iso2_ReferenceType* ref = &s->Reference.array[0];
-        ref->Id_isUsed   = 0u;
-        ref->Type_isUsed = 0u;
-        set_str(ref->URI.characters, &ref->URI.charactersLen, "#ID1");
-        ref->URI_isUsed        = 1u;
-        ref->Transforms_isUsed = 0u;
-        set_str(ref->DigestMethod.Algorithm.characters,
-                &ref->DigestMethod.Algorithm.charactersLen,
-                "http://www.w3.org/2001/04/xmlenc#sha256");
-        ref->DigestMethod.ANY_isUsed = 0u;
-        for (int i = 0; i < 32; i++) ref->DigestValue.bytes[i] = (uint8_t)(i + 1);
-        ref->DigestValue.bytesLen = 32;
+        set_test_signedinfo(&frag.SignedInfo);
 
     } else {
         fprintf(stderr, "cbv2g-iso2: unknown fragment element '%s'\n", elem);
@@ -387,6 +391,24 @@ int main(int argc, char** argv) {
         r->EVSETimeStamp = 1600000000;
 
     } else if (strcmp(v, "AuthorizationReq") == 0) {
+        body->AuthorizationReq_isUsed = 1u;
+        body->AuthorizationReq.Id_isUsed = 0u;
+        for (int i = 0; i < 16; i++) body->AuthorizationReq.GenChallenge.bytes[i] = (uint8_t)(i + 1);
+        body->AuthorizationReq.GenChallenge.bytesLen  = 16;
+        body->AuthorizationReq.GenChallenge_isUsed    = 1u;
+
+    } else if (strcmp(v, "AuthorizationReq_Signed") == 0) {
+        // Full V2G_Message with a header signature: SignedInfo + a 64-byte (r‖s) SignatureValue,
+        // KeyInfo/Object absent. Exercises SignatureType grammar 121/123/124 (all absent) end to end.
+        struct iso2_MessageHeaderType* h = &doc.V2G_Message.Header;
+        h->Signature_isUsed = 1u;
+        h->Signature.Id_isUsed = 0u;
+        set_test_signedinfo(&h->Signature.SignedInfo);
+        h->Signature.SignatureValue.Id_isUsed = 0u;
+        for (int i = 0; i < 64; i++) h->Signature.SignatureValue.CONTENT.bytes[i] = (uint8_t)(i + 1);
+        h->Signature.SignatureValue.CONTENT.bytesLen = 64;
+        h->Signature.KeyInfo_isUsed = 0u;
+        h->Signature.Object_isUsed  = 0u;
         body->AuthorizationReq_isUsed = 1u;
         body->AuthorizationReq.Id_isUsed = 0u;
         for (int i = 0; i < 16; i++) body->AuthorizationReq.GenChallenge.bytes[i] = (uint8_t)(i + 1);
