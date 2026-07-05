@@ -247,8 +247,7 @@ internal static class XsdReader
                     $"complexType '{name}': only xs:extension is supported inside xs:complexContent.");
             var baseRef = ResolveTypeName(ext, Required(ext, "base"));
             var seq = ext.Element(Xs + "sequence");
-            var els = seq?.Elements(Xs + "element").Select(ParseElement).ToList()
-                      ?? new List<XsdElement>();
+            var els = seq is null ? new List<XsdElement>() : ParseParticles(seq);
             return new XsdComplexType(name, els, baseRef, isAbstract, ParseAttributes(ext));
         }
 
@@ -270,7 +269,7 @@ internal static class XsdReader
         var directChoice = ct.Element(Xs + "choice");
         if (directChoice is not null)
         {
-            var choiceEls = directChoice.Elements(Xs + "element").Select(ParseElement).ToList();
+            var choiceEls = ParseParticles(directChoice);
             return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract, attributes, choiceEls);
         }
 
@@ -286,8 +285,20 @@ internal static class XsdReader
                 $"complexType '{name}': only xs:sequence or xs:complexContent/xs:extension is supported.");
         }
 
-        var elements = directSeq.Elements(Xs + "element").Select(ParseElement).ToList();
+        var elements = ParseParticles(directSeq);
         return new XsdComplexType(name, elements, null, isAbstract, attributes);
+    }
+
+    /// <summary>Parses the <c>xs:element</c> children of a sequence/choice. An <c>xs:any</c> wildcard
+    /// is modelled as a single trailing optional <c>ANY</c> element of type <c>base64Binary</c> —
+    /// cbexigen's simplification of wildcard content (always absent for the ISO 15118 signature
+    /// subtree, which has no foreign content).</summary>
+    private static List<XsdElement> ParseParticles(XElement container)
+    {
+        var els = container.Elements(Xs + "element").Select(ParseElement).ToList();
+        if (container.Elements(Xs + "any").Any())
+            els.Add(new XsdElement("ANY", "xs:base64Binary", 0, 1, null));
+        return els;
     }
 
     private static IReadOnlyList<XsdAttribute>? ParseAttributes(XElement container)

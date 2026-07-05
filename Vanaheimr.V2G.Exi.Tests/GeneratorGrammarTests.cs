@@ -757,6 +757,35 @@ public class GeneratorGrammarTests
             r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
     }
 
+    // ---- construct #13: xs:any wildcard -> optional base64 ANY (XMLDSig subtree) ----
+
+    [Test]
+    public void XsAny_BecomesOptionalBase64AnyElement()
+    {
+        // CanonicalizationMethodType shape: a required Algorithm attribute over an xs:any wildcard.
+        // cbexigen models the wildcard as a single optional base64 "ANY" element; mixed is ignored.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:any" targetNamespace="urn:test:any">
+              <xs:element name="root" type="MethodType"/>
+              <xs:complexType name="MethodType" mixed="true">
+                <xs:sequence>
+                  <xs:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+                <xs:attribute name="Algorithm" type="xs:anyURI" use="required"/>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("any.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("string? Algorithm"));
+        Assert.That(src, Does.Contain("byte[]? ANY"));
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]
