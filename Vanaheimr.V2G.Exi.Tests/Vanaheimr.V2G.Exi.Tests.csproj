@@ -26,6 +26,8 @@
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.csproj" />
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.DC\Vanaheimr.V2G.Exi.Iso15118_20.DC.csproj" />
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.AC\Vanaheimr.V2G.Exi.Iso15118_20.AC.csproj" />
+    <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.WPT\Vanaheimr.V2G.Exi.Iso15118_20.WPT.csproj" />
+    <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.ACDP\Vanaheimr.V2G.Exi.Iso15118_20.ACDP.csproj" />
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Dispatch\Vanaheimr.V2G.Exi.Dispatch.csproj" />
     <!-- Referenced as a plain library (not an analyzer) so grammar tests can drive the
          generator directly on synthetic mini-XSDs. -->

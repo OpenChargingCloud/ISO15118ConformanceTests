@@ -21,6 +21,8 @@
 #include "cbv2g/iso_20/iso20_DC_Encoder.h"
 #include "cbv2g/iso_20/iso20_AC_Datatypes.h"
 #include "cbv2g/iso_20/iso20_AC_Encoder.h"
+#include "cbv2g/iso_20/iso20_WPT_Datatypes.h"
+#include "cbv2g/iso_20/iso20_WPT_Encoder.h"
 
 #define OUT_BUF_SIZE 4096
 
@@ -53,6 +55,12 @@ static void set_header_dc(struct iso20_dc_MessageHeaderType* h) {
 static void set_header_ac(struct iso20_ac_MessageHeaderType* h) {
     memset(h->SessionID.bytes, 0, iso20_ac_sessionIDType_BYTES_SIZE);
     h->SessionID.bytesLen = iso20_ac_sessionIDType_BYTES_SIZE;
+    h->TimeStamp = 1700000000ULL;
+    h->Signature_isUsed = 0u;
+}
+static void set_header_wpt(struct iso20_wpt_MessageHeaderType* h) {
+    memset(h->SessionID.bytes, 0, iso20_wpt_sessionIDType_BYTES_SIZE);
+    h->SessionID.bytesLen = iso20_wpt_sessionIDType_BYTES_SIZE;
     h->TimeStamp = 1700000000ULL;
     h->Signature_isUsed = 0u;
 }
@@ -1271,6 +1279,189 @@ static int do_fragment_ac(const char* elem) {
     return 0;
 }
 
+/* ---- WPT ------------------------------------------------------------------------------------
+ * Baseline coverage only: VendorSpecificDataContainer/ManufacturerSpecificDataContainer empty,
+ * WPT_LF_DataPackageList and LF_SystemSetupData absent. Those two fields touch grammar shapes this
+ * repo's generator had to design independently (no working cbV2G reference — see
+ * docs/xsd-inventory-15118-20.md) and are covered by self-consistency roundtrip tests instead. */
+
+static void set_rational_wpt(struct iso20_wpt_RationalNumberType* r, int8_t exponent, int16_t value) {
+    r->Exponent = exponent;
+    r->Value = value;
+}
+
+static int do_wpt(const char* v) {
+    struct iso20_wpt_exiDocument doc;
+    memset(&doc, 0, sizeof(doc));
+
+    if (strcmp(v, "WPT_FinePositioningSetupReq") == 0) {
+        doc.WPT_FinePositioningSetupReq_isUsed = 1u;
+        struct iso20_wpt_WPT_FinePositioningSetupReqType* q = &doc.WPT_FinePositioningSetupReq;
+        set_header_wpt(&q->Header);
+        q->EVProcessing = iso20_wpt_processingType_Finished;
+        q->EVDeviceFinePositioningMethodList.WPT_FinePositioningMethod.arrayLen = 1;
+        q->EVDeviceFinePositioningMethodList.WPT_FinePositioningMethod.array[0] = iso20_wpt_WPT_FinePositioningMethodType_Manual;
+        q->EVDevicePairingMethodList.WPT_PairingMethod.arrayLen = 1;
+        q->EVDevicePairingMethodList.WPT_PairingMethod.array[0] = iso20_wpt_WPT_PairingMethodType_LPE;
+        q->EVDeviceAlignmentCheckMethodList.WPT_AlignmentCheckMethod.arrayLen = 1;
+        q->EVDeviceAlignmentCheckMethodList.WPT_AlignmentCheckMethod.array[0] = iso20_wpt_WPT_AlignmentCheckMethodType_PowerCheck;
+        q->NaturalOffset = 0;
+        q->VendorSpecificDataContainer.arrayLen = 0;
+        q->LF_SystemSetupData_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_FinePositioningSetupRes") == 0) {
+        doc.WPT_FinePositioningSetupRes_isUsed = 1u;
+        struct iso20_wpt_WPT_FinePositioningSetupResType* r = &doc.WPT_FinePositioningSetupRes;
+        set_header_wpt(&r->Header);
+        r->ResponseCode = iso20_wpt_responseCodeType_OK;
+        r->PrimaryDeviceFinePositioningMethodList.WPT_FinePositioningMethod.arrayLen = 1;
+        r->PrimaryDeviceFinePositioningMethodList.WPT_FinePositioningMethod.array[0] = iso20_wpt_WPT_FinePositioningMethodType_Manual;
+        r->PrimaryDevicePairingMethodList.WPT_PairingMethod.arrayLen = 1;
+        r->PrimaryDevicePairingMethodList.WPT_PairingMethod.array[0] = iso20_wpt_WPT_PairingMethodType_LPE;
+        r->PrimaryDeviceAlignmentCheckMethodList.WPT_AlignmentCheckMethod.arrayLen = 1;
+        r->PrimaryDeviceAlignmentCheckMethodList.WPT_AlignmentCheckMethod.array[0] = iso20_wpt_WPT_AlignmentCheckMethodType_PowerCheck;
+        r->NaturalOffset = 0;
+        r->VendorSpecificDataContainer.arrayLen = 0;
+        r->LF_SystemSetupData_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_FinePositioningReq") == 0) {
+        doc.WPT_FinePositioningReq_isUsed = 1u;
+        struct iso20_wpt_WPT_FinePositioningReqType* q = &doc.WPT_FinePositioningReq;
+        set_header_wpt(&q->Header);
+        q->EVProcessing = iso20_wpt_processingType_Finished;
+        q->EVResultCode = iso20_wpt_WPT_EVResultType_EVResultSuccess;
+        q->VendorSpecificDataContainer.arrayLen = 0;
+        q->VendorSpecificDataContainer_isUsed = 0u;
+        q->WPT_LF_DataPackageList_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_FinePositioningRes") == 0) {
+        doc.WPT_FinePositioningRes_isUsed = 1u;
+        struct iso20_wpt_WPT_FinePositioningResType* r = &doc.WPT_FinePositioningRes;
+        set_header_wpt(&r->Header);
+        r->ResponseCode = iso20_wpt_responseCodeType_OK;
+        r->EVSEProcessing = iso20_wpt_processingType_Finished;
+        r->VendorSpecificDataContainer.arrayLen = 0;
+        r->VendorSpecificDataContainer_isUsed = 0u;
+        r->WPT_LF_DataPackageList_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_PairingReq") == 0) {
+        doc.WPT_PairingReq_isUsed = 1u;
+        struct iso20_wpt_WPT_PairingReqType* q = &doc.WPT_PairingReq;
+        set_header_wpt(&q->Header);
+        q->EVProcessing = iso20_wpt_processingType_Finished;
+        q->ObservedIDCode_isUsed = 0u;
+        q->EVResultCode = iso20_wpt_WPT_EVResultType_EVResultSuccess;
+        q->VendorSpecificDataContainer.arrayLen = 0;
+        q->VendorSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_PairingRes") == 0) {
+        doc.WPT_PairingRes_isUsed = 1u;
+        struct iso20_wpt_WPT_PairingResType* r = &doc.WPT_PairingRes;
+        set_header_wpt(&r->Header);
+        r->ResponseCode = iso20_wpt_responseCodeType_OK;
+        r->EVSEProcessing = iso20_wpt_processingType_Finished;
+        r->ObservedIDCode_isUsed = 0u;
+        r->AlternativeSECCList_isUsed = 0u;
+        r->VendorSpecificDataContainer.arrayLen = 0;
+        r->VendorSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_ChargeParameterDiscoveryReq") == 0) {
+        doc.WPT_ChargeParameterDiscoveryReq_isUsed = 1u;
+        struct iso20_wpt_WPT_ChargeParameterDiscoveryReqType* q = &doc.WPT_ChargeParameterDiscoveryReq;
+        set_header_wpt(&q->Header);
+        set_rational_wpt(&q->EVPCMaxReceivablePower, 0, 11000);
+        q->SDMaxGroundClearence = 300;
+        q->SDMinGroundClearence = 100;
+        set_rational_wpt(&q->EVPCNaturalFrequency, 0, 85);
+        q->EVPCDeviceLocalControl = 0;
+        q->VendorSpecificDataContainer.arrayLen = 0;
+        q->VendorSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_ChargeParameterDiscoveryRes") == 0) {
+        doc.WPT_ChargeParameterDiscoveryRes_isUsed = 1u;
+        struct iso20_wpt_WPT_ChargeParameterDiscoveryResType* r = &doc.WPT_ChargeParameterDiscoveryRes;
+        set_header_wpt(&r->Header);
+        r->ResponseCode = iso20_wpt_responseCodeType_OK;
+        r->PDInputPowerClass = iso20_wpt_WPT_PowerClassType_MF_WPT1;
+        set_rational_wpt(&r->SDMinOutputPower, 0, 100);
+        set_rational_wpt(&r->SDMaxOutputPower, 0, 11000);
+        r->SDMaxGroundClearanceSupport = 300;
+        r->SDMinGroundClearanceSupport = 100;
+        set_rational_wpt(&r->PDMinCoilCurrent, 0, 1);
+        set_rational_wpt(&r->PDMaxCoilCurrent, 0, 200);
+        r->SDManufacturerSpecificDataContainer.arrayLen = 0;
+        r->SDManufacturerSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_AlignmentCheckReq") == 0) {
+        doc.WPT_AlignmentCheckReq_isUsed = 1u;
+        struct iso20_wpt_WPT_AlignmentCheckReqType* q = &doc.WPT_AlignmentCheckReq;
+        set_header_wpt(&q->Header);
+        q->EVProcessing = iso20_wpt_processingType_Finished;
+        q->TargetCoilCurrent_isUsed = 0u;
+        q->EVResultCode = iso20_wpt_WPT_EVResultType_EVResultSuccess;
+        q->VendorSpecificDataContainer.arrayLen = 0;
+        q->VendorSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_AlignmentCheckRes") == 0) {
+        doc.WPT_AlignmentCheckRes_isUsed = 1u;
+        struct iso20_wpt_WPT_AlignmentCheckResType* r = &doc.WPT_AlignmentCheckRes;
+        set_header_wpt(&r->Header);
+        r->ResponseCode = iso20_wpt_responseCodeType_OK;
+        r->EVSEProcessing = iso20_wpt_processingType_Finished;
+        r->PowerTransmitted_isUsed = 0u;
+        r->SupplyDeviceCurrent_isUsed = 0u;
+        r->VendorSpecificDataContainer.arrayLen = 0;
+        r->VendorSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_ChargeLoopReq") == 0) {
+        doc.WPT_ChargeLoopReq_isUsed = 1u;
+        struct iso20_wpt_WPT_ChargeLoopReqType* q = &doc.WPT_ChargeLoopReq;
+        set_header_wpt(&q->Header);
+        q->DisplayParameters_isUsed = 0u;
+        q->MeterInfoRequested = 0;
+        set_rational_wpt(&q->EVPCPowerRequest, 0, 3700);
+        set_rational_wpt(&q->EVPCPowerOutput, 0, 3700);
+        q->EVPCChargeDiagnostics = iso20_wpt_WPT_EVPCChargeDiagnosticsType_EVPCNoIssue;
+        q->EVPCOperatingFrequency_isUsed = 0u;
+        q->EVPCPowerControlParameter_isUsed = 0u;
+        q->ManufacturerSpecificDataContainer.arrayLen = 0;
+        q->ManufacturerSpecificDataContainer_isUsed = 0u;
+
+    } else if (strcmp(v, "WPT_ChargeLoopRes") == 0) {
+        doc.WPT_ChargeLoopRes_isUsed = 1u;
+        struct iso20_wpt_WPT_ChargeLoopResType* r = &doc.WPT_ChargeLoopRes;
+        set_header_wpt(&r->Header);
+        r->ResponseCode = iso20_wpt_responseCodeType_OK;
+        r->EVSEStatus_isUsed = 0u;
+        r->MeterInfo_isUsed = 0u;
+        r->Receipt_isUsed = 0u;
+        set_rational_wpt(&r->EVPCPowerRequest, 0, 3700);
+        r->SDPowerInput_isUsed = 0u;
+        set_rational_wpt(&r->SPCMaxOutputPowerLimit, 0, 3700);
+        set_rational_wpt(&r->SPCMinOutputPowerLimit, 0, 0);
+        r->SPCChargeDiagnostics = iso20_wpt_WPT_SPCChargeDiagnosticsType_SPCNoIssue;
+        r->SPCOperatingFrequency_isUsed = 0u;
+        r->SPCPowerControlParameter_isUsed = 0u;
+        r->ManufacturerSpecificDataContainer.arrayLen = 0;
+        r->ManufacturerSpecificDataContainer_isUsed = 0u;
+
+    } else {
+        fprintf(stderr, "cbv2g-iso20: unknown WPT vector '%s'\n", v);
+        return 1;
+    }
+
+    uint8_t out[OUT_BUF_SIZE];
+    exi_bitstream_t stream;
+    exi_bitstream_init(&stream, out, sizeof(out), 0, NULL);
+    int error = encode_iso20_wpt_exiDocument(&stream, &doc);
+    if (error != 0) {
+        fprintf(stderr, "cbv2g-iso20: WPT encode failed with error %d\n", error);
+        return 3;
+    }
+    print_hex(out, exi_bitstream_get_length(&stream));
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <Set>_<vector>  (Set: Common, DC, AC)\n", argv[0]);
@@ -1287,7 +1478,8 @@ int main(int argc, char** argv) {
     if (strncmp(arg, "Common_", 7) == 0) return do_common(arg + 7);
     if (strncmp(arg, "DC_", 3) == 0)     return do_dc(arg);       /* DC vector names already start with DC_ */
     if (strncmp(arg, "AC_", 3) == 0)     return do_ac(arg);       /* AC vector names already start with AC_ */
+    if (strncmp(arg, "WPT_", 4) == 0)    return do_wpt(arg);      /* WPT vector names already start with WPT_ */
 
-    fprintf(stderr, "cbv2g-iso20: vector name must be prefixed Common_/DC_/AC_\n");
+    fprintf(stderr, "cbv2g-iso20: vector name must be prefixed Common_/DC_/AC_/WPT_\n");
     return 1;
 }
