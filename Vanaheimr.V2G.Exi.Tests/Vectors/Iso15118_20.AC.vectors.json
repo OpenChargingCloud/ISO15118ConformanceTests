@@ -11,6 +11,18 @@
     {
       "name": "AC_ChargeParameterDiscoveryReq",
       "expectedHex": "80 10 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 08 00 f8 55 22 00 19 08"
+    },
+    {
+      "name": "AC_ChargeParameterDiscoveryRes",
+      "expectedHex": "80 14 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 04 00 78 55 80 91 00 0c 84 40 01 91 40"
+    },
+    {
+      "name": "AC_ChargeLoopReq",
+      "expectedHex": "80 08 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 89 24 00 50 0f 94"
+    },
+    {
+      "name": "AC_ChargeLoopRes",
+      "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 89 00"
     }
   ]
 }

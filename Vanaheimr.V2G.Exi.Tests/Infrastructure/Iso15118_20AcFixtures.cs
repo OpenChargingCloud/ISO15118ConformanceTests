@@ -28,6 +28,47 @@ public static class Iso15118_20AcFixtures
                             EVMinimumChargePower_L3: null))
                     .TryEncode(dest, out bytesWritten);
 
+            case "AC_ChargeParameterDiscoveryRes":
+                return new AC_ChargeParameterDiscoveryRes(
+                        Header(), ResponseCode.OK,
+                        new AC_CPDResEnergyTransferModeType(
+                            EVSEMaximumChargePower: Rational(0, 22000),
+                            EVSEMaximumChargePower_L2: null,
+                            EVSEMaximumChargePower_L3: null,
+                            EVSEMinimumChargePower: Rational(0, 100),
+                            EVSEMinimumChargePower_L2: null,
+                            EVSEMinimumChargePower_L3: null,
+                            EVSENominalFrequency: Rational(0, 50),
+                            MaximumPowerAsymmetry: null,
+                            EVSEPowerRampLimitation: null,
+                            EVSEPresentActivePower: null,
+                            EVSEPresentActivePower_L2: null,
+                            EVSEPresentActivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopReq":
+                // Exercises the transitive substitution's concrete, non-BPT member
+                // (Scheduled_AC_CLReqControlMode) for the CLReqControlMode field.
+                return new AC_ChargeLoopReq(
+                        Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        new Scheduled_AC_CLReqControlModeType(
+                            EVTargetEnergyRequest: null, EVMaximumEnergyRequest: null, EVMinimumEnergyRequest: null,
+                            EVMaximumChargePower: null, EVMaximumChargePower_L2: null, EVMaximumChargePower_L3: null,
+                            EVMinimumChargePower: null, EVMinimumChargePower_L2: null, EVMinimumChargePower_L3: null,
+                            EVPresentActivePower: Rational(0, 4000), EVPresentActivePower_L2: null, EVPresentActivePower_L3: null,
+                            EVPresentReactivePower: null, EVPresentReactivePower_L2: null, EVPresentReactivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopRes":
+                return new AC_ChargeLoopRes(
+                        Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
+                        new Scheduled_AC_CLResControlModeType(
+                            EVSETargetActivePower: null, EVSETargetActivePower_L2: null, EVSETargetActivePower_L3: null,
+                            EVSETargetReactivePower: null, EVSETargetReactivePower_L2: null, EVSETargetReactivePower_L3: null,
+                            EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
             default:
                 throw new ArgumentException($"no AC fixture for vector '{vectorName}'");
         }

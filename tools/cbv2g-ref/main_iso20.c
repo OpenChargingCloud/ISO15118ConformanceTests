@@ -433,6 +433,80 @@ static int do_ac(const char* v) {
         m->EVMinimumChargePower_L2_isUsed = 0u;
         m->EVMinimumChargePower_L3_isUsed = 0u;
 
+    } else if (strcmp(v, "AC_ChargeParameterDiscoveryRes") == 0) {
+        doc.AC_ChargeParameterDiscoveryRes_isUsed = 1u;
+        struct iso20_ac_AC_ChargeParameterDiscoveryResType* r = &doc.AC_ChargeParameterDiscoveryRes;
+        set_header_ac(&r->Header);
+        r->ResponseCode = iso20_ac_responseCodeType_OK;
+        r->AC_CPDResEnergyTransferMode_isUsed     = 1u;
+        r->BPT_AC_CPDResEnergyTransferMode_isUsed = 0u;
+        struct iso20_ac_AC_CPDResEnergyTransferModeType* m = &r->AC_CPDResEnergyTransferMode;
+        set_rational(&m->EVSEMaximumChargePower, 0, 22000);
+        m->EVSEMaximumChargePower_L2_isUsed = 0u;
+        m->EVSEMaximumChargePower_L3_isUsed = 0u;
+        set_rational(&m->EVSEMinimumChargePower, 0, 100);
+        m->EVSEMinimumChargePower_L2_isUsed = 0u;
+        m->EVSEMinimumChargePower_L3_isUsed = 0u;
+        set_rational(&m->EVSENominalFrequency, 0, 50);
+        m->MaximumPowerAsymmetry_isUsed    = 0u;
+        m->EVSEPowerRampLimitation_isUsed  = 0u;
+        m->EVSEPresentActivePower_isUsed    = 0u;
+        m->EVSEPresentActivePower_L2_isUsed = 0u;
+        m->EVSEPresentActivePower_L3_isUsed = 0u;
+
+    } else if (strcmp(v, "AC_ChargeLoopReq") == 0) {
+        doc.AC_ChargeLoopReq_isUsed = 1u;
+        struct iso20_ac_AC_ChargeLoopReqType* q = &doc.AC_ChargeLoopReq;
+        set_header_ac(&q->Header);
+        q->DisplayParameters_isUsed = 0u;
+        q->MeterInfoRequested       = 0;
+        q->BPT_Dynamic_AC_CLReqControlMode_isUsed   = 0u;
+        q->BPT_Scheduled_AC_CLReqControlMode_isUsed = 0u;
+        q->CLReqControlMode_isUsed                  = 0u;
+        q->Dynamic_AC_CLReqControlMode_isUsed        = 0u;
+        q->Scheduled_AC_CLReqControlMode_isUsed      = 1u;
+        struct iso20_ac_Scheduled_AC_CLReqControlModeType* m = &q->Scheduled_AC_CLReqControlMode;
+        m->EVTargetEnergyRequest_isUsed  = 0u;
+        m->EVMaximumEnergyRequest_isUsed = 0u;
+        m->EVMinimumEnergyRequest_isUsed = 0u;
+        m->EVMaximumChargePower_isUsed    = 0u;
+        m->EVMaximumChargePower_L2_isUsed = 0u;
+        m->EVMaximumChargePower_L3_isUsed = 0u;
+        m->EVMinimumChargePower_isUsed    = 0u;
+        m->EVMinimumChargePower_L2_isUsed = 0u;
+        m->EVMinimumChargePower_L3_isUsed = 0u;
+        set_rational(&m->EVPresentActivePower, 0, 4000);
+        m->EVPresentActivePower_L2_isUsed = 0u;
+        m->EVPresentActivePower_L3_isUsed = 0u;
+        m->EVPresentReactivePower_isUsed    = 0u;
+        m->EVPresentReactivePower_L2_isUsed = 0u;
+        m->EVPresentReactivePower_L3_isUsed = 0u;
+
+    } else if (strcmp(v, "AC_ChargeLoopRes") == 0) {
+        doc.AC_ChargeLoopRes_isUsed = 1u;
+        struct iso20_ac_AC_ChargeLoopResType* r = &doc.AC_ChargeLoopRes;
+        set_header_ac(&r->Header);
+        r->ResponseCode = iso20_ac_responseCodeType_OK;
+        r->EVSEStatus_isUsed = 0u;
+        r->MeterInfo_isUsed  = 0u;
+        r->Receipt_isUsed    = 0u;
+        r->EVSETargetFrequency_isUsed = 0u;
+        r->BPT_Dynamic_AC_CLResControlMode_isUsed   = 0u;
+        r->BPT_Scheduled_AC_CLResControlMode_isUsed = 0u;
+        r->CLResControlMode_isUsed                  = 0u;
+        r->Dynamic_AC_CLResControlMode_isUsed        = 0u;
+        r->Scheduled_AC_CLResControlMode_isUsed      = 1u;
+        struct iso20_ac_Scheduled_AC_CLResControlModeType* m = &r->Scheduled_AC_CLResControlMode;
+        m->EVSETargetActivePower_isUsed      = 0u;
+        m->EVSETargetActivePower_L2_isUsed   = 0u;
+        m->EVSETargetActivePower_L3_isUsed   = 0u;
+        m->EVSETargetReactivePower_isUsed    = 0u;
+        m->EVSETargetReactivePower_L2_isUsed = 0u;
+        m->EVSETargetReactivePower_L3_isUsed = 0u;
+        m->EVSEPresentActivePower_isUsed     = 0u;
+        m->EVSEPresentActivePower_L2_isUsed  = 0u;
+        m->EVSEPresentActivePower_L3_isUsed  = 0u;
+
     } else {
         fprintf(stderr, "cbv2g-iso20: unknown AC vector '%s'\n", v);
         return 1;
