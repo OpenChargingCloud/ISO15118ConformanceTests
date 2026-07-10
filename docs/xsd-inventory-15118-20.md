@@ -92,21 +92,47 @@ kein complexType!) — Reihenfolge der Event-Codes ist **Dokumentreihenfolge**, 
 alphabetisch (bestätigt: SECP521=0, X448=1, TPM=2 in Schema-Reihenfolge; alphabetisch wäre
 SECP521, TPM, X448 — differiert, damit disambiguiert).
 
-**Generatorkonsequenz:** Ein neuer `ValueEncoding`-Fall `InlineChoice` (Liste von
-`(ElementName, CSharpType, ValueEncoding, IsNullableValueType)`-Mitgliedern, ohne abstrakten
-Kopf) statt Wiederverwendung von `SubstitutionChoice` (das ein polymorphes Einzelfeld
-voraussetzt). Jedes Mitglied wird zu einem **eigenen** nullable Feld im Record (nicht das
-Wrapper-`ChildPlan` selbst); Inhalt pro Mitglied über `EmitEncodeContent`/`EmitWriteValue`
-(deckt simple UND complex Branches einheitlich ab, wie bereits für Wurzel-`xs:choice`
-(`ParameterType`) etabliert). `ProductionCount` zählt `Members.Count`; die
-Optional-Run-Maschine (`EmitEncodeOptionalRun`/`EmitDecodeOptionalRun`) benötigt keine
-Änderung — sie behandelt eine mehrgliedrige Produktion pro `ChildPlan` bereits generisch
-(vgl. `ChildPlan.IsWildcardAny` aus Phase 3, das dasselbe Prinzip nutzt).
-Feld-/Typnamen werden per **längstem gemeinsamen Wort-Suffix** der Branch-Elementnamen
-synthetisiert (z. B. `EIM_ASResAuthorizationMode`/`PnC_ASResAuthorizationMode` →
-`ASResAuthorizationMode`; `AbsolutePriceSchedule`/`PriceLevelSchedule` → `Schedule`… siehe
-Implementierung); kein gemeinsamer Suffix gefunden → Build-Diagnostic (fail loud), keine
-Rateheuristik.
+**Generatorkonsequenz (umgesetzt):** Ein neuer `ValueEncoding`-Fall `InlineChoice` (Liste von
+`InlineChoiceMember(ElementName, FieldName, CSharpType, ValueEncoding, IsCSharpNullable)`,
+ohne abstrakten Kopf) statt Wiederverwendung von `SubstitutionChoice` (das ein polymorphes
+Einzelfeld voraussetzt). Jedes Mitglied wird zu einem **eigenen** nullable Feld im Record —
+mit seinem **eigenen natürlichen** `PascalCase(ElementName)`-Feldnamen (z. B. bleibt
+`EIM_ASResAuthorizationMode` als Feldname exakt so erhalten); eine Synthese eines gemeinsamen
+Namens ist **nicht** nötig, da (anders als bei Substitutionsgruppen) kein gemeinsamer
+C#-Basistyp existieren muss. Der Wrapper-`ChildPlan` selbst trägt nur einen internen
+Platzhalter-Feldnamen (nie dereferenziert). Inhalt pro Mitglied über
+`EmitEncodeContent`/`EmitWriteValue` (deckt simple UND complex Branches einheitlich ab, wie
+bereits für Wurzel-`xs:choice` (`ParameterType`) etabliert). `ProductionCount` zählt
+`Members.Count`; die Optional-Run-Maschine (`EmitEncodeOptionalRun`/`EmitDecodeOptionalRun`)
+benötigt keine Änderung — sie behandelt eine mehrgliedrige Produktion pro `ChildPlan` bereits
+generisch (vgl. `ChildPlan.IsWildcardAny` aus Phase 3, das dasselbe Prinzip nutzt). Eine
+Choice muss nicht das letzte Sequenz-Partikel sein (`EVPowerProfileType` hat eine gefolgt von
+einer weiteren Pflichtliste) — `ParseParticles` fügt den Choice-Marker an seiner echten
+Dokumentposition ein (`ElementsBeforeSelf`-Zählung), nicht pauschal ans Ende.
+
+## Neues Konstrukt #1b: eine erforderliche Bounded-Repeating-Liste, nicht das letzte Partikel
+
+`AuthorizationSetupResType.AuthorizationServices` (`maxOccurs="2"`, erforderlich) wird **nicht**
+zuletzt referenziert — danach folgen `CertificateInstallationService` und die EIM/PnC-Choice.
+cbV2Gs Grammatik faltet **nur das unmittelbar folgende Partikel** in die "weiter vs. weiter mit
+nächstem"-Ereigniscodes der Liste (state 270: `{continue=0, CertificateInstallationService=1}`,
+2 Bit; state 271, Liste am Maximum: `{CertificateInstallationService=0}`, 1 Bit,
+bedingungslos) — alles danach (hier die Choice) wird unabhängig weiterverarbeitet.
+`EmitEncodeRequiredRepeatingWithTail`/`EmitDecodeRequiredRepeatingWithTail` bilden das nach;
+nur `maxOccurs=2` (bounded-unroll) ist unterstützt, `maxOccurs≥3` mit Tail ist eine
+dokumentierte Lücke (kein Vorkommen in CommonMessages/AC/DC). **Fallstrick gefunden:** das
+Tail-Partikel kann ein **required, nicht-nullable** Feld sein (z. B. `bool`) — ein
+Presence-Check `is not null` kompiliert für einen solchen Werttyp nicht; das Tail wird daher
+bedingungslos geschrieben, sofern es kein Choice/Substitutions-Mitglied ist.
+
+## Weiterer Fallstrick: `abstract` auf dem TYP, nicht auf dem Element
+
+`v2gci_ct:CLReqControlMode`/`CLResControlMode` (Substitutionsgruppen-Köpfe in `CommonTypes`)
+sind selbst **nicht** `abstract="true"` — nur ihr referenzierter Typ
+(`CLReqControlModeType`/`CLResControlModeType`) ist es. Der bisherige Wurzel-Filter
+(„document root?“) prüfte nur das Element-Flag (`ge.IsAbstract`) und hätte diese Köpfe fälschlich
+als Dokument-Wurzeln behandelt (führte zu `Encode_CLReqControlMode` ohne zugehörigen Codec).
+Fix: zusätzlich prüfen, ob der aufgelöste Typ selbst `IsAbstract` ist.
 
 ## Neues Konstrukt #2: Substitutionsgruppen mit **konkretem** (nicht abstraktem) Kopf, teils **transitiv verkettet**
 
@@ -174,10 +200,12 @@ bereits unterstützt. Kein `xs:any`/`mixed` außerhalb des ohnehin opaken `xmlds
 
 ## Umsetzungsreihenfolge (dieser Session)
 
-1. `InlineChoice`-Konstrukt (Generator + Mini-XSD-Test) — blockiert praktisch jede
+1. ✅ `InlineChoice`-Konstrukt (Generator + Mini-XSD-Tests) — blockierte praktisch jede
    CommonMessages-Nachricht.
-2. `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`-Projekt: vollständiges Schema generiert +
-   kompiliert.
-3. Byte-Vektoren CommonMessages gegen cbV2G.
+2. ✅ `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`-Projekt: vollständiges Schema generiert +
+   kompiliert. Unterwegs zwei weitere Konstrukte gefunden und geschlossen: die
+   Bounded-Repeating-Liste-mit-Tail (`AuthorizationServices`) und der abstrakt-auf-Typ-statt-
+   Element-Fallstrick (`CLReqControlMode`/`CLResControlMode`).
+3. ⏳ Byte-Vektoren CommonMessages gegen cbV2G — nächster Schritt.
 4. DC/AC-Projekte (inkl. transitiver Substitution), Vektoren, V2GTP-Dispatcher, Signatur-Suite
    — Folge-Schritte, im Repo als offene Tasks nachvollziehbar.

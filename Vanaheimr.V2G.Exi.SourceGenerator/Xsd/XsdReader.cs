@@ -322,9 +322,10 @@ internal static class XsdReader
     /// <summary>Parses the <c>xs:element</c> children of a sequence/choice. An <c>xs:any</c> wildcard
     /// is modelled as a single trailing optional <c>ANY</c> element of type <c>base64Binary</c> —
     /// cbexigen's simplification of wildcard content (always absent for the ISO 15118 signature
-    /// subtree, which has no foreign content). A trailing <c>xs:choice</c> (ISO 15118-20, e.g.
-    /// <c>AuthorizationSetupResType</c>'s EIM/PnC choice) is parsed as an inline-choice marker — see
-    /// <see cref="ParseInlineChoice"/>.</summary>
+    /// subtree, which has no foreign content). An <c>xs:choice</c> (ISO 15118-20, e.g.
+    /// <c>AuthorizationSetupResType</c>'s EIM/PnC choice) is parsed as an inline-choice marker at its
+    /// true document position — see <see cref="ParseInlineChoice"/>; it need not be the last particle
+    /// (e.g. <c>EVPowerProfileType</c> has one in the middle, followed by a required list).</summary>
     private static List<XsdElement> ParseParticles(XElement container)
     {
         var els = container.Elements(Xs + "element").Select(ParseElement).ToList();
@@ -338,10 +339,8 @@ internal static class XsdReader
         if (choices.Count == 1)
         {
             var choice = choices[0];
-            if (choice.ElementsAfterSelf(Xs + "element").Any() || choice.ElementsAfterSelf(Xs + "any").Any())
-                throw new XsdReaderException(
-                    "xs:choice inside a sequence must be the last particle (only trailing inline choices are supported).");
-            els.Add(ParseInlineChoice(choice));
+            int position = choice.ElementsBeforeSelf(Xs + "element").Count();
+            els.Insert(position, ParseInlineChoice(choice));
         }
         return els;
     }

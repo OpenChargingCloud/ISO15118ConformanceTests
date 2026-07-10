@@ -908,21 +908,114 @@ public class GeneratorGrammarTests
     }
 
     [Test]
-    public void InlineChoice_NotLastParticle_IsRejected()
+    public void InlineChoice_NotLastParticle_IsSupported()
     {
+        // EVPowerProfileType shape: a required choice in the MIDDLE of the sequence, followed by
+        // more required content (a bounded list) — the standalone dispatch path does not assume the
+        // choice ends the element, so this must generate and compile cleanly, in document order.
         const string xsd = """
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
                        xmlns="urn:test:ic4" targetNamespace="urn:test:ic4">
               <xs:element name="root" type="T"/>
               <xs:complexType name="T">
                 <xs:sequence>
-                  <xs:choice><xs:element name="A" type="xs:unsignedInt"/><xs:element name="B" type="xs:unsignedInt"/></xs:choice>
-                  <xs:element name="C" type="xs:unsignedInt"/>
+                  <xs:element name="TimeAnchor" type="xs:unsignedLong"/>
+                  <xs:choice>
+                    <xs:element name="A" type="xs:unsignedInt"/>
+                    <xs:element name="B" type="xs:unsignedInt"/>
+                  </xs:choice>
+                  <xs:element name="Entries" type="xs:unsignedInt" maxOccurs="4"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:schema>
             """;
         var r = GeneratorHarness.Run(("ic4.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("ulong TimeAnchor"));
+        Assert.That(src, Does.Contain("uint? A"));
+        Assert.That(src, Does.Contain("uint? B"));
+        Assert.That(src, Does.Contain("IReadOnlyList<uint> Entries"));
+        // TimeAnchor (required, plain) is emitted first, then the standalone choice dispatch, then
+        // the required repeating Entries list — in that document order.
+        int iTime = src.IndexOf("record T(", System.StringComparison.Ordinal);
+        int iChoice = src.IndexOf("if (msg.A is not null)", System.StringComparison.Ordinal);
+        int iEntries = src.IndexOf("Entries_list", System.StringComparison.Ordinal);
+        Assert.That(iTime, Is.GreaterThan(-1));
+        Assert.That(iChoice, Is.GreaterThan(iTime));
+        Assert.That(iEntries, Is.GreaterThan(iChoice));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    // ---- construct #14 (ISO 15118-20): a required bounded-repeating list (maxOccurs=2) followed
+    // by more content, not the sequence's last particle ----
+
+    [Test]
+    public void RequiredRepeatingList_MaxOccurs2_FollowedByMoreContent()
+    {
+        // AuthorizationSetupResType shape: AuthorizationServices (required, maxOccurs=2) directly
+        // followed by CertificateInstallationService (required bool) and the EIM/PnC choice.
+        // cbV2G's grammar folds ONLY the immediate next particle into the list's own "continue vs
+        // move on" event codes; the choice after that is dispatched independently.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:rt1" targetNamespace="urn:test:rt1">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="Services" type="xs:unsignedByte" maxOccurs="2"/>
+                  <xs:element name="Flag" type="xs:boolean"/>
+                  <xs:choice>
+                    <xs:element name="A" type="xs:unsignedInt"/>
+                    <xs:element name="B" type="xs:unsignedInt"/>
+                  </xs:choice>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("rt1.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("IReadOnlyList<byte> Services"));
+        Assert.That(src, Does.Contain("bool Flag"));
+        // First item: unconditional 1-bit SE.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // SE(Services)"));
+        // Mid-state (1 item collected): {continue=0, Flag-SE=1}, 2 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Services (loop)"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // Flag"));
+        // At-max state (2 items collected): {Flag-SE=0}, 1 bit, unconditional (no presence check —
+        // Flag is a required, non-nullable bool; `is not null` would not even compile for it).
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // Flag"));
+        Assert.That(src, Does.Not.Contain("msg.Flag is not null"));
+        // The choice after Flag is dispatched independently (its own 2-bit width), not folded in.
+        Assert.That(src, Does.Contain("if (msg.A is not null)"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    [Test]
+    public void RequiredRepeatingList_MaxOccurs3_FollowedByMoreContent_IsRejected()
+    {
+        // Only the maxOccurs=2 bounded-unroll shape is supported for a non-last repeating list —
+        // maxOccurs>=3 (self-looping) with a tail is a documented gap.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:rt2" targetNamespace="urn:test:rt2">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="Services" type="xs:unsignedByte" maxOccurs="3"/>
+                  <xs:element name="Flag" type="xs:boolean"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("rt2.xsd", xsd));
         Assert.That(r.Diagnostics, Is.Not.Empty);
     }
 

@@ -598,10 +598,19 @@ internal sealed class CodecEmitter
             var c = children[i];
             switch (c.Shape)
             {
-                case ChildShape.BoundedRepeating when c.ListMin > 0:
+                case ChildShape.BoundedRepeating when c.ListMin > 0 && i == children.Count - 1:
                     EmitEncodeRepeatingChild(c, indent);   // required list: 1-bit first / 2-bit loop
                     terminated = true;
                     i++;
+                    break;
+
+                case ChildShape.BoundedRepeating when c.ListMin > 0:
+                    // Followed by exactly one more particle (AuthorizationSetupResType's
+                    // AuthorizationServices -> CertificateInstallationService shape): the list's own
+                    // "continue vs move on" code doubles as the tail's SE/dispatch.
+                    EmitEncodeRequiredRepeatingWithTail(c, children[i + 1], indent);
+                    terminated = false;
+                    i += 2;
                     break;
 
                 case ChildShape.RequiredSingle:
@@ -1041,6 +1050,71 @@ internal sealed class CodecEmitter
         EmitEncodeListTerminator(indent, list, c.ListMax);
     }
 
+    /// <summary>
+    /// A required (<c>minOccurs≥1</c>) bounded-repeating list (only <c>maxOccurs=2</c> is supported
+    /// here — the only shape observed) followed by exactly one more particle
+    /// (ISO 15118-20's <c>AuthorizationSetupResType.AuthorizationServices</c> →
+    /// <c>CertificateInstallationService</c>): the list's own "continue vs move on" event code is
+    /// shared with the tail's own SE/dispatch — verified against cbV2G's
+    /// <c>iso20_AuthorizationSetupResType</c> grammar (state 270: <c>{continue=0, tail-SE=1}</c>,
+    /// 2 bits; state 271, list at max: <c>{tail-SE=0}</c>, 1 bit, unconditional).
+    /// </summary>
+    private void EmitEncodeRequiredRepeatingWithTail(ChildPlan list, ChildPlan tail, string indent)
+    {
+        if (list.ListMax != 2)
+            throw new NotSupportedException(
+                $"required repeating '{list.FieldName}' (maxOccurs={list.ListMax}) followed by more " +
+                "content: only maxOccurs=2 is supported yet.");
+
+        string listExpr = "msg." + list.FieldName;
+        _sb.Append(indent).Append("if (").Append(listExpr).Append(".Count is < 1 or > 2) throw new ArgumentOutOfRangeException(nameof(msg));")
+           .AppendLine();
+        _sb.Append(indent).Append("w.WriteBits(0, 1);   // SE(").Append(list.FieldName).AppendLine(")");
+        EmitEncodeContent(list, listExpr + "[0]", indent);
+
+        if (tail.Shape != ChildShape.RequiredSingle)
+            throw new NotSupportedException(
+                $"required repeating '{list.FieldName}': the following particle '{tail.FieldName}' " +
+                "must be required (an optional tail is not supported yet).");
+
+        int tailProd = ProductionCount(tail);
+        int widthMid = BitsForChoices((1 + tailProd) + 1);   // continue + tail productions + phantom
+        int widthMax = BitsForChoices(tailProd + 1);         // list at max: only the tail remains
+
+        _sb.Append(indent).Append("if (").Append(listExpr).AppendLine(".Count > 1)");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).Append("    w.WriteBits(0, ").Append(widthMid).Append(");   // ")
+           .Append(list.FieldName).AppendLine(" (loop)");
+        EmitEncodeContent(list, listExpr + "[1]", indent + "    ");
+        EmitEncodeRequiredTailDispatch(tail, 0, widthMax, indent + "    ");
+        _sb.Append(indent).AppendLine("}");
+        _sb.Append(indent).AppendLine("else");
+        _sb.Append(indent).AppendLine("{");
+        EmitEncodeRequiredTailDispatch(tail, 1, widthMid, indent + "    ");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>
+    /// Emits the tail of <see cref="EmitEncodeRequiredRepeatingWithTail"/>: a choice/substitution
+    /// tail has several branches, each with its own presence check (<see cref="EmitEncodeRunParticle"/>
+    /// already handles that); a plain required tail has exactly one, and — being required, possibly
+    /// a non-nullable value type (e.g. a required <c>bool</c>) — must be written unconditionally, not
+    /// behind an <c>is not null</c> presence check (which does not compile for a non-nullable value
+    /// type and would be redundant for a reference type anyway).
+    /// </summary>
+    private void EmitEncodeRequiredTailDispatch(ChildPlan tail, int code, int width, string indent)
+    {
+        if (tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
+        {
+            bool first = true;
+            EmitEncodeRunParticle(tail, code, width, ref first, indent, "");
+            return;
+        }
+        _sb.Append(indent).Append("w.WriteBits(").Append(code).Append(", ").Append(width)
+           .Append(");   // ").AppendLine(tail.FieldName);
+        EmitEncodeContent(tail, "msg." + tail.FieldName, indent);
+    }
+
     private void EmitDecodeRepeatingChild(ChildPlan c, string local, string indent)
     {
         _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(c.CSharpType).AppendLine(">();");
@@ -1056,6 +1130,51 @@ internal sealed class CodecEmitter
            .AppendLine(") throw new InvalidDataException(\"invalid repeating-element event code\");");
         EmitDecodeContent(c, local + "_next", indent + "    ", declare: true);
         _sb.Append(indent).Append("    ").Append(local).Append(".Add(").Append(local).AppendLine("_next);");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>Decode side of <see cref="EmitEncodeRequiredRepeatingWithTail"/>.</summary>
+    private void EmitDecodeRequiredRepeatingWithTail(ChildPlan list, ChildPlan tail, string indent, List<string> locals)
+    {
+        if (list.ListMax != 2)
+            throw new NotSupportedException(
+                $"required repeating '{list.FieldName}' (maxOccurs={list.ListMax}) followed by more " +
+                "content: only maxOccurs=2 is supported yet.");
+
+        string local = "_" + list.FieldName;
+        _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(list.CSharpType).AppendLine(">();");
+        locals.Add(local);
+        _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE(" + list.FieldName + ") first");
+        EmitDecodeContent(list, local + "0", indent, declare: true);
+        _sb.Append(indent).Append(local).Append(".Add(").Append(local).AppendLine("0);");
+
+        if (tail.Value is ValueEncoding.InlineChoice ic)
+            DeclareInlineChoiceLocals(ic, indent, locals);
+        else
+        {
+            _sb.Append(indent).Append(tail.CSharpType).Append(" _").Append(tail.FieldName).AppendLine(" = default!;");
+            locals.Add("_" + tail.FieldName);
+        }
+
+        int tailProd = ProductionCount(tail);
+        int widthMid = BitsForChoices((1 + tailProd) + 1);
+        int widthMax = BitsForChoices(tailProd + 1);
+
+        _sb.Append(indent).Append("switch (r.ReadBits(").Append(widthMid).AppendLine("))");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).AppendLine("    case 0u:");
+        _sb.Append(indent).AppendLine("    {");
+        EmitDecodeContent(list, local + "1", indent + "        ", declare: true);
+        _sb.Append(indent).Append("        ").Append(local).Append(".Add(").Append(local).AppendLine("1);");
+        _sb.Append(indent).Append("        switch (r.ReadBits(").Append(widthMax).AppendLine("))");
+        _sb.Append(indent).AppendLine("        {");
+        EmitDecodeRunParticle(tail, 0, indent + "            ", "");
+        _sb.Append(indent).AppendLine("            default: throw new InvalidDataException(\"invalid event code\");");
+        _sb.Append(indent).AppendLine("        }");
+        _sb.Append(indent).AppendLine("        break;");
+        _sb.Append(indent).AppendLine("    }");
+        EmitDecodeRunParticle(tail, 1, indent + "    ", "");
+        _sb.Append(indent).AppendLine("    default: throw new InvalidDataException(\"invalid event code\");");
         _sb.Append(indent).AppendLine("}");
     }
 
@@ -1234,11 +1353,17 @@ internal sealed class CodecEmitter
             string local = "_" + c.FieldName;
             switch (c.Shape)
             {
-                case ChildShape.BoundedRepeating when c.ListMin > 0:
+                case ChildShape.BoundedRepeating when c.ListMin > 0 && i == children.Count - 1:
                     EmitDecodeRepeatingChild(c, local, indent);   // required list
                     locals.Add(local);
                     terminated = true;
                     i++;
+                    break;
+
+                case ChildShape.BoundedRepeating when c.ListMin > 0:
+                    EmitDecodeRequiredRepeatingWithTail(c, children[i + 1], indent, locals);
+                    terminated = false;
+                    i += 2;
                     break;
 
                 case ChildShape.RequiredSingle:

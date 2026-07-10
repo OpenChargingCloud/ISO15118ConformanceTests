@@ -180,6 +180,14 @@ internal static class GrammarBuilder
             // containing type. They still occupy a document-grammar production (counted above).
             if (ge.Namespace == XmlDsigNamespace)
                 continue;
+            // ISO 15118-20's substitution-group heads (e.g. CommonTypes' CLReqControlMode) carry the
+            // `abstract` flag on their TYPE, not on the element declaration itself (unlike -2's
+            // BodyElement, where the head element is directly abstract="true") — so they slip past
+            // the ge.IsAbstract check above. Skip them the same way: not a document root, reached
+            // only through a ref + substitutionGroup from a containing type.
+            if (ge.InlineType is null && complex.TryGetValue(StripPrefix(ge.TypeRef), out var headType) &&
+                headType.IsAbstract)
+                continue;
 
             var typeName = PascalCase(ge.Name);
 
@@ -356,13 +364,16 @@ internal static class GrammarBuilder
                 continue;
             }
 
-            // A repeating element (maxOccurs > 1) among other children: supported when it is the
-            // last particle (cbexigen encodes it as a list after the preceding children).
+            // A repeating element (maxOccurs > 1) among other children: supported at the end of the
+            // sequence (cbexigen encodes it as a list after the preceding children) or — ISO
+            // 15118-20's AuthorizationSetupResType.AuthorizationServices shape — followed by more
+            // particles, whose SE/dispatch shares the list's own "continue vs move on" event codes
+            // only for the IMMEDIATE next particle (see EmitEncodeRequiredRepeatingWithTail); any
+            // particles after that are handled by the normal sequence walk, independently — verified
+            // against cbV2G, where CertificateInstallationService folds into the list's own states
+            // but the choice that follows it does not.
             if (el.MaxOccurs > 1)
             {
-                if (!ReferenceEquals(el, particles[particles.Count - 1]))
-                    throw new NotSupportedException(
-                        $"complexType '{ctName}': repeating element '{el.Name}' must be the last child of the sequence.");
                 var (repType, repVal, _) = ResolveElementType(el, schema, enums);
                 children.Add(new ChildPlan(
                     FieldName : PascalCase(el.Name),
