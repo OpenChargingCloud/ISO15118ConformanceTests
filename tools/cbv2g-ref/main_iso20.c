@@ -380,6 +380,57 @@ static int do_dc(const char* v) {
         m->EVSEMaximumChargeCurrent_isUsed = 0u;
         m->EVSEMaximumVoltage_isUsed       = 0u;
 
+    } else if (strcmp(v, "DC_ChargeLoopReq_Dynamic") == 0) {
+        doc.DC_ChargeLoopReq_isUsed = 1u;
+        struct iso20_dc_DC_ChargeLoopReqType* q = &doc.DC_ChargeLoopReq;
+        set_header_dc(&q->Header);
+        q->DisplayParameters_isUsed = 0u;
+        q->MeterInfoRequested       = 0;
+        set_rational_dc(&q->EVPresentVoltage, 0, 400);
+        q->BPT_Dynamic_DC_CLReqControlMode_isUsed   = 0u;
+        q->BPT_Scheduled_DC_CLReqControlMode_isUsed = 0u;
+        q->CLReqControlMode_isUsed                  = 0u;
+        q->Dynamic_DC_CLReqControlMode_isUsed       = 1u;
+        q->Scheduled_DC_CLReqControlMode_isUsed     = 0u;
+        struct iso20_dc_Dynamic_DC_CLReqControlModeType* m = &q->Dynamic_DC_CLReqControlMode;
+        m->DepartureTime_isUsed = 0u;
+        set_rational_dc(&m->EVTargetEnergyRequest, 1, 4000);
+        set_rational_dc(&m->EVMaximumEnergyRequest, 1, 6000);
+        set_rational_dc(&m->EVMinimumEnergyRequest, 0, 0);
+        set_rational_dc(&m->EVMaximumChargePower, 0, 20000);
+        set_rational_dc(&m->EVMinimumChargePower, 0, 100);
+        set_rational_dc(&m->EVMaximumChargeCurrent, 0, 200);
+        set_rational_dc(&m->EVMaximumVoltage, 0, 500);
+        set_rational_dc(&m->EVMinimumVoltage, 0, 200);
+
+    } else if (strcmp(v, "DC_ChargeLoopRes_Dynamic") == 0) {
+        doc.DC_ChargeLoopRes_isUsed = 1u;
+        struct iso20_dc_DC_ChargeLoopResType* r = &doc.DC_ChargeLoopRes;
+        set_header_dc(&r->Header);
+        r->ResponseCode = iso20_dc_responseCodeType_OK;
+        r->EVSEStatus_isUsed = 0u;
+        r->MeterInfo_isUsed  = 0u;
+        r->Receipt_isUsed    = 0u;
+        set_rational_dc(&r->EVSEPresentCurrent, 0, 118);
+        set_rational_dc(&r->EVSEPresentVoltage, 0, 398);
+        r->EVSEPowerLimitAchieved   = 0;
+        r->EVSECurrentLimitAchieved = 0;
+        r->EVSEVoltageLimitAchieved = 0;
+        r->BPT_Dynamic_DC_CLResControlMode_isUsed   = 0u;
+        r->BPT_Scheduled_DC_CLResControlMode_isUsed = 0u;
+        r->CLResControlMode_isUsed                  = 0u;
+        r->Dynamic_DC_CLResControlMode_isUsed       = 1u;
+        r->Scheduled_DC_CLResControlMode_isUsed     = 0u;
+        struct iso20_dc_Dynamic_DC_CLResControlModeType* m = &r->Dynamic_DC_CLResControlMode;
+        m->DepartureTime_isUsed = 0u;
+        m->MinimumSOC_isUsed = 0u;
+        m->TargetSOC_isUsed = 0u;
+        m->AckMaxDelay_isUsed = 0u;
+        set_rational_dc(&m->EVSEMaximumChargePower, 0, 19500);
+        set_rational_dc(&m->EVSEMinimumChargePower, 0, 100);
+        set_rational_dc(&m->EVSEMaximumChargeCurrent, 0, 195);
+        set_rational_dc(&m->EVSEMaximumVoltage, 0, 500);
+
     } else if (strcmp(v, "DC_WeldingDetectionReq") == 0) {
         doc.DC_WeldingDetectionReq_isUsed = 1u;
         set_header_dc(&doc.DC_WeldingDetectionReq.Header);

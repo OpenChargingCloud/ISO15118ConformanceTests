@@ -41,6 +41,14 @@
       "expectedHex": "80 38 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 64 00 3b 02 00 23 80 c0 00 90"
     },
     {
+      "name": "DC_ChargeLoopReq_Dynamic",
+      "expectedHex": "80 34 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 81 00 12 00 63 48 10 a0 1f 04 08 78 17 02 00 00 01 00 14 13 80 20 80 06 40 40 06 40 08 20 03 d0 0c 10 01 90 02 00"
+    },
+    {
+      "name": "DC_ChargeLoopRes_Dynamic",
+      "expectedHex": "80 38 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 64 00 3b 02 00 23 80 c0 00 70 80 0a c9 80 10 40 03 20 20 03 0c 04 10 01 e8 06 00"
+    },
+    {
       "name": "DC_WeldingDetectionReq",
       "expectedHex": "80 4c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00"
     },

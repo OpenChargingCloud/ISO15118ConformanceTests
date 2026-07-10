@@ -69,6 +69,31 @@ public static class Iso15118_20DcFixtures
                             EVSEMaximumChargeCurrent: null, EVSEMaximumVoltage: null))
                     .TryEncode(dest, out bytesWritten);
 
+            case "DC_ChargeLoopReq_Dynamic":
+                // Exercises the untested Dynamic_DC_CLReqControlMode branch (different
+                // event code / bit width than the Scheduled branch above).
+                return new DC_ChargeLoopReq(Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        Rational(0, 400),
+                        new Dynamic_DC_CLReqControlModeType(
+                            DepartureTime: null,
+                            EVTargetEnergyRequest: Rational(1, 4000), EVMaximumEnergyRequest: Rational(1, 6000),
+                            EVMinimumEnergyRequest: Rational(0, 0),
+                            EVMaximumChargePower: Rational(0, 20000), EVMinimumChargePower: Rational(0, 100),
+                            EVMaximumChargeCurrent: Rational(0, 200),
+                            EVMaximumVoltage: Rational(0, 500), EVMinimumVoltage: Rational(0, 200)))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "DC_ChargeLoopRes_Dynamic":
+                return new DC_ChargeLoopRes(Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null,
+                        EVSEPresentCurrent: Rational(0, 118), EVSEPresentVoltage: Rational(0, 398),
+                        EVSEPowerLimitAchieved: false, EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false,
+                        new Dynamic_DC_CLResControlModeType(
+                            DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                            EVSEMaximumChargePower: Rational(0, 19500), EVSEMinimumChargePower: Rational(0, 100),
+                            EVSEMaximumChargeCurrent: Rational(0, 195), EVSEMaximumVoltage: Rational(0, 500)))
+                    .TryEncode(dest, out bytesWritten);
+
             case "DC_WeldingDetectionReq":
                 return new DC_WeldingDetectionReq(Header(), Processing.Finished).TryEncode(dest, out bytesWritten);
 
