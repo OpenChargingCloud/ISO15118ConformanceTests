@@ -39,6 +39,118 @@ public static class Iso15118_20CommonFixtures
                         PnC_ASResAuthorizationMode: null)
                     .TryEncode(dest, out bytesWritten);
 
+            case "ServiceDiscoveryReq":
+                return new ServiceDiscoveryReq(Header(), SupportedServiceIDs: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "ServiceDiscoveryRes":
+                return new ServiceDiscoveryRes(
+                        Header(), ResponseCode.OK, ServiceRenegotiationSupported: false,
+                        new ServiceListType(new[] { new ServiceType(ServiceID: 1, FreeService: true) }),
+                        VASList: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "ServiceDetailReq":
+                return new ServiceDetailReq(Header(), ServiceID: 1).TryEncode(dest, out bytesWritten);
+
+            case "ServiceDetailRes":
+                return new ServiceDetailRes(
+                        Header(), ResponseCode.OK, ServiceID: 1,
+                        new ServiceParameterListType(new[]
+                        {
+                            new ParameterSetType(ParameterSetID: 1, new[]
+                            {
+                                new ParameterType(Name: "Level", BoolValue: null, ByteValue: null,
+                                    ShortValue: null, IntValue: 3, RationalNumber: null, FiniteString: null),
+                            }),
+                        }))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "ServiceSelectionReq":
+                return new ServiceSelectionReq(
+                        Header(), new SelectedServiceType(ServiceID: 1, ParameterSetID: 1),
+                        SelectedVASList: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "ServiceSelectionRes":
+                return new ServiceSelectionRes(Header(), ResponseCode.OK).TryEncode(dest, out bytesWritten);
+
+            case "PowerDeliveryReq":
+                return new PowerDeliveryReq(Header(), Processing.Finished, ChargeProgress.Start,
+                        EVPowerProfile: null, BPT_ChannelSelection: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "PowerDeliveryRes":
+                return new PowerDeliveryRes(Header(), ResponseCode.OK, EVSEStatus: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "SessionStopReq":
+                return new SessionStopReq(Header(), ChargingSession.Terminate,
+                        EVTerminationCode: null, EVTerminationExplanation: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "SessionStopRes":
+                return new SessionStopRes(Header(), ResponseCode.OK).TryEncode(dest, out bytesWritten);
+
+            case "MeteringConfirmationReq":
+                // SignedMeteringData: required Id attribute + a required trailing choice
+                // (Dynamic_/Scheduled_SMDTControlMode) after a required MeterInfo.
+                return new MeteringConfirmationReq(Header(),
+                        new SignedMeteringDataType(
+                            Id: "ID1", SessionID: new byte[8],
+                            MeterInfo: new MeterInfoType(
+                                MeterID: "M1", ChargedEnergyReadingWh: 5000,
+                                BPT_DischargedEnergyReadingWh: null, CapacitiveEnergyReadingVARh: null,
+                                BPT_InductiveEnergyReadingVARh: null, MeterSignature: null,
+                                MeterStatus: null, MeterTimestamp: null),
+                            Receipt: null,
+                            Dynamic_SMDTControlMode: null,
+                            Scheduled_SMDTControlMode: new Scheduled_SMDTControlModeType(SelectedScheduleTupleID: 1)))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "MeteringConfirmationRes":
+                return new MeteringConfirmationRes(Header(), ResponseCode.OK).TryEncode(dest, out bytesWritten);
+
+            case "AuthorizationReq":
+                // EIM/PnC required InlineChoice with no preceding optionals (standalone dispatch).
+                return new AuthorizationReq(Header(), Authorization.EIM,
+                        EIM_AReqAuthorizationMode: new EIM_AReqAuthorizationModeType(),
+                        PnC_AReqAuthorizationMode: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AuthorizationSetupReq":
+                return new AuthorizationSetupReq(Header()).TryEncode(dest, out bytesWritten);
+
+            case "ScheduleExchangeReq":
+                return new ScheduleExchangeReq(Header(), MaximumSupportingPoints: 12,
+                        Dynamic_SEReqControlMode: new Dynamic_SEReqControlModeType(
+                            DepartureTime: 1800, MinimumSOC: null, TargetSOC: null,
+                            EVTargetEnergyRequest: new RationalNumberType(3, 20),
+                            EVMaximumEnergyRequest: new RationalNumberType(3, 30),
+                            EVMinimumEnergyRequest: new RationalNumberType(3, 5),
+                            EVMaximumV2XEnergyRequest: null, EVMinimumV2XEnergyRequest: null),
+                        Scheduled_SEReqControlMode: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "ScheduleExchangeRes":
+                // Dynamic mode with a present PriceLevelSchedule: exercises the OPTIONAL InlineChoice
+                // (Absolute-/PriceLevelSchedule) nested inside the REQUIRED outer InlineChoice
+                // (Dynamic_/Scheduled_SEResControlMode).
+                return new ScheduleExchangeRes(Header(), ResponseCode.OK, Processing.Finished,
+                        GoToPause: null,
+                        Dynamic_SEResControlMode: new Dynamic_SEResControlModeType(
+                            DepartureTime: null, MinimumSOC: null, TargetSOC: null,
+                            AbsolutePriceSchedule: null,
+                            PriceLevelSchedule: new PriceLevelScheduleType(
+                                Id: null, TimeAnchor: 1_700_000_000UL, PriceScheduleID: 1,
+                                PriceScheduleDescription: null, NumberOfPriceLevels: 3,
+                                new PriceLevelScheduleEntryListType(new[]
+                                {
+                                    new PriceLevelScheduleEntryType(Duration: 3600, PriceLevel: 1),
+                                }))),
+                        Scheduled_SEResControlMode: null)
+                    .TryEncode(dest, out bytesWritten);
+
             default:
                 throw new ArgumentException($"no CommonMessages fixture for vector '{vectorName}'");
         }

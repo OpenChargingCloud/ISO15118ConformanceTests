@@ -19,6 +19,70 @@
     {
       "name": "AuthorizationSetupRes",
       "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 01 10 00"
+    },
+    {
+      "name": "ServiceDiscoveryReq",
+      "expectedHex": "80 7c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 80"
+    },
+    {
+      "name": "ServiceDiscoveryRes",
+      "expectedHex": "80 80 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00 01 11 40"
+    },
+    {
+      "name": "ServiceDetailReq",
+      "expectedHex": "80 74 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 80"
+    },
+    {
+      "name": "ServiceDetailRes",
+      "expectedHex": "80 78 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00 40 02 01 d3 19 5d 99 5b 18 06 28"
+    },
+    {
+      "name": "ServiceSelectionReq",
+      "expectedHex": "80 84 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 40 08 80"
+    },
+    {
+      "name": "ServiceSelectionRes",
+      "expectedHex": "80 88 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00"
+    },
+    {
+      "name": "PowerDeliveryReq",
+      "expectedHex": "80 54 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 40"
+    },
+    {
+      "name": "PowerDeliveryRes",
+      "expectedHex": "80 58 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 40"
+    },
+    {
+      "name": "SessionStopReq",
+      "expectedHex": "80 94 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 28"
+    },
+    {
+      "name": "SessionStopRes",
+      "expectedHex": "80 98 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00"
+    },
+    {
+      "name": "MeteringConfirmationReq",
+      "expectedHex": "80 40 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 02 a4 a2 18 81 00 00 00 00 00 00 00 00 00 08 9a 62 22 09 da 00 40"
+    },
+    {
+      "name": "MeteringConfirmationRes",
+      "expectedHex": "80 44 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00"
+    },
+    {
+      "name": "AuthorizationReq",
+      "expectedHex": "80 00 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00"
+    },
+    {
+      "name": "AuthorizationSetupReq",
+      "expectedHex": "80 08 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62"
+    },
+    {
+      "name": "ScheduleExchangeReq",
+      "expectedHex": "80 6c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00 88 0e 44 18 0a 02 0c 07 81 06 00 a4"
+    },
+    {
+      "name": "ScheduleExchangeRes",
+      "expectedHex": "80 70 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 03 14 07 16 7d 50 30 01 20 30 48 0e 00 11 00"
     }
   ]
 }

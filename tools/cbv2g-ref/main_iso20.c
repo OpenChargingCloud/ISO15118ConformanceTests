@@ -86,6 +86,168 @@ static int do_common(const char* v) {
         r->EIM_ASResAuthorizationMode_isUsed = 1u;
         r->PnC_ASResAuthorizationMode_isUsed = 0u;
 
+    } else if (strcmp(v, "ServiceDiscoveryReq") == 0) {
+        doc.ServiceDiscoveryReq_isUsed = 1u;
+        set_header(&doc.ServiceDiscoveryReq.Header);
+        doc.ServiceDiscoveryReq.SupportedServiceIDs_isUsed = 0u;
+
+    } else if (strcmp(v, "ServiceDiscoveryRes") == 0) {
+        doc.ServiceDiscoveryRes_isUsed = 1u;
+        struct iso20_ServiceDiscoveryResType* r = &doc.ServiceDiscoveryRes;
+        set_header(&r->Header);
+        r->ResponseCode = iso20_responseCodeType_OK;
+        r->ServiceRenegotiationSupported = 0;
+        r->EnergyTransferServiceList.Service.arrayLen = 1;
+        r->EnergyTransferServiceList.Service.array[0].ServiceID = 1;
+        r->EnergyTransferServiceList.Service.array[0].FreeService = 1;
+        r->VASList_isUsed = 0u;
+
+    } else if (strcmp(v, "ServiceDetailReq") == 0) {
+        doc.ServiceDetailReq_isUsed = 1u;
+        set_header(&doc.ServiceDetailReq.Header);
+        doc.ServiceDetailReq.ServiceID = 1;
+
+    } else if (strcmp(v, "ServiceDetailRes") == 0) {
+        doc.ServiceDetailRes_isUsed = 1u;
+        struct iso20_ServiceDetailResType* r = &doc.ServiceDetailRes;
+        set_header(&r->Header);
+        r->ResponseCode = iso20_responseCodeType_OK;
+        r->ServiceID = 1;
+        r->ServiceParameterList.ParameterSet.arrayLen = 1;
+        struct iso20_ParameterSetType* ps = &r->ServiceParameterList.ParameterSet.array[0];
+        ps->ParameterSetID = 1;
+        ps->Parameter.arrayLen = 1;
+        struct iso20_ParameterType* p = &ps->Parameter.array[0];
+        set_str(p->Name.characters, &p->Name.charactersLen, "Level");
+        p->intValue = 3;
+        p->intValue_isUsed = 1u;
+        p->boolValue_isUsed = 0u;
+        p->byteValue_isUsed = 0u;
+        p->shortValue_isUsed = 0u;
+        p->rationalNumber_isUsed = 0u;
+        p->finiteString_isUsed = 0u;
+
+    } else if (strcmp(v, "ServiceSelectionReq") == 0) {
+        doc.ServiceSelectionReq_isUsed = 1u;
+        struct iso20_ServiceSelectionReqType* q = &doc.ServiceSelectionReq;
+        set_header(&q->Header);
+        q->SelectedEnergyTransferService.ServiceID = 1;
+        q->SelectedEnergyTransferService.ParameterSetID = 1;
+        q->SelectedVASList.SelectedService.arrayLen = 0;
+
+    } else if (strcmp(v, "ServiceSelectionRes") == 0) {
+        doc.ServiceSelectionRes_isUsed = 1u;
+        set_header(&doc.ServiceSelectionRes.Header);
+        doc.ServiceSelectionRes.ResponseCode = iso20_responseCodeType_OK;
+
+    } else if (strcmp(v, "PowerDeliveryReq") == 0) {
+        doc.PowerDeliveryReq_isUsed = 1u;
+        struct iso20_PowerDeliveryReqType* q = &doc.PowerDeliveryReq;
+        set_header(&q->Header);
+        q->EVProcessing               = iso20_processingType_Finished;
+        q->ChargeProgress             = iso20_chargeProgressType_Start;
+        q->EVPowerProfile_isUsed      = 0u;
+        q->BPT_ChannelSelection_isUsed = 0u;
+
+    } else if (strcmp(v, "PowerDeliveryRes") == 0) {
+        doc.PowerDeliveryRes_isUsed = 1u;
+        struct iso20_PowerDeliveryResType* r = &doc.PowerDeliveryRes;
+        set_header(&r->Header);
+        r->ResponseCode      = iso20_responseCodeType_OK;
+        r->EVSEStatus_isUsed = 0u;
+
+    } else if (strcmp(v, "SessionStopReq") == 0) {
+        doc.SessionStopReq_isUsed = 1u;
+        struct iso20_SessionStopReqType* q = &doc.SessionStopReq;
+        set_header(&q->Header);
+        q->ChargingSession = iso20_chargingSessionType_Terminate;
+        q->EVTerminationCode_isUsed = 0u;
+        q->EVTerminationExplanation_isUsed = 0u;
+
+    } else if (strcmp(v, "SessionStopRes") == 0) {
+        doc.SessionStopRes_isUsed = 1u;
+        set_header(&doc.SessionStopRes.Header);
+        doc.SessionStopRes.ResponseCode = iso20_responseCodeType_OK;
+
+    } else if (strcmp(v, "MeteringConfirmationReq") == 0) {
+        doc.MeteringConfirmationReq_isUsed = 1u;
+        struct iso20_SignedMeteringDataType* d = &doc.MeteringConfirmationReq.SignedMeteringData;
+        set_header(&doc.MeteringConfirmationReq.Header);
+        set_str(d->Id.characters, &d->Id.charactersLen, "ID1");
+        memset(d->SessionID.bytes, 0, iso20_sessionIDType_BYTES_SIZE);
+        d->SessionID.bytesLen = iso20_sessionIDType_BYTES_SIZE;
+        set_str(d->MeterInfo.MeterID.characters, &d->MeterInfo.MeterID.charactersLen, "M1");
+        d->MeterInfo.ChargedEnergyReadingWh          = 5000;
+        d->MeterInfo.BPT_DischargedEnergyReadingWh_isUsed = 0u;
+        d->MeterInfo.CapacitiveEnergyReadingVARh_isUsed   = 0u;
+        d->MeterInfo.BPT_InductiveEnergyReadingVARh_isUsed = 0u;
+        d->Receipt_isUsed = 0u;
+        d->Dynamic_SMDTControlMode_isUsed  = 0u;
+        d->Scheduled_SMDTControlMode_isUsed = 1u;
+        d->Scheduled_SMDTControlMode.SelectedScheduleTupleID = 1;
+
+    } else if (strcmp(v, "MeteringConfirmationRes") == 0) {
+        doc.MeteringConfirmationRes_isUsed = 1u;
+        set_header(&doc.MeteringConfirmationRes.Header);
+        doc.MeteringConfirmationRes.ResponseCode = iso20_responseCodeType_OK;
+
+    } else if (strcmp(v, "AuthorizationReq") == 0) {
+        doc.AuthorizationReq_isUsed = 1u;
+        struct iso20_AuthorizationReqType* q = &doc.AuthorizationReq;
+        set_header(&q->Header);
+        q->SelectedAuthorizationService     = iso20_authorizationType_EIM;
+        q->EIM_AReqAuthorizationMode_isUsed = 1u;
+        q->PnC_AReqAuthorizationMode_isUsed = 0u;
+
+    } else if (strcmp(v, "AuthorizationSetupReq") == 0) {
+        doc.AuthorizationSetupReq_isUsed = 1u;
+        set_header(&doc.AuthorizationSetupReq.Header);
+
+    } else if (strcmp(v, "ScheduleExchangeReq") == 0) {
+        doc.ScheduleExchangeReq_isUsed = 1u;
+        struct iso20_ScheduleExchangeReqType* q = &doc.ScheduleExchangeReq;
+        set_header(&q->Header);
+        q->MaximumSupportingPoints          = 12;
+        q->Scheduled_SEReqControlMode_isUsed = 0u;
+        q->Dynamic_SEReqControlMode_isUsed   = 1u;
+        struct iso20_Dynamic_SEReqControlModeType* m = &q->Dynamic_SEReqControlMode;
+        m->DepartureTime = 1800;
+        m->MinimumSOC_isUsed = 0u;
+        m->TargetSOC_isUsed  = 0u;
+        m->EVTargetEnergyRequest.Exponent = 3;
+        m->EVTargetEnergyRequest.Value    = 20;
+        m->EVMaximumEnergyRequest.Exponent = 3;
+        m->EVMaximumEnergyRequest.Value    = 30;
+        m->EVMinimumEnergyRequest.Exponent = 3;
+        m->EVMinimumEnergyRequest.Value    = 5;
+        m->EVMaximumV2XEnergyRequest_isUsed = 0u;
+        m->EVMinimumV2XEnergyRequest_isUsed = 0u;
+
+    } else if (strcmp(v, "ScheduleExchangeRes") == 0) {
+        doc.ScheduleExchangeRes_isUsed = 1u;
+        struct iso20_ScheduleExchangeResType* r = &doc.ScheduleExchangeRes;
+        set_header(&r->Header);
+        r->ResponseCode   = iso20_responseCodeType_OK;
+        r->EVSEProcessing = iso20_processingType_Finished;
+        r->GoToPause_isUsed = 0u;
+        r->Scheduled_SEResControlMode_isUsed = 0u;
+        r->Dynamic_SEResControlMode_isUsed   = 1u;
+        struct iso20_Dynamic_SEResControlModeType* m = &r->Dynamic_SEResControlMode;
+        m->DepartureTime_isUsed = 0u;
+        m->MinimumSOC_isUsed    = 0u;
+        m->TargetSOC_isUsed     = 0u;
+        m->AbsolutePriceSchedule_isUsed = 0u;
+        m->PriceLevelSchedule_isUsed    = 1u;
+        struct iso20_PriceLevelScheduleType* pl = &m->PriceLevelSchedule;
+        pl->Id_isUsed = 0u;
+        pl->TimeAnchor    = 1700000000ULL;
+        pl->PriceScheduleID = 1;
+        pl->PriceScheduleDescription_isUsed = 0u;
+        pl->NumberOfPriceLevels = 3;
+        pl->PriceLevelScheduleEntries.PriceLevelScheduleEntry.arrayLen = 1;
+        pl->PriceLevelScheduleEntries.PriceLevelScheduleEntry.array[0].Duration   = 3600;
+        pl->PriceLevelScheduleEntries.PriceLevelScheduleEntry.array[0].PriceLevel = 1;
+
     } else {
         fprintf(stderr, "cbv2g-iso20: unknown CommonMessages vector '%s'\n", v);
         return 1;
