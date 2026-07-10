@@ -68,3 +68,28 @@ add_executable(cbv2g_iso2
 )
 
 target_include_directories(cbv2g_iso2 PRIVATE "${CBV2G_SRC}/include")
+
+# --- ISO 15118-20 reference encoder ------------------------------------------
+# A third tool for the -20 message vectors, covering all three Phase-4 message
+# sets (CommonMessages, DC, AC) from one binary — main_iso20.c dispatches on
+# the vector name (e.g. "DC_CableCheckReq") to the right set's encoder.
+add_executable(cbv2g_iso20
+    main_iso20.c
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_basetypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_basetypes_decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_basetypes_encoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_bitstream.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_header.c"
+    "${CBV2G_SRC}/lib/cbv2g/common/exi_types_decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_CommonMessages_Datatypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_CommonMessages_Encoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_CommonMessages_Decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_DC_Datatypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_DC_Encoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_DC_Decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_AC_Datatypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_AC_Encoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_AC_Decoder.c"
+)
+
+target_include_directories(cbv2g_iso20 PRIVATE "${CBV2G_SRC}/include")

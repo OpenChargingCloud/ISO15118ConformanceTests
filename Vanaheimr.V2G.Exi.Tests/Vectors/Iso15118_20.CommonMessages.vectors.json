@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "generator": "cbV2G@03350be048b3 (iso_20/CommonMessages)",
+  "referenceEncoder": {
+    "name": "cbV2G",
+    "repo": "https://github.com/EVerest/libcbv2g",
+    "commit": "03350be048b35b179905129005a97144a4bdcf93",
+    "note": "Wire-conformant ISO 15118-20 CommonMessages reference. Each vector is a fixed message emitted by tools/cbv2g-ref/main_iso20.c (build: tools/cbv2g-ref/build.sh, run: cbv2g_iso20 Common_<name>). Header SessionID is 8x0x00, TimeStamp=1700000000, no Signature. The C# test builds the matching message via Iso15118_20CommonFixtures and diffs its bytes."
+  },
+  "vectors": [
+    {
+      "name": "SessionSetupReq",
+      "expectedHex": "80 8c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 07 a2 ab 21 a1 a4 a2 18 99 19 9a 1a 9b 1b 80"
+    },
+    {
+      "name": "SessionSetupRes",
+      "expectedHex": "80 90 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 03 d1 55 94 d1 52 51 0c 4c 8c cd 0d 4d 8d c0"
+    },
+    {
+      "name": "AuthorizationSetupRes",
+      "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 01 10 00"
+    }
+  ]
+}
