@@ -12,6 +12,9 @@
          CommonMessages/-2/AppProtocol codecs (all from the same source generator). -->
     <ExiGeneratedNamespace>Vanaheimr.V2G.Iso15118_20.DC.Generated</ExiGeneratedNamespace>
     <ExiCodecClassName>DcCodec</ExiCodecClassName>
+    <!-- Signable elements (XMLDSig, §8.5.3) — the exact set cbV2G/cbexigen's iso20_dc_exiFragment
+         union carries (see include/cbv2g/iso_20/iso20_DC_Datatypes.h). -->
+    <ExiFragmentElements>DC_ChargeParameterDiscoveryRes SignedInfo</ExiFragmentElements>
 
     <!-- Write the generated codec to obj/ for inspection. -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>

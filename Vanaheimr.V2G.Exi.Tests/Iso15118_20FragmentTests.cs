@@ -69,6 +69,91 @@ public class Iso15118_20FragmentTests
             buf.AsSpan(0, n).ToArray());
     }
 
+    [Test]
+    public void CertificateInstallationReq_Fragment_MatchesCbV2G()
+    {
+        var content = new CertificateInstallationReqType(
+            Header: new MessageHeaderType(SessionID: new byte[8], TimeStamp: 1_700_000_000UL, Signature: null),
+            OEMProvisioningCertificateChain: new SignedCertificateChainType(
+                Id: "OEMCERT1", Certificate: new byte[] { 0xAA, 0xBB, 0xCC }, SubCertificates: null),
+            ListOfRootCertificateIDs: new ListOfRootCertificateIDsType(
+                // X509SerialNumber 47456, not the 12345 fed into cbV2G: exi_basetypes_encoder_unsigned()
+                // re-chunks the octets exi_basetypes_convert_64_to_signed() already EXI-chunked, so the
+                // wire value isn't the input value — same quirk as Common_CertificateInstallationReq.
+                new[] { new X509IssuerSerialType(X509IssuerName: "Root CA", X509SerialNumber: 47456) }),
+            MaximumContractCertificateChains: 3,
+            PrioritizedEMAIDs: null);
+        var buf = new byte[512];
+        Assert.That(CommonMessagesCodec.EncodeFragment_CertificateInstallationReq(content, buf, out int n), Is.True);
+        AssertFragment(
+            "80 0d 80 80 00 00 00 00 00 00 00 01 01 c5 9f 54 0c 40 a4 f4 54 d4 34 55 25 43 10 0e aa ef " +
+            "30 80 4a 93 7b 7b a1 02 1a 08 70 79 01 08 06 63 40",
+            buf.AsSpan(0, n).ToArray());
+    }
+
+    [Test]
+    public void PnC_AReqAuthorizationMode_Fragment_MatchesCbV2G()
+    {
+        var content = new PnC_AReqAuthorizationModeType(
+            Id: "ID1",
+            GenChallenge: Enumerable.Range(1, 16).Select(i => (byte)i).ToArray(),
+            ContractCertificateChain: new ContractCertificateChainType(
+                Certificate: new byte[] { 0x03, 0x04 },
+                SubCertificates: new SubCertificatesType(new[] { new byte[] { 0x05 } })));
+        var buf = new byte[512];
+        Assert.That(CommonMessagesCodec.EncodeFragment_PnC_AReqAuthorizationMode(content, buf, out int n), Is.True);
+        AssertFragment(
+            "80 4b 81 52 51 0c 41 00 10 20 30 40 50 60 70 80 90 a0 b0 c0 d0 e0 f1 00 02 03 04 00 10 52 46 80",
+            buf.AsSpan(0, n).ToArray());
+    }
+
+    [Test]
+    public void SignedInstallationData_Fragment_MatchesCbV2G()
+    {
+        var content = new SignedInstallationDataType(
+            Id: "SID1",
+            ContractCertificateChain: new ContractCertificateChainType(
+                Certificate: new byte[] { 0x03, 0x04 },
+                SubCertificates: new SubCertificatesType(new[] { new byte[] { 0x05 } })),
+            ECDHCurve: EcdhCurve.SECP521,
+            DHPublicKey: new byte[] { 0x06, 0x07 },
+            SECP521_EncryptedPrivateKey: new byte[] { 0x08, 0x09 },
+            X448_EncryptedPrivateKey: null,
+            TPM_EncryptedPrivateKey: null);
+        var buf = new byte[512];
+        Assert.That(CommonMessagesCodec.EncodeFragment_SignedInstallationData(content, buf, out int n), Is.True);
+        AssertFragment(
+            "80 73 81 94 d2 51 0c 40 10 18 20 00 82 90 00 40 c0 e0 04 10 12 46 80",
+            buf.AsSpan(0, n).ToArray());
+    }
+
+    [Test]
+    public void AbsolutePriceSchedule_Fragment_MatchesCbV2G()
+    {
+        var content = new AbsolutePriceScheduleType(
+            Id: null, TimeAnchor: 1_700_000_000UL, PriceScheduleID: 1, PriceScheduleDescription: null,
+            Currency: "EUR", Language: "EN", PriceAlgorithm: "Alg1",
+            MinimumCost: null, MaximumCost: null, TaxRules: null,
+            PriceRuleStacks: new PriceRuleStackListType(new[]
+            {
+                new PriceRuleStackType(Duration: 3600, new[]
+                {
+                    new PriceRuleType(
+                        EnergyFee: new RationalNumberType(0, 30), ParkingFee: null,
+                        ParkingFeePeriod: null, CarbonDioxideEmission: null,
+                        RenewableGenerationPercentage: null,
+                        PowerRangeStart: new RationalNumberType(0, 0)),
+                }),
+            }),
+            OverstayRules: null, AdditionalSelectedServices: null);
+        var buf = new byte[512];
+        Assert.That(CommonMessagesCodec.EncodeFragment_AbsolutePriceSchedule(content, buf, out int n), Is.True);
+        AssertFragment(
+            "80 00 28 0e 2c fa a0 60 02 40 a8 aa aa 40 11 15 38 03 20 b6 33 98 98 90 1c 04 00 0f 10 80 00 " +
+            "00 b4 68",
+            buf.AsSpan(0, n).ToArray());
+    }
+
     // ---- helpers ----
 
     private static void AssertFragment(string expectedHex, byte[]? actual)

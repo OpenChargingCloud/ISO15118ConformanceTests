@@ -1035,6 +1035,87 @@ static int do_fragment(const char* elem) {
         d->Scheduled_SMDTControlMode_isUsed = 1u;
         d->Scheduled_SMDTControlMode.SelectedScheduleTupleID = 1;
 
+    } else if (strcmp(elem, "CertificateInstallationReq") == 0) {
+        frag.CertificateInstallationReq_isUsed = 1u;
+        struct iso20_CertificateInstallationReqType* q = &frag.CertificateInstallationReq;
+        set_header(&q->Header);
+        set_str(q->OEMProvisioningCertificateChain.Id.characters,
+                &q->OEMProvisioningCertificateChain.Id.charactersLen, "OEMCERT1");
+        q->OEMProvisioningCertificateChain.Certificate.bytesLen = 3;
+        q->OEMProvisioningCertificateChain.Certificate.bytes[0] = 0xAA;
+        q->OEMProvisioningCertificateChain.Certificate.bytes[1] = 0xBB;
+        q->OEMProvisioningCertificateChain.Certificate.bytes[2] = 0xCC;
+        q->OEMProvisioningCertificateChain.SubCertificates_isUsed = 0u;
+        q->ListOfRootCertificateIDs.RootCertificateID.arrayLen = 1;
+        set_str(q->ListOfRootCertificateIDs.RootCertificateID.array[0].X509IssuerName.characters,
+                &q->ListOfRootCertificateIDs.RootCertificateID.array[0].X509IssuerName.charactersLen, "Root CA");
+        exi_basetypes_convert_64_to_signed(&q->ListOfRootCertificateIDs.RootCertificateID.array[0].X509SerialNumber, 12345);
+        q->MaximumContractCertificateChains = 3;
+        q->PrioritizedEMAIDs_isUsed = 0u;
+
+    } else if (strcmp(elem, "PnC_AReqAuthorizationMode") == 0) {
+        frag.PnC_AReqAuthorizationMode_isUsed = 1u;
+        struct iso20_PnC_AReqAuthorizationModeType* m = &frag.PnC_AReqAuthorizationMode;
+        set_str(m->Id.characters, &m->Id.charactersLen, "ID1");
+        for (int i = 0; i < 16; i++) m->GenChallenge.bytes[i] = (uint8_t)(i + 1);
+        m->GenChallenge.bytesLen = 16;
+        m->ContractCertificateChain.Certificate.bytesLen = 2;
+        m->ContractCertificateChain.Certificate.bytes[0] = 0x03;
+        m->ContractCertificateChain.Certificate.bytes[1] = 0x04;
+        m->ContractCertificateChain.SubCertificates.Certificate.arrayLen = 1;
+        m->ContractCertificateChain.SubCertificates.Certificate.array[0].bytesLen = 1;
+        m->ContractCertificateChain.SubCertificates.Certificate.array[0].bytes[0] = 0x05;
+
+    } else if (strcmp(elem, "SignedInstallationData") == 0) {
+        frag.SignedInstallationData_isUsed = 1u;
+        struct iso20_SignedInstallationDataType* d = &frag.SignedInstallationData;
+        set_str(d->Id.characters, &d->Id.charactersLen, "SID1");
+        d->ContractCertificateChain.Certificate.bytesLen = 2;
+        d->ContractCertificateChain.Certificate.bytes[0] = 0x03;
+        d->ContractCertificateChain.Certificate.bytes[1] = 0x04;
+        d->ContractCertificateChain.SubCertificates.Certificate.arrayLen = 1;
+        d->ContractCertificateChain.SubCertificates.Certificate.array[0].bytesLen = 1;
+        d->ContractCertificateChain.SubCertificates.Certificate.array[0].bytes[0] = 0x05;
+        d->ECDHCurve = iso20_ecdhCurveType_SECP521;
+        d->DHPublicKey.bytesLen = 2;
+        d->DHPublicKey.bytes[0] = 0x06;
+        d->DHPublicKey.bytes[1] = 0x07;
+        d->SECP521_EncryptedPrivateKey_isUsed = 1u;
+        d->SECP521_EncryptedPrivateKey.bytesLen = 2;
+        d->SECP521_EncryptedPrivateKey.bytes[0] = 0x08;
+        d->SECP521_EncryptedPrivateKey.bytes[1] = 0x09;
+        d->X448_EncryptedPrivateKey_isUsed = 0u;
+        d->TPM_EncryptedPrivateKey_isUsed  = 0u;
+
+    } else if (strcmp(elem, "AbsolutePriceSchedule") == 0) {
+        frag.AbsolutePriceSchedule_isUsed = 1u;
+        struct iso20_AbsolutePriceScheduleType* p = &frag.AbsolutePriceSchedule;
+        p->Id_isUsed = 0u;
+        p->TimeAnchor      = 1700000000ULL;
+        p->PriceScheduleID = 1;
+        p->PriceScheduleDescription_isUsed = 0u;
+        set_str(p->Currency.characters, &p->Currency.charactersLen, "EUR");
+        set_str(p->Language.characters, &p->Language.charactersLen, "EN");
+        set_str(p->PriceAlgorithm.characters, &p->PriceAlgorithm.charactersLen, "Alg1");
+        p->MinimumCost_isUsed = 0u;
+        p->MaximumCost_isUsed = 0u;
+        p->TaxRules_isUsed    = 0u;
+        p->PriceRuleStacks.PriceRuleStack.arrayLen = 1;
+        struct iso20_PriceRuleStackType* stack = &p->PriceRuleStacks.PriceRuleStack.array[0];
+        stack->Duration = 3600;
+        stack->PriceRule.arrayLen = 1;
+        struct iso20_PriceRuleType* rule = &stack->PriceRule.array[0];
+        rule->EnergyFee.Exponent = 0;
+        rule->EnergyFee.Value    = 30;
+        rule->ParkingFee_isUsed  = 0u;
+        rule->ParkingFeePeriod_isUsed = 0u;
+        rule->CarbonDioxideEmission_isUsed = 0u;
+        rule->RenewableGenerationPercentage_isUsed = 0u;
+        rule->PowerRangeStart.Exponent = 0;
+        rule->PowerRangeStart.Value    = 0;
+        p->OverstayRules_isUsed = 0u;
+        p->AdditionalSelectedServices_isUsed = 0u;
+
     } else {
         fprintf(stderr, "cbv2g-iso20: unknown fragment element '%s'\n", elem);
         return 1;
@@ -1052,6 +1133,144 @@ static int do_fragment(const char* elem) {
     return 0;
 }
 
+/* DC's iso20_dc_exiFragment carries exactly DC_ChargeParameterDiscoveryRes + SignedInfo
+ * (include/cbv2g/iso_20/iso20_DC_Datatypes.h) — the CLI strips the "DC_" set prefix before
+ * calling this, so `elem` is "ChargeParameterDiscoveryRes" or "SignedInfo". */
+static int do_fragment_dc(const char* elem) {
+    struct iso20_dc_exiFragment frag;
+    memset(&frag, 0, sizeof(frag));
+
+    if (strcmp(elem, "SignedInfo") == 0) {
+        frag.SignedInfo_isUsed = 1u;
+        struct iso20_dc_SignedInfoType* s = &frag.SignedInfo;
+        s->Id_isUsed = 0u;
+        set_str(s->CanonicalizationMethod.Algorithm.characters,
+                &s->CanonicalizationMethod.Algorithm.charactersLen,
+                "http://www.w3.org/TR/canonical-exi/");
+        s->CanonicalizationMethod.ANY_isUsed = 0u;
+        set_str(s->SignatureMethod.Algorithm.characters,
+                &s->SignatureMethod.Algorithm.charactersLen,
+                "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512");
+        s->SignatureMethod.HMACOutputLength_isUsed = 0u;
+        s->SignatureMethod.ANY_isUsed             = 0u;
+        s->Reference.arrayLen = 1;
+        struct iso20_dc_ReferenceType* ref = &s->Reference.array[0];
+        ref->Id_isUsed   = 0u;
+        ref->Type_isUsed = 0u;
+        set_str(ref->URI.characters, &ref->URI.charactersLen, "#ID1");
+        ref->URI_isUsed        = 1u;
+        ref->Transforms_isUsed = 0u;
+        set_str(ref->DigestMethod.Algorithm.characters,
+                &ref->DigestMethod.Algorithm.charactersLen,
+                "http://www.w3.org/2001/04/xmlenc#sha512");
+        ref->DigestMethod.ANY_isUsed = 0u;
+        for (int i = 0; i < 64; i++) ref->DigestValue.bytes[i] = (uint8_t)(i + 1);
+        ref->DigestValue.bytesLen = 64;
+
+    } else if (strcmp(elem, "ChargeParameterDiscoveryRes") == 0) {
+        frag.DC_ChargeParameterDiscoveryRes_isUsed = 1u;
+        struct iso20_dc_DC_ChargeParameterDiscoveryResType* r = &frag.DC_ChargeParameterDiscoveryRes;
+        set_header_dc(&r->Header);
+        r->ResponseCode = iso20_dc_responseCodeType_OK;
+        r->BPT_DC_CPDResEnergyTransferMode_isUsed = 0u;
+        r->DC_CPDResEnergyTransferMode_isUsed      = 1u;
+        struct iso20_dc_DC_CPDResEnergyTransferModeType* m = &r->DC_CPDResEnergyTransferMode;
+        set_rational_dc(&m->EVSEMaximumChargePower,  1, 15000);
+        set_rational_dc(&m->EVSEMinimumChargePower,  0, 100);
+        set_rational_dc(&m->EVSEMaximumChargeCurrent, 0, 200);
+        set_rational_dc(&m->EVSEMinimumChargeCurrent, 0, 1);
+        set_rational_dc(&m->EVSEMaximumVoltage,      0, 500);
+        set_rational_dc(&m->EVSEMinimumVoltage,      0, 200);
+        m->EVSEPowerRampLimitation_isUsed = 0u;
+
+    } else {
+        fprintf(stderr, "cbv2g-iso20: unknown DC fragment element '%s'\n", elem);
+        return 1;
+    }
+
+    uint8_t out[OUT_BUF_SIZE];
+    exi_bitstream_t stream;
+    exi_bitstream_init(&stream, out, sizeof(out), 0, NULL);
+    int error = encode_iso20_dc_exiFragment(&stream, &frag);
+    if (error != 0) {
+        fprintf(stderr, "cbv2g-iso20: DC fragment encode failed with error %d\n", error);
+        return 3;
+    }
+    print_hex(out, exi_bitstream_get_length(&stream));
+    return 0;
+}
+
+/* AC's iso20_ac_exiFragment carries exactly AC_ChargeParameterDiscoveryRes + SignedInfo
+ * (include/cbv2g/iso_20/iso20_AC_Datatypes.h). */
+static int do_fragment_ac(const char* elem) {
+    struct iso20_ac_exiFragment frag;
+    memset(&frag, 0, sizeof(frag));
+
+    if (strcmp(elem, "SignedInfo") == 0) {
+        frag.SignedInfo_isUsed = 1u;
+        struct iso20_ac_SignedInfoType* s = &frag.SignedInfo;
+        s->Id_isUsed = 0u;
+        set_str(s->CanonicalizationMethod.Algorithm.characters,
+                &s->CanonicalizationMethod.Algorithm.charactersLen,
+                "http://www.w3.org/TR/canonical-exi/");
+        s->CanonicalizationMethod.ANY_isUsed = 0u;
+        set_str(s->SignatureMethod.Algorithm.characters,
+                &s->SignatureMethod.Algorithm.charactersLen,
+                "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512");
+        s->SignatureMethod.HMACOutputLength_isUsed = 0u;
+        s->SignatureMethod.ANY_isUsed             = 0u;
+        s->Reference.arrayLen = 1;
+        struct iso20_ac_ReferenceType* ref = &s->Reference.array[0];
+        ref->Id_isUsed   = 0u;
+        ref->Type_isUsed = 0u;
+        set_str(ref->URI.characters, &ref->URI.charactersLen, "#ID1");
+        ref->URI_isUsed        = 1u;
+        ref->Transforms_isUsed = 0u;
+        set_str(ref->DigestMethod.Algorithm.characters,
+                &ref->DigestMethod.Algorithm.charactersLen,
+                "http://www.w3.org/2001/04/xmlenc#sha512");
+        ref->DigestMethod.ANY_isUsed = 0u;
+        for (int i = 0; i < 64; i++) ref->DigestValue.bytes[i] = (uint8_t)(i + 1);
+        ref->DigestValue.bytesLen = 64;
+
+    } else if (strcmp(elem, "ChargeParameterDiscoveryRes") == 0) {
+        frag.AC_ChargeParameterDiscoveryRes_isUsed = 1u;
+        struct iso20_ac_AC_ChargeParameterDiscoveryResType* r = &frag.AC_ChargeParameterDiscoveryRes;
+        set_header_ac(&r->Header);
+        r->ResponseCode = iso20_ac_responseCodeType_OK;
+        r->AC_CPDResEnergyTransferMode_isUsed     = 1u;
+        r->BPT_AC_CPDResEnergyTransferMode_isUsed = 0u;
+        struct iso20_ac_AC_CPDResEnergyTransferModeType* m = &r->AC_CPDResEnergyTransferMode;
+        set_rational(&m->EVSEMaximumChargePower, 0, 22000);
+        m->EVSEMaximumChargePower_L2_isUsed = 0u;
+        m->EVSEMaximumChargePower_L3_isUsed = 0u;
+        set_rational(&m->EVSEMinimumChargePower, 0, 100);
+        m->EVSEMinimumChargePower_L2_isUsed = 0u;
+        m->EVSEMinimumChargePower_L3_isUsed = 0u;
+        set_rational(&m->EVSENominalFrequency, 0, 50);
+        m->MaximumPowerAsymmetry_isUsed    = 0u;
+        m->EVSEPowerRampLimitation_isUsed  = 0u;
+        m->EVSEPresentActivePower_isUsed    = 0u;
+        m->EVSEPresentActivePower_L2_isUsed = 0u;
+        m->EVSEPresentActivePower_L3_isUsed = 0u;
+
+    } else {
+        fprintf(stderr, "cbv2g-iso20: unknown AC fragment element '%s'\n", elem);
+        return 1;
+    }
+
+    uint8_t out[OUT_BUF_SIZE];
+    exi_bitstream_t stream;
+    exi_bitstream_init(&stream, out, sizeof(out), 0, NULL);
+    int error = encode_iso20_ac_exiFragment(&stream, &frag);
+    if (error != 0) {
+        fprintf(stderr, "cbv2g-iso20: AC fragment encode failed with error %d\n", error);
+        return 3;
+    }
+    print_hex(out, exi_bitstream_get_length(&stream));
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <Set>_<vector>  (Set: Common, DC, AC)\n", argv[0]);
@@ -1059,7 +1278,12 @@ int main(int argc, char** argv) {
     }
     const char* arg = argv[1];
 
-    if (strncmp(arg, "Fragment_", 9) == 0) return do_fragment(arg + 9);
+    if (strncmp(arg, "Fragment_", 9) == 0) {
+        const char* elem = arg + 9;
+        if (strncmp(elem, "DC_", 3) == 0) return do_fragment_dc(elem + 3);
+        if (strncmp(elem, "AC_", 3) == 0) return do_fragment_ac(elem + 3);
+        return do_fragment(elem);
+    }
     if (strncmp(arg, "Common_", 7) == 0) return do_common(arg + 7);
     if (strncmp(arg, "DC_", 3) == 0)     return do_dc(arg);       /* DC vector names already start with DC_ */
     if (strncmp(arg, "AC_", 3) == 0)     return do_ac(arg);       /* AC vector names already start with AC_ */

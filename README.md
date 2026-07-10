@@ -189,28 +189,30 @@ with the right header on the way out. Covered: correct mapping per set, a clean 
 (not an exception) on a bad header, a payload-length mismatch, or an unrecognised payload
 type (e.g. ACDP's 0x8005 — reachable on the wire, out of scope here).
 
-### XMLDSig (CommonMessages)
+### XMLDSig (CommonMessages, DC, AC)
 
-`CommonMessages`' fragment codecs are enabled for the exact six elements cbV2G/cbexigen's
-`iso20_exiFragment` union carries (`include/cbv2g/iso_20/iso20_CommonMessages_Datatypes.h`):
-`AbsolutePriceSchedule`, `CertificateInstallationReq`, `MeteringConfirmationReq`,
-`PnC_AReqAuthorizationMode`, `SignedInstallationData`, `SignedInfo` — global **and** local
-element declarations both resolve correctly, no generator changes needed. Two of the six are
-byte-verified against a rebuilt `tools/cbv2g-ref/cbv2g_iso20` (`Fragment_SignedInfo`,
-`Fragment_MeteringConfirmationReq` in `main_iso20.c`): `SignedInfo` and a full
-`MeteringConfirmationReq` (header + `SignedMeteringData`, -20 folds the header into the
-signed element itself — unlike -2, there's no clean header/body split, so a verifier must
-zero the header's `Signature` slot back out before re-fragment-encoding to check a
-reference digest). The other four (`AbsolutePriceSchedule`, `CertificateInstallationReq`,
-`PnC_AReqAuthorizationMode`, `SignedInstallationData`) generate but aren't vector-verified
-yet.
+Each of the three -20 message-set assemblies has its fragment codecs enabled for exactly the
+elements cbV2G/cbexigen's own `exiFragment` union carries for that set (ground truth taken
+straight from `include/cbv2g/iso_20/iso20_{CommonMessages,DC,AC}_Datatypes.h`, not guessed) —
+global **and** local element declarations both resolve correctly, no generator changes needed:
 
-`Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.V2GSignature` is the -20 analogue of -2's
-`V2GSignature`: same two-level EXI-fragment digest scheme, but the stronger suite —
-SHA-512 digests, ECDSA over NIST P-521 (secp521r1), a 132-byte (66+66) raw `r‖s`
-`SignatureValue`. Sign → encode → decode → verify is covered end to end
-(`Iso15118_20SignatureTests`); the ECDSA path itself is self-checked only (see below).
-Ed448 (also in -20's signature-suite options) is out of scope — .NET has no built-in Ed448.
+- **CommonMessages** (6 elements, all byte-verified against a rebuilt
+  `tools/cbv2g-ref/cbv2g_iso20`): `SignedInfo`, `MeteringConfirmationReq`,
+  `CertificateInstallationReq`, `PnC_AReqAuthorizationMode`, `SignedInstallationData`,
+  `AbsolutePriceSchedule`. `MeteringConfirmationReq` folds the header (including the
+  `Signature` slot) into the signed element itself — unlike -2, there's no clean header/body
+  split, so a verifier must zero that slot back out before re-fragment-encoding to check a
+  reference digest.
+- **DC** and **AC** (2 elements each, both byte-verified): `SignedInfo` and
+  `DC_ChargeParameterDiscoveryRes` / `AC_ChargeParameterDiscoveryRes` respectively.
+
+Every set has its own `V2GSignature` (`Vanaheimr.V2G.Exi.Iso15118_20.{CommonMessages,DC,AC}`):
+identical two-level EXI-fragment digest scheme to -2's, but the stronger suite — SHA-512
+digests, ECDSA over NIST P-521 (secp521r1), a 132-byte (66+66) raw `r‖s` `SignatureValue`.
+Sign → encode → decode → verify is covered for all three (end to end for CommonMessages;
+sign/verify/tamper/wrong-key for DC/AC); the ECDSA path itself is self-checked only (see
+below). Ed448 (also in -20's signature-suite options) is out of scope — .NET has no built-in
+Ed448.
 
 ## What this prototype still does NOT do
 
@@ -219,12 +221,7 @@ Ed448 (also in -20's signature-suite options) is out of scope — .NET has no bu
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
 - External cross-validation of signatures against a second toolchain (EXIficient/Josev) —
-  both -2's ECDSA-P256 and -20's ECDSA-P521 paths are only self-checked so far.
-- Four of CommonMessages' six fragment elements (`AbsolutePriceSchedule`,
-  `CertificateInstallationReq`, `PnC_AReqAuthorizationMode`, `SignedInstallationData`)
-  aren't byte-diffed against cbV2G yet (only generated + self-consistent).
-- DC/AC XMLDSig fragment codecs (only CommonMessages' `ExiFragmentElements` is wired up so
-  far — DC/AC would need their own signable-element inventory first).
+  -2's ECDSA-P256 and all three -20 sets' ECDSA-P521 paths are only self-checked so far.
 - WPT and ACDP message sets (explicitly out of Phase-4 scope).
 
 ## Next milestones
@@ -232,11 +229,9 @@ Ed448 (also in -20's signature-suite options) is out of scope — .NET has no bu
 Phase 0 (SupportedAppProtocol wire conformance vs cbV2G), Phase 1 (EXI primitive layer),
 Phase 2 (source generator on the real ISO 15118-2 schema set), and Phase 3 part A (all 17
 -2 message pairs + self-checked XMLDSig) are **done**. Phase 4 (ISO 15118-20 multi-schema
-codecs, V2GTP dispatch, CommonMessages XMLDSig) is well underway — see `docs/roadmap.md`
-and `docs/prompts/phase4.md`. Next:
+codecs, V2GTP dispatch, XMLDSig for all three sets) is essentially complete bar external
+cross-validation — see `docs/roadmap.md` and `docs/prompts/phase4.md`. Next:
 
-1. Byte-diff the remaining four CommonMessages fragment elements against cbV2G; decide
-   whether DC/AC need their own signable-element sets.
-2. External cross-validation (EXIficient and/or Josev) for both -2 and -20 signatures.
-3. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
+1. External cross-validation (EXIficient and/or Josev) for both -2 and -20 signatures.
+2. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
    Josev.

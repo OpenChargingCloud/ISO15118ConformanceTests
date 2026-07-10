@@ -12,6 +12,9 @@
          CommonMessages/-2/AppProtocol codecs (all from the same source generator). -->
     <ExiGeneratedNamespace>Vanaheimr.V2G.Iso15118_20.AC.Generated</ExiGeneratedNamespace>
     <ExiCodecClassName>AcCodec</ExiCodecClassName>
+    <!-- Signable elements (XMLDSig, §8.5.3) — the exact set cbV2G/cbexigen's iso20_ac_exiFragment
+         union carries (see include/cbv2g/iso_20/iso20_AC_Datatypes.h). -->
+    <ExiFragmentElements>AC_ChargeParameterDiscoveryRes SignedInfo</ExiFragmentElements>
 
     <!-- Write the generated codec to obj/ for inspection. -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
