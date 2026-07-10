@@ -169,11 +169,11 @@ internal sealed class CodecEmitter
             baseClause = $" : {sp.BaseRecordName}({baseArgs})";
         }
 
-        // Parameters: optional attributes first (nullable), then the content particles.
+        // Parameters: attributes first (nullable unless use="required"), then the content particles.
         var parameters = new List<string>();
         if (sp.Attributes is not null)
             foreach (var a in sp.Attributes)
-                parameters.Add($"{a.CSharpType}? {a.FieldName}");
+                parameters.Add(a.Required ? $"{a.CSharpType} {a.FieldName}" : $"{a.CSharpType}? {a.FieldName}");
         if (sp.SimpleContent is not null)
             parameters.Add($"{sp.SimpleContentType} Value");
         foreach (var c in sp.Children)

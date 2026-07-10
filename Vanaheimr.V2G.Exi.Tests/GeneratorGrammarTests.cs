@@ -322,9 +322,9 @@ public class GeneratorGrammarTests
         Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
         var src = r.GeneratedSource;
 
-        // Record: required attr + mutually-exclusive nullable alternatives (field names are
-        // PascalCased by the generator).
-        Assert.That(src, Does.Contain("string? Name"));
+        // Record: required attr (non-nullable) + mutually-exclusive nullable alternatives (field
+        // names are PascalCased by the generator).
+        Assert.That(src, Does.Contain("string Name"));
         Assert.That(src, Does.Contain("bool? BoolValue"));
         Assert.That(src, Does.Contain("int? IntValue"));
         Assert.That(src, Does.Contain("string? StringValue"));
@@ -361,7 +361,7 @@ public class GeneratorGrammarTests
         Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
         var src = r.GeneratedSource;
 
-        Assert.That(src, Does.Contain("string? Id"));
+        Assert.That(src, Does.Contain("string Id"));
         Assert.That(src, Does.Contain("byte[] Value"));
         Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // AT(required attribute)"));
         Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // CONTENT event"));
@@ -781,7 +781,7 @@ public class GeneratorGrammarTests
         Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
         var src = r.GeneratedSource;
 
-        Assert.That(src, Does.Contain("string? Algorithm"));
+        Assert.That(src, Does.Contain("string Algorithm"));
         Assert.That(src, Does.Contain("byte[]? ANY"));
         var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
         Assert.That(errors, Is.Empty, string.Join("\n", errors.Select(e => e.ToString())));
