@@ -113,12 +113,28 @@ internal sealed class CodecEmitter
             _sb.AppendLine("{");
             for (int i = 0; i < e.Members.Count; i++)
             {
-                _sb.Append("    ").Append(e.Members[i]).Append(" = ").Append(i);
+                // Wire encoding is by ordinal position (ValueEncoding.EnumIndex), not the XML string
+                // value, so it's safe to sanitize the C# identifier — needed for enumerations like
+                // WPT_PowerClassType's "MF-WPT1" (a hyphen isn't a valid identifier character).
+                _sb.Append("    ").Append(SanitizeIdentifier(e.Members[i])).Append(" = ").Append(i);
                 _sb.AppendLine(i + 1 < e.Members.Count ? "," : "");
             }
             _sb.AppendLine("}");
             _sb.AppendLine();
         }
+    }
+
+    /// <summary>Replaces any character invalid in a C# identifier with <c>_</c>, and prefixes with
+    /// <c>_</c> if the result would otherwise start with a digit.</summary>
+    private static string SanitizeIdentifier(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "_";
+        var chars = s.ToCharArray();
+        for (int i = 0; i < chars.Length; i++)
+            if (!(char.IsLetterOrDigit(chars[i]) || chars[i] == '_'))
+                chars[i] = '_';
+        var result = new string(chars);
+        return char.IsDigit(result[0]) ? "_" + result : result;
     }
 
     // -----------------------------------------------------------------------
@@ -606,10 +622,13 @@ internal sealed class CodecEmitter
 
                 case ChildShape.BoundedRepeating when c.ListMin > 0:
                     // Followed by exactly one more particle (AuthorizationSetupResType's
-                    // AuthorizationServices -> CertificateInstallationService shape): the list's own
-                    // "continue vs move on" code doubles as the tail's SE/dispatch.
+                    // AuthorizationServices -> CertificateInstallationService shape, required tail; or
+                    // WPT_LF_TransmitterDataType's TxSpecData -> TxPackageSpecData?, optional tail):
+                    // the list's own "continue vs move on" code doubles as the tail's SE/dispatch. An
+                    // optional tail that's the sequence's last particle writes its own closing EE (no
+                    // fallback from the caller); a required tail never does (same as always).
                     EmitEncodeRequiredRepeatingWithTail(c, children[i + 1], indent);
-                    terminated = false;
+                    terminated = children[i + 1].Shape != ChildShape.RequiredSingle && i + 2 == children.Count;
                     i += 2;
                     break;
 
@@ -655,6 +674,15 @@ internal sealed class CodecEmitter
     /// </summary>
     private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> children, int s, int e, string indent)
     {
+        int listIdx = -1;
+        for (int p = s; p < e; p++)
+            if (children[p].Shape == ChildShape.BoundedRepeating) { listIdx = p; break; }
+        if (listIdx >= 0 && listIdx != e - 1)
+        {
+            EmitEncodeOptionalRunWithMidList(children, s, listIdx, e, indent);
+            return;
+        }
+
         int m = e - s;                       // number of optional particles in the run
         bool endsElement = e == children.Count;
         ChildPlan? term = endsElement ? null : children[e];
@@ -741,6 +769,134 @@ internal sealed class CodecEmitter
             _sb.Append(body).AppendLine("    break;");
             _sb.Append(body).AppendLine("}");
         }
+
+        _sb.Append(inner).AppendLine("}");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>
+    /// A run where a <c>minOccurs=0</c> bounded-repeating list sits mid-run (not the run's last
+    /// particle), followed only by plain optional particles ending the sequence. cbexigen's actual
+    /// generated grammar for this shape (verified byte-for-byte against
+    /// <c>encode_iso20_wpt_WPT_FinePositioningReqType</c>, states 178-180 of
+    /// <c>iso20_WPT_Encoder.c</c>) is surprising on two counts:
+    /// <list type="number">
+    ///   <item>the "zero items yet" state offers only [start first item] or [element EE] — the
+    ///   particles <em>after</em> the list are unreachable unless at least one list item is written
+    ///   first, unlike a normal optional run where every later particle is always reachable;</item>
+    ///   <item>the list is hard-capped at <b>2</b> items here, regardless of its schema
+    ///   <c>maxOccurs</c> (16 for <c>VendorSpecificDataContainer</c>) — cbexigen only unrolls two
+    ///   positions before it must hand off to the following particles' states, so a third item can
+    ///   never be represented in this position. This looks like a genuine cbexigen limitation for
+    ///   this narrow construct (a trailing bounded list gets a real self-looping state instead, see
+    ///   <see cref="EmitEncodeRepeatingItems"/>), not a deliberate design choice — but matching it is
+    ///   the only way to stay byte-exact with the reference encoder, which is this repo's actual
+    ///   interop target.</item>
+    /// </list>
+    /// Only a single suffix of plain optional particles is supported (no choice/substitution/wildcard,
+    /// no particles before the list in the same run) — the only shape ISO 15118-20 WPT actually needs
+    /// (<c>WPT_FinePositioningReqType</c>/<c>ResType</c>, <c>WPT_FinePositioningSetupReqType</c>/<c>ResType</c>).
+    /// </summary>
+    private void EmitEncodeOptionalRunWithMidList(IReadOnlyList<ChildPlan> children, int s, int listIdx, int e, string indent)
+    {
+        if (listIdx != s)
+            throw new NotSupportedException(
+                $"repeating element '{children[listIdx].FieldName}' mid-run: particles before it in the same run are not supported.");
+        var list = children[listIdx];
+        if (list.ListMin != 0)
+            throw new NotSupportedException(
+                $"repeating element '{list.FieldName}' mid-run must be optional (minOccurs=0).");
+        if (e != children.Count)
+            throw new NotSupportedException(
+                $"repeating element '{list.FieldName}' mid-run must be followed only by particles ending the sequence " +
+                "(a required/repeating terminator after it is not supported).");
+
+        var suffix = new List<ChildPlan>();
+        for (int p = listIdx + 1; p < e; p++)
+        {
+            if (children[p].Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
+                throw new NotSupportedException(
+                    $"repeating element '{list.FieldName}' mid-run: suffix particle '{children[p].FieldName}' " +
+                    "must be a plain optional element (choice/substitution suffixes are not supported).");
+            suffix.Add(children[p]);
+        }
+        int suffixTotal = 0;
+        foreach (var sp in suffix) suffixTotal += ProductionCount(sp);
+
+        string listExpr = "msg." + list.FieldName;
+        int id = _runCounter++;
+        string st = "_ost" + id, done = "_odone" + id;
+        string inner = indent + "    ";
+        string body = inner + "    ";
+        string br = body + "    ";
+
+        _sb.Append(indent).Append("if (").Append(listExpr).AppendLine(".Count > 2)");
+        _sb.Append(indent).Append("    throw new ArgumentOutOfRangeException(nameof(msg), \"")
+           .Append(list.FieldName).AppendLine(": cbV2G's grammar for this position caps this list at 2 items.\");");
+        _sb.Append(indent).Append("int ").Append(st).AppendLine(" = 0;");
+        _sb.Append(indent).Append("bool ").Append(done).AppendLine(" = false;");
+        _sb.Append(indent).Append("while (!").Append(done).AppendLine(")");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(inner).Append("switch (").Append(st).AppendLine(")");
+        _sb.Append(inner).AppendLine("{");
+
+        // State 0: zero items written — [start item 0] or [element EE]. The suffix is unreachable here.
+        int w0 = BitsForChoices(1 + 1 + 1);
+        _sb.Append(body).AppendLine("case 0:");
+        _sb.Append(body).AppendLine("{");
+        _sb.Append(br).Append("if (").Append(listExpr).AppendLine(".Count > 0)");
+        _sb.Append(br).AppendLine("{");
+        _sb.Append(br).Append("    w.WriteBits(0, ").Append(w0).Append(");   // ").AppendLine(list.FieldName);
+        EmitEncodeContent(list, listExpr + "[0]", br + "    ");
+        _sb.Append(br).Append("    ").Append(st).AppendLine(" = 1;");
+        _sb.Append(br).AppendLine("}");
+        _sb.Append(br).AppendLine("else");
+        _sb.Append(br).AppendLine("{");
+        _sb.Append(br).Append("    w.WriteBits(1, ").Append(w0).AppendLine(");   // element EE");
+        _sb.Append(br).Append("    ").Append(done).AppendLine(" = true;");
+        _sb.Append(br).AppendLine("}");
+        _sb.Append(body).AppendLine("    break;");
+        _sb.Append(body).AppendLine("}");
+
+        // State 1: one item written — [start item 1 (loop)], each suffix particle, or [element EE].
+        int w1 = BitsForChoices(1 + suffixTotal + 1 + 1);
+        _sb.Append(body).AppendLine("case 1:");
+        _sb.Append(body).AppendLine("{");
+        _sb.Append(br).Append("if (").Append(listExpr).AppendLine(".Count > 1)");
+        _sb.Append(br).AppendLine("{");
+        _sb.Append(br).Append("    w.WriteBits(0, ").Append(w1).Append(");   // ").AppendLine(list.FieldName);
+        EmitEncodeContent(list, listExpr + "[1]", br + "    ");
+        _sb.Append(br).Append("    ").Append(st).AppendLine(" = 2;");
+        _sb.Append(br).AppendLine("}");
+        {
+            // Choosing a suffix particle still needs the outer element's own closing EE afterwards —
+            // cbexigen inserts a dedicated one-bit-EE state after it (verified: WPT_FinePositioningReqType
+            // grammar id 2), unlike this repo's normal optional-run terminator (where the *caller*
+            // appends that EE, since it only fires when the whole run reports itself un-terminated).
+            string afterSuffix = "w.WriteBits(0, 1);   // element EE\n" + br + done + " = true;";
+            bool first = false;   // continues the if/else-if chain opened by the loop branch above
+            int code = 1;
+            foreach (var sp in suffix)
+                code = EmitEncodeRunParticle(sp, code, w1, ref first, br, afterSuffix);
+            EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + w1 + ");   // element EE", done);
+        }
+        _sb.Append(body).AppendLine("    break;");
+        _sb.Append(body).AppendLine("}");
+
+        // State 2: two items written — the list is capped here; each suffix particle, or [element EE].
+        int w2 = BitsForChoices(suffixTotal + 1 + 1);
+        _sb.Append(body).AppendLine("case 2:");
+        _sb.Append(body).AppendLine("{");
+        {
+            string afterSuffix = "w.WriteBits(0, 1);   // element EE\n" + br + done + " = true;";
+            bool first = true;
+            int code = 0;
+            foreach (var sp in suffix)
+                code = EmitEncodeRunParticle(sp, code, w2, ref first, br, afterSuffix);
+            EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + w2 + ");   // element EE", done);
+        }
+        _sb.Append(body).AppendLine("    break;");
+        _sb.Append(body).AppendLine("}");
 
         _sb.Append(inner).AppendLine("}");
         _sb.Append(indent).AppendLine("}");
@@ -940,15 +1096,22 @@ internal sealed class CodecEmitter
 
     /// <summary>
     /// The exclusive end of the optional run starting at <paramref name="i"/>: consecutive
-    /// <see cref="ChildShape.OptionalSingle"/> particles, plus one trailing optional
-    /// (<c>minOccurs=0</c>) bounded-repeating list — its first item is a production of the run's
-    /// grammar state and further items loop (cbexigen model, verified against SalesTariffEntryType).
+    /// <see cref="ChildShape.OptionalSingle"/> particles, plus one optional (<c>minOccurs=0</c>)
+    /// bounded-repeating list — its first item is a production of the run's grammar state and
+    /// further items loop (cbexigen model, verified against SalesTariffEntryType) — followed by
+    /// more consecutive <see cref="ChildShape.OptionalSingle"/> particles, if the list isn't last
+    /// (WPT_FinePositioningReqType's <c>VendorSpecificDataContainer, WPT_LF_DataPackageList?</c>;
+    /// see <see cref="EmitEncodeOptionalRunWithMidList"/> for the quirky grammar this produces).
     /// </summary>
     private static int RunEnd(IReadOnlyList<ChildPlan> children, int i)
     {
         int j = i;
         while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
-        if (j < children.Count && children[j].Shape == ChildShape.BoundedRepeating && children[j].ListMin == 0) j++;
+        if (j < children.Count && children[j].Shape == ChildShape.BoundedRepeating && children[j].ListMin == 0)
+        {
+            j++;
+            while (j < children.Count && children[j].Shape == ChildShape.OptionalSingle) j++;
+        }
         return j;
     }
 
@@ -1082,47 +1245,96 @@ internal sealed class CodecEmitter
     }
 
     /// <summary>
-    /// A required (<c>minOccurs≥1</c>) bounded-repeating list (only <c>maxOccurs=2</c> is supported
-    /// here — the only shape observed) followed by exactly one more particle
-    /// (ISO 15118-20's <c>AuthorizationSetupResType.AuthorizationServices</c> →
-    /// <c>CertificateInstallationService</c>): the list's own "continue vs move on" event code is
-    /// shared with the tail's own SE/dispatch — verified against cbV2G's
-    /// <c>iso20_AuthorizationSetupResType</c> grammar (state 270: <c>{continue=0, tail-SE=1}</c>,
-    /// 2 bits; state 271, list at max: <c>{tail-SE=0}</c>, 1 bit, unconditional).
+    /// A required (<c>minOccurs≥1</c>) bounded-repeating list followed by exactly one more particle,
+    /// either required (ISO 15118-20's <c>AuthorizationSetupResType.AuthorizationServices</c> →
+    /// <c>CertificateInstallationService</c>, <c>maxOccurs=2</c>, unrolled two-position grammar
+    /// verified against cbV2G) or optional (<c>WPT_LF_TransmitterDataType.TxSpecData</c> →
+    /// <c>TxPackageSpecData?</c>, <c>maxOccurs=255</c>, a true self-loop).
+    /// <para>
+    /// <b>The optional-tail, large-<c>maxOccurs</c> shape is an independent design, not reverse
+    /// engineered</b>: cbV2G/cbexigen's own generated encoder for this exact construct
+    /// (<c>encode_iso20_wpt_WPT_LF_TransmitterDataType</c>, states 81/82) cannot represent it —
+    /// empirically confirmed to fail with <c>EXI_ERROR__UNKNOWN_EVENT_CODE</c> even at the schema's
+    /// own required minimum of 2 <c>TxSpecData</c> items (state 82 loops forever with no exit
+    /// production). With no working reference to diff against, this emits the straightforward
+    /// schema-informed-non-strict-grammar reading instead: first item unconditional, then a true
+    /// self-loop offering [loop, tail, element EE] every iteration.
+    /// </para>
     /// </summary>
     private void EmitEncodeRequiredRepeatingWithTail(ChildPlan list, ChildPlan tail, string indent)
     {
-        if (list.ListMax != 2)
+        bool tailRequired = tail.Shape == ChildShape.RequiredSingle;
+        if (!tailRequired && tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
             throw new NotSupportedException(
-                $"required repeating '{list.FieldName}' (maxOccurs={list.ListMax}) followed by more " +
-                "content: only maxOccurs=2 is supported yet.");
+                $"required repeating '{list.FieldName}': an optional choice/substitution tail is not supported.");
 
         string listExpr = "msg." + list.FieldName;
-        _sb.Append(indent).Append("if (").Append(listExpr).Append(".Count is < 1 or > 2) throw new ArgumentOutOfRangeException(nameof(msg));")
-           .AppendLine();
-        _sb.Append(indent).Append("w.WriteBits(0, 1);   // SE(").Append(list.FieldName).AppendLine(")");
+
+        if (list.ListMax == 2)
+        {
+            // The original, cbV2G-verified unrolled-two-position grammar (required tail only —
+            // the only combination this shape has ever needed).
+            if (!tailRequired)
+                throw new NotSupportedException(
+                    $"required repeating '{list.FieldName}' (maxOccurs=2): an optional tail is not supported " +
+                    "for the unrolled two-position grammar (only observed with a required tail so far).");
+            _sb.Append(indent).Append("if (").Append(listExpr).AppendLine(".Count is < 1 or > 2) throw new ArgumentOutOfRangeException(nameof(msg));");
+            _sb.Append(indent).Append("w.WriteBits(0, 1);   // SE(").Append(list.FieldName).AppendLine(")");
+            EmitEncodeContent(list, listExpr + "[0]", indent);
+
+            int tailProd = ProductionCount(tail);
+            int widthMid = BitsForChoices((1 + tailProd) + 1);   // continue + tail productions + phantom
+            int widthMax = BitsForChoices(tailProd + 1);         // list at max: only the tail remains
+
+            _sb.Append(indent).Append("if (").Append(listExpr).AppendLine(".Count > 1)");
+            _sb.Append(indent).AppendLine("{");
+            _sb.Append(indent).Append("    w.WriteBits(0, ").Append(widthMid).Append(");   // ")
+               .Append(list.FieldName).AppendLine(" (loop)");
+            EmitEncodeContent(list, listExpr + "[1]", indent + "    ");
+            EmitEncodeRequiredTailDispatch(tail, 0, widthMax, indent + "    ");
+            _sb.Append(indent).AppendLine("}");
+            _sb.Append(indent).AppendLine("else");
+            _sb.Append(indent).AppendLine("{");
+            EmitEncodeRequiredTailDispatch(tail, 1, widthMid, indent + "    ");
+            _sb.Append(indent).AppendLine("}");
+            return;
+        }
+
+        // True self-loop (own design, see class doc above): item 0 unconditional, then every further
+        // item shares its event code with [tail-start] and, for an optional tail, [element EE].
+        _sb.Append(indent).Append("if (").Append(listExpr).Append(".Count is < ").Append(Math.Max(1, list.ListMin))
+           .Append(" or > ").Append(list.ListMax).AppendLine(") throw new ArgumentOutOfRangeException(nameof(msg));");
+        _sb.Append(indent).Append("w.WriteBits(0, 1);   // SE(").Append(list.FieldName).AppendLine(") first");
         EmitEncodeContent(list, listExpr + "[0]", indent);
 
-        if (tail.Shape != ChildShape.RequiredSingle)
-            throw new NotSupportedException(
-                $"required repeating '{list.FieldName}': the following particle '{tail.FieldName}' " +
-                "must be required (an optional tail is not supported yet).");
+        int prod = ProductionCount(tail);
+        int width = BitsForChoices(1 + prod + (tailRequired ? 0 : 1) + 1);   // loop + tail (+ EE) + reserved
 
-        int tailProd = ProductionCount(tail);
-        int widthMid = BitsForChoices((1 + tailProd) + 1);   // continue + tail productions + phantom
-        int widthMax = BitsForChoices(tailProd + 1);         // list at max: only the tail remains
-
-        _sb.Append(indent).Append("if (").Append(listExpr).AppendLine(".Count > 1)");
+        _sb.Append(indent).Append("for (int ci = 1; ci < ").Append(listExpr).AppendLine(".Count; ci++)");
         _sb.Append(indent).AppendLine("{");
-        _sb.Append(indent).Append("    w.WriteBits(0, ").Append(widthMid).Append(");   // ")
-           .Append(list.FieldName).AppendLine(" (loop)");
-        EmitEncodeContent(list, listExpr + "[1]", indent + "    ");
-        EmitEncodeRequiredTailDispatch(tail, 0, widthMax, indent + "    ");
+        _sb.Append(indent).Append("    w.WriteBits(0, ").Append(width).Append(");   // ").Append(list.FieldName).AppendLine(" (loop)");
+        EmitEncodeContent(list, listExpr + "[ci]", indent + "    ");
+        _sb.Append(indent).AppendLine("}");
+
+        if (tailRequired)
+        {
+            EmitEncodeRequiredTailDispatch(tail, 1, width, indent);
+            return;
+        }
+
+        // Optional tail: this is the sequence's last particle, so unlike the required-tail case, this
+        // construct must close the element itself — the caller only adds the fallback EE when it
+        // wasn't already written here (see the call site's `terminated` computation).
+        string presence = tail.IsCSharpNullable ? $"msg.{tail.FieldName}.HasValue" : $"msg.{tail.FieldName} is not null";
+        string accessor = tail.IsCSharpNullable ? $"msg.{tail.FieldName}!.Value" : $"msg.{tail.FieldName}!";
+        _sb.Append(indent).Append("if (").Append(presence).AppendLine(")");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(indent).Append("    w.WriteBits(1, ").Append(width).Append(");   // ").AppendLine(tail.FieldName);
+        EmitEncodeContent(tail, accessor, indent + "    ");
+        _sb.Append(indent).AppendLine("    w.WriteBits(0, 1);   // element EE");
         _sb.Append(indent).AppendLine("}");
         _sb.Append(indent).AppendLine("else");
-        _sb.Append(indent).AppendLine("{");
-        EmitEncodeRequiredTailDispatch(tail, 1, widthMid, indent + "    ");
-        _sb.Append(indent).AppendLine("}");
+        _sb.Append(indent).Append("    w.WriteBits(2, ").Append(width).AppendLine(");   // element EE");
     }
 
     /// <summary>
@@ -1164,13 +1376,15 @@ internal sealed class CodecEmitter
         _sb.Append(indent).AppendLine("}");
     }
 
-    /// <summary>Decode side of <see cref="EmitEncodeRequiredRepeatingWithTail"/>.</summary>
+    /// <summary>Decode side of <see cref="EmitEncodeRequiredRepeatingWithTail"/> — see there for the
+    /// two supported shapes (cbV2G-verified <c>maxOccurs=2</c>/required-tail unroll, and the
+    /// independently-designed true self-loop for a larger <c>maxOccurs</c>/optional tail).</summary>
     private void EmitDecodeRequiredRepeatingWithTail(ChildPlan list, ChildPlan tail, string indent, List<string> locals)
     {
-        if (list.ListMax != 2)
+        bool tailRequired = tail.Shape == ChildShape.RequiredSingle;
+        if (!tailRequired && tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
             throw new NotSupportedException(
-                $"required repeating '{list.FieldName}' (maxOccurs={list.ListMax}) followed by more " +
-                "content: only maxOccurs=2 is supported yet.");
+                $"required repeating '{list.FieldName}': an optional choice/substitution tail is not supported.");
 
         string local = "_" + list.FieldName;
         _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(list.CSharpType).AppendLine(">();");
@@ -1181,31 +1395,74 @@ internal sealed class CodecEmitter
 
         if (tail.Value is ValueEncoding.InlineChoice ic)
             DeclareInlineChoiceLocals(ic, indent, locals);
-        else
+        else if (tailRequired)
         {
             _sb.Append(indent).Append(tail.CSharpType).Append(" _").Append(tail.FieldName).AppendLine(" = default!;");
             locals.Add("_" + tail.FieldName);
         }
+        else
+        {
+            _sb.Append(indent).Append(tail.CSharpType).Append("? _").Append(tail.FieldName).AppendLine(" = default;");
+            locals.Add("_" + tail.FieldName);
+        }
 
-        int tailProd = ProductionCount(tail);
-        int widthMid = BitsForChoices((1 + tailProd) + 1);
-        int widthMax = BitsForChoices(tailProd + 1);
+        if (list.ListMax == 2)
+        {
+            if (!tailRequired)
+                throw new NotSupportedException(
+                    $"required repeating '{list.FieldName}' (maxOccurs=2): an optional tail is not supported " +
+                    "for the unrolled two-position grammar (only observed with a required tail so far).");
 
-        _sb.Append(indent).Append("switch (r.ReadBits(").Append(widthMid).AppendLine("))");
+            int tailProd = ProductionCount(tail);
+            int widthMid = BitsForChoices((1 + tailProd) + 1);
+            int widthMax = BitsForChoices(tailProd + 1);
+
+            _sb.Append(indent).Append("switch (r.ReadBits(").Append(widthMid).AppendLine("))");
+            _sb.Append(indent).AppendLine("{");
+            _sb.Append(indent).AppendLine("    case 0u:");
+            _sb.Append(indent).AppendLine("    {");
+            EmitDecodeContent(list, local + "1", indent + "        ", declare: true);
+            _sb.Append(indent).Append("        ").Append(local).Append(".Add(").Append(local).AppendLine("1);");
+            _sb.Append(indent).Append("        switch (r.ReadBits(").Append(widthMax).AppendLine("))");
+            _sb.Append(indent).AppendLine("        {");
+            EmitDecodeRunParticle(tail, 0, indent + "            ", "");
+            _sb.Append(indent).AppendLine("            default: throw new InvalidDataException(\"invalid event code\");");
+            _sb.Append(indent).AppendLine("        }");
+            _sb.Append(indent).AppendLine("        break;");
+            _sb.Append(indent).AppendLine("    }");
+            EmitDecodeRunParticle(tail, 1, indent + "    ", "");
+            _sb.Append(indent).AppendLine("    default: throw new InvalidDataException(\"invalid event code\");");
+            _sb.Append(indent).AppendLine("}");
+            return;
+        }
+
+        // True self-loop mirroring the encode side: every iteration reads [loop, tail, (EE)].
+        int prod = ProductionCount(tail);
+        int width = BitsForChoices(1 + prod + (tailRequired ? 0 : 1) + 1);
+        int id = _runCounter++;
+        string doneVar = "_rrtdone" + id;
+
+        _sb.Append(indent).Append("bool ").Append(doneVar).AppendLine(" = false;");
+        _sb.Append(indent).Append("while (!").Append(doneVar).AppendLine(")");
         _sb.Append(indent).AppendLine("{");
-        _sb.Append(indent).AppendLine("    case 0u:");
+        _sb.Append(indent).Append("    uint rc = r.ReadBits(").Append(width).AppendLine(");");
+        _sb.Append(indent).AppendLine("    if (rc == 0)");
         _sb.Append(indent).AppendLine("    {");
-        EmitDecodeContent(list, local + "1", indent + "        ", declare: true);
-        _sb.Append(indent).Append("        ").Append(local).Append(".Add(").Append(local).AppendLine("1);");
-        _sb.Append(indent).Append("        switch (r.ReadBits(").Append(widthMax).AppendLine("))");
+        _sb.Append(indent).Append("        if (").Append(local).Append(".Count >= ").Append(list.ListMax)
+           .AppendLine(") throw new InvalidDataException(\"invalid repeating-element event code\");");
+        EmitDecodeContent(list, local + "n", indent + "        ", declare: true);
+        _sb.Append(indent).Append("        ").Append(local).Append(".Add(").Append(local).AppendLine("n);");
+        _sb.Append(indent).AppendLine("    }");
+        _sb.Append(indent).AppendLine("    else");
+        _sb.Append(indent).AppendLine("    {");
+        _sb.Append(indent).Append("        switch (rc)").AppendLine();
         _sb.Append(indent).AppendLine("        {");
-        EmitDecodeRunParticle(tail, 0, indent + "            ", "");
+        EmitDecodeRunParticle(tail, 1, indent + "            ", doneVar + " = true;");
+        if (!tailRequired)
+            _sb.Append(indent).Append("            case ").Append(1 + prod).Append("u: ").Append(doneVar).AppendLine(" = true; break;");
         _sb.Append(indent).AppendLine("            default: throw new InvalidDataException(\"invalid event code\");");
         _sb.Append(indent).AppendLine("        }");
-        _sb.Append(indent).AppendLine("        break;");
         _sb.Append(indent).AppendLine("    }");
-        EmitDecodeRunParticle(tail, 1, indent + "    ", "");
-        _sb.Append(indent).AppendLine("    default: throw new InvalidDataException(\"invalid event code\");");
         _sb.Append(indent).AppendLine("}");
     }
 
@@ -1393,7 +1650,7 @@ internal sealed class CodecEmitter
 
                 case ChildShape.BoundedRepeating when c.ListMin > 0:
                     EmitDecodeRequiredRepeatingWithTail(c, children[i + 1], indent, locals);
-                    terminated = false;
+                    terminated = children[i + 1].Shape != ChildShape.RequiredSingle && i + 2 == children.Count;
                     i += 2;
                     break;
 
@@ -1436,6 +1693,15 @@ internal sealed class CodecEmitter
     /// substitution member, the required terminator, or the element EE).</summary>
     private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> children, int s, int e, string indent, List<string> locals)
     {
+        int listIdx = -1;
+        for (int p = s; p < e; p++)
+            if (children[p].Shape == ChildShape.BoundedRepeating) { listIdx = p; break; }
+        if (listIdx >= 0 && listIdx != e - 1)
+        {
+            EmitDecodeOptionalRunWithMidList(children, s, listIdx, e, indent, locals);
+            return;
+        }
+
         int m = e - s;
         bool endsElement = e == children.Count;
         ChildPlan? term = endsElement ? null : children[e];
@@ -1539,6 +1805,140 @@ internal sealed class CodecEmitter
 
             _sb.Append(ca).AppendLine("default: throw new InvalidDataException(\"invalid optional-run event code\");");
             _sb.Append(sw).AppendLine("}");
+            _sb.Append(sw).AppendLine("break;");
+            _sb.Append(body).AppendLine("}");
+        }
+
+        _sb.Append(inner).AppendLine("}");
+        _sb.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>Decode side of <see cref="EmitEncodeOptionalRunWithMidList"/> — see there for the
+    /// grammar shape (states 0/1/2, the 2-item cap) this mirrors.</summary>
+    private void EmitDecodeOptionalRunWithMidList(
+        IReadOnlyList<ChildPlan> children, int s, int listIdx, int e, string indent, List<string> locals)
+    {
+        if (listIdx != s)
+            throw new NotSupportedException(
+                $"repeating element '{children[listIdx].FieldName}' mid-run: particles before it in the same run are not supported.");
+        var list = children[listIdx];
+        if (list.ListMin != 0)
+            throw new NotSupportedException(
+                $"repeating element '{list.FieldName}' mid-run must be optional (minOccurs=0).");
+        if (e != children.Count)
+            throw new NotSupportedException(
+                $"repeating element '{list.FieldName}' mid-run must be followed only by particles ending the sequence " +
+                "(a required/repeating terminator after it is not supported).");
+
+        var suffix = new List<ChildPlan>();
+        for (int p = listIdx + 1; p < e; p++)
+        {
+            if (children[p].Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
+                throw new NotSupportedException(
+                    $"repeating element '{list.FieldName}' mid-run: suffix particle '{children[p].FieldName}' " +
+                    "must be a plain optional element (choice/substitution suffixes are not supported).");
+            suffix.Add(children[p]);
+        }
+        int suffixTotal = 0;
+        foreach (var sp in suffix) suffixTotal += ProductionCount(sp);
+
+        _sb.Append(indent).Append("var _").Append(list.FieldName)
+           .Append(" = new List<").Append(list.CSharpType).AppendLine(">();");
+        locals.Add("_" + list.FieldName);
+        foreach (var sp in suffix)
+        {
+            _sb.Append(indent).Append(sp.CSharpType).Append("? _").Append(sp.FieldName).AppendLine(" = default;");
+            locals.Add("_" + sp.FieldName);
+        }
+
+        string local = "_" + list.FieldName;
+        int id = _runCounter++;
+        string st = "_ist" + id, done = "_idone" + id;
+        string inner = indent + "    ";
+        string body = inner + "    ";
+        string sw = body + "    ";
+        string ca = sw + "    ";
+
+        _sb.Append(indent).Append("int ").Append(st).AppendLine(" = 0;");
+        _sb.Append(indent).Append("bool ").Append(done).AppendLine(" = false;");
+        _sb.Append(indent).Append("while (!").Append(done).AppendLine(")");
+        _sb.Append(indent).AppendLine("{");
+        _sb.Append(inner).Append("switch (").Append(st).AppendLine(")");
+        _sb.Append(inner).AppendLine("{");
+
+        // State 0: zero items yet — [start item 0] or [element EE].
+        int w0 = BitsForChoices(1 + 1 + 1);
+        _sb.Append(body).AppendLine("case 0:");
+        _sb.Append(body).AppendLine("{");
+        _sb.Append(sw).Append("uint c0 = r.ReadBits(").Append(w0).AppendLine(");");
+        _sb.Append(sw).AppendLine("switch (c0)");
+        _sb.Append(sw).AppendLine("{");
+        _sb.Append(ca).AppendLine("case 0u:");
+        _sb.Append(ca).AppendLine("{");
+        string it0 = "_it" + _tmpCounter++;
+        EmitDecodeContent(list, it0, ca + "    ", declare: true);
+        _sb.Append(ca).Append("    ").Append(local).Append(".Add(").Append(it0).AppendLine(");");
+        _sb.Append(ca).Append("    ").Append(st).AppendLine(" = 1;");
+        _sb.Append(ca).AppendLine("    break;");
+        _sb.Append(ca).AppendLine("}");
+        _sb.Append(ca).Append("case 1u: ").Append(done).AppendLine(" = true; break;");
+        _sb.Append(ca).AppendLine("default: throw new InvalidDataException(\"invalid optional-run event code\");");
+        _sb.Append(sw).AppendLine("}");
+        _sb.Append(sw).AppendLine("break;");
+        _sb.Append(body).AppendLine("}");
+
+        // State 1: one item written — [start item 1 (loop)], each suffix particle, or [element EE].
+        int w1 = BitsForChoices(1 + suffixTotal + 1 + 1);
+        _sb.Append(body).AppendLine("case 1:");
+        _sb.Append(body).AppendLine("{");
+        _sb.Append(sw).Append("uint c1 = r.ReadBits(").Append(w1).AppendLine(");");
+        _sb.Append(sw).AppendLine("switch (c1)");
+        _sb.Append(sw).AppendLine("{");
+        _sb.Append(ca).AppendLine("case 0u:");
+        _sb.Append(ca).AppendLine("{");
+        string it1 = "_it" + _tmpCounter++;
+        EmitDecodeContent(list, it1, ca + "    ", declare: true);
+        _sb.Append(ca).Append("    ").Append(local).Append(".Add(").Append(it1).AppendLine(");");
+        _sb.Append(ca).Append("    ").Append(st).AppendLine(" = 2;");
+        _sb.Append(ca).AppendLine("    break;");
+        _sb.Append(ca).AppendLine("}");
+        {
+            int code = 1;
+            foreach (var sp in suffix)
+                code = EmitDecodeRunParticle(sp, code, ca, st + " = 3;");
+            _sb.Append(ca).Append("case ").Append(code).Append("u: ").Append(done).AppendLine(" = true; break;");
+        }
+        _sb.Append(ca).AppendLine("default: throw new InvalidDataException(\"invalid optional-run event code\");");
+        _sb.Append(sw).AppendLine("}");
+        _sb.Append(sw).AppendLine("break;");
+        _sb.Append(body).AppendLine("}");
+
+        // State 2: two items written (the list is capped here) — each suffix particle, or [element EE].
+        int w2 = BitsForChoices(suffixTotal + 1 + 1);
+        _sb.Append(body).AppendLine("case 2:");
+        _sb.Append(body).AppendLine("{");
+        _sb.Append(sw).Append("uint c2 = r.ReadBits(").Append(w2).AppendLine(");");
+        _sb.Append(sw).AppendLine("switch (c2)");
+        _sb.Append(sw).AppendLine("{");
+        {
+            int code = 0;
+            foreach (var sp in suffix)
+                code = EmitDecodeRunParticle(sp, code, ca, st + " = 3;");
+            _sb.Append(ca).Append("case ").Append(code).Append("u: ").Append(done).AppendLine(" = true; break;");
+        }
+        _sb.Append(ca).AppendLine("default: throw new InvalidDataException(\"invalid optional-run event code\");");
+        _sb.Append(sw).AppendLine("}");
+        _sb.Append(sw).AppendLine("break;");
+        _sb.Append(body).AppendLine("}");
+
+        // State 3: a suffix particle was just decoded — nothing left to read but the element EE
+        // (only reachable when there IS a suffix; harmless unreachable case otherwise).
+        if (suffix.Count > 0)
+        {
+            _sb.Append(body).AppendLine("case 3:");
+            _sb.Append(body).AppendLine("{");
+            _sb.Append(sw).AppendLine("r.ReadBits(1);   // element EE");
+            _sb.Append(sw).Append(done).AppendLine(" = true;");
             _sb.Append(sw).AppendLine("break;");
             _sb.Append(body).AppendLine("}");
         }

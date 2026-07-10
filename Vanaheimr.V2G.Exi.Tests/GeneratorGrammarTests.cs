@@ -998,11 +998,14 @@ public class GeneratorGrammarTests
         Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
     }
 
+    // ---- construct #16 (ISO 15118-20 WPT): required repeating list, maxOccurs>2, true self-loop ----
+
     [Test]
-    public void RequiredRepeatingList_MaxOccurs3_FollowedByMoreContent_IsRejected()
+    public void RequiredRepeatingList_MaxOccurs3_RequiredTail_SelfLoops()
     {
-        // Only the maxOccurs=2 bounded-unroll shape is supported for a non-last repeating list —
-        // maxOccurs>=3 (self-looping) with a tail is a documented gap.
+        // maxOccurs>2 can no longer be rejected: WPT_LF_TransmitterDataType needs a true self-loop
+        // (TxSpecData, minOccurs=2/maxOccurs=255, -> TxPackageSpecData?). This case (required tail)
+        // mirrors AuthorizationSetupResType's shape but past the old maxOccurs=2 unroll limit.
         const string xsd = """
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
                        xmlns="urn:test:rt2" targetNamespace="urn:test:rt2">
@@ -1016,7 +1019,91 @@ public class GeneratorGrammarTests
             </xs:schema>
             """;
         var r = GeneratorHarness.Run(("rt2.xsd", xsd));
-        Assert.That(r.Diagnostics, Is.Not.Empty);
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // First item: unconditional 1-bit SE, same as the maxOccurs=2 shape.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // SE(Services)"));
+        // True self-loop (a for-loop over the rest, not an unrolled per-position state): {loop=0, Flag=1}.
+        Assert.That(src, Does.Contain("for (int ci = 1; ci <"));
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Services (loop)"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    [Test]
+    public void RequiredRepeatingList_LargeMaxOccurs_OptionalTail_SelfLoopsWithEEAlternative()
+    {
+        // WPT_LF_TransmitterDataType's actual shape: TxSpecData (min=2,max=255) -> TxPackageSpecData?
+        // (optional tail, the sequence's last particle). No working cbV2G reference exists for this —
+        // cbexigen's own generated encoder for this exact type fails at runtime with
+        // EXI_ERROR__UNKNOWN_EVENT_CODE even at minOccurs=2 (verified empirically against a standalone
+        // build of libcbv2g) — so this is an independent, spec-following design: every loop iteration
+        // offers [loop, tail-start, element EE].
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:rt3" targetNamespace="urn:test:rt3">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="Items" type="xs:unsignedByte" minOccurs="2" maxOccurs="255"/>
+                  <xs:element name="Tail" type="xs:unsignedByte" minOccurs="0"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("rt3.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // SE(Items) first"));
+        // Loop state offers 3 productions (loop=0, Tail=1, EE=2) -> 2 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Items (loop)"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // Tail"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // element EE"));
+        // Choosing the tail still needs the outer element's own closing EE afterwards.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // element EE"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    // ---- construct #17 (ISO 15118-20 WPT): optional bounded-repeating list mid-run, capped at 2 ----
+
+    [Test]
+    public void OptionalBoundedList_MidRun_CappedAtTwoItems()
+    {
+        // WPT_FinePositioningReqType's actual shape: VendorSpecificDataContainer{0,16} ->
+        // WPT_LF_DataPackageList? (both optional, list not last). cbV2G's own generated grammar for
+        // this (iso20_WPT_Encoder.c states 178-180) hard-caps the list at 2 items regardless of its
+        // schema maxOccurs (16) and makes the suffix particle unreachable unless >=1 list item was
+        // written first — both verified byte-for-byte against that generated C source.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:ml1" targetNamespace="urn:test:ml1">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="Items" type="xs:unsignedByte" minOccurs="0" maxOccurs="16"/>
+                  <xs:element name="Tail" type="xs:unsignedByte" minOccurs="0"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("ml1.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        Assert.That(src, Does.Contain("cbV2G's grammar for this position caps this list at 2 items"));
+        // State 0 (no items yet): {start item 0 = 0, EE = 1}, 2 bits — Tail is unreachable here.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Items"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // element EE"));
+        // State 1 (1 item written): {loop=0, Tail=1, EE=2}.
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // Tail"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
     }
 
     // ---- construct #15 (ISO 15118-20): transitive substitution groups + concrete (non-abstract-
