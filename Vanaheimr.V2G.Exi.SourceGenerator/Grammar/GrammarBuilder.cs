@@ -39,10 +39,31 @@ internal abstract record ValueEncoding
     /// the abstract head element itself (cbexigen assigns it a production slot too).
     /// </summary>
     public sealed record SubstitutionChoice(int BitWidth, IReadOnlyList<SubstMember> Members) : ValueEncoding;
+
+    /// <summary>
+    /// An <c>xs:choice</c> nested inside a sequence (ISO 15118-20), flattened into the enclosing
+    /// state exactly like a substitution reference — but unlike substitution, each branch is its
+    /// OWN independent field in the record, not one polymorphic field (cbexigen models an inline
+    /// choice as N sibling <c>_isUsed</c>-flagged fields, verified against
+    /// <c>iso20_AuthorizationSetupResType</c>). <see cref="BitWidth"/> is only used for the
+    /// standalone dispatch (no surrounding optional run); the run machine sizes the shared state
+    /// itself via <c>ProductionCount</c>. Members keep XSD document order (not alphabetical —
+    /// verified against <c>SignedInstallationDataType</c>'s 3-member choice).
+    /// </summary>
+    public sealed record InlineChoice(int BitWidth, IReadOnlyList<InlineChoiceMember> Members) : ValueEncoding;
 }
 
 /// <summary>One production of a <see cref="ValueEncoding.SubstitutionChoice"/>.</summary>
 internal sealed record SubstMember(string ElementName, string CSharpTypeName, bool IsAbstractHead);
+
+/// <summary>One branch of a <see cref="ValueEncoding.InlineChoice"/> — an independent, always-nullable
+/// field in the enclosing record (only one branch is ever set).</summary>
+internal sealed record InlineChoiceMember(
+    string        ElementName,
+    string        FieldName,
+    string        CSharpType,
+    ValueEncoding Value,
+    bool          IsCSharpNullable);
 
 /// <summary>
 /// Per-child plan inside a sequence — combines the value encoding with the EXI
@@ -298,6 +319,26 @@ internal static class GrammarBuilder
         var children = new List<ChildPlan>();
         foreach (var el in particles)
         {
+            // An inline xs:choice nested in the sequence (ISO 15118-20): each branch resolves to its
+            // own independent (always-nullable) field, exactly like any other child element — cbexigen
+            // flattens the branches into the enclosing run's shared state (see ValueEncoding.InlineChoice).
+            if (el.InlineChoiceMembers is not null)
+            {
+                var members = new List<InlineChoiceMember>();
+                foreach (var mbr in el.InlineChoiceMembers)
+                {
+                    var (mbrCsType, mbrVal, mbrIsValueType) = ResolveElementType(mbr, schema, enums);
+                    members.Add(new InlineChoiceMember(mbr.Name, PascalCase(mbr.Name), mbrCsType, mbrVal, mbrIsValueType));
+                }
+                children.Add(new ChildPlan(
+                    FieldName       : el.Name,   // "$InlineChoice" — never dereferenced as msg.<FieldName>
+                    CSharpType      : "",
+                    IsCSharpNullable: false,
+                    Shape           : el.MinOccurs == 0 ? ChildShape.OptionalSingle : ChildShape.RequiredSingle,
+                    Value           : new ValueEncoding.InlineChoice(BitsForChoices(members.Count + 1), members)));
+                continue;
+            }
+
             // A repeating reference into an opaque namespace (SignatureType's Object): always absent
             // in ISO 15118-2, so it is modelled as an opaque optional single. While absent this is
             // byte-identical — its first-occurrence SE is one production of the enclosing state; the

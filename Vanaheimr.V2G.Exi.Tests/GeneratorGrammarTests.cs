@@ -787,6 +787,145 @@ public class GeneratorGrammarTests
         Assert.That(errors, Is.Empty, string.Join("\n", errors.Select(e => e.ToString())));
     }
 
+    // ---- construct #13 (ISO 15118-20): xs:choice nested inside a sequence ----
+    //
+    // Distinct from a root-level "whole content is a choice" complexType (already supported,
+    // ParameterType-style) and from a substitution-group reference: cbexigen models each branch of
+    // an inline choice as its OWN independent (always-nullable) field — N sibling _isUsed-flagged
+    // fields, not one polymorphic field — verified against cbV2G's iso20_AuthorizationSetupResType
+    // (state 272: 2 required branches, 2-bit width, no absence production) and
+    // iso20_SignedInstallationDataType (3 branches — 2 simple base64Binary, 1 complex — in
+    // DOCUMENT order, not alphabetical: SECP521=0, X448=1, TPM=2).
+
+    [Test]
+    public void StandaloneRequiredInlineChoice_TwoComplexBranches_NoPrecedingOptionals()
+    {
+        // AuthorizationSetupResType shape: two required leading elements, then a required trailing
+        // choice with no preceding optionals to flatten into — hits the standalone dispatch path
+        // directly (case ChildShape.RequiredSingle), not the optional-run machine.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:ic1" targetNamespace="urn:test:ic1">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="A" type="xs:unsignedInt"/>
+                  <xs:element name="B" type="xs:boolean"/>
+                  <xs:choice>
+                    <xs:element name="EIM_Mode" type="EimType"/>
+                    <xs:element name="PnC_Mode" type="PncType"/>
+                  </xs:choice>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="EimType">
+                <xs:sequence><xs:element name="X" type="xs:unsignedInt"/></xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="PncType">
+                <xs:sequence><xs:element name="Y" type="xs:unsignedInt"/></xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("ic1.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // Each branch is its own nullable field on T — not one polymorphic field.
+        Assert.That(src, Does.Contain("EimType? EIM_Mode"));
+        Assert.That(src, Does.Contain("PncType? PnC_Mode"));
+        // 2 branches + phantom = ceil(log2(3)) = 2 bits; no absence production (required choice).
+        Assert.That(src, Does.Contain("if (msg.EIM_Mode is not null)"));
+        Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // EIM_Mode"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // PnC_Mode"));
+        Assert.That(src, Does.Contain("else throw new ArgumentException(\"no choice alternative set\");"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    [Test]
+    public void OptionalInlineChoice_MixedSimpleAndComplexBranches_DocumentOrder()
+    {
+        // Dynamic_SEResControlModeType / SignedInstallationDataType shape combined: an optional
+        // trailing choice with 3 branches (2 simple base64Binary-like, 1 complex), preceded by other
+        // OPTIONAL siblings so it flattens into the SAME run/state as them. Event codes must follow
+        // DOCUMENT order (Alpha, Charlie, Bravo — deliberately non-alphabetical), matching cbV2G.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:ic2" targetNamespace="urn:test:ic2">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:element name="Opt1" type="xs:unsignedInt" minOccurs="0"/>
+                  <xs:choice minOccurs="0">
+                    <xs:element name="Alpha" type="xs:base64Binary"/>
+                    <xs:element name="Charlie" type="InnerType"/>
+                    <xs:element name="Bravo" type="xs:base64Binary"/>
+                  </xs:choice>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="InnerType">
+                <xs:sequence><xs:element name="Z" type="xs:unsignedInt"/></xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("ic2.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // 3 branches, each its own nullable field; simple branches use byte[], complex use the record.
+        Assert.That(src, Does.Contain("byte[]? Alpha"));
+        Assert.That(src, Does.Contain("InnerType? Charlie"));
+        Assert.That(src, Does.Contain("byte[]? Bravo"));
+        // State 0 (Opt1, Alpha, Charlie, Bravo, EE): 5 productions -> ceil(log2(6)) = 3 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 3);   // Opt1"));
+        // Reached after Opt1 present: state 1 (Alpha, Charlie, Bravo, EE): 4 -> ceil(log2(5)) = 3 bits.
+        // Document order (not alphabetical Bravo<Charlie): Alpha=0, Charlie=1, Bravo=2.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 3);   // Alpha"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 3);   // Charlie"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 3);   // Bravo"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
+    [Test]
+    public void InlineChoice_MoreThanOneChoiceInSequence_IsRejected()
+    {
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:ic3" targetNamespace="urn:test:ic3">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:choice><xs:element name="A" type="xs:unsignedInt"/><xs:element name="B" type="xs:unsignedInt"/></xs:choice>
+                  <xs:choice><xs:element name="C" type="xs:unsignedInt"/><xs:element name="D" type="xs:unsignedInt"/></xs:choice>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("ic3.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Not.Empty);
+    }
+
+    [Test]
+    public void InlineChoice_NotLastParticle_IsRejected()
+    {
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:ic4" targetNamespace="urn:test:ic4">
+              <xs:element name="root" type="T"/>
+              <xs:complexType name="T">
+                <xs:sequence>
+                  <xs:choice><xs:element name="A" type="xs:unsignedInt"/><xs:element name="B" type="xs:unsignedInt"/></xs:choice>
+                  <xs:element name="C" type="xs:unsignedInt"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("ic4.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Not.Empty);
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

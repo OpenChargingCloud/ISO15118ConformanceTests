@@ -56,6 +56,15 @@ internal sealed record XsdElement(
     /// typed element it simplifies to — with the element EE between them, so such an element counts
     /// as two productions when sizing a grammar state's event code.</summary>
     public bool IsWildcard { get; init; }
+
+    /// <summary>Non-null for the synthetic marker standing in for an inline <c>xs:choice</c>
+    /// particle nested in a <c>xs:sequence</c> (ISO 15118-20, e.g. <c>AuthorizationSetupResType</c>'s
+    /// trailing <c>EIM_.../PnC_...</c> choice) — as opposed to a substitution-group reference or a
+    /// whole-content root choice, both already modelled. Each entry is one <c>&lt;xs:element
+    /// name="..." type="..."/&gt;</c> child of the <c>&lt;xs:choice&gt;</c>, in document order (cbexigen
+    /// assigns event codes in document order, not alphabetically — verified against
+    /// <c>SignedInstallationDataType</c>'s 3-member choice, where the two orders diverge).</summary>
+    public IReadOnlyList<XsdElement>? InlineChoiceMembers { get; init; }
 }
 
 /// <summary>

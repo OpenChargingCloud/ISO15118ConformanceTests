@@ -178,6 +178,14 @@ internal sealed class CodecEmitter
             parameters.Add($"{sp.SimpleContentType} Value");
         foreach (var c in sp.Children)
         {
+            if (c.Value is ValueEncoding.InlineChoice ic)
+            {
+                // Each branch is its own independent (always-nullable) parameter — the wrapping
+                // ChildPlan itself is a bookkeeping marker only, never a real record field.
+                foreach (var m in ic.Members)
+                    parameters.Add($"{m.CSharpType}? {m.FieldName}");
+                continue;
+            }
             string typeText = c.Shape switch
             {
                 ChildShape.BoundedRepeating => $"IReadOnlyList<{c.CSharpType}>",
@@ -599,6 +607,8 @@ internal sealed class CodecEmitter
                 case ChildShape.RequiredSingle:
                     if (c.Value is ValueEncoding.SubstitutionChoice sc)
                         EmitEncodeSubstitution(c, sc);
+                    else if (c.Value is ValueEncoding.InlineChoice ic)
+                        EmitEncodeInlineChoiceStandalone(ic);
                     else
                     {
                         _sb.Append(indent).AppendLine("w.WriteBits(0, 1);   // SE");
@@ -708,7 +718,7 @@ internal sealed class CodecEmitter
             }
             else if (endsElement)
                 EmitEncodeRunTail(first, br, "w.WriteBits(" + code + ", " + width + ");   // element EE", done);
-            else if (term!.Value is ValueEncoding.SubstitutionChoice)
+            else if (term!.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
             {
                 code = EmitEncodeRunParticle(term, code, width, ref first, br, done + " = true;");
                 _sb.Append(br).Append("else throw new ArgumentException(\"no value set for ")
@@ -768,6 +778,27 @@ internal sealed class CodecEmitter
             return code;
         }
 
+        if (p.Value is ValueEncoding.InlineChoice ic)
+        {
+            // Each branch is its own independent field (cbexigen: N sibling _isUsed-flagged fields,
+            // not one polymorphic field as for a substitution reference) — see EmitEncodeInlineChoiceStandalone
+            // for the presence-check style this mirrors.
+            foreach (var mbr in ic.Members)
+            {
+                string maccessor = mbr.IsCSharpNullable ? $"msg.{mbr.FieldName}!.Value" : $"msg.{mbr.FieldName}!";
+                _sb.Append(indent).Append(first ? "if" : "else if")
+                   .Append(" (msg.").Append(mbr.FieldName).AppendLine(" is not null)");
+                _sb.Append(indent).AppendLine("{");
+                _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
+                   .Append(");   // ").AppendLine(mbr.ElementName);
+                EmitEncodeContent(AsChildPlan(mbr), maccessor, indent + "    ");
+                _sb.Append(indent).Append("    ").AppendLine(after);
+                _sb.Append(indent).AppendLine("}");
+                first = false; code++;
+            }
+            return code;
+        }
+
         string presence = p.IsCSharpNullable ? $"msg.{p.FieldName}.HasValue" : $"msg.{p.FieldName} is not null";
         string accessor = p.IsCSharpNullable ? $"msg.{p.FieldName}!.Value" : $"msg.{p.FieldName}!";
         _sb.Append(indent).Append(first ? "if" : "else if").Append(" (").Append(presence).AppendLine(")");
@@ -779,6 +810,28 @@ internal sealed class CodecEmitter
         _sb.Append(indent).AppendLine("}");
         first = false;
         return code + 1;
+    }
+
+    /// <summary>A required or optional inline <c>xs:choice</c> with no adjacent optional siblings to
+    /// flatten into (see <see cref="EmitEncodeRunParticle"/>/<see cref="EmitEncodeOptionalRun"/> for
+    /// that case): N sibling nullable fields, exactly one set; an n-bit code selects it, content
+    /// follows directly (no SE wrapper — the code IS the selector, cbexigen's flattened-choice model,
+    /// distinct from substitution-group's single polymorphic field).</summary>
+    private void EmitEncodeInlineChoiceStandalone(ValueEncoding.InlineChoice ic)
+    {
+        for (int i = 0; i < ic.Members.Count; i++)
+        {
+            var m = ic.Members[i];
+            string accessor = m.IsCSharpNullable ? $"msg.{m.FieldName}!.Value" : $"msg.{m.FieldName}!";
+            _sb.Append("        ").Append(i == 0 ? "if" : "else if")
+               .Append(" (msg.").Append(m.FieldName).AppendLine(" is not null)");
+            _sb.AppendLine("        {");
+            _sb.Append("            w.WriteBits(").Append(i).Append(", ").Append(ic.BitWidth)
+               .Append(");   // ").AppendLine(m.ElementName);
+            EmitEncodeContent(AsChildPlan(m), accessor, "            ");
+            _sb.AppendLine("        }");
+        }
+        _sb.AppendLine("        else throw new ArgumentException(\"no choice alternative set\");");
     }
 
     /// <summary>Emits the terminator (element EE, or a required simple/complex element) as either a
@@ -859,8 +912,15 @@ internal sealed class CodecEmitter
 
     private static int ProductionCount(ChildPlan c) =>
         c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count
+        : c.Value is ValueEncoding.InlineChoice ic ? ic.Members.Count
         : c.IsWildcardAny ? 2   // xs:any → generic wildcard event + typed element (cbexigen)
         : 1;
+
+    /// <summary>Wraps an <see cref="InlineChoiceMember"/> as a throwaway <see cref="ChildPlan"/> so it
+    /// can be fed through <see cref="EmitEncodeContent"/>/<see cref="EmitDecodeContent"/>, which only
+    /// ever read <c>Value</c> from the plan they're given.</summary>
+    private static ChildPlan AsChildPlan(InlineChoiceMember m) =>
+        new(m.FieldName, m.CSharpType, m.IsCSharpNullable, ChildShape.RequiredSingle, m.Value);
 
     /// <summary>
     /// The exclusive end of the optional run starting at <paramref name="i"/>: consecutive
@@ -1183,13 +1243,20 @@ internal sealed class CodecEmitter
 
                 case ChildShape.RequiredSingle:
                     if (c.Value is ValueEncoding.SubstitutionChoice sc)
+                    {
                         EmitDecodeSubstitution(c, local, sc);
+                        locals.Add(local);
+                    }
+                    else if (c.Value is ValueEncoding.InlineChoice ic)
+                    {
+                        EmitDecodeInlineChoiceStandalone(ic, locals);   // adds its own per-member locals
+                    }
                     else
                     {
                         _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE");
                         EmitDecodeContent(c, local, indent, declare: true);
+                        locals.Add(local);
                     }
-                    locals.Add(local);
                     terminated = false;
                     i++;
                     break;
@@ -1229,21 +1296,35 @@ internal sealed class CodecEmitter
         for (int p = s; p < e; p++)
         {
             var o = children[p];
-            if (o.Shape == ChildShape.BoundedRepeating)
+            if (o.Value is ValueEncoding.InlineChoice ico)
+                DeclareInlineChoiceLocals(ico, indent, locals);
+            else if (o.Shape == ChildShape.BoundedRepeating)
+            {
                 _sb.Append(indent).Append("var _").Append(o.FieldName)
                    .Append(" = new List<").Append(o.CSharpType).AppendLine(">();");
+                locals.Add("_" + o.FieldName);
+            }
             else
+            {
                 _sb.Append(indent).Append(o.CSharpType).Append("? _").Append(o.FieldName).AppendLine(" = default;");
-            locals.Add("_" + o.FieldName);
+                locals.Add("_" + o.FieldName);
+            }
         }
         if (term is not null)
         {
-            if (term.Shape == ChildShape.BoundedRepeating)
+            if (term.Value is ValueEncoding.InlineChoice ict)
+                DeclareInlineChoiceLocals(ict, indent, locals);
+            else if (term.Shape == ChildShape.BoundedRepeating)
+            {
                 _sb.Append(indent).Append("var _").Append(term.FieldName)
                    .Append(" = new List<").Append(term.CSharpType).AppendLine(">();");
+                locals.Add("_" + term.FieldName);
+            }
             else
+            {
                 _sb.Append(indent).Append(term.CSharpType).Append(" _").Append(term.FieldName).AppendLine(" = default!;");
-            locals.Add("_" + term.FieldName);
+                locals.Add("_" + term.FieldName);
+            }
         }
 
         int id = _runCounter++;
@@ -1356,6 +1437,20 @@ internal sealed class CodecEmitter
             }
             return code;
         }
+        if (p.Value is ValueEncoding.InlineChoice ic)
+        {
+            foreach (var mbr in ic.Members)
+            {
+                _sb.Append(indent).Append("case ").Append(code).AppendLine("u:");
+                _sb.Append(indent).AppendLine("{");
+                EmitDecodeContent(AsChildPlan(mbr), "_" + mbr.FieldName, indent + "    ", declare: false);
+                _sb.Append(indent).Append("    ").AppendLine(after);
+                _sb.Append(indent).AppendLine("    break;");
+                _sb.Append(indent).AppendLine("}");
+                code++;
+            }
+            return code;
+        }
 
         _sb.Append(indent).Append("case ").Append(code).AppendLine("u:");
         EmitDecodeContent(p, local, indent + "    ", declare: false);
@@ -1402,6 +1497,36 @@ internal sealed class CodecEmitter
         AppendReadValueExpr(c);
         _sb.AppendLine(";");
         _sb.Append(indent).AppendLine("r.ReadBits(1);   // child EE");
+    }
+
+    /// <summary>Declares one nullable local per branch of an inline choice (used whether the choice
+    /// is a plain optional-run member or the run's required terminator — every branch is
+    /// individually nullable regardless, since at most one is ever set).</summary>
+    private void DeclareInlineChoiceLocals(ValueEncoding.InlineChoice ic, string indent, List<string> locals)
+    {
+        foreach (var m in ic.Members)
+        {
+            _sb.Append(indent).Append(m.CSharpType).Append("? _").Append(m.FieldName).AppendLine(" = default;");
+            locals.Add("_" + m.FieldName);
+        }
+    }
+
+    /// <summary>Decode side of <see cref="EmitEncodeInlineChoiceStandalone"/>: declares one nullable
+    /// local per branch, reads the n-bit selector, and assigns the selected branch's decoded value.</summary>
+    private void EmitDecodeInlineChoiceStandalone(ValueEncoding.InlineChoice ic, List<string> locals)
+    {
+        DeclareInlineChoiceLocals(ic, "        ", locals);
+        _sb.Append("        switch (r.ReadBits(").Append(ic.BitWidth).AppendLine("))");
+        _sb.AppendLine("        {");
+        for (int i = 0; i < ic.Members.Count; i++)
+        {
+            var m = ic.Members[i];
+            _sb.Append("            case ").Append(i).AppendLine("u:");
+            EmitDecodeContent(AsChildPlan(m), "_" + m.FieldName, "                ", declare: false);
+            _sb.AppendLine("                break;");
+        }
+        _sb.AppendLine("            default: throw new InvalidDataException(\"unknown choice event code\");");
+        _sb.AppendLine("        }");
     }
 
     /// <summary>Decode side of <see cref="EmitEncodeSubstitution"/>: read the event code and

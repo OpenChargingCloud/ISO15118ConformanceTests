@@ -322,13 +322,61 @@ internal static class XsdReader
     /// <summary>Parses the <c>xs:element</c> children of a sequence/choice. An <c>xs:any</c> wildcard
     /// is modelled as a single trailing optional <c>ANY</c> element of type <c>base64Binary</c> —
     /// cbexigen's simplification of wildcard content (always absent for the ISO 15118 signature
-    /// subtree, which has no foreign content).</summary>
+    /// subtree, which has no foreign content). A trailing <c>xs:choice</c> (ISO 15118-20, e.g.
+    /// <c>AuthorizationSetupResType</c>'s EIM/PnC choice) is parsed as an inline-choice marker — see
+    /// <see cref="ParseInlineChoice"/>.</summary>
     private static List<XsdElement> ParseParticles(XElement container)
     {
         var els = container.Elements(Xs + "element").Select(ParseElement).ToList();
         if (container.Elements(Xs + "any").Any())
             els.Add(new XsdElement("ANY", "xs:base64Binary", 0, 1, null) { IsWildcard = true });
+
+        var choices = container.Elements(Xs + "choice").ToList();
+        if (choices.Count > 1)
+            throw new XsdReaderException(
+                "a sequence with more than one xs:choice particle is not supported yet.");
+        if (choices.Count == 1)
+        {
+            var choice = choices[0];
+            if (choice.ElementsAfterSelf(Xs + "element").Any() || choice.ElementsAfterSelf(Xs + "any").Any())
+                throw new XsdReaderException(
+                    "xs:choice inside a sequence must be the last particle (only trailing inline choices are supported).");
+            els.Add(ParseInlineChoice(choice));
+        }
         return els;
+    }
+
+    /// <summary>
+    /// An <c>xs:choice</c> nested inside an <c>xs:sequence</c> (ISO 15118-20's grammar shape,
+    /// distinct from -2's root-level "whole content is a choice" and from a substitution-group
+    /// reference). cbexigen models each branch as its own independent optional field in the
+    /// enclosing record (verified against <c>iso20_AuthorizationSetupResType</c>'s
+    /// <c>EIM_ASResAuthorizationMode_isUsed</c> / <c>PnC_ASResAuthorizationMode_isUsed</c> bits) —
+    /// not a single polymorphic field as for a substitution group. Only direct
+    /// <c>&lt;xs:element name="..." type="..."/&gt;</c> branch members are supported (no <c>ref</c>,
+    /// no further nested particles); the branches keep document order (cbexigen assigns event codes
+    /// in document order, not alphabetically — verified against <c>SignedInstallationDataType</c>).
+    /// </summary>
+    private static XsdElement ParseInlineChoice(XElement choice)
+    {
+        int minOccurs = int.Parse((string?)choice.Attribute("minOccurs") ?? "1");
+        var members = new List<XsdElement>();
+        foreach (var e in choice.Elements())
+        {
+            if (e.Name != Xs + "element")
+                throw new XsdReaderException(
+                    $"xs:choice inside a sequence: only xs:element members are supported yet (found <{e.Name.LocalName}>).");
+            if (e.Attribute("ref") is not null)
+                throw new XsdReaderException(
+                    "xs:choice inside a sequence: xs:element ref is not supported yet (only name+type members).");
+            var name = Required(e, "name");
+            var typeRef = ResolveTypeName(e, (string?)e.Attribute("type")
+                ?? throw new XsdReaderException($"xs:choice member '{name}': must have a type attribute."));
+            members.Add(new XsdElement(name, typeRef, 1, 1, null));
+        }
+        if (members.Count == 0)
+            throw new XsdReaderException("xs:choice inside a sequence has no members.");
+        return new XsdElement("$InlineChoice", "", minOccurs, 1, null) { InlineChoiceMembers = members };
     }
 
     private static IReadOnlyList<XsdAttribute>? ParseAttributes(XElement container)
