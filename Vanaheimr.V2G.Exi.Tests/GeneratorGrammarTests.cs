@@ -1019,6 +1019,70 @@ public class GeneratorGrammarTests
         Assert.That(r.Diagnostics, Is.Not.Empty);
     }
 
+    // ---- construct #15 (ISO 15118-20): transitive substitution groups + concrete (non-abstract-
+    // element) heads whose members can extend EACH OTHER ----
+
+    [Test]
+    public void TransitiveSubstitutionGroup_ConcreteHeadElement_MostDerivedFirst()
+    {
+        // Mirrors DC's CLReqControlMode <- Scheduled_DC_CLReqControlMode <-
+        // BPT_Scheduled_DC_CLReqControlMode chain: Head's ELEMENT is not abstract="true" (only its
+        // TYPE is), and Gamma substitutes for Beta (a substitution-group member, not the root head) —
+        // both members and their inheritance chain must be discovered transitively.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:ts1" targetNamespace="urn:test:ts1">
+              <xs:element name="root" type="RootType"/>
+              <xs:complexType name="RootType">
+                <xs:sequence>
+                  <xs:element ref="Head"/>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:element name="Head" type="HeadType"/>
+              <xs:complexType name="HeadType" abstract="true"/>
+              <xs:element name="Alpha" type="AlphaType" substitutionGroup="Head"/>
+              <xs:complexType name="AlphaType">
+                <xs:complexContent><xs:extension base="HeadType">
+                  <xs:sequence><xs:element name="X" type="xs:unsignedInt"/></xs:sequence>
+                </xs:extension></xs:complexContent>
+              </xs:complexType>
+              <xs:element name="Beta" type="BetaType" substitutionGroup="Head"/>
+              <xs:complexType name="BetaType">
+                <xs:complexContent><xs:extension base="HeadType">
+                  <xs:sequence><xs:element name="Y" type="xs:unsignedInt"/></xs:sequence>
+                </xs:extension></xs:complexContent>
+              </xs:complexType>
+              <xs:element name="Gamma" type="GammaType" substitutionGroup="Beta"/>
+              <xs:complexType name="GammaType">
+                <xs:complexContent><xs:extension base="BetaType">
+                  <xs:sequence><xs:element name="Z" type="xs:unsignedInt"/></xs:sequence>
+                </xs:extension></xs:complexContent>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("ts1.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // Alphabetical wire order: Alpha=0, Beta=1, Gamma=2, Head(abstract, skipped)=3. 4 productions
+        // (incl. the abstract head's reserved slot) -> ceil(log2(4+1)) = 3 bits.
+        Assert.That(src, Does.Contain("w.WriteBits(0, 3);   // Alpha"));
+        Assert.That(src, Does.Contain("w.WriteBits(1, 3);   // Beta"));
+        Assert.That(src, Does.Contain("w.WriteBits(2, 3);   // Gamma"));
+        Assert.That(src, Does.Not.Contain("// Head"));   // abstract head never gets a runtime case
+
+        // Gamma extends Beta — its case must come BEFORE Beta's, or Beta's `case BetaType v` would
+        // shadow it (CS8120: a base-type pattern also matches derived instances).
+        int iGamma = src.IndexOf("case GammaType v:", System.StringComparison.Ordinal);
+        int iBeta = src.IndexOf("case BetaType v:", System.StringComparison.Ordinal);
+        Assert.That(iGamma, Is.GreaterThan(-1));
+        Assert.That(iBeta, Is.GreaterThan(-1));
+        Assert.That(iGamma, Is.LessThan(iBeta));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
     // ---- fail-loud: an unknown construct must still raise a diagnostic ----
 
     [Test]

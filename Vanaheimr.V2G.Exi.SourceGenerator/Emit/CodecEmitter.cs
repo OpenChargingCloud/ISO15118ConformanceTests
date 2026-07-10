@@ -769,22 +769,29 @@ internal sealed class CodecEmitter
 
         if (p.Value is ValueEncoding.SubstitutionChoice sc)
         {
-            foreach (var mbr in sc.Members)
+            // Same most-derived-first reordering as EmitEncodeSubstitution (see its comment) — the
+            // wire code is precomputed per member from its original position (code + offset) so
+            // reordering the if/else-if emission doesn't disturb it.
+            int baseCode = code;
+            var ordered = sc.Members
+                .Select((m, k) => (Member: m, WireCode: baseCode + k))
+                .Where(x => !x.Member.IsAbstractHead)
+                .OrderByDescending(x => InheritanceDepth(x.Member.CSharpTypeName));
+            foreach (var (mbr, wireCode) in ordered)
             {
-                if (mbr.IsAbstractHead) { code++; continue; }   // abstract — reserve the slot, no runtime branch
-                string v = "v" + code;   // unique per branch (pattern variables share the case scope)
+                string v = "v" + wireCode;   // unique per branch (pattern variables share the case scope)
                 _sb.Append(indent).Append(first ? "if" : "else if")
                    .Append(" (msg.").Append(p.FieldName).Append(" is ").Append(mbr.CSharpTypeName)
                    .Append(' ').Append(v).AppendLine(")");
                 _sb.Append(indent).AppendLine("{");
-                _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
+                _sb.Append(indent).Append("    w.WriteBits(").Append(wireCode).Append(", ").Append(width)
                    .Append(");   // ").AppendLine(mbr.ElementName);
                 _sb.Append(indent).Append("    Encode_").Append(mbr.CSharpTypeName).Append("(ref w, ").Append(v).AppendLine(");");
                 _sb.Append(indent).Append("    ").AppendLine(after);
                 _sb.Append(indent).AppendLine("}");
-                first = false; code++;
+                first = false;
             }
-            return code;
+            return code + sc.Members.Count;
         }
 
         if (p.Value is ValueEncoding.InlineChoice ic)
@@ -1008,13 +1015,21 @@ internal sealed class CodecEmitter
     {
         _sb.Append("        switch (msg.").Append(c.FieldName).AppendLine(")");
         _sb.AppendLine("        {");
-        for (int i = 0; i < sc.Members.Count; i++)
+        // C# type-pattern matching shadowing: ISO 15118-20 substitution members can extend EACH
+        // OTHER (not just the common abstract head, e.g. BPT_AC_CPDReqEnergyTransferModeType :
+        // AC_CPDReqEnergyTransferModeType) — a base type's `case` also matches derived instances, so
+        // it must come AFTER (not before) any of its own derived members' cases, or the derived
+        // case becomes unreachable (CS8120). Emit most-derived-first; the wire event code still
+        // comes from each member's original (alphabetical, cbV2G-verified) position in sc.Members.
+        var ordered = sc.Members
+            .Select((m, i) => (Member: m, Code: i))
+            .Where(x => !x.Member.IsAbstractHead)
+            .OrderByDescending(x => InheritanceDepth(x.Member.CSharpTypeName));
+        foreach (var (m, code) in ordered)
         {
-            var m = sc.Members[i];
-            if (m.IsAbstractHead) continue; // abstract — never a runtime instance
             _sb.Append("            case ").Append(m.CSharpTypeName).Append(" v:");
             _sb.AppendLine();
-            _sb.Append("                w.WriteBits(").Append(i).Append(", ").Append(sc.BitWidth)
+            _sb.Append("                w.WriteBits(").Append(code).Append(", ").Append(sc.BitWidth)
                .Append(");   // ").Append(m.ElementName).AppendLine();
             _sb.Append("                Encode_").Append(m.CSharpTypeName).AppendLine("(ref w, v);");
             _sb.AppendLine("                break;");
@@ -1022,6 +1037,22 @@ internal sealed class CodecEmitter
         _sb.Append("            default: throw new ArgumentException(\"Unsupported substitution member for ")
            .Append(c.FieldName).AppendLine("\");");
         _sb.AppendLine("        }");
+    }
+
+    /// <summary>How many <c>BaseRecordName</c> links separate <paramref name="typeName"/> from its
+    /// root (0 for a type with no base). Used to order substitution-choice <c>case</c>/<c>if</c>
+    /// branches most-derived-first, since C# type patterns on a base type also match derived
+    /// instances.</summary>
+    private int InheritanceDepth(string typeName)
+    {
+        int depth = 0;
+        var current = typeName;
+        while (_byRecordName.TryGetValue(current, out var sp) && sp.BaseRecordName is not null)
+        {
+            depth++;
+            current = sp.BaseRecordName;
+        }
+        return depth;
     }
 
     // -----------------------------------------------------------------------

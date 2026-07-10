@@ -462,9 +462,17 @@ internal static class GrammarBuilder
     }
 
     /// <summary>
-    /// If <paramref name="headName"/> names a substitution-group head (an abstract element
-    /// and/or one that others substitute), build the sorted production list. cbexigen includes
-    /// the head element itself as a production and sorts by element name.
+    /// If <paramref name="headName"/> names a substitution-group head (an abstract element and/or
+    /// one that others substitute), build the sorted production list. cbexigen includes the head
+    /// element itself as a production and sorts by element name. ISO 15118-20 chains substitution
+    /// groups — a member can itself be the head of further members (e.g. DC's
+    /// <c>CLReqControlMode &lt;- Scheduled_DC_CLReqControlMode &lt;- BPT_Scheduled_DC_CLReqControlMode</c>,
+    /// three levels deep) — so membership is collected transitively, not just one level; verified
+    /// against cbV2G's <c>iso20_dc_DC_ChargeLoopReqType</c> (5 flattened productions, alphabetical,
+    /// 3-bit width). ISO 15118-20 also has substitution heads whose <c>abstract</c> flag lives on the
+    /// TYPE, not the element declaration (<c>CLReqControlMode</c> itself) — a production's "abstract,
+    /// no runtime case" status is therefore decided per production by its OWN type, not by whether it
+    /// is literally the named head.
     /// </summary>
     private static (string BaseType, ValueEncoding.SubstitutionChoice Choice)? TryBuildSubstitution(
         XsdSchema schema, string headName)
@@ -473,7 +481,17 @@ internal static class GrammarBuilder
         if (head is null) return null;
 
         var productions = new List<XsdElement> { head };
-        productions.AddRange(schema.GlobalElements.Where(g => g.Ref is null && g.SubstitutionGroup == headName));
+        var frontier = new Queue<string>();
+        frontier.Enqueue(headName);
+        while (frontier.Count > 0)
+        {
+            var current = frontier.Dequeue();
+            foreach (var member in schema.GlobalElements.Where(g => g.Ref is null && g.SubstitutionGroup == current))
+            {
+                productions.Add(member);
+                frontier.Enqueue(member.Name);
+            }
+        }
 
         if (productions.Count <= 1 && !head.IsAbstract)
             return null; // a plain global element, not a substitution point
@@ -484,7 +502,7 @@ internal static class GrammarBuilder
             .Select(e => new SubstMember(
                 ElementName    : e.Name,
                 CSharpTypeName : PascalCase(StripPrefix(e.TypeRef)),
-                IsAbstractHead : e.Name == headName && head.IsAbstract))
+                IsAbstractHead : IsTypeAbstract(schema, e.TypeRef)))
             .ToList();
 
         // Standalone width: n member productions + the non-strict phantom -> ceil(log2(n+1)).
@@ -493,6 +511,9 @@ internal static class GrammarBuilder
         var choice = new ValueEncoding.SubstitutionChoice(BitsForChoices(members.Count + 1), members);
         return (PascalCase(StripPrefix(head.TypeRef)), choice);
     }
+
+    private static bool IsTypeAbstract(XsdSchema schema, string typeRef) =>
+        schema.ComplexTypes.TryGetValue(StripPrefix(typeRef), out var ct) && ct.IsAbstract;
 
     private static (string CSharpType, ValueEncoding Value, bool IsValueType) ResolveTypeRef(
         string typeRef, XsdSchema schema, List<EnumPlan> enums, string ownerName)

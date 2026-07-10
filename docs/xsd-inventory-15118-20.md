@@ -154,12 +154,26 @@ v2gci_ct:CLReqControlMode (abstract, Wurzel)
        <- BPT_Dynamic_DC_CLReqControlMode
 ```
 
-Unser bestehendes `TryBuildSubstitution` findet nur **direkte** Mitglieder eines Kopfes und
-setzt (soweit bisher nötig) einen abstrakten Kopf voraus. Für AC/DC muss das auf (a) konkrete
-Köpfe (der Kopf selbst ist eine wählbare Produktion, kein reiner Platzhalter) und (b)
-**transitive** Traversierung (Mitglied ist selbst wieder Kopf) erweitert werden — **zurückgestellt
-bis zum Aufbau der DC-/AC-Assemblies** (Konstrukt-für-Konstrukt-Prinzip; CommonMessages
-benötigt es nicht).
+**Umgesetzt.** `TryBuildSubstitution` traversiert jetzt per Breitensuche transitiv (Kopf → direkte
+Mitglieder → deren Mitglieder → …), sortiert das GESAMTE flache Ergebnis alphabetisch nach
+Elementname (bestätigt gegen cbV2Gs `iso20_dc_DC_ChargeLoopReqType`: 5 flache Produktionen,
+`BPT_Dynamic=0, BPT_Scheduled=1, [CLReqControlMode=2, abstrakt, kein Case], Dynamic=3,
+Scheduled=4`, 3 Bit). Ob eine Produktion einen echten Laufzeit-Case bekommt oder nur ihren
+Event-Code-Slot reserviert, entscheidet jetzt der **Typ** (`IsAbstractHead` prüft
+`schema.ComplexTypes[…].IsAbstract`), nicht mehr „ist dies wörtlich der benannte Kopf" — nötig,
+weil `CLReqControlMode` als Element selbst nicht abstrakt ist, nur sein Typ.
+
+**Zweiter Fallstrick dabei gefunden:** -20-Substitutionsmitglieder können sich **gegenseitig**
+erweitern (nicht nur den gemeinsamen abstrakten Kopf) — z. B. `BPT_AC_CPDReqEnergyTransferModeType
+: AC_CPDReqEnergyTransferModeType` (beide konkret). Da C#s Typ-Pattern-Matching (`case BaseType v`)
+auch abgeleitete Instanzen erfasst, macht ein zuerst emittierter Basis-Case den abgeleiteten Case
+unerreichbar (`CS8120`) — bei -2 kam das nie vor (dort erweitern alle Mitglieder nur den
+gemeinsamen abstrakten Kopf, nie sich gegenseitig). Fix: `EmitEncodeSubstitution` und
+`EmitEncodeRunParticle` emittieren die `case`/`if`-Zweige jetzt **am stärksten abgeleiteten
+Typ zuerst** (`InheritanceDepth` läuft die `BaseRecordName`-Kette hoch); der **Draht-Event-Code**
+bleibt dabei an die ursprüngliche (alphabetische) Position gebunden, unabhängig von der
+Emissionsreihenfolge. Der Decoder braucht keine Änderung (numerischer `switch`, kein
+Typ-Pattern-Matching, keine Schatten-Gefahr).
 
 ## Sonst: keine neuen Grundkonstrukte
 
@@ -206,6 +220,10 @@ bereits unterstützt. Kein `xs:any`/`mixed` außerhalb des ohnehin opaken `xmlds
    kompiliert. Unterwegs zwei weitere Konstrukte gefunden und geschlossen: die
    Bounded-Repeating-Liste-mit-Tail (`AuthorizationServices`) und der abstrakt-auf-Typ-statt-
    Element-Fallstrick (`CLReqControlMode`/`CLResControlMode`).
-3. ⏳ Byte-Vektoren CommonMessages gegen cbV2G — nächster Schritt.
-4. DC/AC-Projekte (inkl. transitiver Substitution), Vektoren, V2GTP-Dispatcher, Signatur-Suite
-   — Folge-Schritte, im Repo als offene Tasks nachvollziehbar.
+3. ✅ `Vanaheimr.V2G.Exi.Iso15118_20.DC`/`.AC`-Projekte: beide generieren + kompilieren.
+   Transitive/konkrete Substitution implementiert (bestätigt gegen cbV2Gs
+   `iso20_dc_DC_ChargeLoopReqType`, 5 flache Produktionen, 3 Bit); dabei den
+   Pattern-Matching-Schatten-Fallstrick gefunden und behoben (dritter neuer Fund dieser Session).
+4. ⏳ Byte-Vektoren für CommonMessages/DC/AC gegen cbV2G — nächster Schritt.
+5. V2GTP-Dispatcher, secp521r1/SHA-512-Signatur-Suite, `RationalNumber`-Helper — Folge-Schritte,
+   im Repo als offene Tasks nachvollziehbar.
