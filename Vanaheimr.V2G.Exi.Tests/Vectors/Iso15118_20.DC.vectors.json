@@ -15,6 +15,38 @@
     {
       "name": "DC_CableCheckRes",
       "expectedHex": "80 30 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00"
+    },
+    {
+      "name": "DC_ChargeParameterDiscoveryReq",
+      "expectedHex": "80 3c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 88 00 a0 9c 01 04 00 32 02 00 32 00 41 00 00 20 80 0f 40 30 40 06 40 08 80"
+    },
+    {
+      "name": "DC_ChargeParameterDiscoveryRes",
+      "expectedHex": "80 40 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 44 08 4c 3a 82 00 19 01 00 19 00 20 80 00 10 40 07 a0 18 20 03 20 04 40"
+    },
+    {
+      "name": "DC_PreChargeReq",
+      "expectedHex": "80 44 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 01 00 10 c0 60 80 09 00 30"
+    },
+    {
+      "name": "DC_PreChargeRes",
+      "expectedHex": "80 48 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 10 01 16 06 00"
+    },
+    {
+      "name": "DC_ChargeLoopReq",
+      "expectedHex": "80 34 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 81 00 12 00 64 64 00 3c 02 00 24 00 ca"
+    },
+    {
+      "name": "DC_ChargeLoopRes",
+      "expectedHex": "80 38 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 64 00 3b 02 00 23 80 c0 00 90"
+    },
+    {
+      "name": "DC_WeldingDetectionReq",
+      "expectedHex": "80 4c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00"
+    },
+    {
+      "name": "DC_WeldingDetectionRes",
+      "expectedHex": "80 50 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 10 00 0a 00"
     }
   ]
 }

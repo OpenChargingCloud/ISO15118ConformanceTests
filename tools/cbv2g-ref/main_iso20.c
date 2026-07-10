@@ -267,6 +267,11 @@ static int do_common(const char* v) {
 
 /* ---- DC ----------------------------------------------------------------------------------- */
 
+static void set_rational_dc(struct iso20_dc_RationalNumberType* r, int8_t exponent, int16_t value) {
+    r->Exponent = exponent;
+    r->Value = value;
+}
+
 static int do_dc(const char* v) {
     struct iso20_dc_exiDocument doc;
     memset(&doc, 0, sizeof(doc));
@@ -280,6 +285,111 @@ static int do_dc(const char* v) {
         set_header_dc(&doc.DC_CableCheckRes.Header);
         doc.DC_CableCheckRes.ResponseCode = iso20_dc_responseCodeType_OK;
         doc.DC_CableCheckRes.EVSEProcessing = iso20_dc_processingType_Finished;
+
+    } else if (strcmp(v, "DC_ChargeParameterDiscoveryReq") == 0) {
+        doc.DC_ChargeParameterDiscoveryReq_isUsed = 1u;
+        struct iso20_dc_DC_ChargeParameterDiscoveryReqType* q = &doc.DC_ChargeParameterDiscoveryReq;
+        set_header_dc(&q->Header);
+        q->BPT_DC_CPDReqEnergyTransferMode_isUsed = 0u;
+        q->DC_CPDReqEnergyTransferMode_isUsed      = 1u;
+        struct iso20_dc_DC_CPDReqEnergyTransferModeType* m = &q->DC_CPDReqEnergyTransferMode;
+        set_rational_dc(&m->EVMaximumChargePower,  0, 20000);
+        set_rational_dc(&m->EVMinimumChargePower,  0, 100);
+        set_rational_dc(&m->EVMaximumChargeCurrent, 0, 200);
+        set_rational_dc(&m->EVMinimumChargeCurrent, 0, 1);
+        set_rational_dc(&m->EVMaximumVoltage,      0, 500);
+        set_rational_dc(&m->EVMinimumVoltage,      0, 200);
+        m->TargetSOC_isUsed = 0u;
+
+    } else if (strcmp(v, "DC_ChargeParameterDiscoveryRes") == 0) {
+        doc.DC_ChargeParameterDiscoveryRes_isUsed = 1u;
+        struct iso20_dc_DC_ChargeParameterDiscoveryResType* r = &doc.DC_ChargeParameterDiscoveryRes;
+        set_header_dc(&r->Header);
+        r->ResponseCode = iso20_dc_responseCodeType_OK;
+        r->BPT_DC_CPDResEnergyTransferMode_isUsed = 0u;
+        r->DC_CPDResEnergyTransferMode_isUsed      = 1u;
+        struct iso20_dc_DC_CPDResEnergyTransferModeType* m = &r->DC_CPDResEnergyTransferMode;
+        set_rational_dc(&m->EVSEMaximumChargePower,  1, 15000);
+        set_rational_dc(&m->EVSEMinimumChargePower,  0, 100);
+        set_rational_dc(&m->EVSEMaximumChargeCurrent, 0, 200);
+        set_rational_dc(&m->EVSEMinimumChargeCurrent, 0, 1);
+        set_rational_dc(&m->EVSEMaximumVoltage,      0, 500);
+        set_rational_dc(&m->EVSEMinimumVoltage,      0, 200);
+        m->EVSEPowerRampLimitation_isUsed = 0u;
+
+    } else if (strcmp(v, "DC_PreChargeReq") == 0) {
+        doc.DC_PreChargeReq_isUsed = 1u;
+        struct iso20_dc_DC_PreChargeReqType* q = &doc.DC_PreChargeReq;
+        set_header_dc(&q->Header);
+        q->EVProcessing = iso20_dc_processingType_Finished;
+        set_rational_dc(&q->EVPresentVoltage, 0, 390);
+        set_rational_dc(&q->EVTargetVoltage,  0, 400);
+
+    } else if (strcmp(v, "DC_PreChargeRes") == 0) {
+        doc.DC_PreChargeRes_isUsed = 1u;
+        struct iso20_dc_DC_PreChargeResType* r = &doc.DC_PreChargeRes;
+        set_header_dc(&r->Header);
+        r->ResponseCode = iso20_dc_responseCodeType_OK;
+        set_rational_dc(&r->EVSEPresentVoltage, 0, 395);
+
+    } else if (strcmp(v, "DC_ChargeLoopReq") == 0) {
+        doc.DC_ChargeLoopReq_isUsed = 1u;
+        struct iso20_dc_DC_ChargeLoopReqType* q = &doc.DC_ChargeLoopReq;
+        set_header_dc(&q->Header);
+        q->DisplayParameters_isUsed = 0u;
+        q->MeterInfoRequested       = 0;
+        set_rational_dc(&q->EVPresentVoltage, 0, 400);
+        q->BPT_Dynamic_DC_CLReqControlMode_isUsed   = 0u;
+        q->BPT_Scheduled_DC_CLReqControlMode_isUsed = 0u;
+        q->CLReqControlMode_isUsed                  = 0u;
+        q->Dynamic_DC_CLReqControlMode_isUsed       = 0u;
+        q->Scheduled_DC_CLReqControlMode_isUsed     = 1u;
+        struct iso20_dc_Scheduled_DC_CLReqControlModeType* m = &q->Scheduled_DC_CLReqControlMode;
+        m->EVTargetEnergyRequest_isUsed  = 0u;
+        m->EVMaximumEnergyRequest_isUsed = 0u;
+        m->EVMinimumEnergyRequest_isUsed = 0u;
+        set_rational_dc(&m->EVTargetCurrent, 0, 120);
+        set_rational_dc(&m->EVTargetVoltage, 0, 400);
+        m->EVMaximumChargePower_isUsed  = 0u;
+        m->EVMinimumChargePower_isUsed  = 0u;
+        m->EVMaximumChargeCurrent_isUsed = 0u;
+        m->EVMaximumVoltage_isUsed      = 0u;
+        m->EVMinimumVoltage_isUsed      = 0u;
+
+    } else if (strcmp(v, "DC_ChargeLoopRes") == 0) {
+        doc.DC_ChargeLoopRes_isUsed = 1u;
+        struct iso20_dc_DC_ChargeLoopResType* r = &doc.DC_ChargeLoopRes;
+        set_header_dc(&r->Header);
+        r->ResponseCode = iso20_dc_responseCodeType_OK;
+        r->EVSEStatus_isUsed = 0u;
+        r->MeterInfo_isUsed  = 0u;
+        r->Receipt_isUsed    = 0u;
+        set_rational_dc(&r->EVSEPresentCurrent, 0, 118);
+        set_rational_dc(&r->EVSEPresentVoltage, 0, 398);
+        r->EVSEPowerLimitAchieved   = 0;
+        r->EVSECurrentLimitAchieved = 0;
+        r->EVSEVoltageLimitAchieved = 0;
+        r->BPT_Dynamic_DC_CLResControlMode_isUsed   = 0u;
+        r->BPT_Scheduled_DC_CLResControlMode_isUsed = 0u;
+        r->CLResControlMode_isUsed                  = 0u;
+        r->Dynamic_DC_CLResControlMode_isUsed       = 0u;
+        r->Scheduled_DC_CLResControlMode_isUsed     = 1u;
+        struct iso20_dc_Scheduled_DC_CLResControlModeType* m = &r->Scheduled_DC_CLResControlMode;
+        m->EVSEMaximumChargePower_isUsed  = 0u;
+        m->EVSEMinimumChargePower_isUsed  = 0u;
+        m->EVSEMaximumChargeCurrent_isUsed = 0u;
+        m->EVSEMaximumVoltage_isUsed       = 0u;
+
+    } else if (strcmp(v, "DC_WeldingDetectionReq") == 0) {
+        doc.DC_WeldingDetectionReq_isUsed = 1u;
+        set_header_dc(&doc.DC_WeldingDetectionReq.Header);
+        doc.DC_WeldingDetectionReq.EVProcessing = iso20_dc_processingType_Finished;
+
+    } else if (strcmp(v, "DC_WeldingDetectionRes") == 0) {
+        doc.DC_WeldingDetectionRes_isUsed = 1u;
+        set_header_dc(&doc.DC_WeldingDetectionRes.Header);
+        doc.DC_WeldingDetectionRes.ResponseCode = iso20_dc_responseCodeType_OK;
+        set_rational_dc(&doc.DC_WeldingDetectionRes.EVSEPresentVoltage, 0, 5);
 
     } else {
         fprintf(stderr, "cbv2g-iso20: unknown DC vector '%s'\n", v);
