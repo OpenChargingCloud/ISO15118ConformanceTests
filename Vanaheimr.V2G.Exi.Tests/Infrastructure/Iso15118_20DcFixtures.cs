@@ -94,6 +94,61 @@ public static class Iso15118_20DcFixtures
                             EVSEMaximumChargeCurrent: Rational(0, 195), EVSEMaximumVoltage: Rational(0, 500)))
                     .TryEncode(dest, out bytesWritten);
 
+            case "DC_ChargeLoopReq_BPTScheduled":
+                // Exercises the untested BPT_Scheduled_DC_CLReqControlMode branch
+                // (adds the discharge-power fields on top of Scheduled_DC_).
+                return new DC_ChargeLoopReq(Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        Rational(0, 400),
+                        new BPT_Scheduled_DC_CLReqControlModeType(
+                            EVTargetEnergyRequest: null, EVMaximumEnergyRequest: null, EVMinimumEnergyRequest: null,
+                            EVTargetCurrent: Rational(0, 120), EVTargetVoltage: Rational(0, 400),
+                            EVMaximumChargePower: null, EVMinimumChargePower: null, EVMaximumChargeCurrent: null,
+                            EVMaximumVoltage: null, EVMinimumVoltage: null,
+                            EVMaximumDischargePower: Rational(0, 11000), EVMinimumDischargePower: Rational(0, 100),
+                            EVMaximumDischargeCurrent: Rational(0, 110)))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "DC_ChargeLoopRes_BPTScheduled":
+                return new DC_ChargeLoopRes(Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null,
+                        EVSEPresentCurrent: Rational(0, 118), EVSEPresentVoltage: Rational(0, 398),
+                        EVSEPowerLimitAchieved: false, EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false,
+                        new BPT_Scheduled_DC_CLResControlModeType(
+                            EVSEMaximumChargePower: null, EVSEMinimumChargePower: null,
+                            EVSEMaximumChargeCurrent: null, EVSEMaximumVoltage: null,
+                            EVSEMaximumDischargePower: Rational(0, 10500), EVSEMinimumDischargePower: Rational(0, 100),
+                            EVSEMaximumDischargeCurrent: Rational(0, 105), EVSEMinimumVoltage: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "DC_ChargeLoopReq_BPTDynamic":
+                // Exercises the untested BPT_Dynamic_DC_CLReqControlMode branch.
+                return new DC_ChargeLoopReq(Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        Rational(0, 400),
+                        new BPT_Dynamic_DC_CLReqControlModeType(
+                            DepartureTime: null,
+                            EVTargetEnergyRequest: Rational(1, 4000), EVMaximumEnergyRequest: Rational(1, 6000),
+                            EVMinimumEnergyRequest: Rational(0, 0),
+                            EVMaximumChargePower: Rational(0, 20000), EVMinimumChargePower: Rational(0, 100),
+                            EVMaximumChargeCurrent: Rational(0, 200),
+                            EVMaximumVoltage: Rational(0, 500), EVMinimumVoltage: Rational(0, 200),
+                            EVMaximumDischargePower: Rational(0, 11000), EVMinimumDischargePower: Rational(0, 100),
+                            EVMaximumDischargeCurrent: Rational(0, 110),
+                            EVMaximumV2XEnergyRequest: null, EVMinimumV2XEnergyRequest: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "DC_ChargeLoopRes_BPTDynamic":
+                return new DC_ChargeLoopRes(Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null,
+                        EVSEPresentCurrent: Rational(0, 118), EVSEPresentVoltage: Rational(0, 398),
+                        EVSEPowerLimitAchieved: false, EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false,
+                        new BPT_Dynamic_DC_CLResControlModeType(
+                            DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                            EVSEMaximumChargePower: Rational(0, 19500), EVSEMinimumChargePower: Rational(0, 100),
+                            EVSEMaximumChargeCurrent: Rational(0, 195), EVSEMaximumVoltage: Rational(0, 500),
+                            EVSEMaximumDischargePower: Rational(0, 10500), EVSEMinimumDischargePower: Rational(0, 100),
+                            EVSEMaximumDischargeCurrent: Rational(0, 105), EVSEMinimumVoltage: Rational(0, 200)))
+                    .TryEncode(dest, out bytesWritten);
+
             case "DC_WeldingDetectionReq":
                 return new DC_WeldingDetectionReq(Header(), Processing.Finished).TryEncode(dest, out bytesWritten);
 

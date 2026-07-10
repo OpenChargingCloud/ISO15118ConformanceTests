@@ -23,6 +23,30 @@
     {
       "name": "AC_ChargeLoopRes",
       "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 89 00"
+    },
+    {
+      "name": "AC_ChargeLoopReq_BPTScheduled",
+      "expectedHex": "80 08 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 83 24 00 50 0f 8a 40 07 a0 e0 88 00 64 20"
+    },
+    {
+      "name": "AC_ChargeLoopRes_BPTScheduled",
+      "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 50 20 03 d0 70 80"
+    },
+    {
+      "name": "AC_ChargeLoopReq_Dynamic",
+      "expectedHex": "80 08 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 86 90 21 40 3e 08 10 f0 2e 04 00 00 02 00 3e 15 48 80 06 42 20 02 80 7c 88 00 00 20"
+    },
+    {
+      "name": "AC_ChargeLoopRes_Dynamic",
+      "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 78 40 07 a0 e1 00"
+    },
+    {
+      "name": "AC_ChargeLoopReq_BPTDynamic",
+      "expectedHex": "80 08 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 80 90 21 40 3e 08 10 f0 2e 04 00 00 02 00 3e 15 48 80 06 42 20 02 80 7c 88 00 00 22 00 3d 07 08 80 06 42 00"
+    },
+    {
+      "name": "AC_ChargeLoopRes_BPTDynamic",
+      "expectedHex": "80 0c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 48 40 07 a0 e1 00"
     }
   ]
 }

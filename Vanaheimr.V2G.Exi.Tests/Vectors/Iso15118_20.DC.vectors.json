@@ -49,6 +49,22 @@
       "expectedHex": "80 38 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 64 00 3b 02 00 23 80 c0 00 70 80 0a c9 80 10 40 03 20 20 03 0c 04 10 01 e8 06 00"
     },
     {
+      "name": "DC_ChargeLoopReq_BPTScheduled",
+      "expectedHex": "80 34 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 81 00 12 00 61 64 00 3c 02 00 24 00 c5 20 03 e1 54 08 00 64 02 00 1b 80"
+    },
+    {
+      "name": "DC_ChargeLoopRes_BPTScheduled",
+      "expectedHex": "80 38 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 64 00 3b 02 00 23 80 c0 00 28 40 04 22 90 08 00 64 02 00 1a 44"
+    },
+    {
+      "name": "DC_ChargeLoopReq_BPTDynamic",
+      "expectedHex": "80 34 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 81 00 12 00 60 48 10 a0 1f 04 08 78 17 02 00 00 01 00 14 13 80 20 80 06 40 40 06 40 08 20 03 d0 0c 10 01 90 02 08 00 f8 55 04 00 32 02 00 1b 88"
+    },
+    {
+      "name": "DC_ChargeLoopRes_BPTDynamic",
+      "expectedHex": "80 38 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 64 00 3b 02 00 23 80 c0 00 10 80 0a c9 80 10 40 03 20 20 03 0c 04 10 01 e8 06 08 00 84 52 04 00 32 02 00 1a 41 00 19 00 20"
+    },
+    {
       "name": "DC_WeldingDetectionReq",
       "expectedHex": "80 4c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00"
     },

@@ -69,6 +69,84 @@ public static class Iso15118_20AcFixtures
                             EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null))
                     .TryEncode(dest, out bytesWritten);
 
+            case "AC_ChargeLoopReq_BPTScheduled":
+                // Exercises the untested BPT_Scheduled_AC_CLReqControlMode branch
+                // (adds the discharge-power fields on top of Scheduled_AC_).
+                return new AC_ChargeLoopReq(
+                        Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        new BPT_Scheduled_AC_CLReqControlModeType(
+                            EVTargetEnergyRequest: null, EVMaximumEnergyRequest: null, EVMinimumEnergyRequest: null,
+                            EVMaximumChargePower: null, EVMaximumChargePower_L2: null, EVMaximumChargePower_L3: null,
+                            EVMinimumChargePower: null, EVMinimumChargePower_L2: null, EVMinimumChargePower_L3: null,
+                            EVPresentActivePower: Rational(0, 4000), EVPresentActivePower_L2: null, EVPresentActivePower_L3: null,
+                            EVPresentReactivePower: null, EVPresentReactivePower_L2: null, EVPresentReactivePower_L3: null,
+                            EVMaximumDischargePower: Rational(0, 3700), EVMaximumDischargePower_L2: null, EVMaximumDischargePower_L3: null,
+                            EVMinimumDischargePower: Rational(0, 100), EVMinimumDischargePower_L2: null, EVMinimumDischargePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopRes_BPTScheduled":
+                return new AC_ChargeLoopRes(
+                        Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
+                        new BPT_Scheduled_AC_CLResControlModeType(
+                            EVSETargetActivePower: Rational(0, 3700), EVSETargetActivePower_L2: null, EVSETargetActivePower_L3: null,
+                            EVSETargetReactivePower: null, EVSETargetReactivePower_L2: null, EVSETargetReactivePower_L3: null,
+                            EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopReq_Dynamic":
+                // Exercises the untested Dynamic_AC_CLReqControlMode branch.
+                return new AC_ChargeLoopReq(
+                        Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        new Dynamic_AC_CLReqControlModeType(
+                            DepartureTime: null,
+                            EVTargetEnergyRequest: Rational(1, 4000), EVMaximumEnergyRequest: Rational(1, 6000),
+                            EVMinimumEnergyRequest: Rational(0, 0),
+                            EVMaximumChargePower: Rational(0, 11000), EVMaximumChargePower_L2: null, EVMaximumChargePower_L3: null,
+                            EVMinimumChargePower: Rational(0, 100), EVMinimumChargePower_L2: null, EVMinimumChargePower_L3: null,
+                            EVPresentActivePower: Rational(0, 4000), EVPresentActivePower_L2: null, EVPresentActivePower_L3: null,
+                            EVPresentReactivePower: Rational(0, 0), EVPresentReactivePower_L2: null, EVPresentReactivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopRes_Dynamic":
+                return new AC_ChargeLoopRes(
+                        Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
+                        new Dynamic_AC_CLResControlModeType(
+                            DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                            EVSETargetActivePower: Rational(0, 3700), EVSETargetActivePower_L2: null, EVSETargetActivePower_L3: null,
+                            EVSETargetReactivePower: null, EVSETargetReactivePower_L2: null, EVSETargetReactivePower_L3: null,
+                            EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopReq_BPTDynamic":
+                // Exercises the untested BPT_Dynamic_AC_CLReqControlMode branch.
+                return new AC_ChargeLoopReq(
+                        Header(), DisplayParameters: null, MeterInfoRequested: false,
+                        new BPT_Dynamic_AC_CLReqControlModeType(
+                            DepartureTime: null,
+                            EVTargetEnergyRequest: Rational(1, 4000), EVMaximumEnergyRequest: Rational(1, 6000),
+                            EVMinimumEnergyRequest: Rational(0, 0),
+                            EVMaximumChargePower: Rational(0, 11000), EVMaximumChargePower_L2: null, EVMaximumChargePower_L3: null,
+                            EVMinimumChargePower: Rational(0, 100), EVMinimumChargePower_L2: null, EVMinimumChargePower_L3: null,
+                            EVPresentActivePower: Rational(0, 4000), EVPresentActivePower_L2: null, EVPresentActivePower_L3: null,
+                            EVPresentReactivePower: Rational(0, 0), EVPresentReactivePower_L2: null, EVPresentReactivePower_L3: null,
+                            EVMaximumDischargePower: Rational(0, 3700), EVMaximumDischargePower_L2: null, EVMaximumDischargePower_L3: null,
+                            EVMinimumDischargePower: Rational(0, 100), EVMinimumDischargePower_L2: null, EVMinimumDischargePower_L3: null,
+                            EVMaximumV2XEnergyRequest: null, EVMinimumV2XEnergyRequest: null))
+                    .TryEncode(dest, out bytesWritten);
+
+            case "AC_ChargeLoopRes_BPTDynamic":
+                return new AC_ChargeLoopRes(
+                        Header(), ResponseCode.OK,
+                        EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
+                        new BPT_Dynamic_AC_CLResControlModeType(
+                            DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                            EVSETargetActivePower: Rational(0, 3700), EVSETargetActivePower_L2: null, EVSETargetActivePower_L3: null,
+                            EVSETargetReactivePower: null, EVSETargetReactivePower_L2: null, EVSETargetReactivePower_L3: null,
+                            EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null))
+                    .TryEncode(dest, out bytesWritten);
+
             default:
                 throw new ArgumentException($"no AC fixture for vector '{vectorName}'");
         }
