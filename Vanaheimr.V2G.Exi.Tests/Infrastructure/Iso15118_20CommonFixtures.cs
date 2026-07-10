@@ -151,6 +151,54 @@ public static class Iso15118_20CommonFixtures
                         Scheduled_SEResControlMode: null)
                     .TryEncode(dest, out bytesWritten);
 
+            case "AuthorizationRes":
+                return new AuthorizationRes(Header(), ResponseCode.OK, Processing.Finished)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "CertificateInstallationReq":
+                return new CertificateInstallationReq(Header(),
+                        new SignedCertificateChainType(
+                            Id: "OEMCERT1", Certificate: new byte[] { 0xAA, 0xBB, 0xCC }, SubCertificates: null),
+                        new ListOfRootCertificateIDsType(
+                            new[] { new X509IssuerSerialType(X509IssuerName: "Root CA", X509SerialNumber: 47456) }),
+                        MaximumContractCertificateChains: 3,
+                        PrioritizedEMAIDs: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "CertificateInstallationRes":
+                return new CertificateInstallationRes(Header(), ResponseCode.OK, Processing.Finished,
+                        new CertificateChainType(Certificate: new byte[] { 0x01, 0x02 }, SubCertificates: null),
+                        new SignedInstallationDataType(
+                            Id: "SID1",
+                            ContractCertificateChain: new ContractCertificateChainType(
+                                Certificate: new byte[] { 0x03, 0x04 },
+                                SubCertificates: new SubCertificatesType(new[] { new byte[] { 0x05 } })),
+                            ECDHCurve: EcdhCurve.SECP521,
+                            DHPublicKey: new byte[] { 0x06, 0x07 },
+                            SECP521_EncryptedPrivateKey: new byte[] { 0x08, 0x09 },
+                            X448_EncryptedPrivateKey: null,
+                            TPM_EncryptedPrivateKey: null),
+                        RemainingContractCertificateChains: 2)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "VehicleCheckInReq":
+                return new VehicleCheckInReq(Header(), EvCheckInStatus.CheckIn, ParkingMethod.AutoParking,
+                        VehicleFrame: 100, DeviceOffset: -50, VehicleTravel: null)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "VehicleCheckInRes":
+                return new VehicleCheckInRes(Header(), ResponseCode.OK,
+                        ParkingSpace: 200, DeviceLocation: null, TargetDistance: 30)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "VehicleCheckOutReq":
+                return new VehicleCheckOutReq(Header(), EvCheckOutStatus.CheckOut, CheckOutTime: 1_700_000_100UL)
+                    .TryEncode(dest, out bytesWritten);
+
+            case "VehicleCheckOutRes":
+                return new VehicleCheckOutRes(Header(), ResponseCode.OK, EvseCheckOutStatus.Scheduled)
+                    .TryEncode(dest, out bytesWritten);
+
             default:
                 throw new ArgumentException($"no CommonMessages fixture for vector '{vectorName}'");
         }

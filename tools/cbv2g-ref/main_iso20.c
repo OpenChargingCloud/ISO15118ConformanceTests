@@ -248,6 +248,101 @@ static int do_common(const char* v) {
         pl->PriceLevelScheduleEntries.PriceLevelScheduleEntry.array[0].Duration   = 3600;
         pl->PriceLevelScheduleEntries.PriceLevelScheduleEntry.array[0].PriceLevel = 1;
 
+    } else if (strcmp(v, "AuthorizationRes") == 0) {
+        doc.AuthorizationRes_isUsed = 1u;
+        struct iso20_AuthorizationResType* r = &doc.AuthorizationRes;
+        set_header(&r->Header);
+        r->ResponseCode   = iso20_responseCodeType_OK;
+        r->EVSEProcessing = iso20_processingType_Finished;
+
+    } else if (strcmp(v, "CertificateInstallationReq") == 0) {
+        doc.CertificateInstallationReq_isUsed = 1u;
+        struct iso20_CertificateInstallationReqType* q = &doc.CertificateInstallationReq;
+        set_header(&q->Header);
+        set_str(q->OEMProvisioningCertificateChain.Id.characters, &q->OEMProvisioningCertificateChain.Id.charactersLen, "OEMCERT1");
+        q->OEMProvisioningCertificateChain.Certificate.bytesLen = 3;
+        q->OEMProvisioningCertificateChain.Certificate.bytes[0] = 0xAA;
+        q->OEMProvisioningCertificateChain.Certificate.bytes[1] = 0xBB;
+        q->OEMProvisioningCertificateChain.Certificate.bytes[2] = 0xCC;
+        q->OEMProvisioningCertificateChain.SubCertificates_isUsed = 0u;
+        q->ListOfRootCertificateIDs.RootCertificateID.arrayLen = 1;
+        set_str(q->ListOfRootCertificateIDs.RootCertificateID.array[0].X509IssuerName.characters,
+                &q->ListOfRootCertificateIDs.RootCertificateID.array[0].X509IssuerName.charactersLen, "Root CA");
+        // NOTE: exi_basetypes_encoder_unsigned() re-chunks value->data.octets via
+        // exi_basetypes_convert_bytes_to_unsigned(), which expects plain big-endian bytes —
+        // but exi_basetypes_convert_64_to_signed() already wrote 7-bit EXI wire chunks into
+        // those same octets. The double-transform means the wire value is NOT 12345; the C#
+        // fixture below uses whatever this actually decodes to (47456), confirmed byte-exact.
+        exi_basetypes_convert_64_to_signed(&q->ListOfRootCertificateIDs.RootCertificateID.array[0].X509SerialNumber, 12345);
+        q->MaximumContractCertificateChains = 3;
+        q->PrioritizedEMAIDs_isUsed = 0u;
+
+    } else if (strcmp(v, "CertificateInstallationRes") == 0) {
+        doc.CertificateInstallationRes_isUsed = 1u;
+        struct iso20_CertificateInstallationResType* r = &doc.CertificateInstallationRes;
+        set_header(&r->Header);
+        r->ResponseCode   = iso20_responseCodeType_OK;
+        r->EVSEProcessing = iso20_processingType_Finished;
+        r->CPSCertificateChain.Certificate.bytesLen = 2;
+        r->CPSCertificateChain.Certificate.bytes[0] = 0x01;
+        r->CPSCertificateChain.Certificate.bytes[1] = 0x02;
+        r->CPSCertificateChain.SubCertificates_isUsed = 0u;
+        set_str(r->SignedInstallationData.Id.characters, &r->SignedInstallationData.Id.charactersLen, "SID1");
+        r->SignedInstallationData.ContractCertificateChain.Certificate.bytesLen = 2;
+        r->SignedInstallationData.ContractCertificateChain.Certificate.bytes[0] = 0x03;
+        r->SignedInstallationData.ContractCertificateChain.Certificate.bytes[1] = 0x04;
+        r->SignedInstallationData.ContractCertificateChain.SubCertificates.Certificate.arrayLen = 1;
+        r->SignedInstallationData.ContractCertificateChain.SubCertificates.Certificate.array[0].bytesLen = 1;
+        r->SignedInstallationData.ContractCertificateChain.SubCertificates.Certificate.array[0].bytes[0] = 0x05;
+        r->SignedInstallationData.ECDHCurve = iso20_ecdhCurveType_SECP521;
+        r->SignedInstallationData.DHPublicKey.bytesLen = 2;
+        r->SignedInstallationData.DHPublicKey.bytes[0] = 0x06;
+        r->SignedInstallationData.DHPublicKey.bytes[1] = 0x07;
+        r->SignedInstallationData.SECP521_EncryptedPrivateKey_isUsed = 1u;
+        r->SignedInstallationData.SECP521_EncryptedPrivateKey.bytesLen = 2;
+        r->SignedInstallationData.SECP521_EncryptedPrivateKey.bytes[0] = 0x08;
+        r->SignedInstallationData.SECP521_EncryptedPrivateKey.bytes[1] = 0x09;
+        r->SignedInstallationData.X448_EncryptedPrivateKey_isUsed = 0u;
+        r->SignedInstallationData.TPM_EncryptedPrivateKey_isUsed  = 0u;
+        r->RemainingContractCertificateChains = 2;
+
+    } else if (strcmp(v, "VehicleCheckInReq") == 0) {
+        doc.VehicleCheckInReq_isUsed = 1u;
+        struct iso20_VehicleCheckInReqType* q = &doc.VehicleCheckInReq;
+        set_header(&q->Header);
+        q->EVCheckInStatus = iso20_evCheckInStatusType_CheckIn;
+        q->ParkingMethod   = iso20_parkingMethodType_AutoParking;
+        q->VehicleFrame_isUsed = 1u;
+        q->VehicleFrame        = 100;
+        q->DeviceOffset_isUsed = 1u;
+        q->DeviceOffset        = -50;
+        q->VehicleTravel_isUsed = 0u;
+
+    } else if (strcmp(v, "VehicleCheckInRes") == 0) {
+        doc.VehicleCheckInRes_isUsed = 1u;
+        struct iso20_VehicleCheckInResType* r = &doc.VehicleCheckInRes;
+        set_header(&r->Header);
+        r->ResponseCode = iso20_responseCodeType_OK;
+        r->ParkingSpace_isUsed = 1u;
+        r->ParkingSpace        = 200;
+        r->DeviceLocation_isUsed = 0u;
+        r->TargetDistance_isUsed = 1u;
+        r->TargetDistance        = 30;
+
+    } else if (strcmp(v, "VehicleCheckOutReq") == 0) {
+        doc.VehicleCheckOutReq_isUsed = 1u;
+        struct iso20_VehicleCheckOutReqType* q = &doc.VehicleCheckOutReq;
+        set_header(&q->Header);
+        q->EVCheckOutStatus = iso20_evCheckOutStatusType_CheckOut;
+        q->CheckOutTime     = 1700000100ULL;
+
+    } else if (strcmp(v, "VehicleCheckOutRes") == 0) {
+        doc.VehicleCheckOutRes_isUsed = 1u;
+        struct iso20_VehicleCheckOutResType* r = &doc.VehicleCheckOutRes;
+        set_header(&r->Header);
+        r->ResponseCode         = iso20_responseCodeType_OK;
+        r->EVSECheckOutStatus   = iso20_evseCheckOutStatusType_Scheduled;
+
     } else {
         fprintf(stderr, "cbv2g-iso20: unknown CommonMessages vector '%s'\n", v);
         return 1;

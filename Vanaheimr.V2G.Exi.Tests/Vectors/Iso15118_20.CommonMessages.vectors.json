@@ -83,6 +83,34 @@
     {
       "name": "ScheduleExchangeRes",
       "expectedHex": "80 70 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 03 14 07 16 7d 50 30 01 20 30 48 0e 00 11 00"
+    },
+    {
+      "name": "AuthorizationRes",
+      "expectedHex": "80 04 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00"
+    },
+    {
+      "name": "CertificateInstallationReq",
+      "expectedHex": "80 1c 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 05 27 a2 a6 a1 a2 a9 2a 18 80 75 57 79 84 02 54 9b db dd 08 10 d0 43 83 c8 08 40 32"
+    },
+    {
+      "name": "CertificateInstallationRes",
+      "expectedHex": "80 20 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00 02 01 02 20 32 9a 4a 21 88 02 03 04 00 10 52 00 08 18 1c 00 82 02 40 08"
+    },
+    {
+      "name": "VehicleCheckInReq",
+      "expectedHex": "80 c4 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 01 90 26 24"
+    },
+    {
+      "name": "VehicleCheckInRes",
+      "expectedHex": "80 c8 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 06 40 09 07 80"
+    },
+    {
+      "name": "VehicleCheckOutReq",
+      "expectedHex": "80 cc 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 03 93 8b 3e a8 18"
+    },
+    {
+      "name": "VehicleCheckOutRes",
+      "expectedHex": "80 d0 04 00 00 00 00 00 00 00 00 08 0e 2c fa a0 62 00 00"
     }
   ]
 }
