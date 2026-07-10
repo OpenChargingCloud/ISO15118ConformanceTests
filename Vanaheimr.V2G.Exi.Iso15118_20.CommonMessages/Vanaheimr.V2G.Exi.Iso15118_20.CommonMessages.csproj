@@ -12,6 +12,9 @@
          -2 or AppProtocol codecs (all three come from the same source generator). -->
     <ExiGeneratedNamespace>Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated</ExiGeneratedNamespace>
     <ExiCodecClassName>CommonMessagesCodec</ExiCodecClassName>
+    <!-- Signable elements (XMLDSig, §8.5.3) — the exact set cbV2G/cbexigen's iso20_exiFragment
+         union carries for this message set (see include/cbv2g/iso_20/iso20_CommonMessages_Datatypes.h). -->
+    <ExiFragmentElements>AbsolutePriceSchedule CertificateInstallationReq MeteringConfirmationReq PnC_AReqAuthorizationMode SignedInstallationData SignedInfo</ExiFragmentElements>
 
     <!-- Write the generated codec to obj/ for inspection. -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>

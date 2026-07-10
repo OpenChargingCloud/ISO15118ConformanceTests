@@ -15,6 +15,11 @@ Vanaheimr.V2G.Exi.slnx
 ├─ Vanaheimr.V2G.Exi.SourceGenerator/   Roslyn generator (XSD → codec)
 ├─ Vanaheimr.V2G.Exi.Iso15118_2/        ISO 15118-2 codec (5 XSDs → generated assembly)
 │   └─ Schemas/                         V2G_CI_Msg{Def,Header,Body,DataTypes} + xmldsig
+├─ Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/  ISO 15118-20 CommonMessages codec
+├─ Vanaheimr.V2G.Exi.Iso15118_20.DC/              ISO 15118-20 DC codec
+├─ Vanaheimr.V2G.Exi.Iso15118_20.AC/              ISO 15118-20 AC codec
+├─ Vanaheimr.V2G.Exi.Dispatch/           V2GTP payload-type → codec dispatcher
+├─ Vanaheimr.V2G.Exi.Simulation/         console app: full AC/DC session over the codec
 ├─ Vanaheimr.V2G.Exi.Tests/             NUnit test project
 │   ├─ Infrastructure/
 │   │   ├─ HexUtil.cs                   hex parse + bit-level diff for failures
@@ -146,6 +151,67 @@ dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --slow            # trip
 dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --break-sequence  # trips the SECC guard
 ```
 
+## ISO 15118-20 (Phase 4)
+
+Three independent, generated assemblies — `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`,
+`.DC`, `.AC` — each consuming its own schema set (message-set XSD + `CommonTypes` +
+`xmldsig-core-schema`, deliberately duplicated per assembly, mirroring cbV2G/cbexigen
+itself). Unlike -2, there is no `V2G_Message` wrapper: every message is its own global
+element carrying the header (`SessionID`, `TimeStamp`, optional `Signature`) inline. WPT
+and ACDP are explicitly out of scope (see `docs/xsd-inventory-15118-20.md`).
+
+### Message coverage (byte-verified vs cbV2G, encode + decode + roundtrip)
+
+All target messages from `phase4.md`'s coverage list are byte-exact against cbV2G on
+encode, and separately round-trip through the generated `DecodeAny` (encode → decode →
+re-encode, byte-for-byte) in `Iso15118_20VectorTests`:
+
+- **CommonMessages** (26 messages): SessionSetup, AuthorizationSetup, Authorization
+  (EIM + PnC), ServiceDiscovery, ServiceDetail, ServiceSelection, ScheduleExchange
+  (Scheduled + Dynamic mode), PowerDelivery, SessionStop, MeteringConfirmation,
+  CertificateInstallation, VehicleCheckIn/CheckOut.
+- **DC** (10 message shapes, 16 vectors): CableCheck, ChargeParameterDiscovery, PreCharge,
+  ChargeLoop (Scheduled/Dynamic/BPT_Scheduled/BPT_Dynamic control modes), WeldingDetection.
+- **AC** (4 message shapes, 10 vectors): ChargeParameterDiscovery, ChargeLoop
+  (Scheduled/Dynamic/BPT_Scheduled/BPT_Dynamic control modes).
+
+`RationalNumberType` (`CommonTypes`: `Exponent xs:byte, Value xs:short`) gets the same
+decimal-bridge ergonomics as -2's `PhysicalValueType`, via a `RationalNumberMath` core
+shared across the three assemblies (each duplicates `RationalNumberType` itself, so each
+gets its own thin `RationalNumber.Of/.ToDecimal` wrapper around the shared math).
+
+### V2GTP dispatch
+
+`Vanaheimr.V2G.Exi.Dispatch` (`V2GTPDispatcher`) maps a V2GTP payload type to one of the
+five codecs (AppProtocol, -2, -20 CommonMessages/AC/DC), decodes without the caller
+knowing in advance which set a frame carries, and wraps an already-encoded EXI payload
+with the right header on the way out. Covered: correct mapping per set, a clean error
+(not an exception) on a bad header, a payload-length mismatch, or an unrecognised payload
+type (e.g. ACDP's 0x8005 — reachable on the wire, out of scope here).
+
+### XMLDSig (CommonMessages)
+
+`CommonMessages`' fragment codecs are enabled for the exact six elements cbV2G/cbexigen's
+`iso20_exiFragment` union carries (`include/cbv2g/iso_20/iso20_CommonMessages_Datatypes.h`):
+`AbsolutePriceSchedule`, `CertificateInstallationReq`, `MeteringConfirmationReq`,
+`PnC_AReqAuthorizationMode`, `SignedInstallationData`, `SignedInfo` — global **and** local
+element declarations both resolve correctly, no generator changes needed. Two of the six are
+byte-verified against a rebuilt `tools/cbv2g-ref/cbv2g_iso20` (`Fragment_SignedInfo`,
+`Fragment_MeteringConfirmationReq` in `main_iso20.c`): `SignedInfo` and a full
+`MeteringConfirmationReq` (header + `SignedMeteringData`, -20 folds the header into the
+signed element itself — unlike -2, there's no clean header/body split, so a verifier must
+zero the header's `Signature` slot back out before re-fragment-encoding to check a
+reference digest). The other four (`AbsolutePriceSchedule`, `CertificateInstallationReq`,
+`PnC_AReqAuthorizationMode`, `SignedInstallationData`) generate but aren't vector-verified
+yet.
+
+`Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.V2GSignature` is the -20 analogue of -2's
+`V2GSignature`: same two-level EXI-fragment digest scheme, but the stronger suite —
+SHA-512 digests, ECDSA over NIST P-521 (secp521r1), a 132-byte (66+66) raw `r‖s`
+`SignatureValue`. Sign → encode → decode → verify is covered end to end
+(`Iso15118_20SignatureTests`); the ECDSA path itself is self-checked only (see below).
+Ed448 (also in -20's signature-suite options) is out of scope — .NET has no built-in Ed448.
+
 ## What this prototype still does NOT do
 
 - Non-ASCII string values on the wire against a reference oracle (our codec encodes them
@@ -153,13 +219,24 @@ dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --break-sequence  # trip
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
 - External cross-validation of signatures against a second toolchain (EXIficient/Josev) —
-  the remaining Phase 3 part B item; the ECDSA path is only self-checked so far.
+  both -2's ECDSA-P256 and -20's ECDSA-P521 paths are only self-checked so far.
+- Four of CommonMessages' six fragment elements (`AbsolutePriceSchedule`,
+  `CertificateInstallationReq`, `PnC_AReqAuthorizationMode`, `SignedInstallationData`)
+  aren't byte-diffed against cbV2G yet (only generated + self-consistent).
+- DC/AC XMLDSig fragment codecs (only CommonMessages' `ExiFragmentElements` is wired up so
+  far — DC/AC would need their own signable-element inventory first).
+- WPT and ACDP message sets (explicitly out of Phase-4 scope).
 
 ## Next milestones
 
 Phase 0 (SupportedAppProtocol wire conformance vs cbV2G), Phase 1 (EXI primitive layer),
-and Phase 2 (source generator on the real ISO 15118-2 schema set) are **done**. See
-`docs/roadmap.md` and `docs/prompts/` for the full plan. Next:
+Phase 2 (source generator on the real ISO 15118-2 schema set), and Phase 3 part A (all 17
+-2 message pairs + self-checked XMLDSig) are **done**. Phase 4 (ISO 15118-20 multi-schema
+codecs, V2GTP dispatch, CommonMessages XMLDSig) is well underway — see `docs/roadmap.md`
+and `docs/prompts/phase4.md`. Next:
 
-1. Complete ISO 15118-2: all 17 message pairs + XMLDSig over EXI fragments (Phase 3).
-2. ISO 15118-20 multi-schema codecs (Phase 4), then EV↔EVSE simulation (Phase 5).
+1. Byte-diff the remaining four CommonMessages fragment elements against cbV2G; decide
+   whether DC/AC need their own signable-element sets.
+2. External cross-validation (EXIficient and/or Josev) for both -2 and -20 signatures.
+3. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
+   Josev.

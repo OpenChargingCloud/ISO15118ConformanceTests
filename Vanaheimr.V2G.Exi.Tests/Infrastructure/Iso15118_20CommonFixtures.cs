@@ -203,4 +203,53 @@ public static class Iso15118_20CommonFixtures
                 throw new ArgumentException($"no CommonMessages fixture for vector '{vectorName}'");
         }
     }
+
+    /// <summary>Decodes a CommonMessages wire message and re-encodes it, so callers can assert
+    /// decode∘encode is the identity without referencing the generated types themselves.</summary>
+    public static byte[] DecodeReEncode(byte[] wireBytes)
+    {
+        var decoded = CommonMessagesCodec.DecodeAny(wireBytes, out int consumed);
+        if (consumed != wireBytes.Length)
+            throw new InvalidDataException($"decoder consumed {consumed} of {wireBytes.Length} bytes");
+
+        var buf = new byte[512];
+        if (!TryReEncode(decoded, buf, out int n))
+            throw new InvalidDataException("re-encode failed");
+        return buf.AsSpan(0, n).ToArray();
+    }
+
+    private static bool TryReEncode(object message, byte[] dest, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        return message switch
+        {
+            SessionSetupReq m => m.TryEncode(dest, out bytesWritten),
+            SessionSetupRes m => m.TryEncode(dest, out bytesWritten),
+            AuthorizationSetupRes m => m.TryEncode(dest, out bytesWritten),
+            ServiceDiscoveryReq m => m.TryEncode(dest, out bytesWritten),
+            ServiceDiscoveryRes m => m.TryEncode(dest, out bytesWritten),
+            ServiceDetailReq m => m.TryEncode(dest, out bytesWritten),
+            ServiceDetailRes m => m.TryEncode(dest, out bytesWritten),
+            ServiceSelectionReq m => m.TryEncode(dest, out bytesWritten),
+            ServiceSelectionRes m => m.TryEncode(dest, out bytesWritten),
+            PowerDeliveryReq m => m.TryEncode(dest, out bytesWritten),
+            PowerDeliveryRes m => m.TryEncode(dest, out bytesWritten),
+            SessionStopReq m => m.TryEncode(dest, out bytesWritten),
+            SessionStopRes m => m.TryEncode(dest, out bytesWritten),
+            MeteringConfirmationReq m => m.TryEncode(dest, out bytesWritten),
+            MeteringConfirmationRes m => m.TryEncode(dest, out bytesWritten),
+            AuthorizationReq m => m.TryEncode(dest, out bytesWritten),
+            AuthorizationSetupReq m => m.TryEncode(dest, out bytesWritten),
+            ScheduleExchangeReq m => m.TryEncode(dest, out bytesWritten),
+            ScheduleExchangeRes m => m.TryEncode(dest, out bytesWritten),
+            AuthorizationRes m => m.TryEncode(dest, out bytesWritten),
+            CertificateInstallationReq m => m.TryEncode(dest, out bytesWritten),
+            CertificateInstallationRes m => m.TryEncode(dest, out bytesWritten),
+            VehicleCheckInReq m => m.TryEncode(dest, out bytesWritten),
+            VehicleCheckInRes m => m.TryEncode(dest, out bytesWritten),
+            VehicleCheckOutReq m => m.TryEncode(dest, out bytesWritten),
+            VehicleCheckOutRes m => m.TryEncode(dest, out bytesWritten),
+            _ => throw new ArgumentException($"unexpected decoded CommonMessages type {message.GetType()}"),
+        };
+    }
 }

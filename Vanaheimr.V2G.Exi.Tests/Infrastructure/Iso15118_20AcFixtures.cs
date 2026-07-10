@@ -151,4 +151,31 @@ public static class Iso15118_20AcFixtures
                 throw new ArgumentException($"no AC fixture for vector '{vectorName}'");
         }
     }
+
+    /// <summary>Decodes an AC wire message and re-encodes it, so callers can assert decode∘encode is
+    /// the identity without referencing the generated types themselves.</summary>
+    public static byte[] DecodeReEncode(byte[] wireBytes)
+    {
+        var decoded = AcCodec.DecodeAny(wireBytes, out int consumed);
+        if (consumed != wireBytes.Length)
+            throw new InvalidDataException($"decoder consumed {consumed} of {wireBytes.Length} bytes");
+
+        var buf = new byte[512];
+        if (!TryReEncode(decoded, buf, out int n))
+            throw new InvalidDataException("re-encode failed");
+        return buf.AsSpan(0, n).ToArray();
+    }
+
+    private static bool TryReEncode(object message, byte[] dest, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        return message switch
+        {
+            AC_ChargeParameterDiscoveryReq m => m.TryEncode(dest, out bytesWritten),
+            AC_ChargeParameterDiscoveryRes m => m.TryEncode(dest, out bytesWritten),
+            AC_ChargeLoopReq m => m.TryEncode(dest, out bytesWritten),
+            AC_ChargeLoopRes m => m.TryEncode(dest, out bytesWritten),
+            _ => throw new ArgumentException($"unexpected decoded AC type {message.GetType()}"),
+        };
+    }
 }

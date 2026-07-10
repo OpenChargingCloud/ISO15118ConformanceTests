@@ -977,6 +977,81 @@ static int do_ac(const char* v) {
     return 0;
 }
 
+/* ---- CommonMessages EXI fragments (XMLDSig, §8.5.3) ---------------------------------------- */
+
+/* A fixed SignedInfo (EXI-C14N, ECDSA-SHA512, one Reference URI="#ID1" over a 64-byte digest),
+ * mirroring -2's set_test_signedinfo but with the -20 secp521r1/SHA-512 suite and a wider digest. */
+static void set_test_signedinfo(struct iso20_SignedInfoType* s) {
+    s->Id_isUsed = 0u;
+    set_str(s->CanonicalizationMethod.Algorithm.characters,
+            &s->CanonicalizationMethod.Algorithm.charactersLen,
+            "http://www.w3.org/TR/canonical-exi/");
+    s->CanonicalizationMethod.ANY_isUsed = 0u;
+    set_str(s->SignatureMethod.Algorithm.characters,
+            &s->SignatureMethod.Algorithm.charactersLen,
+            "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512");
+    s->SignatureMethod.HMACOutputLength_isUsed = 0u;
+    s->SignatureMethod.ANY_isUsed             = 0u;
+    s->Reference.arrayLen = 1;
+    struct iso20_ReferenceType* ref = &s->Reference.array[0];
+    ref->Id_isUsed   = 0u;
+    ref->Type_isUsed = 0u;
+    set_str(ref->URI.characters, &ref->URI.charactersLen, "#ID1");
+    ref->URI_isUsed        = 1u;
+    ref->Transforms_isUsed = 0u;
+    set_str(ref->DigestMethod.Algorithm.characters,
+            &ref->DigestMethod.Algorithm.charactersLen,
+            "http://www.w3.org/2001/04/xmlenc#sha512");
+    ref->DigestMethod.ANY_isUsed = 0u;
+    for (int i = 0; i < 64; i++) ref->DigestValue.bytes[i] = (uint8_t)(i + 1);
+    ref->DigestValue.bytesLen = 64;
+}
+
+/* Encodes a signable CommonMessages element as a standalone EXI fragment
+ * (encode_iso20_exiFragment), matching the generated EncodeFragment_<Element>. */
+static int do_fragment(const char* elem) {
+    struct iso20_exiFragment frag;
+    memset(&frag, 0, sizeof(frag));
+
+    if (strcmp(elem, "SignedInfo") == 0) {
+        frag.SignedInfo_isUsed = 1u;
+        set_test_signedinfo(&frag.SignedInfo);
+
+    } else if (strcmp(elem, "MeteringConfirmationReq") == 0) {
+        frag.MeteringConfirmationReq_isUsed = 1u;
+        struct iso20_MeteringConfirmationReqType* q = &frag.MeteringConfirmationReq;
+        set_header(&q->Header);
+        struct iso20_SignedMeteringDataType* d = &q->SignedMeteringData;
+        set_str(d->Id.characters, &d->Id.charactersLen, "ID1");
+        memset(d->SessionID.bytes, 0, iso20_sessionIDType_BYTES_SIZE);
+        d->SessionID.bytesLen = iso20_sessionIDType_BYTES_SIZE;
+        set_str(d->MeterInfo.MeterID.characters, &d->MeterInfo.MeterID.charactersLen, "M1");
+        d->MeterInfo.ChargedEnergyReadingWh               = 5000;
+        d->MeterInfo.BPT_DischargedEnergyReadingWh_isUsed = 0u;
+        d->MeterInfo.CapacitiveEnergyReadingVARh_isUsed   = 0u;
+        d->MeterInfo.BPT_InductiveEnergyReadingVARh_isUsed = 0u;
+        d->Receipt_isUsed = 0u;
+        d->Dynamic_SMDTControlMode_isUsed  = 0u;
+        d->Scheduled_SMDTControlMode_isUsed = 1u;
+        d->Scheduled_SMDTControlMode.SelectedScheduleTupleID = 1;
+
+    } else {
+        fprintf(stderr, "cbv2g-iso20: unknown fragment element '%s'\n", elem);
+        return 1;
+    }
+
+    uint8_t out[OUT_BUF_SIZE];
+    exi_bitstream_t stream;
+    exi_bitstream_init(&stream, out, sizeof(out), 0, NULL);
+    int error = encode_iso20_exiFragment(&stream, &frag);
+    if (error != 0) {
+        fprintf(stderr, "cbv2g-iso20: fragment encode failed with error %d\n", error);
+        return 3;
+    }
+    print_hex(out, exi_bitstream_get_length(&stream));
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <Set>_<vector>  (Set: Common, DC, AC)\n", argv[0]);
@@ -984,6 +1059,7 @@ int main(int argc, char** argv) {
     }
     const char* arg = argv[1];
 
+    if (strncmp(arg, "Fragment_", 9) == 0) return do_fragment(arg + 9);
     if (strncmp(arg, "Common_", 7) == 0) return do_common(arg + 7);
     if (strncmp(arg, "DC_", 3) == 0)     return do_dc(arg);       /* DC vector names already start with DC_ */
     if (strncmp(arg, "AC_", 3) == 0)     return do_ac(arg);       /* AC vector names already start with AC_ */

@@ -1,0 +1,138 @@
+using System.Security.Cryptography;
+
+using NUnit.Framework;
+
+using Vanaheimr.V2G.Iso15118_20.CommonMessages;
+using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
+
+namespace Vanaheimr.V2G.Exi.Tests;
+
+/// <summary>
+/// ISO 15118-20 CommonMessages XMLDSig signing/verification: SHA-512 over an element's EXI fragment
+/// feeds a SignedInfo Reference; the SignedInfo fragment is ECDSA-P521 (secp521r1) signed, with the
+/// SignatureValue as raw r‖s (132 bytes). The fragment octets themselves are pinned to cbV2G in
+/// <see cref="Iso15118_20FragmentTests"/>; these exercise the crypto on top.
+/// </summary>
+[TestFixture]
+public class Iso15118_20SignatureTests
+{
+    private static MessageHeaderType Header() =>
+        new(SessionID: new byte[8], TimeStamp: 1_700_000_000UL, Signature: null);
+
+    // The generator gives the global element "MeteringConfirmationReq" its own record (used for
+    // document TryEncode/DecodeAny), distinct from the structurally-identical MeteringConfirmationReqType
+    // (used for the fragment codec) — the two are unrelated C# types, so both are built from this
+    // one shared SignedMeteringData.
+    private static SignedMeteringDataType SignedMeteringData() =>
+        new(Id: "ID1", SessionID: new byte[8],
+            MeterInfo: new MeterInfoType(
+                MeterID: "M1", ChargedEnergyReadingWh: 5000,
+                BPT_DischargedEnergyReadingWh: null, CapacitiveEnergyReadingVARh: null,
+                BPT_InductiveEnergyReadingVARh: null, MeterSignature: null,
+                MeterStatus: null, MeterTimestamp: null),
+            Receipt: null,
+            Dynamic_SMDTControlMode: null,
+            Scheduled_SMDTControlMode: new Scheduled_SMDTControlModeType(SelectedScheduleTupleID: 1));
+
+    private static MeteringConfirmationReqType SignableBody() => new(Header(), SignedMeteringData());
+
+    private static ReferenceType SignedElementReference(out byte[] fragment)
+    {
+        var content = SignableBody();
+        var buf = new byte[512];
+        Assert.That(CommonMessagesCodec.EncodeFragment_MeteringConfirmationReq(content, buf, out int n), Is.True);
+        fragment = buf.AsSpan(0, n).ToArray();
+        var digest = V2GSignature.Digest(fragment);
+        return new ReferenceType(Id: null, Type: null, URI: "#ID1", Transforms: null,
+            DigestMethod: new DigestMethodType(Algorithm: V2GSignature.Sha512, ANY: null),
+            DigestValue: digest);
+    }
+
+    [Test]
+    public void SignThenVerify_RoundTrips()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue);
+
+        var signatureValue = V2GSignature.Sign(signedInfo, key);
+
+        Assert.That(signatureValue.Length, Is.EqualTo(132), "P-521 r‖s is 66+66 bytes");
+        Assert.That(V2GSignature.Verify(signedInfo, signatureValue, key), Is.True);
+    }
+
+    [Test]
+    public void Verify_FailsForTamperedSignature()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue);
+        var signatureValue = V2GSignature.Sign(signedInfo, key);
+
+        signatureValue[0] ^= 0xFF;   // flip a byte of r
+
+        Assert.That(V2GSignature.Verify(signedInfo, signatureValue, key), Is.False);
+    }
+
+    [Test]
+    public void Verify_FailsForWrongKey()
+    {
+        using var signer   = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+        using var attacker = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", SignedElementReference(out _).DigestValue);
+        var signatureValue = V2GSignature.Sign(signedInfo, signer);
+
+        Assert.That(V2GSignature.Verify(signedInfo, signatureValue, attacker), Is.False);
+    }
+
+    [Test]
+    public void VerifyReference_MatchesSignedElementDigest()
+    {
+        var reference = SignedElementReference(out var fragment);
+
+        Assert.That(V2GSignature.VerifyReference(reference, fragment), Is.True);
+
+        var tampered = (byte[])fragment.Clone();
+        tampered[^1] ^= 0x01;
+        Assert.That(V2GSignature.VerifyReference(reference, tampered), Is.False);
+    }
+
+    [Test]
+    public void EndToEnd_SignEncodeDecodeVerify()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+
+        // 1. Sign the MeteringConfirmationReq body (digest its fragment, sign the SignedInfo).
+        var body = SignableBody();
+        var fragBuf = new byte[512];
+        Assert.That(CommonMessagesCodec.EncodeFragment_MeteringConfirmationReq(body, fragBuf, out int fn), Is.True);
+        var bodyFragment = fragBuf.AsSpan(0, fn).ToArray();
+
+        var signedInfo = V2GSignature.BuildSignedInfo("ID1", V2GSignature.Digest(bodyFragment));
+        var signatureValue = V2GSignature.Sign(signedInfo, key);
+
+        // 2. Assemble the signed message — the document-level MeteringConfirmationReq (not the
+        //    fragment-only MeteringConfirmationReqType), header carrying the signature — and encode it.
+        var message = new MeteringConfirmationReq(
+            Header() with { Signature = V2GSignature.BuildSignature(signedInfo, signatureValue) },
+            SignedMeteringData());
+        var buf = new byte[1024];
+        Assert.That(message.TryEncode(buf, out int n), Is.True);
+
+        // 3. Decode it and verify the signature end to end.
+        var decoded = (MeteringConfirmationReq)CommonMessagesCodec.DecodeAny(buf.AsSpan(0, n), out _);
+        var sig = decoded.Header.Signature;
+        Assert.That(sig, Is.Not.Null);
+
+        Assert.That(V2GSignature.Verify(sig!.SignedInfo, sig.SignatureValue.Value, key), Is.True,
+            "ECDSA over the decoded SignedInfo must verify");
+
+        // Verification reconstructs the pre-signature fragment: -20 folds the header (including the
+        // Signature slot) into the signed element itself, so the receiver must zero that slot back out
+        // before re-fragment-encoding — exactly what the sender digested before it had a signature to put
+        // there. (-2 avoids this by keeping header and signable body as separate types altogether.)
+        var decodedForFragment = new MeteringConfirmationReqType(
+            decoded.Header with { Signature = null }, decoded.SignedMeteringData);
+        Assert.That(CommonMessagesCodec.EncodeFragment_MeteringConfirmationReq(decodedForFragment, fragBuf, out int fn2), Is.True);
+        Assert.That(V2GSignature.VerifyReference(sig.SignedInfo.Reference[0], fragBuf.AsSpan(0, fn2)), Is.True,
+            "the reference digest must match the signed element");
+    }
+}

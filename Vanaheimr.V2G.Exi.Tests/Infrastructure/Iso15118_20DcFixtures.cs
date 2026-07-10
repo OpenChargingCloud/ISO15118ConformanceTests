@@ -160,4 +160,37 @@ public static class Iso15118_20DcFixtures
                 throw new ArgumentException($"no DC fixture for vector '{vectorName}'");
         }
     }
+
+    /// <summary>Decodes a DC wire message and re-encodes it, so callers can assert decode∘encode is
+    /// the identity without referencing the generated types themselves.</summary>
+    public static byte[] DecodeReEncode(byte[] wireBytes)
+    {
+        var decoded = DcCodec.DecodeAny(wireBytes, out int consumed);
+        if (consumed != wireBytes.Length)
+            throw new InvalidDataException($"decoder consumed {consumed} of {wireBytes.Length} bytes");
+
+        var buf = new byte[512];
+        if (!TryReEncode(decoded, buf, out int n))
+            throw new InvalidDataException("re-encode failed");
+        return buf.AsSpan(0, n).ToArray();
+    }
+
+    private static bool TryReEncode(object message, byte[] dest, out int bytesWritten)
+    {
+        bytesWritten = 0;
+        return message switch
+        {
+            DC_CableCheckReq m => m.TryEncode(dest, out bytesWritten),
+            DC_CableCheckRes m => m.TryEncode(dest, out bytesWritten),
+            DC_ChargeParameterDiscoveryReq m => m.TryEncode(dest, out bytesWritten),
+            DC_ChargeParameterDiscoveryRes m => m.TryEncode(dest, out bytesWritten),
+            DC_PreChargeReq m => m.TryEncode(dest, out bytesWritten),
+            DC_PreChargeRes m => m.TryEncode(dest, out bytesWritten),
+            DC_ChargeLoopReq m => m.TryEncode(dest, out bytesWritten),
+            DC_ChargeLoopRes m => m.TryEncode(dest, out bytesWritten),
+            DC_WeldingDetectionReq m => m.TryEncode(dest, out bytesWritten),
+            DC_WeldingDetectionRes m => m.TryEncode(dest, out bytesWritten),
+            _ => throw new ArgumentException($"unexpected decoded DC type {message.GetType()}"),
+        };
+    }
 }
