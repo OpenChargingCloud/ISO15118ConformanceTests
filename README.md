@@ -263,9 +263,11 @@ there is nothing to point it at, so there's no XMLDSig work for these two sets.
   rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
-- External cross-validation of signatures against a second toolchain (EXIficient/Josev) —
-  -2's ECDSA-P256 and all three signing -20 sets' ECDSA-P521 paths are only self-checked
-  so far.
+- External cross-validation against a second toolchain: done for the `SignedInfo` fragment
+  on -2 and -20 CommonMessages — EXIficient (independent W3C-EXI processor) decodes our
+  cbV2G-byte-exact bytes back to the exact expected content, see
+  `tools/exificient-ref/README.md`. DC/AC's ECDSA-P521 paths and Josev interop are still
+  only self-checked, not yet cross-validated.
 - WPT's `WPT_LF_DataPackageList` (present) and `LF_SystemSetupData` (present) combinations
   are self-consistency-tested only, not byte-diffed against cbV2G — the latter can't be:
   cbV2G's own generated encoder for `WPT_LF_TransmitterDataType` fails outright at its
@@ -274,12 +276,12 @@ there is nothing to point it at, so there's no XMLDSig work for these two sets.
 ## Next milestones
 
 Phase 0 (SupportedAppProtocol wire conformance vs cbV2G), Phase 1 (EXI primitive layer),
-Phase 2 (source generator on the real ISO 15118-2 schema set), and Phase 3 part A (all 17
--2 message pairs + self-checked XMLDSig) are **done**. Phase 4 (ISO 15118-20 multi-schema
-codecs — CommonMessages, DC, AC, WPT, ACDP — V2GTP dispatch, XMLDSig where cbV2G supports
-it) is essentially complete bar external cross-validation — see `docs/roadmap.md` and
-`docs/prompts/phase4.md`. Next:
+Phase 2 (source generator on the real ISO 15118-2 schema set), Phase 3 (all 17 -2 message
+pairs + XMLDSig, `SignedInfo` fragment cross-validated against EXIficient), and Phase 4
+(ISO 15118-20 multi-schema codecs — CommonMessages, DC, AC, WPT, ACDP — V2GTP dispatch,
+XMLDSig where cbV2G supports it, CommonMessages `SignedInfo` fragment cross-validated
+against EXIficient) are **done** — see `docs/roadmap.md` and `docs/prompts/phase4.md`. Next:
 
-1. External cross-validation (EXIficient and/or Josev) for both -2 and -20 signatures.
-2. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
-   Josev.
+1. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
+   Josev — this doubles as end-to-end validation of the DC/AC signature paths and the
+   -2/-20 codecs together, beyond the fragment-level EXIficient cross-check already done.
