@@ -22,10 +22,12 @@ mit eigenem `iso20_<Set>_{Datatypes,Encoder,Decoder}.c`).
   (abstrakt, in `CommonTypes`) erweitert. Der Header (`SessionID`, `TimeStamp`, optionale
   `Signature`) steckt direkt in `V2GMessageType` (Basis von `V2GRequestType`) — kein separates
   Body-Substitution-Group-Konstrukt wie -2s `BodyElement`.
-- **Drei unabhängige Schemasätze für Phase 4** (WPT/ACDP explizit außer Scope): CommonMessages,
-  AC, DC — jedes importiert `CommonTypes` + `xmldsig-core-schema`. Ein generiertes Assembly pro
-  Satz (`Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/.AC/.DC`), `CommonTypes` wird bewusst pro
-  Assembly dupliziert (wie cbV2G/cbexigen selbst).
+- **Fünf unabhängige Schemasätze**: CommonMessages, AC, DC, WPT, ACDP — jedes importiert
+  `CommonTypes` + `xmldsig-core-schema`. Ein generiertes Assembly pro Satz
+  (`Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/.AC/.DC/.WPT/.ACDP`), `CommonTypes` wird
+  bewusst pro Assembly dupliziert (wie cbV2G/cbexigen selbst). WPT und ACDP waren ursprünglich
+  explizit außer Scope, wurden aber am 2026-07-11 nachträglich vervollständigt (siehe „WPT/ACDP
+  — nachträglich vervollständigt" unten für die dabei gefundenen neuen Konstrukte).
 - **`RationalNumberType`** (`CommonTypes`): `Exponent xs:byte, Value xs:short` — strukturell
   identisch zu -2s `PhysicalValueType` minus die Unit; braucht nur einen einfachen
   `RationalNumber.Of/.ToDecimal`-Helper (kein neues Codec-Feature).
@@ -224,6 +226,72 @@ bereits unterstützt. Kein `xs:any`/`mixed` außerhalb des ohnehin opaken `xmlds
    Transitive/konkrete Substitution implementiert (bestätigt gegen cbV2Gs
    `iso20_dc_DC_ChargeLoopReqType`, 5 flache Produktionen, 3 Bit); dabei den
    Pattern-Matching-Schatten-Fallstrick gefunden und behoben (dritter neuer Fund dieser Session).
-4. ⏳ Byte-Vektoren für CommonMessages/DC/AC gegen cbV2G — nächster Schritt.
-5. V2GTP-Dispatcher, secp521r1/SHA-512-Signatur-Suite, `RationalNumber`-Helper — Folge-Schritte,
-   im Repo als offene Tasks nachvollziehbar.
+4. ✅ Byte-Vektoren für CommonMessages/DC/AC gegen cbV2G, V2GTP-Dispatcher,
+   secp521r1/SHA-512-Signatur-Suite (CommonMessages/DC/AC), `RationalNumber`-Helper.
+5. ✅ WPT und ACDP (2026-07-11, ursprünglich außer Scope) — siehe Abschnitt unten.
+
+## WPT/ACDP — nachträglich vervollständigt (2026-07-11)
+
+ACDP generierte und kompilierte sofort ohne Generator-Änderungen. WPT brachte zwei neue
+EXI-Grammatik-Konstrukte zutage, die keines der anderen vier Sets zeigt.
+
+### Neues Konstrukt: optionale Bounded-Repeating-Liste mitten in der Sequenz
+
+`VendorSpecificDataContainer{0,16}` gefolgt von einem weiteren optionalen Element
+(`WPT_LF_DataPackageList?`), z. B. in `WPT_FinePositioningReqType`. Bisher war eine
+optionale Bounded-Repeating-Liste nur als *letztes* Element eines optionalen Runs
+unterstützt (echter Selbst-Loop). Byte-für-Byte aus cbV2Gs generiertem C
+(`iso20_WPT_Encoder.c`, Zustände 178–180) rekonstruiert — ein bestätigter cbexigen-
+Sonderfall:
+
+- Der „noch keine Elemente"-Zustand bietet nur *[erstes Element schreiben]* oder
+  *[Element-EE]* — das nachfolgende optionale Element ist an dieser Stelle unerreichbar.
+- Die Liste ist an dieser Position hart auf **2 Elemente** gedeckelt, unabhängig vom
+  Schema-`maxOccurs` (16 hier) — cbexigen entrollt nur zwei Positionen, bevor es an die
+  Folge-Partikel übergeben muss.
+
+Generator-seitig in `EmitEncodeOptionalRunWithMidList`/`EmitDecodeOptionalRunWithMidList`
+(`CodecEmitter.cs`) umgesetzt. Byte-verifiziert für den leeren Fall (Baseline-Vektoren);
+der Fall mit Listen-Inhalt + folgendem Element ist nur selbstkonsistent getestet
+(`Iso15118_20WptSelfConsistencyTests`), da er nicht Teil der Baseline-Vektoren ist.
+
+### Neues Konstrukt: erforderliche Liste jenseits des alten `maxOccurs=2`-Limits, mit optionalem Tail
+
+`WPT_LF_TransmitterDataType.TxSpecData` (`minOccurs=2, maxOccurs=255`) gefolgt von
+`TxPackageSpecData?`. Das bestehende Konstrukt #14 (`AuthorizationServices` →
+`CertificateInstallationService`) unterstützte nur `maxOccurs=2` (entrollt) mit
+*erforderlichem* Tail.
+
+**Hier gibt es keine funktionierende cbV2G-Referenz**: ein eigens aufgesetzter
+Standalone-Build von libcbv2g (gcc/cmake in WSL, siehe `tools/cbv2g-ref/`) zeigt, dass
+cbV2Gs eigener generierter Encoder für `WPT_LF_TransmitterDataType` mit
+`EXI_ERROR__UNKNOWN_EVENT_CODE` fehlschlägt — und zwar bereits beim
+Schema-Minimum von 2 `TxSpecData`-Elementen. Der generierte Zustand nach dem zweiten
+Element hat schlicht keine Loop-Option mehr kodiert. Das ist ein echter cbexigen-Bug für
+diese Konstruktion, kein Missverständnis unsererseits (verifiziert durch direkten Aufruf
+von `encode_iso20_wpt_exiDocument` mit einer schema-validen Instanz).
+
+Ohne Referenz zum Byte-Diff wurde eine eigenständige, spec-konforme Grammatik entworfen
+(generalisiert in `EmitEncodeRequiredRepeatingWithTail`/`EmitDecodeRequiredRepeatingWithTail`):
+ein echter Selbst-Loop, der bei jeder Iteration `[loop, tail-start, element EE]` anbietet.
+Nur selbstkonsistent getestet, nicht gegen cbV2G verifizierbar.
+
+### ACDP: Document-Index-Gruppierung bei geteilten Typen
+
+`ACDP_DisconnectReq`/`Res` verwenden bewusst dieselben Typen wie `ACDP_ConnectReq`/`ResType`
+(`type="ACDP_ConnectReqType"` usw.). cbV2Gs Dokument-Grammatik (`encode_iso20_acdp_exiDocument`)
+weist Elemente, die sich einen Typ teilen, direkt aufeinanderfolgende Indizes zu — gruppiert
+nach dem alphabetisch ersten Element dieses Typs (`ConnectReq=0, DisconnectReq=1,
+ConnectRes=2, DisconnectRes=3`), NICHT rein alphabetisch nach Elementname (das hätte
+`ConnectRes` vor `DisconnectReq` einsortiert). `GrammarBuilder.Build` erkennt das jetzt
+gezielt (`sharedTypeGroups`); alle anderen Sets haben ein 1:1-Element/Typ-Namensmuster und
+bleiben von der Änderung unberührt (durch den vollen Testlauf nach der Änderung bestätigt).
+
+**Payload-Types**: `PayloadType_Iso20WPT = 0x8006` neu ergänzt (aus libcbv2gs
+`include/cbv2g/exi_v2gtp.h`, `V2GTP20_WPT_MAINSTREAM_PAYLOAD_ID`); `PayloadType_Iso20ACDP
+= 0x8005` war schon korrekt vorhanden.
+
+**XMLDSig**: Weder WPT noch ACDP haben in cbV2G irgendein `exiFragment`/Signatur-Konstrukt
+(keine Fragment-Structs, keine `EncodeFragment`/`DecodeFragment`-Funktionen in den
+generierten Headern) — bestätigt per Volltextsuche in `iso20_{WPT,ACDP}_Datatypes.h` und
+den zugehörigen `_Encoder.h`. Nichts zu implementieren.

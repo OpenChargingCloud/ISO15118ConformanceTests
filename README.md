@@ -18,6 +18,8 @@ Vanaheimr.V2G.Exi.slnx
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/  ISO 15118-20 CommonMessages codec
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.DC/              ISO 15118-20 DC codec
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.AC/              ISO 15118-20 AC codec
+├─ Vanaheimr.V2G.Exi.Iso15118_20.WPT/             ISO 15118-20 WPT codec
+├─ Vanaheimr.V2G.Exi.Iso15118_20.ACDP/            ISO 15118-20 ACDP codec
 ├─ Vanaheimr.V2G.Exi.Dispatch/           V2GTP payload-type → codec dispatcher
 ├─ Vanaheimr.V2G.Exi.Simulation/         console app: full AC/DC session over the codec
 ├─ Vanaheimr.V2G.Exi.Tests/             NUnit test project
@@ -153,12 +155,14 @@ dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --break-sequence  # trip
 
 ## ISO 15118-20 (Phase 4)
 
-Three independent, generated assemblies — `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`,
-`.DC`, `.AC` — each consuming its own schema set (message-set XSD + `CommonTypes` +
-`xmldsig-core-schema`, deliberately duplicated per assembly, mirroring cbV2G/cbexigen
-itself). Unlike -2, there is no `V2G_Message` wrapper: every message is its own global
-element carrying the header (`SessionID`, `TimeStamp`, optional `Signature`) inline. WPT
-and ACDP are explicitly out of scope (see `docs/xsd-inventory-15118-20.md`).
+Five independent, generated assemblies — `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`,
+`.DC`, `.AC`, `.WPT`, `.ACDP` — each consuming its own schema set (message-set XSD +
+`CommonTypes` + `xmldsig-core-schema`, deliberately duplicated per assembly, mirroring
+cbV2G/cbexigen itself; the WPT/ACDP XSDs were fetched from
+`https://standards.iso.org/iso/15118/-20/ed-1/en/`, the same official source EVerest's own
+build tooling uses). Unlike -2, there is no `V2G_Message` wrapper: every message is its
+own global element carrying the header (`SessionID`, `TimeStamp`, optional `Signature`)
+inline.
 
 ### Message coverage (byte-verified vs cbV2G, encode + decode + roundtrip)
 
@@ -174,20 +178,53 @@ re-encode, byte-for-byte) in `Iso15118_20VectorTests`:
   ChargeLoop (Scheduled/Dynamic/BPT_Scheduled/BPT_Dynamic control modes), WeldingDetection.
 - **AC** (4 message shapes, 10 vectors): ChargeParameterDiscovery, ChargeLoop
   (Scheduled/Dynamic/BPT_Scheduled/BPT_Dynamic control modes).
+- **WPT** (all 12 messages, 6 req/res pairs): FinePositioningSetup, FinePositioning,
+  Pairing, ChargeParameterDiscovery, AlignmentCheck, ChargeLoop. Baseline coverage
+  (`VendorSpecificDataContainer`/`ManufacturerSpecificDataContainer` empty,
+  `WPT_LF_DataPackageList`/`LF_SystemSetupData` absent — see below for why those two are
+  self-consistency-only) is byte-exact against cbV2G.
+- **ACDP** (all 8 messages, 4 req/res pairs): VehiclePositioning, Connect, Disconnect,
+  SystemStatus — byte-exact against cbV2G.
 
 `RationalNumberType` (`CommonTypes`: `Exponent xs:byte, Value xs:short`) gets the same
 decimal-bridge ergonomics as -2's `PhysicalValueType`, via a `RationalNumberMath` core
-shared across the three assemblies (each duplicates `RationalNumberType` itself, so each
-gets its own thin `RationalNumber.Of/.ToDecimal` wrapper around the shared math).
+shared across the message-set assemblies (each duplicates `RationalNumberType` itself, so
+each gets its own thin `RationalNumber.Of/.ToDecimal` wrapper around the shared math).
+
+WPT surfaced two EXI grammar shapes never seen in the other four sets — both required
+extending the source generator, not just adding vectors:
+
+- **`VendorSpecificDataContainer{0,16}` followed by another optional element**
+  (`WPT_LF_DataPackageList?`) — reverse-engineered byte-for-byte from cbV2G's generated C
+  (`iso20_WPT_Encoder.c`): a confirmed cbexigen quirk where the list is capped at exactly
+  2 items in this position regardless of its schema `maxOccurs`, and the trailing element
+  is unreachable until at least one list item is written. Byte-verified against cbV2G at
+  the baseline (list empty); the non-empty/present combination is self-consistency-tested
+  only (`Iso15118_20WptSelfConsistencyTests`), since it isn't part of the baseline vectors.
+- **A required repeating list past cbexigen's old `maxOccurs=2` unroll limit, with an
+  optional tail** (`WPT_LF_TransmitterDataType.TxSpecData`, `minOccurs=2`/`maxOccurs=255`,
+  → `TxPackageSpecData?`). No working cbV2G reference exists for this one: a standalone
+  build of libcbv2g confirms its own generated encoder fails with
+  `EXI_ERROR__UNKNOWN_EVENT_CODE` even at the schema's required minimum of 2 items — so
+  this is an independent, spec-following design (a true self-loop offering
+  `[loop, tail, element EE]`), not a byte-diff match. Self-consistency-tested only.
+
+ACDP surfaced a document-grammar subtlety: `ACDP_DisconnectReq`/`Res` deliberately reuse
+`ACDP_ConnectReq`/`ResType`. cbV2G's document-level dispatcher groups elements sharing a
+type immediately after the alphabetically-first element of that type (verified against
+`encode_iso20_acdp_exiDocument`), not plain alphabetical-by-element-name — the generator's
+document-index computation now detects and handles this (every other schema set has a 1:1
+element/type naming pattern, so this coincides with plain alphabetical order there).
 
 ### V2GTP dispatch
 
 `Vanaheimr.V2G.Exi.Dispatch` (`V2GTPDispatcher`) maps a V2GTP payload type to one of the
-five codecs (AppProtocol, -2, -20 CommonMessages/AC/DC), decodes without the caller
-knowing in advance which set a frame carries, and wraps an already-encoded EXI payload
-with the right header on the way out. Covered: correct mapping per set, a clean error
-(not an exception) on a bad header, a payload-length mismatch, or an unrecognised payload
-type (e.g. ACDP's 0x8005 — reachable on the wire, out of scope here).
+seven codecs (AppProtocol, -2, -20 CommonMessages/AC/DC/WPT/ACDP), decodes without the
+caller knowing in advance which set a frame carries, and wraps an already-encoded EXI
+payload with the right header on the way out. Payload types come straight from libcbv2g's
+`include/cbv2g/exi_v2gtp.h` (WPT's `0x8006` needed adding; ACDP's `0x8005` was already
+correct). Covered: correct mapping per set, a clean error (not an exception) on a bad
+header, a payload-length mismatch, or an unrecognised payload type.
 
 ### XMLDSig (CommonMessages, DC, AC)
 
@@ -214,6 +251,12 @@ sign/verify/tamper/wrong-key for DC/AC); the ECDSA path itself is self-checked o
 below). Ed448 (also in -20's signature-suite options) is out of scope — .NET has no built-in
 Ed448.
 
+**WPT and ACDP carry no signable content at all** — confirmed by grepping their cbV2G
+headers (`iso20_WPT_Datatypes.h`, `iso20_ACDP_Datatypes.h`, and both sets' `_Encoder.h`):
+no `exiFragment` struct, no `EncodeFragment`/`DecodeFragment` function, nothing. Their
+`MessageHeaderType.Signature` field exists (schema-consistent with every other set) but
+there is nothing to point it at, so there's no XMLDSig work for these two sets.
+
 ## What this prototype still does NOT do
 
 - Non-ASCII string values on the wire against a reference oracle (our codec encodes them
@@ -221,16 +264,21 @@ Ed448.
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
 - External cross-validation of signatures against a second toolchain (EXIficient/Josev) —
-  -2's ECDSA-P256 and all three -20 sets' ECDSA-P521 paths are only self-checked so far.
-- WPT and ACDP message sets (explicitly out of Phase-4 scope).
+  -2's ECDSA-P256 and all three signing -20 sets' ECDSA-P521 paths are only self-checked
+  so far.
+- WPT's `WPT_LF_DataPackageList` (present) and `LF_SystemSetupData` (present) combinations
+  are self-consistency-tested only, not byte-diffed against cbV2G — the latter can't be:
+  cbV2G's own generated encoder for `WPT_LF_TransmitterDataType` fails outright at its
+  schema-required minimum (see above).
 
 ## Next milestones
 
 Phase 0 (SupportedAppProtocol wire conformance vs cbV2G), Phase 1 (EXI primitive layer),
 Phase 2 (source generator on the real ISO 15118-2 schema set), and Phase 3 part A (all 17
 -2 message pairs + self-checked XMLDSig) are **done**. Phase 4 (ISO 15118-20 multi-schema
-codecs, V2GTP dispatch, XMLDSig for all three sets) is essentially complete bar external
-cross-validation — see `docs/roadmap.md` and `docs/prompts/phase4.md`. Next:
+codecs — CommonMessages, DC, AC, WPT, ACDP — V2GTP dispatch, XMLDSig where cbV2G supports
+it) is essentially complete bar external cross-validation — see `docs/roadmap.md` and
+`docs/prompts/phase4.md`. Next:
 
 1. External cross-validation (EXIficient and/or Josev) for both -2 and -20 signatures.
 2. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
