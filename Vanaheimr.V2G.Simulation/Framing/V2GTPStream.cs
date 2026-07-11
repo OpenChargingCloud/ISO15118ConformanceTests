@@ -1,0 +1,69 @@
+using Vanaheimr.V2G.Tp;
+
+namespace Vanaheimr.V2G.Simulation.Framing;
+
+/// <summary>
+/// Reads and writes single V2GTP frames on a <see cref="Stream"/> — the one place in this project
+/// that touches the transport octets directly. Works unchanged over a plain <see cref="System.Net.Sockets.NetworkStream"/>
+/// or an authenticated <see cref="System.Net.Security.SslStream"/>; everything above this layer only
+/// ever sees a <see cref="MessageSet"/> and a decoded message object.
+/// </summary>
+public static class V2GTPStream
+{
+    /// <summary>
+    /// Reads one V2GTP frame: the 8-byte header, then exactly as many payload bytes as it declares,
+    /// then hands the whole frame to <see cref="V2GTPDispatcher.TryDecode"/>. Throws
+    /// <see cref="InvalidDataException"/> if the header is malformed, the peer closes mid-frame, or the
+    /// payload type is unrecognised — there is no "try" variant because a broken frame is not a
+    /// recoverable condition for a session peer.
+    /// </summary>
+    public static async Task<(MessageSet Set, object Message)> ReadFrameAsync(Stream stream, CancellationToken ct = default)
+    {
+        var frame = new byte[V2GTP.HeaderSize];
+        try
+        {
+            await stream.ReadExactlyAsync(frame, ct).ConfigureAwait(false);
+        }
+        catch (EndOfStreamException ex)
+        {
+            throw new InvalidDataException("V2GTP frame: connection closed before a full 8-byte header arrived.", ex);
+        }
+
+        if (!V2GTP.TryReadHeader(frame, out ushort payloadType, out uint payloadLength))
+            throw new InvalidDataException("V2GTP frame: bad version/type bytes in the 8-byte header.");
+
+        Array.Resize(ref frame, V2GTP.HeaderSize + checked((int)payloadLength));
+        if (payloadLength > 0)
+        {
+            try
+            {
+                await stream.ReadExactlyAsync(frame.AsMemory(V2GTP.HeaderSize), ct).ConfigureAwait(false);
+            }
+            catch (EndOfStreamException ex)
+            {
+                throw new InvalidDataException(
+                    $"V2GTP frame: connection closed after {frame.Length - V2GTP.HeaderSize} of {payloadLength} declared payload byte(s).", ex);
+            }
+        }
+
+        if (!V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error))
+            throw new InvalidDataException($"V2GTP frame: {error}");
+
+        return (set, message!);
+    }
+
+    /// <summary>
+    /// Encodes one already-EXI-encoded payload with the V2GTP header for <paramref name="set"/> and
+    /// writes + flushes it to <paramref name="stream"/> in one call.
+    /// </summary>
+    public static async Task WriteFrameAsync(
+        Stream stream, MessageSet set, ReadOnlyMemory<byte> exiPayload, CancellationToken ct = default)
+    {
+        var dest = new byte[V2GTP.HeaderSize + exiPayload.Length];
+        if (!V2GTPDispatcher.TryEncode(set, exiPayload.Span, dest, out int bytesWritten))
+            throw new InvalidOperationException("V2GTP frame: encode failed (payload too large for its length field?).");
+
+        await stream.WriteAsync(dest.AsMemory(0, bytesWritten), ct).ConfigureAwait(false);
+        await stream.FlushAsync(ct).ConfigureAwait(false);
+    }
+}

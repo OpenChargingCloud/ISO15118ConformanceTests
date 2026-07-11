@@ -10,4 +10,7 @@
   <Project Path="Vanaheimr.V2G.Exi.Prototype/Vanaheimr.V2G.Exi.Prototype.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.SourceGenerator/Vanaheimr.V2G.Exi.SourceGenerator.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Tests/Vanaheimr.V2G.Exi.Tests.csproj" />
+  <Project Path="Vanaheimr.V2G.Simulation/Vanaheimr.V2G.Simulation.csproj" />
+  <Project Path="Vanaheimr.V2G.Simulation.Cli/Vanaheimr.V2G.Simulation.Cli.csproj" />
+  <Project Path="Vanaheimr.V2G.Simulation.Tests/Vanaheimr.V2G.Simulation.Tests.csproj" />
 </Solution>

@@ -21,7 +21,10 @@ Vanaheimr.V2G.Exi.slnx
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.WPT/             ISO 15118-20 WPT codec
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.ACDP/            ISO 15118-20 ACDP codec
 ├─ Vanaheimr.V2G.Exi.Dispatch/           V2GTP payload-type → codec dispatcher
-├─ Vanaheimr.V2G.Exi.Simulation/         console app: full AC/DC session over the codec
+├─ Vanaheimr.V2G.Exi.Simulation/         console app: in-process -2 AC/DC session (no sockets)
+├─ Vanaheimr.V2G.Simulation/             class library: real TCP/TLS EVCC↔SECC session (Phase 5)
+├─ Vanaheimr.V2G.Simulation.Cli/         console app: `evcc`/`secc` subcommands over Vanaheimr.V2G.Simulation
+├─ Vanaheimr.V2G.Simulation.Tests/       NUnit: framing/state-machine/loopback E2E tests for Phase 5
 ├─ Vanaheimr.V2G.Exi.Tests/             NUnit test project
 │   ├─ Infrastructure/
 │   │   ├─ HexUtil.cs                   hex parse + bit-level diff for failures
@@ -257,6 +260,39 @@ no `exiFragment` struct, no `EncodeFragment`/`DecodeFragment` function, nothing.
 `MessageHeaderType.Signature` field exists (schema-consistent with every other set) but
 there is nothing to point it at, so there's no XMLDSig work for these two sets.
 
+## EV↔EVSE simulation (Phase 5, slice 1)
+
+`Vanaheimr.V2G.Simulation` is a real-networking EVCC↔SECC session — distinct from
+`Vanaheimr.V2G.Exi.Simulation` above, which stays an in-process, no-sockets, -2-only demo.
+**Deliberately out of scope for this slice**: SDP (UDP discovery) and SLAC/PLC — both sides
+connect via an explicit host:port instead. Josev interop is a separate follow-up.
+
+- **Framing** (`Framing/V2GTPStream.cs`): reads/writes one V2GTP frame on a `Stream`, using the
+  existing `V2GTPDispatcher` to resolve/encode the message set — works unchanged over plain TCP
+  or TLS, since it never sees `NetworkStream`/`SslStream` directly.
+- **Transport** (`Transport/`): `TcpV2GListener`/`TcpV2GClient` (fixed endpoint, no discovery),
+  `TlsOptions` for server-side TLS (self-signed test certs generated at test-time, never checked
+  in; mutual TLS and the spec's exact cipher-suite pinning are documented gaps).
+- **SAP** (`Sap/SapHandshake.cs`): the SupportedAppProtocol negotiation every session starts with.
+- **Session** (`Session/`): `SessionContext` renders the SECC-assigned SessionID into whichever of
+  -20's three self-contained per-schema-set `MessageHeaderType`s (CommonMessages/DC/AC — each its
+  own CLR type, no cross-references between those assemblies) the next phase needs.
+- **State machines** (`StateMachines/`): `Evcc2`/`Secc2` for -2 (AC+DC via a mode flag, mirroring
+  `Vanaheimr.V2G.Exi.Simulation`'s shape but driven over real sockets with an injectable
+  `TimeProvider`/`IAsyncDelay` instead of `DateTime.UtcNow`/`Thread.Sleep`); `Evcc20Base`/
+  `Secc20Base` + `{Evcc,Secc}20{Dc,Ac}` for -20 (shared CommonMessages phases in the base class,
+  DC/AC-specific charge-parameter/pre-charge/charge-loop/welding-detection hooks in the subclasses).
+- **CLI** (`Vanaheimr.V2G.Simulation.Cli`):
+  ```
+  secc --listen <port>       --protocol 2|20 --mode ac|dc [--tls]
+  evcc --connect <host:port> --protocol 2|20 --mode ac|dc [--tls]
+  ```
+  One-shot: the SECC accepts a single connection, runs one session, and exits.
+
+All four happy paths (-2 AC/DC, -20 AC/DC) run to `SessionStop` over real loopback TCP in
+`dotnet test` (`Vanaheimr.V2G.Simulation.Tests/E2E/`), plus two TLS variants — no network beyond
+loopback, matching the project's build rule.
+
 ## What this prototype still does NOT do
 
 - Non-ASCII string values on the wire against a reference oracle (our codec encodes them
@@ -280,8 +316,12 @@ Phase 2 (source generator on the real ISO 15118-2 schema set), Phase 3 (all 17 -
 pairs + XMLDSig, `SignedInfo` fragment cross-validated against EXIficient), and Phase 4
 (ISO 15118-20 multi-schema codecs — CommonMessages, DC, AC, WPT, ACDP — V2GTP dispatch,
 XMLDSig where cbV2G supports it, CommonMessages `SignedInfo` fragment cross-validated
-against EXIficient) are **done** — see `docs/roadmap.md` and `docs/prompts/phase4.md`. Next:
+against EXIficient) are **done** — see `docs/roadmap.md` and `docs/prompts/phase4.md`.
+Phase 5 slice 1 (TCP/TLS transport + EVCC/SECC state machines, all four happy paths, no
+SDP) is also **done** — see the section above. Next:
 
-1. EV↔EVSE simulation (Phase 5): SDP, TCP/TLS, EVCC/SECC state machines, interop against
-   Josev — this doubles as end-to-end validation of the DC/AC signature paths and the
-   -2/-20 codecs together, beyond the fragment-level EXIficient cross-check already done.
+1. SDP (SECC Discovery Protocol) — currently bypassed via explicit host:port.
+2. Interop against Josev (`tools/interop-josev/`, not yet started): both directions, -2 AC
+   EIM first, then -2 DC, then -20 — this is what actually validates the DC/AC signature
+   paths and the -2/-20 codecs against an independent stack, beyond the fragment-level
+   EXIficient cross-check and the in-repo loopback E2E tests done so far.
