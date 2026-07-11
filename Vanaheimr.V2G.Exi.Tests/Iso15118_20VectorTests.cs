@@ -31,6 +31,7 @@ public class Iso15118_20VectorTests
     private static IEnumerable<TestCaseData> DcVectors() => Vectors("Iso15118_20.DC.vectors.json");
     private static IEnumerable<TestCaseData> AcVectors() => Vectors("Iso15118_20.AC.vectors.json");
     private static IEnumerable<TestCaseData> WptVectors() => Vectors("Iso15118_20.WPT.vectors.json");
+    private static IEnumerable<TestCaseData> AcdpVectors() => Vectors("Iso15118_20.ACDP.vectors.json");
 
     [TestCaseSource(nameof(CommonVectors))]
     public void CommonMessages_Matches_CbV2G(Vec vector) =>
@@ -48,6 +49,10 @@ public class Iso15118_20VectorTests
     public void WPT_Matches_CbV2G(Vec vector) =>
         AssertMatches(vector, Iso15118_20WptFixtures.TryEncode);
 
+    [TestCaseSource(nameof(AcdpVectors))]
+    public void ACDP_Matches_CbV2G(Vec vector) =>
+        AssertMatches(vector, Iso15118_20AcdpFixtures.TryEncode);
+
     [TestCaseSource(nameof(CommonVectors))]
     public void CommonMessages_RoundtripsThroughDecode(Vec vector) =>
         AssertRoundtrip(vector, Iso15118_20CommonFixtures.TryEncode, Iso15118_20CommonFixtures.DecodeReEncode);
@@ -63,6 +68,10 @@ public class Iso15118_20VectorTests
     [TestCaseSource(nameof(WptVectors))]
     public void WPT_RoundtripsThroughDecode(Vec vector) =>
         AssertRoundtrip(vector, Iso15118_20WptFixtures.TryEncode, Iso15118_20WptFixtures.DecodeReEncode);
+
+    [TestCaseSource(nameof(AcdpVectors))]
+    public void ACDP_RoundtripsThroughDecode(Vec vector) =>
+        AssertRoundtrip(vector, Iso15118_20AcdpFixtures.TryEncode, Iso15118_20AcdpFixtures.DecodeReEncode);
 
     private delegate bool TryEncodeFn(string vectorName, byte[] dest, out int bytesWritten);
     private delegate byte[] DecodeReEncodeFn(byte[] wireBytes);

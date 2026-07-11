@@ -23,6 +23,8 @@
 #include "cbv2g/iso_20/iso20_AC_Encoder.h"
 #include "cbv2g/iso_20/iso20_WPT_Datatypes.h"
 #include "cbv2g/iso_20/iso20_WPT_Encoder.h"
+#include "cbv2g/iso_20/iso20_ACDP_Datatypes.h"
+#include "cbv2g/iso_20/iso20_ACDP_Encoder.h"
 
 #define OUT_BUF_SIZE 4096
 
@@ -61,6 +63,12 @@ static void set_header_ac(struct iso20_ac_MessageHeaderType* h) {
 static void set_header_wpt(struct iso20_wpt_MessageHeaderType* h) {
     memset(h->SessionID.bytes, 0, iso20_wpt_sessionIDType_BYTES_SIZE);
     h->SessionID.bytesLen = iso20_wpt_sessionIDType_BYTES_SIZE;
+    h->TimeStamp = 1700000000ULL;
+    h->Signature_isUsed = 0u;
+}
+static void set_header_acdp(struct iso20_acdp_MessageHeaderType* h) {
+    memset(h->SessionID.bytes, 0, iso20_acdp_sessionIDType_BYTES_SIZE);
+    h->SessionID.bytesLen = iso20_acdp_sessionIDType_BYTES_SIZE;
     h->TimeStamp = 1700000000ULL;
     h->Signature_isUsed = 0u;
 }
@@ -1462,6 +1470,107 @@ static int do_wpt(const char* v) {
     return 0;
 }
 
+/* ---- ACDP ------------------------------------------------------------------------------------ */
+
+static int do_acdp(const char* v) {
+    struct iso20_acdp_exiDocument doc;
+    memset(&doc, 0, sizeof(doc));
+
+    if (strcmp(v, "ACDP_VehiclePositioningReq") == 0) {
+        doc.ACDP_VehiclePositioningReq_isUsed = 1u;
+        struct iso20_acdp_ACDP_VehiclePositioningReqType* q = &doc.ACDP_VehiclePositioningReq;
+        set_header_acdp(&q->Header);
+        q->EVMobilityStatus = 1;
+        q->EVPositioningSupport = 1;
+
+    } else if (strcmp(v, "ACDP_VehiclePositioningRes") == 0) {
+        doc.ACDP_VehiclePositioningRes_isUsed = 1u;
+        struct iso20_acdp_ACDP_VehiclePositioningResType* r = &doc.ACDP_VehiclePositioningRes;
+        set_header_acdp(&r->Header);
+        r->ResponseCode = iso20_acdp_responseCodeType_OK;
+        r->EVSEProcessing = iso20_acdp_processingType_Finished;
+        r->EVSEPositioningSupport = 1;
+        r->EVRelativeXDeviation = 10;
+        r->EVRelativeYDeviation = -5;
+        r->ContactWindowXc = 100;
+        r->ContactWindowYc = 50;
+        r->EVInChargePosition = 0;
+
+    } else if (strcmp(v, "ACDP_ConnectReq") == 0) {
+        doc.ACDP_ConnectReq_isUsed = 1u;
+        struct iso20_acdp_ACDP_ConnectReqType* q = &doc.ACDP_ConnectReq;
+        set_header_acdp(&q->Header);
+        q->EVElectricalChargingDeviceStatus = iso20_acdp_electricalChargingDeviceStatusType_State_B;
+
+    } else if (strcmp(v, "ACDP_ConnectRes") == 0) {
+        doc.ACDP_ConnectRes_isUsed = 1u;
+        struct iso20_acdp_ACDP_ConnectResType* r = &doc.ACDP_ConnectRes;
+        set_header_acdp(&r->Header);
+        r->ResponseCode = iso20_acdp_responseCodeType_OK;
+        r->EVSEProcessing = iso20_acdp_processingType_Finished;
+        r->EVSEElectricalChargingDeviceStatus = iso20_acdp_electricalChargingDeviceStatusType_State_C;
+        r->EVSEMechanicalChargingDeviceStatus = iso20_acdp_mechanicalChargingDeviceStatusType_EndPosition;
+
+    } else if (strcmp(v, "ACDP_DisconnectReq") == 0) {
+        doc.ACDP_DisconnectReq_isUsed = 1u;
+        struct iso20_acdp_ACDP_ConnectReqType* q = &doc.ACDP_DisconnectReq;
+        set_header_acdp(&q->Header);
+        q->EVElectricalChargingDeviceStatus = iso20_acdp_electricalChargingDeviceStatusType_State_A;
+
+    } else if (strcmp(v, "ACDP_DisconnectRes") == 0) {
+        doc.ACDP_DisconnectRes_isUsed = 1u;
+        struct iso20_acdp_ACDP_ConnectResType* r = &doc.ACDP_DisconnectRes;
+        set_header_acdp(&r->Header);
+        r->ResponseCode = iso20_acdp_responseCodeType_OK;
+        r->EVSEProcessing = iso20_acdp_processingType_Finished;
+        r->EVSEElectricalChargingDeviceStatus = iso20_acdp_electricalChargingDeviceStatusType_State_A;
+        r->EVSEMechanicalChargingDeviceStatus = iso20_acdp_mechanicalChargingDeviceStatusType_Home;
+
+    } else if (strcmp(v, "ACDP_SystemStatusReq") == 0) {
+        doc.ACDP_SystemStatusReq_isUsed = 1u;
+        struct iso20_acdp_ACDP_SystemStatusReqType* q = &doc.ACDP_SystemStatusReq;
+        set_header_acdp(&q->Header);
+        q->EVTechnicalStatus.EVReadyToCharge = 1;
+        q->EVTechnicalStatus.EVImmobilizationRequest = 0;
+        q->EVTechnicalStatus.EVImmobilized_isUsed = 0u;
+        q->EVTechnicalStatus.EVWLANStrength_isUsed = 0u;
+        q->EVTechnicalStatus.EVCPStatus_isUsed = 0u;
+        q->EVTechnicalStatus.EVSOC_isUsed = 0u;
+        q->EVTechnicalStatus.EVErrorCode_isUsed = 0u;
+        q->EVTechnicalStatus.EVTimeout_isUsed = 0u;
+
+    } else if (strcmp(v, "ACDP_SystemStatusRes") == 0) {
+        doc.ACDP_SystemStatusRes_isUsed = 1u;
+        struct iso20_acdp_ACDP_SystemStatusResType* r = &doc.ACDP_SystemStatusRes;
+        set_header_acdp(&r->Header);
+        r->ResponseCode = iso20_acdp_responseCodeType_OK;
+        r->EVSEMechanicalChargingDeviceStatus = iso20_acdp_mechanicalChargingDeviceStatusType_EndPosition;
+        r->EVSEReadyToCharge = 1;
+        r->EVSEIsolationStatus = iso20_acdp_isolationStatusType_Safe;
+        r->EVSEDisabled = 0;
+        r->EVSEUtilityInterruptEvent = 0;
+        r->EVSEEmergencyShutdown = 0;
+        r->EVSEMalfunction = 0;
+        r->EVInChargePosition = 1;
+        r->EVAssociationStatus = 1;
+
+    } else {
+        fprintf(stderr, "cbv2g-iso20: unknown ACDP vector '%s'\n", v);
+        return 1;
+    }
+
+    uint8_t out[OUT_BUF_SIZE];
+    exi_bitstream_t stream;
+    exi_bitstream_init(&stream, out, sizeof(out), 0, NULL);
+    int error = encode_iso20_acdp_exiDocument(&stream, &doc);
+    if (error != 0) {
+        fprintf(stderr, "cbv2g-iso20: ACDP encode failed with error %d\n", error);
+        return 3;
+    }
+    print_hex(out, exi_bitstream_get_length(&stream));
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <Set>_<vector>  (Set: Common, DC, AC)\n", argv[0]);
@@ -1479,7 +1588,8 @@ int main(int argc, char** argv) {
     if (strncmp(arg, "DC_", 3) == 0)     return do_dc(arg);       /* DC vector names already start with DC_ */
     if (strncmp(arg, "AC_", 3) == 0)     return do_ac(arg);       /* AC vector names already start with AC_ */
     if (strncmp(arg, "WPT_", 4) == 0)    return do_wpt(arg);      /* WPT vector names already start with WPT_ */
+    if (strncmp(arg, "ACDP_", 5) == 0)   return do_acdp(arg);     /* ACDP vector names already start with ACDP_ */
 
-    fprintf(stderr, "cbv2g-iso20: vector name must be prefixed Common_/DC_/AC_/WPT_\n");
+    fprintf(stderr, "cbv2g-iso20: vector name must be prefixed Common_/DC_/AC_/WPT_/ACDP_\n");
     return 1;
 }

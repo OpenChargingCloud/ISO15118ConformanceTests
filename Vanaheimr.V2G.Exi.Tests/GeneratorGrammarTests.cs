@@ -1106,6 +1106,49 @@ public class GeneratorGrammarTests
         Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
     }
 
+    // ---- construct #18 (ISO 15118-20 ACDP): two global elements sharing the same named type ----
+
+    [Test]
+    public void TwoGlobalElementsSharingATypeAreGroupedInTheDocumentGrammar()
+    {
+        // ACDP_DisconnectReq/Res deliberately reuse ACDP_ConnectReq/ResType. cbV2G's document
+        // grammar groups elements that share a type immediately after the alphabetically-first
+        // element of that type — NOT plain alphabetical-by-element-name, which would put "BReq"
+        // (a distinct type) between "AReq" and "ARes" here. Verified against
+        // encode_iso20_acdp_exiDocument: ConnectReq=0, DisconnectReq=1, ConnectRes=2, DisconnectRes=3.
+        const string xsd = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns="urn:test:st1" targetNamespace="urn:test:st1">
+              <xs:element name="AReq" type="TReq"/>
+              <xs:element name="ARes" type="TRes"/>
+              <xs:element name="BReq" type="TReq"/>
+              <xs:element name="BRes" type="TRes"/>
+              <xs:complexType name="TReq">
+                <xs:sequence>
+                  <xs:element name="Value" type="xs:unsignedByte"/>
+                </xs:sequence>
+              </xs:complexType>
+              <xs:complexType name="TRes">
+                <xs:sequence>
+                  <xs:element name="Value" type="xs:unsignedByte"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:schema>
+            """;
+        var r = GeneratorHarness.Run(("st1.xsd", xsd));
+        Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
+        var src = r.GeneratedSource;
+
+        // DecodeAny's switch literally encodes the assigned document index per element.
+        Assert.That(src, Does.Contain("0u => Decode_AReq(ref r),"));
+        Assert.That(src, Does.Contain("1u => Decode_BReq(ref r),"));
+        Assert.That(src, Does.Contain("2u => Decode_ARes(ref r),"));
+        Assert.That(src, Does.Contain("3u => Decode_BRes(ref r),"));
+
+        var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+        Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
+    }
+
     // ---- construct #15 (ISO 15118-20): transitive substitution groups + concrete (non-abstract-
     // element) heads whose members can extend EACH OTHER ----
 

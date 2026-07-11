@@ -93,6 +93,9 @@ add_executable(cbv2g_iso20
     "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_WPT_Datatypes.c"
     "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_WPT_Encoder.c"
     "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_WPT_Decoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_ACDP_Datatypes.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_ACDP_Encoder.c"
+    "${CBV2G_SRC}/lib/cbv2g/iso_20/iso20_ACDP_Decoder.c"
 )
 
 target_include_directories(cbv2g_iso20 PRIVATE "${CBV2G_SRC}/include")

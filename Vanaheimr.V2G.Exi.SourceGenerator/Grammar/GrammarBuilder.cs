@@ -158,11 +158,35 @@ internal static class GrammarBuilder
         // then namespace — cbexigen assigns each a production even though only true roots are
         // decodable. The selector width and each root's index come from this full list (verified
         // against cbV2G: V2G_Message is index 76 of 80, a 7-bit selector).
-        var docOrder = schema.GlobalElements
-            .Select(g => (g.Name, g.Namespace))
+        //
+        // Exception: when two or more global elements share the exact same named type (ACDP's
+        // ACDP_DisconnectReq/Res deliberately reuse ACDP_ConnectReq/ResType), cbexigen groups them
+        // immediately after the alphabetically-first element of that type, ahead of whatever would
+        // otherwise sort between them — verified against cbV2G's encode_iso20_acdp_exiDocument:
+        // ConnectReq=0, DisconnectReq=1, ConnectRes=2, DisconnectRes=3 (plain name order would put
+        // ConnectRes before DisconnectReq). Types referenced by only one element are unaffected, which
+        // is why this coincides with plain alphabetical-by-name for every other schema set.
+        var byName = schema.GlobalElements
+            .Select(g => (g.Name, g.Namespace, TypeKey: string.IsNullOrEmpty(g.TypeRef) ? null : StripPrefix(g.TypeRef)))
             .OrderBy(x => x.Name, StringComparer.Ordinal)
             .ThenBy(x => x.Namespace, StringComparer.Ordinal)
             .ToList();
+        var sharedTypeGroups = byName
+            .Where(x => x.TypeKey is not null)
+            .GroupBy(x => x.TypeKey)
+            .Where(g => g.Count() > 1)
+            .ToDictionary(g => g.Key!, g => g.ToList());
+        var placed = new HashSet<string>();
+        var docOrder = new List<(string Name, string Namespace, string? TypeKey)>();
+        foreach (var x in byName)
+        {
+            if (!placed.Add(x.Name + " " + x.Namespace)) continue;
+            docOrder.Add(x);
+            if (x.TypeKey is not null && sharedTypeGroups.TryGetValue(x.TypeKey, out var group))
+                foreach (var member in group)
+                    if (placed.Add(member.Name + " " + member.Namespace))
+                        docOrder.Add(member);
+        }
         int docBits = BitsForChoices(docOrder.Count + 1);
 
         // Build global-element plans for the true document roots — a concrete, non-substituting,
