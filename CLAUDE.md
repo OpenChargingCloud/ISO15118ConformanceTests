@@ -1,28 +1,28 @@
 # Vanaheimr.V2G.Exi
 
-.NET-10-Bibliothek für ISO 15118 EXI: Parsen und Serialisieren von 15118-2- und
-15118-20-Nachrichten, Endziel EV↔EVSE-Simulation.
+.NET 10 library for ISO 15118 EXI: parsing and serializing 15118-2 and
+15118-20 messages, ultimate goal EV↔EVSE simulation.
 
-## Orientierung
+## Orientation
 
-- **Gesamtplan / Standortbestimmung:** `docs/roadmap.md`
-- **Phasen-Prompts für Agent-Läufe (Phase 0–5):** `docs/prompts/` (Index: `docs/prompts/README.md`)
-- Projektstruktur und aktueller Prototyp-Stand: `README.md`
+- **Overall plan / current status:** `docs/roadmap.md`
+- **Phase prompts for agent runs (Phase 0–5):** `docs/prompts/` (index: `docs/prompts/README.md`)
+- Project structure and current prototype status: `README.md`
 
-## Bauen & Testen
+## Build & test
 
 ```
 dotnet test -c Release
 ```
 
-Muss ohne C-Toolchain, Java oder Netzwerk grün laufen — externe Referenz-Encoder
-(cbV2G, EXIficient) dienen nur der Vektor-(Re-)Generierung, nie dem Testlauf selbst.
+Must pass green without a C toolchain, Java, or network — external reference encoders
+(cbV2G, EXIficient) are only used for vector (re-)generation, never for the test run itself.
 
-## Grundregeln
+## Ground rules
 
-- Wire-Semantik nie spekulativ ändern — nur auf Basis eines konkreten Byte-Diffs
-  gegen einen Referenz-Encoder (Vektordateien unter `Vanaheimr.V2G.Exi.Tests/Vectors/`).
-- Source Generator: Fail-loud-Philosophie — unbekannte XSD-Konstrukte erzeugen
-  Build-Diagnostics, werden nie still übersprungen.
-- Kein handgeschriebener Codec-Code für -2/-20; alles läuft durch den Generator.
-  Der handgeschriebene AppProtocol-Codec bleibt als Diff-Referenz bestehen.
+- Never change wire semantics speculatively — only based on a concrete byte diff
+  against a reference encoder (vector files under `Vanaheimr.V2G.Exi.Tests/Vectors/`).
+- Source generator: fail-loud philosophy — unknown XSD constructs produce
+  build diagnostics, never get silently skipped.
+- No hand-written codec code for -2/-20; everything runs through the generator.
+  The hand-written AppProtocol codec remains as a diff reference.

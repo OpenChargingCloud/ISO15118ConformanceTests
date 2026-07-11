@@ -1,144 +1,143 @@
-# Aufgabe: EV↔EVSE-Simulation — SDP, TCP/TLS, Zustandsmaschinen, Interop (Phase 5)
+# Task: EV↔EVSE simulation — SDP, TCP/TLS, state machines, interop (Phase 5)
 
-## Kontext
+## Context
 
-Du arbeitest im Repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — eine .NET-10-Bibliothek
-für ISO 15118 EXI. Stand nach Phase 0–4:
+You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
+for ISO 15118 EXI. State after Phase 0–4:
 
-- EXI-Primitive komplett (Value Tables, Signed/Binary/Boolean).
-- Generierte, gegen cbV2G byte-validierte Codecs: AppProtocol (SAP),
-  `Vanaheimr.V2G.Exi.Iso15118_2` (alle 17 Nachrichtenpaare),
+- EXI primitives complete (value tables, signed/binary/boolean).
+- Generated codecs, byte-validated against cbV2G: AppProtocol (SAP),
+  `Vanaheimr.V2G.Exi.Iso15118_2` (all 17 message pairs),
   `Vanaheimr.V2G.Exi.Iso15118_20.{CommonMessages,DC,AC}`.
-- XMLDSig über EXI-Fragmente (-2: P-256/SHA-256; -20: secp521r1/SHA-512).
-- V2GTP-Layer mit Payload-Type-Dispatcher (SAP / -2 / -20-Sets).
-- `tools/cbv2g-ref/` (libcbv2g-Harness, gepinnt), vektorgetriebene NUnit-Suite.
+- XMLDSig over EXI fragments (-2: P-256/SHA-256; -20: secp521r1/SHA-512).
+- V2GTP layer with a payload-type dispatcher (SAP / -2 / -20 sets).
+- `tools/cbv2g-ref/` (libcbv2g harness, pinned), a vector-driven NUnit suite.
 
-Lies vor Beginn: `README.md`, `docs/`, den V2GTP-Dispatcher und die öffentlichen
-APIs der generierten Codec-Assemblies.
+Read before starting: `README.md`, `docs/`, the V2GTP dispatcher, and the public
+APIs of the generated codec assemblies.
 
-## Vorbedingungen (zuerst prüfen)
+## Preconditions (check these first)
 
-Phase 0–4 abgeschlossen (insbesondere: -2 und -20 Codecs vektorvalidiert,
-Dispatcher vorhanden). Fehlt etwas: stoppe und melde.
+Phases 0–4 complete (in particular: -2 and -20 codecs vector-validated,
+dispatcher in place). If anything is missing: stop and report.
 
-## Ziel
+## Goal
 
-Eine simulierte Ladesession zwischen einem EVCC (EV-Seite) und einem SECC
-(EVSE-Seite) läuft vollständig durch — erst unsere beiden Seiten gegeneinander,
-dann im Interop gegen einen unabhängigen Stack (Josev). Damit ist bewiesen,
-dass Codec, V2GTP, Discovery, Sequenzen und Timing zusammen funktionieren.
+A simulated charging session between an EVCC (EV side) and an SECC
+(EVSE side) runs to completion — first our two sides against each other,
+then in interop against an independent stack (Josev). This proves that
+codec, V2GTP, discovery, sequencing, and timing all work together.
 
-**Scope-Grenzen (verbindlich):**
-- KEIN SLAC/PLC (Schicht darunter; Simulation läuft über normales TCP/IP).
-- Identifikation: EIM (External Identification Means). Plug&Charge-Vertragszertifikate
-  sind Stretch-Goal, kein DoD-Kriterium.
-- Kein Pause/Resume, keine Renegotiation, kein Smart-Charging-Detail — Happy Path.
+**Scope boundaries (binding):**
+- NO SLAC/PLC (the layer below; the simulation runs over plain TCP/IP).
+- Identification: EIM (External Identification Means). Plug & Charge contract
+  certificates are a stretch goal, not a DoD criterion.
+- No pause/resume, no renegotiation, no smart-charging detail — happy path only.
 
-## Schritte
+## Steps
 
-### 1. Neues Projekt `Vanaheimr.V2G.Simulation` (+ CLI)
+### 1. New project `Vanaheimr.V2G.Simulation` (+ CLI)
 
-- Library mit drei Schichten, sauber getrennt und einzeln testbar:
-  a) **Transport**: SDP-Client/-Server (UDP), TCP-Listener/-Client, optional TLS
-     (`SslStream`), V2GTP-Framing (Dispatcher aus Phase 4 nutzen).
-  b) **Session**: Request/Response-Abwicklung, SessionID-Verwaltung,
-     Sequenz-Timeouts (Defaults aus den Spec-Timing-Tabellen, konfigurierbar),
-     ResponseCode-Auswertung.
-  c) **Zustandsmaschinen**: EVCC und SECC als explizite Zustands-Enums mit
-     Übergangstabellen (kein implizites async-Spaghetti) — jede Transition
-     einzeln unit-testbar.
-- Dazu `Vanaheimr.V2G.Simulation.Cli` mit Subcommands `evcc` und `secc`
-  (Parameter: Interface/Adresse, Protokollwahl -2/-20, AC/DC, TLS an/aus,
-  Log-Verzeichnis).
-- „Ladephysik" hinter Interfaces mocken (`IEvBattery`, `IEvsePowerSupply`):
-  PreCharge/CableCheck/ChargeLoop müssen nach n Iterationen konvergieren,
-  damit Tests deterministisch terminieren.
+- A library with three layers, cleanly separated and individually testable:
+  a) **Transport**: SDP client/server (UDP), TCP listener/client, optional TLS
+     (`SslStream`), V2GTP framing (reuse the Phase 4 dispatcher).
+  b) **Session**: request/response handling, SessionID management,
+     sequence timeouts (defaults from the spec's timing tables, configurable),
+     ResponseCode evaluation.
+  c) **State machines**: EVCC and SECC as explicit state enums with
+     transition tables (no implicit async spaghetti) — every transition
+     individually unit-testable.
+- Plus `Vanaheimr.V2G.Simulation.Cli` with `evcc` and `secc` subcommands
+  (parameters: interface/address, protocol choice -2/-20, AC/DC, TLS on/off,
+  log directory).
+- Mock "charging physics" behind interfaces (`IEvBattery`, `IEvsePowerSupply`):
+  PreCharge/CableCheck/ChargeLoop must converge after n iterations,
+  so tests terminate deterministically.
 
 ### 2. SDP (SECC Discovery Protocol)
 
-- UDP, IPv6; SDP-Request/-Response als V2GTP-Frames mit den SDP-Payload-Types.
-  Exakte Payload-Type-IDs, Ports und das Security/TransportProtocol-Byte-Layout
-  aus der Spec bzw. libcbv2g/Josev übernehmen — nicht raten.
-- Für Tests: konfigurierbares Interface + Port; Loopback muss funktionieren.
-  Link-Local-Multicast unter Windows ist zickig (Interface-Index nötig) —
-  implementieren, aber Tests dürfen auf Loopback/Unicast ausweichen.
+- UDP, IPv6; SDP request/response as V2GTP frames with the SDP payload types.
+  Take the exact payload-type IDs, ports, and the security/transport-protocol
+  byte layout from the spec or libcbv2g/Josev — don't guess.
+- For tests: configurable interface + port; loopback must work.
+  Link-local multicast on Windows is finicky (needs an interface index) —
+  implement it, but tests may fall back to loopback/unicast.
 
-### 3. Session-Ablauf (Happy Paths)
+### 3. Session flow (happy paths)
 
 - **-2 AC (EIM):** SAP → SessionSetup → ServiceDiscovery → PaymentServiceSelection
-  → Authorization (Polling bis OK) → ChargeParameterDiscovery → PowerDelivery(Start)
-  → ChargingStatus-Loop → PowerDelivery(Stop) → SessionStop.
-- **-2 DC (EIM):** … → ChargeParameterDiscovery → CableCheck-Loop → PreCharge-Loop
-  → PowerDelivery(Start) → CurrentDemand-Loop → PowerDelivery(Stop)
+  → Authorization (poll until OK) → ChargeParameterDiscovery → PowerDelivery(Start)
+  → ChargingStatus loop → PowerDelivery(Stop) → SessionStop.
+- **-2 DC (EIM):** … → ChargeParameterDiscovery → CableCheck loop → PreCharge loop
+  → PowerDelivery(Start) → CurrentDemand loop → PowerDelivery(Stop)
   → WeldingDetection → SessionStop.
 - **-20 DC:** SAP → SessionSetup → AuthorizationSetup → Authorization →
   ServiceDiscovery → ServiceDetail → ServiceSelection → DC_ChargeParameterDiscovery
   → ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery(Start)
   → DC_ChargeLoop → PowerDelivery(Stop) → DC_WeldingDetection → SessionStop.
-- **-20 AC** analog mit AC_ChargeParameterDiscovery/AC_ChargeLoop.
-- Timeout-/Fehlerpfade minimal: Sequence-Timeout bricht Session sauber ab,
-  FAILED-ResponseCode beendet mit klarer Diagnose. Mehr nicht.
+- **-20 AC** analogous, with AC_ChargeParameterDiscovery/AC_ChargeLoop.
+- Timeout/error paths minimal: a sequence timeout cleanly aborts the session,
+  a FAILED ResponseCode ends it with a clear diagnosis. Nothing more.
 
 ### 4. TLS
 
-- -2: TLS optional (Session auch ohne TLS lauffähig — Josev kann das für Tests).
-- -20: TLS vorgesehen; implementiere Server-seitiges TLS mit selbstsignierten
-  Testzertifikaten (einchecken unter `Tests/TestData/`, klar "test only").
-  Mutual TLS: dokumentierte Lücke, kein DoD-Kriterium.
-- Cipher-Suite-Anforderungen der Specs dokumentieren; was Schannel/.NET nicht
-  hergibt, als bekannte Abweichung festhalten statt erzwingen.
+- -2: TLS optional (the session must also run without TLS — Josev can do that for tests).
+- -20: TLS is expected; implement server-side TLS with self-signed
+  test certificates (check in under `Tests/TestData/`, clearly marked "test only").
+  Mutual TLS: a documented gap, not a DoD criterion.
+- Document the spec's cipher-suite requirements; whatever Schannel/.NET can't
+  provide, record as a known deviation instead of forcing it.
 
-### 5. Logging + Capture als Vektorquelle
+### 5. Logging + capture as a vector source
 
-- Jeder gesendete/empfangene Frame wird strukturiert geloggt: Hex + dekodierte
-  Nachricht + Zeitstempel.
-- **Record-Mode**: empfangene EXI-Streams werden als Vektor-Kandidaten unter
-  `Tests/Vectors/captured/` abgelegt (gleiches JSON-Format, Quelle vermerkt).
-  Frames von Josev sind unabhängig erzeugte Konformitätsvektoren — die wertvollsten
-  überhaupt. Kuratierte Übernahme in die regulären Vektordateien vorbereiten.
+- Every sent/received frame is logged in a structured way: hex + decoded
+  message + timestamp.
+- **Record mode**: received EXI streams are saved as vector candidates under
+  `Tests/Vectors/captured/` (same JSON format, source noted).
+  Frames from Josev are independently generated conformance vectors — the most
+  valuable kind there is. Prepare a curated adoption path into the regular vector files.
 
-### 6. Tests in zwei Stufen
+### 6. Tests in two tiers
 
-- **Stufe 1 (CI, Standard-`dotnet test`):** In-Process-E2E — unser EVCC gegen
-  unser SECC über Loopback-TCP (oder In-Memory-Duplex-Stream): alle vier Happy
-  Paths (-2 AC, -2 DC, -20 AC, -20 DC) laufen bis SessionStop durch;
-  Assertions auf Zustandsfolge und finale ResponseCodes. Zusätzlich
-  Unit-Tests für SDP-Framing und einzelne Zustandsübergänge (inkl. Timeout).
-- **Stufe 2 (opt-in, per Env-Var/Testkategorie `Interop`):** gegen
-  **Josev** (SwitchEV/iso15118 bzw. der EVerest-Fork ext-switchev-iso15118):
-  - unser EVCC ↔ Josev-SECC und Josev-EVCC ↔ unser SECC,
-  - zuerst -2 AC EIM ohne TLS, dann -2 DC, dann -20.
-  - Setup: WSL2 oder Docker (Josev braucht Python + JRE für seinen EXI-Codec);
-    lege unter `tools/interop-josev/` Setup-Skripte + README mit gepinnter
-    Josev-Version ab. Diese Tests laufen NICHT im Standard-CI-Lauf.
-  - Jeder erfolgreiche Interop-Lauf: vollständiges Frame-Log als Artefakt
-    einchecken (`docs/interop-runs/<datum>-<szenario>/`).
+- **Tier 1 (CI, standard `dotnet test`):** in-process E2E — our EVCC against
+  our SECC over loopback TCP (or an in-memory duplex stream): all four happy
+  paths (-2 AC, -2 DC, -20 AC, -20 DC) run to SessionStop;
+  assertions on the state sequence and final ResponseCodes. In addition,
+  unit tests for SDP framing and individual state transitions (incl. timeout).
+- **Tier 2 (opt-in, via env var/test category `Interop`):** against
+  **Josev** (SwitchEV/iso15118, or the EVerest fork ext-switchev-iso15118):
+  - our EVCC ↔ Josev SECC and Josev EVCC ↔ our SECC,
+  - first -2 AC EIM without TLS, then -2 DC, then -20.
+  - Setup: WSL2 or Docker (Josev needs Python + a JRE for its EXI codec);
+    put setup scripts + a README with a pinned Josev version under
+    `tools/interop-josev/`. These tests do NOT run in the standard CI run.
+  - Every successful interop run: check in the full frame log as an artifact
+    (`docs/interop-runs/<date>-<scenario>/`).
 
-## Leitplanken
+## Guardrails
 
-- Codec-/Generator-Code wird in dieser Phase nur angefasst, wenn ein
-  Interop-Lauf einen konkreten Wire-Diff nachweist — dann gilt wie immer:
-  Diff analysieren, Ursache fixen, Vektor als Regressionstest einchecken.
-- `dotnet test -c Release` (Stufe 1) bleibt ohne Python/Java/Docker/Netzwerk
-  jenseits von Loopback lauffähig.
-- Zustandsmaschinen synchron testbar halten: Zeit über eine injizierbare
-  Uhr/Timer-Abstraktion, nie `Task.Delay` fest verdrahtet.
-- Alle Bestandstests bleiben grün. Kleine Commits, nur bei grünem Build.
-- Sicherheit: selbstsignierte Testzertifikate und Testschlüssel niemals als
-  produktionstauglich darstellen; keine echten Zertifikate einchecken.
+- Codec/generator code is only touched in this phase if an interop run proves
+  a concrete wire diff — then, as always: analyze the diff, fix the root
+  cause, check in a vector as a regression test.
+- `dotnet test -c Release` (tier 1) stays runnable without Python/Java/Docker/network
+  beyond loopback.
+- Keep state machines synchronously testable: time via an injectable
+  clock/timer abstraction, never a hardcoded `Task.Delay`.
+- All existing tests stay green. Small commits, only on a green build.
+- Security: never present self-signed test certificates and test keys as
+  production-ready; never check in real certificates.
 
 ## Definition of Done
 
-1. Vier In-Process-E2E-Happy-Paths (-2 AC/DC, -20 AC/DC) grün im Standard-Testlauf.
-2. SDP-Discovery funktioniert (Unit-Tests + im E2E-Pfad verwendet).
-3. TLS-Variante für -2 und -20 mit Testzertifikaten lauffähig (mind. ein
-   E2E-Test pro Protokoll mit TLS).
-4. Interop dokumentiert: mindestens -2 AC EIM in BEIDEN Richtungen gegen
-   Josev@<version> erfolgreich, Frame-Logs als Artefakte eingecheckt;
-   -2 DC und -20 Interop-Ergebnisse (auch Teilerfolge) ehrlich dokumentiert.
-5. Record-Mode liefert Josev-Frames als Vektor-Kandidaten; mindestens eine
-   kuratierte Übernahme in die regulären Vektordateien.
-6. CLI (`evcc`/`secc`) dokumentiert im README; Architekturkapitel Simulation.
-7. Abschlussbericht: gefundene Codec-/Sequenz-Diskrepanzen, Timing-Erkenntnisse,
-   bekannte Lücken (mutual TLS, PnC, WPT/ACDP).
-   
+1. Four in-process E2E happy paths (-2 AC/DC, -20 AC/DC) green in the standard test run.
+2. SDP discovery works (unit tests + used in the E2E path).
+3. TLS variant for -2 and -20 runnable with test certificates (at least one
+   E2E test per protocol with TLS).
+4. Interop documented: at least -2 AC EIM successful in BOTH directions against
+   Josev@<version>, frame logs checked in as artifacts;
+   -2 DC and -20 interop results (including partial successes) honestly documented.
+5. Record mode delivers Josev frames as vector candidates; at least one
+   curated adoption into the regular vector files.
+6. CLI (`evcc`/`secc`) documented in the README; a simulation architecture chapter.
+7. Closing report: codec/sequence discrepancies found, timing findings,
+   known gaps (mutual TLS, PnC, WPT/ACDP).

@@ -1,111 +1,111 @@
-# Aufgabe: EXI-Primitivschicht vervollständigen (Phase 1)
+# Task: complete the EXI primitive layer (Phase 1)
 
-## Kontext
+## Context
 
-Du arbeitest im Repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — eine .NET-10-Bibliothek,
-die langfristig ISO 15118-2 und 15118-20 EXI-Nachrichten parsen und serialisieren soll
-(Ziel: EV↔EVSE-Simulation). Aktueller Stand:
+You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
+intended, long-term, to parse and serialize ISO 15118-2 and 15118-20 EXI messages
+(goal: EV↔EVSE simulation). Current state:
 
 - `Vanaheimr.V2G.Exi.Prototype/Exi/` — `BitReader`, `BitWriter` (bit-packed, MSB-first)
-  und `ExiPrimitives` (Unsigned Integer, n-Bit Unsigned, String nur im "Miss"-Fall).
-- `Vanaheimr.V2G.Exi.Prototype/AppProtocol/` — handgeschriebener SupportedAppProtocol-Codec.
-- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn IIncrementalGenerator (XSD → Codec),
-  per Diff-Test gegen den handgeschriebenen Codec abgesichert. In dieser Phase NICHT anfassen,
-  außer eine API-Änderung an den Primitiven erzwingt es.
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vektorgetrieben, 71 Tests grün.
-  `dotnet test -c Release` muss am Ende weiterhin vollständig grün sein.
+  and `ExiPrimitives` (unsigned integer, n-bit unsigned, string only in the "miss" case).
+- `Vanaheimr.V2G.Exi.Prototype/AppProtocol/` — hand-written SupportedAppProtocol codec.
+- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn IIncrementalGenerator (XSD → codec),
+  secured by a diff test against the hand-written codec. Do NOT touch it in this phase,
+  unless an API change to the primitives forces it.
+- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven, 71 tests green.
+  `dotnet test -c Release` must still be fully green at the end.
 
-Lies vor Beginn: `README.md`, `Exi/ExiPrimitives.cs`, `Exi/BitReader.cs`, `Exi/BitWriter.cs`,
-`AppProtocol/SupportedAppProtocolCodec.cs` und die Testinfrastruktur unter `Tests/Infrastructure/`.
+Read before starting: `README.md`, `Exi/ExiPrimitives.cs`, `Exi/BitReader.cs`, `Exi/BitWriter.cs`,
+`AppProtocol/SupportedAppProtocolCodec.cs`, and the test infrastructure under `Tests/Infrastructure/`.
 
-## Ziel dieser Phase
+## Goal of this phase
 
-Die schemalose EXI-Primitivschicht so vervollständigen, dass sie als Fundament für
-ISO 15118-2/-20-Codecs taugt. Maßgeblich ist die W3C-Spezifikation
+Complete the schema-less EXI primitive layer so it's a solid foundation for
+ISO 15118-2/-20 codecs. Authoritative reference: the W3C specification
 "Efficient XML Interchange (EXI) Format 1.0 (Second Edition)".
-Relevante EXI-Optionen der 15118-Welt: bit-packed, schema-informed strict,
-kein Options-Dokument (Header = 0x80), `valueMaxLength` und `valuePartitionCapacity`
-unbeschränkt — d. h. String Value Tables sind AKTIV und normativ Pflicht.
+Relevant EXI options for the 15118 world: bit-packed, schema-informed strict,
+no options document (header = 0x80), `valueMaxLength` and `valuePartitionCapacity`
+unbounded — meaning string value tables are ACTIVE and a normative requirement.
 
-### 1. String Value Tables (Kernstück)
+### 1. String value tables (the core piece)
 
-Implementiere die Value-Partitionen nach EXI-Spec §7.3.3:
+Implement the value partitions per EXI spec §7.3.3:
 
-- **Lokale Partition** pro QName (in unserem Kontext: pro Element, identifiziert über einen
-  vom Aufrufer gelieferten Schlüssel, z. B. int-Handle — die Grammatikschicht kennt die QNames)
-  und **globale Partition** pro Stream.
-- Kodierung eines String-Values:
-  - **Local hit:** `UnsignedInteger(0)`, dann Compact-ID als n-Bit Unsigned mit
-    n = ⌈log₂(m)⌉, m = aktuelle Größe der lokalen Partition.
-  - **Global hit:** `UnsignedInteger(1)`, dann Compact-ID mit n = ⌈log₂(g)⌉,
-    g = aktuelle Größe der globalen Partition.
-  - **Miss:** `UnsignedInteger(len + 2)` + Codepoints (wie heute implementiert);
-    danach den Wert in BEIDE Partitionen aufnehmen (auch beim Dekodieren!).
-  - Beachte die EXI-Konvention: Partition der Größe 1 → Compact-ID mit 0 Bits.
-- Dafür braucht es ein Stream-Kontext-Objekt (z. B. `ExiStringTable` oder
-  `ExiEncoderContext`/`ExiDecoderContext`), das per `ref`/Instanz neben
-  `BitReader`/`BitWriter` durch die Codec-Aufrufe gereicht wird. Entwirf die API so,
-  dass der Source Generator sie später mechanisch aufrufen kann.
-- Der bestehende AppProtocol-Codec muss auf die neue API migriert werden und
-  **byte-identischen Output** zu heute liefern (AppProtocol enthält keine
-  String-Wiederholungen, daher ändert sich die Wire-Form nicht — die bestehenden
-  Vektortests beweisen das).
+- **Local partition** per QName (in our context: per element, identified via a
+  caller-supplied key, e.g. an int handle — the grammar layer knows the QNames)
+  and **global partition** per stream.
+- Encoding a string value:
+  - **Local hit:** `UnsignedInteger(0)`, then a compact ID as an n-bit unsigned with
+    n = ⌈log₂(m)⌉, m = current size of the local partition.
+  - **Global hit:** `UnsignedInteger(1)`, then a compact ID with n = ⌈log₂(g)⌉,
+    g = current size of the global partition.
+  - **Miss:** `UnsignedInteger(len + 2)` + code points (as implemented today);
+    afterward add the value to BOTH partitions (on decode too!).
+  - Note the EXI convention: a partition of size 1 → compact ID with 0 bits.
+  - This needs a stream-context object (e.g. `ExiStringTable` or
+    `ExiEncoderContext`/`ExiDecoderContext`) passed by `ref`/instance alongside
+    `BitReader`/`BitWriter` through the codec calls. Design the API so the source
+    generator can call it mechanically later.
+- The existing AppProtocol codec must be migrated to the new API and must produce
+  **byte-identical output** to today (AppProtocol contains no repeated strings,
+  so the wire form doesn't change — the existing vector tests prove this).
 
-### 2. Fehlende EXI-Datentypen
+### 2. Missing EXI data types
 
-Implementiere in `ExiPrimitives` (jeweils Encode + Decode, mit XML-Doc-Kommentar,
-der die Spec-Stelle und das Bitlayout erklärt — gleicher Stil wie im Bestand):
+Implement in `ExiPrimitives` (encode + decode for each, with an XML doc comment
+explaining the spec location and bit layout — same style as the existing code):
 
-- **Signed Integer** (§7.1.5): 1 Vorzeichenbit + Unsigned Integer;
-  negativ: Betrag = value − (−1), d. h. `(-v) - 1`.
-- **Binary** (§7.1.1): `UnsignedInteger(byteCount)` + rohe Bytes
-  (deckt xs:hexBinary und xs:base64Binary ab — die Unterscheidung ist nur lexikalisch,
-  auf dem Draht identisch).
-- **Boolean** (§7.1.2): 1 Bit (ohne pattern-Facette; die 2-Bit-Variante mit
-  Facette wird von den 15118-Schemata nicht gebraucht).
-- **Float, Decimal, DateTime: NICHT implementieren.** Die 15118-2/-20-Schemata nutzen
-  sie nicht (physikalische Werte sind als Multiplier/Value-Integer-Paare modelliert).
-  Hinterlasse stattdessen einen kurzen Hinweis im Code/README, dass sie bewusst fehlen.
+- **Signed integer** (§7.1.5): 1 sign bit + unsigned integer;
+  negative: magnitude = value − (−1), i.e. `(-v) - 1`.
+- **Binary** (§7.1.1): `UnsignedInteger(byteCount)` + raw bytes
+  (covers xs:hexBinary and xs:base64Binary — the distinction is purely lexical,
+  identical on the wire).
+- **Boolean** (§7.1.2): 1 bit (without a pattern facet; the 2-bit variant with
+  a facet isn't needed by the 15118 schemas).
+- **Float, decimal, dateTime: do NOT implement.** The 15118-2/-20 schemas don't use
+  them (physical values are modelled as multiplier/value integer pairs).
+  Instead, leave a short note in the code/README that they're deliberately absent.
 
-### 3. Tests (der eigentliche Wertbeweis)
+### 3. Tests (the actual proof of value)
 
-- **Handgerechnete Vektoren:** Für jeden neuen Datentyp Testfälle mit von Hand
-  hergeleiteten Bitfolgen (Grenzwerte: 0, ±1, 7-Bit-Grenzen 127/128, ulong.MaxValue,
-  long.MinValue, leeres Binary, leerer String).
-- **Value-Table-Szenarien:** gleicher String zweimal im selben Element (local hit),
-  in verschiedenen Elementen (global hit), Interleaving von Hits und Misses,
-  Compact-ID-Bitbreiten-Wachstum (1→2→4 Einträge), Encode→Decode-Roundtrip,
-  und: Decoder wirft bei Hit-Index außerhalb der Partition einen sauberen
-  `InvalidDataException` (kein Crash, keine Endlosschleife).
-- **Property-based Roundtrips:** Füge CsCheck (oder FsCheck) als Test-Dependency hinzu:
-  beliebige Werte → encode → decode → identisch; für Strings inkl. Non-BMP-Codepoints
-  (Surrogatpaare), für Signed Integer volle ±-Range.
-- **Differenz-Orakel EXIficient (vorbereiten, nicht blockieren):** Lege unter
-  `Tests/Vectors/` eine `Primitives.vectors.json` im Stil der bestehenden Vektordatei an,
-  mit einem `referenceEncoder`-Feld analog `REPLACING_SEED_VECTORS.md`. Die Werte dürfen
-  zunächst aus der eigenen Implementierung stammen und sind als solche zu kennzeichnen
-  (`generatorNote`), plus eine kurze Anleitung (Markdown neben der Datei), wie sie mit
-  EXIficient/V2Gdecoder regeneriert werden. Kein Java-Setup in dieser Phase erzwingen.
-- Alle 71 Bestandstests bleiben grün, insbesondere `GeneratedCodecDiffTests` und
-  die AppProtocol-Vektortests (Wire-Format darf sich nicht ändern).
+- **Hand-computed vectors:** for every new data type, test cases with hand-derived
+  bit sequences (boundary values: 0, ±1, the 7-bit boundaries 127/128, ulong.MaxValue,
+  long.MinValue, empty binary, empty string).
+- **Value-table scenarios:** the same string twice in the same element (local hit),
+  in different elements (global hit), interleaving hits and misses,
+  compact-ID bit-width growth (1→2→4 entries), an encode→decode roundtrip,
+  and: the decoder throws a clean `InvalidDataException` on a hit index outside the
+  partition (no crash, no infinite loop).
+- **Property-based roundtrips:** add CsCheck (or FsCheck) as a test dependency:
+  arbitrary values → encode → decode → identical; for strings including non-BMP code
+  points (surrogate pairs), for signed integer the full ± range.
+- **EXIficient diff oracle (prepare, don't block on it):** create a
+  `Primitives.vectors.json` under `Tests/Vectors/` in the style of the existing vector
+  file, with a `referenceEncoder` field analogous to `REPLACING_SEED_VECTORS.md`. The
+  values may initially come from our own implementation and must be marked as such
+  (`generatorNote`), plus a short guide (markdown next to the file) on how to
+  regenerate them with EXIficient/V2Gdecoder. Don't force a Java setup in this phase.
+- All 71 existing tests stay green, in particular `GeneratedCodecDiffTests` and
+  the AppProtocol vector tests (the wire format must not change).
 
-## Leitplanken
+## Guardrails
 
-- .NET 10, AOT-freundlich: keine Reflection, Allokationen minimieren
-  (Value Tables dürfen naturgemäß allozieren; Dictionary/List sind ok).
-- Code-Stil des Repos übernehmen: records, ausführliche XML-Doc-Kommentare,
-  die das EXI-Bitlayout und Spec-Referenzen erklären; deutsche Commit-Sprache nicht nötig.
-- Arbeite test-first, wo sinnvoll; kleine, nachvollziehbare Commits sind willkommen,
-  aber committe nur, wenn der Build grün ist.
-- Aktualisiere am Ende `README.md`: Abschnitt "What this prototype still does NOT do"
-  und "Next milestones" an den neuen Stand anpassen.
+- .NET 10, AOT-friendly: no reflection, minimize allocations
+  (value tables naturally need to allocate; Dictionary/List are fine).
+- Follow the repo's code style: records, thorough XML doc comments
+  explaining the EXI bit layout and spec references; no need for German-language
+  commit messages.
+- Work test-first where it makes sense; small, traceable commits are welcome,
+  but only commit when the build is green.
+- At the end, update `README.md`: adjust the "What this prototype still does NOT do"
+  and "Next milestones" sections to the new state.
 
 ## Definition of Done
 
-1. `dotnet test -c Release` vollständig grün (Bestand + neue Tests).
-2. Value Tables: Hit/Miss beidseitig implementiert, durch die oben genannten
-   Szenario-Tests abgedeckt.
-3. Signed Integer, Binary, Boolean implementiert und mit handgerechneten Vektoren belegt.
-4. AppProtocol-Wire-Format byte-identisch zu vorher.
-5. Property-based Roundtrip-Tests laufen in der normalen Testsuite.
-6. README + Vektor-Doku aktualisiert.
+1. `dotnet test -c Release` fully green (existing + new tests).
+2. Value tables: hit/miss implemented on both sides, covered by the
+   scenario tests listed above.
+3. Signed integer, binary, boolean implemented and backed by hand-computed vectors.
+4. AppProtocol wire format byte-identical to before.
+5. Property-based roundtrip tests run in the normal test suite.
+6. README + vector docs updated.

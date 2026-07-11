@@ -1,163 +1,162 @@
-# Aufgabe: Source Generator auf die reale ISO-15118-2-Schemawelt heben (Phase 2)
+# Task: lift the source generator to the real ISO 15118-2 schema world (Phase 2)
 
-> **Update nach Phase 0 (2026-07-03):** Das EXI-Grammatik-Modell wurde bereits
-> korrigiert. GrammarBuilder und CodecEmitter erzeugen jetzt die **nicht-strikte**
-> schema-informed Grammatik von cbexigen/cbV2G (2-Bit-Dokument-Selektor; pro simplem
-> Feld SE-, Value-Start- und EE-Event-Bit; 2-Bit-Loop/Optional-Codes; Enum-Index =
-> XSD-Deklarationsreihenfolge; unsignedByte → nbit(8)). Details in
-> `docs/roadmap.md`, README-Abschnitt „The wire model", und der Memory-Notiz
-> `exi-grammar-model-nonstrict`. Der „echte Grammatikbau nach §8.5.4" in dieser
-> Phase baut darauf auf, statt ihn neu zu entdecken — verifiziere weiterhin jedes
-> Konstrukt gegen cbV2G.
+> **Update after Phase 0 (2026-07-03):** the EXI grammar model has already been
+> corrected. GrammarBuilder and CodecEmitter now produce cbexigen/cbV2G's
+> **non-strict** schema-informed grammar (2-bit document selector; per simple
+> field an SE, value-start, and EE event bit; 2-bit loop/optional codes; enum
+> index = XSD declaration order; unsignedByte → nbit(8)). Details in
+> `docs/roadmap.md`, the README section "The wire model", and the memory note
+> `exi-grammar-model-nonstrict`. The "real grammar construction per §8.5.4" in
+> this phase builds on that instead of rediscovering it — keep verifying every
+> construct against cbV2G.
 
-## Kontext
+## Context
 
-Du arbeitest im Repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — eine .NET-10-Bibliothek,
-die ISO 15118-2 und 15118-20 EXI-Nachrichten parsen und serialisieren soll. Architektur:
+You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
+intended to parse and serialize ISO 15118-2 and 15118-20 EXI messages. Architecture:
 
-- `Vanaheimr.V2G.Exi.Prototype/` — EXI-Primitive (BitReader/BitWriter, ExiPrimitives),
-  V2GTP-Header, handgeschriebener SupportedAppProtocol-Codec (bleibt unangetastet,
-  dient als Referenz für Diff-Tests).
+- `Vanaheimr.V2G.Exi.Prototype/` — EXI primitives (BitReader/BitWriter, ExiPrimitives),
+  V2GTP header, hand-written SupportedAppProtocol codec (stays untouched,
+  serves as the reference for diff tests).
 - `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn `IIncrementalGenerator` (netstandard2.0):
-  `Xsd/XsdReader.cs` (XSD-Parser), `Grammar/GrammarBuilder.cs` (XSD → Grammatikplan),
-  `Emit/CodecEmitter.cs` (Plan → C#). Versteht heute nur die Mini-Teilmenge, die das
-  AppProtocol-Schema braucht: globale Elemente, sequence, simpleType-Restriktionen,
-  bounded Wiederholung. Philosophie: unbekannte Konstrukte führen zu lautem
-  Build-Diagnostic, nie zu stillem Überspringen — beibehalten!
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vektorgetrieben (JSON + bitgenauer Hex-Diff).
+  `Xsd/XsdReader.cs` (XSD parser), `Grammar/GrammarBuilder.cs` (XSD → grammar plan),
+  `Emit/CodecEmitter.cs` (plan → C#). Today it only understands the tiny subset
+  the AppProtocol schema needs: global elements, sequence, simpleType restrictions,
+  bounded repetition. Philosophy: unknown constructs produce a loud
+  build diagnostic, never a silent skip — keep it that way!
+- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven (JSON + bit-exact hex diff).
 
-Lies vor Beginn: `README.md`, den kompletten SourceGenerator, den handgeschriebenen
-AppProtocol-Codec (die XML-Doc-Kommentare erklären das EXI-Grammatikmodell) und die
-Testinfrastruktur.
+Read before starting: `README.md`, the complete SourceGenerator, the hand-written
+AppProtocol codec (the XML doc comments explain the EXI grammar model), and the
+test infrastructure.
 
-## Vorbedingungen (zuerst prüfen)
+## Preconditions (check these first)
 
-1. **Phase 0**: Unter `tools/cbv2g-ref/` existiert ein CLI-Harness um libcbv2g
-   (EVerest, gepinnter Commit) für differenzielle Vektoren.
-2. **Phase 1**: `ExiPrimitives` beherrscht Signed Integer, Binary (hex/base64Binary),
-   Boolean und String Value Tables (lokal/global) mit Stream-Kontext.
+1. **Phase 0**: a CLI harness around libcbv2g (EVerest, pinned commit) exists
+   under `tools/cbv2g-ref/` for differential vectors.
+2. **Phase 1**: `ExiPrimitives` supports signed integer, binary (hex/base64Binary),
+   boolean, and string value tables (local/global) with a stream context.
 
-Fehlt eine der beiden Vorbedingungen ganz oder teilweise: **stoppe und melde es**,
-statt sie nebenbei mitzubauen — sie sind eigene Arbeitspakete.
+If either precondition is missing, wholly or partly: **stop and report it**,
+instead of building it on the side — they're their own work packages.
 
-## Ziel
+## Goal
 
-Der Generator übersetzt den vollständigen ISO-15118-2-Schemasatz
+The generator translates the complete ISO 15118-2 schema set
 (`V2G_CI_MsgDef.xsd` + `V2G_CI_MsgHeader.xsd` + `V2G_CI_MsgBody.xsd` +
-`V2G_CI_MsgDataTypes.xsd` + `xmldsig-core-schema.xsd`) in ein neues Assembly
-`Vanaheimr.V2G.Exi.Iso15118_2`, und die ersten Nachrichten (mindestens
-SessionSetupReq/Res, ServiceDiscoveryReq/Res) sind byte-genau gegen cbV2G validiert.
-Vollständige Nachrichtenabdeckung und XMLDSig-Signaturberechnung sind Phase 3 —
-aber der gesamte Schemasatz muss ohne Diagnostics durch den Generator laufen und
-kompilieren.
+`V2G_CI_MsgDataTypes.xsd` + `xmldsig-core-schema.xsd`) into a new assembly
+`Vanaheimr.V2G.Exi.Iso15118_2`, and the first messages (at minimum
+SessionSetupReq/Res, ServiceDiscoveryReq/Res) are validated byte-exact against cbV2G.
+Full message coverage and XMLDSig signature computation are Phase 3 —
+but the entire schema set must run through the generator without diagnostics and
+compile.
 
-## Schritte
+## Steps
 
-### 1. Schemata beschaffen und Inventur machen
+### 1. Source the schemas and take inventory
 
-- Die -2-XSDs liegen mehreren OSS-Projekten bei (z. B. RISE-V2G unter
-  `RISE-V2G-Shared/src/main/resources/schemas`, sowie im cbexigen-Umfeld).
-  Lege sie unter `Vanaheimr.V2G.Exi.Iso15118_2/Schemas/` ab und dokumentiere
-  Quelle + Commit in einer README daneben. Findest du sie nicht: stoppe und melde.
-- Schreibe ein kleines Wegwerf-Analyse-Skript (darf ins Scratchpad), das alle in den
-  fünf XSDs tatsächlich verwendeten XSD-Konstrukte und Facetten auflistet
+- The -2 XSDs ship with several OSS projects (e.g. RISE-V2G under
+  `RISE-V2G-Shared/src/main/resources/schemas`, and around the cbexigen ecosystem).
+  Put them under `Vanaheimr.V2G.Exi.Iso15118_2/Schemas/` and document
+  source + commit in a README next to them. If you can't find them: stop and report.
+- Write a small throwaway analysis script (may live in the scratchpad) that lists
+  every XSD construct and facet actually used across the five XSDs
   (import, choice, extension, abstract, substitutionGroup, attribute, unbounded,
-  anonyme Typen, verwendete Built-ins …). Dieses Inventar ist deine verbindliche
-  Anforderungsliste — implementiere genau das, nicht mehr. Lege das Ergebnis als
-  `docs/xsd-inventory-15118-2.md` ab.
+  anonymous types, built-ins used, …). This inventory is your binding requirements
+  list — implement exactly that, no more. Save the result as
+  `docs/xsd-inventory-15118-2.md`.
 
-### 2. XsdReader erweitern
+### 2. Extend XsdReader
 
-Mindestens (endgültig entscheidet die Inventur):
-- `xs:import`/`xs:include` über mehrere Dateien und **mehrere Namespaces**.
-  Achtung Generator-Architektur: heute wird pro AdditionalFile generiert; künftig
-  müssen alle `.xsd` eines Satzes gesammelt (`Collect()`) und als EIN Schemaset
-  aufgelöst werden (Zuordnung über targetNamespace; schemaLocation nur als Hinweis).
-- `xs:attribute` (inkl. use=required/optional, xs:ID → string).
-- `xs:choice` (auch mit Occurrence-Angaben, dsig nutzt choice+unbounded).
-- `xs:complexContent`/`xs:extension` (Typvererbung — durchgängig in -2 genutzt,
-  z. B. BodyBaseType als Basis aller Message-Bodies).
-- Abstrakte Elemente + `substitutionGroup` (u. a. `BodyElement`, `TimeInterval`).
-- `maxOccurs="unbounded"` und beliebige bounded-Werte an beliebiger Position
-  (nicht mehr nur als Einzelkind).
-- Anonyme innere complexTypes.
+At minimum (the inventory makes the final call):
+- `xs:import`/`xs:include` across multiple files and **multiple namespaces**.
+  Watch the generator architecture: today generation happens per AdditionalFile;
+  going forward, all `.xsd` files in a set must be collected (`Collect()`) and
+  resolved as ONE schema set (mapped by targetNamespace; schemaLocation only as a hint).
+- `xs:attribute` (incl. use=required/optional, xs:ID → string).
+- `xs:choice` (including occurrence constraints, dsig uses choice+unbounded).
+- `xs:complexContent`/`xs:extension` (type inheritance — used throughout -2,
+  e.g. BodyBaseType as the base of all message bodies).
+- Abstract elements + `substitutionGroup` (among others `BodyElement`, `TimeInterval`).
+- `maxOccurs="unbounded"` and arbitrary bounded values at any position
+  (no longer only as a single child).
+- Anonymous inner complexTypes.
 
-### 3. GrammarBuilder: echter EXI-Grammatikbau
+### 3. GrammarBuilder: real EXI grammar construction
 
-Ersetze die Ad-hoc-Muster durch Grammatikkonstruktion nach W3C EXI 1.0
+Replace the ad-hoc patterns with grammar construction per W3C EXI 1.0
 (Second Edition) §8.5.4 (schema-informed grammars), strict mode:
-- Pro complexType: AT-Events zuerst (lexikografisch über QName sortiert),
-  danach der Content nach Partikelmodell; EE-Platzierung und Event-Code-Bitbreiten
-  exakt nach Spec (n Produktionen → ⌈log₂ n⌉ Bits, 1 Produktion → 0 Bits).
-- Choice/Optionalität/Wiederholung als Produktionen mit korrekten Event-Codes.
-- Substitution Groups: SE-Produktionen für alle Mitglieder am Ort der Kopf-Referenz.
-- Strict mode: keine Built-in-Erweiterungen, kein xsi:type/xsi:nil (wird von den
-  -2-Schemata nicht gebraucht).
-- **Bei jeder Ordnungs-/Detailfrage (Sortierungen, Event-Code-Vergabe) ist der
-  Byte-Output von cbV2G das Schiedsgericht** — baue dir früh Mini-Vektoren, statt
-  lange gegen die Spec-Prosa zu argumentieren.
-- Schreibe Grammatik-Unit-Tests auf synthetischen Mini-XSDs (je Konstrukt eines):
-  erwartete Produktionstabellen und Event-Code-Breiten als Assertions. So bleibt
-  der Grammatikbau unabhängig vom Emitter testbar.
+- Per complexType: AT events first (sorted lexicographically by QName),
+  then the content per the particle model; EE placement and event-code bit
+  widths exactly per spec (n productions → ⌈log₂ n⌉ bits, 1 production → 0 bits).
+- Choice/optionality/repetition as productions with correct event codes.
+- Substitution groups: SE productions for all members at the head-reference site.
+- Strict mode: no built-in extensions, no xsi:type/xsi:nil (not needed by the
+  -2 schemas).
+- **For every ordering/detail question (sortings, event-code assignment), cbV2G's
+  byte output is the arbiter** — build small vectors early rather than arguing
+  against the spec prose for a long time.
+- Write grammar unit tests on synthetic mini-XSDs (one per construct):
+  expected production tables and event-code widths as assertions. This keeps
+  grammar construction testable independently of the emitter.
 
-### 4. CodecEmitter erweitern
+### 4. Extend CodecEmitter
 
-- C#-Abbildung: complexType → record; Extension-Hierarchien und Substitution Groups
-  brauchen Polymorphie (abstrakter Basis-Record + abgeleitete Records); choice →
-  geschlossene Hierarchie oder Index-Wrapper — entscheide einheitlich und dokumentiere
-  die Abbildungsregeln in `docs/xsd-to-csharp-mapping.md`.
-- hexBinary/base64Binary → `byte[]`; signed Built-ins → sbyte/short/int/long.
-- Value-Table-Kontext aus Phase 1 durch alle generierten Encode/Decode-Pfade fädeln.
-- Output in mehrere Hint-Files splitten (pro Namespace oder Typgruppe) — der
-  -2-Codec wird groß, ein einzelnes .g.cs wird unhandlich.
-- AOT-freundlich bleiben: keine Reflection, kein LINQ in Hot Paths.
+- C# mapping: complexType → record; extension hierarchies and substitution groups
+  need polymorphism (abstract base record + derived records); choice →
+  closed hierarchy or index wrapper — decide consistently and document
+  the mapping rules in `docs/xsd-to-csharp-mapping.md`.
+- hexBinary/base64Binary → `byte[]`; signed built-ins → sbyte/short/int/long.
+- Thread the Phase 1 value-table context through all generated encode/decode paths.
+- Split the output into multiple hint files (per namespace or type group) — the
+  -2 codec gets large, a single .g.cs becomes unwieldy.
+- Stay AOT-friendly: no reflection, no LINQ in hot paths.
 
-### 5. Neues Projekt + differenzielle Validierung
+### 5. New project + differential validation
 
-- Projekt `Vanaheimr.V2G.Exi.Iso15118_2` (net10.0) mit den fünf XSDs als
-  `AdditionalFiles` und Generator-Referenz (OutputItemType="Analyzer").
-- `tools/cbv2g-ref/` um den iso-2-Modul von libcbv2g erweitern
-  (encode/decode für `iso2_exiDocument`).
-- Neue Vektordatei `Iso15118_2.vectors.json` (gleiches Format, `referenceEncoder`
-  gepinnt): SessionSetupReq (SessionID = 8×0x00 im Header, EVCCID), SessionSetupRes
-  (ResponseCode, EVSEID, optional EVSETimeStamp — exerziert signed long + optional),
-  ServiceDiscoveryReq (beide optionalen Felder × vorhanden/fehlt),
-  ServiceDiscoveryRes. Jeweils encode, decode und roundtrip; dazu die
-  Gegenrichtung: cbV2G-encodete Bytes → unser Decoder.
-- Wichtig: alle -2-Nachrichten stecken im `V2G_Message`-Wrapper (Header + Body,
-  Body-Inhalt via BodyElement-Substitution) — die Vektoren validieren also
-  automatisch auch Document-Grammatik, Header (hexBinary-SessionID) und
-  Substitution-Dispatch.
+- Project `Vanaheimr.V2G.Exi.Iso15118_2` (net10.0) with the five XSDs as
+  `AdditionalFiles` and a generator reference (OutputItemType="Analyzer").
+- Extend `tools/cbv2g-ref/` with libcbv2g's iso-2 module
+  (encode/decode for `iso2_exiDocument`).
+- New vector file `Iso15118_2.vectors.json` (same format, `referenceEncoder`
+  pinned): SessionSetupReq (SessionID = 8×0x00 in the header, EVCCID), SessionSetupRes
+  (ResponseCode, EVSEID, optional EVSETimeStamp — exercises signed long + optional),
+  ServiceDiscoveryReq (both optional fields × present/absent),
+  ServiceDiscoveryRes. Each with encode, decode, and roundtrip; plus the
+  reverse direction: cbV2G-encoded bytes → our decoder.
+- Important: all -2 messages sit inside the `V2G_Message` wrapper (Header + Body,
+  body content via BodyElement substitution) — so the vectors automatically
+  also validate the document grammar, the header (hexBinary SessionID), and
+  substitution dispatch.
 
-### 6. Dokumentation
+### 6. Documentation
 
-- README: Architekturbild (Generator-Fähigkeiten, neues Assembly), Stand der
-  -2-Abdeckung (welche Nachrichten validiert), "Next milestones" → Phase 3.
+- README: architecture picture (generator capabilities, new assembly), current
+  state of -2 coverage (which messages are validated), "Next milestones" → Phase 3.
 
-## Leitplanken
+## Guardrails
 
-- Kein handgeschriebener -2-Codec — alles läuft durch den Generator. Der
-  handgeschriebene AppProtocol-Codec und sämtliche Bestandstests
-  (inkl. `GeneratedCodecDiffTests`) bleiben grün.
-- Arbeite konstruktweise inkrementell: erst synthetisches Mini-XSD + Grammatik-Test
-  + Emitter-Support, dann das nächste Konstrukt; das reale Schema ist der
-  Integrationstest am Ende jeder Iteration.
-- Fail-loud beibehalten: Was der Generator nicht kann, wird Build-Diagnostic.
-- `dotnet test -c Release` bleibt ohne C-Toolchain/Java/Netzwerk lauffähig
-  (Vektoren sind eingecheckt; das cbV2G-CLI dient nur der Regenerierung).
-- Wire-Semantik nie spekulativ ändern — nur auf Basis eines konkreten Diffs.
+- No hand-written -2 codec — everything runs through the generator. The
+  hand-written AppProtocol codec and all existing tests
+  (incl. `GeneratedCodecDiffTests`) stay green.
+- Work construct by construct, incrementally: first a synthetic mini-XSD + grammar
+  test + emitter support, then the next construct; the real schema is the
+  integration test at the end of each iteration.
+- Keep fail-loud: whatever the generator can't do becomes a build diagnostic.
+- `dotnet test -c Release` stays runnable without a C toolchain/Java/network
+  (vectors are checked in; the cbV2G CLI is only used for regeneration).
+- Never change wire semantics speculatively — only based on a concrete diff.
 
 ## Definition of Done
 
-1. Alle fünf -2-XSDs laufen ohne Diagnostics durch den Generator; das generierte
-   Assembly kompiliert.
-2. Grammatik-Unit-Tests für Attribute-Sortierung, choice, extension,
-   substitutionGroup, unbounded und optionale Elemente sind grün.
-3. SessionSetupReq/Res und ServiceDiscoveryReq/Res: encode/decode/roundtrip
-   byte-genau gegen cbV2G@<sha> (beide Richtungen), Vektoren eingecheckt.
-4. Sämtliche Bestandstests weiterhin grün.
-5. `docs/xsd-inventory-15118-2.md` und `docs/xsd-to-csharp-mapping.md` existieren.
-6. README aktualisiert.
-7. Abschlussbericht: welche EXI-Grammatikdetails von der naiven Erwartung abwichen
-   (Sortierungen, Event-Codes) und wie sie gegen cbV2G verifiziert wurden.
-   
+1. All five -2 XSDs run through the generator without diagnostics; the generated
+   assembly compiles.
+2. Grammar unit tests for attribute ordering, choice, extension,
+   substitutionGroup, unbounded, and optional elements are green.
+3. SessionSetupReq/Res and ServiceDiscoveryReq/Res: encode/decode/roundtrip
+   byte-exact against cbV2G@<sha> (both directions), vectors checked in.
+4. All existing tests still green.
+5. `docs/xsd-inventory-15118-2.md` and `docs/xsd-to-csharp-mapping.md` exist.
+6. README updated.
+7. Closing report: which EXI grammar details diverged from the naive expectation
+   (sortings, event codes) and how they were verified against cbV2G.

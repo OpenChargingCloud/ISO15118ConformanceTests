@@ -1,19 +1,19 @@
-# Phasen-Prompts für die ISO-15118-EXI-Umsetzung
+# Phase prompts for the ISO 15118 EXI implementation
 
-Einsatzfertige, selbsterklärende Prompts für autonome Agent-Läufe (Opus/Claude Code).
-Jeder Prompt ist eigenständig lesbar, prüft seine Vorbedingungen selbst und definiert
-eine Definition of Done. Die Phasen bauen strikt aufeinander auf — in Reihenfolge
-abarbeiten. Gesamtplan und Standortbestimmung: [../roadmap.md](../roadmap.md).
+Ready-to-run, self-contained prompts for autonomous agent runs (Opus/Claude Code).
+Each prompt is independently readable, checks its own preconditions, and defines
+a Definition of Done. The phases build strictly on one another — work through
+them in order. Overall plan and current status: [../roadmap.md](../roadmap.md).
 
-| Phase | Datei | Inhalt | Status |
+| Phase | File | Content | Status |
 |---|---|---|---|
-| 0 | [phase0.md](phase0.md) | SAP-Seed-Vektoren durch cbV2G-Referenzoutput ersetzen (Wire-Konformität) | **erledigt @2026-07-03** |
-| 1 | [phase1.md](phase1.md) | EXI-Primitivschicht vervollständigen (String Value Tables, Signed Integer, Binary, Boolean) | **erledigt @2026-07-03** (Value Tables: miss-only encode + lenient decode, cbV2G nutzt keine Tables) |
-| 2 | [phase2.md](phase2.md) | Source Generator auf den realen ISO-15118-2-Schemasatz heben (import/choice/extension/substitutionGroup/Attribute) | **erledigt @2026-07-05** (ganzer Satz generiert + kompiliert; SessionSetup/ServiceDiscovery byte-exakt gegen cbV2G) |
-| 3 | [phase3.md](phase3.md) | ISO 15118-2 komplettieren (alle 17 Nachrichtenpaare) + XMLDSig über EXI-Fragmente | **erledigt @2026-07-11** (Teil A: **alle 17 Paare byte-exakt** gegen cbV2G, inkl. CertificateInstallation/Update; Teil B: SignedInfo-/Signature-Subtree modelliert, signierte Nachricht byte-exakt, ECDSA-P256 Sign/Verify, `SignedInfo`-Fragment extern gegen EXIficient dekodiert — siehe `tools/exificient-ref/README.md`) |
-| 4 | [phase4.md](phase4.md) | ISO 15118-20: Multi-Schema-Codecs (CommonMessages/DC/AC/WPT/ACDP) + V2GTP-Dispatch | **erledigt @2026-07-11** (ursprünglich CommonMessages/DC/AC scope, WPT+ACDP nachträglich hinzugefügt — alle fünf Sets generieren + kompilieren, alle Zielnachrichten byte-exakt gegen cbV2G inkl. Decode/Roundtrip, `RationalNumber`-Helper, V2GTP-Payload-Type-Dispatcher für alle fünf Sets mit Fehlerfällen, XMLDSig für CommonMessages/DC/AC — 6/6, 2/2, 2/2 Fragment-Elemente byte-exakt, `V2GSignature` secp521r1/SHA-512 je Set; WPT/ACDP haben laut cbV2G-Quellcode gar keine signierbaren Elemente. WPT brachte zwei neue EXI-Grammatik-Konstrukte (Generator erweitert, eines davon ohne funktionierende cbV2G-Referenz — deren eigener generierter Encoder scheitert dort selbst am Schema-Minimum), ACDP eine Document-Index-Besonderheit bei geteilten Typen (Generator-Fix). CommonMessages-`SignedInfo`-Fragment extern gegen EXIficient dekodiert, siehe `tools/exificient-ref/README.md`; Josev-Interop bleibt Phase 5) |
-| 5 | [phase5.md](phase5.md) | EV↔EVSE-Simulation: SDP, TCP/TLS, Zustandsmaschinen, Interop gegen Josev | **läuft** — Slice 1 erledigt @2026-07-11 (bewusst ohne SDP/SLAC-PLC, feste Adresse/Port statt Discovery): neues Projekt `Vanaheimr.V2G.Simulation` (+`.Cli`/`.Tests`), `V2GTPStream`-Framing über `Stream` (TCP transparent gegen TLS), SAP-Handshake, `Evcc2`/`Secc2` (-2 AC/DC) und `Evcc20Base`/`Secc20Base`+`{Evcc,Secc}20{Dc,Ac}` (-20 AC/DC, Header-Adapter über die drei eigenständigen -20-Schema-Satz-Assemblies), TLS serverseitig mit Test-Zertifikat. Alle vier Happy Paths + 2 TLS-Varianten laufen im Loopback in `dotnet test`. Offen: SDP, Josev-Interop (`tools/interop-josev/`, noch nicht begonnen) |
+| 0 | [phase0.md](phase0.md) | Replace SAP seed vectors with cbV2G reference output (wire conformance) | **done @2026-07-03** |
+| 1 | [phase1.md](phase1.md) | Complete the EXI primitive layer (string value tables, signed integer, binary, boolean) | **done @2026-07-03** (value tables: miss-only encode + lenient decode, cbV2G doesn't use tables) |
+| 2 | [phase2.md](phase2.md) | Lift the source generator to the real ISO 15118-2 schema set (import/choice/extension/substitutionGroup/attribute) | **done @2026-07-05** (whole set generates + compiles; SessionSetup/ServiceDiscovery byte-exact against cbV2G) |
+| 3 | [phase3.md](phase3.md) | Complete ISO 15118-2 (all 17 message pairs) + XMLDSig over EXI fragments | **done @2026-07-11** (Part A: **all 17 pairs byte-exact** against cbV2G, incl. CertificateInstallation/Update; Part B: SignedInfo/Signature subtree modelled, signed message byte-exact, ECDSA-P256 sign/verify, `SignedInfo` fragment externally decoded against EXIficient — see `tools/exificient-ref/README.md`) |
+| 4 | [phase4.md](phase4.md) | ISO 15118-20: multi-schema codecs (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch | **done @2026-07-11** (originally scoped to CommonMessages/DC/AC, WPT+ACDP added afterward — all five sets generate + compile, all target messages byte-exact against cbV2G incl. decode/roundtrip, `RationalNumber` helper, V2GTP payload-type dispatcher for all five sets with error paths, XMLDSig for CommonMessages/DC/AC — 6/6, 2/2, 2/2 fragment elements byte-exact, `V2GSignature` secp521r1/SHA-512 per set; per cbV2G source, WPT/ACDP have no signable elements at all. WPT surfaced two new EXI grammar constructs (generator extended, one of them with no working cbV2G reference — its own generated encoder fails outright at the schema minimum there), ACDP a document-index quirk for shared types (generator fix). CommonMessages' `SignedInfo` fragment externally decoded against EXIficient, see `tools/exificient-ref/README.md`; Josev interop stays in Phase 5) |
+| 5 | [phase5.md](phase5.md) | EV↔EVSE simulation: SDP, TCP/TLS, state machines, interop against Josev | **in progress** — slice 1 done @2026-07-11 (deliberately without SDP/SLAC-PLC, fixed address/port instead of discovery): new project `Vanaheimr.V2G.Simulation` (+`.Cli`/`.Tests`), `V2GTPStream` framing over `Stream` (transparent to TCP vs. TLS), SAP handshake, `Evcc2`/`Secc2` (-2 AC/DC) and `Evcc20Base`/`Secc20Base`+`{Evcc,Secc}20{Dc,Ac}` (-20 AC/DC, header adapter across the three self-contained -20 schema-set assemblies), server-side TLS with a test certificate. All four happy paths + 2 TLS variants run over loopback in `dotnet test`. Open: SDP, Josev interop (`tools/interop-josev/`, not yet started) |
 
-Nach Abschluss einer Phase: Status-Spalte hier aktualisieren (z. B. „erledigt @<commit/datum>")
-und dabei prüfen, ob die Kontext-Abschnitte der Folge-Prompts noch zum tatsächlichen
-Repo-Stand passen — sie beschreiben den erwarteten Zustand nach der Vorphase.
+After finishing a phase: update the status column here (e.g. "done @<commit/date>")
+and check whether the context sections of the following prompts still match the
+actual repo state — they describe the expected state after the previous phase.

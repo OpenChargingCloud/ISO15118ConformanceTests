@@ -1,147 +1,147 @@
-# Aufgabe: ISO 15118-20 — Multi-Schema-Codecs + V2GTP-Dispatch (Phase 4)
+# Task: ISO 15118-20 — multi-schema codecs + V2GTP dispatch (Phase 4)
 
-## Kontext
+## Context
 
-Du arbeitest im Repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — eine .NET-10-Bibliothek
-für ISO 15118 EXI. Stand nach Phase 0–3:
+You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
+for ISO 15118 EXI. State after Phase 0–3:
 
-- `Vanaheimr.V2G.Exi.Prototype/` — EXI-Primitive (inkl. String Value Tables, Signed
-  Integer, Binary), V2GTP-Header, handgeschriebener AppProtocol-Codec (Referenz).
-- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn-Generator: sammelt alle `.xsd` eines
-  Projekts als EIN Schemaset, beherrscht import/choice/extension/substitutionGroup/
-  Attribute/unbounded, emittiert Dokument- UND Fragment-Codecs.
-- `Vanaheimr.V2G.Exi.Iso15118_2/` — generierter -2-Codec, alle 17 Nachrichtenpaare
-  gegen cbV2G validiert; XMLDSig-Signaturen (EXI-Fragmente, ECDSA P-256/SHA-256)
-  mit `V2GSignatureBuilder`/`V2GSignatureVerifier`.
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vektorgetrieben; `tools/cbv2g-ref/` CLI-Harness
-  um libcbv2g (gepinnter Commit) mit appHand- und iso-2-Modulen.
+- `Vanaheimr.V2G.Exi.Prototype/` — EXI primitives (incl. string value tables, signed
+  integer, binary), V2GTP header, hand-written AppProtocol codec (reference).
+- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn generator: collects all `.xsd` files
+  of a project as ONE schema set, supports import/choice/extension/substitutionGroup/
+  attribute/unbounded, emits document AND fragment codecs.
+- `Vanaheimr.V2G.Exi.Iso15118_2/` — generated -2 codec, all 17 message pairs
+  validated against cbV2G; XMLDSig signatures (EXI fragments, ECDSA P-256/SHA-256)
+  via `V2GSignatureBuilder`/`V2GSignatureVerifier`.
+- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven; `tools/cbv2g-ref/` a CLI harness
+  around libcbv2g (pinned commit) with the appHand and iso-2 modules.
 - Docs: `docs/xsd-inventory-15118-2.md`, `docs/xsd-to-csharp-mapping.md`.
 
-Lies vor Beginn: `README.md`, beide docs, die Generator-Architektur und wie
-`Vanaheimr.V2G.Exi.Iso15118_2` die XSDs als AdditionalFiles einbindet.
+Read before starting: `README.md`, both docs, the generator architecture, and how
+`Vanaheimr.V2G.Exi.Iso15118_2` wires the XSDs in as AdditionalFiles.
 
-## Vorbedingungen (zuerst prüfen)
+## Preconditions (check these first)
 
-Phase 2 und 3 abgeschlossen (voller -2-Codec inkl. Fragment-Maschinerie,
-cbv2g-ref-Harness baut). Fehlt etwas: stoppe und melde.
+Phases 2 and 3 are complete (full -2 codec incl. fragment machinery,
+the cbv2g-ref harness builds). If anything is missing: stop and report.
 
-## Fachlicher Hintergrund: was bei -20 anders ist
+## Background: what's different about -20
 
-- **Kein V2G_Message-Wrapper.** Jede Nachricht ist ein eigenes globales Element;
-  der Header (SessionID hexBinary, TimeStamp unsignedLong, optionale Signature)
-  steckt IN der Nachricht.
-- **Mehrere unabhängige Schemasets**, je eines pro Namespace:
-  CommonMessages, AC, DC, WPT, ACDP — alle importieren CommonTypes + xmldsig.
-  Jedes Set hat seine EIGENE EXI-Dokumentgrammatik. Der Empfänger erkennt das
-  Set am **V2GTP-Payload-Type** (pro Message-Set eine eigene ID; die konkreten
-  Werte aus der Spec bzw. libcbv2gs `exi_v2gtp.h` übernehmen — nicht raten).
-- Neue Datentyp-Muster, u. a. `RationalNumberType` (Exponent+Value, Pendant zu
-  PhysicalValueType) und deutlich größere/verschachteltere Nachrichten
-  (ChargeLoop, ScheduleExchange).
+- **No V2G_Message wrapper.** Every message is its own global element;
+  the header (SessionID hexBinary, TimeStamp unsignedLong, optional Signature)
+  sits INSIDE the message.
+- **Several independent schema sets**, one per namespace:
+  CommonMessages, AC, DC, WPT, ACDP — all import CommonTypes + xmldsig.
+  Each set has its OWN EXI document grammar. The receiver recognizes the
+  set via the **V2GTP payload type** (each message set has its own ID; take
+  the concrete values from the spec or libcbv2g's `exi_v2gtp.h` — don't guess).
+- New data-type patterns, among them `RationalNumberType` (exponent+value, the
+  counterpart of PhysicalValueType) and considerably larger/more deeply nested
+  messages (ChargeLoop, ScheduleExchange).
 
-## Ziel
+## Goal
 
-Die Schemasets **CommonMessages, DC und AC** sind vollständig generiert und
-vektorvalidiert; ein V2GTP-Dispatcher wählt anhand des Payload-Types den
-richtigen Decoder. **WPT und ACDP sind explizit außer Scope** (Architektur muss
-sie aber ohne Umbau aufnehmen können — der Beweis ist, dass ein weiteres
-Schemaset nur ein neues csproj + Vektoren bedeutet).
+The schema sets **CommonMessages, DC, and AC** are fully generated and
+vector-validated; a V2GTP dispatcher picks the right decoder based on the
+payload type. **WPT and ACDP are explicitly out of scope** (but the
+architecture must be able to accommodate them without rework — the proof is
+that adding another schema set only means a new csproj + vectors).
 
-## Schritte
+## Steps
 
-### 1. Schemata beschaffen + Inventur
+### 1. Source the schemas + take inventory
 
-- Die -20-XSDs (V2G_CI_CommonMessages, V2G_CI_CommonTypes, V2G_CI_AC, V2G_CI_DC
-  + xmldsig) liegen im OSS-Umfeld vor (cbexigen-Repo bzw. EVerest libiso15118);
-  Quelle + Commit dokumentieren. Nicht auffindbar → stoppe und melde.
-- Inventur-Analyse wie in Phase 2: alle tatsächlich verwendeten XSD-Konstrukte
-  und Facetten der -20-Schemata auflisten → `docs/xsd-inventory-15118-20.md`.
-  Der Diff gegen das -2-Inventar ist deine Arbeitsliste für Generator-Lücken.
+- The -20 XSDs (V2G_CI_CommonMessages, V2G_CI_CommonTypes, V2G_CI_AC, V2G_CI_DC
+  + xmldsig) are available in the OSS ecosystem (the cbexigen repo or EVerest
+  libiso15118); document source + commit. If not findable → stop and report.
+- Inventory analysis as in Phase 2: list every XSD construct and facet
+  actually used by the -20 schemas → `docs/xsd-inventory-15118-20.md`.
+  The diff against the -2 inventory is your work list of generator gaps.
 
-### 2. Generator-Lücken schließen (konstruktweise)
+### 2. Close generator gaps (construct by construct)
 
-- Für jedes Konstrukt aus dem Inventar-Diff: synthetisches Mini-XSD +
-  Grammatik-Unit-Test + Emitter-Support, dann weiter. Fail-loud-Philosophie
-  beibehalten (unbekanntes Konstrukt = Build-Diagnostic).
-- Erwartbare Kandidaten (verbindlich ist die Inventur): tiefere choice-Schachtelung,
-  große maxOccurs-Werte, zusätzliche Built-ins. Nichts auf Vorrat implementieren.
+- For every construct from the inventory diff: a synthetic mini-XSD +
+  grammar unit test + emitter support, then move on. Keep the fail-loud
+  philosophy (unknown construct = build diagnostic).
+- Expected candidates (the inventory has the final say): deeper choice
+  nesting, large maxOccurs values, additional built-ins. Don't implement
+  anything speculatively.
 
-### 3. Projektstruktur: ein Assembly pro Message-Set
+### 3. Project structure: one assembly per message set
 
-- Neue Projekte `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`, `….DC`, `….AC`
-  (net10.0), jeweils mit eigenem XSD-Satz (Set-XSD + CommonTypes + xmldsig) als
-  AdditionalFiles + Generator-Referenz.
-- Bewusster Tradeoff: Die CommonTypes-Typen werden dadurch pro Assembly dupliziert
-  (cbV2G macht dasselbe). Das ist ok — dokumentiere es in
-  `docs/xsd-to-csharp-mapping.md`. KEINE geteilte CommonTypes-Assembly bauen;
-  die Grammatiken sind pro Set eigenständig, geteilter Code schafft nur
-  Versionierungsprobleme.
+- New projects `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`, `….DC`, `….AC`
+  (net10.0), each with its own XSD set (set XSD + CommonTypes + xmldsig) as
+  AdditionalFiles + a generator reference.
+- Deliberate tradeoff: this duplicates the CommonTypes types across assemblies
+  (cbV2G does the same). That's fine — document it in
+  `docs/xsd-to-csharp-mapping.md`. Do NOT build a shared CommonTypes assembly;
+  the grammars are self-contained per set, and shared code would only create
+  versioning problems.
 
-### 4. V2GTP-Dispatcher
+### 4. V2GTP dispatcher
 
-- `V2GTP`-Layer erweitern: Payload-Type-Tabelle (SAP, -2, -20-CommonMessages,
-  -20-AC, -20-DC; Werte aus Spec/libcbv2g), `TryDecode` liefert das typisierte
-  Nachrichtenobjekt + Set-Kennung; Encode-Seite setzt den Payload-Type passend
-  zum übergebenen Nachrichtentyp.
-- Tests: korrektes Mapping pro Set, sauberer Fehler bei unbekanntem Payload-Type,
-  Längenfeld-Validierung.
+- Extend the `V2GTP` layer: a payload-type table (SAP, -2, -20 CommonMessages,
+  -20 AC, -20 DC; values from the spec/libcbv2g), `TryDecode` returns the typed
+  message object + set identifier; the encode side sets the payload type to
+  match the given message type.
+- Tests: correct mapping per set, a clean error for an unknown payload type,
+  length-field validation.
 
-### 5. Vektorvalidierung gegen cbV2G
+### 5. Vector validation against cbV2G
 
-- `tools/cbv2g-ref/` um die iso-20-Module erweitern (libcbv2g hat pro Set
-  eigene encoder/decoder).
-- Vektordateien pro Set (`Iso15118_20.CommonMessages.vectors.json`, …), Muster
-  wie gehabt (referenceEncoder gepinnt, encode-Diff, decode von cbV2G-Bytes,
-  Roundtrip).
-- Abdeckung CommonMessages: SessionSetup, AuthorizationSetup, Authorization
-  (EIM- und PnC-Variante), ServiceDiscovery, ServiceDetail, ServiceSelection,
-  ScheduleExchange (Scheduled + Dynamic Mode!), PowerDelivery, SessionStop —
-  plus die restlichen Paare des Schemas. DC: ChargeParameterDiscovery,
+- Extend `tools/cbv2g-ref/` with the iso-20 modules (libcbv2g has its own
+  encoder/decoder per set).
+- Vector files per set (`Iso15118_20.CommonMessages.vectors.json`, …), same
+  pattern as before (referenceEncoder pinned, encode diff, decode of cbV2G
+  bytes, roundtrip).
+- Coverage for CommonMessages: SessionSetup, AuthorizationSetup, Authorization
+  (EIM and PnC variants), ServiceDiscovery, ServiceDetail, ServiceSelection,
+  ScheduleExchange (Scheduled + Dynamic mode!), PowerDelivery, SessionStop —
+  plus the remaining pairs of the schema. DC: ChargeParameterDiscovery,
   CableCheck, PreCharge, ChargeLoop, WeldingDetection. AC: ChargeParameterDiscovery,
-  ChargeLoop. Pro Nachricht: Happy Path + optionale-Feld-Varianten + Grenzwerte.
-- Die komplexen zuerst (ScheduleExchangeRes Dynamic/Scheduled,
-  DC_ChargeLoop mit DisplayParameters) — sie finden die meisten Lücken.
+  ChargeLoop. Per message: happy path + optional-field variants + boundary values.
+- Tackle the complex ones first (ScheduleExchangeRes Dynamic/Scheduled,
+  DC_ChargeLoop with DisplayParameters) — they surface the most gaps.
 
-### 6. Signaturen auf -20 heben
+### 6. Lift signatures to -20
 
-- Fragment-Encoder für das CommonMessages-Set generieren (Maschinerie aus
-  Phase 3 wiederverwenden); Fragment-Bytes gegen EXIficient diffen.
-- Signatur-Suite: -20 verwendet stärkere Suiten als -2. Implementiere die
-  ECDSA-Variante, die .NET nativ kann (secp521r1/SHA-512); falls die Spec
-  zusätzlich Ed448 vorsieht: NICHT implementieren, sondern als bekannte Lücke
-  dokumentieren (.NET hat kein Ed448).
-- `RationalNumberType`-Helper analog PhysicalValueType (decimal-Konvertierung,
-  Rundungstests).
+- Generate a fragment encoder for the CommonMessages set (reuse the
+  Phase 3 machinery); diff fragment bytes against EXIficient.
+- Signature suite: -20 uses stronger suites than -2. Implement the ECDSA
+  variant .NET natively supports (secp521r1/SHA-512); if the spec additionally
+  calls for Ed448: do NOT implement it, document it as a known gap instead
+  (.NET has no Ed448).
+- `RationalNumberType` helper analogous to PhysicalValueType (decimal
+  conversion, rounding tests).
 
-### 7. Dokumentation
+### 7. Documentation
 
-- README: Architekturbild (Assemblies pro Set, Dispatcher), Abdeckungsmatrix
-  -20 (Nachricht × validiert-gegen), bekannte Lücken (WPT/ACDP, ggf. Ed448),
-  "Next milestones" → Phase 5 (Simulation).
+- README: architecture picture (assemblies per set, dispatcher), the -20
+  coverage matrix (message × validated-against), known gaps (WPT/ACDP,
+  possibly Ed448), "Next milestones" → Phase 5 (simulation).
 
-## Leitplanken
+## Guardrails
 
-- Wire-Semantik nur auf Basis konkreter Diffs gegen cbV2G/EXIficient ändern.
-- Kein handgeschriebener Codec-Code für -20 — alles durch den Generator;
-  Generator-Fixes immer mit Mini-XSD-Grammatik-Test.
-- `dotnet test -c Release` bleibt ohne C-Toolchain/Java/Netzwerk grün.
-- Sämtliche Bestandstests (-2, AppProtocol, Grammatik-Tests) bleiben grün.
-- Achte auf Buildzeit: der generierte Code wird groß; Output weiter in mehrere
-  Hint-Files splitten, Generator-Pipeline inkrementell sauber halten
-  (keine unnötigen Neuberechnungen pro Edit).
-- Kleine Commits, nur bei grünem Build.
+- Only change wire semantics based on concrete diffs against cbV2G/EXIficient.
+- No hand-written codec code for -20 — everything through the generator;
+  always back generator fixes with a mini-XSD grammar test.
+- `dotnet test -c Release` stays green without a C toolchain/Java/network.
+- All existing tests (-2, AppProtocol, grammar tests) stay green.
+- Watch build time: the generated code gets large; keep splitting the output
+  into multiple hint files, keep the generator pipeline cleanly incremental
+  (no unnecessary recomputation per edit).
+- Small commits, only on a green build.
 
 ## Definition of Done
 
-1. `docs/xsd-inventory-15118-20.md` existiert; Generator läuft ohne Diagnostics
-   über CommonMessages-, DC- und AC-Set; drei Assemblies kompilieren.
-2. Alle Nachrichtenpaare der drei Sets: encode/decode/roundtrip gegen
-   cbV2G@<sha>, beide Richtungen, Vektoren eingecheckt.
-3. V2GTP-Dispatcher mit Payload-Type-Tests (inkl. Fehlerfälle).
-4. Fragment-Bytes (CommonMessages) byte-gleich mit EXIficient@<version>;
-   secp521r1/SHA-512-Signatur erzeugen + verifizieren getestet.
-5. RationalNumber-Helper mit Rundungstests.
-6. Bestandstests grün; README + docs aktualisiert.
-7. Abschlussbericht: Generator-Lücken aus dem Inventar-Diff, Orakel-Entscheidungen,
-   dokumentierte bewusste Lücken (WPT/ACDP, ggf. Ed448).
-   
+1. `docs/xsd-inventory-15118-20.md` exists; the generator runs without
+   diagnostics over the CommonMessages, DC, and AC sets; three assemblies compile.
+2. All message pairs of the three sets: encode/decode/roundtrip against
+   cbV2G@<sha>, both directions, vectors checked in.
+3. V2GTP dispatcher with payload-type tests (incl. error paths).
+4. Fragment bytes (CommonMessages) byte-identical to EXIficient@<version>;
+   generating + verifying a secp521r1/SHA-512 signature tested.
+5. RationalNumber helper with rounding tests.
+6. Existing tests green; README + docs updated.
+7. Closing report: generator gaps from the inventory diff, oracle decisions,
+   documented deliberate gaps (WPT/ACDP, possibly Ed448).
