@@ -68,6 +68,14 @@ public class V2GTPDispatcherTests
     public void RoundtripsIso20AC() =>
         AssertRoundtrips(MessageSet.Iso20AC, "AC_ChargeParameterDiscoveryReq", Iso15118_20AcFixtures.TryEncode);
 
+    [Test]
+    public void RoundtripsIso20WPT() =>
+        AssertRoundtrips(MessageSet.Iso20WPT, "WPT_FinePositioningReq", Iso15118_20WptFixtures.TryEncode);
+
+    [Test]
+    public void RoundtripsIso20ACDP() =>
+        AssertRoundtrips(MessageSet.Iso20ACDP, "ACDP_ConnectReq", Iso15118_20AcdpFixtures.TryEncode);
+
     private delegate bool TryEncodeFn(string vectorName, byte[] dest, out int bytesWritten);
 
     private static void AssertRoundtrips(MessageSet set, string vectorName, TryEncodeFn tryEncode)
@@ -106,7 +114,7 @@ public class V2GTPDispatcherTests
     public void TryDecode_RejectsUnknownPayloadType()
     {
         var dest = new byte[V2GTP.HeaderSize + 1];
-        V2GTP.WriteHeader(dest, payloadType: 0x8005, payloadLength: 1); // ACDP — out of Phase-4 scope
+        V2GTP.WriteHeader(dest, payloadType: 0x8101, payloadLength: 1); // ScheduleRenegotiation — not modelled
         Assert.That(V2GTPDispatcher.TryDecode(dest, out _, out var message, out var error), Is.False);
         Assert.That(message, Is.Null);
         Assert.That(error, Does.Contain("unknown V2GTP payload type"));

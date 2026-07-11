@@ -3,6 +3,8 @@ using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
 using Vanaheimr.V2G.Iso15118_20.DC.Generated;
 using Vanaheimr.V2G.Iso15118_20.AC.Generated;
+using Vanaheimr.V2G.Iso15118_20.WPT.Generated;
+using Vanaheimr.V2G.Iso15118_20.ACDP.Generated;
 
 namespace Vanaheimr.V2G.Tp;
 
@@ -14,14 +16,16 @@ public enum MessageSet
     Iso20CommonMessages,
     Iso20AC,
     Iso20DC,
+    Iso20WPT,
+    Iso20ACDP,
 }
 
 /// <summary>
 /// Maps V2GTP payload types (§ the 8-byte <see cref="V2GTP"/> header) to the message set that owns
 /// them, so a transport layer can decode an incoming frame without knowing in advance which of the
-/// five generated/hand-written codecs applies, and wrap an already-EXI-encoded payload with the
-/// header for the set it came from. WPT and ACDP are out of Phase-4 scope (see roadmap) — an unknown
-/// payload type, including those two, is reported as a clean error rather than guessed at.
+/// seven generated/hand-written codecs applies, and wrap an already-EXI-encoded payload with the
+/// header for the set it came from. An unknown payload type is reported as a clean error rather than
+/// guessed at.
 /// </summary>
 public static class V2GTPDispatcher
 {
@@ -81,6 +85,16 @@ public static class V2GTPDispatcher
                 message = DcCodec.DecodeAny(payload, out _);
                 return true;
 
+            case V2GTP.PayloadType_Iso20WPT:
+                set = MessageSet.Iso20WPT;
+                message = WptCodec.DecodeAny(payload, out _);
+                return true;
+
+            case V2GTP.PayloadType_Iso20ACDP:
+                set = MessageSet.Iso20ACDP;
+                message = AcdpCodec.DecodeAny(payload, out _);
+                return true;
+
             default:
                 error = $"unknown V2GTP payload type 0x{payloadType:X4}.";
                 return false;
@@ -103,6 +117,8 @@ public static class V2GTPDispatcher
             MessageSet.Iso20CommonMessages => V2GTP.PayloadType_Iso20Main,
             MessageSet.Iso20AC             => V2GTP.PayloadType_Iso20AC,
             MessageSet.Iso20DC             => V2GTP.PayloadType_Iso20DC,
+            MessageSet.Iso20WPT            => V2GTP.PayloadType_Iso20WPT,
+            MessageSet.Iso20ACDP           => V2GTP.PayloadType_Iso20ACDP,
             _ => throw new ArgumentOutOfRangeException(nameof(set), set, "unknown message set"),
         };
 

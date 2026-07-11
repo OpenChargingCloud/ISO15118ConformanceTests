@@ -16,6 +16,7 @@ public static class V2GTP
     public const ushort PayloadType_Iso20AC          = 0x8003;
     public const ushort PayloadType_Iso20DC          = 0x8004;
     public const ushort PayloadType_Iso20ACDP        = 0x8005;
+    public const ushort PayloadType_Iso20WPT         = 0x8006;
 
     public const int HeaderSize = 8;
 
