@@ -73,15 +73,32 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _sb.AppendLine("using System.IO;");
             _sb.AppendLine("using Vanaheimr.V2G.Exi;");
             _sb.AppendLine();
-            _sb.Append("namespace ").Append(_ns).AppendLine(";");
-            _sb.AppendLine();
+
+            var headerLength = _sb.Length;
 
             EmitEnums();
             EmitOpaqueTypes();
             EmitRecords();
             EmitCodec();
 
-            return _sb.ToString();
+            var header = _sb.ToString(0, headerLength);
+            var body = _sb.ToString(headerLength, _sb.Length - headerLength);
+
+            // Block-scoped namespace (repo style, see .editorconfig) — applied here as a single
+            // indent pass over the already-emitted body rather than threading an extra indent
+            // level through every Emit* method above.
+            var result = new StringBuilder(header);
+            result.Append("namespace ").Append(_ns).AppendLine();
+            result.AppendLine("{");
+            using (var reader = new System.IO.StringReader(body))
+            {
+                string? line;
+                while ((line = reader.ReadLine()) is not null)
+                    result.AppendLine(line.Length == 0 ? "" : "    " + line);
+            }
+            result.AppendLine("}");
+
+            return result.ToString();
         }
 
         // -----------------------------------------------------------------------
