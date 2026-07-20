@@ -441,8 +441,3 @@ internal static class XsdReader
         (string?)el.Attribute(attr)
         ?? throw new XsdReaderException($"<{el.Name.LocalName}> missing required attribute '{attr}'.");
 }
-
-internal sealed class XsdReaderException : Exception
-{
-    public XsdReaderException(string message) : base(message) { }
-}

@@ -2,8 +2,6 @@ using Vanaheimr.V2G.Simulation.StateMachines;
 
 namespace Vanaheimr.V2G.Simulation.Cli;
 
-public enum Role { Evcc, Secc }
-
 /// <summary>
 /// Hand-rolled flag parsing (no arg-parsing package anywhere in this repo) for the two subcommands:
 /// <c>evcc --connect host:port --protocol 2|20 --mode ac|dc [--tls]</c> and

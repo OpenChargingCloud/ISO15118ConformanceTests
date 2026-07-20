@@ -8,18 +8,6 @@ using Vanaheimr.V2G.Iso15118_20.ACDP.Generated;
 
 namespace Vanaheimr.V2G.Tp;
 
-/// <summary>The schema set a V2GTP payload type identifies.</summary>
-public enum MessageSet
-{
-    AppProtocol,
-    Iso15118_2,
-    Iso20CommonMessages,
-    Iso20AC,
-    Iso20DC,
-    Iso20WPT,
-    Iso20ACDP,
-}
-
 /// <summary>
 /// Maps V2GTP payload types (§ the 8-byte <see cref="V2GTP"/> header) to the message set that owns
 /// them, so a transport layer can decode an incoming frame without knowing in advance which of the

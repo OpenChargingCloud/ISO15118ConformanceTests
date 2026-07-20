@@ -4,11 +4,6 @@ using Vanaheimr.V2G.Iso15118_2.Generated;
 
 namespace Vanaheimr.V2G.Exi.Simulation;
 
-public enum ChargingMode { Ac, Dc }
-
-/// <summary>Raised when a session ends abnormally — a sequence-guard rejection or a timeout.</summary>
-public sealed class SessionAborted(string reason) : Exception(reason);
-
 /// <summary>
 /// The wire: it serialises a <see cref="V2G_Message"/> to ISO 15118-2 EXI, hands the octets to the
 /// SECC, and parses the reply back — the only part that actually touches the codec. It also enforces
