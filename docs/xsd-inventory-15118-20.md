@@ -197,7 +197,8 @@ already supported. No `xs:any`/`mixed` outside the already-opaque `xmldsig` name
 | Substitution group, concrete/chained head | — | **new**, AC/DC |
 | `RationalNumberType` | — (there: `PhysicalValueType` with a unit) | new, but trivial (analogue of `PhysicalValueType`) |
 | XMLDSig signature | ECDSA P-256/SHA-256 | **ECDSA secp521r1/SHA-512** (stronger suite per
-  the spec) + optional Ed448 (not supported by .NET — a deliberate gap, see phase4.md) |
+  the spec) + **Ed448** (RFC 8032 — .NET has no built-in support, so this uses
+  `BouncyCastle.Cryptography`) |
 
 ## Message overview (for vector prioritization)
 

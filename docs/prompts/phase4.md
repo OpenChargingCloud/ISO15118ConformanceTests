@@ -1,5 +1,11 @@
 # Task: ISO 15118-20 — multi-schema codecs + V2GTP dispatch (Phase 4)
 
+> **Update (post-Phase 4):** Ed448 — flagged below as a deliberate gap because .NET's
+> `System.Security.Cryptography` has no Ed448 support — has since been added via the
+> `BouncyCastle.Cryptography` NuGet package (`V2GSignature.SignEd448`/`VerifyEd448` in
+> `Vanaheimr.V2G.Exi.Iso15118_20.{CommonMessages,DC,AC}`). The step 6/DoD text below is kept
+> as-is for historical accuracy; see `README.md`'s -20 signature section for the current state.
+
 ## Context
 
 You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library

@@ -248,11 +248,14 @@ global **and** local element declarations both resolve correctly, no generator c
 
 Every set has its own `V2GSignature` (`Vanaheimr.V2G.Exi.Iso15118_20.{CommonMessages,DC,AC}`):
 identical two-level EXI-fragment digest scheme to -2's, but the stronger suite — SHA-512
-digests, ECDSA over NIST P-521 (secp521r1), a 132-byte (66+66) raw `r‖s` `SignatureValue`.
-Sign → encode → decode → verify is covered for all three (end to end for CommonMessages;
-sign/verify/tamper/wrong-key for DC/AC); the ECDSA path itself is self-checked only (see
-below). Ed448 (also in -20's signature-suite options) is out of scope — .NET has no built-in
-Ed448.
+digests, and either of -20's two asymmetric algorithms: ECDSA over NIST P-521 (secp521r1),
+a 132-byte (66+66) raw `r‖s` `SignatureValue`; or Ed448 (RFC 8032), a raw 114-byte
+`SignatureValue` — .NET's `System.Security.Cryptography` has no Ed448, so that path uses
+`BouncyCastle.Cryptography` (`Sign/VerifyEd448` alongside the existing `Sign/Verify`, same
+`SignedInfo`/fragment plumbing, just `BuildSignedInfo(..., V2GSignature.EddsaEd448)` picks
+the algorithm URI). Sign → encode → decode → verify is covered for all three (end to end
+for CommonMessages; sign/verify/tamper/wrong-key for DC/AC, both suites); both signature
+paths are self-checked only (see below).
 
 **WPT and ACDP carry no signable content at all** — confirmed by grepping their cbV2G
 headers (`iso20_WPT_Datatypes.h`, `iso20_ACDP_Datatypes.h`, and both sets' `_Encoder.h`):
