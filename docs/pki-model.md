@@ -68,27 +68,43 @@ Diffie-Hellman-wrapped private-key transfer the CP describes). Note the provisio
 *messages* themselves are already generated and vector-tested at the codec level (Phase 4) —
 it is the live provisioning *session flow* that stays out of scope, not the wire format.
 
-## Test PKI (generated at test time, nothing checked in)
+## Test PKI — use the WWCP PKI builder
 
-Mirror the existing approach in
-[`Vanaheimr.V2G.Simulation.Tests/TestData/TestCertificate.cs`](../Vanaheimr.V2G.Simulation.Tests/TestData/TestCertificate.cs)
-(self-signed cert via `CertificateRequest`) but build small real chains so chain validation
-actually runs:
+The PKI does **not** need to be hand-rolled: the WWCP ISO 15118 stack vendored under
+[`libs/WWCP_ISO15118/`](../libs/WWCP_ISO15118) already ships a BouncyCastle-based V2G PKI
+builder (`WWCP_ISO15118_PKI`) that generates the full hierarchy, chains, trust bundle, and
+CRLs, with `strict-2` (P-256) and `strict-20` (P-521 / Ed448) profiles matching the
+[TLS profiles](#tls-profiles-per-protocol) below. It builds the branches all the way down:
 
 ```
 V2G Root CA (self-signed, shared trust anchor)
-├─ Tier-1 CSO CA     → Tier-2 CSO CA     → SECC leaf        (TLS server)
-├─ Tier-1 Vehicle CA → Tier-2 Vehicle CA → Vehicle leaf     (TLS client)
-└─ Tier-1 e-MSP CA   → Tier-2 e-MSP CA   → Contract leaf ×n (PnC signing)
+├─ CPO     Sub-CA 1 → CPO     Sub-CA 2 → SECC leaf         (TLS server)
+├─ MO      Sub-CA 1 → MO      Sub-CA 2 → Contract leaf ×n  (PnC signing, application layer)
+├─ OEM     Sub-CA 1 → OEM     Sub-CA 2 → OEM Prov leaf     (out-of-band provisioning only)
+├─ Vehicle Sub-CA 1 → Vehicle Sub-CA 2 → Vehicle leaf      (TLS client, -20 mutual TLS)
+└─ CPS     Sub-CA   ───────────────────  CPS Signing leaf  (signs CertificateInstallationRes)
 ```
 
-- Both TLS sides trust the same root → mutual-TLS validation succeeds; a leaf under a
-  *different* root must fail (negative test).
-- The Tier-1/Tier-2 split can be collapsed to a single intermediate for the first
-  iteration if two CA levels per branch prove noisy — the two-level structure is what the CP
-  specifies, so keep it as the target.
-- Everything is generated per test run (no expiry maintenance, nothing sensitive committed),
-  consistent with the project's "no real certificates checked in" rule.
+The **Vehicle branch** was added specifically for this model (the builder previously reused
+the Contract / OEM-Prov cert as the -20 TLS client, which contradicted the CharIN 2nd-gen CP);
+it now emits a dedicated Vehicle leaf carrying `clientAuth` (never `serverAuth`), separate
+from the application-layer Contract cert. Chain bundles land at `chains/secc_chain.pem`,
+`chains/vehicle_chain.pem`, `chains/contract_chain.pem`, … with `chains/v2g_root_trust.pem`
+as the shared anchor.
+
+Wiring notes for the simulation:
+
+- SECC TLS server ← `secc_chain.pem`; EVCC TLS client ← `vehicle_chain.pem`; both validate the
+  peer up to `v2g_root_trust.pem` → mutual-TLS validation succeeds, and a leaf under a
+  *different* root must fail (negative test — the builder's `evil_twin_root` variant is exactly
+  this case).
+- The Contract cert (`contract_chain.pem`) is **not** presented in the TLS handshake — it is
+  verified at the application layer during -20 Plug & Charge authorization.
+- The builder can generate at test time (nothing sensitive committed, no expiry maintenance),
+  consistent with the project's "no real certificates checked in" rule; the current
+  [`TestData/TestCertificate.cs`](../Vanaheimr.V2G.Simulation.Tests/TestData/TestCertificate.cs)
+  self-signed P-256 cert stays fine for the -2/TLS-1.2 path but is superseded by the builder's
+  strict-20 chains for the mutual-TLS work.
 
 ## TLS profiles per protocol
 
@@ -128,9 +144,16 @@ EVSE + -2-only EV → TLS 1.2.
 The guide recommends **ISO 15118-20-2 (ESDP)** to exchange the supported V2G protocols, TLS
 versions and security profiles **before** the TLS handshake, so the EV can build a
 consistent `ClientHello` instead of guessing. This is the discovery/capability stage that
-sits in front of the handshake — relevant to the SDP/SLAC code being brought in: the
-selected protocol (and thus TLS profile) should be an *input* to `TcpV2GClient`/`TlsOptions`,
-decided at the ESDP stage, not hard-coded per connection.
+sits in front of the handshake: the selected protocol (and thus TLS profile) should be an
+*input* to `TcpV2GClient`/`TlsOptions`, decided at discovery time, not hard-coded per
+connection.
+
+The SLAC + (basic, wired) SDP layers are now vendored under
+[`libs/WWCP_ISO15118/`](../libs/WWCP_ISO15118) (`WWCP_ISO15118_SLAC`, `WWCP_ISO15118_SDP`) and
+feed exactly this decision — SDP already carries the security/transport mode in its
+request/response. ESDP itself (the -20-2 capability extension) is not yet implemented there
+(the WWCP stack lists it as out of scope), so for now the protocol/TLS-profile choice comes
+from SDP + local policy rather than a full ESDP exchange.
 
 ## Open items still to verify
 
@@ -148,5 +171,7 @@ decided at the ESDP stage, not hard-coded per connection.
   "non-goal" to in-scope target for the -20 simulation).
 - [prompts/phase5.md](prompts/phase5.md) — the original Phase 5 prompt (server-side TLS only;
   this note supersedes its "mutual TLS = documented gap" framing for the target picture).
+- [`libs/WWCP_ISO15118/`](../libs/WWCP_ISO15118) — vendored WWCP stack providing the PKI
+  builder (`WWCP_ISO15118_PKI`, incl. the Vehicle branch), SDP, SLAC, and V2GTP.
 - Codec-level XMLDSig / signature suite: the "XMLDSig" sections of the top-level
   [README.md](../README.md).

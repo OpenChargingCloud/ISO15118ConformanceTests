@@ -1,0 +1,3 @@
+[submodule "libs/WWCP_ISO15118"]
+	path = libs/WWCP_ISO15118
+	url = ssh://git@git.graphdefined.com:5001/OpenChargingCloud/WWCP_ISO15118.git
