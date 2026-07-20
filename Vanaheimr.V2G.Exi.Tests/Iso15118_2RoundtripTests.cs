@@ -1,68 +1,69 @@
 using NUnit.Framework;
 using Vanaheimr.V2G.Iso15118_2.Generated;
 
-namespace Vanaheimr.V2G.Exi.Tests;
-
-/// <summary>
-/// Self-consistency tests for the generated ISO 15118-2 codec: every target message must survive an
-/// encode → decode → re-encode cycle byte-for-byte. This exercises the whole generated pipeline
-/// (document grammar, header with hexBinary SessionID, BodyElement substitution dispatch, and each
-/// message body) on real messages. Byte conformance against cbV2G is a separate, vector-driven step;
-/// re-encoding sidesteps the reference-equality of the records' <c>byte[]</c> fields.
-/// </summary>
-[TestFixture]
-public class Iso15118_2RoundtripTests
+namespace Vanaheimr.V2G.Exi.Tests
 {
-    private static MessageHeaderType Header() =>
-        new(SessionID: new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-            Notification: null, Signature: null);
-
-    private static IEnumerable<TestCaseData> Messages()
+    /// <summary>
+    /// Self-consistency tests for the generated ISO 15118-2 codec: every target message must survive an
+    /// encode → decode → re-encode cycle byte-for-byte. This exercises the whole generated pipeline
+    /// (document grammar, header with hexBinary SessionID, BodyElement substitution dispatch, and each
+    /// message body) on real messages. Byte conformance against cbV2G is a separate, vector-driven step;
+    /// re-encoding sidesteps the reference-equality of the records' <c>byte[]</c> fields.
+    /// </summary>
+    [TestFixture]
+    public class Iso15118_2RoundtripTests
     {
-        yield return new TestCaseData(new V2G_Message(Header(),
-            new BodyType(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }))))
-            .SetName("SessionSetupReq");
+        private static MessageHeaderType Header() =>
+            new(SessionID: new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                Notification: null, Signature: null);
 
-        yield return new TestCaseData(new V2G_Message(Header(),
-            new BodyType(new SessionSetupResType(ResponseCode.OK_NewSessionEstablished, "DE*ABC*E12345*1", 1_600_000_000L))))
-            .SetName("SessionSetupRes(with timestamp)");
+        private static IEnumerable<TestCaseData> Messages()
+        {
+            yield return new TestCaseData(new V2G_Message(Header(),
+                new BodyType(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }))))
+                .SetName("SessionSetupReq");
 
-        yield return new TestCaseData(new V2G_Message(Header(),
-            new BodyType(new SessionSetupResType(ResponseCode.OK, "EVSE1", EVSETimeStamp: null))))
-            .SetName("SessionSetupRes(no timestamp)");
+            yield return new TestCaseData(new V2G_Message(Header(),
+                new BodyType(new SessionSetupResType(ResponseCode.OK_NewSessionEstablished, "DE*ABC*E12345*1", 1_600_000_000L))))
+                .SetName("SessionSetupRes(with timestamp)");
 
-        yield return new TestCaseData(new V2G_Message(Header(),
-            new BodyType(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null))))
-            .SetName("ServiceDiscoveryReq(both absent)");
+            yield return new TestCaseData(new V2G_Message(Header(),
+                new BodyType(new SessionSetupResType(ResponseCode.OK, "EVSE1", EVSETimeStamp: null))))
+                .SetName("SessionSetupRes(no timestamp)");
 
-        yield return new TestCaseData(new V2G_Message(Header(),
-            new BodyType(new ServiceDiscoveryReqType("urn:scope:test", ServiceCategory.EVCharging))))
-            .SetName("ServiceDiscoveryReq(both present)");
+            yield return new TestCaseData(new V2G_Message(Header(),
+                new BodyType(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null))))
+                .SetName("ServiceDiscoveryReq(both absent)");
 
-        yield return new TestCaseData(new V2G_Message(Header(),
-            new BodyType(new ServiceDiscoveryResType(
-                ResponseCode.OK,
-                new PaymentOptionListType(new[] { PaymentOption.Contract, PaymentOption.ExternalPayment }),
-                new ChargeServiceType(ServiceID: 1, ServiceName: "AC", ServiceCategory.EVCharging,
-                    ServiceScope: null, FreeService: true,
-                    new SupportedEnergyTransferModeType(new[] { EnergyTransferMode.AC_single_phase_core, EnergyTransferMode.AC_three_phase_core })),
-                ServiceList: null))))
-            .SetName("ServiceDiscoveryRes");
-    }
+            yield return new TestCaseData(new V2G_Message(Header(),
+                new BodyType(new ServiceDiscoveryReqType("urn:scope:test", ServiceCategory.EVCharging))))
+                .SetName("ServiceDiscoveryReq(both present)");
 
-    [TestCaseSource(nameof(Messages))]
-    public void Roundtrip_ReEncodesToTheSameBytes(V2G_Message message)
-    {
-        var buf1 = new byte[512];
-        Assert.That(message.TryEncode(buf1, out int n1), Is.True, "encode failed");
+            yield return new TestCaseData(new V2G_Message(Header(),
+                new BodyType(new ServiceDiscoveryResType(
+                    ResponseCode.OK,
+                    new PaymentOptionListType(new[] { PaymentOption.Contract, PaymentOption.ExternalPayment }),
+                    new ChargeServiceType(ServiceID: 1, ServiceName: "AC", ServiceCategory.EVCharging,
+                        ServiceScope: null, FreeService: true,
+                        new SupportedEnergyTransferModeType(new[] { EnergyTransferMode.AC_single_phase_core, EnergyTransferMode.AC_three_phase_core })),
+                    ServiceList: null))))
+                .SetName("ServiceDiscoveryRes");
+        }
 
-        var decoded = (V2G_Message)Iso2Codec.DecodeAny(buf1.AsSpan(0, n1), out int consumed);
-        Assert.That(consumed, Is.EqualTo(n1), "decoder did not consume all encoded bytes");
+        [TestCaseSource(nameof(Messages))]
+        public void Roundtrip_ReEncodesToTheSameBytes(V2G_Message message)
+        {
+            var buf1 = new byte[512];
+            Assert.That(message.TryEncode(buf1, out int n1), Is.True, "encode failed");
 
-        var buf2 = new byte[512];
-        Assert.That(decoded.TryEncode(buf2, out int n2), Is.True, "re-encode failed");
+            var decoded = (V2G_Message)Iso2Codec.DecodeAny(buf1.AsSpan(0, n1), out int consumed);
+            Assert.That(consumed, Is.EqualTo(n1), "decoder did not consume all encoded bytes");
 
-        Assert.That(buf2.AsSpan(0, n2).ToArray(), Is.EqualTo(buf1.AsSpan(0, n1).ToArray()),
-            "decode∘encode is not the identity on the wire");
+            var buf2 = new byte[512];
+            Assert.That(decoded.TryEncode(buf2, out int n2), Is.True, "re-encode failed");
+
+            Assert.That(buf2.AsSpan(0, n2).ToArray(), Is.EqualTo(buf1.AsSpan(0, n1).ToArray()),
+                "decode∘encode is not the identity on the wire");
+        }
     }
 }

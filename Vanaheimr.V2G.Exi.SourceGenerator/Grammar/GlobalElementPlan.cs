@@ -1,10 +1,11 @@
-namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar;
-
-/// <summary>
-/// Top-level plan for a global element.
-/// </summary>
-internal sealed record GlobalElementPlan(
-    string        XsdName,            // e.g. "supportedAppProtocolReq"
-    string        CSharpTypeName,     // "SupportedAppProtocolReq"
-    SequencePlan  Body,
-    int           DocumentIndex);     // production index in the (full) document grammar
+namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar
+{
+    /// <summary>
+    /// Top-level plan for a global element.
+    /// </summary>
+    internal sealed record GlobalElementPlan(
+        string        XsdName,            // e.g. "supportedAppProtocolReq"
+        string        CSharpTypeName,     // "SupportedAppProtocolReq"
+        SequencePlan  Body,
+        int           DocumentIndex);     // production index in the (full) document grammar
+}

@@ -1,10 +1,11 @@
-namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar;
-
-/// <summary>One branch of a <see cref="ValueEncoding.InlineChoice"/> — an independent, always-nullable
-/// field in the enclosing record (only one branch is ever set).</summary>
-internal sealed record InlineChoiceMember(
-    string        ElementName,
-    string        FieldName,
-    string        CSharpType,
-    ValueEncoding Value,
-    bool          IsCSharpNullable);
+namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar
+{
+    /// <summary>One branch of a <see cref="ValueEncoding.InlineChoice"/> — an independent, always-nullable
+    /// field in the enclosing record (only one branch is ever set).</summary>
+    internal sealed record InlineChoiceMember(
+        string        ElementName,
+        string        FieldName,
+        string        CSharpType,
+        ValueEncoding Value,
+        bool          IsCSharpNullable);
+}

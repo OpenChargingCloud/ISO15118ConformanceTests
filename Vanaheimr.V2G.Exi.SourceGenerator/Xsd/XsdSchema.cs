@@ -1,36 +1,37 @@
 using System.Collections.Generic;
 
-namespace Vanaheimr.V2G.Exi.SourceGenerator.Xsd;
-
-/// <summary>
-/// In-memory model of the XSD subset the generator understands.
-/// Deliberately minimal: only the constructs needed for V2G_CI_AppProtocol.xsd.
-/// </summary>
-internal sealed class XsdSchema
+namespace Vanaheimr.V2G.Exi.SourceGenerator.Xsd
 {
-    public string TargetNamespace { get; set; } = "";
-    public List<XsdElement> GlobalElements { get; } = new();
-    public Dictionary<string, XsdSimpleType> SimpleTypes { get; } = new();
-    public Dictionary<string, XsdComplexType> ComplexTypes { get; } = new();
-
     /// <summary>
-    /// Local names of global elements declared in an <em>opaque</em> namespace — one whose
-    /// full grammar the generator deliberately does not model yet (currently only XMLDSig).
-    /// Types from such a namespace are never built; a reference to one of these elements
-    /// becomes an opaque, encode-absent/round-trip-only child (see the Signature reference
-    /// in the ISO 15118-2 message header). Full fidelity is deferred to Phase 3.
+    /// In-memory model of the XSD subset the generator understands.
+    /// Deliberately minimal: only the constructs needed for V2G_CI_AppProtocol.xsd.
     /// </summary>
-    public HashSet<string> OpaqueElementNames { get; } = new();
+    internal sealed class XsdSchema
+    {
+        public string TargetNamespace { get; set; } = "";
+        public List<XsdElement> GlobalElements { get; } = new();
+        public Dictionary<string, XsdSimpleType> SimpleTypes { get; } = new();
+        public Dictionary<string, XsdComplexType> ComplexTypes { get; } = new();
 
-    /// <summary>
-    /// Every element declaration of the collected set (global AND local, all namespaces incl.
-    /// XMLDSig), as (localName, namespace) pairs. This is the production set of the EXI fragment
-    /// grammar (§8.5.3): sorted by name then namespace, each gets an event code (used to encode a
-    /// signable element as a standalone fragment for XMLDSig).
-    /// </summary>
-    public HashSet<(string Name, string Namespace)> AllElementDeclarations { get; } = new();
+        /// <summary>
+        /// Local names of global elements declared in an <em>opaque</em> namespace — one whose
+        /// full grammar the generator deliberately does not model yet (currently only XMLDSig).
+        /// Types from such a namespace are never built; a reference to one of these elements
+        /// becomes an opaque, encode-absent/round-trip-only child (see the Signature reference
+        /// in the ISO 15118-2 message header). Full fidelity is deferred to Phase 3.
+        /// </summary>
+        public HashSet<string> OpaqueElementNames { get; } = new();
 
-    /// <summary>Maps an element declaration (name, namespace) to its <c>type</c> reference, so a
-    /// signable fragment element (which may be local, e.g. SalesTariff) can be tied to its record.</summary>
-    public Dictionary<(string Name, string Namespace), string> ElementTypeRefs { get; } = new();
+        /// <summary>
+        /// Every element declaration of the collected set (global AND local, all namespaces incl.
+        /// XMLDSig), as (localName, namespace) pairs. This is the production set of the EXI fragment
+        /// grammar (§8.5.3): sorted by name then namespace, each gets an event code (used to encode a
+        /// signable element as a standalone fragment for XMLDSig).
+        /// </summary>
+        public HashSet<(string Name, string Namespace)> AllElementDeclarations { get; } = new();
+
+        /// <summary>Maps an element declaration (name, namespace) to its <c>type</c> reference, so a
+        /// signable fragment element (which may be local, e.g. SalesTariff) can be tied to its record.</summary>
+        public Dictionary<(string Name, string Namespace), string> ElementTypeRefs { get; } = new();
+    }
 }
