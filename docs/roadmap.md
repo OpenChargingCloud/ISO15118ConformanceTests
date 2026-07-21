@@ -45,11 +45,12 @@ W3C-EXI processor.
 The whole in-repo stack now runs and is tested over loopback (see the Simulation row above and
 `docs/pki-model.md`). The remaining items all need an **external** stack or are wrap-up:
 
-1. ⬜ **Josev interop** (`tools/interop-josev/`, not started) — our EVCC ↔ Josev SECC and the
-   reverse, over WSL2/Docker; -2 AC EIM (no TLS) first, then -2 DC, then -20. This is what
-   actually validates the codecs + signature paths against an independent stack, beyond the
-   fragment-level EXIficient cross-check and the in-repo loopback E2E tests. **The single most
-   valuable next step.**
+1. 🚧 **Josev interop** — harness scaffolded (`tools/interop-josev/` runbook + scripts, opt-in
+   `[Explicit] [Category("Interop")]` test `JosevInteropTests`, capture dir `docs/interop-runs/`);
+   the **live run is still pending** a Josev environment (Python + JRE via WSL2/Docker — not
+   available in this repo's offline CI). Scenario order: -2 AC EIM (no TLS), then -2 DC, then -20.
+   Validates the codecs + signature paths against an independent stack (EXIficient-based, unlike
+   cbV2G) — beyond the fragment-level cross-check and the in-repo loopback E2E tests.
 2. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
    vector candidates under `Tests/Vectors/captured/`; curate at least one into the regular
    vector files. Frames from an independent stack are the most valuable conformance vectors.
