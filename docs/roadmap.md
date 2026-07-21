@@ -12,10 +12,11 @@ over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C too
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
 (SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
 -20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**, and the
-[Phase 5 closing report](phase5-report.md) is written. A **complete live over-the-wire** -20 DC
-charge session (our EVCC ↔ Josev SECC, plain TCP) now runs **end to end to SessionStop**, having
-caught and fixed **seven** real framing/session/value conformance bugs; what's left is optional
-wrap-up (the reverse direction, live TLS, live Plug & Charge) — see the report.
+[Phase 5 closing report](phase5-report.md) is written. Live over-the-wire -20 DC runs **both
+directions**: forward (our EVCC ↔ Josev SECC) a **complete** charge session end to end to SessionStop;
+reverse (Josev EVCC → our SECC) through the service negotiation → ScheduleExchange → DC precharge —
+together catching and fixing **ten** real conformance bugs. What's left is optional wrap-up (the full
+reverse charge loop, live TLS, live Plug & Charge) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|

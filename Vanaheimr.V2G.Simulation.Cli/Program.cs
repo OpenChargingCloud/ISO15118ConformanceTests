@@ -65,8 +65,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var bcTls     = args.TlsBackend == TlsBackend.BouncyCastle ? CliPki.GenerateSeccOptions(args.PkiDir!) : null;
 
             using var listener = bcTls is not null
-                                     ? new TcpV2GListener(new IPEndPoint(IPAddress.Any, args.ListenPort), bcTls)
-                                     : new TcpV2GListener(new IPEndPoint(IPAddress.Any, args.ListenPort), dotnetTls);
+                                     ? new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, args.ListenPort), bcTls)
+                                     : new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, args.ListenPort), dotnetTls);
 
             Console.WriteLine($"SECC listening on {listener.LocalEndpoint} (protocol {ProtocolName(args.Protocol)}, " +
                               $"{ModeName(args.Mode)}, TLS {args.TlsBackend})...");

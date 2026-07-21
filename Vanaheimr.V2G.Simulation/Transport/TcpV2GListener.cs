@@ -27,6 +27,7 @@ namespace Vanaheimr.V2G.Simulation.Transport
                 throw new ArgumentException("TlsOptions.ServerCertificate is required for the SECC/listener side.", nameof(tls));
 
             _listener = new TcpListener(endpoint);
+            EnableDualStack(_listener, endpoint);
             _tls = tls;
             _listener.Start();
         }
@@ -35,8 +36,18 @@ namespace Vanaheimr.V2G.Simulation.Transport
         public TcpV2GListener(IPEndPoint endpoint, BcTlsOptions bcTls)
         {
             _listener = new TcpListener(endpoint);
+            EnableDualStack(_listener, endpoint);
             _bcTls = bcTls;
             _listener.Start();
+        }
+
+        // Binding [::] as dual-stack lets the SECC accept both IPv4 (loopback tests) and IPv6 connections —
+        // the latter is what a real ISO 15118 EVCC (e.g. Josev over an fe80::…%eth0 link-local) uses.
+        private static void EnableDualStack(TcpListener listener, IPEndPoint endpoint)
+        {
+            if (endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 &&
+                endpoint.Address.Equals(IPAddress.IPv6Any))
+                listener.Server.DualMode = true;
         }
 
         public IPEndPoint LocalEndpoint => (IPEndPoint)_listener.LocalEndpoint;

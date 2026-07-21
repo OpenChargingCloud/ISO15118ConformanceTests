@@ -1,0 +1,43 @@
+# Josev EVCC log - reverse live -20 DC interop: Josev EVCC drives OUR SECC (plain TCP)
+# Our SECC (Vanaheimr.V2G.Simulation.Cli) listens on [::]:55000; a minimal SDP responder advertises it.
+# Runs through: SDP -> SAP -> SessionSetup -> Auth -> Service{Discovery,Detail,Selection} ->
+# DC_ChargeParameterDiscovery -> ScheduleExchange -> DC_CableCheck -> DC_PreCharge (first poll).
+# Stops: our SECC does not yet self-loop the DC precharge/cablecheck poll (see notes.md).
+
+evcc-1   | INFO    2026-07-21 15:31:19,559 - iso15118.evcc.comm_session_handler (485): SDPResponse received: [ IP address: fe80::215:5dff:fe46:863f, Port: 55000 , Security: NO_TLS , Transport: TCP ]
+evcc-1   | INFO    2026-07-21 15:31:19,580 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+evcc-1   | INFO    2026-07-21 15:31:19,672 - iso15118.shared.comm_session (431): Sent supportedAppProtocolReq
+evcc-1   | INFO    2026-07-21 15:31:19,871 - iso15118.shared.comm_session (235): supportedAppProtocolRes received
+evcc-1   | INFO    2026-07-21 15:31:19,872 - iso15118.evcc.states.sap_states (159): Chosen protocol: ISO_15118_20_DC
+evcc-1   | INFO    2026-07-21 15:31:20,185 - iso15118.shared.comm_session (431): Sent SessionSetupReq
+evcc-1   | INFO    2026-07-21 15:31:20,185 - iso15118.shared.states (139): Entered state SessionSetup
+evcc-1   | INFO    2026-07-21 15:31:20,526 - iso15118.shared.comm_session (235): SessionSetupRes received
+evcc-1   | INFO    2026-07-21 15:31:20,743 - iso15118.shared.comm_session (431): Sent AuthorizationSetupReq
+evcc-1   | INFO    2026-07-21 15:31:20,743 - iso15118.shared.states (139): Entered state AuthorizationSetup
+evcc-1   | INFO    2026-07-21 15:31:20,969 - iso15118.shared.comm_session (235): AuthorizationSetupRes received
+evcc-1   | INFO    2026-07-21 15:31:21,204 - iso15118.shared.comm_session (431): Sent AuthorizationReq
+evcc-1   | INFO    2026-07-21 15:31:21,205 - iso15118.shared.states (139): Entered state Authorization
+evcc-1   | INFO    2026-07-21 15:31:21,355 - iso15118.shared.comm_session (235): AuthorizationRes received
+evcc-1   | INFO    2026-07-21 15:31:21,536 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryReq
+evcc-1   | INFO    2026-07-21 15:31:21,537 - iso15118.shared.states (139): Entered state ServiceDiscovery
+evcc-1   | INFO    2026-07-21 15:31:21,833 - iso15118.shared.comm_session (235): ServiceDiscoveryRes received
+evcc-1   | INFO    2026-07-21 15:31:22,028 - iso15118.shared.comm_session (431): Sent ServiceDetailReq
+evcc-1   | INFO    2026-07-21 15:31:22,029 - iso15118.shared.states (139): Entered state ServiceDetail
+evcc-1   | INFO    2026-07-21 15:31:22,257 - iso15118.shared.comm_session (235): ServiceDetailRes received
+evcc-1   | INFO    2026-07-21 15:31:22,474 - iso15118.shared.comm_session (431): Sent ServiceSelectionReq
+evcc-1   | INFO    2026-07-21 15:31:22,475 - iso15118.shared.states (139): Entered state ServiceSelection
+evcc-1   | INFO    2026-07-21 15:31:22,663 - iso15118.shared.comm_session (235): ServiceSelectionRes received
+evcc-1   | INFO    2026-07-21 15:31:22,992 - iso15118.shared.comm_session (431): Sent DC_ChargeParameterDiscoveryReq
+evcc-1   | INFO    2026-07-21 15:31:22,992 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
+evcc-1   | INFO    2026-07-21 15:31:23,132 - iso15118.shared.comm_session (235): DC_ChargeParameterDiscoveryRes received
+evcc-1   | INFO    2026-07-21 15:31:23,451 - iso15118.shared.comm_session (431): Sent ScheduleExchangeReq
+evcc-1   | INFO    2026-07-21 15:31:23,452 - iso15118.shared.states (139): Entered state ScheduleExchange
+evcc-1   | INFO    2026-07-21 15:31:23,894 - iso15118.shared.comm_session (235): ScheduleExchangeRes received
+evcc-1   | INFO    2026-07-21 15:31:24,116 - iso15118.shared.comm_session (431): Sent DC_CableCheckReq
+evcc-1   | INFO    2026-07-21 15:31:24,116 - iso15118.shared.states (139): Entered state DCCableCheck
+evcc-1   | INFO    2026-07-21 15:31:24,363 - iso15118.shared.comm_session (235): DC_CableCheckRes received
+evcc-1   | INFO    2026-07-21 15:31:24,531 - iso15118.shared.comm_session (431): Sent DC_PreChargeReq
+evcc-1   | INFO    2026-07-21 15:31:24,532 - iso15118.shared.states (139): Entered state DCPreCharge
+evcc-1   | INFO    2026-07-21 15:31:24,670 - iso15118.shared.comm_session (235): DC_PreChargeRes received
+evcc-1   | INFO    2026-07-21 15:31:24,805 - iso15118.shared.comm_session (431): Sent DC_PreChargeReq
+evcc-1   | INFO    2026-07-21 15:31:24,826 - iso15118.shared.comm_session (399): Reason: TCP peer closed connection

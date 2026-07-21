@@ -15,6 +15,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     {
         protected override bool HasPreChargeSequence => false;
         protected override bool HasPostChargeSequence => false;
+        protected override ushort EnergyServiceId => 1;   // ISO 15118-20 AC energy-transfer service
 
         protected override (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request)
         {

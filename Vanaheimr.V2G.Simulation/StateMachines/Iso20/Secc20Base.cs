@@ -142,17 +142,27 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         private AuthorizationRes Auth(AuthorizationReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished);
 
+        /// <summary>The ISO 15118-20 energy-transfer service id this SECC advertises (Table 204): DC=2, AC=1.
+        /// A live Josev EVCC rejects a DC session offered under the AC id 1 (WrongServiceID).</summary>
+        protected abstract ushort EnergyServiceId { get; }
+
         private ServiceDiscoveryRes SvcDiscovery(ServiceDiscoveryReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, ServiceRenegotiationSupported: false,
-                new ServiceListType(new[] { new ServiceType(ServiceID: 1, FreeService: true) }), VASList: null);
+                new ServiceListType(new[] { new ServiceType(EnergyServiceId, FreeService: true) }), VASList: null);
 
         private ServiceDetailRes SvcDetail(ServiceDetailReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, req.ServiceID,
                 new ServiceParameterListType(new[]
                 {
+                    // The standard -20 energy-transfer parameter set. A live Josev EVCC requires at least the
+                    // ControlMode parameter ("Control mode parameter missing" otherwise); ControlMode=1 is
+                    // Scheduled, which is what our schedule/PowerDelivery flow uses.
                     new ParameterSetType(1, new[]
                     {
                         new ParameterType("Connector", null, null, null, IntValue: 1, null, null),
+                        new ParameterType("ControlMode", null, null, null, IntValue: 1, null, null),
+                        new ParameterType("MobilityNeedsMode", null, null, null, IntValue: 1, null, null),
+                        new ParameterType("Pricing", null, null, null, IntValue: 0, null, null),
                     }),
                 }));
 
@@ -163,8 +173,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         {
             var powerSchedule = new PowerScheduleType(TimeAnchor: 0, AvailableEnergy: null, PowerTolerance: null,
                 new PowerScheduleEntryListType(new[] { new PowerScheduleEntryType(Duration: 3600, Power: new RationalNumberType(0, 100), null, null) }));
+
+            // A ChargingSchedule must carry a price schedule (either PriceLevel or AbsolutePrice) — a live
+            // Josev EVCC rejects the tuple otherwise. PriceLevelSchedule is the compact form (one flat level).
+            var priceLevelSchedule = new PriceLevelScheduleType(Id: null, TimeAnchor: 0, PriceScheduleID: 1,
+                PriceScheduleDescription: null, NumberOfPriceLevels: 1,
+                new PriceLevelScheduleEntryListType(new[] { new PriceLevelScheduleEntryType(Duration: 3600, PriceLevel: 0) }));
+
             var scheduleTuple = new ScheduleTupleType(ScheduleTupleID: 1,
-                ChargingSchedule: new ChargingScheduleType(powerSchedule, AbsolutePriceSchedule: null, PriceLevelSchedule: null),
+                ChargingSchedule: new ChargingScheduleType(powerSchedule, AbsolutePriceSchedule: null, priceLevelSchedule),
                 DischargingSchedule: null);
 
             return new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished, GoToPause: false,
