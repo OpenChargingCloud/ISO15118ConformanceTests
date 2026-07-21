@@ -1,0 +1,32 @@
+# Josev ISO 15118-2 DC EIM (no TLS) — captured request frames
+# Josev SwitchEV/iso15118 @ d645255 (rebuilt on debian trixie), EXIficient 1.55.
+# Each: the EXI bytes Josev put on the wire + Josev's own decoded JSON.
+
+## SessionSetupReq
+EXI : 8098004011d019ea204b245f0000
+JSON: {"V2G_Message":{"Header":{"SessionID":"00"},"Body":{"SessionSetupReq":{"EVCCID":"7A8812C917C0"}}}}
+
+## ChargeParameterDiscoveryReq
+EXI : 809802086d14c116a891219094c800080028003080fa01020a1807c082019008306c1b00830781702d050000
+JSON: {"V2G_Message":{"Header":{"SessionID":"21B453045AA24486"},"Body":{"ChargeParameterDiscoveryReq":{"RequestedEnergyTransferMode":"DC_extended","DC_EVChargeParameter":{"DepartureTime":0,"DC_EVStatus":{"EVReady":true,"EVErrorCode":"NO_ERROR","EVRESSSOC":10},"EVMaximumCurrentLimit":{"Multiplier":-3,"Unit":"A","Value":32000},"EVMaximumPowerLimit":{"Multiplier":1,"Unit":"W","Value":8000},"EVMaximumVoltageLimit":{"Multiplier":1,"Unit":"V","Value":50},"EVEnergyCapacity":{"Multiplier":1,"Unit":"Wh","Value":7000},"EVEnergyRequest":{"Multiplier":1,"Unit":"Wh","Value":6000},"FullSOC":90,"BulkSOC":80}}}}}
+
+## CableCheckReq
+EXI : 809802086d14c116a891219031000500
+JSON: {"V2G_Message":{"Header":{"SessionID":"21B453045AA24486"},"Body":{"CableCheckReq":{"DC_EVStatus":{"EVReady":true,"EVErrorCode":"NO_ERROR","EVRESSSOC":10}}}}}
+
+## PreChargeReq
+EXI : 809802086d14c116a89121917100050208064061800800
+JSON: {"V2G_Message":{"Header":{"SessionID":"21B453045AA24486"},"Body":{"PreChargeReq":{"DC_EVStatus":{"EVReady":true,"EVErrorCode":"NO_ERROR","EVRESSSOC":10},"EVTargetVoltage":{"Multiplier":1,"Unit":"V","Value":50},"EVTargetCurrent":{"Multiplier":0,"Unit":"A","Value":1}}}}}
+
+## PowerDeliveryReq
+EXI : 809802086d14c116a89121915000022000a00400
+JSON: {"V2G_Message":{"Header":{"SessionID":"21B453045AA24486"},"Body":{"PowerDeliveryReq":{"ChargeProgress":"Start","SAScheduleTupleID":1,"DC_EVPowerDeliveryParameter":{"DC_EVStatus":{"EVReady":true,"EVErrorCode":"NO_ERROR","EVRESSSOC":10},"BulkChargingComplete":false,"ChargingComplete":true}}}}}
+
+## CurrentDemandReq
+EXI : 809802086d14c116a8912190d1000a01860021006101f4020414300f800030819006102802080640
+JSON: {"V2G_Message":{"Header":{"SessionID":"21B453045AA24486"},"Body":{"CurrentDemandReq":{"DC_EVStatus":{"EVReady":true,"EVErrorCode":"NO_ERROR","EVRESSSOC":20},"EVTargetCurrent":{"Multiplier":0,"Unit":"A","Value":1},"EVMaximumCurrentLimit":{"Multiplier":-3,"Unit":"A","Value":32000},"EVMaximumPowerLimit":{"Multiplier":1,"Unit":"W","Value":8000},"BulkChargingComplete":false,"ChargingComplete":false,"RemainingTimeToFullSoC":{"Multiplier":0,"Unit":"s","Value":100},"RemainingTimeToBulkSoC":{"Multiplier":0,"Unit":"s","Value":80},"EVTargetVoltage":{"Multiplier":1,"Unit":"V","Value":50}}}}}
+
+## WeldingDetectionReq
+EXI : 809802086d14c116a891219211003200
+JSON: {"V2G_Message":{"Header":{"SessionID":"21B453045AA24486"},"Body":{"WeldingDetectionReq":{"DC_EVStatus":{"EVReady":true,"EVErrorCode":"NO_ERROR","EVRESSSOC":100}}}}}
+

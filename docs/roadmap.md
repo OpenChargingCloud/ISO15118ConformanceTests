@@ -45,13 +45,14 @@ W3C-EXI processor.
 The whole in-repo stack now runs and is tested over loopback (see the Simulation row above and
 `docs/pki-model.md`). The remaining items all need an **external** stack or are wrap-up:
 
-1. 🚧 **Josev interop** — **first run done** (SwitchEV/iso15118 @ `d645255`, Docker in WSL2): a full
-   ISO 15118-2 AC EIM session captured, and our codec cross-validates Josev's EXIficient bytes
-   **byte-for-byte** — SupportedAppProtocol Req/Res and a real `SessionSetupReq` all decode + re-encode
-   identically (`JosevCapturedFramesTests`, runs in CI; artifacts in
-   `docs/interop-runs/2026-07-21-iso2-ac-eim-notls/`). On the SAP frames: **our codec ≡ cbV2G ≡ EXIficient**.
-   Remaining: -2 DC then -20 scenarios, and (optionally) live over-the-network interop via the
-   `JosevInteropTests` opt-in hook (needs both stacks on one L2 network; record-mode gives the same signal).
+1. 🚧 **Josev interop** — **-2 AC and DC EIM done** (SwitchEV/iso15118 @ `d645255`, Docker in WSL2; DC
+   rebuilt on Debian trixie). Our codec cross-validates Josev's EXIficient bytes **byte-for-byte**: the
+   SAP handshake, `SessionSetupReq`, and the whole DC charge loop (ChargeParameterDiscovery → CableCheck →
+   PreCharge → PowerDelivery → CurrentDemand → WeldingDetection) all decode + re-encode identically
+   (`JosevCapturedFrames{,Dc}Tests`, run in CI; artifacts in `docs/interop-runs/2026-07-21-iso2-*/`). On the
+   SAP frames: **our codec ≡ cbV2G ≡ EXIficient**. Remaining: -20 (TLS 1.3, via the BouncyCastle backend),
+   and (optionally) live over-the-network interop via the `JosevInteropTests` opt-in hook (needs both stacks
+   on one L2 network; record-mode gives the same signal).
 2. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
    vector candidates under `Tests/Vectors/captured/`; curate at least one into the regular
    vector files. Frames from an independent stack are the most valuable conformance vectors.
