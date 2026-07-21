@@ -155,15 +155,33 @@ request/response. ESDP itself (the -20-2 capability extension) is not yet implem
 (the WWCP stack lists it as out of scope), so for now the protocol/TLS-profile choice comes
 from SDP + local policy rather than a full ESDP exchange.
 
+## Wired into the simulation
+
+The mutual-TLS path is implemented (`Vanaheimr.V2G.Simulation`): `TlsOptions` carries the EVCC
+client certificate + SECC "require & validate client cert"; `TcpV2GClient`/`TcpV2GListener`
+present/require them. The `Vanaheimr.V2G.Simulation.Tests` project references the WWCP PKI
+builder and generates a hierarchy at test time (`TestData/V2GTestPki.cs`, BouncyCastle →
+`X509Certificate2` via in-memory PKCS#12), then runs -20 AC/DC sessions over a bilaterally
+authenticated `SslStream` (`E2E/MutualTlsLoopbackTests.cs`): SECC leaf = server, Vehicle leaf =
+client, both anchored to the shared V2G Root, plus a negative test (certless client rejected).
+
+**Confirmed platform deviation — Windows Schannel cannot use P-521 certificates for TLS.**
+A bare-handshake probe showed P-256 mutual TLS succeeds (TLS 1.3 and 1.2) while **P-521 fails**
+("Authentication failed" server-side) on Schannel; .NET on Linux (OpenSSL) does support P-521.
+So the mutual-TLS tests use P-256 to exercise the *mechanism*, even though -20's nominal TLS
+curve is secp521r1. This does **not** affect the -20 application-layer signature suite, which
+uses P-521 / Ed448 via BouncyCastle independently of the TLS stack. To run the -20-faithful
+secp521r1 TLS path, use an OpenSSL-backed runtime (Linux) or a non-Schannel TLS implementation.
+
 ## Open items still to verify
 
 - **eMAID ↔ Contract certificate mapping** and the exact `AuthorizationSetupRes` provider-list
   field driving contract-cert selection — confirm against the -20 CommonMessages schema
   already in the repo.
-- **Schannel/.NET control** over the exact -20 cipher-suite ordering and middlebox mode —
-  confirm what `SslServerAuthenticationOptions` / `CipherSuitesPolicy` actually let us pin on
-  Windows, and record anything that can't be pinned as a known deviation (as the existing
-  `TlsOptions.cs` gap comment already does for cipher pinning).
+- **Schannel/.NET cipher-suite ordering and middlebox mode** — what `SslServerAuthenticationOptions`
+  / `CipherSuitesPolicy` actually let us pin on Windows (the current `TlsOptions.cs` uses defaults).
+- **SDP + SLAC discovery stages** in front of the handshake — SDP is the next wiring slice; SLAC
+  waits on the Hermod submodule (its project references it and Hermod is not yet vendored).
 
 ## Related
 

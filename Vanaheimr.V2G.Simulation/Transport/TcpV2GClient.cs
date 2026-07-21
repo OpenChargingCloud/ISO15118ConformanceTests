@@ -1,12 +1,14 @@
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Vanaheimr.V2G.Simulation.Transport
 {
     /// <summary>
     /// EVCC-side TCP connect to a fixed host:port (no SDP discovery — out of scope for this slice).
     /// Returns a <see cref="Stream"/> — plain, or TLS-authenticated against <paramref name="host"/> if
-    /// <paramref name="tls"/> is given.
+    /// <paramref name="tls"/> is given. When <see cref="TlsOptions.ClientCertificate"/> is set, the EVCC
+    /// presents it for mutual TLS (the Vehicle certificate).
     /// </summary>
     public static class TcpV2GClient
     {
@@ -19,11 +21,15 @@ namespace Vanaheimr.V2G.Simulation.Transport
             if (tls is null) return stream;
 
             var ssl = new SslStream(stream, leaveInnerStreamOpen: false, tls.ServerCertificateValidation);
-            await ssl.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+            var options = new SslClientAuthenticationOptions
             {
                 TargetHost = host,
                 EnabledSslProtocols = tls.EnabledSslProtocols,
-            }, ct).ConfigureAwait(false);
+            };
+            if (tls.ClientCertificate is { } clientCert)
+                options.ClientCertificates = new X509CertificateCollection { clientCert };
+
+            await ssl.AuthenticateAsClientAsync(options, ct).ConfigureAwait(false);
             return ssl;
         }
     }

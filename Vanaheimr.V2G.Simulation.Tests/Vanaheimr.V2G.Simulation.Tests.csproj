@@ -20,5 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Vanaheimr.V2G.Simulation\Vanaheimr.V2G.Simulation.csproj" />
+    <!-- Test-only: the WWCP V2G PKI builder (submodule) generates a real strict-20 certificate
+         hierarchy for the mutual-TLS E2E tests. Shipping code stays certificate-agnostic. -->
+    <ProjectReference Include="..\libs\WWCP_ISO15118\WWCP_ISO15118_PKI\WWCP_ISO15118_PKIBuilder\WWCP_ISO15118_PKIBuilder.csproj" />
   </ItemGroup>
 </Project>

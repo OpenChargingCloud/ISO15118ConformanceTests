@@ -38,12 +38,13 @@ namespace Vanaheimr.V2G.Simulation.Transport
 
             if (_tls is null) return stream;
 
-            var ssl = new SslStream(stream, leaveInnerStreamOpen: false);
+            var ssl = new SslStream(stream, leaveInnerStreamOpen: false,
+                userCertificateValidationCallback: _tls.ClientCertificateValidation);
             await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
             {
                 ServerCertificate = _tls.ServerCertificate,
                 EnabledSslProtocols = _tls.EnabledSslProtocols,
-                ClientCertificateRequired = false, // mutual TLS out of scope
+                ClientCertificateRequired = _tls.RequireClientCertificate, // mutual TLS for ISO 15118-20
             }, ct).ConfigureAwait(false);
             return ssl;
         }
