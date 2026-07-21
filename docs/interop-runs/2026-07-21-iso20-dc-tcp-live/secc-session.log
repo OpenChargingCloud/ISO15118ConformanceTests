@@ -1,46 +1,64 @@
-# Josev SECC log - live over-the-wire -20 DC session with OUR EVCC (plain TCP)
-# SwitchEV/iso15118 @ d645255, host-mode, SECC_ENFORCE_TLS=False. With dynamic service negotiation the
-# session now runs through ServiceSelection -> DC_ChargeParameterDiscovery -> ScheduleExchange ->
-# DC_CableCheck -> DC_PreCharge -> PowerDelivery (stops there: PowerDeliveryReq needs a populated EVPowerProfile).
+# Josev SECC log - FULL live over-the-wire -20 DC charge session with OUR EVCC (plain TCP)
+# SwitchEV/iso15118 @ d645255, host-mode, SECC_ENFORCE_TLS=False. Runs end to end: SDP -> SAP ->
+# SessionSetup -> Auth -> Service{Discovery,Detail,Selection} -> DC_ChargeParameterDiscovery ->
+# ScheduleExchange -> DC_CableCheck -> DC_PreCharge -> PowerDelivery(Start) -> DC_ChargeLoop x3 ->
+# PowerDelivery(Stop) -> DC_WeldingDetection -> SessionStop(Terminate). 18 exchanges, session complete.
 
-secc-1   | INFO    2026-07-21 14:41:18,609 - iso15118.shared.states (139): Entered state SupportedAppProtocol
-secc-1   | INFO    2026-07-21 14:41:18,658 - iso15118.shared.comm_session (235): supportedAppProtocolReq received
-secc-1   | INFO    2026-07-21 14:41:18,664 - iso15118.secc.states.sap_states (147): Chosen protocol: ISO_15118_20_DC
-secc-1   | INFO    2026-07-21 14:41:18,664 - iso15118.shared.comm_session (431): Sent supportedAppProtocolRes
-secc-1   | INFO    2026-07-21 14:41:18,664 - iso15118.shared.states (139): Entered state SessionSetup
-secc-1   | INFO    2026-07-21 14:41:18,778 - iso15118.shared.comm_session (235): SessionSetupReq received
-secc-1   | WARNING    2026-07-21 14:41:18,779 - iso15118.secc.states.iso15118_20_states (161): EVCC's session ID 0000000000000000 does not match . New session ID B1A52458FCD7C4A4 assigned
-secc-1   | INFO    2026-07-21 14:41:18,859 - iso15118.shared.comm_session (431): Sent SessionSetupRes
-secc-1   | INFO    2026-07-21 14:41:18,860 - iso15118.shared.states (139): Entered state AuthorizationSetup
-secc-1   | INFO    2026-07-21 14:41:19,001 - iso15118.shared.comm_session (235): AuthorizationSetupReq received
-secc-1   | INFO    2026-07-21 14:41:19,074 - iso15118.shared.comm_session (431): Sent AuthorizationSetupRes
-secc-1   | INFO    2026-07-21 14:41:19,135 - iso15118.shared.comm_session (235): AuthorizationReq received
-secc-1   | INFO    2026-07-21 14:41:19,136 - iso15118.shared.states (139): Entered state Authorization
-secc-1   | INFO    2026-07-21 14:41:19,195 - iso15118.shared.comm_session (431): Sent AuthorizationRes
-secc-1   | INFO    2026-07-21 14:41:19,260 - iso15118.shared.comm_session (235): ServiceDiscoveryReq received
-secc-1   | INFO    2026-07-21 14:41:19,261 - iso15118.shared.states (139): Entered state ServiceDiscovery
-secc-1   | INFO    2026-07-21 14:41:19,330 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryRes
-secc-1   | INFO    2026-07-21 14:41:19,447 - iso15118.shared.comm_session (235): ServiceDetailReq received
-secc-1   | INFO    2026-07-21 14:41:19,447 - iso15118.shared.states (139): Entered state ServiceDetail
-secc-1   | INFO    2026-07-21 14:41:19,541 - iso15118.shared.comm_session (431): Sent ServiceDetailRes
-secc-1   | INFO    2026-07-21 14:41:19,625 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq":{"Header":{"SessionID":"B1A52458FCD7C4A4","TimeStamp":1784644879},"SelectedEnergyTransferService":{"ServiceID":2,"ParameterSetID":1}}}
-secc-1   | INFO    2026-07-21 14:41:19,626 - iso15118.shared.comm_session (235): ServiceSelectionReq received
-secc-1   | INFO    2026-07-21 14:41:19,626 - iso15118.shared.states (139): Entered state ServiceSelection
-secc-1   | INFO    2026-07-21 14:41:19,696 - iso15118.shared.comm_session (431): Sent ServiceSelectionRes
-secc-1   | INFO    2026-07-21 14:41:19,696 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
-secc-1   | INFO    2026-07-21 14:41:19,767 - iso15118.shared.comm_session (235): DC_ChargeParameterDiscoveryReq received
-secc-1   | INFO    2026-07-21 14:41:19,820 - iso15118.shared.comm_session (431): Sent DC_ChargeParameterDiscoveryRes
-secc-1   | INFO    2026-07-21 14:41:19,821 - iso15118.shared.states (139): Entered state ScheduleExchange
-secc-1   | INFO    2026-07-21 14:41:19,912 - iso15118.shared.comm_session (235): ScheduleExchangeReq received
-secc-1   | INFO    2026-07-21 14:41:20,071 - iso15118.shared.comm_session (431): Sent ScheduleExchangeRes
-secc-1   | INFO    2026-07-21 14:41:20,154 - iso15118.shared.comm_session (235): DC_CableCheckReq received
-secc-1   | INFO    2026-07-21 14:41:20,155 - iso15118.shared.states (139): Entered state DCCableCheck
-secc-1   | INFO    2026-07-21 14:41:20,217 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
-secc-1   | INFO    2026-07-21 14:41:20,373 - iso15118.shared.comm_session (235): DC_CableCheckReq received
-secc-1   | INFO    2026-07-21 14:41:20,415 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
-secc-1   | INFO    2026-07-21 14:41:20,415 - iso15118.shared.states (139): Entered state DCPreCharge
-secc-1   | INFO    2026-07-21 14:41:20,460 - iso15118.shared.comm_session (235): DC_PreChargeReq received
-secc-1   | INFO    2026-07-21 14:41:20,499 - iso15118.shared.comm_session (431): Sent DC_PreChargeRes
-secc-1   | INFO    2026-07-21 14:41:20,499 - iso15118.shared.states (139): Entered state PowerDelivery
-secc-1   | ERROR    2026-07-21 14:41:20,554 - iso15118.shared.comm_session (212): EXI message (ns=urn:iso:std:iso:15118:-20:CommonMessages) where validation failed: 80540458d2922c7e6be2520908afed20620040
-secc-1   | INFO    2026-07-21 14:41:20,555 - iso15118.shared.comm_session (399): Reason: V2GMessageValidationError occurred while processing message  in state PowerDelivery : . 
+secc-1   | INFO    2026-07-21 14:58:37,907 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+secc-1   | INFO    2026-07-21 14:58:37,985 - iso15118.shared.comm_session (235): supportedAppProtocolReq received
+secc-1   | INFO    2026-07-21 14:58:37,990 - iso15118.secc.states.sap_states (147): Chosen protocol: ISO_15118_20_DC
+secc-1   | INFO    2026-07-21 14:58:37,990 - iso15118.shared.comm_session (431): Sent supportedAppProtocolRes
+secc-1   | INFO    2026-07-21 14:58:37,990 - iso15118.shared.states (139): Entered state SessionSetup
+secc-1   | INFO    2026-07-21 14:58:38,198 - iso15118.shared.comm_session (235): SessionSetupReq received
+secc-1   | INFO    2026-07-21 14:58:38,309 - iso15118.shared.comm_session (431): Sent SessionSetupRes
+secc-1   | INFO    2026-07-21 14:58:38,309 - iso15118.shared.states (139): Entered state AuthorizationSetup
+secc-1   | INFO    2026-07-21 14:58:38,511 - iso15118.shared.comm_session (235): AuthorizationSetupReq received
+secc-1   | INFO    2026-07-21 14:58:38,607 - iso15118.shared.comm_session (431): Sent AuthorizationSetupRes
+secc-1   | INFO    2026-07-21 14:58:38,683 - iso15118.shared.comm_session (235): AuthorizationReq received
+secc-1   | INFO    2026-07-21 14:58:38,683 - iso15118.shared.states (139): Entered state Authorization
+secc-1   | INFO    2026-07-21 14:58:38,752 - iso15118.shared.comm_session (431): Sent AuthorizationRes
+secc-1   | INFO    2026-07-21 14:58:38,837 - iso15118.shared.comm_session (235): ServiceDiscoveryReq received
+secc-1   | INFO    2026-07-21 14:58:38,837 - iso15118.shared.states (139): Entered state ServiceDiscovery
+secc-1   | INFO    2026-07-21 14:58:38,933 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryRes
+secc-1   | INFO    2026-07-21 14:58:39,028 - iso15118.shared.comm_session (235): ServiceDetailReq received
+secc-1   | INFO    2026-07-21 14:58:39,028 - iso15118.shared.states (139): Entered state ServiceDetail
+secc-1   | INFO    2026-07-21 14:58:39,101 - iso15118.shared.comm_session (431): Sent ServiceDetailRes
+secc-1   | INFO    2026-07-21 14:58:39,162 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq":{"Header":{"SessionID":"89807C8F682E7CB8","TimeStamp":1784645919},"SelectedEnergyTransferService":{"ServiceID":2,"ParameterSetID":1}}}
+secc-1   | INFO    2026-07-21 14:58:39,162 - iso15118.shared.comm_session (235): ServiceSelectionReq received
+secc-1   | INFO    2026-07-21 14:58:39,163 - iso15118.shared.states (139): Entered state ServiceSelection
+secc-1   | INFO    2026-07-21 14:58:39,270 - iso15118.shared.comm_session (431): Sent ServiceSelectionRes
+secc-1   | INFO    2026-07-21 14:58:39,271 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
+secc-1   | INFO    2026-07-21 14:58:39,341 - iso15118.shared.comm_session (235): DC_ChargeParameterDiscoveryReq received
+secc-1   | INFO    2026-07-21 14:58:39,388 - iso15118.shared.comm_session (431): Sent DC_ChargeParameterDiscoveryRes
+secc-1   | INFO    2026-07-21 14:58:39,388 - iso15118.shared.states (139): Entered state ScheduleExchange
+secc-1   | INFO    2026-07-21 14:58:39,468 - iso15118.shared.comm_session (235): ScheduleExchangeReq received
+secc-1   | INFO    2026-07-21 14:58:39,544 - iso15118.shared.comm_session (431): Sent ScheduleExchangeRes
+secc-1   | INFO    2026-07-21 14:58:39,606 - iso15118.shared.comm_session (235): DC_CableCheckReq received
+secc-1   | INFO    2026-07-21 14:58:39,606 - iso15118.shared.states (139): Entered state DCCableCheck
+secc-1   | INFO    2026-07-21 14:58:39,643 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
+secc-1   | INFO    2026-07-21 14:58:39,736 - iso15118.shared.comm_session (235): DC_CableCheckReq received
+secc-1   | INFO    2026-07-21 14:58:39,768 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
+secc-1   | INFO    2026-07-21 14:58:39,768 - iso15118.shared.states (139): Entered state DCPreCharge
+secc-1   | INFO    2026-07-21 14:58:39,811 - iso15118.shared.comm_session (235): DC_PreChargeReq received
+secc-1   | INFO    2026-07-21 14:58:39,857 - iso15118.shared.comm_session (431): Sent DC_PreChargeRes
+secc-1   | INFO    2026-07-21 14:58:39,857 - iso15118.shared.states (139): Entered state PowerDelivery
+secc-1   | INFO    2026-07-21 14:58:40,020 - iso15118.shared.comm_session (235): PowerDeliveryReq received
+secc-1   | INFO    2026-07-21 14:58:40,157 - iso15118.shared.comm_session (431): Sent PowerDeliveryRes
+secc-1   | INFO    2026-07-21 14:58:40,158 - iso15118.shared.states (139): Entered state DCChargeLoop
+secc-1   | INFO    2026-07-21 14:58:40,284 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+secc-1   | INFO    2026-07-21 14:58:40,373 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+secc-1   | INFO    2026-07-21 14:58:40,463 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+secc-1   | INFO    2026-07-21 14:58:40,512 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+secc-1   | INFO    2026-07-21 14:58:40,619 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+secc-1   | INFO    2026-07-21 14:58:40,670 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+secc-1   | INFO    2026-07-21 14:58:40,777 - iso15118.shared.comm_session (235): PowerDeliveryReq received
+secc-1   | INFO    2026-07-21 14:58:40,777 - iso15118.shared.states (139): Entered state PowerDelivery
+secc-1   | INFO    2026-07-21 14:58:40,826 - iso15118.shared.comm_session (431): Sent PowerDeliveryRes
+secc-1   | INFO    2026-07-21 14:58:40,866 - iso15118.shared.comm_session (235): DC_WeldingDetectionReq received
+secc-1   | INFO    2026-07-21 14:58:40,867 - iso15118.shared.states (139): Entered state DCWeldingDetection
+secc-1   | INFO    2026-07-21 14:58:40,911 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionRes
+secc-1   | INFO    2026-07-21 14:58:40,972 - iso15118.shared.comm_session (235): SessionStopReq received
+secc-1   | INFO    2026-07-21 14:58:40,973 - iso15118.shared.states (139): Entered state SessionStop
+secc-1   | INFO    2026-07-21 14:58:41,050 - iso15118.shared.comm_session (431): Sent SessionStopRes
+secc-1   | INFO    2026-07-21 14:58:41,051 - iso15118.shared.comm_session (399): Reason: Communication session terminated. EV Info: 
+secc-1   | INFO    2026-07-21 14:58:43,054 - iso15118.secc.controller.simulator (1097): Session ended in SessionStop (Communication session terminated. EV Info: ).

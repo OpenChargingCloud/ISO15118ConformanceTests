@@ -78,18 +78,27 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
             // MaximumSupportingPoints is schema-bounded to [12, 1024] (the encoder biases by 12); a smaller
             // value underflows on the wire. A live Josev run rejected the earlier 1 (our lenient SECC didn't).
-            while ((await Exchange<ScheduleExchangeRes>(MessageSet.Iso20CommonMessages,
-                       dest => new ScheduleExchangeReq(SessionCtx.ToCommonHeader(), MaximumSupportingPoints: 12,
-                           Dynamic_SEReqControlMode: null,
-                           Scheduled_SEReqControlMode: new Scheduled_SEReqControlModeType(null, null, null, null, null))
-                           .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct))
-                   .EVSEProcessing != Processing.Finished)
-                await pollDelay.Wait(PollInterval, ct);
+            ScheduleExchangeRes scheduleRes;
+            do
+            {
+                scheduleRes = await Exchange<ScheduleExchangeRes>(MessageSet.Iso20CommonMessages,
+                    dest => new ScheduleExchangeReq(SessionCtx.ToCommonHeader(), MaximumSupportingPoints: 12,
+                        Dynamic_SEReqControlMode: null,
+                        Scheduled_SEReqControlMode: new Scheduled_SEReqControlModeType(null, null, null, null, null))
+                        .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+                if (scheduleRes.EVSEProcessing != Processing.Finished)
+                    await pollDelay.Wait(PollInterval, ct);
+            }
+            while (scheduleRes.EVSEProcessing != Processing.Finished);
 
             await RunPreChargeSequenceAsync(ct);
 
+            // PowerDelivery(Start) must carry an EVPowerProfile referencing a schedule tuple the SECC offered
+            // (ISO 15118-20 §7.9.2.4): pick the first tuple from the ScheduleExchangeRes and echo a single
+            // power-schedule entry. A live Josev run rejected the earlier absent profile (our SECC didn't).
+            var evPowerProfile = BuildEvPowerProfile(scheduleRes);
             await Exchange<PowerDeliveryRes>(MessageSet.Iso20CommonMessages,
-                dest => new PowerDeliveryReq(SessionCtx.ToCommonHeader(), Processing.Finished, ChargeProgress.Start, null, null)
+                dest => new PowerDeliveryReq(SessionCtx.ToCommonHeader(), Processing.Finished, ChargeProgress.Start, evPowerProfile, null)
                     .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
 
             for (int cycle = 0; cycle < 3; cycle++)
@@ -168,6 +177,26 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
             var scheduled = sets.FirstOrDefault(p => p.Parameter.Any(x => x.Name == "ControlMode" && x.IntValue == 1));
             return (scheduled ?? sets[0]).ParameterSetID;
+        }
+
+        /// <summary>Builds the Scheduled-mode EVPowerProfile that <c>PowerDelivery(Start)</c> must carry: it
+        /// selects the first schedule tuple the SECC returned in <c>ScheduleExchangeRes</c> and echoes one
+        /// power-schedule entry. Falls back to tuple id 1 if the SECC returned no Scheduled control mode.</summary>
+        private static EVPowerProfileType BuildEvPowerProfile(ScheduleExchangeRes scheduleRes)
+        {
+            uint tupleId = scheduleRes.Scheduled_SEResControlMode?.ScheduleTuple.FirstOrDefault()?.ScheduleTupleID ?? 1;
+
+            return new EVPowerProfileType(
+                TimeAnchor: 0,
+                Dynamic_EVPPTControlMode: null,
+                // PowerToleranceAcceptance is schema-optional but Josev's model requires it (its SECC rejects
+                // an absent one); a live run needed it set. PowerToleranceConfirmed = the EV accepts the tolerance.
+                Scheduled_EVPPTControlMode: new Scheduled_EVPPTControlModeType(tupleId, PowerToleranceAcceptance.PowerToleranceConfirmed),
+                EVPowerProfileEntries: new EVPowerProfileEntryListType(new[]
+                {
+                    // one 1-hour entry at 10 kW (Power = 10 × 10^3 W)
+                    new PowerScheduleEntryType(Duration: 3600, Power: new RationalNumberType(3, 10), Power_L2: null, Power_L3: null),
+                }));
         }
 
         private static InvalidOperationException EncodeFailed() => new("EXI encode failed (buffer too small?).");

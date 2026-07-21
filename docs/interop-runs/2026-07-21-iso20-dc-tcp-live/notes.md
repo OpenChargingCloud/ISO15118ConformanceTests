@@ -5,12 +5,15 @@
   (plain TCP, no TLS), `-20 DC`, PROTOCOLS include `ISO_15118_20_DC`
 - **Our side:** `Vanaheimr.V2G.Simulation.Cli` (`evcc`), built on Windows, run under WSL's .NET 10 so both
   ends share one network stack; real IPv6 link-local sockets
-- **Outcome:** ✅ a **live session over a real socket** — SDP discovery → TCP → SAP → SessionSetup →
-  AuthorizationSetup → Authorization (EIM) → ServiceDiscovery → ServiceDetail → ServiceSelection. This is
-  the first end-to-end run of our stack against an independent one over the wire (record mode validated the
-  codec; this validates SDP + V2GTP framing + the session state machine + timing, live). It surfaced **three
-  genuine conformance bugs record mode could not** (all now fixed), then stopped at a documented
-  simulator-fidelity gap. Full SECC-side log: [`secc-session.log`](secc-session.log).
+- **Outcome:** ✅ a **complete live DC charge session over a real socket**, end to end — SDP discovery → TCP →
+  SAP → SessionSetup → AuthorizationSetup → Authorization (EIM) → Service{Discovery,Detail,Selection} →
+  DC_ChargeParameterDiscovery → ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery(Start) →
+  DC_ChargeLoop ×3 → PowerDelivery(Stop) → DC_WeldingDetection → **SessionStop(Terminate)** (18 exchanges,
+  Josev logs *"Session ended in SessionStop … Communication session terminated"*). This is the first
+  full end-to-end session of our stack against an independent one over the wire (record mode validated the
+  codec; this validates SDP + V2GTP framing + the whole session state machine + timing, live). Getting there
+  surfaced **seven genuine conformance bugs record mode could not** — all now fixed. Full SECC-side log:
+  [`secc-session.log`](secc-session.log).
 
 ## Why this was reachable now
 
@@ -55,17 +58,25 @@ Two follow-on EVCC fixes push the live session much deeper — through the whole
    of `12` (range [12, 1024]; the wire value biases by 12, so 1 underflows to 1025). Josev rejects it; our
    SECC didn't validate the range. Fixed to `12`.
 
-With those, the live session now runs cleanly through **ServiceSelection → DC_ChargeParameterDiscovery →
-ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery** — essentially the entire DC setup.
+Two more EVCC fixes then complete the DC charge loop, all the way to SessionStop:
 
-## Where it stops now (open — EVCC session-content fidelity, not a codec/framing bug)
+6. **`PowerDeliveryReq(Start)` needs a populated `EVPowerProfile`** (ISO 15118-20 §7.9.2.4 / Josev's model
+   requires it once `EVProcessing=Finished` and `ChargeProgress=Start`). The EVCC now captures the final
+   `ScheduleExchangeRes`, selects its first schedule tuple, and builds a Scheduled-mode `EVPowerProfile`
+   (one power-schedule entry) referencing that `SelectedScheduleTupleID`.
+7. **`Scheduled_EVPPTControlMode.PowerToleranceAcceptance`** is schema-optional but **required** by Josev's
+   Pydantic model — an absent one is rejected. The EVCC now sets `PowerToleranceConfirmed`.
 
-At **PowerDelivery**: `PowerDeliveryReq` with `ChargeProgress=Start` requires a populated `EVPowerProfile`
-(a nested power-schedule structure derived from the chosen schedule); our EVCC sends it as absent, which
-Josev rejects. Completing a full live DC charge loop needs the EVCC to build a spec-valid `EVPowerProfile`
-(and, likely, further per-message value fidelity through ChargeLoop → WeldingDetection → SessionStop). This
-is a continuing EVCC state-machine enhancement — the -20 DC **message codecs** for all of these are already
-byte-exact vs both cbV2G and Josev (record mode), so it is purely EVCC-side session *content*, not the wire.
+## Full session ✅
+
+With all seven fixes the session runs to completion: after `PowerDelivery(Start)` the DC charge loop
+(`DC_ChargeLoop` ×3) → `PowerDelivery(Stop)` → `DC_WeldingDetection` → `SessionStop(Terminate)` all succeed,
+and Josev's SECC logs *"Session ended in SessionStop … Communication session terminated"*. `evcc` reports
+*"✓ Session complete … 18 exchanges"*. A full, live, over-the-wire ISO 15118-20 DC (EIM) charge session
+between our independent stack and Josev.
+
+All seven bugs were masked in our loopback E2E because our SECC is lenient exactly where Josev validates —
+the value of interop against an independent, strictly-validating stack.
 
 ## Reproduce
 
@@ -76,7 +87,10 @@ byte-exact vs both cbV2G and Josev (record mode), so it is purely EVCC-side sess
 
 ## Next
 
-- EVCC `EVPowerProfile` construction (and any further per-message value fidelity) to drive a full live DC
-  charge loop through ChargeLoop → WeldingDetection → SessionStop.
-- Fix the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp --interface eth0` works directly.
-- Milestone B: the same over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`).
+- The **reverse** direction (Josev EVCC → our SECC) — our SECC's advertised catalog/values may need the same
+  spec-fidelity hardening the EVCC just got.
+- **Milestone B**: the same full session over **TLS 1.3** via the BouncyCastle backend (Josev with
+  `SECC_ENFORCE_TLS=True`).
+- Fix the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp --interface eth0` works directly
+  (without the SDP helper).
+- Optionally, **-20 Plug & Charge** live (contract certs) rather than EIM.

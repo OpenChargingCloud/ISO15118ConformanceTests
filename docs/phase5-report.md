@@ -28,7 +28,7 @@ excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 | 1 | Four in-process E2E happy paths (-2 AC/DC, -20 AC/DC) | ✅ done | `Simulation.Tests/E2E/`, each asserts terminal phase + success code |
 | 2 | SDP discovery (unit tests + used in E2E) | ◑ partial | Message layer + result mapping CI-tested and wired into the full-stack E2E; the **live UDP/IPv6 multicast exchange is not** CI-tested (a single host can't hear its own multicast). Documented gap. |
 | 3 | TLS variant for -2 and -20 with test certs | ✅ done | Two backends — .NET `SslStream` (P-256) and **BouncyCastle** (TLS 1.3, secp521r1 **and** Ed448, mutual). Loopback tests on both. |
-| 4 | Interop documented (-2 AC EIM both directions min.) | ✅ done | **Record mode** byte-exact for -2 AC, -2 DC, -20 DC PnC. Plus a **live over-the-wire** run: our EVCC ↔ Josev SECC (-20 DC, plain TCP) through SDP → SAP → SessionSetup → Auth → ServiceDiscovery (see `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`); it caught three real framing/session bugs record mode can't (§3). Reverse direction + full DC loop + TLS remain (§5). |
+| 4 | Interop documented (-2 AC EIM both directions min.) | ✅ done | **Record mode** byte-exact for -2 AC, -2 DC, -20 DC PnC. Plus a **complete live over-the-wire** -20 DC session: our EVCC ↔ Josev SECC (plain TCP) runs end to end through the full DC charge loop to SessionStop (`docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`); it caught **seven** real framing/session/value bugs record mode can't (§3). Reverse direction + live TLS remain (§5). |
 | 5 | Record mode → curated vector adoption | ✅ done | Record mode works, and three -20 DC frames are curated into the vector suite as `Vectors/Iso15118_20.DC.josev.vectors.json` (`referenceEncoder = Josev/EXIficient @ d645255`), validated by decode → re-encode in `JosevCuratedVectorTests`. |
 | 6 | CLI documented + architecture chapter | ✅ done | `README.md` — CLI usage (`evcc`/`secc`, tls/stage flags) + the "EV↔EVSE simulation (Phase 5)" chapter. |
 | 7 | Closing report | ✅ this document | |
@@ -76,13 +76,17 @@ masked in our loopback tests because our EVCC and SECC were lenient/consistent i
 - **EVCC now adopts the SECC-assigned SessionID** from `SessionSetupRes` (ISO 15118-20 §7.9.2.4); it was
   sending the all-zero opener in every later request, which Josev strictly rejects.
 
-Two further EVCC fixes (dynamic **service negotiation** — parse `ServiceDiscovery`/`Detail` and select the
-peer's DC service/parameter set instead of hardcoded ids; and `MaximumSupportingPoints` `1` → the schema
-minimum `12`) then drive the live session all the way through **ServiceSelection → DC_ChargeParameterDiscovery
-→ ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery** — essentially the whole DC setup. It
-stops at `PowerDeliveryReq`, which with `ChargeProgress=Start` needs a populated `EVPowerProfile` our EVCC
-sends as absent — a documented EVCC session-content gap (§5), not a codec/wire bug. All of these bugs were
-masked in loopback because our SECC is lenient where Josev validates.
+Four further EVCC fixes then drive the session **to completion**: dynamic **service negotiation** (parse
+`ServiceDiscovery`/`Detail` and select the peer's DC service/parameter set instead of hardcoded ids);
+`MaximumSupportingPoints` `1` → the schema minimum `12`; a populated **`EVPowerProfile`** on
+`PowerDelivery(Start)` referencing the SECC's schedule tuple; and `PowerToleranceAcceptance` set (schema-
+optional but required by Josev). With all seven fixes the live session runs **end to end** — SDP → SAP →
+SessionSetup → Auth → Service{Discovery,Detail,Selection} → DC_ChargeParameterDiscovery → ScheduleExchange →
+DC_CableCheck → DC_PreCharge → PowerDelivery(Start) → **DC_ChargeLoop ×3** → PowerDelivery(Stop) →
+DC_WeldingDetection → **SessionStop(Terminate)** (Josev: *"Session ended in SessionStop"*; `evcc`: *"✓ Session
+complete, 18 exchanges"*). A full, live ISO 15118-20 DC (EIM) charge session between our independent stack
+and Josev. Every one of the seven bugs was masked in loopback because our SECC is lenient exactly where Josev
+validates — the whole point of interop against an independent, strictly-validating stack.
 
 ## 4. Timing findings
 
@@ -100,15 +104,13 @@ masked in loopback because our SECC is lenient where Josev validates.
 
 Nothing below blocks the happy-path simulation; each is honestly out of scope or deferred.
 
-- **Live over-the-wire interop — partially done.** Our EVCC ↔ Josev SECC (-20 DC, plain TCP) now runs live
-  through SDP → SAP → SessionSetup → Auth → ServiceDiscovery → ServiceSelection (with dynamic service
-  negotiation) → DC_ChargeParameterDiscovery → ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery
-  (§3; `tools/interop-josev/live-evcc-tcp.sh`, `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`), after
-  fixing five real bugs it surfaced. Remaining: (a) EVCC builds a spec-valid **`EVPowerProfile`** (+ any
-  further per-message value fidelity) to complete a full DC charge loop; (b) the **reverse** direction
-  (Josev EVCC → our SECC); (c) the same over **TLS 1.3** via the BouncyCastle backend (Josev with
-  `SECC_ENFORCE_TLS=True`); (d) fixing the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp`
-  works without the helper.
+- **Live over-the-wire interop — a full DC session done.** Our EVCC ↔ Josev SECC (-20 DC, plain TCP) runs a
+  **complete** live charge session end to end, SDP through SessionStop, after fixing the seven bugs it
+  surfaced (§3; `tools/interop-josev/live-evcc-tcp.sh`, `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`).
+  Remaining: (a) the **reverse** direction (Josev EVCC → our SECC — our SECC's advertised catalog/values may
+  need the same spec-fidelity hardening); (b) the same over **TLS 1.3** via the BouncyCastle backend (Josev
+  with `SECC_ENFORCE_TLS=True`); (c) fixing the WWCP `EVCC_SDPClient` multicast interface binding so
+  `evcc --sdp` works without the SDP helper; (d) optionally, live -20 **Plug & Charge** rather than EIM.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.
