@@ -22,9 +22,15 @@ own Docker setup; otherwise a venv under WSL2.
 > **Pinned version (first run):** SwitchEV/iso15118 @ `d645255` ("Pydantic upgrade to v2", #455),
 > validated 2026-07-21 — see [`docs/interop-runs/2026-07-21-iso2-ac-eim-notls/`](../../docs/interop-runs/2026-07-21-iso2-ac-eim-notls/).
 
-> **Known setup fix — EOL Debian buster.** Josev's `template.Dockerfile` pins `python:3.10.0-buster`;
-> buster is EOL so its apt repos 404 and `apt install default-jre` fails. Before that install, repoint
-> apt at the archive:
+> **EOL Debian buster — prefer rebasing to a current Debian.** Josev's `template.Dockerfile` pins
+> `python:3.10.0-buster`; buster is EOL, so its apt repos 404 and `apt install default-jre` fails.
+> **Recommended fix:** rebase the image onto a current Debian — change both `FROM python:3.10.0-buster`
+> lines to a **Trixie** (or bookworm) Python 3.10 image, e.g. `FROM python:3.10-slim-trixie`, so apt just
+> works and you're not depending on an archived, unpatched base. The interop only cares about Python 3.10.x
+> + Josev's `poetry.lock` deps, not the Debian release, so this is safe.
+>
+> The first run instead used the *minimal-deviation* workaround (keep buster, repoint apt at the archive) —
+> keep it only if you specifically want Josev's exact pinned OS:
 > ```
 > sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g; \
 >         s|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g; \
