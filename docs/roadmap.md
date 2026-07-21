@@ -6,11 +6,12 @@ Last updated: **2026-07-21**. Authoritative per-phase detail lives in
 
 ## Current status
 
-The solution builds cleanly and **all 521 tests are green** (`dotnet test -c Release`:
-476 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`) — offline, with
-no C toolchain, JRE, or network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo
-simulation is largely done (SLAC/SDP/TLS/session all wired + tested); only external Josev
-interop and the closing report remain.
+The solution builds cleanly and **all 531 tests are green** (`dotnet test -c Release`:
+486 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
+over-the-wire Josev tests are `[Explicit]` and skipped) — offline, with no C toolchain, JRE,
+or network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
+(SLAC/SDP/TLS/session all wired + tested) and Josev interop is byte-exact for **-2 AC and DC**
+(EIM, no TLS); only -20 interop and the closing report remain.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -19,7 +20,7 @@ interop and the closing report remain.
 | 2 | Source generator lifted to the real ISO 15118-2 schema set | ✅ **done** |
 | 3 | All 17 -2 message pairs + XMLDSig over EXI fragments (ECDSA-P256/SHA-256) | ✅ **done** |
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
-| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop) | 🚧 **in progress** — in-repo stack ✅; Josev interop ⬜ |
+| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop) | 🚧 **in progress** — in-repo stack ✅; Josev interop -2 AC+DC ✅, -20 ⬜ |
 
 What exists today, at a glance:
 
@@ -31,7 +32,7 @@ What exists today, at a glance:
 | ✅ [SourceGenerator](../Vanaheimr.V2G.Exi.SourceGenerator/ExiCodecGenerator.cs) | `IIncrementalGenerator`: XSD set → grammar plan → C# document + fragment codecs; fail-loud on unknown constructs; emits block-scoped namespaces |
 | ✅ ISO 15118-2 codec | All 17 message pairs **byte-exact vs cbV2G**; signed `AuthorizationReq` byte-exact; `SignedInfo` fragment cross-checked vs EXIficient |
 | ✅ ISO 15118-20 codecs (×5) | CommonMessages/DC/AC/WPT/ACDP all generate + compile + byte-exact vs cbV2G; XMLDSig for CommonMessages/DC/AC (ECDSA-P521/SHA-512 **and** Ed448 via BouncyCastle) |
-| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Open: Josev interop |
+| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Josev interop: **-2 AC+DC byte-exact**, -20 open |
 | ✅ Test infrastructure | Vector-driven (JSON), bit-exact diff on failure; property-based round-trips (CsCheck); reference oracles pinned under `tools/` |
 
 The original "decisive weakness" (self-encoded seed vectors that only proved internal
@@ -130,8 +131,10 @@ Three classes of oracle, with independent sources of error:
    `tools/exificient-ref/` for the `SignedInfo` fragment cross-check (-2 and -20
    CommonMessages).
 3. **[SwitchEV/iso15118 (Josev)](https://github.com/SwitchEV/iso15118)** (Python,
-   Apache-2.0, -2 and -20) — *session-level oracle* for the Phase 5 end-to-end interop
-   (still to do). The EVerest fork
+   Apache-2.0, -2 and -20) — *session-level oracle* for the Phase 5 end-to-end interop.
+   **Live and byte-exact for -2 AC and DC** (EIM, no TLS): Josev's EXIficient-encoded frames
+   decode + re-encode identically through our codec (`JosevCapturedFrames{,Dc}Tests`, in CI);
+   -20 (TLS 1.3) still to do. The EVerest fork
    [ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118) is more
    actively maintained.
 

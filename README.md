@@ -263,19 +263,30 @@ no `exiFragment` struct, no `EncodeFragment`/`DecodeFragment` function, nothing.
 `MessageHeaderType.Signature` field exists (schema-consistent with every other set) but
 there is nothing to point it at, so there's no XMLDSig work for these two sets.
 
-## EV↔EVSE simulation (Phase 5, slice 1)
+## EV↔EVSE simulation (Phase 5)
 
 `Vanaheimr.V2G.Simulation` is a real-networking EVCC↔SECC session — distinct from
 `Vanaheimr.V2G.Exi.Simulation` above, which stays an in-process, no-sockets, -2-only demo.
-**Deliberately out of scope for this slice**: SDP (UDP discovery) and SLAC/PLC — both sides
-connect via an explicit host:port instead. Josev interop is a separate follow-up.
+It now composes the full connection front-end: **SLAC pairing → SDP discovery → TLS →
+SAP → -2/-20 session**, all loopback-testable in `dotnet test`. (An early slice deliberately
+skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired in.)
 
+- **SLAC** (`Slac/`): `SlacEvStage`/`SlacEvseStage` drive a real EV↔EVSE match over loopback
+  UDP (unicast, via the WWCP `UdpSlacTransport`) and program the PLC chip (`SlacChip`,
+  `IPlcChipController`) up to the AVLN-ready step — the L2 pairing that precedes any IP traffic.
+- **SDP** (`Discovery/`): an `ISeccDiscovery` seam — `FixedSeccDiscovery` (explicit host:port)
+  or `SdpSeccDiscovery` (real UDP/IPv6 multicast via the WWCP SDP client), plus a
+  `SeccSdpAdvertiser`. The message layer + result mapping are CI-tested; the live multicast
+  exchange needs two hosts (a single process can't hear its own multicast) and is documented.
 - **Framing** (`Framing/V2GTPStream.cs`): reads/writes one V2GTP frame on a `Stream`, using the
   existing `V2GTPDispatcher` to resolve/encode the message set — works unchanged over plain TCP
   or TLS, since it never sees `NetworkStream`/`SslStream` directly.
-- **Transport** (`Transport/`): `TcpV2GListener`/`TcpV2GClient` (fixed endpoint, no discovery),
-  `TlsOptions` for server-side TLS (self-signed test certs generated at test-time, never checked
-  in; mutual TLS and the spec's exact cipher-suite pinning are documented gaps).
+- **Transport** (`Transport/`): `TcpV2GListener`/`TcpV2GClient` over a fixed or SDP-discovered
+  endpoint, with **two selectable TLS backends** — the .NET `SslStream` (Schannel; capped at
+  P-256, so -2-faithful) and a **BouncyCastle** managed stack (`Transport/BouncyCastle/`) running
+  the -20-faithful profile: TLS 1.3, **mutual** auth, secp521r1 **and** Ed448. `TlsOptions`
+  carries the client-cert/validation knobs for mutual TLS. Self-signed/PKI test certs are
+  generated at test-time, never checked in.
 - **SAP** (`Sap/SapHandshake.cs`): the SupportedAppProtocol negotiation every session starts with.
 - **Session** (`Session/`): `SessionContext` renders the SECC-assigned SessionID into whichever of
   -20's three self-contained per-schema-set `MessageHeaderType`s (CommonMessages/DC/AC — each its
@@ -300,8 +311,12 @@ connect via an explicit host:port instead. Josev interop is a separate follow-up
   (SDP needs a multicast-capable `--interface`, so it is a real-network feature, not loopback).
 
 All four happy paths (-2 AC/DC, -20 AC/DC) run to `SessionStop` over real loopback TCP in
-`dotnet test` (`Vanaheimr.V2G.Simulation.Tests/E2E/`), plus two TLS variants — no network beyond
-loopback, matching the project's build rule.
+`dotnet test` (`Vanaheimr.V2G.Simulation.Tests/E2E/`); on top of that there are mutual-TLS
+loopback tests on both backends (.NET P-256, BouncyCastle P-521 **and** Ed448), a SLAC UDP
+match test, the SDP message/mapping tests, and one **full-stack E2E** that composes
+SLAC → SDP → mutual TLS (P-521) → SAP → -20 DC session end to end — all loopback, no external
+process, matching the project's build rule. Cross-validation against the independent Josev
+stack (`tools/interop-josev/`) is byte-exact for -2 AC and DC — see the milestones below.
 
 ## What this prototype still does NOT do
 
@@ -327,11 +342,22 @@ pairs + XMLDSig, `SignedInfo` fragment cross-validated against EXIficient), and 
 (ISO 15118-20 multi-schema codecs — CommonMessages, DC, AC, WPT, ACDP — V2GTP dispatch,
 XMLDSig where cbV2G supports it, CommonMessages `SignedInfo` fragment cross-validated
 against EXIficient) are **done** — see `docs/roadmap.md` and `docs/prompts/phase4.md`.
-Phase 5 slice 1 (TCP/TLS transport + EVCC/SECC state machines, all four happy paths, no
-SDP) is also **done** — see the section above. Next:
 
-1. SDP (SECC Discovery Protocol) — currently bypassed via explicit host:port.
-2. Interop against Josev (`tools/interop-josev/`, not yet started): both directions, -2 AC
-   EIM first, then -2 DC, then -20 — this is what actually validates the DC/AC signature
-   paths and the -2/-20 codecs against an independent stack, beyond the fragment-level
-   EXIficient cross-check and the in-repo loopback E2E tests done so far.
+**Phase 5** has grown well past the original slice 1: the full in-repo stack now runs and is
+tested over loopback — **SLAC** pairing (real UDP match + PLC-chip programming), an **SDP**
+discovery seam, **mutual TLS 1.3** with two backends (.NET `SslStream` and a BouncyCastle
+backend running the -20-faithful secp521r1/Ed448 profile Schannel can't), the SAP handshake,
+the -2/-20 AC/DC state machines to `SessionStop`, a composed SLAC→SDP→TLS→session E2E, and a
+CLI with stage/backend flags. See the sections above, `docs/pki-model.md` (PKI + TLS design),
+and `docs/roadmap.md`.
+
+The one big remaining conformance signal is external-stack interop:
+
+1. **Josev interop** (`tools/interop-josev/`) — **-2 AC and DC EIM are done and byte-exact**:
+   Josev's own EXIficient-encoded frames (SAP + the full DC charge loop) decode and re-encode
+   *identically* through our codec (`JosevCapturedFrames{,Dc}Tests`, run in CI; artifacts under
+   `docs/interop-runs/2026-07-21-iso2-*/`). On the SAP frames, **our codec ≡ cbV2G ≡ EXIficient**.
+   Remaining: **-20** (TLS 1.3, via the BouncyCastle backend), and optionally live over-the-wire
+   interop via the `[Explicit]` `JosevInteropTests` hook (record mode gives the same signal).
+2. **Phase 5 closing report** — codec/sequence discrepancies, timing findings, and known gaps
+   (live Plug & Charge contract-cert provisioning, WPT/ACDP interop).
