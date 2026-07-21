@@ -157,6 +157,12 @@ from SDP + local policy rather than a full ESDP exchange.
 
 ## Wired into the simulation
 
+**Full-stack orchestration.** `E2E/FullStackLoopbackTests.cs` runs the whole entry sequence in one
+loopback test: a real **SLAC** match (loopback UDP, both PLC chips keyed) → **SDP** discovery via the
+`ISeccDiscovery` seam → **mutual TLS** on the BouncyCastle backend (secp521r1) → **SAP** → a -20 DC
+session to SessionStop. It is the end-to-end proof that the stages compose; the individual stages have
+their own focused tests below.
+
 The mutual-TLS path is implemented (`Vanaheimr.V2G.Simulation`): `TlsOptions` carries the EVCC
 client certificate + SECC "require & validate client cert"; `TcpV2GClient`/`TcpV2GListener`
 present/require them. The `Vanaheimr.V2G.Simulation.Tests` project references the WWCP PKI
