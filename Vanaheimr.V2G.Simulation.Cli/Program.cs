@@ -74,7 +74,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             await using var sdp = args.UseSdp ? await StartSeccSdpAsync(args, listener.LocalEndpoint.Port) : null;
 
             using var stream = await listener.AcceptAsync();
-            await SapHandshake.RunSeccSideAsync(stream, args.Protocol);
+            await SapHandshake.RunSeccSideAsync(stream, args.Protocol, mode: args.Mode);
             await RunSeccSessionAsync(stream, args);
         }
 
@@ -128,7 +128,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var (host, port) = await ResolveEvccEndpointAsync(args);
 
             using var stream = await ConnectEvccAsync(args, host, port);
-            await SapHandshake.RunEvccSideAsync(stream, args.Protocol);
+            await SapHandshake.RunEvccSideAsync(stream, args.Protocol, mode: args.Mode);
             await RunEvccSessionAsync(stream, args);
         }
 

@@ -10,7 +10,13 @@ namespace Vanaheimr.V2G.Tp
         public const byte ProtocolVersion        = 0x01;
         public const byte InverseProtocolVersion = 0xFE;
 
-        public const ushort PayloadType_AppProtocol      = 0x8000;
+        // The SupportedAppProtocol handshake uses the SAP/EXI-encoded payload id 0x8001 — the SAME id the
+        // DIN/-2 messages use (ISO 15118-20 §A / libcbv2g V2GTP20_SAP_PAYLOAD_ID / Josev's ISOV20PayloadTypes.SAP).
+        // SAP and -2 frames are told apart by session phase (SAP is always first), NOT by payload type, so this
+        // is not a distinct wire value. It is kept as a named alias for the SAP framing path (which decodes SAP
+        // explicitly rather than through the payload-type dispatcher). A live interop run against Josev caught
+        // the earlier 0x8000 here as a wire-conformance bug — see docs/interop-runs/2026-07-21-iso20-dc-pnc-tcp/.
+        public const ushort PayloadType_AppProtocol      = 0x8001;
         public const ushort PayloadType_DinIso2Main      = 0x8001;
         public const ushort PayloadType_Iso20Main        = 0x8002;
         public const ushort PayloadType_Iso20AC          = 0x8003;

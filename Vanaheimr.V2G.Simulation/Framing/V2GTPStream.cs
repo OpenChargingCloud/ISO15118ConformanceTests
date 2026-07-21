@@ -19,6 +19,22 @@ namespace Vanaheimr.V2G.Simulation.Framing
         /// </summary>
         public static async Task<(MessageSet Set, object Message)> ReadFrameAsync(Stream stream, CancellationToken ct = default)
         {
+            var (frame, _) = await ReadRawFrameAsync(stream, ct).ConfigureAwait(false);
+
+            if (!V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error))
+                throw new InvalidDataException($"V2GTP frame: {error}");
+
+            return (set, message!);
+        }
+
+        /// <summary>
+        /// Reads one V2GTP frame at the transport level — the 8-byte header plus its declared payload — and
+        /// returns the whole frame together with its payload type, WITHOUT resolving it to a message set.
+        /// Used by the SupportedAppProtocol handshake, which shares payload id 0x8001 with the -2 messages and
+        /// so cannot be routed by payload type alone (see <see cref="V2GTP.PayloadType_AppProtocol"/>).
+        /// </summary>
+        public static async Task<(byte[] Frame, ushort PayloadType)> ReadRawFrameAsync(Stream stream, CancellationToken ct = default)
+        {
             var frame = new byte[V2GTP.HeaderSize];
             try
             {
@@ -46,10 +62,7 @@ namespace Vanaheimr.V2G.Simulation.Framing
                 }
             }
 
-            if (!V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error))
-                throw new InvalidDataException($"V2GTP frame: {error}");
-
-            return (set, message!);
+            return (frame, payloadType);
         }
 
         /// <summary>
@@ -64,6 +77,22 @@ namespace Vanaheimr.V2G.Simulation.Framing
                 throw new InvalidOperationException("V2GTP frame: encode failed (payload too large for its length field?).");
 
             await stream.WriteAsync(dest.AsMemory(0, bytesWritten), ct).ConfigureAwait(false);
+            await stream.FlushAsync(ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Writes one V2GTP frame with an explicit payload type — used by the SupportedAppProtocol handshake,
+        /// which frames with payload id 0x8001 directly rather than through the message-set dispatcher (SAP
+        /// and -2 share that id; see <see cref="V2GTP.PayloadType_AppProtocol"/>).
+        /// </summary>
+        public static async Task WriteRawFrameAsync(
+            Stream stream, ushort payloadType, ReadOnlyMemory<byte> exiPayload, CancellationToken ct = default)
+        {
+            var dest = new byte[V2GTP.HeaderSize + exiPayload.Length];
+            V2GTP.WriteHeader(dest, payloadType, (uint)exiPayload.Length);
+            exiPayload.Span.CopyTo(dest.AsSpan(V2GTP.HeaderSize));
+
+            await stream.WriteAsync(dest, ct).ConfigureAwait(false);
             await stream.FlushAsync(ct).ConfigureAwait(false);
         }
     }

@@ -35,8 +35,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         public async Task RunAsync(CancellationToken ct = default)
         {
-            await Exchange<SessionSetupRes>(MessageSet.Iso20CommonMessages,
+            var setupRes = await Exchange<SessionSetupRes>(MessageSet.Iso20CommonMessages,
                 dest => new SessionSetupReq(SessionCtx.ToCommonHeader(), "EVCC01").TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+
+            // Adopt the SECC-assigned SessionID: every subsequent request header must carry it, not the
+            // all-zero id the EVCC opens SessionSetup with (ISO 15118-20 §7.9.2.4). A live Josev interop run
+            // caught this — Josev's SECC strictly rejects a mismatched session id (our loopback SECC did not).
+            SessionCtx.SessionId = setupRes.Header.SessionID;
 
             await Exchange<AuthorizationSetupRes>(MessageSet.Iso20CommonMessages,
                 dest => new AuthorizationSetupReq(SessionCtx.ToCommonHeader()).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);

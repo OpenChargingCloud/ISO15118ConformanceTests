@@ -24,21 +24,15 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         [Test]
-        public void RoundtripsAppProtocolRequest()
+        public void SapSharesTheIso2PayloadIdAndIsNotDispatchedByPayloadType()
         {
-            var req = new SupportedAppProtocolReq(new[]
-            {
-                new AppProtocolEntry("urn:iso:15118:2:2013:MsgDef", 1, 0, SchemaID: 1, Priority: 1),
-            });
-            var payload = new byte[128];
-            Assert.That(SupportedAppProtocolCodec.TryEncodeRequest(req, payload, out int n), Is.True);
-
-            var frame = Frame(MessageSet.AppProtocol, payload.AsSpan(0, n).ToArray());
-
-            Assert.That(V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error), Is.True);
-            Assert.That(error, Is.Null);
-            Assert.That(set, Is.EqualTo(MessageSet.AppProtocol));
-            Assert.That(message, Is.InstanceOf<SupportedAppProtocolReq>());
+            // The SupportedAppProtocol handshake uses payload id 0x8001 — the SAME as the DIN/-2 messages
+            // (ISO 15118-20 §A / libcbv2g V2GTP20_SAP_PAYLOAD_ID / Josev). SAP is told apart from a -2 message
+            // by session phase, not payload type, so the payload-type dispatcher does NOT resolve SAP (a live
+            // interop run against Josev caught the earlier distinct 0x8000 here as a wire-conformance bug — the
+            // SAP handshake now frames/decodes 0x8001 explicitly). This asserts the shared-id fact.
+            Assert.That(V2GTP.PayloadType_AppProtocol, Is.EqualTo((ushort) 0x8001));
+            Assert.That(V2GTP.PayloadType_AppProtocol, Is.EqualTo(V2GTP.PayloadType_DinIso2Main));
         }
 
         [Test]

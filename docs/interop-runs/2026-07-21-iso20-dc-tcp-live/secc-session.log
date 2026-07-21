@@ -1,0 +1,41 @@
+# Josev SECC log — live over-the-wire -20 DC session with OUR EVCC (plain TCP)
+# SwitchEV/iso15118 @ d645255, host-mode, SECC_ENFORCE_TLS=False
+
+secc-1   | INFO    2026-07-21 14:21:30,587 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+secc-1   | INFO    2026-07-21 14:21:30,646 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolReq":{"AppProtocol":[{"ProtocolNamespace":"urn:iso:std:iso:15118:-20:DC","VersionNumberMajor":1,"VersionNumberMinor":0,"SchemaID":1,"Priority":1}]}}
+secc-1   | INFO    2026-07-21 14:21:30,646 - iso15118.shared.comm_session (235): supportedAppProtocolReq received
+secc-1   | INFO    2026-07-21 14:21:30,652 - iso15118.secc.states.sap_states (147): Chosen protocol: ISO_15118_20_DC
+secc-1   | INFO    2026-07-21 14:21:30,653 - iso15118.shared.comm_session (431): Sent supportedAppProtocolRes
+secc-1   | INFO    2026-07-21 14:21:30,653 - iso15118.shared.states (139): Entered state SessionSetup
+secc-1   | INFO    2026-07-21 14:21:30,829 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupReq":{"Header":{"SessionID":"0000000000000000","TimeStamp":1784643690},"EVCCID":"EVCC01"}}
+secc-1   | INFO    2026-07-21 14:21:30,830 - iso15118.shared.comm_session (235): SessionSetupReq received
+secc-1   | WARNING    2026-07-21 14:21:30,830 - iso15118.secc.states.iso15118_20_states (161): EVCC's session ID 0000000000000000 does not match . New session ID 629F4C9D851C2ADB assigned
+secc-1   | INFO    2026-07-21 14:21:30,949 - iso15118.shared.comm_session (431): Sent SessionSetupRes
+secc-1   | INFO    2026-07-21 14:21:30,950 - iso15118.shared.states (139): Entered state AuthorizationSetup
+secc-1   | INFO    2026-07-21 14:21:31,118 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupReq":{"Header":{"SessionID":"629F4C9D851C2ADB","TimeStamp":1784643691}}}
+secc-1   | INFO    2026-07-21 14:21:31,119 - iso15118.shared.comm_session (235): AuthorizationSetupReq received
+secc-1   | INFO    2026-07-21 14:21:31,215 - iso15118.shared.comm_session (431): Sent AuthorizationSetupRes
+secc-1   | INFO    2026-07-21 14:21:31,294 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationReq":{"Header":{"SessionID":"629F4C9D851C2ADB","TimeStamp":1784643691},"SelectedAuthorizationService":"EIM","EIM_AReqAuthorizationMode":{}}}
+secc-1   | INFO    2026-07-21 14:21:31,295 - iso15118.shared.comm_session (235): AuthorizationReq received
+secc-1   | INFO    2026-07-21 14:21:31,295 - iso15118.shared.states (139): Entered state Authorization
+secc-1   | INFO    2026-07-21 14:21:31,365 - iso15118.shared.comm_session (431): Sent AuthorizationRes
+secc-1   | INFO    2026-07-21 14:21:31,428 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryReq":{"Header":{"SessionID":"629F4C9D851C2ADB","TimeStamp":1784643691}}}
+secc-1   | INFO    2026-07-21 14:21:31,429 - iso15118.shared.comm_session (235): ServiceDiscoveryReq received
+secc-1   | INFO    2026-07-21 14:21:31,429 - iso15118.shared.states (139): Entered state ServiceDiscovery
+secc-1   | INFO    2026-07-21 14:21:31,483 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryRes
+secc-1   | INFO    2026-07-21 14:21:31,535 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailReq":{"Header":{"SessionID":"629F4C9D851C2ADB","TimeStamp":1784643691},"ServiceID":1}}
+secc-1   | INFO    2026-07-21 14:21:31,535 - iso15118.shared.comm_session (235): ServiceDetailReq received
+secc-1   | INFO    2026-07-21 14:21:31,535 - iso15118.shared.states (139): Entered state ServiceDetail
+secc-1   | ERROR    2026-07-21 14:21:31,536 - iso15118.secc.states.iso15118_20_states (691): Service Id is invalid for ServiceDetailReq
+secc-1   | INFO    2026-07-21 14:21:31,537 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailRes": {"Header": {"SessionID": "629F4C9D851C2ADB", "TimeStamp": 1784643691}, "ResponseCode": "FAILED_ServiceIDInvalid", "ServiceID": 1, "ServiceParameterList": {"ParameterSet": [{"ParameterSetID": 1, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 1}, {"Name": "MobilityNeedsMode", "intValue": 1}]}, {"ParameterSetID": 2, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 2}, {"Name": "MobilityNeedsMode", "intValue": 2}]}, {"ParameterSetID": 3, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 2}, {"Name": "MobilityNeedsMode", "intValue": 1}]}]}}}
+secc-1   | INFO    2026-07-21 14:21:31,609 - iso15118.shared.comm_session (431): Sent ServiceDetailRes
+secc-1   | INFO    2026-07-21 14:21:31,684 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq":{"Header":{"SessionID":"629F4C9D851C2ADB","TimeStamp":1784643691},"SelectedEnergyTransferService":{"ServiceID":1,"ParameterSetID":1}}}
+secc-1   | INFO    2026-07-21 14:21:31,685 - iso15118.shared.comm_session (235): ServiceSelectionReq received
+secc-1   | INFO    2026-07-21 14:21:31,685 - iso15118.shared.states (139): Entered state ServiceSelection
+secc-1   | INFO    2026-07-21 14:21:31,686 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionRes": {"Header": {"SessionID": "629F4C9D851C2ADB", "TimeStamp": 1}, "ResponseCode": "FAILED_NoEnergyTransferServiceSelected"}}
+secc-1   | INFO    2026-07-21 14:21:31,740 - iso15118.shared.comm_session (431): Sent ServiceSelectionRes
+secc-1   | INFO    2026-07-21 14:21:31,741 - iso15118.shared.comm_session (395): The data link will terminate in 2 seconds and the TCP connection will close in 5 seconds. 
+secc-1   | INFO    2026-07-21 14:21:31,741 - iso15118.shared.comm_session (399): Reason: Invalid selected pair of energy transfer service ID '1' and parameter set ID '1' (not offered by SECC)
+secc-1   | INFO    2026-07-21 14:21:33,744 - iso15118.secc.controller.simulator (1097): Session ended in ServiceSelection (Invalid selected pair of energy transfer service ID '1' and parameter set ID '1' (not offered by SECC)).
+secc-1   | INFO    2026-07-21 14:21:36,748 - iso15118.shared.comm_session (417): TCP connection closed to peer with address ('fe80::215:5dff:fe46:863f', 35908, 0, 2)
+secc-1   | WARNING    2026-07-21 14:21:36,749 - iso15118.secc.transport.tcp_server (149): Closing TCP server

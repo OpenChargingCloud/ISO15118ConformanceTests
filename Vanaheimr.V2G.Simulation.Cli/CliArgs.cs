@@ -128,6 +128,18 @@ namespace Vanaheimr.V2G.Simulation.Cli
 
         private static (string Host, int Port) SplitHostPort(string value, string flag)
         {
+            // IPv6 literal must be bracketed so its own colons don't confuse host:port parsing,
+            // e.g. [fe80::1%eth0]:9000 (link-local with a zone id — the form an SDP-less connect to a
+            // Josev SECC uses). The zone id (%…) is preserved and handled by the socket layer.
+            if (value.StartsWith('['))
+            {
+                var close = value.IndexOf(']');
+                if (close > 1 && close + 2 < value.Length && value[close + 1] == ':'
+                    && int.TryParse(value[(close + 2)..], out var p6))
+                    return (value[1..close], p6);
+                throw new ArgumentException($"{flag} expects [ipv6]:port, got '{value}'.");
+            }
+
             var idx = value.LastIndexOf(':');
             if (idx <= 0 || !int.TryParse(value[(idx + 1)..], out var port))
                 throw new ArgumentException($"{flag} expects host:port, got '{value}'.");

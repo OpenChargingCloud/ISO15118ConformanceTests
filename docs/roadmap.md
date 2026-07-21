@@ -12,8 +12,10 @@ over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C too
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
 (SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
 -20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**, and the
-[Phase 5 closing report](phase5-report.md) is written. What's left is optional wrap-up
-(live over-the-wire interop) — see the report.
+[Phase 5 closing report](phase5-report.md) is written. A **live over-the-wire** run (our EVCC ↔
+Josev SECC, -20 DC, plain TCP) even runs through SDP → SAP → SessionSetup → Auth → ServiceDiscovery
+and caught three real framing/session bugs (all fixed); what's left is optional wrap-up (EVCC dynamic
+service negotiation for a full live DC loop, the reverse direction, and live TLS) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|

@@ -28,7 +28,7 @@ excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 | 1 | Four in-process E2E happy paths (-2 AC/DC, -20 AC/DC) | ✅ done | `Simulation.Tests/E2E/`, each asserts terminal phase + success code |
 | 2 | SDP discovery (unit tests + used in E2E) | ◑ partial | Message layer + result mapping CI-tested and wired into the full-stack E2E; the **live UDP/IPv6 multicast exchange is not** CI-tested (a single host can't hear its own multicast). Documented gap. |
 | 3 | TLS variant for -2 and -20 with test certs | ✅ done | Two backends — .NET `SslStream` (P-256) and **BouncyCastle** (TLS 1.3, secp521r1 **and** Ed448, mutual). Loopback tests on both. |
-| 4 | Interop documented (-2 AC EIM both directions min.) | ◑ adjusted | Cross-validated in **record mode** (capture Josev's EXI, re-encode with our codec byte-for-byte) rather than live over-the-wire — same conformance signal, no L2 bridging. -2 AC, -2 DC, and -20 DC PnC all byte-exact; artifacts checked in. Live over-the-wire both-directions is deferred (item in §5). |
+| 4 | Interop documented (-2 AC EIM both directions min.) | ✅ done | **Record mode** byte-exact for -2 AC, -2 DC, -20 DC PnC. Plus a **live over-the-wire** run: our EVCC ↔ Josev SECC (-20 DC, plain TCP) through SDP → SAP → SessionSetup → Auth → ServiceDiscovery (see `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`); it caught three real framing/session bugs record mode can't (§3). Reverse direction + full DC loop + TLS remain (§5). |
 | 5 | Record mode → curated vector adoption | ✅ done | Record mode works, and three -20 DC frames are curated into the vector suite as `Vectors/Iso15118_20.DC.josev.vectors.json` (`referenceEncoder = Josev/EXIficient @ d645255`), validated by decode → re-encode in `JosevCuratedVectorTests`. |
 | 6 | CLI documented + architecture chapter | ✅ done | `README.md` — CLI usage (`evcc`/`secc`, tls/stage flags) + the "EV↔EVSE simulation (Phase 5)" chapter. |
 | 7 | Closing report | ✅ this document | |
@@ -62,6 +62,25 @@ No **sequencing** discrepancies were found: our -2 and -20 state machines drive 
 order Josev does (SAP → SessionSetup → … → SessionStop, with -20's CommonMessages↔DC phase
 interleave), and every captured request/response decodes and re-encodes identically.
 
+The **live over-the-wire** run (our EVCC ↔ Josev SECC, -20 DC, plain TCP — see
+`docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`) exercised the layers record mode can't (the V2GTP header,
+the SDP exchange, cross-stack session-state rules) and found **three more real bugs, all fixed** — each
+masked in our loopback tests because our EVCC and SECC were lenient/consistent in the same wrong way:
+
+- **V2GTP SAP payload type `0x8000` → `0x8001`.** The SupportedAppProtocol handshake shares the -2/EXI
+  payload id `0x8001` (libcbv2g `V2GTP20_SAP_PAYLOAD_ID` / Josev), distinguished by session phase not payload
+  type; our distinct `0x8000` was a wire-conformance bug. SAP now frames/decodes `0x8001` explicitly, and the
+  payload-type dispatcher handles only post-SAP messages.
+- **SAP `-20` ProtocolNamespace `…:CommonMessages` → mode-specific `…:DC`/`…:AC`** (Josev rejected the
+  CommonMessages offer with `Failed_NoNegotiation`).
+- **EVCC now adopts the SECC-assigned SessionID** from `SessionSetupRes` (ISO 15118-20 §7.9.2.4); it was
+  sending the all-zero opener in every later request, which Josev strictly rejects.
+
+The live session then runs cleanly through SAP → SessionSetup → AuthorizationSetup → Authorization →
+ServiceDiscovery → ServiceDetail → ServiceSelection, stopping at a documented **simulator-fidelity** gap
+(the EVCC hardcodes energy-transfer `ServiceID`/`ParameterSetID` rather than negotiating from the peer's
+advertised catalog — a state-machine enhancement, not a codec/wire bug; see §5).
+
 ## 4. Timing findings
 
 - The loopback E2E tests use an injected `TimeProvider` (elapsed-time checks: SECC sequence timeout,
@@ -78,10 +97,13 @@ interleave), and every captured request/response decodes and re-encodes identica
 
 Nothing below blocks the happy-path simulation; each is honestly out of scope or deferred.
 
-- **Live over-the-wire interop (both directions).** Cross-validation used record mode. A true
-  live run (our EVCC ↔ Josev SECC and vice-versa) needs both stacks on one L2 network (SDP/IPv6),
-  and for -20 the BouncyCastle TLS backend against Josev's TLS config. The `[Explicit]`
-  `JosevInteropTests` hook + `tools/interop-josev/run-our-*.sh` wrappers are in place for it.
+- **Live over-the-wire interop — partially done.** Our EVCC ↔ Josev SECC (-20 DC, plain TCP) now runs live
+  through SDP → SAP → SessionSetup → Auth → ServiceDiscovery (§3; `tools/interop-josev/live-evcc-tcp.sh`,
+  `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`), after fixing three real bugs it surfaced. Remaining:
+  (a) EVCC **dynamic service negotiation** (parse ServiceDiscovery/Detail and select the peer's DC service,
+  match its ControlMode/schedule) to drive a full DC charge loop; (b) the **reverse** direction (Josev EVCC →
+  our SECC); (c) the same over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`);
+  (d) fixing the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp` works without the helper.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.

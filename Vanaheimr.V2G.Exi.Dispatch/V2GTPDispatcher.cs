@@ -48,11 +48,10 @@ namespace Vanaheimr.V2G.Tp
 
             switch (payloadType)
             {
-                case V2GTP.PayloadType_AppProtocol:
-                    set = MessageSet.AppProtocol;
-                    message = SupportedAppProtocolCodec.DecodeAny(payload, out _);
-                    return true;
-
+                // NB: the SupportedAppProtocol handshake shares payload id 0x8001 with the DIN/-2 messages
+                // (see V2GTP.PayloadType_AppProtocol) and is disambiguated by session phase, not payload type —
+                // so it is decoded explicitly by the SAP handshake, never through this payload-type dispatcher.
+                // 0x8001 here therefore resolves to the -2 message set.
                 case V2GTP.PayloadType_DinIso2Main:
                     set = MessageSet.Iso15118_2;
                     message = Iso2Codec.DecodeAny(payload, out _);

@@ -17,8 +17,11 @@ namespace Vanaheimr.V2G.Simulation.Tests.Framing
     public class V2GTPStreamTests
     {
         [Test]
-        public async Task RoundtripsAppProtocolFrame()
+        public async Task RoundtripsAppProtocolFrame_ViaRawFraming()
         {
+            // SAP shares payload id 0x8001 with the -2 messages and is disambiguated by session phase, not
+            // payload type (a live Josev interop run caught the earlier distinct 0x8000 as a wire bug), so it
+            // is framed/decoded through the raw path rather than the payload-type dispatcher.
             var req = new SupportedAppProtocolReq(new[]
             {
                 new AppProtocolEntry("urn:iso:15118:2:2013:MsgDef", 1, 0, SchemaID: 1, Priority: 1),
@@ -27,11 +30,12 @@ namespace Vanaheimr.V2G.Simulation.Tests.Framing
             Assert.That(SupportedAppProtocolCodec.TryEncodeRequest(req, payload, out int n), Is.True);
 
             using var stream = new MemoryStream();
-            await V2GTPStream.WriteFrameAsync(stream, MessageSet.AppProtocol, payload.AsMemory(0, n));
+            await V2GTPStream.WriteRawFrameAsync(stream, V2GTP.PayloadType_AppProtocol, payload.AsMemory(0, n));
             stream.Position = 0;
 
-            var (set, message) = await V2GTPStream.ReadFrameAsync(stream);
-            Assert.That(set, Is.EqualTo(MessageSet.AppProtocol));
+            var (frame, payloadType) = await V2GTPStream.ReadRawFrameAsync(stream);
+            Assert.That(payloadType, Is.EqualTo((ushort) 0x8001));
+            var message = SupportedAppProtocolCodec.DecodeAny(frame.AsSpan(V2GTP.HeaderSize), out _);
             Assert.That(message, Is.InstanceOf<SupportedAppProtocolReq>());
         }
 
