@@ -315,8 +315,9 @@ All four happy paths (-2 AC/DC, -20 AC/DC) run to `SessionStop` over real loopba
 loopback tests on both backends (.NET P-256, BouncyCastle P-521 **and** Ed448), a SLAC UDP
 match test, the SDP message/mapping tests, and one **full-stack E2E** that composes
 SLAC → SDP → mutual TLS (P-521) → SAP → -20 DC session end to end — all loopback, no external
-process, matching the project's build rule. Cross-validation against the independent Josev
-stack (`tools/interop-josev/`) is byte-exact for -2 AC and DC — see the milestones below.
+process, matching the project's build rule. On top of the loopback stack, the whole thing has been driven
+**live over the wire against the independent Josev stack** — both directions, plain TCP and TLS, EIM and
+Plug & Charge — see **Interop status** below.
 
 ## What this prototype still does NOT do
 
@@ -324,11 +325,10 @@ stack (`tools/interop-josev/`) is byte-exact for -2 AC and DC — see the milest
   rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
 - EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
-- External cross-validation against a second toolchain: done for the `SignedInfo` fragment
-  on -2 and -20 CommonMessages — EXIficient (independent W3C-EXI processor) decodes our
-  cbV2G-byte-exact bytes back to the exact expected content, see
-  `tools/exificient-ref/README.md`. DC/AC's ECDSA-P521 paths and Josev interop are still
-  only self-checked, not yet cross-validated.
+- Cross-validate our **DC/AC ECDSA-P521 / Ed448 signature** paths against a second toolchain — still
+  self-checked only (the `SignedInfo` *fragment* is cross-checked vs EXIficient for -2 and -20 CommonMessages,
+  and Josev interop covers the CommonMessages signed `AuthorizationReq`; the DC/AC signature suites aren't
+  externally verified yet). Josev interop itself is **extensively cross-validated** — see **Interop status**.
 - WPT's `WPT_LF_DataPackageList` (present) and `LF_SystemSetupData` (present) combinations
   are self-consistency-tested only, not byte-diffed against cbV2G — the latter can't be:
   cbV2G's own generated encoder for `WPT_LF_TransmitterDataType` fails outright at its
@@ -351,19 +351,44 @@ the -2/-20 AC/DC state machines to `SessionStop`, a composed SLAC→SDP→TLS→
 CLI with stage/backend flags. See the sections above, `docs/pki-model.md` (PKI + TLS design),
 and `docs/roadmap.md`.
 
-The one big remaining conformance signal is external-stack interop:
+## Interop status (Josev)
 
-1. **Josev interop** (`tools/interop-josev/`) — **-2 AC/DC EIM and -20 DC Plug & Charge are done and
-   byte-exact**. Josev's own EXIficient-encoded frames decode and re-encode *identically* through our codec:
-   for -2, SAP + the full DC charge loop; for -20, SAP + **all 30** distinct frames of a full PnC DC session
-   across both schema sets, including the **signed** `AuthorizationReq` (`JosevCapturedFrames{,Dc,20}Tests`,
-   run in CI; artifacts under `docs/interop-runs/2026-07-21-iso2*-*/`). On the SAP frames, **our codec ≡
-   cbV2G ≡ EXIficient**. The -20 run surfaced and **fixed** a real source-generator gap: the signed
-   `AuthorizationReq`'s `SignedInfo`/`Reference`/`Transforms` EXI-canonicalisation element — `TransformType`'s
-   `minOccurs=0 maxOccurs=unbounded` mixed choice was emitted as a mandatory single choice with no
-   END-Element alternative (and `TransformsType`'s unbounded list left `ListMax=0`). The generator now models
-   an optional/repeatable direct `xs:choice` as an EE-terminated optional run matching cbexigen's grammar;
-   all cbV2G vectors stay byte-exact. Optionally, live over-the-wire interop via the `[Explicit]`
-   `JosevInteropTests` hook (record mode gives the same signal).
-2. **Phase 5 closing report** — codec/sequence discrepancies, timing findings, and known gaps
-   (live Plug & Charge contract-cert provisioning, WPT/ACDP interop).
+Cross-validated against **Josev** (SwitchEV/iso15118 @ `d645255`), an independent Python stack that encodes
+with **EXIficient** and shares no lineage with our cbV2G oracle — the highest-value conformance signal short of
+certified hardware. Tooling under [`tools/interop-josev/`](tools/interop-josev/README.md); full write-ups and
+frame logs under [`docs/interop-runs/`](docs/interop-runs/). The `[Explicit]` `JosevInteropTests` gate keeps
+all of this out of the offline CI run.
+
+- **Record mode (byte-exact codec cross-check, in CI):** Josev's own EXIficient-encoded frames decode and
+  re-encode *identically* through our codec — for -2, SAP + the full AC and DC charge loops; for -20, SAP +
+  **all 30** frames of a full PnC DC session across both schema sets, including the **signed**
+  `AuthorizationReq` (`JosevCapturedFrames{,Dc,20}Tests`). On the SAP frames, **our codec ≡ cbV2G ≡
+  EXIficient**. This surfaced and **fixed** a real source-generator gap — the xmldsig `Transforms`
+  EXI-canonicalisation grammar (`TransformType`'s `minOccurs=0 maxOccurs=unbounded` choice was a mandatory
+  single choice with no END-Element alternative; `TransformsType`'s unbounded list left `ListMax=0`); the
+  generator now models an optional/repeatable direct `xs:choice` as an EE-terminated optional run, all cbV2G
+  vectors staying byte-exact.
+- **Live over-the-wire, plain TCP — both directions:** a complete ISO 15118-20 **DC** session runs end to end
+  to `SessionStop` both as our EVCC ↔ Josev SECC (forward) and Josev EVCC → our SECC (reverse). Together they
+  caught and fixed **ten** real conformance bugs invisible to loopback (the V2GTP SAP payload id, the SAP -20
+  namespace, EVCC SessionID adoption, dynamic service negotiation, `MaximumSupportingPoints`, a populated
+  `EVPowerProfile`/`PowerToleranceAcceptance`, three SECC content bugs, and the DC **poll-loop self-looping** —
+  a real EV polls CableCheck/PreCharge/PowerDelivery/WeldingDetection until each step completes). Both SECCs
+  also accept `SessionStop` in any phase (graceful abort).
+- **Live over-the-wire, TLS:** the same DC session runs over **TLS 1.2 (unilateral)** and **TLS 1.3 (mutual)**
+  forward, and **TLS 1.3 mutual** reverse. Josev's PKI is **P-256** (not the -20-nominal secp521r1), so the
+  Josev-facing TLS is the .NET `SslStream` backend; our secp521r1/Ed448 BouncyCastle backend stays proven in
+  loopback. Found + fixed a client/server certificate-**chain** transmission bug (`SslStream` sent only the
+  leaf, breaking a root-only peer) via `SslStreamCertificateContext`.
+- **Live Plug & Charge over TLS:** our SECC offers PnC + a `GenChallenge` and validates Josev's signed
+  `AuthorizationReq`. The **`GenChallenge` echo and reference digest verify** — the digest match proves our
+  signed-element fragment codec is **byte-exact vs EXIficient over a live message**. The ECDSA signature over
+  the `SignedInfo` fragment does *not* verify against any standard EXI encoding (ours, EXIficient default, or
+  EXIficient Canonical EXI); this was investigated to ground truth (`JosevPnCSignatureDiag`) — Josev signs a
+  non-standard `SignedInfo` octet form, **not a codec bug** in our byte-exact stack.
+
+Remaining interop wrap-up: reproduce Josev's exact PnC `SignedInfo` signing octets (or add a second PnC oracle
+whose form is standard EXI); fix the WWCP SDP multicast interface binding so `--sdp` works without the SDP
+responder shim; extend live runs to AC / WPT / ACDP. The **Phase 5 closing report**
+([`docs/phase5-report.md`](docs/phase5-report.md)) has the full DoD scorecard, every fix, and the honest
+gaps list.
