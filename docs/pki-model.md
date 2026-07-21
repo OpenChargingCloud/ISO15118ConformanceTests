@@ -197,9 +197,12 @@ BouncyCastle backend for the secp521r1/Ed448 -20 TLS profile, the .NET backend o
   **multicast** exchange runs only in real/CLI runs — an EVCC and SECC in one process on one host cannot
   hear each other's multicast (both disable multicast loopback), and Windows multicast in CI is
   unreliable, so it stays out of the deterministic test run.
-- **SLAC** stage — now buildable (Hermod + Styx submodules are vendored, the SLAC project compiles), but
-  not yet wired; it also drags in the heavy Hermod dependency, so placement (separate integration
-  project vs. library) is still to decide.
+- **SLAC** stage — wired into the Simulation library (`Slac/`): `SlacEvStage` / `SlacEvseStage` over the
+  WWCP SLAC state machines. Unlike SDP, SLAC **is** deterministically loopback-testable — `UdpSlacTransport`
+  unicasts to bootstrap/learned peers (no multicast), so a full EV↔EVSE match runs in-process over
+  loopback UDP (`Slac/SlacUdpLoopbackTests.cs`, ~1 s, asserts matching NID/NMK). Placed directly in the
+  core library (accepting the heavy transitive `Hermod`/`Styx` dependency) — a "slim down Hermod" cleanup
+  is noted as a future TODO.
 
 ## Related
 
