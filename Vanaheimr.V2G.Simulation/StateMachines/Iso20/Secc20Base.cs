@@ -36,11 +36,14 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         protected abstract (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request);
 
-        /// <summary>DC only: is <paramref name="request"/> another poll of the self-looping <paramref name="phase"/>
-        /// (CableCheck/PreCharge/WeldingDetection) — so the SECC answers it and stays put — rather than the
-        /// next-phase message that ends the loop? The base can't name the DC request types (they live in a
-        /// separate, colliding namespace), so <see cref="Secc20Dc"/> classifies them. AC never self-loops.</summary>
-        protected virtual bool IsPollFor(Phase20 phase, object request) => false;
+        /// <summary>Is <paramref name="request"/> another poll of the self-looping <paramref name="phase"/> — so the
+        /// SECC answers it and stays put — rather than the next-phase message that ends the loop? The
+        /// <see cref="Phase20.PowerOn"/> poll (a real EV, e.g. Josev, repeats <c>PowerDeliveryReq(Start)</c> with
+        /// <c>EVProcessing=Ongoing</c> until it starts the charge loop) is a CommonMessages request the base can
+        /// name; <see cref="Secc20Dc"/> additionally classifies the DC-only poll phases
+        /// (CableCheck/PreCharge/WeldingDetection), whose request types live in a separate, colliding namespace.</summary>
+        protected virtual bool IsPollFor(Phase20 phase, object request) =>
+            phase == Phase20.PowerOn && request is PowerDeliveryReq { ChargeProgress: ChargeProgress.Start };
 
         protected virtual (MessageSet Set, object Response) HandleCableCheck(object request) =>
             throw new NotSupportedException("CableCheck has no handler for this energy-transfer mode.");
@@ -113,8 +116,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 (Phase20.PreCharge, _, _) when HasPreChargeSequence =>
                     Append(HandlePreCharge(request), Phase20.PreCharge),
 
+                // Self-looping poll phase: a real EV repeats PowerDeliveryReq(Start) (EVProcessing=Ongoing)
+                // until it begins the charge loop; answer each and stay. The pre-switch loop advances to
+                // Charging (without consuming) once the first charge-loop message arrives.
                 (Phase20.PowerOn, MessageSet.Iso20CommonMessages, PowerDeliveryReq { ChargeProgress: ChargeProgress.Start } r) =>
-                    Step(MessageSet.Iso20CommonMessages, PowerDelivery(r), Phase20.Charging),
+                    Step(MessageSet.Iso20CommonMessages, PowerDelivery(r), Phase20.PowerOn),
 
                 (Phase20.Charging, MessageSet.Iso20CommonMessages, PowerDeliveryReq { ChargeProgress: ChargeProgress.Stop } r) =>
                     Step(MessageSet.Iso20CommonMessages, PowerDelivery(r), HasPostChargeSequence ? Phase20.WeldingDetection : Phase20.SessionStop),
@@ -158,9 +164,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         private static (MessageSet, object, Phase20) Append((MessageSet Set, object Response) result, Phase20 next) =>
             (result.Set, result.Response, next);
 
-        /// <summary>The DC phases an EV polls (repeats) until it decides the step is done. AC has none.</summary>
+        /// <summary>The phases an EV polls (repeats) until it decides the step is done. PowerOn (PowerDelivery
+        /// start) applies to both AC and DC; CableCheck/PreCharge/WeldingDetection are DC-only.</summary>
         private bool IsSelfLoopPhase(Phase20 p) =>
-            ((p is Phase20.CableCheck or Phase20.PreCharge) && HasPreChargeSequence)
+            p is Phase20.PowerOn
+            || ((p is Phase20.CableCheck or Phase20.PreCharge) && HasPreChargeSequence)
             || (p is Phase20.WeldingDetection && HasPostChargeSequence);
 
         /// <summary>Where a self-looping phase hands off once its poll loop ends (the next-phase message arrives).</summary>
@@ -168,6 +176,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         {
             Phase20.CableCheck       => Phase20.PreCharge,
             Phase20.PreCharge        => Phase20.PowerOn,
+            Phase20.PowerOn          => Phase20.Charging,
             Phase20.WeldingDetection => Phase20.SessionStop,
             _                        => p,
         };

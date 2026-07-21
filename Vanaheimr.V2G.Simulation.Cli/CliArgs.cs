@@ -17,7 +17,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
         ProtocolVariant Protocol, PowerMode Mode, TlsBackend TlsBackend,
         bool UseSdp, string? Interface,
         bool UseSlac, int SlacListenPort, string? SlacPeerHost, int SlacPeerPort,
-        string? PkiDir, string? ClientCertPath, string? ClientCertPass)
+        string? PkiDir, string? ClientCertPath, string? ClientCertPass,
+        string? ServerCertPath, string? ServerCertPass, bool RequireClientCert)
     {
         public static CliArgs Parse(string[] args)
         {
@@ -31,8 +32,9 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var mode = PowerMode.Ac;
             var backend = TlsBackend.None;
             bool tls = false;
-            bool useSdp = false, useSlac = false;
+            bool useSdp = false, useSlac = false, requireClientCert = false;
             string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
+            string? serverCertPath = null, serverCertPass = null;
             int slacListenPort = 0, slacPeerPort = 0;
 
             for (int i = 1; i < args.Length; i++)
@@ -96,6 +98,15 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     case "--client-cert-pass":
                         clientCertPass = args[++i];
                         break;
+                    case "--server-cert":
+                        serverCertPath = args[++i];
+                        break;
+                    case "--server-cert-pass":
+                        serverCertPass = args[++i];
+                        break;
+                    case "--require-client-cert":
+                        requireClientCert = true;
+                        break;
                     default:
                         throw new ArgumentException($"unknown argument '{args[i]}'.\n{Usage}");
                 }
@@ -109,7 +120,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
 
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
                                useSdp, iface, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
-                               clientCertPath, clientCertPass);
+                               clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert);
         }
 
         private static void Validate(Role role, string? connectHost, int listenPort, TlsBackend backend,
@@ -161,6 +172,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "       secc --listen  <port>      --protocol 2|20 --mode ac|dc [tls/stage options]\n" +
             "  TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)\n" +
             "         evcc --client-cert <pfx> [--client-cert-pass <pw>]  (mutual TLS on the .NET backend)\n" +
+            "         secc --server-cert <pfx> [--server-cert-pass <pw>] [--require-client-cert]  (.NET backend)\n" +
             "  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)\n" +
             "  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)";
     }

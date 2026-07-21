@@ -18,10 +18,11 @@ session end to end to SessionStop in **both directions** — forward (our EVCC �
 WeldingDetection poll phases** (a real EV polls each until it decides the step is done; the validated reverse
 run saw 4 PreCharge + 5 WeldingDetection polls, all answered in place). Together the two directions caught and
 fixed **ten** real conformance bugs. Both SECCs now also accept a `SessionStopReq` in any phase (graceful
-early-abort). **Live TLS** also runs: our EVCC drives a complete -20 DC session against Josev's SECC over
-**TLS 1.2 unilateral** and **TLS 1.3 mutual** (Josev is P-256, so the .NET `SslStream` backend, not our
-secp521r1 BouncyCastle one; a client-chain-transmission bug was found + fixed). What's left is optional
-wrap-up (live Plug & Charge, the reverse TLS direction) — see the report.
+early-abort). **Live TLS runs in both directions**: our EVCC → Josev SECC over **TLS 1.2 unilateral** and
+**TLS 1.3 mutual**, and Josev EVCC → our SECC over **TLS 1.3 mutual** — each a complete -20 DC session to
+SessionStop (Josev is P-256, so the .NET `SslStream` backend, not our secp521r1 BouncyCastle one; found +
+fixed a client/server chain-transmission bug and a `PowerDelivery(Start)` poll-phase bug). What's left is
+optional wrap-up (live Plug & Charge) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|

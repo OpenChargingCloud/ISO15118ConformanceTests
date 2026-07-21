@@ -25,7 +25,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             Phase20.CableCheck       => request is Dc20.DC_CableCheckReq,
             Phase20.PreCharge        => request is Dc20.DC_PreChargeReq,
             Phase20.WeldingDetection => request is Dc20.DC_WeldingDetectionReq,
-            _                        => false,
+            _                        => base.IsPollFor(phase, request),   // PowerOn (PowerDeliveryReq start) handled by the base
         };
 
         protected override (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request)

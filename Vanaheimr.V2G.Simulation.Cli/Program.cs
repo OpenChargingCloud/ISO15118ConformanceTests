@@ -61,8 +61,22 @@ namespace Vanaheimr.V2G.Simulation.Cli
             if (args.UseSlac)
                 await RunSeccSlacAsync(args);
 
-            using var devCert = args.TlsBackend == TlsBackend.Dotnet ? CreateDevCertificate() : null;
-            var dotnetTls = devCert is null ? null : new TlsOptions { ServerCertificate = devCert };
+            // .NET backend: a supplied --server-cert (e.g. a CPO/SECC leaf chain a real EVCC's trust anchor
+            // accepts) takes precedence over the fresh self-signed dev cert. With --require-client-cert the SECC
+            // requires + (dev: accepts any) the EVCC's client certificate for mutual TLS.
+            var (serverLeaf, serverChain) = LoadCertificateWithChain(args.ServerCertPath, args.ServerCertPass);
+            using var devCert = args.TlsBackend == TlsBackend.Dotnet && serverLeaf is null ? CreateDevCertificate() : null;
+            var dotnetTls = args.TlsBackend != TlsBackend.Dotnet ? null : new TlsOptions
+            {
+                ServerCertificate         = serverLeaf ?? devCert,
+                ServerCertificateChain    = serverChain,
+                EnabledSslProtocols       = SslProtocols.Tls12 | SslProtocols.Tls13,
+                RequireClientCertificate  = args.RequireClientCert,
+                ClientCertificateValidation = args.RequireClientCert ? (_, _, _, _) => true : null,
+            };
+            if (serverLeaf is not null)
+                Console.WriteLine($"Presenting server certificate: {serverLeaf.Subject} (+{serverChain?.Count ?? 0} intermediate(s))"
+                                  + (args.RequireClientCert ? "; requiring a client certificate (mutual TLS, dev: accept-any)" : ""));
             var bcTls     = args.TlsBackend == TlsBackend.BouncyCastle ? CliPki.GenerateSeccOptions(args.PkiDir!) : null;
 
             using var listener = bcTls is not null
@@ -143,7 +157,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 case TlsBackend.Dotnet:
                     // Dev CLI only: no out-of-band way to learn the SECC dev-cert thumbprint, so accept any.
                     Console.WriteLine("WARNING: accepting any TLS server certificate — dev CLI only, never against a real SECC.");
-                    var (clientLeaf, clientChain) = LoadClientCertificate(args);
+                    var (clientLeaf, clientChain) = LoadCertificateWithChain(args.ClientCertPath, args.ClientCertPass);
                     var tlsOptions = new TlsOptions
                     {
                         ServerCertificateValidation = (_, _, _, _) => true,
@@ -218,14 +232,14 @@ namespace Vanaheimr.V2G.Simulation.Cli
         private static string ProtocolName(ProtocolVariant p) => p == ProtocolVariant.Iso15118_2 ? "-2" : "-20";
         private static string ModeName(PowerMode m) => m == PowerMode.Ac ? "AC" : "DC";
 
-        /// <summary>Loads a PKCS#12 client certificate for mutual TLS, splitting the private-key leaf from its
-        /// intermediate CA chain so <c>SslStream</c> can send both. Returns (null, null) when none is configured.</summary>
-        private static (X509Certificate2? Leaf, X509Certificate2Collection? Chain) LoadClientCertificate(CliArgs args)
+        /// <summary>Loads a PKCS#12 certificate for TLS (client or server), splitting the private-key leaf from its
+        /// intermediate CA chain so <c>SslStream</c> can send both. Returns (null, null) when <paramref name="path"/> is null.</summary>
+        private static (X509Certificate2? Leaf, X509Certificate2Collection? Chain) LoadCertificateWithChain(string? path, string? password)
         {
-            if (args.ClientCertPath is not { } path)
+            if (path is null)
                 return (null, null);
 
-            var all = X509CertificateLoader.LoadPkcs12CollectionFromFile(path, args.ClientCertPass, X509KeyStorageFlags.Exportable);
+            var all = X509CertificateLoader.LoadPkcs12CollectionFromFile(path, password, X509KeyStorageFlags.Exportable);
             var leaf = all.FirstOrDefault(c => c.HasPrivateKey) ?? all[0];
             var chain = new X509Certificate2Collection(all.Where(c => !ReferenceEquals(c, leaf)).ToArray());
             return (leaf, chain);

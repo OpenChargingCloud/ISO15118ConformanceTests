@@ -65,12 +65,18 @@ namespace Vanaheimr.V2G.Simulation.Transport
 
             var ssl = new SslStream(stream, leaveInnerStreamOpen: false,
                 userCertificateValidationCallback: _tls.ClientCertificateValidation);
-            await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+            var serverOptions = new SslServerAuthenticationOptions
             {
-                ServerCertificate = _tls.ServerCertificate,
                 EnabledSslProtocols = _tls.EnabledSslProtocols,
                 ClientCertificateRequired = _tls.RequireClientCertificate, // mutual TLS for ISO 15118-20
-            }, ct).ConfigureAwait(false);
+            };
+            // Use a certificate context (not just ServerCertificate) so SslStream sends the intermediate chain,
+            // letting a root-only EVCC build the path to its trust anchor — mirrors the client-side fix.
+            if (_tls.ServerCertificateChain is not null)
+                serverOptions.ServerCertificateContext = SslStreamCertificateContext.Create(_tls.ServerCertificate!, _tls.ServerCertificateChain);
+            else
+                serverOptions.ServerCertificate = _tls.ServerCertificate;
+            await ssl.AuthenticateAsServerAsync(serverOptions, ct).ConfigureAwait(false);
             return ssl;
         }
 

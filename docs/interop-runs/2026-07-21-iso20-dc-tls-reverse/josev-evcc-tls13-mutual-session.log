@@ -1,0 +1,293 @@
+time="2026-07-21T20:37:36+02:00" level=warning msg="/home/ahzf/josev-interop/iso15118/docker-compose-host-mode.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container iso15118-redis-1 Running 
+Attaching to evcc-1
+ Container iso15118-secc-1 Starting 
+ Container iso15118-secc-1 Started 
+ Container iso15118-evcc-1 Starting 
+ Container iso15118-evcc-1 Started 
+evcc-1  | DEBUG    2026-07-21 18:37:45,941 - asyncio (54): Using selector: EpollSelector
+evcc-1  | INFO    2026-07-21 18:37:45,949 - iso15118.evcc.evcc_settings (48): EVCC environment settings:
+evcc-1  | INFO    2026-07-21 18:37:45,949 - iso15118.evcc.evcc_settings (50): PKI_PATH                      : /venv/lib/python3.10/site-packages/iso15118/shared/pki/
+evcc-1  | INFO    2026-07-21 18:37:45,949 - iso15118.evcc.evcc_settings (50): MESSAGE_LOG_JSON              : True
+evcc-1  | INFO    2026-07-21 18:37:45,949 - iso15118.evcc.evcc_settings (50): MESSAGE_LOG_EXI               : True
+evcc-1  | INFO    2026-07-21 18:37:45,950 - iso15118.evcc.evcc_settings (50): ENABLE_TLS_1_3                : True
+evcc-1  | INFO    2026-07-21 18:37:45,951 - iso15118.evcc.evcc_settings (52): NETWORK_INTERFACE             : eth0
+evcc-1  | INFO    2026-07-21 18:37:45,951 - iso15118.evcc.evcc_settings (52): LOG_LEVEL                     : DEBUG
+evcc-1  | INFO    2026-07-21 18:37:45,951 - iso15118.evcc.evcc_settings (52): EVCC_CONFIG_PATH              : /tmp/evcc_config_dc_tls.json
+evcc-1  | INFO    2026-07-21 18:37:45,959 - iso15118.evcc.evcc_config (120): EVCC Settings
+evcc-1  | INFO    2026-07-21 18:37:45,959 - iso15118.evcc.evcc_config (123): supported_energy_services     : [<ServiceV20.DC: 2>]
+evcc-1  | INFO    2026-07-21 18:37:45,959 - iso15118.evcc.evcc_config (123): is_cert_install_needed        : False
+evcc-1  | INFO    2026-07-21 18:37:45,959 - iso15118.evcc.evcc_config (123): use_tls                       : True
+evcc-1  | INFO    2026-07-21 18:37:45,959 - iso15118.evcc.evcc_config (123): sdp_retry_cycles              : 1
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): max_contract_certs            : 3
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): enforce_tls                   : False
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): supported_protocols           : [<Protocol.ISO_15118_20_DC: (<Namespace.ISO_V20_DC: 'urn:iso:std:iso:15118:-20:DC'>, <enum 'ISOV20PayloadTypes'>)>]
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): energy_transfer_mode          : AC_three_phase_core
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): max_supporting_points         : 1024
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): charge_loop_cycle             : 10
+evcc-1  | INFO    2026-07-21 18:37:45,960 - iso15118.evcc.evcc_config (123): charge_loop_delay_time        : 0
+evcc-1  | INFO    2026-07-21 18:37:48,275 - iso15118.shared.exi_codec (177): EXI Codec version: 1.55
+evcc-1  | INFO    2026-07-21 18:37:48,275 - iso15118.evcc (30): Starting 15118 version: 0.31.2
+evcc-1  | INFO    2026-07-21 18:37:48,276 - iso15118.evcc.comm_session_handler (313): Communication session handler started
+evcc-1  | DEBUG    2026-07-21 18:37:48,277 - iso15118.evcc.comm_session_handler (392): Initiating new SDP cycle, 0 more cycles(s) left
+evcc-1  | INFO    2026-07-21 18:37:48,277 - iso15118.evcc.comm_session_handler (398): Remaining SDP requests: 50
+evcc-1  | DEBUG    2026-07-21 18:37:48,277 - iso15118.evcc.transport.udp_client (90): UDP client socket ready
+evcc-1  | INFO    2026-07-21 18:37:48,378 - iso15118.evcc.comm_session_handler (335): Sending SDPRequest: [Security: TLS, Protocol: TCP]
+evcc-1  | DEBUG    2026-07-21 18:37:48,386 - iso15118.evcc.transport.udp_client (170): Message sent: [Header = [0x1, 0xfe, 0x9000, 2], Payload = 0000)]
+evcc-1  | INFO    2026-07-21 18:37:48,388 - iso15118.evcc.transport.udp_client (105): Received datagram from UDP server at address ('fe80::215:5dff:fe46:863f', 15118, 0, 2)
+evcc-1  | INFO    2026-07-21 18:37:48,389 - iso15118.evcc.comm_session_handler (485): SDPResponse received: [ IP address: fe80::215:5dff:fe46:863f, Port: 55000 , Security: TLS , Transport: TCP ]
+evcc-1  | INFO    2026-07-21 18:37:48,389 - iso15118.evcc.comm_session_handler (416): Starting TLS client, trying to connect to fe80::215:5dff:fe46:863f at port 55000 ...
+evcc-1  | INFO    2026-07-21 18:37:48,402 - iso15118.evcc.transport.udp_client (105): Received datagram from UDP server at address ('fe80::215:5dff:fe46:863f', 15118, 0, 2)
+evcc-1  | INFO    2026-07-21 18:37:48,591 - iso15118.evcc.comm_session_handler (423): TCP client connected
+evcc-1  | INFO    2026-07-21 18:37:48,613 - iso15118.shared.comm_session (344): Starting a new communication session
+evcc-1  | INFO    2026-07-21 18:37:48,613 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+evcc-1  | DEBUG    2026-07-21 18:37:48,614 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | INFO    2026-07-21 18:37:48,614 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolReq": {"AppProtocol": [{"ProtocolNamespace": "urn:iso:std:iso:15118:-20:DC", "VersionNumberMajor": 1, "VersionNumberMinor": 0, "SchemaID": 1, "Priority": 1}]}}
+evcc-1  | DEBUG    2026-07-21 18:37:48,719 - iso15118.shared.exi_codec (261): EXI-encoded message: 8000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040
+evcc-1  | INFO    2026-07-21 18:37:48,719 - iso15118.shared.comm_session (431): Sent supportedAppProtocolReq
+evcc-1  | DEBUG    2026-07-21 18:37:48,733 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:15118:2:2010:AppProtocol): 80400040
+evcc-1  | INFO    2026-07-21 18:37:48,979 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolRes":{"ResponseCode":"OK_SuccessfulNegotiation","SchemaID":1}}
+evcc-1  | INFO    2026-07-21 18:37:48,980 - iso15118.shared.comm_session (235): supportedAppProtocolRes received
+evcc-1  | INFO    2026-07-21 18:37:48,981 - iso15118.evcc.states.sap_states (159): Chosen protocol: ISO_15118_20_DC
+evcc-1  | INFO    2026-07-21 18:37:48,981 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupReq": {"Header": {"SessionID": "0000000000000000", "TimeStamp": 1784659068}, "EVCCID": "WMIV1234567890ABCDEX"}}
+evcc-1  | DEBUG    2026-07-21 18:37:49,391 - iso15118.shared.exi_codec (261): EXI-encoded message: 808c0400000000000000000fcf8fed20620b2ba6a4ab1899199a1a9b1b9c1c9820a121a222ac00
+evcc-1  | INFO    2026-07-21 18:37:49,392 - iso15118.shared.comm_session (431): Sent SessionSetupReq
+evcc-1  | INFO    2026-07-21 18:37:49,392 - iso15118.shared.states (139): Entered state SessionSetup
+evcc-1  | DEBUG    2026-07-21 18:37:49,392 - iso15118.shared.states (143): Waiting for up to 20.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:49,477 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8090046626506518eee25a0fdf8fed20620402d1114a905090ca914c40
+evcc-1  | INFO    2026-07-21 18:37:49,656 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659069},"ResponseCode":"OK_NewSessionEstablished","EVSEID":"DE*ABC*E1"}}
+evcc-1  | INFO    2026-07-21 18:37:49,656 - iso15118.shared.comm_session (235): SessionSetupRes received
+evcc-1  | INFO    2026-07-21 18:37:49,657 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659069}}}
+evcc-1  | DEBUG    2026-07-21 18:37:49,833 - iso15118.shared.exi_codec (261): EXI-encoded message: 8008046626506518eee25a0fdf8fed2062
+evcc-1  | INFO    2026-07-21 18:37:49,833 - iso15118.shared.comm_session (431): Sent AuthorizationSetupReq
+evcc-1  | INFO    2026-07-21 18:37:49,834 - iso15118.shared.states (139): Entered state AuthorizationSetup
+evcc-1  | DEBUG    2026-07-21 18:37:49,834 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:49,839 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 800c046626506518eee25a0fdf8fed2062000401
+evcc-1  | INFO    2026-07-21 18:37:49,998 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659069},"ResponseCode":"OK","AuthorizationServices":["EIM"],"CertificateInstallationService":false,"EIM_ASResAuthorizationMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:49,999 - iso15118.shared.comm_session (235): AuthorizationSetupRes received
+evcc-1  | INFO    2026-07-21 18:37:50,000 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659069}, "SelectedAuthorizationService": "EIM", "EIM_AReqAuthorizationMode": {}}}
+evcc-1  | DEBUG    2026-07-21 18:37:50,175 - iso15118.shared.exi_codec (261): EXI-encoded message: 8000046626506518eee25a0fdf8fed206200
+evcc-1  | INFO    2026-07-21 18:37:50,175 - iso15118.shared.comm_session (431): Sent AuthorizationReq
+evcc-1  | INFO    2026-07-21 18:37:50,176 - iso15118.shared.states (139): Entered state Authorization
+evcc-1  | DEBUG    2026-07-21 18:37:50,176 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:50,179 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8004046626506518eee25a0fef8fed20620000
+evcc-1  | INFO    2026-07-21 18:37:50,304 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659070},"ResponseCode":"OK","EVSEProcessing":"Finished"}}
+evcc-1  | INFO    2026-07-21 18:37:50,304 - iso15118.shared.comm_session (235): AuthorizationRes received
+evcc-1  | INFO    2026-07-21 18:37:50,305 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659070}}}
+evcc-1  | DEBUG    2026-07-21 18:37:50,437 - iso15118.shared.exi_codec (261): EXI-encoded message: 807c046626506518eee25a0fef8fed206280
+evcc-1  | INFO    2026-07-21 18:37:50,438 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryReq
+evcc-1  | INFO    2026-07-21 18:37:50,439 - iso15118.shared.states (139): Entered state ServiceDiscovery
+evcc-1  | DEBUG    2026-07-21 18:37:50,439 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:50,446 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8080046626506518eee25a0fef8fed2062000002114a
+evcc-1  | INFO    2026-07-21 18:37:50,576 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659070},"ResponseCode":"OK","ServiceRenegotiationSupported":false,"EnergyTransferServiceList":{"Service":[{"ServiceID":2,"FreeService":true}]}}}
+evcc-1  | INFO    2026-07-21 18:37:50,577 - iso15118.shared.comm_session (235): ServiceDiscoveryRes received
+evcc-1  | INFO    2026-07-21 18:37:50,578 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659070}, "ServiceID": 2}}
+evcc-1  | DEBUG    2026-07-21 18:37:50,668 - iso15118.shared.exi_codec (261): EXI-encoded message: 8074046626506518eee25a0fef8fed20620100
+evcc-1  | INFO    2026-07-21 18:37:50,669 - iso15118.shared.comm_session (431): Sent ServiceDetailReq
+evcc-1  | INFO    2026-07-21 18:37:50,670 - iso15118.shared.states (139): Entered state ServiceDetail
+evcc-1  | DEBUG    2026-07-21 18:37:50,670 - iso15118.shared.states (143): Waiting for up to 5.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:50,677 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8078046626506518eee25a0fef8fed20620000800202d0dbdb9b9958dd1bdc980200d436f6e74726f6c4d6f6465600804d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e676000a0
+evcc-1  | INFO    2026-07-21 18:37:50,778 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659070},"ResponseCode":"OK","ServiceID":2,"ServiceParameterList":{"ParameterSet":[{"ParameterSetID":1,"Parameter":[{"Name":"Connector","intValue":1},{"Name":"ControlMode","intValue":1},{"Name":"MobilityNeedsMode","intValue":1},{"Name":"Pricing","intValue":0}]}]}}}
+evcc-1  | INFO    2026-07-21 18:37:50,779 - iso15118.shared.comm_session (235): ServiceDetailRes received
+evcc-1  | INFO    2026-07-21 18:37:50,780 - iso15118.evcc.states.iso15118_20_states (664): Selected Control Mode: 1
+evcc-1  | INFO    2026-07-21 18:37:50,780 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659070}, "SelectedEnergyTransferService": {"ServiceID": 2, "ParameterSetID": 1}}}
+evcc-1  | DEBUG    2026-07-21 18:37:50,876 - iso15118.shared.exi_codec (261): EXI-encoded message: 8084046626506518eee25a0fef8fed206200800880
+evcc-1  | INFO    2026-07-21 18:37:50,877 - iso15118.shared.comm_session (431): Sent ServiceSelectionReq
+evcc-1  | INFO    2026-07-21 18:37:50,878 - iso15118.shared.states (139): Entered state ServiceSelection
+evcc-1  | DEBUG    2026-07-21 18:37:50,878 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:50,881 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8088046626506518eee25a0fef8fed20620000
+evcc-1  | INFO    2026-07-21 18:37:50,963 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659070},"ResponseCode":"OK"}}
+evcc-1  | INFO    2026-07-21 18:37:50,963 - iso15118.shared.comm_session (235): ServiceSelectionRes received
+evcc-1  | INFO    2026-07-21 18:37:50,965 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeParameterDiscoveryReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659070}, "DC_CPDReqEnergyTransferMode": {"EVMaximumChargePower": {"Exponent": 3, "Value": 300}, "EVMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVMaximumChargeCurrent": {"Exponent": 0, "Value": 300}, "EVMinimumChargeCurrent": {"Exponent": 0, "Value": 10}, "EVMaximumVoltage": {"Exponent": 0, "Value": 1000}, "EVMinimumVoltage": {"Exponent": 0, "Value": 10}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,093 - iso15118.shared.exi_codec (261): EXI-encoded message: 803c046626506518eee25a0fef8fed20628830ac0204003202002b0081000140800e807040005080
+evcc-1  | INFO    2026-07-21 18:37:51,093 - iso15118.shared.comm_session (431): Sent DC_ChargeParameterDiscoveryReq
+evcc-1  | INFO    2026-07-21 18:37:51,094 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
+evcc-1  | DEBUG    2026-07-21 18:37:51,094 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:51,102 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8040046626506518eee25a0fff8fed2062004408441382000001001900208000004007a0182000c856
+evcc-1  | INFO    2026-07-21 18:37:51,158 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeParameterDiscoveryRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","DC_CPDResEnergyTransferMode":{"EVSEMaximumChargePower":{"Exponent":1,"Value":5000},"EVSEMinimumChargePower":{"Exponent":0,"Value":0},"EVSEMaximumChargeCurrent":{"Exponent":0,"Value":200},"EVSEMinimumChargeCurrent":{"Exponent":0,"Value":0},"EVSEMaximumVoltage":{"Exponent":0,"Value":500},"EVSEMinimumVoltage":{"Exponent":0,"Value":50}}}}
+evcc-1  | INFO    2026-07-21 18:37:51,159 - iso15118.shared.comm_session (235): DC_ChargeParameterDiscoveryRes received
+evcc-1  | INFO    2026-07-21 18:37:51,161 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ScheduleExchangeReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}, "MaximumSupportingPoints": 1024, "Scheduled_SEReqControlMode": {"DepartureTime": 7200, "EVTargetEnergyRequest": {"Exponent": 3, "Value": 10}, "EVMaximumEnergyRequest": {"Exponent": 3, "Value": 20}, "EVMinimumEnergyRequest": {"Exponent": -2, "Value": 5}, "EVEnergyOffer": {"EVPowerSchedule": {"TimeAnchor": 0, "EVPowerScheduleEntries": {"EVPowerScheduleEntry": [{"Duration": 3600, "Power": {"Exponent": 3, "Value": -10}}]}}, "EVAbsolutePriceSchedule": {"TimeAnchor": 0, "Currency": "EUR", "PriceAlgorithm": "urn:iso:std:iso:15118:-20:PriceAlgorithm:1-Power", "EVPriceRuleStacks": {"EVPriceRuleStack": [{"Duration": 0, "EVPriceRule": [{"EnergyFee": {"Exponent": 0, "Value": 0}, "PowerRangeStart": {"Exponent": 0, "Value": 0}}]}]}}}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,272 - iso15118.shared.exi_codec (261): EXI-encoded message: 806c046626506518eee25a0fff8fed20627e84280e008300a010602803f00280000480e0418848400002a2aaa903275726e3a69736f3a7374643a69736f3a31353131383a2d32303a5072696365416c676f726974686d3a312d506f7765720000200000100000140
+evcc-1  | INFO    2026-07-21 18:37:51,272 - iso15118.shared.comm_session (431): Sent ScheduleExchangeReq
+evcc-1  | INFO    2026-07-21 18:37:51,272 - iso15118.shared.states (139): Entered state ScheduleExchange
+evcc-1  | DEBUG    2026-07-21 18:37:51,273 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:51,288 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8070046626506518eee25a0fff8fed20620000100200042407020019092800009008240700008a
+evcc-1  | INFO    2026-07-21 18:37:51,421 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ScheduleExchangeRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","EVSEProcessing":"Finished","GoToPause":false,"Scheduled_SEResControlMode":{"ScheduleTuple":[{"ScheduleTupleID":1,"ChargingSchedule":{"PowerSchedule":{"TimeAnchor":0,"PowerScheduleEntries":{"PowerScheduleEntry":[{"Duration":3600,"Power":{"Exponent":0,"Value":100}}]}},"PriceLevelSchedule":{"TimeAnchor":0,"PriceScheduleID":1,"NumberOfPriceLevels":1,"PriceLevelScheduleEntries":{"PriceLevelScheduleEntry":[{"Duration":3600,"PriceLevel":0}]}}}}]}}}
+evcc-1  | INFO    2026-07-21 18:37:51,423 - iso15118.shared.comm_session (235): ScheduleExchangeRes received
+evcc-1  | DEBUG    2026-07-21 18:37:51,423 - iso15118.evcc.controller.simulator (380): Scheduled parameters for ScheduleExchangeReq not yet ready
+evcc-1  | INFO    2026-07-21 18:37:51,424 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,466 - iso15118.shared.exi_codec (261): EXI-encoded message: 802c046626506518eee25a0fff8fed2062
+evcc-1  | INFO    2026-07-21 18:37:51,467 - iso15118.shared.comm_session (431): Sent DC_CableCheckReq
+evcc-1  | INFO    2026-07-21 18:37:51,467 - iso15118.shared.states (139): Entered state DCCableCheck
+evcc-1  | DEBUG    2026-07-21 18:37:51,467 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:51,471 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8030046626506518eee25a0fff8fed20620000
+evcc-1  | INFO    2026-07-21 18:37:51,522 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","EVSEProcessing":"Finished"}}
+evcc-1  | INFO    2026-07-21 18:37:51,523 - iso15118.shared.comm_session (235): DC_CableCheckRes received
+evcc-1  | INFO    2026-07-21 18:37:51,524 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}, "EVProcessing": "Ongoing", "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "EVTargetVoltage": {"Exponent": 3, "Value": 20}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,572 - iso15118.shared.exi_codec (261): EXI-encoded message: 8044046626506518eee25a0fff8fed206221060280830140
+evcc-1  | INFO    2026-07-21 18:37:51,573 - iso15118.shared.comm_session (431): Sent DC_PreChargeReq
+evcc-1  | INFO    2026-07-21 18:37:51,574 - iso15118.shared.states (139): Entered state DCPreCharge
+evcc-1  | DEBUG    2026-07-21 18:37:51,575 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:51,577 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8048046626506518eee25a0fff8fed20620010010c0604
+evcc-1  | INFO    2026-07-21 18:37:51,625 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":390}}}
+evcc-1  | INFO    2026-07-21 18:37:51,626 - iso15118.shared.comm_session (235): DC_PreChargeRes received
+evcc-1  | INFO    2026-07-21 18:37:51,628 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}, "EVProcessing": "Ongoing", "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "EVTargetVoltage": {"Exponent": 3, "Value": 20}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,671 - iso15118.shared.exi_codec (261): EXI-encoded message: 8044046626506518eee25a0fff8fed206221060280830140
+evcc-1  | INFO    2026-07-21 18:37:51,672 - iso15118.shared.comm_session (431): Sent DC_PreChargeReq
+evcc-1  | DEBUG    2026-07-21 18:37:51,673 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8048046626506518eee25a0fff8fed20620010010c0604
+evcc-1  | INFO    2026-07-21 18:37:51,723 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":390}}}
+evcc-1  | INFO    2026-07-21 18:37:51,724 - iso15118.shared.comm_session (235): DC_PreChargeRes received
+evcc-1  | INFO    2026-07-21 18:37:51,725 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}, "EVProcessing": "Ongoing", "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "EVTargetVoltage": {"Exponent": 3, "Value": 20}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,789 - iso15118.shared.exi_codec (261): EXI-encoded message: 8044046626506518eee25a0fff8fed206221060280830140
+evcc-1  | INFO    2026-07-21 18:37:51,790 - iso15118.shared.comm_session (431): Sent DC_PreChargeReq
+evcc-1  | DEBUG    2026-07-21 18:37:51,793 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8048046626506518eee25a0fff8fed20620010010c0604
+evcc-1  | INFO    2026-07-21 18:37:51,841 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":390}}}
+evcc-1  | INFO    2026-07-21 18:37:51,842 - iso15118.shared.comm_session (235): DC_PreChargeRes received
+evcc-1  | INFO    2026-07-21 18:37:51,842 - iso15118.evcc.controller.simulator (574): Precharge complete.
+evcc-1  | INFO    2026-07-21 18:37:51,843 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}, "EVProcessing": "Finished", "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "EVTargetVoltage": {"Exponent": 3, "Value": 20}}}
+evcc-1  | DEBUG    2026-07-21 18:37:51,892 - iso15118.shared.exi_codec (261): EXI-encoded message: 8044046626506518eee25a0fff8fed206201060280830140
+evcc-1  | INFO    2026-07-21 18:37:51,893 - iso15118.shared.comm_session (431): Sent DC_PreChargeReq
+evcc-1  | DEBUG    2026-07-21 18:37:51,895 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8048046626506518eee25a0fff8fed20620010010c0604
+evcc-1  | INFO    2026-07-21 18:37:51,947 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659071},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":390}}}
+evcc-1  | INFO    2026-07-21 18:37:51,948 - iso15118.shared.comm_session (235): DC_PreChargeRes received
+evcc-1  | INFO    2026-07-21 18:37:51,948 - iso15118.evcc.controller.simulator (574): Precharge complete.
+evcc-1  | INFO    2026-07-21 18:37:51,949 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659071}, "EVProcessing": "Finished", "ChargeProgress": "Start", "EVPowerProfile": {"TimeAnchor": 0, "EVPowerProfileEntries": {"EVPowerProfileEntry": [{"Duration": 3600, "Power": {"Exponent": 0, "Value": 100}}]}, "Scheduled_EVPPTControlMode": {"SelectedScheduleTupleID": 1, "PowerToleranceAcceptance": "PowerToleranceConfirmed"}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,027 - iso15118.shared.exi_codec (261): EXI-encoded message: 8054046626506518eee25a0fff8fed206200000100420480e040032124
+evcc-1  | INFO    2026-07-21 18:37:52,028 - iso15118.shared.comm_session (431): Sent PowerDeliveryReq
+evcc-1  | INFO    2026-07-21 18:37:52,028 - iso15118.shared.states (139): Entered state PowerDelivery
+evcc-1  | DEBUG    2026-07-21 18:37:52,028 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:52,036 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8058046626506518eee25a080f9fed20620050
+evcc-1  | INFO    2026-07-21 18:37:52,096 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK"}}
+evcc-1  | INFO    2026-07-21 18:37:52,096 - iso15118.shared.comm_session (235): PowerDeliveryRes received
+evcc-1  | INFO    2026-07-21 18:37:52,098 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 10, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,169 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed2062005184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,170 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | INFO    2026-07-21 18:37:52,171 - iso15118.shared.states (139): Entered state DCChargeLoop
+evcc-1  | DEBUG    2026-07-21 18:37:52,171 - iso15118.shared.states (143): Waiting for up to 0.5 s
+evcc-1  | DEBUG    2026-07-21 18:37:52,185 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,250 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,251 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,251 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,252 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 20, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,298 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed206200a184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,298 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,299 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,339 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,339 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,340 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,341 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 30, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,384 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed206200f184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,385 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,387 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,438 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,439 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,439 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,440 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 40, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,484 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed2062014184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,485 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,486 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,531 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,531 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,532 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,532 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 50, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,569 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed2062019184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,570 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,572 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,611 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,612 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,612 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,612 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 60, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,648 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed206201e184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,649 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,651 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,691 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,692 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,692 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,693 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 70, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,736 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed2062023184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,737 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,738 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,803 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,804 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,804 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,805 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 80, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,871 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed2062028184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,872 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,874 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:52,924 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:52,925 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:52,926 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:52,927 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659072}, "DisplayParameters": {"PresentSOC": 90, "ChargingComplete": false}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:52,978 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a080f9fed206202d184020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:52,979 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:52,981 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a080f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:53,031 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659072},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:53,032 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:53,033 - iso15118.evcc.states.iso15118_20_states (1677): Next ChargeLoop Req in 0 seconds
+evcc-1  | INFO    2026-07-21 18:37:53,034 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "DisplayParameters": {"PresentSOC": 100, "ChargingComplete": true}, "MeterInfoRequested": false, "EVPresentVoltage": {"Exponent": 3, "Value": 20}, "Scheduled_DC_CLReqControlMode": {"EVTargetCurrent": {"Exponent": 1, "Value": 20}, "EVTargetVoltage": {"Exponent": 1, "Value": 20}}}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,079 - iso15118.shared.exi_codec (261): EXI-encoded message: 8034046626506518eee25a081f9fed2062032194020c0508c8101404080a14
+evcc-1  | INFO    2026-07-21 18:37:53,080 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopReq
+evcc-1  | DEBUG    2026-07-21 18:37:53,081 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8038046626506518eee25a081f9fed20620064003c02002400c00091
+evcc-1  | INFO    2026-07-21 18:37:53,121 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK","EVSEPresentCurrent":{"Exponent":0,"Value":120},"EVSEPresentVoltage":{"Exponent":0,"Value":400},"EVSEPowerLimitAchieved":false,"EVSECurrentLimitAchieved":false,"EVSEVoltageLimitAchieved":false,"Scheduled_DC_CLResControlMode":{}}}
+evcc-1  | INFO    2026-07-21 18:37:53,122 - iso15118.shared.comm_session (235): DC_ChargeLoopRes received
+evcc-1  | INFO    2026-07-21 18:37:53,123 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "EVProcessing": "Finished", "ChargeProgress": "Stop"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,175 - iso15118.shared.exi_codec (261): EXI-encoded message: 8054046626506518eee25a081f9fed20620140
+evcc-1  | DEBUG    2026-07-21 18:37:53,175 - iso15118.evcc.states.evcc_state (289): ChargeProgress is set to Stop
+evcc-1  | INFO    2026-07-21 18:37:53,176 - iso15118.shared.comm_session (431): Sent PowerDeliveryReq
+evcc-1  | INFO    2026-07-21 18:37:53,176 - iso15118.shared.states (139): Entered state PowerDelivery
+evcc-1  | DEBUG    2026-07-21 18:37:53,176 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:53,177 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8058046626506518eee25a081f9fed20620064
+evcc-1  | INFO    2026-07-21 18:37:53,223 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK"}}
+evcc-1  | INFO    2026-07-21 18:37:53,224 - iso15118.shared.comm_session (235): PowerDeliveryRes received
+evcc-1  | INFO    2026-07-21 18:37:53,225 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "EVProcessing": "Ongoing"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,259 - iso15118.shared.exi_codec (261): EXI-encoded message: 804c046626506518eee25a081f9fed206220
+evcc-1  | INFO    2026-07-21 18:37:53,260 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionReq
+evcc-1  | INFO    2026-07-21 18:37:53,260 - iso15118.shared.states (139): Entered state DCWeldingDetection
+evcc-1  | DEBUG    2026-07-21 18:37:53,260 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:53,264 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8050046626506518eee25a081f9fed20620010000a02
+evcc-1  | INFO    2026-07-21 18:37:53,305 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":5}}}
+evcc-1  | INFO    2026-07-21 18:37:53,306 - iso15118.shared.comm_session (235): DC_WeldingDetectionRes received
+evcc-1  | INFO    2026-07-21 18:37:53,307 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "EVProcessing": "Ongoing"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,356 - iso15118.shared.exi_codec (261): EXI-encoded message: 804c046626506518eee25a081f9fed206220
+evcc-1  | INFO    2026-07-21 18:37:53,357 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionReq
+evcc-1  | DEBUG    2026-07-21 18:37:53,359 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8050046626506518eee25a081f9fed20620010000a02
+evcc-1  | INFO    2026-07-21 18:37:53,409 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":5}}}
+evcc-1  | INFO    2026-07-21 18:37:53,410 - iso15118.shared.comm_session (235): DC_WeldingDetectionRes received
+evcc-1  | DEBUG    2026-07-21 18:37:53,411 - iso15118.evcc.states.iso15118_20_states (1754): EVCC timeout : 60.0
+evcc-1  | INFO    2026-07-21 18:37:53,411 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "EVProcessing": "Ongoing"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,451 - iso15118.shared.exi_codec (261): EXI-encoded message: 804c046626506518eee25a081f9fed206220
+evcc-1  | INFO    2026-07-21 18:37:53,452 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionReq
+evcc-1  | DEBUG    2026-07-21 18:37:53,453 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8050046626506518eee25a081f9fed20620010000a02
+evcc-1  | INFO    2026-07-21 18:37:53,501 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":5}}}
+evcc-1  | INFO    2026-07-21 18:37:53,501 - iso15118.shared.comm_session (235): DC_WeldingDetectionRes received
+evcc-1  | DEBUG    2026-07-21 18:37:53,502 - iso15118.evcc.states.iso15118_20_states (1754): EVCC timeout : 60.0
+evcc-1  | INFO    2026-07-21 18:37:53,502 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "EVProcessing": "Ongoing"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,563 - iso15118.shared.exi_codec (261): EXI-encoded message: 804c046626506518eee25a081f9fed206220
+evcc-1  | INFO    2026-07-21 18:37:53,564 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionReq
+evcc-1  | DEBUG    2026-07-21 18:37:53,566 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8050046626506518eee25a081f9fed20620010000a02
+evcc-1  | INFO    2026-07-21 18:37:53,611 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":5}}}
+evcc-1  | INFO    2026-07-21 18:37:53,612 - iso15118.shared.comm_session (235): DC_WeldingDetectionRes received
+evcc-1  | DEBUG    2026-07-21 18:37:53,612 - iso15118.evcc.states.iso15118_20_states (1754): EVCC timeout : 60.0
+evcc-1  | INFO    2026-07-21 18:37:53,613 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "EVProcessing": "Finished"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,654 - iso15118.shared.exi_codec (261): EXI-encoded message: 804c046626506518eee25a081f9fed206200
+evcc-1  | INFO    2026-07-21 18:37:53,655 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionReq
+evcc-1  | DEBUG    2026-07-21 18:37:53,656 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:DC): 8050046626506518eee25a081f9fed20620010000a02
+evcc-1  | INFO    2026-07-21 18:37:53,706 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK","EVSEPresentVoltage":{"Exponent":0,"Value":5}}}
+evcc-1  | INFO    2026-07-21 18:37:53,707 - iso15118.shared.comm_session (235): DC_WeldingDetectionRes received
+evcc-1  | DEBUG    2026-07-21 18:37:53,707 - iso15118.evcc.states.iso15118_20_states (1754): EVCC timeout : 60.0
+evcc-1  | INFO    2026-07-21 18:37:53,709 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopReq": {"Header": {"SessionID": "CC4CA0CA31DDC4B4", "TimeStamp": 1784659073}, "ChargingSession": "Terminate"}}
+evcc-1  | DEBUG    2026-07-21 18:37:53,796 - iso15118.shared.exi_codec (261): EXI-encoded message: 8094046626506518eee25a081f9fed206228
+evcc-1  | INFO    2026-07-21 18:37:53,796 - iso15118.shared.comm_session (431): Sent SessionStopReq
+evcc-1  | INFO    2026-07-21 18:37:53,797 - iso15118.shared.states (139): Entered state SessionStop
+evcc-1  | DEBUG    2026-07-21 18:37:53,797 - iso15118.shared.states (143): Waiting for up to 2.0 s
+evcc-1  | DEBUG    2026-07-21 18:37:53,800 - iso15118.shared.exi_codec (285): EXI-encoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): 8098046626506518eee25a081f9fed20620010
+evcc-1  | INFO    2026-07-21 18:37:53,858 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopRes":{"Header":{"SessionID":"CC4CA0CA31DDC4B4","TimeStamp":1784659073},"ResponseCode":"OK"}}
+evcc-1  | INFO    2026-07-21 18:37:53,859 - iso15118.shared.comm_session (235): SessionStopRes received
+evcc-1  | INFO    2026-07-21 18:37:53,859 - iso15118.shared.comm_session (395): The data link will terminate in 2 seconds and the TCP connection will close in 5 seconds. 
+evcc-1  | INFO    2026-07-21 18:37:53,859 - iso15118.shared.comm_session (399): Reason: Communication session terminated
+evcc-1  | INFO    2026-07-21 18:37:55,863 - iso15118.shared.comm_session (410): terminated the data link
+evcc-1  | INFO    2026-07-21 18:37:58,866 - iso15118.shared.comm_session (417): TCP connection closed to peer with address ('fe80::215:5dff:fe46:863f', 55000, 0, 2)
+[Kevcc-1 exited with code 0
+ Compose Stopping Aborting on container exit...
+ Container iso15118-evcc-1 Stopping 
+ Container iso15118-evcc-1 Stopped 

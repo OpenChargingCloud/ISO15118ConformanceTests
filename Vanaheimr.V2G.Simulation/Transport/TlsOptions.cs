@@ -21,6 +21,11 @@ namespace Vanaheimr.V2G.Simulation.Transport
         /// <summary>SECC side: the certificate to present. Required when TLS is enabled on the listener.</summary>
         public X509Certificate2? ServerCertificate { get; init; }
 
+        /// <summary>SECC side: the intermediate CA certificates to send alongside <see cref="ServerCertificate"/> so
+        /// the EVCC can build the chain to its trust anchor (e.g. a Josev EVCC validating our SECC leaf against the
+        /// V2G root needs the CPO Sub-CAs). Without these, <c>SslStream</c> sends only the leaf. Null = leaf only.</summary>
+        public X509Certificate2Collection? ServerCertificateChain { get; init; }
+
         /// <summary>EVCC side: how to validate the SECC's certificate. Defaults to the platform's normal chain validation if not set.</summary>
         public RemoteCertificateValidationCallback? ServerCertificateValidation { get; init; }
 

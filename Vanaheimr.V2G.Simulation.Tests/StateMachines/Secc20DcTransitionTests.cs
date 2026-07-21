@@ -65,8 +65,14 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
                 Assert.That(resp, Is.InstanceOf<Dc20.DC_PreChargeRes>());
             }
 
-            // PowerDelivery(Start) ends the PreCharge loop and enters the charge loop.
-            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Start, BuildProfile(), null));
+            // PowerDelivery(Start) ends the PreCharge loop and is itself a poll phase: a real EV repeats it
+            // (EVProcessing=Ongoing) until it begins the charge loop — three polls here, all answered in place.
+            for (int i = 0; i < 3; i++)
+            {
+                var (set, resp) = secc.Handle(MessageSet.Iso20CommonMessages,
+                    new PowerDeliveryReq(Common, Processing.Ongoing, ChargeProgress.Start, BuildProfile(), null));
+                Assert.That(resp, Is.InstanceOf<PowerDeliveryRes>());
+            }
 
             for (int i = 0; i < 4; i++)
             {
