@@ -10,9 +10,10 @@ The solution builds cleanly and **all 561 tests are green** (`dotnet test -c Rel
 516 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
 over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C toolchain, JRE, or
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
-(SLAC/SDP/TLS/session all wired + tested) and Josev interop is byte-exact for **-2 AC/DC and
--20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**; only the Phase 5
-closing report remains.
+(SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
+-20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**, and the
+[Phase 5 closing report](phase5-report.md) is written. What's left is optional wrap-up
+(live over-the-wire interop, record-mode vector curation) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -61,8 +62,10 @@ The whole in-repo stack now runs and is tested over loopback (see the Simulation
 2. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
    vector candidates under `Tests/Vectors/captured/`; curate at least one into the regular
    vector files. Frames from an independent stack are the most valuable conformance vectors.
-3. ⬜ **Phase 5 closing report** — codec/sequence discrepancies found, timing findings, known
-   gaps (Plug & Charge contract-cert provisioning, WPT/ACDP interop, the CLI dev-cert caveats).
+3. ✅ **Phase 5 closing report** — [`docs/phase5-report.md`](phase5-report.md): DoD scorecard, the
+   codec/sequence findings (the fixed xmldsig `Transforms` bug; string-value-tables watched-not-triggered),
+   timing findings, and the honest known-gaps list (live over-the-wire interop, SDP multicast in CI,
+   record-mode vector curation, live PnC, WPT/ACDP interop, the CLI dev-cert caveats).
 
 Cleanups / smaller follow-ups (not blockers):
 - ⬜ **Slim down Hermod** — the SLAC stage pulls the heavy `Hermod`/`Styx` chain into the core
