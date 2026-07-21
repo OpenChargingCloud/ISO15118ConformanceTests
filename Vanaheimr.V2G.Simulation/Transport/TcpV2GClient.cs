@@ -2,6 +2,8 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 
+using Vanaheimr.V2G.Simulation.Transport.BouncyCastle;
+
 namespace Vanaheimr.V2G.Simulation.Transport
 {
     /// <summary>
@@ -31,6 +33,17 @@ namespace Vanaheimr.V2G.Simulation.Transport
 
             await ssl.AuthenticateAsClientAsync(options, ct).ConfigureAwait(false);
             return ssl;
+        }
+
+        /// <summary>
+        /// EVCC-side connect using the <b>BouncyCastle</b> TLS backend (the -20-faithful P-521 / Ed448
+        /// profile Schannel can't do). Overload selected by passing <see cref="BcTlsOptions"/>.
+        /// </summary>
+        public static async Task<Stream> ConnectAsync(string host, int port, BcTlsOptions bcTls, CancellationToken ct = default)
+        {
+            var client = new TcpClient();
+            await client.ConnectAsync(host, port, ct).ConfigureAwait(false);
+            return await BcTlsTransport.AuthenticateClientAsync(client.GetStream(), bcTls, ct).ConfigureAwait(false);
         }
     }
 }

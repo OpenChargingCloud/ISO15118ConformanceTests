@@ -165,21 +165,32 @@ builder and generates a hierarchy at test time (`TestData/V2GTestPki.cs`, Bouncy
 authenticated `SslStream` (`E2E/MutualTlsLoopbackTests.cs`): SECC leaf = server, Vehicle leaf =
 client, both anchored to the shared V2G Root, plus a negative test (certless client rejected).
 
-**Confirmed platform deviation — Windows Schannel cannot use P-521 certificates for TLS.**
-A bare-handshake probe showed P-256 mutual TLS succeeds (TLS 1.3 and 1.2) while **P-521 fails**
-("Authentication failed" server-side) on Schannel; .NET on Linux (OpenSSL) does support P-521.
-So the mutual-TLS tests use P-256 to exercise the *mechanism*, even though -20's nominal TLS
-curve is secp521r1. This does **not** affect the -20 application-layer signature suite, which
-uses P-521 / Ed448 via BouncyCastle independently of the TLS stack. To run the -20-faithful
-secp521r1 TLS path, use an OpenSSL-backed runtime (Linux) or a non-Schannel TLS implementation.
+**Two TLS backends (selectable).** Windows Schannel cannot use P-521 certificates for TLS
+(verified: P-256 mutual TLS succeeds on TLS 1.3/1.2, **P-521 fails** "Authentication failed"
+server-side; OpenSSL-backed .NET on Linux does support it). So the simulation offers two TLS
+backends, both exposing a plain `Stream`:
+
+- **.NET `SslStream`** (default, `TlsOptions`) — fast, platform-native; on Windows limited to
+  Schannel-supported curves, so its mutual-TLS tests use P-256 to exercise the mechanism.
+- **BouncyCastle TLS** (`Transport/BouncyCastle/`, `BcTlsOptions`) — a managed, cross-platform
+  stack that runs the **-20-faithful profile**: TLS 1.3, the -20 cipher suites
+  (`TLS_AES_256_GCM_SHA384` / `TLS_CHACHA20_POLY1305_SHA256`), and **secp521r1 *and* Ed448**
+  certificates. `E2E/BcMutualTlsLoopbackTests.cs` runs -20 DC mutual-TLS sessions over both a
+  P-521 and an Ed448 hierarchy — the SECC leaf (server) and Vehicle leaf (client) come straight
+  from the PKI builder's BouncyCastle cert objects (no PKCS#12 bridge needed on this path).
+
+So the Schannel P-521 limitation is a property of one backend, not a project gap: pick the
+BouncyCastle backend for the secp521r1/Ed448 -20 TLS profile, the .NET backend otherwise.
 
 ## Open items still to verify
 
 - **eMAID ↔ Contract certificate mapping** and the exact `AuthorizationSetupRes` provider-list
   field driving contract-cert selection — confirm against the -20 CommonMessages schema
   already in the repo.
-- **Schannel/.NET cipher-suite ordering and middlebox mode** — what `SslServerAuthenticationOptions`
-  / `CipherSuitesPolicy` actually let us pin on Windows (the current `TlsOptions.cs` uses defaults).
+- **Exact cipher-suite/curve pinning on the .NET backend** — the BouncyCastle backend already pins
+  the -20 profile exactly (TLS 1.3, the two -20 suites, secp521r1/Ed448); on the .NET path,
+  confirm what `SslServerAuthenticationOptions` / `CipherSuitesPolicy` let us pin on Windows (the
+  current `TlsOptions.cs` uses defaults) and record whatever can't be pinned as a Schannel deviation.
 - **SDP + SLAC discovery stages** in front of the handshake — SDP is the next wiring slice; SLAC
   waits on the Hermod submodule (its project references it and Hermod is not yet vendored).
 

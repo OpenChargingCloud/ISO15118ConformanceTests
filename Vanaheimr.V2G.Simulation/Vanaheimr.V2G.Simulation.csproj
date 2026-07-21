@@ -6,8 +6,15 @@
     <LangVersion>preview</LangVersion>
     <RootNamespace>Vanaheimr.V2G.Simulation</RootNamespace>
     <AssemblyName>Vanaheimr.V2G.Simulation</AssemblyName>
-    <IsAotCompatible>true</IsAotCompatible>
+    <!-- The BouncyCastle TLS backend (Transport/BouncyCastle/) is not AOT/trim-clean, so the
+         AOT-compatible guarantee is dropped. The default TLS path stays .NET SslStream. -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Managed TLS stack for the ISO 15118-20-faithful TLS profile (P-521 / Ed448, exact -20
+         cipher-suite & curve pinning) that Windows Schannel cannot provide. Opt-in backend. -->
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- V2GTP header + SAP codec (Prototype), payload-type dispatch (Dispatch), and the four

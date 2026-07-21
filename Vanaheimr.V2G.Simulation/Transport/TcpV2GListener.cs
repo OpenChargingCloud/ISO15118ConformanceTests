@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 
+using Vanaheimr.V2G.Simulation.Transport.BouncyCastle;
+
 namespace Vanaheimr.V2G.Simulation.Transport
 {
     /// <summary>
@@ -15,6 +17,7 @@ namespace Vanaheimr.V2G.Simulation.Transport
     {
         private readonly TcpListener _listener;
         private readonly TlsOptions? _tls;
+        private readonly BcTlsOptions? _bcTls;
 
         /// <param name="endpoint">Pass port 0 to let the OS assign a free port — read it back via <see cref="LocalEndpoint"/>.</param>
         /// <param name="tls">When given, <see cref="AcceptAsync"/> authenticates as a TLS server before returning.</param>
@@ -28,6 +31,14 @@ namespace Vanaheimr.V2G.Simulation.Transport
             _listener.Start();
         }
 
+        /// <summary>SECC listener using the <b>BouncyCastle</b> TLS backend (the -20-faithful P-521 / Ed448 profile).</summary>
+        public TcpV2GListener(IPEndPoint endpoint, BcTlsOptions bcTls)
+        {
+            _listener = new TcpListener(endpoint);
+            _bcTls = bcTls;
+            _listener.Start();
+        }
+
         public IPEndPoint LocalEndpoint => (IPEndPoint)_listener.LocalEndpoint;
 
         /// <summary>Accepts the next incoming connection and returns its stream (plain, or TLS-authenticated if configured).</summary>
@@ -35,6 +46,9 @@ namespace Vanaheimr.V2G.Simulation.Transport
         {
             var client = await _listener.AcceptTcpClientAsync(ct).ConfigureAwait(false);
             Stream stream = client.GetStream(); // owns the underlying socket; disposing the stream closes it
+
+            if (_bcTls is not null)
+                return await BcTlsTransport.AuthenticateServerAsync(stream, _bcTls, ct).ConfigureAwait(false);
 
             if (_tls is null) return stream;
 
