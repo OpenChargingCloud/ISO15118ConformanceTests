@@ -1,0 +1,73 @@
+DEBUG    2026-07-21 12:02:34,406: Message received from ('fe80::5c92:9dff:fe73:6493', 44011, 0, 2): 01fe9000000000021000
+INFO    2026-07-21 12:02:34,406: SDPRequest received: [Security: NO_TLS, Protocol: TCP]
+DEBUG    2026-07-21 12:02:34,531: EXI-encoded message (ns=urn:iso:15118:2:2010:AppProtocol): 8000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040
+INFO    2026-07-21 12:02:34,788: Decoded message (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolReq":{"AppProtocol":[{"ProtocolNamespace":"urn:iso:15118:2:2013:MsgDef","VersionNumberMajor":2,"VersionNumberMinor":0,"SchemaID":1,"Priority":1}]}}
+DEBUG    2026-07-21 12:02:34,859: EXI-encoded message: 80400040
+INFO    2026-07-21 12:02:34,860: Sent supportedAppProtocolRes
+DEBUG    2026-07-21 12:02:35,268: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098004011d0197a4a75cd924c00
+INFO    2026-07-21 12:02:35,471: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"00"},"Body":{"SessionSetupReq":{"EVCCID":"5E929D736493"}}}}
+DEBUG    2026-07-21 12:02:35,596: EXI-encoded message: 8098020e29cf0459f1fb3c11e02031552cc4c8cd14c4c8ccd01b77ffba40c0
+INFO    2026-07-21 12:02:35,596: Sent SessionSetupRes
+DEBUG    2026-07-21 12:02:35,839: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c11b8
+INFO    2026-07-21 12:02:35,932: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ServiceDiscoveryReq":{}}}}
+INFO    2026-07-21 12:02:35,932: ServiceDiscoveryReq received
+DEBUG    2026-07-21 12:02:36,032: EXI-encoded message: 8098020e29cf0459f1fb3c11c0012004041050d7d110d7d0da185c99da5b99c040604900
+INFO    2026-07-21 12:02:36,032: Sent ServiceDiscoveryRes
+DEBUG    2026-07-21 12:02:36,204: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c1132001280
+INFO    2026-07-21 12:02:36,294: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"PaymentServiceSelectionReq":{"SelectedPaymentOption":"ExternalPayment","SelectedServiceList":{"SelectedService":[{"ServiceID":1}]}}}}}
+INFO    2026-07-21 12:02:36,295: PaymentServiceSelectionReq received
+DEBUG    2026-07-21 12:02:36,373: EXI-encoded message: 8098020e29cf0459f1fb3c114000
+INFO    2026-07-21 12:02:36,374: Sent PaymentServiceSelectionRes
+DEBUG    2026-07-21 12:02:36,537: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c1008
+INFO    2026-07-21 12:02:36,639: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"AuthorizationReq":{}}}}
+INFO    2026-07-21 12:02:36,640: AuthorizationReq received
+DEBUG    2026-07-21 12:02:36,720: EXI-encoded message: 8098020e29cf0459f1fb3c10100000
+INFO    2026-07-21 12:02:36,721: Sent AuthorizationRes
+DEBUG    2026-07-21 12:02:36,907: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c1094400006301e0188120060018407d00818601400
+INFO    2026-07-21 12:02:36,998: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargeParameterDiscoveryReq":{"RequestedEnergyTransferMode":"AC_three_phase_core","AC_EVChargeParameter":{"DepartureTime":0,"EAmount":{"Multiplier":0,"Unit":"Wh","Value":60},"EVMaxVoltage":{"Multiplier":0,"Unit":"V","Value":400},"EVMaxCurrent":{"Multiplier":-3,"Unit":"A","Value":32000},"EVMinCurrent":{"Multiplier":0,"Unit":"A","Value":10}}}}}}
+INFO    2026-07-21 12:02:36,999: ChargeParameterDiscoveryReq received
+DEBUG    2026-07-21 12:02:37,098: EXI-encoded message: 80ae015a590c40920100002028c140025f40
+DEBUG    2026-07-21 12:02:37,189: EXI-encoded message: 808112b43a3a381d1797bbbbbb973b999737b93397aa2917b1b0b737b734b1b0b616b2bc3497a1ab43a3a381d1797bbbbbb973b999737b933979918181897981a17bc36b63239b4b396b6b7b93291b2b1b239b096b9b430991a9b220623696431025687474703a2f2f7777772e77332e6f72672f54522f63616e6f6e6963616c2d6578692f4852d0e8e8e0745e5eeeeeee5cee665cdee4ce5e646060625e60685ef0dad8cadcc646e6d0c2646a6c8415b52e08c9103fdc0cfb26a7487e42156af65a98ae37cc578e4dfa306cc4cba7a370
+DEBUG    2026-07-21 12:02:37,301: EXI-encoded message: 8098020e29cf0459f1fb3c0a895a1d1d1c0e8bcbddddddcb9dcccb9bdc99cbd5148bd8d85b9bdb9a58d85b0b595e1a4bd0d5a1d1d1c0e8bcbddddddcb9dcccb9bdc99cbcc8c0c0c4bcc0d0bde1b5b191cda59cb5b5bdc9948d958d91cd84b5cda184c8d4d910311b4b218812b43a3a381d1797bbbbbb973b999737b93397aa2917b1b0b737b734b1b0b616b2bc3497a429687474703a2f2f7777772e77332e6f72672f323030312f30342f786d6c656e6323736861323536420ada970464881fee067d9353a43f210ab57b2d4c571be62bc726fd18366265d3d12814436270dd0c30903a3182fe05d89fcc7ecb4333d531527c22771154ecea9e4dc40869a02135d46e0c633348f93a2e61237e2074d719064059aaed98c0396e0fa8280000000000080a30503143e154200ad2c862049008000101460a001290000000c409003030c08000
+INFO    2026-07-21 12:02:37,302: Sent ChargeParameterDiscoveryRes
+DEBUG    2026-07-21 12:02:37,573: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c1150000000018a1f0aa2101460a0c5000160
+INFO    2026-07-21 12:02:37,772: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"PowerDeliveryReq":{"ChargeProgress":"Start","SAScheduleTupleID":1,"ChargingProfile":{"ProfileEntry":[{"ChargingProfileEntryStart":0,"ChargingProfileEntryMaxPower":{"Multiplier":0,"Unit":"W","Value":11000}},{"ChargingProfileEntryStart":86400,"ChargingProfileEntryMaxPower":{"Multiplier":0,"Unit":"W","Value":0}}]}}}}}
+INFO    2026-07-21 12:02:37,773: PowerDeliveryReq received
+DEBUG    2026-07-21 12:02:37,931: EXI-encoded message: 8098020e29cf0459f1fb3c116000000000
+INFO    2026-07-21 12:02:37,932: Sent PowerDeliveryRes
+DEBUG    2026-07-21 12:02:38,139: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:38,269: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:38,270: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:38,420: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:38,421: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:38,682: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:38,820: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:38,821: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:39,073: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:39,074: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:39,413: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:39,546: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:39,547: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:39,647: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:39,648: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:39,871: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:39,954: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:39,955: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:40,040: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:40,041: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:40,224: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:40,314: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:40,315: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:40,409: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:40,410: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:40,589: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:40,666: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:40,668: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:40,747: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:40,748: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:40,871: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0
+INFO    2026-07-21 12:02:40,951: Decoded message (ns=urn:iso:15118:2:2013:MsgDef): {"V2G_Message":{"Header":{"SessionID":"38A73C1167C7ECF0"},"Body":{"ChargingStatusReq":{}}}}
+INFO    2026-07-21 12:02:40,951: ChargingStatusReq received
+DEBUG    2026-07-21 12:02:41,030: EXI-encoded message: 8098020e29cf0459f1fb3c10c00031552cc4c8cd14c4c8ccd00000c30ac02100000000
+INFO    2026-07-21 12:02:41,031: Sent ChargingStatusRes
+DEBUG    2026-07-21 12:02:41,168: EXI-encoded message (ns=urn:iso:15118:2:2013:MsgDef): 8098020e29cf0459f1fb3c10b0

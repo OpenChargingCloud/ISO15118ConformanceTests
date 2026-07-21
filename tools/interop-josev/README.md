@@ -19,11 +19,25 @@ Josev is **not vendored** here (Python + a JRE, big); you bring it up per the st
 Josev needs **Python 3.10+** and a **JRE** (its EXI codec is the Java `EXICodec.jar`). Easiest via its
 own Docker setup; otherwise a venv under WSL2.
 
-> **Pin the version.** Record the exact commit you tested against here so runs are reproducible:
->
-> - Josev repo: `<fork>` — commit `<sha>` — date `<yyyy-mm-dd>`
->
-> (left blank until the first run — do not guess a SHA).
+> **Pinned version (first run):** SwitchEV/iso15118 @ `d645255` ("Pydantic upgrade to v2", #455),
+> validated 2026-07-21 — see [`docs/interop-runs/2026-07-21-iso2-ac-eim-notls/`](../../docs/interop-runs/2026-07-21-iso2-ac-eim-notls/).
+
+> **Known setup fix — EOL Debian buster.** Josev's `template.Dockerfile` pins `python:3.10.0-buster`;
+> buster is EOL so its apt repos 404 and `apt install default-jre` fails. Before that install, repoint
+> apt at the archive:
+> ```
+> sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g; \
+>         s|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g; \
+>         /buster-updates/d' /etc/apt/sources.list
+> apt-get -o Acquire::Check-Valid-Until=false update && apt-get install -y default-jre
+> ```
+> Also: the Makefile calls `docker-compose` (v1); with Compose v2 drive `docker compose` directly and
+> replicate the Makefile's Dockerfile-templating + `create_certs.sh` steps by hand.
+
+> **Capture EXI without live networking (record mode).** Set `MESSAGE_LOG_EXI=True` in `.env.dev.docker`
+> and run Josev's own EVCC↔SECC session; Josev then logs every message's raw EXI hex. Feed those bytes
+> into our codec (`JosevCapturedFramesTests`) — same conformance signal as live interop, no SDP/IPv6
+> bridging needed.
 
 ## Setup (choose one)
 
