@@ -22,23 +22,26 @@ own Docker setup; otherwise a venv under WSL2.
 > **Pinned version (first run):** SwitchEV/iso15118 @ `d645255` ("Pydantic upgrade to v2", #455),
 > validated 2026-07-21 — see [`docs/interop-runs/2026-07-21-iso2-ac-eim-notls/`](../../docs/interop-runs/2026-07-21-iso2-ac-eim-notls/).
 
-> **EOL Debian buster — prefer rebasing to a current Debian.** Josev's `template.Dockerfile` pins
-> `python:3.10.0-buster`; buster is EOL, so its apt repos 404 and `apt install default-jre` fails.
-> **Recommended fix:** rebase the image onto a current Debian — change both `FROM python:3.10.0-buster`
-> lines to a **Trixie** (or bookworm) Python 3.10 image, e.g. `FROM python:3.10-slim-trixie`, so apt just
-> works and you're not depending on an archived, unpatched base. The interop only cares about Python 3.10.x
-> + Josev's `poetry.lock` deps, not the Debian release, so this is safe.
+> **Default: build Josev on Debian trixie.** Josev's `template.Dockerfile` pins the EOL
+> `python:3.10.0-buster`, whose apt repos 404 (so `apt install default-jre` fails). The default here is to
+> rebase it onto a current Debian — [`prepare-josev.sh`](prepare-josev.sh) does this: it rewrites both
+> `FROM python:3.10.0-buster` lines to `python:3.10-trixie`, generates the secc/evcc Dockerfiles, and makes
+> the test certs, so `docker compose build` just works. The interop only depends on Python 3.10.x + Josev's
+> `poetry.lock`, not the Debian release, so the rebase is safe (validated: the -2 DC run below used it).
 >
-> The first run instead used the *minimal-deviation* workaround (keep buster, repoint apt at the archive) —
-> keep it only if you specifically want Josev's exact pinned OS:
+> <details><summary>Fallback: keep EOL buster (minimal deviation from Josev's pin)</summary>
+>
+> Repoint apt at the archive before installing the JRE:
 > ```
 > sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g; \
 >         s|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g; \
 >         /buster-updates/d' /etc/apt/sources.list
 > apt-get -o Acquire::Check-Valid-Until=false update && apt-get install -y default-jre
 > ```
-> Also: the Makefile calls `docker-compose` (v1); with Compose v2 drive `docker compose` directly and
-> replicate the Makefile's Dockerfile-templating + `create_certs.sh` steps by hand.
+> </details>
+>
+> Note: the Makefile calls `docker-compose` (v1); with Compose v2 drive `docker compose` directly —
+> `prepare-josev.sh` already does the Dockerfile-templating + `create_certs.sh` steps `make build` would.
 
 > **Capture EXI without live networking (record mode).** Set `MESSAGE_LOG_EXI=True` in `.env.dev.docker`
 > and run Josev's own EVCC↔SECC session; Josev then logs every message's raw EXI hex. Feed those bytes
@@ -47,13 +50,16 @@ own Docker setup; otherwise a venv under WSL2.
 
 ## Setup (choose one)
 
-### Docker (recommended)
-Josev ships a compose setup. Clone at the pinned commit and start the SECC:
+### Docker (default)
+Clone at the pinned commit, prepare it (trixie rebase — see the note above), build, and run:
 ```bash
-git clone https://github.com/SwitchEV/iso15118 && cd iso15118 && git checkout <sha>
-# follow its README; typically:
-make build && make run-secc      # or run-evcc
+git clone https://github.com/SwitchEV/iso15118 && cd iso15118 && git checkout d645255
+../prepare-josev.sh .                    # rebase to trixie + generate Dockerfiles + certs
+docker compose build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up   # Josev EVCC <-> SECC session
 ```
+(Josev's own `make build && make run-secc` assumes `docker-compose` v1 and the EOL buster base; the two
+lines above replace it for Compose v2 + a current Debian.)
 
 ### WSL2 venv
 ```bash
