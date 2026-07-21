@@ -383,12 +383,18 @@ all of this out of the offline CI run.
 - **Live Plug & Charge over TLS:** our SECC offers PnC + a `GenChallenge` and validates Josev's signed
   `AuthorizationReq`. The **`GenChallenge` echo and reference digest verify** — the digest match proves our
   signed-element fragment codec is **byte-exact vs EXIficient over a live message**. The ECDSA signature over
-  the `SignedInfo` fragment does *not* verify against any standard EXI encoding (ours, EXIficient default, or
-  EXIficient Canonical EXI); this was investigated to ground truth (`JosevPnCSignatureDiag`) — Josev signs a
-  non-standard `SignedInfo` octet form, **not a codec bug** in our byte-exact stack.
+  the `SignedInfo` fragment does *not* verify against our (cbV2G-matched) fragment — **root-caused, reproduced,
+  and no codec bug**: Josev EXI-encodes the `SignedInfo` under the **standalone `xmldsig-core-schema.xsd`
+  grammar** (its `to_exi(signed_info, Namespace.XML_DSIG)` selects `BuiltInSchema.XSDCore` /
+  `XMLDSIG_Core_Schema_Grammar`), whereas we — like cbV2G, our authoritative reference — encode it as a
+  fragment of the full `V2G_CI_CommonMessages` schema set. The EXI *Fragment* grammar's leading element
+  event-code width tracks the number of global elements in the loaded schema, so the standalone-xmldsig grammar
+  yields a **209-byte** `SignedInfo` (one-bit-narrower top-level code, whole bitstream shifted) vs our/cbV2G
+  **210-byte** form, though both decode identically. Josev's own codec (`iso15118-secc` container →
+  `EXI().to_exi(SignedInfo, XML_DSIG)`) reproduces the 209 bytes exactly, and Josev's captured signature
+  verifies against them — see `JosevPnCSignatureDiag`.
 
-Remaining interop wrap-up: reproduce Josev's exact PnC `SignedInfo` signing octets (or add a second PnC oracle
-whose form is standard EXI); fix the WWCP SDP multicast interface binding so `--sdp` works without the SDP
+Remaining interop wrap-up: fix the WWCP SDP multicast interface binding so `--sdp` works without the SDP
 responder shim; extend live runs to AC / WPT / ACDP. The **Phase 5 closing report**
 ([`docs/phase5-report.md`](docs/phase5-report.md)) has the full DoD scorecard, every fix, and the honest
 gaps list.
