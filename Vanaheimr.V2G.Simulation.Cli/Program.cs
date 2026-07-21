@@ -103,6 +103,9 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     ? new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System)
                     : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
                 await secc.RunAsync(stream);
+                if (secc.PnCAuth is { } pnc)
+                    Console.WriteLine($"Plug & Charge: contract {pnc.ContractSubject}; challenge {(pnc.ChallengeOk ? "OK" : "MISMATCH")}, " +
+                                      $"digest {(pnc.DigestOk ? "OK" : "FAIL")}, signature {(pnc.SignatureOk ? "OK" : "FAIL")} ({pnc.SignatureMethod}).");
             }
         }
 

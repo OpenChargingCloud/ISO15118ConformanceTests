@@ -1,3 +1,7 @@
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+
+using Vanaheimr.V2G.Iso15118_20.CommonMessages;
 using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Session;
@@ -5,10 +9,16 @@ using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
+    /// <summary>Outcome of validating a live Plug &amp; Charge <c>AuthorizationReq</c>: whether the EV echoed our
+    /// <c>GenChallenge</c>, whether the signed-element digest matched its reference, and whether the ECDSA
+    /// signature verified against the contract leaf — plus what was observed (contract subject, signature method).</summary>
+    public sealed record PnCAuthResult(bool ChallengeOk, bool DigestOk, bool SignatureOk, string ContractSubject, string SignatureMethod);
+
     /// <summary>
     /// The SECC side of an ISO 15118-20 session, shared between AC and DC: the CommonMessages phases
-    /// (SessionSetup..ServiceSelection, PowerDelivery, SessionStop — EIM only, no PnC in this slice) live
-    /// here; the diverging middle (charge-parameter discovery, the DC-only CableCheck/PreCharge sequence,
+    /// (SessionSetup..ServiceSelection, PowerDelivery, SessionStop) live here — it offers both EIM and Plug &amp;
+    /// Charge and, for a PnC EV, validates the signed AuthorizationReq (see <see cref="PnCAuth"/>). The
+    /// diverging middle (charge-parameter discovery, the DC-only CableCheck/PreCharge sequence,
     /// one charge-loop iteration, the DC-only WeldingDetection) is delegated to <see cref="Secc20Dc"/>/
     /// <see cref="Secc20Ac"/> via the <c>protected virtual</c> hooks below. Unlike -2, -20's messages
     /// interleave <em>three</em> distinct codecs (CommonMessages/DC/AC) within one session — each self
@@ -26,6 +36,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected Phase20 Phase { get; private set; } = Phase20.SessionSetup;
         protected readonly SessionContext SessionCtx = new(clock);
         private DateTimeOffset _lastSeen = clock.GetUtcNow();
+
+        /// <summary>The 16-byte PnC challenge we offered in AuthorizationSetupRes; the EV must echo it in a PnC AuthorizationReq.</summary>
+        private byte[]? _genChallenge;
+
+        /// <summary>The result of validating a PnC AuthorizationReq, if the EV authenticated via Plug &amp; Charge (null for EIM).</summary>
+        public PnCAuthResult? PnCAuth { get; private set; }
 
         public bool IsDone => Phase == Phase20.Done;
 
@@ -188,12 +204,76 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1");
         }
 
-        private AuthorizationSetupRes AuthSetup(AuthorizationSetupReq req) =>
-            new(SessionCtx.ToCommonHeader(), ResponseCode.OK, new[] { Authorization.EIM },
-                CertificateInstallationService: false, new EIM_ASResAuthorizationModeType(), PnC_ASResAuthorizationMode: null);
+        private AuthorizationSetupRes AuthSetup(AuthorizationSetupReq req)
+        {
+            // Offer both EIM and Plug & Charge. A PnC-capable EV (e.g. a Josev EVCC with a contract cert) will
+            // pick PnC and sign its AuthorizationReq over this GenChallenge; our own loopback EVCC uses EIM. The
+            // challenge is a fresh 16 bytes the EV must echo back (ISO 15118-20 Table 62).
+            _genChallenge = RandomNumberGenerator.GetBytes(16);
+            // The response's authorization-mode params are a *choice* (exactly one of EIM/PnC), so to enable
+            // PnC we send the PnC mode (with the challenge) and leave EIM null — while still advertising both
+            // in AuthorizationServices. An EIM-only EV (our loopback EVCC) ignores the mode block and sends
+            // EIM regardless; a PnC EV (Josev with a contract cert) reads the challenge and signs.
+            return new(SessionCtx.ToCommonHeader(), ResponseCode.OK,
+                new[] { Authorization.PnC, Authorization.EIM },
+                CertificateInstallationService: false,
+                EIM_ASResAuthorizationMode: null,
+                new PnC_ASResAuthorizationModeType(_genChallenge, SupportedProviders: null));
+        }
 
-        private AuthorizationRes Auth(AuthorizationReq req) =>
-            new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished);
+        private AuthorizationRes Auth(AuthorizationReq req)
+        {
+            // Plug & Charge: validate the EV's signed AuthorizationReq (challenge echo + reference digest +
+            // ECDSA signature over the contract leaf). We record the outcome rather than aborting, so a live
+            // interop session completes and the verdict is observable; EIM carries no signature.
+            if (req.PnC_AReqAuthorizationMode is { } pnc)
+                PnCAuth = VerifyPnc(req, pnc);
+            return new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished);
+        }
+
+        /// <summary>Validates a PnC <see cref="AuthorizationReq"/>: the EV must echo our GenChallenge, the header
+        /// signature's reference digest must match the re-encoded <c>PnC_AReqAuthorizationMode</c> fragment, and
+        /// the SignedInfo signature must verify against the contract leaf's public key. Hashes are chosen from the
+        /// message's own SignatureMethod/DigestMethod URIs (SHA-256 or SHA-512), so it works whatever the peer's
+        /// contract-cert curve is (a real Josev PKI is P-256, not the -20-nominal secp521r1).</summary>
+        private PnCAuthResult VerifyPnc(AuthorizationReq req, PnC_AReqAuthorizationModeType pnc)
+        {
+            bool challengeOk = _genChallenge is not null && pnc.GenChallenge.AsSpan().SequenceEqual(_genChallenge);
+
+            var buf = new byte[8192];
+            if (!CommonMessagesCodec.EncodeFragment_PnC_AReqAuthorizationMode(pnc, buf, out int n))
+                return new PnCAuthResult(challengeOk, DigestOk: false, SignatureOk: false, "?", "fragment-encode-failed");
+            var fragment = buf.AsSpan(0, n);
+
+            if (req.Header.Signature is not { } sig || sig.SignedInfo.Reference.Count == 0)
+                return new PnCAuthResult(challengeOk, false, false, "?", "no-signature");
+
+            var reference = sig.SignedInfo.Reference[0];
+            bool digestOk = HashOf(reference.DigestMethod.Algorithm, fragment).AsSpan().SequenceEqual(reference.DigestValue);
+
+            string subject = "?";
+            bool signatureOk = false;
+            try
+            {
+                using var contract = X509CertificateLoader.LoadCertificate(pnc.ContractCertificateChain.Certificate);
+                subject = contract.Subject;
+                using var ecdsa = contract.GetECDsaPublicKey();
+                if (ecdsa is not null)
+                    signatureOk = ecdsa.VerifyData(
+                        V2GSignature.SignedInfoFragment(sig.SignedInfo), sig.SignatureValue.Value,
+                        HashNameFor(sig.SignedInfo.SignatureMethod.Algorithm),
+                        DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+            }
+            catch (Exception ex) { subject = $"cert-error: {ex.Message}"; }
+
+            return new PnCAuthResult(challengeOk, digestOk, signatureOk, subject, sig.SignedInfo.SignatureMethod.Algorithm);
+        }
+
+        private static byte[] HashOf(string algorithmUri, ReadOnlySpan<byte> data) =>
+            algorithmUri.Contains("sha256") ? SHA256.HashData(data) : SHA512.HashData(data);
+
+        private static HashAlgorithmName HashNameFor(string algorithmUri) =>
+            algorithmUri.Contains("sha256") ? HashAlgorithmName.SHA256 : HashAlgorithmName.SHA512;
 
         /// <summary>The ISO 15118-20 energy-transfer service id this SECC advertises (Table 204): DC=2, AC=1.
         /// A live Josev EVCC rejects a DC session offered under the AC id 1 (WrongServiceID).</summary>

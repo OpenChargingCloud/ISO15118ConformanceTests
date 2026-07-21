@@ -6,8 +6,8 @@ Last updated: **2026-07-21**. Authoritative per-phase detail lives in
 
 ## Current status
 
-The solution builds cleanly and **all 570 tests are green** (`dotnet test -c Release`:
-519 in `Vanaheimr.V2G.Exi.Tests`, 51 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
+The solution builds cleanly and **all 573 tests are green** (`dotnet test -c Release`:
+519 in `Vanaheimr.V2G.Exi.Tests`, 54 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
 over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C toolchain, JRE, or
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
 (SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
@@ -21,8 +21,11 @@ fixed **ten** real conformance bugs. Both SECCs now also accept a `SessionStopRe
 early-abort). **Live TLS runs in both directions**: our EVCC → Josev SECC over **TLS 1.2 unilateral** and
 **TLS 1.3 mutual**, and Josev EVCC → our SECC over **TLS 1.3 mutual** — each a complete -20 DC session to
 SessionStop (Josev is P-256, so the .NET `SslStream` backend, not our secp521r1 BouncyCastle one; found +
-fixed a client/server chain-transmission bug and a `PowerDelivery(Start)` poll-phase bug). What's left is
-optional wrap-up (live Plug & Charge) — see the report.
+fixed a client/server chain-transmission bug and a `PowerDelivery(Start)` poll-phase bug). **Live Plug &
+Charge** also runs: our SECC offers PnC + a GenChallenge and validates Josev's signed `AuthorizationReq` —
+challenge echo + reference digest verify (the digest match proves our signed-element codec is byte-exact vs
+EXIficient over a live message); the ECDSA signature over the `SignedInfo` fragment is one open
+canonicalization follow-up. Phase 5 and its wrap-up are effectively complete — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|
