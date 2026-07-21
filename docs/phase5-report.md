@@ -17,7 +17,7 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state: **569 green** (`dotnet test -c Release`) — 519 in `Vanaheimr.V2G.Exi.Tests`, 50 in
+Test state: **570 green** (`dotnet test -c Release`) — 519 in `Vanaheimr.V2G.Exi.Tests`, 51 in
 `Vanaheimr.V2G.Simulation.Tests`; the 2 live over-the-wire Josev tests are `[Explicit]` and
 excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 
@@ -28,7 +28,7 @@ excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 | 1 | Four in-process E2E happy paths (-2 AC/DC, -20 AC/DC) | ✅ done | `Simulation.Tests/E2E/`, each asserts terminal phase + success code |
 | 2 | SDP discovery (unit tests + used in E2E) | ◑ partial | Message layer + result mapping CI-tested and wired into the full-stack E2E; the **live UDP/IPv6 multicast exchange is not** CI-tested (a single host can't hear its own multicast). Documented gap. |
 | 3 | TLS variant for -2 and -20 with test certs | ✅ done | Two backends — .NET `SslStream` (P-256) and **BouncyCastle** (TLS 1.3, secp521r1 **and** Ed448, mutual). Loopback tests on both. |
-| 4 | Interop documented (-2 AC EIM both directions min.) | ✅ done | **Record mode** byte-exact for -2 AC, -2 DC, -20 DC PnC. Plus a **complete live over-the-wire** -20 DC session: our EVCC ↔ Josev SECC (plain TCP) runs end to end through the full DC charge loop to SessionStop (`docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`); it caught **seven** real framing/session/value bugs record mode can't (§3). The **reverse** direction (Josev EVCC → our SECC) also runs a **complete** DC session end to end to SessionStop (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`), catching three more SECC bugs plus the DC poll-loop sequencing gap; live TLS remains (§5). |
+| 4 | Interop documented (-2 AC EIM both directions min.) | ✅ done | **Record mode** byte-exact for -2 AC, -2 DC, -20 DC PnC. Plus a **complete live over-the-wire** -20 DC session: our EVCC ↔ Josev SECC (plain TCP) runs end to end through the full DC charge loop to SessionStop (`docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`); it caught **seven** real framing/session/value bugs record mode can't (§3). The **reverse** direction (Josev EVCC → our SECC) also runs a **complete** DC session end to end to SessionStop (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`), catching three more SECC bugs plus the DC poll-loop sequencing gap. **Live TLS** too: our EVCC → Josev SECC over **TLS 1.2 unilateral** and **TLS 1.3 mutual**, full DC session both times (`docs/interop-runs/2026-07-21-iso20-dc-tls-forward/`). |
 | 5 | Record mode → curated vector adoption | ✅ done | Record mode works, and three -20 DC frames are curated into the vector suite as `Vectors/Iso15118_20.DC.josev.vectors.json` (`referenceEncoder = Josev/EXIficient @ d645255`), validated by decode → re-encode in `JosevCuratedVectorTests`. |
 | 6 | CLI documented + architecture chapter | ✅ done | `README.md` — CLI usage (`evcc`/`secc`, tls/stage flags) + the "EV↔EVSE simulation (Phase 5)" chapter. |
 | 7 | Closing report | ✅ this document | |
@@ -117,10 +117,18 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   `Secc20DcTransitionTests` and validated in the second live reverse pass with no downstream content bugs
   (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`). Both SECCs also now accept a `SessionStopReq` in
   **any** phase (answer `SessionStopRes(OK)` and end cleanly, instead of a sequence-guard error on an early
-  abort) — `Secc20Base`/`Secc2`, covered by the transition tests. Remaining: (a) the same over **TLS 1.3**
-  via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`); (b) fixing the WWCP SDP components'
-  multicast interface binding so `--sdp` works without the SDP shim; (c) optionally, live -20 **Plug &
-  Charge** rather than EIM.
+  abort) — `Secc20Base`/`Secc2`, covered by the transition tests.
+- **Live TLS — both modes run.** Our EVCC drives a **complete** -20 DC session against Josev's SECC over
+  **TLS 1.2 unilateral** and **TLS 1.3 mutual** (`docs/interop-runs/2026-07-21-iso20-dc-tls-forward/`).
+  **Josev is P-256, not the strict -20 secp521r1 profile** (its `create_certs.sh` uses `prime256v1` for every
+  role, `CertPath` hardcodes `iso15118_2/certs/`), so the Josev-facing TLS is the **.NET `SslStream`** backend;
+  our secp521r1/Ed448 **BouncyCastle** backend — the -20-faithful TLS profile — can't be exercised by Josev and
+  stays proven in loopback (`BcMutualTlsLoopbackTests`). The run also caught + fixed a real client-side bug:
+  `SslStream` sent only the leaf client cert, so a root-only SECC couldn't build the chain — now transmitted
+  via `SslStreamCertificateContext` (`TlsOptions.ClientCertificateChain`), locked in by a root-only-SECC
+  loopback test. Remaining: (a) fixing the WWCP SDP components' multicast interface binding so `--sdp` works
+  without the SDP shim; (b) optionally, live -20 **Plug & Charge** rather than EIM, and the reverse TLS
+  direction.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.

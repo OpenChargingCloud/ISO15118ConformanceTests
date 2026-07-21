@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -142,7 +143,19 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 case TlsBackend.Dotnet:
                     // Dev CLI only: no out-of-band way to learn the SECC dev-cert thumbprint, so accept any.
                     Console.WriteLine("WARNING: accepting any TLS server certificate — dev CLI only, never against a real SECC.");
-                    return await TcpV2GClient.ConnectAsync(host, port, new TlsOptions { ServerCertificateValidation = (_, _, _, _) => true });
+                    var (clientLeaf, clientChain) = LoadClientCertificate(args);
+                    var tlsOptions = new TlsOptions
+                    {
+                        ServerCertificateValidation = (_, _, _, _) => true,
+                        // Negotiate TLS 1.2 or 1.3 so this interoperates with a peer in either mode (Josev's
+                        // SECC serves TLS 1.2 unilateral by default, TLS 1.3 mutual with ENABLE_TLS_1_3=True).
+                        EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
+                        ClientCertificate = clientLeaf,
+                        ClientCertificateChain = clientChain,
+                    };
+                    if (clientLeaf is not null)
+                        Console.WriteLine($"Presenting client certificate for mutual TLS: {clientLeaf.Subject} (+{clientChain?.Count ?? 0} intermediate(s))");
+                    return await TcpV2GClient.ConnectAsync(host, port, tlsOptions);
 
                 default:
                     return await TcpV2GClient.ConnectAsync(host, port);
@@ -204,6 +217,19 @@ namespace Vanaheimr.V2G.Simulation.Cli
 
         private static string ProtocolName(ProtocolVariant p) => p == ProtocolVariant.Iso15118_2 ? "-2" : "-20";
         private static string ModeName(PowerMode m) => m == PowerMode.Ac ? "AC" : "DC";
+
+        /// <summary>Loads a PKCS#12 client certificate for mutual TLS, splitting the private-key leaf from its
+        /// intermediate CA chain so <c>SslStream</c> can send both. Returns (null, null) when none is configured.</summary>
+        private static (X509Certificate2? Leaf, X509Certificate2Collection? Chain) LoadClientCertificate(CliArgs args)
+        {
+            if (args.ClientCertPath is not { } path)
+                return (null, null);
+
+            var all = X509CertificateLoader.LoadPkcs12CollectionFromFile(path, args.ClientCertPass, X509KeyStorageFlags.Exportable);
+            var leaf = all.FirstOrDefault(c => c.HasPrivateKey) ?? all[0];
+            var chain = new X509Certificate2Collection(all.Where(c => !ReferenceEquals(c, leaf)).ToArray());
+            return (leaf, chain);
+        }
 
         private static X509Certificate2 CreateDevCertificate()
         {

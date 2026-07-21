@@ -108,6 +108,50 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         }
 
         [Test]
+        public async Task Iso20DcSession_OverMutualTls_ClientSendsIntermediateChainToRootOnlySecc()
+        {
+            // Mirrors the live Josev TLS 1.3 mutual run: the SECC trusts ONLY the V2G root (no out-of-band
+            // intermediates) and validates the client purely from the certs it sent over the wire. Succeeds only
+            // because the EVCC presents ClientCertificate + ClientCertificateChain, so SslStream transmits the
+            // Vehicle Sub-CAs. Without the chain (leaf only) the root-only SECC can't build the path — the very
+            // failure the live run first hit.
+            using var pki = NewPki();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+            var seccTls = new TlsOptions
+            {
+                ServerCertificate           = pki.SeccServerCert,
+                RequireClientCertificate    = true,
+                ClientCertificateValidation = pki.ValidateVehicleClientWireChainOnly,
+            };
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), seccTls);
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                Assert.That(((SslStream) seccStream).IsMutuallyAuthenticated, Is.True);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            var evccTls = new TlsOptions
+            {
+                ClientCertificate           = pki.VehicleClientCert,
+                ClientCertificateChain      = pki.VehicleIntermediates,
+                ServerCertificateValidation = pki.ValidateSeccServer,
+            };
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evccTls, cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+            await Task.WhenAll(evcc.RunAsync(cts.Token), seccTask);
+
+            Assert.That((await seccTask).IsDone, Is.True);
+        }
+
+        [Test]
         public void Secc_RejectsClientWithoutCertificate()
         {
             using var pki = NewPki();

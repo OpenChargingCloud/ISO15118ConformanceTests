@@ -31,6 +31,30 @@ namespace Vanaheimr.V2G.Simulation.Tests.TestData
         private readonly X509Certificate2[] _seccIntermediates;
         private readonly X509Certificate2[] _vehicleIntermediates;
 
+        /// <summary>The Vehicle branch intermediate CAs (Sub-CA 2 then Sub-CA 1) — the chain a client must
+        /// <b>send over the wire</b> for a root-only SECC (e.g. Josev, which loads just the OEM root) to verify it.</summary>
+        public X509Certificate2Collection VehicleIntermediates => new(_vehicleIntermediates);
+
+        /// <summary>SECC-side callback that trusts <b>only</b> the V2G Root and builds the chain purely from the
+        /// certificates the peer sent over the wire (no out-of-band intermediates) — so it succeeds only if the
+        /// client actually transmitted its intermediate chain. Mirrors Josev's root-only client validation.</summary>
+        public RemoteCertificateValidationCallback ValidateVehicleClientWireChainOnly => (_, presented, wireChain, _) =>
+        {
+            if (presented is not X509Certificate2 leaf || wireChain is null)
+                return false;
+
+            using var chain = new X509Chain();
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.TrustMode      = X509ChainTrustMode.CustomRootTrust;
+            chain.ChainPolicy.CustomTrustStore.Add(Root);
+            // Only the intermediates the peer transmitted (present in the SslStream-built chain) — nothing local.
+            foreach (var element in wireChain.ChainElements)
+                if (!element.Certificate.Equals(leaf))
+                    chain.ChainPolicy.ExtraStore.Add(element.Certificate);
+
+            return chain.Build(leaf);
+        };
+
         /// <summary>SECC-side callback: validate the presented Vehicle client cert against the shared V2G Root.</summary>
         public RemoteCertificateValidationCallback ValidateVehicleClient => Make(Root, _vehicleIntermediates);
 

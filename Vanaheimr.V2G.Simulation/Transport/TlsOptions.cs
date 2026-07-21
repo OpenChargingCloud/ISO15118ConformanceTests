@@ -27,6 +27,11 @@ namespace Vanaheimr.V2G.Simulation.Transport
         /// <summary>EVCC side: the TLS client certificate to present for mutual TLS (the Vehicle certificate). Null = no client cert.</summary>
         public X509Certificate2? ClientCertificate { get; init; }
 
+        /// <summary>EVCC side: the intermediate CA certificates to send alongside <see cref="ClientCertificate"/> so the
+        /// SECC can build the chain to its trust anchor. Without these, <c>SslStream</c> sends only the leaf and a peer
+        /// that holds only the root (e.g. Josev, which loads just the OEM root) can't verify the client. Null = leaf only.</summary>
+        public X509Certificate2Collection? ClientCertificateChain { get; init; }
+
         /// <summary>SECC side: require a TLS client certificate from the EVCC (mutual TLS). Off for plain server-side TLS.</summary>
         public bool RequireClientCertificate { get; init; }
 

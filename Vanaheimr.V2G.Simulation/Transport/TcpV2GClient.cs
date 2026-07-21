@@ -29,7 +29,9 @@ namespace Vanaheimr.V2G.Simulation.Transport
                 EnabledSslProtocols = tls.EnabledSslProtocols,
             };
             if (tls.ClientCertificate is { } clientCert)
-                options.ClientCertificates = new X509CertificateCollection { clientCert };
+                // Use a certificate context (not just ClientCertificates) so SslStream sends the intermediate
+                // chain, letting a root-only SECC build the path to its trust anchor for mutual TLS.
+                options.ClientCertificateContext = SslStreamCertificateContext.Create(clientCert, tls.ClientCertificateChain);
 
             await ssl.AuthenticateAsClientAsync(options, ct).ConfigureAwait(false);
             return ssl;

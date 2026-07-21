@@ -17,7 +17,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
         ProtocolVariant Protocol, PowerMode Mode, TlsBackend TlsBackend,
         bool UseSdp, string? Interface,
         bool UseSlac, int SlacListenPort, string? SlacPeerHost, int SlacPeerPort,
-        string? PkiDir)
+        string? PkiDir, string? ClientCertPath, string? ClientCertPass)
     {
         public static CliArgs Parse(string[] args)
         {
@@ -32,7 +32,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var backend = TlsBackend.None;
             bool tls = false;
             bool useSdp = false, useSlac = false;
-            string? iface = null, slacPeerHost = null, pkiDir = null;
+            string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
             int slacListenPort = 0, slacPeerPort = 0;
 
             for (int i = 1; i < args.Length; i++)
@@ -90,6 +90,12 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     case "--pki-dir":
                         pkiDir = args[++i];
                         break;
+                    case "--client-cert":
+                        clientCertPath = args[++i];
+                        break;
+                    case "--client-cert-pass":
+                        clientCertPass = args[++i];
+                        break;
                     default:
                         throw new ArgumentException($"unknown argument '{args[i]}'.\n{Usage}");
                 }
@@ -102,7 +108,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
             Validate(role, connectHost, listenPort, backend, useSdp, iface, useSlac, slacListenPort, slacPeerHost, pkiDir);
 
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
-                               useSdp, iface, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir);
+                               useSdp, iface, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
+                               clientCertPath, clientCertPass);
         }
 
         private static void Validate(Role role, string? connectHost, int listenPort, TlsBackend backend,
@@ -153,6 +160,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "usage: evcc --connect <host:port> --protocol 2|20 --mode ac|dc [tls/stage options]\n" +
             "       secc --listen  <port>      --protocol 2|20 --mode ac|dc [tls/stage options]\n" +
             "  TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)\n" +
+            "         evcc --client-cert <pfx> [--client-cert-pass <pw>]  (mutual TLS on the .NET backend)\n" +
             "  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)\n" +
             "  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)";
     }
