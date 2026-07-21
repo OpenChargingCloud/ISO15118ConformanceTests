@@ -1,3 +1,4 @@
+using cloud.charging.open.protocols.ISO15118.SLAC.Avln;
 using cloud.charging.open.protocols.ISO15118.SLAC.StateMachine;
 using cloud.charging.open.protocols.ISO15118.SLAC.Transport;
 
@@ -6,9 +7,13 @@ namespace Vanaheimr.V2G.Simulation.Slac
     /// <summary>
     /// SECC/EVSE-side SLAC pairing stage. <see cref="StartAsync"/> begins listening for a PEV (so the
     /// EVSE is ready before the EV sends its first CM_SLAC_PARM.REQ); <see cref="WaitForMatchAsync"/>
-    /// completes when the first PEV finishes matching, yielding the negotiated <see cref="SlacResult"/>.
+    /// completes when the first PEV finishes matching, programs the local PLC chip (if a <paramref name="chip"/>
+    /// is supplied) with the negotiated NID/NMK, waits for the AVLN, and returns the <see cref="SlacResult"/>.
     /// </summary>
-    public sealed class SlacEvseStage(ISlacTransport transport, EvseSlacOptions options) : IAsyncDisposable
+    public sealed class SlacEvseStage(ISlacTransport      transport,
+                                      EvseSlacOptions     options,
+                                      IPlcChipController?  chip              = null,
+                                      TimeSpan?           avlnReadyTimeout  = null) : IAsyncDisposable
     {
         private readonly TaskCompletionSource<SlacResult> _matched = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private EvseSlacListener? _listener;
@@ -24,11 +29,15 @@ namespace Vanaheimr.V2G.Simulation.Slac
             await transport.StartAsync(ct).ConfigureAwait(false); // begin receiving
         }
 
-        /// <summary>Await the first completed SLAC match.</summary>
+        /// <summary>Await the first completed SLAC match, then program the local PLC chip.</summary>
         public async Task<SlacResult> WaitForMatchAsync(CancellationToken ct = default)
         {
             using (ct.Register(() => _matched.TrySetCanceled(ct)))
-                return await _matched.Task.ConfigureAwait(false);
+            {
+                var result = await _matched.Task.ConfigureAwait(false);
+                await SlacChip.ProgramAsync(chip, result, avlnReadyTimeout ?? SlacChip.DefaultAvlnReadyTimeout, ct).ConfigureAwait(false);
+                return result;
+            }
         }
 
         public async ValueTask DisposeAsync()

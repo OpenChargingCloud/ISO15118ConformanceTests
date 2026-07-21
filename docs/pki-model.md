@@ -198,11 +198,13 @@ BouncyCastle backend for the secp521r1/Ed448 -20 TLS profile, the .NET backend o
   hear each other's multicast (both disable multicast loopback), and Windows multicast in CI is
   unreliable, so it stays out of the deterministic test run.
 - **SLAC** stage — wired into the Simulation library (`Slac/`): `SlacEvStage` / `SlacEvseStage` over the
-  WWCP SLAC state machines. Unlike SDP, SLAC **is** deterministically loopback-testable — `UdpSlacTransport`
-  unicasts to bootstrap/learned peers (no multicast), so a full EV↔EVSE match runs in-process over
-  loopback UDP (`Slac/SlacUdpLoopbackTests.cs`, ~1 s, asserts matching NID/NMK). Placed directly in the
-  core library (accepting the heavy transitive `Hermod`/`Styx` dependency) — a "slim down Hermod" cleanup
-  is noted as a future TODO.
+  WWCP SLAC state machines, each optionally programming a PLC chip (`IPlcChipController`) with the
+  negotiated NID/NMK and waiting for the AVLN. Unlike SDP, SLAC **is** deterministically loopback-testable
+  — `UdpSlacTransport` unicasts to bootstrap/learned peers (no multicast), so a full EV↔EVSE match runs
+  in-process over loopback UDP (`Slac/SlacUdpLoopbackTests.cs`, ~1 s): one test asserts both sides agree on
+  NID/NMK, a second drives the `SimulatedChipController` on both ends and asserts both chips are keyed.
+  Placed directly in the core library (accepting the heavy transitive `Hermod`/`Styx` dependency) — a
+  "slim down Hermod" cleanup is noted as a future TODO.
 
 ## Related
 
