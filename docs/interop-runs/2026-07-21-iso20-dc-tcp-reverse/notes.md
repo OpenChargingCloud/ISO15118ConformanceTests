@@ -7,11 +7,16 @@
 - **SDP:** a minimal SECC-side SDP responder (`scratchpad`/`tools`) advertises our SECC's `fe80::…%eth0:55000`
   to Josev's EVCC — the WWCP `EVCC/SECC` SDP components have a separate multicast interface-binding bug
   (tracked), so the responder isolates that from the session interop, exactly as the forward run did.
-- **Outcome:** ✅ the reverse direction **works** through SDP → SAP → SessionSetup → AuthorizationSetup →
-  Authorization → Service{Discovery,Detail,Selection} → DC_ChargeParameterDiscovery → ScheduleExchange →
-  DC_CableCheck → DC_PreCharge (first poll). It surfaced **three more real SECC bugs** (all fixed) that only
-  a strictly-validating EVCC catches, then reached a genuine SECC state-machine gap (the DC precharge poll
-  loop). Full EVCC-side log: [`evcc-session.log`](evcc-session.log).
+- **Outcome:** ✅ the reverse direction runs a **complete** charge session, end to end. The **first pass**
+  reached DC_PreCharge (first poll) and surfaced **three real SECC bugs** (all fixed) that only a
+  strictly-validating EVCC catches, then hit a genuine SECC state-machine gap (the DC poll loop) — first-pass
+  EVCC log: [`evcc-session.log`](evcc-session.log). After the poll-loop self-looping fix (below), a **second
+  pass drove the whole session** SDP → SAP → SessionSetup → AuthorizationSetup → Authorization →
+  Service{Discovery,Detail,Selection} → DC_ChargeParameterDiscovery → ScheduleExchange → DC_CableCheck →
+  DC_PreCharge (×4 polls) → PowerDelivery(Start) → DC_ChargeLoop (×10) → PowerDelivery(Stop) →
+  DC_WeldingDetection (×5 polls) → SessionStop, Josev's EVCC exiting **code 0 ("Communication session
+  terminated")** and our SECC logging **"✓ Session complete in 78906 ms."** No further bugs — Josev accepted
+  every response body. Full-loop EVCC log: [`evcc-session-fullloop.log`](evcc-session-fullloop.log).
 
 ## Networking
 
@@ -55,16 +60,30 @@ PreCharge; `SessionStopReq` ends WeldingDetection). Covered by `Secc20DcTransiti
 the loopback single-poll path). The loopback E2E still passes unchanged (our own EVCC sends exactly one of
 each).
 
-## Remaining for a fully-green reverse charge loop
+## Second pass: full reverse charge loop ✅ (poll-loop fix validated live)
 
-- **Downstream content fidelity** through PowerDelivery → ChargeLoop → WeldingDetection → SessionStop:
-  whatever Josev's EVCC validates in our *response contents* (present voltage/current, control-mode fields)
-  past the point this run reached — to be found by re-running the reverse live session now that the
-  sequencing no longer blocks it.
-- **Graceful `SessionStop` in any phase.** Our SECC's sequence guard rejects a `SessionStopReq` mid-session
-  (it errors instead of answering), so when Josev aborts early our SECC logs a `FAILED_SequenceError` rather
-  than a graceful stop — a small robustness follow-up (a SECC should accept `SessionStop` in any phase). This
-  is orthogonal to the poll-loop fix (the happy path sends `SessionStop` only at the end, which now works).
+Re-running with the self-loop fix, Josev's EVCC drove the whole DC session against our SECC with no further
+changes. Poll counts from `evcc-session-fullloop.log` (each answered **in place** by our SECC, staying in
+phase until the next-phase message):
+
+| Josev EVCC sent          | count | our SECC |
+|--------------------------|-------|----------|
+| `DC_CableCheckReq`       | 1     | `Finished` on the first poll |
+| `DC_PreChargeReq`        | **4** | all four answered (was the crash point) |
+| `DC_ChargeLoopReq`       | 10    | all answered |
+| `DC_WeldingDetectionReq` | **5** | all five answered |
+| `SessionStopReq`         | 1     | `SessionStopRes OK` → graceful terminate |
+
+Josev's EVCC exited **code 0** and our SECC logged **"✓ Session complete in 78906 ms."** No downstream
+content bugs surfaced — the poll-loop sequencing was the only thing that had blocked the full reverse loop.
+
+## Remaining (orthogonal robustness / other transports)
+
+- **Graceful `SessionStop` in any phase.** Our SECC's sequence guard still rejects a `SessionStopReq`
+  mid-session (it errors instead of answering), so when Josev *aborts early* our SECC logs a
+  `FAILED_SequenceError` rather than a graceful stop — a small robustness follow-up (a SECC should accept
+  `SessionStop` in any phase). This is orthogonal to the completed happy path, which sends `SessionStop` only
+  at the end.
 
 ## Reproduce
 
@@ -76,8 +95,7 @@ each).
 
 ## Next
 
-- ~~SECC DC poll-loop self-looping (CableCheck/PreCharge/WeldingDetection)~~ ✅ **done** (see above).
-- Re-run the reverse live session with the self-loop fix to drive it past PreCharge → PowerDelivery →
-  ChargeLoop → WeldingDetection → SessionStop, and fix any downstream content the EVCC rejects.
-- Accept `SessionStop` in any phase (graceful abort handling).
+- ~~SECC DC poll-loop self-looping (CableCheck/PreCharge/WeldingDetection)~~ ✅ **done**.
+- ~~Re-run the reverse live session end to end~~ ✅ **done** — full loop to SessionStop, no content bugs.
+- Accept `SessionStop` in any phase (graceful abort handling — the one remaining robustness item).
 - Then the same over **TLS 1.3** (Josev `SECC_ENFORCE_TLS=True`, our BouncyCastle backend).

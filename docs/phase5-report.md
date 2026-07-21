@@ -104,20 +104,22 @@ validates — the whole point of interop against an independent, strictly-valida
 
 Nothing below blocks the happy-path simulation; each is honestly out of scope or deferred.
 
-- **Live over-the-wire interop — both directions run.** *Forward* (our EVCC ↔ Josev SECC, -20 DC, plain TCP)
-  runs a **complete** charge session end to end, SDP through SessionStop, after fixing seven bugs (§3;
-  `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`). *Reverse* (Josev EVCC → our SECC) runs through SDP →
-  SAP → the whole service negotiation → ScheduleExchange → DC_CableCheck → DC_PreCharge, after fixing three
-  more real SECC bugs (mode-aware ServiceID, the ControlMode parameter, a PriceLevelSchedule) plus IPv6
-  dual-stack listening (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`). The reverse loop's SECC **DC
-  poll-loop sequencing** is now **fixed** — `Secc20Base` self-loops CableCheck/PreCharge/WeldingDetection
-  (answering each poll in place) and only advances on the next-phase message, via a `Secc20Dc.IsPollFor`
-  classifier + a pre-switch advance-without-consume loop, covered by `Secc20DcTransitionTests`. Remaining:
-  (a) re-run the reverse session with the fix to close any **downstream content** the EVCC rejects past
-  PreCharge, plus graceful `SessionStop`-in-any-phase, to sign off a full reverse charge loop; (b) the same
-  over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`); (c) fixing the WWCP SDP
-  components' multicast interface binding so `--sdp` works without the SDP shim; (d) optionally, live -20
-  **Plug & Charge** rather than EIM.
+- **Live over-the-wire interop — both directions run a complete charge session end to end.** *Forward* (our
+  EVCC ↔ Josev SECC, -20 DC, plain TCP) runs SDP through SessionStop after fixing seven bugs (§3;
+  `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`). *Reverse* (Josev EVCC → our SECC) now also runs the
+  **whole** session to SessionStop: SDP → SAP → service negotiation → ScheduleExchange → DC_CableCheck →
+  DC_PreCharge (×4 polls) → PowerDelivery → DC_ChargeLoop (×10) → DC_WeldingDetection (×5 polls) →
+  SessionStop, Josev's EVCC exiting code 0 and our SECC logging "✓ Session complete" — after fixing three
+  more real SECC bugs (mode-aware ServiceID, the ControlMode parameter, a PriceLevelSchedule) + IPv6
+  dual-stack listening, **and** the SECC **DC poll-loop sequencing**: `Secc20Base` self-loops
+  CableCheck/PreCharge/WeldingDetection (answering each poll in place) and only advances on the next-phase
+  message, via a `Secc20Dc.IsPollFor` classifier + a pre-switch advance-without-consume loop, covered by
+  `Secc20DcTransitionTests` and validated in the second live reverse pass with no downstream content bugs
+  (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`). Remaining: (a) graceful `SessionStop`-in-any-phase
+  robustness (for early aborts — the happy path already completes); (b) the same over **TLS 1.3** via the
+  BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`); (c) fixing the WWCP SDP components' multicast
+  interface binding so `--sdp` works without the SDP shim; (d) optionally, live -20 **Plug & Charge** rather
+  than EIM.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.

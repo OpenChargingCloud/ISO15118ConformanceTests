@@ -12,14 +12,13 @@ over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C too
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
 (SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
 -20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**, and the
-[Phase 5 closing report](phase5-report.md) is written. Live over-the-wire -20 DC runs **both
-directions**: forward (our EVCC ↔ Josev SECC) a **complete** charge session end to end to SessionStop;
-reverse (Josev EVCC → our SECC) through the service negotiation → ScheduleExchange → DC precharge —
-together catching and fixing **ten** real conformance bugs. Our SECC's DC state machine now **self-loops
-the CableCheck/PreCharge/WeldingDetection poll phases** (a real EV polls each until it decides the step is
-done), removing the reverse run's stopping point; what's left is optional wrap-up (re-run the reverse
-session to close any downstream content gaps, `SessionStop`-in-any-phase, live TLS, live Plug & Charge) —
-see the report.
+[Phase 5 closing report](phase5-report.md) is written. Live over-the-wire -20 DC runs a **complete** charge
+session end to end to SessionStop in **both directions** — forward (our EVCC ↔ Josev SECC) and reverse
+(Josev EVCC → our SECC), the latter after teaching our SECC to **self-loop the CableCheck/PreCharge/
+WeldingDetection poll phases** (a real EV polls each until it decides the step is done; the validated reverse
+run saw 4 PreCharge + 5 WeldingDetection polls, all answered in place). Together the two directions caught and
+fixed **ten** real conformance bugs. What's left is optional wrap-up (`SessionStop`-in-any-phase robustness,
+live TLS, live Plug & Charge) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|
