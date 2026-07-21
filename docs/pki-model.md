@@ -191,8 +191,15 @@ BouncyCastle backend for the secp521r1/Ed448 -20 TLS profile, the .NET backend o
   the -20 profile exactly (TLS 1.3, the two -20 suites, secp521r1/Ed448); on the .NET path,
   confirm what `SslServerAuthenticationOptions` / `CipherSuitesPolicy` let us pin on Windows (the
   current `TlsOptions.cs` uses defaults) and record whatever can't be pinned as a Schannel deviation.
-- **SDP + SLAC discovery stages** in front of the handshake — SDP is the next wiring slice; SLAC
-  waits on the Hermod submodule (its project references it and Hermod is not yet vendored).
+- **SDP discovery stage** is wired via the `ISeccDiscovery` seam (`Discovery/`): `FixedSeccDiscovery`
+  (explicit host:port) and `SdpSeccDiscovery` (real `EVCC_SDPClient`). CI covers the SDP message
+  round-trips and the discovery-result → `SeccEndpoint` mapping deterministically; the real UDP/IPv6
+  **multicast** exchange runs only in real/CLI runs — an EVCC and SECC in one process on one host cannot
+  hear each other's multicast (both disable multicast loopback), and Windows multicast in CI is
+  unreliable, so it stays out of the deterministic test run.
+- **SLAC** stage — now buildable (Hermod + Styx submodules are vendored, the SLAC project compiles), but
+  not yet wired; it also drags in the heavy Hermod dependency, so placement (separate integration
+  project vs. library) is still to decide.
 
 ## Related
 

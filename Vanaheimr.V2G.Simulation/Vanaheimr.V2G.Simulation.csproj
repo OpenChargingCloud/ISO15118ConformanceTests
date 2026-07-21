@@ -26,4 +26,11 @@
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.DC\Vanaheimr.V2G.Exi.Iso15118_20.DC.csproj" />
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.AC\Vanaheimr.V2G.Exi.Iso15118_20.AC.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- SECC Discovery Protocol (SDP): the EVCC discovers the SECC's TCP/TLS endpoint before
+         connecting. Lightweight WWCP submodule projects (no Hermod). -->
+    <ProjectReference Include="..\libs\WWCP_ISO15118\WWCP_ISO15118_SDP\WWCP_ISO15118_SDP.csproj" />
+    <ProjectReference Include="..\libs\WWCP_ISO15118\WWCP_ISO15118_NetworkInterfaces\WWCP_ISO15118_NetworkInterfaces.csproj" />
+  </ItemGroup>
 </Project>
