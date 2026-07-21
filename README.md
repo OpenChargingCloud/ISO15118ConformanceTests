@@ -287,10 +287,17 @@ connect via an explicit host:port instead. Josev interop is a separate follow-up
   DC/AC-specific charge-parameter/pre-charge/charge-loop/welding-detection hooks in the subclasses).
 - **CLI** (`Vanaheimr.V2G.Simulation.Cli`):
   ```
-  secc --listen <port>       --protocol 2|20 --mode ac|dc [--tls]
-  evcc --connect <host:port> --protocol 2|20 --mode ac|dc [--tls]
+  secc --listen  <port>      --protocol 2|20 --mode ac|dc [tls/stage options]
+  evcc --connect <host:port> --protocol 2|20 --mode ac|dc [tls/stage options]
+
+  TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)
+  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)
+  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)
   ```
-  One-shot: the SECC accepts a single connection, runs one session, and exits.
+  One-shot: the SECC accepts a single connection, runs one session, and exits. `--tls-backend bc`
+  makes the SECC generate a strict-20 PKI into `--pki-dir` (shared with the EVCC) and run P-521
+  mutual TLS via the BouncyCastle backend; SDP/SLAC add the real discovery/pairing front stages
+  (SDP needs a multicast-capable `--interface`, so it is a real-network feature, not loopback).
 
 All four happy paths (-2 AC/DC, -20 AC/DC) run to `SessionStop` over real loopback TCP in
 `dotnet test` (`Vanaheimr.V2G.Simulation.Tests/E2E/`), plus two TLS variants — no network beyond
