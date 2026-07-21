@@ -10,6 +10,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     public sealed class Evcc20Ac(Stream stream, TimeProvider clock, IAsyncDelay pollDelay, TimeSpan perMessageTimeout)
         : Evcc20Base(stream, clock, pollDelay, perMessageTimeout)
     {
+        protected override PowerMode EnergyMode => PowerMode.Ac;
+
         protected override async Task RunChargeParameterDiscoveryAsync(CancellationToken ct)
         {
             var req = new Ac20.AC_ChargeParameterDiscoveryReq(SessionCtx.ToAcHeader(),

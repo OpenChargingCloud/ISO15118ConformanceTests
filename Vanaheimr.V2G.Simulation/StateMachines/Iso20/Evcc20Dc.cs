@@ -14,6 +14,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         // to avoid capturing it twice (once here, once in the base primary constructor).
         private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(50);
 
+        protected override PowerMode EnergyMode => PowerMode.Dc;
+
         protected override async Task RunChargeParameterDiscoveryAsync(CancellationToken ct)
         {
             var req = new Dc20.DC_ChargeParameterDiscoveryReq(SessionCtx.ToDcHeader(),

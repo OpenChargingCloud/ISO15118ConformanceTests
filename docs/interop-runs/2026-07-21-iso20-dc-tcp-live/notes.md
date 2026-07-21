@@ -41,16 +41,31 @@ tests because both our EVCC and SECC were lenient/consistent in the same wrong w
 
 With all three fixed, the live session runs cleanly through the whole handshake + setup + auth + discovery.
 
-## Where it stops (open, documented — not a codec/framing bug)
+## Update — dynamic service negotiation (two more EVCC fixes)
 
-At **ServiceSelection**: our EVCC hardcodes energy-transfer `ServiceID=1`/`ParameterSetID=1`, which Josev's
-DC catalog does not offer (`FAILED_ServiceIDInvalid` / *"not offered by SECC"*). This is a **simulator
-fidelity gap**, not a wire bug: our EVCC uses fixed service/parameter ids tuned to our own SECC rather than
-parsing `ServiceDiscoveryRes`/`ServiceDetailRes` and selecting from the peer's advertised catalog. Getting a
-full DC charge loop live against Josev needs the EVCC to negotiate services dynamically (and to match Josev's
-DC `ControlMode`/`MobilityNeedsMode`/schedule expectations downstream) — a state-machine enhancement, tracked
-as follow-up. Note the -20 DC **message codecs** for every one of those messages are already byte-exact vs
-both cbV2G and Josev (record mode), so this is purely EVCC-side session content.
+Two follow-on EVCC fixes push the live session much deeper — through the whole DC energy-transfer setup:
+
+4. **Dynamic service negotiation.** The EVCC hardcoded energy-transfer `ServiceID=1`/`ParameterSetID=1`
+   (Josev's DC catalog offers neither → `FAILED_ServiceIDInvalid` / *"not offered by SECC"*). It now parses
+   `ServiceDiscoveryRes.EnergyTransferServiceList` and picks the service matching its mode (DC → id 2/6),
+   then parses `ServiceDetailRes` and picks a Scheduled-control-mode parameter set. Against Josev it now
+   selects `ServiceID=2` and Josev replies `ServiceSelectionRes: OK`. (Our loopback SECC advertises exactly
+   the old fixed ids, which masked this.)
+5. **`MaximumSupportingPoints` out of range.** Our `ScheduleExchangeReq` sent `1`, below the schema minimum
+   of `12` (range [12, 1024]; the wire value biases by 12, so 1 underflows to 1025). Josev rejects it; our
+   SECC didn't validate the range. Fixed to `12`.
+
+With those, the live session now runs cleanly through **ServiceSelection → DC_ChargeParameterDiscovery →
+ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery** — essentially the entire DC setup.
+
+## Where it stops now (open — EVCC session-content fidelity, not a codec/framing bug)
+
+At **PowerDelivery**: `PowerDeliveryReq` with `ChargeProgress=Start` requires a populated `EVPowerProfile`
+(a nested power-schedule structure derived from the chosen schedule); our EVCC sends it as absent, which
+Josev rejects. Completing a full live DC charge loop needs the EVCC to build a spec-valid `EVPowerProfile`
+(and, likely, further per-message value fidelity through ChargeLoop → WeldingDetection → SessionStop). This
+is a continuing EVCC state-machine enhancement — the -20 DC **message codecs** for all of these are already
+byte-exact vs both cbV2G and Josev (record mode), so it is purely EVCC-side session *content*, not the wire.
 
 ## Reproduce
 
@@ -61,7 +76,7 @@ both cbV2G and Josev (record mode), so this is purely EVCC-side session content.
 
 ## Next
 
-- EVCC dynamic service negotiation (parse ServiceDiscovery/Detail, select the peer's DC service) to drive a
-  full live DC charge loop.
+- EVCC `EVPowerProfile` construction (and any further per-message value fidelity) to drive a full live DC
+  charge loop through ChargeLoop → WeldingDetection → SessionStop.
 - Fix the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp --interface eth0` works directly.
 - Milestone B: the same over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`).

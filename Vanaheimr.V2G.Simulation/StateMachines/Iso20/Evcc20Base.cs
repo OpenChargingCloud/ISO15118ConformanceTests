@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Session;
@@ -33,6 +35,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>DC: WeldingDetection. AC: no-op.</summary>
         protected abstract Task RunPostChargeSequenceAsync(CancellationToken ct);
 
+        /// <summary>The energy-transfer mode this EVCC drives — used to pick the matching service from the
+        /// SECC's advertised catalog during service discovery.</summary>
+        protected abstract PowerMode EnergyMode { get; }
+
         public async Task RunAsync(CancellationToken ct = default)
         {
             var setupRes = await Exchange<SessionSetupRes>(MessageSet.Iso20CommonMessages,
@@ -52,20 +58,28 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                    .EVSEProcessing != Processing.Finished)
                 await pollDelay.Wait(PollInterval, ct);
 
-            await Exchange<ServiceDiscoveryRes>(MessageSet.Iso20CommonMessages,
+            // Service negotiation is dynamic: select the energy-transfer service and parameter set the SECC
+            // actually advertises, rather than assuming fixed ids. A live Josev interop run caught the old
+            // hardcoded ServiceID=1/ParameterSetID=1 (Josev's DC catalog offers neither) — our loopback SECC
+            // happened to advertise exactly those, which masked it.
+            var discovery = await Exchange<ServiceDiscoveryRes>(MessageSet.Iso20CommonMessages,
                 dest => new ServiceDiscoveryReq(SessionCtx.ToCommonHeader(), null).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+            ushort serviceId = SelectEnergyTransferService(discovery);
 
-            await Exchange<ServiceDetailRes>(MessageSet.Iso20CommonMessages,
-                dest => new ServiceDetailReq(SessionCtx.ToCommonHeader(), ServiceID: 1).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+            var detail = await Exchange<ServiceDetailRes>(MessageSet.Iso20CommonMessages,
+                dest => new ServiceDetailReq(SessionCtx.ToCommonHeader(), serviceId).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+            ushort parameterSetId = SelectParameterSet(detail);
 
             await Exchange<ServiceSelectionRes>(MessageSet.Iso20CommonMessages,
                 dest => new ServiceSelectionReq(SessionCtx.ToCommonHeader(),
-                    new SelectedServiceType(ServiceID: 1, ParameterSetID: 1), null).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+                    new SelectedServiceType(serviceId, parameterSetId), null).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
 
             await RunChargeParameterDiscoveryAsync(ct);
 
+            // MaximumSupportingPoints is schema-bounded to [12, 1024] (the encoder biases by 12); a smaller
+            // value underflows on the wire. A live Josev run rejected the earlier 1 (our lenient SECC didn't).
             while ((await Exchange<ScheduleExchangeRes>(MessageSet.Iso20CommonMessages,
-                       dest => new ScheduleExchangeReq(SessionCtx.ToCommonHeader(), MaximumSupportingPoints: 1,
+                       dest => new ScheduleExchangeReq(SessionCtx.ToCommonHeader(), MaximumSupportingPoints: 12,
                            Dynamic_SEReqControlMode: null,
                            Scheduled_SEReqControlMode: new Scheduled_SEReqControlModeType(null, null, null, null, null))
                            .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct))
@@ -123,6 +137,37 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             Exchanges++;
             BytesOnWire += V2GTP.HeaderSize + reqLen;
             return (set, message);
+        }
+
+        // ISO 15118-20 energy-transfer service ids (Table 204): AC=1, DC=2, AC_BPT=5, DC_BPT=6.
+        private static readonly ushort[] DcServiceIds = { 2, 6 };
+        private static readonly ushort[] AcServiceIds = { 1, 5 };
+
+        /// <summary>Picks the energy-transfer service to select from the SECC's advertised list: the first one
+        /// whose id matches this EVCC's mode (DC → 2/6, AC → 1/5), else the first offered (a simplified SECC
+        /// may advertise a single generic id).</summary>
+        private ushort SelectEnergyTransferService(ServiceDiscoveryRes res)
+        {
+            var offered = res.EnergyTransferServiceList.Service;
+            if (offered.Count == 0)
+                throw new SessionAborted("ServiceDiscovery: the SECC advertised no energy-transfer service.");
+
+            var preferred = EnergyMode == PowerMode.Dc ? DcServiceIds : AcServiceIds;
+            var match = offered.FirstOrDefault(s => preferred.Contains(s.ServiceID));
+            return (match ?? offered[0]).ServiceID;
+        }
+
+        /// <summary>Picks the parameter set to select from the SECC's ServiceDetail: preferring a Scheduled
+        /// control-mode set (ControlMode=1, matching the Scheduled ScheduleExchange the EVCC drives), else the
+        /// first offered set.</summary>
+        private static ushort SelectParameterSet(ServiceDetailRes res)
+        {
+            var sets = res.ServiceParameterList.ParameterSet;
+            if (sets.Count == 0)
+                throw new SessionAborted("ServiceDetail: the SECC advertised no parameter set.");
+
+            var scheduled = sets.FirstOrDefault(p => p.Parameter.Any(x => x.Name == "ControlMode" && x.IntValue == 1));
+            return (scheduled ?? sets[0]).ParameterSetID;
         }
 
         private static InvalidOperationException EncodeFailed() => new("EXI encode failed (buffer too small?).");

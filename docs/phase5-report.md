@@ -76,10 +76,13 @@ masked in our loopback tests because our EVCC and SECC were lenient/consistent i
 - **EVCC now adopts the SECC-assigned SessionID** from `SessionSetupRes` (ISO 15118-20 §7.9.2.4); it was
   sending the all-zero opener in every later request, which Josev strictly rejects.
 
-The live session then runs cleanly through SAP → SessionSetup → AuthorizationSetup → Authorization →
-ServiceDiscovery → ServiceDetail → ServiceSelection, stopping at a documented **simulator-fidelity** gap
-(the EVCC hardcodes energy-transfer `ServiceID`/`ParameterSetID` rather than negotiating from the peer's
-advertised catalog — a state-machine enhancement, not a codec/wire bug; see §5).
+Two further EVCC fixes (dynamic **service negotiation** — parse `ServiceDiscovery`/`Detail` and select the
+peer's DC service/parameter set instead of hardcoded ids; and `MaximumSupportingPoints` `1` → the schema
+minimum `12`) then drive the live session all the way through **ServiceSelection → DC_ChargeParameterDiscovery
+→ ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery** — essentially the whole DC setup. It
+stops at `PowerDeliveryReq`, which with `ChargeProgress=Start` needs a populated `EVPowerProfile` our EVCC
+sends as absent — a documented EVCC session-content gap (§5), not a codec/wire bug. All of these bugs were
+masked in loopback because our SECC is lenient where Josev validates.
 
 ## 4. Timing findings
 
@@ -98,12 +101,14 @@ advertised catalog — a state-machine enhancement, not a codec/wire bug; see §
 Nothing below blocks the happy-path simulation; each is honestly out of scope or deferred.
 
 - **Live over-the-wire interop — partially done.** Our EVCC ↔ Josev SECC (-20 DC, plain TCP) now runs live
-  through SDP → SAP → SessionSetup → Auth → ServiceDiscovery (§3; `tools/interop-josev/live-evcc-tcp.sh`,
-  `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`), after fixing three real bugs it surfaced. Remaining:
-  (a) EVCC **dynamic service negotiation** (parse ServiceDiscovery/Detail and select the peer's DC service,
-  match its ControlMode/schedule) to drive a full DC charge loop; (b) the **reverse** direction (Josev EVCC →
-  our SECC); (c) the same over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`);
-  (d) fixing the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp` works without the helper.
+  through SDP → SAP → SessionSetup → Auth → ServiceDiscovery → ServiceSelection (with dynamic service
+  negotiation) → DC_ChargeParameterDiscovery → ScheduleExchange → DC_CableCheck → DC_PreCharge → PowerDelivery
+  (§3; `tools/interop-josev/live-evcc-tcp.sh`, `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`), after
+  fixing five real bugs it surfaced. Remaining: (a) EVCC builds a spec-valid **`EVPowerProfile`** (+ any
+  further per-message value fidelity) to complete a full DC charge loop; (b) the **reverse** direction
+  (Josev EVCC → our SECC); (c) the same over **TLS 1.3** via the BouncyCastle backend (Josev with
+  `SECC_ENFORCE_TLS=True`); (d) fixing the WWCP `EVCC_SDPClient` multicast interface binding so `evcc --sdp`
+  works without the helper.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.
