@@ -6,8 +6,9 @@
 - **Scenario:** Josev EVCC ↔ Josev SECC, ISO 15118-20, **DC**, **Plug & Charge (PnC)**,
   `SECC_ENFORCE_TLS=False`, `useTls:false`
   (`EVCC_CONFIG_PATH=…/examples/evcc/iso15118_20/evcc_config_dc.json`)
-- **Outcome:** ✅ full PnC DC charge loop to `SessionStop`; our codec cross-validates **29 of 30** distinct
-  frames byte-for-byte. One real codec gap surfaced (signed `AuthorizationReq` with a `Transforms` element).
+- **Outcome:** ✅ full PnC DC charge loop to `SessionStop`; our codec cross-validates **all 30** distinct
+  frames byte-for-byte. A real codec gap surfaced (signed `AuthorizationReq` with a `Transforms` element) and
+  was **fixed in the source generator** — see below.
 
 ## Why -20 without TLS
 
@@ -26,36 +27,40 @@ optional step. The negotiated application protocol is genuinely `ISO_15118_20_DC
 both -20 schema sets:
 
 - **SAP (2):** `supportedAppProtocolReq` (negotiating -20 DC) / `…Res` — byte-exact.
-- **CommonMessages (17 of 18):** SessionSetup, AuthorizationSetup, Authorization**Res**, ServiceDiscovery,
-  ServiceDetail, ServiceSelection, ScheduleExchange, PowerDelivery, SessionStop (Req+Res each) — byte-exact.
+- **CommonMessages (18):** SessionSetup, AuthorizationSetup, Authorization (incl. the signed `AuthorizationReq`,
+  see below), ServiceDiscovery, ServiceDetail, ServiceSelection, ScheduleExchange, PowerDelivery, SessionStop
+  (Req+Res each) — byte-exact.
 - **DC (10):** DC_ChargeParameterDiscovery, DC_CableCheck, DC_PreCharge, DC_ChargeLoop, DC_WeldingDetection
   (Req+Res each) — byte-exact.
 
-On the frames it can decode, **our codec ≡ EXIficient (Josev)** — an independent conformance signal (Josev
-shares no lineage with the cbV2G oracle our vectors come from).
+**Our codec ≡ EXIficient (Josev)** across the whole session — an independent conformance signal (Josev shares
+no lineage with the cbV2G oracle our vectors come from).
 
-## Known finding: signed `AuthorizationReq` with a `Transforms` element
+## Fixed: signed `AuthorizationReq` with a `Transforms` element (source-generator gap)
 
-The ~1.3 KB **signed** `AuthorizationReq` is the one frame that does *not* round-trip. Its header
+The ~1.3 KB **signed** `AuthorizationReq` initially did *not* round-trip. Its header
 `<Signature>`/`<SignedInfo>`/`<Reference>` includes a `<Transforms>` element carrying the
-`http://www.w3.org/TR/canonical-exi/` transform. Our generated CommonMessages decoder throws
-`invalid optional-run event code` on it. Root cause (verified against `xmldsig-core-schema.xsd`):
+`http://www.w3.org/TR/canonical-exi/` transform, and our generated CommonMessages decoder threw
+`invalid optional-run event code`. Root cause (verified against `xmldsig-core-schema.xsd` **and** cbexigen's
+own generated `decode_iso20_TransformType`):
 
-- `TransformType`'s content is `<choice minOccurs="0" maxOccurs="unbounded">` (optional, repeatable), but the
-  **source generator emitted it as a *mandatory* single choice** (`Decode_TransformType` does a 2-bit choice
-  read with `default: throw`, no empty/EE alternative). A `Transform` with only its `Algorithm` attribute and
-  no children — exactly what the EXI-canonicalisation transform is — misaligns the bit cursor, surfacing as
-  the parent `ReferenceType` optional-run failure.
-- `TransformsType`'s `maxOccurs="unbounded"` list also got a broken bound/terminator
-  (`Encode_TransformsType`: `if (list.Count is < 1 or > 0)` always throws; `Decode_TransformsType`'s loop
-  terminator `if (ec != 0 || list.Count >= 0)` is always true).
+- `TransformType`'s content is `<choice minOccurs="0" maxOccurs="unbounded">` (mixed, optional, repeatable),
+  but the source generator's **direct-`xs:choice` path dropped the choice's `minOccurs`/`maxOccurs`** and
+  emitted a *mandatory* single choice — a 2-bit dispatch with no END-Element alternative. A `Transform` with
+  only its `Algorithm` attribute and no children (exactly the EXI-canonicalisation transform) encodes as EE at
+  that state; the missing EE production misaligned the bit cursor, surfacing as the parent `ReferenceType`
+  optional-run failure. cbexigen models the same content as a 3-bit dispatch `{XPath=0, EE=2, ANY=3}`.
+- `TransformsType`'s `maxOccurs="unbounded"` list (a single `ref="Transform"` child) got its bound recorded on
+  the child but read by the emitter from the plan, leaving `ListMax=0` — so `Encode_TransformsType`'s
+  `count is < 1 or > 0` guard rejected every list.
 
-cbV2G (our vector oracle) never emits `Transforms` inside a `Reference`, so this grammar path was never
-validated until this Josev capture. **It is a genuine codec gap**, not a test artefact: a spec-valid signed
--20 message from any stack that includes the canonical-EXI transform currently fails to decode. Captured as
-the `[Ignore]`d `Josev20_SignedAuthorizationReq_WithTransforms_RoundTripsIdentically` test (bytes baked in,
-ready to un-ignore once the generator is fixed). Fixing it is a focused source-generator task (regenerate +
-re-validate all -20 sets against cbV2G to prove no regression, then byte-diff this frame).
+**Fix** (`Vanaheimr.V2G.Exi.SourceGenerator`): the XSD reader now models an optional/repeatable direct choice
+as an EE-terminated optional run (the same shape the emitter already produces byte-exact for the mixed
+`SignatureMethod`/`DigestMethod` content), and the grammar builder promotes a lone repeating child's bound to
+the plan level. Regenerated `Decode/Encode_TransformType` now match cbexigen's grammar exactly (empty Transform
+= 3-bit `010`), and the signed frame round-trips byte-for-byte. **All existing cbV2G vectors across every -2
+and -20 set still pass byte-exact** (no regression) — two independent oracles (cbV2G + EXIficient) confirm the
+grammar. Regression-guarded by `Josev20_SignedAuthorizationReq_WithTransforms_RoundTripsIdentically`.
 
 ## Notes
 
@@ -67,7 +72,5 @@ re-validate all -20 sets against cbV2G to prove no regression, then byte-diff th
 
 ## Next
 
-- Fix the xmldsig `TransformType`/`TransformsType` generator grammar, then flip the ignored test to a
-  byte-exact round-trip.
 - (Optional) live over-the-wire -20 interop via the BouncyCastle TLS backend + the `[Explicit]`
   `JosevInteropTests` hook — record mode already gives the codec-level signal.

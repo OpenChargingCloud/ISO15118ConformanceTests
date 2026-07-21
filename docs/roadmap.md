@@ -6,13 +6,13 @@ Last updated: **2026-07-21**. Authoritative per-phase detail lives in
 
 ## Current status
 
-The solution builds cleanly and **all 560 tests are green** (`dotnet test -c Release`:
-515 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
-over-the-wire Josev tests are `[Explicit]`, and 1 -20 frame is an `[Ignore]`d known finding —
-all skipped) — offline, with no C toolchain, JRE, or network beyond loopback. Phases 0–4 are
-complete; Phase 5's in-repo simulation is done (SLAC/SDP/TLS/session all wired + tested) and
-Josev interop is byte-exact for **-2 AC/DC and -20 DC (Plug & Charge)**; only the closing
-report and one signed-message codec gap remain.
+The solution builds cleanly and **all 561 tests are green** (`dotnet test -c Release`:
+516 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
+over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C toolchain, JRE, or
+network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
+(SLAC/SDP/TLS/session all wired + tested) and Josev interop is byte-exact for **-2 AC/DC and
+-20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**; only the Phase 5
+closing report remains.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -21,7 +21,7 @@ report and one signed-message codec gap remain.
 | 2 | Source generator lifted to the real ISO 15118-2 schema set | ✅ **done** |
 | 3 | All 17 -2 message pairs + XMLDSig over EXI fragments (ECDSA-P256/SHA-256) | ✅ **done** |
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
-| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop) | 🚧 **in progress** — in-repo stack ✅; Josev interop -2 AC/DC ✅, -20 DC PnC ✅ (1 signed-frame gap); closing report ⬜ |
+| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop) | 🚧 **in progress** — in-repo stack ✅; Josev interop -2 AC/DC ✅, -20 DC PnC ✅ (30/30 byte-exact); closing report ⬜ |
 
 What exists today, at a glance:
 
@@ -33,7 +33,7 @@ What exists today, at a glance:
 | ✅ [SourceGenerator](../Vanaheimr.V2G.Exi.SourceGenerator/ExiCodecGenerator.cs) | `IIncrementalGenerator`: XSD set → grammar plan → C# document + fragment codecs; fail-loud on unknown constructs; emits block-scoped namespaces |
 | ✅ ISO 15118-2 codec | All 17 message pairs **byte-exact vs cbV2G**; signed `AuthorizationReq` byte-exact; `SignedInfo` fragment cross-checked vs EXIficient |
 | ✅ ISO 15118-20 codecs (×5) | CommonMessages/DC/AC/WPT/ACDP all generate + compile + byte-exact vs cbV2G; XMLDSig for CommonMessages/DC/AC (ECDSA-P521/SHA-512 **and** Ed448 via BouncyCastle) |
-| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Josev interop: **-2 AC/DC + -20 DC PnC byte-exact** (1 signed-frame gap) |
+| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Josev interop: **-2 AC/DC + -20 DC PnC byte-exact** (30/30) |
 | ✅ Test infrastructure | Vector-driven (JSON), bit-exact diff on failure; property-based round-trips (CsCheck); reference oracles pinned under `tools/` |
 
 The original "decisive weakness" (self-encoded seed vectors that only proved internal
@@ -50,24 +50,18 @@ The whole in-repo stack now runs and is tested over loopback (see the Simulation
 1. 🚧 **Josev interop** — **-2 AC/DC EIM and -20 DC Plug & Charge done** (SwitchEV/iso15118 @ `d645255`,
    Docker in WSL2, rebuilt on Debian trixie). Our codec cross-validates Josev's EXIficient bytes
    **byte-for-byte**: for -2, the SAP handshake + the whole DC charge loop; for -20, the SAP handshake and
-   **29 of 30** distinct frames of a full PnC DC session across both schema sets (CommonMessages + DC) —
-   SessionSetup, AuthorizationSetup, Authorization, Service{Discovery,Detail,Selection}, ScheduleExchange,
-   PowerDelivery, the whole DC loop (ChargeParameterDiscovery → CableCheck → PreCharge → ChargeLoop →
-   WeldingDetection), SessionStop (`JosevCapturedFrames{,Dc,20}Tests`, run in CI; artifacts in
-   `docs/interop-runs/2026-07-21-iso2*-*/`). On the SAP frames: **our codec ≡ cbV2G ≡ EXIficient**.
-   Optionally, live over-the-network interop via the `JosevInteropTests` opt-in hook (needs both stacks on
-   one L2 network; record-mode gives the same signal).
-2. 🚧 **Fix the xmldsig `Transforms` generator gap** (found by the -20 run) — the signed -20 `AuthorizationReq`
-   is the **1 of 30** frames that doesn't round-trip: its `SignedInfo`/`Reference` includes a `Transforms`
-   element (EXI canonicalisation) that the source generator mis-modelled (`TransformType`'s
-   `minOccurs=0 maxOccurs=unbounded` choice emitted as a *mandatory* single choice; `TransformsType`'s
-   unbounded list with a broken bound/terminator). A real codec gap for any signed message that carries the
-   canonical-EXI transform. Captured as the `[Ignore]`d `Josev20_SignedAuthorizationReq_WithTransforms_*`
-   test, ready to flip once fixed. See `docs/interop-runs/2026-07-21-iso20-dc-pnc-notls/`.
-3. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
+   **all 30** distinct frames of a full PnC DC session across both schema sets (CommonMessages + DC) —
+   SessionSetup, AuthorizationSetup, the **signed** Authorization, Service{Discovery,Detail,Selection},
+   ScheduleExchange, PowerDelivery, the whole DC loop (ChargeParameterDiscovery → CableCheck → PreCharge →
+   ChargeLoop → WeldingDetection), SessionStop (`JosevCapturedFrames{,Dc,20}Tests`, run in CI; artifacts in
+   `docs/interop-runs/2026-07-21-iso2*-*/`). On the SAP frames: **our codec ≡ cbV2G ≡ EXIficient**. The -20
+   run also surfaced and **fixed** a real source-generator gap (the xmldsig `Transforms` EXI-canonicalisation
+   grammar — see the resolved item below). Optionally, live over-the-network interop via the
+   `JosevInteropTests` opt-in hook (needs both stacks on one L2 network; record-mode gives the same signal).
+2. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
    vector candidates under `Tests/Vectors/captured/`; curate at least one into the regular
    vector files. Frames from an independent stack are the most valuable conformance vectors.
-4. ⬜ **Phase 5 closing report** — codec/sequence discrepancies found, timing findings, known
+3. ⬜ **Phase 5 closing report** — codec/sequence discrepancies found, timing findings, known
    gaps (Plug & Charge contract-cert provisioning, WPT/ACDP interop, the CLI dev-cert caveats).
 
 Cleanups / smaller follow-ups (not blockers):
@@ -89,6 +83,11 @@ Cleanups / smaller follow-ups (not blockers):
 - ✅ **Vehicle certificate** — the dedicated -20 TLS-client identity (CharIN 2nd-gen PKI), added to
   the WWCP PKI builder; distinct from the app-layer Contract cert. See `docs/pki-model.md`.
 - ✅ **Full-stack E2E** — one test composes SLAC → SDP → mutual TLS (P-521) → SAP → -20 DC session.
+- ✅ **xmldsig `Transforms` generator gap** — found by the -20 Josev run (the signed `AuthorizationReq`
+  carries a `SignedInfo`/`Reference`/`Transforms` EXI-canonicalisation element cbV2G's vectors never emit).
+  The generator now models an optional/repeatable direct `xs:choice` (mixed `TransformType`) as an
+  EE-terminated optional run and promotes a lone repeating child's bound to the plan — matching cbexigen's
+  grammar exactly; the signed frame round-trips byte-for-byte, all cbV2G vectors still byte-exact.
 
 **Deliberate non-goals** — legitimately out of scope for a happy-path simulation:
 - Plug & Charge *in the live session* (see follow-up above).
@@ -144,8 +143,8 @@ Three classes of oracle, with independent sources of error:
    Apache-2.0, -2 and -20) — *session-level oracle* for the Phase 5 end-to-end interop.
    **Live and byte-exact for -2 AC/DC (EIM) and -20 DC (Plug & Charge)**: Josev's EXIficient-encoded
    frames decode + re-encode identically through our codec (`JosevCapturedFrames{,Dc,20}Tests`, in CI),
-   29/30 -20 frames — the one gap (signed message with an EXI-canonicalisation `Transforms`) is a tracked
-   generator fix. The EVerest fork
+   all 30 -20 frames including the signed `AuthorizationReq` (the -20 run found and fixed an xmldsig
+   `Transforms` generator gap). The EVerest fork
    [ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118) is more
    actively maintained.
 

@@ -295,11 +295,42 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Xsd
 
             var attributes = ParseAttributes(ct);
 
-            // Direct xs:choice content (e.g. ParameterType).
+            // Direct xs:choice content.
             var directChoice = ct.Element(Xs + "choice");
             if (directChoice is not null)
             {
                 var choiceEls = ParseParticles(directChoice);
+
+                int choiceMin = int.Parse((string?)directChoice.Attribute("minOccurs") ?? "1");
+                var choiceMaxAttr = (string?)directChoice.Attribute("maxOccurs") ?? "1";
+                bool choiceRepeats = string.Equals(choiceMaxAttr, "unbounded", StringComparison.OrdinalIgnoreCase)
+                                     || (int.TryParse(choiceMaxAttr, out var cMax) && cMax > 1);
+
+                // A required single-occurrence choice (minOccurs=1, maxOccurs=1, the defaults) is a genuine
+                // mutually-exclusive pick — model it as choice content (e.g. ParameterType).
+                //
+                // But an OPTIONAL and/or REPEATABLE direct choice — the xmldsig TransformType shape,
+                // <choice minOccurs="0" maxOccurs="unbounded">{any, XPath}, mixed content — is, in cbexigen's
+                // reduced grammar, "(one of the members)? then END-Element": an optional content group
+                // terminated by EE, structurally identical to the mixed SignatureMethod/DigestMethod content
+                // (an optional element member alongside the wildcard ANY). Model it that way — a plain
+                // sequence whose element members are each made optional — so the emitter's EE-terminated
+                // optional-run machinery (already byte-exact against cbexigen for SignatureMethodType) emits
+                // the right content dispatch (member, EE, wildcard) rather than a mandatory single pick with
+                // no EE alternative, which cannot decode an empty Transform.
+                //
+                // The empty-content case — a bare <Transform Algorithm="…canonical-exi…"/>, the only form that
+                // occurs in ISO 15118 signatures and the only one a reference vector covers — is byte-exact vs
+                // cbexigen either way. The sequence-vs-choice distinction (whether two members may both appear,
+                // in order) only surfaces for present, repeated content, which no ISO 15118 message carries.
+                if (choiceMin == 0 || choiceRepeats)
+                {
+                    var optionalMembers = choiceEls
+                        .Select(e => e.MinOccurs == 0 ? e : e with { MinOccurs = 0 })
+                        .ToList();
+                    return new XsdComplexType(name, optionalMembers, null, isAbstract, attributes);
+                }
+
                 return new XsdComplexType(name, new List<XsdElement>(), null, isAbstract, attributes, choiceEls);
             }
 

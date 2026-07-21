@@ -119,21 +119,18 @@ namespace Vanaheimr.V2G.Exi.Tests.Interop
                 "our codec must re-encode Josev's -20 DC frame to the identical bytes");
         }
 
-        // ── Known interop finding: signed PnC AuthorizationReq with a Transforms element ────────────────
+        // ── Signed PnC AuthorizationReq with a Transforms element ──────────────────────────────────────
         //
         // Josev's ~1.3 KB signed AuthorizationReq carries a header <Signature> whose <SignedInfo>/<Reference>
         // includes a <Transforms> element (the "http://www.w3.org/TR/canonical-exi/" EXI-canonicalisation
-        // transform). Our generated CommonMessages decoder throws "invalid optional-run event code" on it:
-        // the source generator mis-modelled the xmldsig grammar for this subtree — TransformType's content
-        // is <choice minOccurs="0" maxOccurs="unbounded"> but was emitted as a *mandatory* single choice, and
-        // TransformsType's maxOccurs="unbounded" list got a broken bound/terminator. cbV2G (our vector oracle)
-        // never emits Transforms inside a Reference, so this path was never validated until this Josev capture.
-        //
-        // This is a real codec gap, not a test artefact: a spec-valid signed -20 message from any stack that
-        // includes the canonical-EXI transform currently fails to decode. Tracked for a focused generator fix;
-        // once fixed, drop the [Ignore] and this becomes a byte-exact round-trip like the rest.
+        // transform). This originally surfaced a real source-generator gap — TransformType's content is
+        // <choice minOccurs="0" maxOccurs="unbounded"> (mixed) but was emitted as a *mandatory* single choice
+        // with no END-Element alternative, and TransformsType's unbounded list got ListMax=0 — because cbV2G
+        // (our vector oracle) never emits Transforms inside a Reference, so the path was never validated. The
+        // generator now models the optional/repeatable direct choice as an EE-terminated optional run (matching
+        // cbexigen's TransformType/TransformsType grammar), so this signed frame round-trips byte-for-byte like
+        // the rest. See docs/interop-runs/2026-07-21-iso20-dc-pnc-notls/.
         [Test]
-        [Ignore("Interop finding: generator mis-models xmldsig TransformType/TransformsType; see comment + docs/interop-runs/2026-07-21-iso20-dc-pnc-notls/")]
         public void Josev20_SignedAuthorizationReq_WithTransforms_RoundTripsIdentically()
         {
             var josev = HexUtil.Parse(SignedAuthorizationReqHex);
