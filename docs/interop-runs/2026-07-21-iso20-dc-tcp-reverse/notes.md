@@ -36,21 +36,35 @@ masked in our loopback E2E because our own EVCC was equally lenient/minimal.
 
 With those, the reverse session runs through the whole setup and into the DC precharge sequence.
 
-## Where it stops (open — SECC DC poll-loop sequencing)
+## SECC DC poll-loop self-looping (FIXED — was the stopping point)
 
-At **DC_PreCharge**: a real EVCC (Josev) *polls* `DC_CableCheckReq`/`DC_PreChargeReq` (`EVProcessing=Ongoing`)
-repeatedly until precharge completes, then proceeds to `PowerDelivery`. Our SECC's DC state machine advances
-after a **single** CableCheck and a single PreCharge (it handled Josev's first PreCharge fine, then rejected
-the second: *"DC_PreChargeReq not allowed in phase PowerOn"*). Making the SECC self-loop the CableCheck /
-PreCharge / WeldingDetection phases (until the next-phase message) is a genuine state-machine enhancement —
-the base `Secc20Base` can't distinguish the DC message types today (they live in a separate, colliding
-namespace, so the phases match on a wildcard and advance once). This, plus any remaining per-message content
-fidelity through PowerDelivery → ChargeLoop → WeldingDetection → SessionStop, is the continuing work to a
-full reverse charge loop. (Our loopback SECC works because our own EVCC sends exactly one CableCheck/PreCharge.)
+Originally this run stopped at **DC_PreCharge**: a real EVCC (Josev) *polls* `DC_CableCheckReq`/
+`DC_PreChargeReq` (`EVProcessing=Ongoing`) repeatedly until precharge completes, then proceeds to
+`PowerDelivery`. Our SECC's DC state machine advanced after a **single** CableCheck and a single PreCharge
+(it handled Josev's first PreCharge fine, then rejected the second: *"DC_PreChargeReq not allowed in phase
+PowerOn"*).
 
-Note also: our SECC's sequence guard rejects a `SessionStopReq` mid-session (it errors instead of answering),
-so when Josev aborts early our SECC logs a `FAILED_SequenceError` rather than a graceful stop — a small
-robustness follow-up (a SECC should accept `SessionStop` in any phase).
+**Fixed:** `Secc20Base` now treats CableCheck / PreCharge / WeldingDetection as **poll phases** that map onto
+themselves — the SECC answers each poll in place and only advances when the *next-phase* message arrives.
+Because the base can't name the DC request types (they live in a separate, colliding namespace), `Secc20Dc`
+supplies a `protected override bool IsPollFor(Phase20, object)` classifier; a pre-switch loop in
+`Secc20Base.Handle` walks past a self-loop phase — **without consuming the message** — the moment the incoming
+request is *not* that phase's poll, then re-evaluates it in the phase it belongs to (so the first
+`DC_PreChargeReq` both ends the CableCheck loop and is handled by PreCharge; `PowerDeliveryReq(Start)` ends
+PreCharge; `SessionStopReq` ends WeldingDetection). Covered by `Secc20DcTransitionTests` (multi-poll **and**
+the loopback single-poll path). The loopback E2E still passes unchanged (our own EVCC sends exactly one of
+each).
+
+## Remaining for a fully-green reverse charge loop
+
+- **Downstream content fidelity** through PowerDelivery → ChargeLoop → WeldingDetection → SessionStop:
+  whatever Josev's EVCC validates in our *response contents* (present voltage/current, control-mode fields)
+  past the point this run reached — to be found by re-running the reverse live session now that the
+  sequencing no longer blocks it.
+- **Graceful `SessionStop` in any phase.** Our SECC's sequence guard rejects a `SessionStopReq` mid-session
+  (it errors instead of answering), so when Josev aborts early our SECC logs a `FAILED_SequenceError` rather
+  than a graceful stop — a small robustness follow-up (a SECC should accept `SessionStop` in any phase). This
+  is orthogonal to the poll-loop fix (the happy path sends `SessionStop` only at the end, which now works).
 
 ## Reproduce
 
@@ -62,6 +76,8 @@ robustness follow-up (a SECC should accept `SessionStop` in any phase).
 
 ## Next
 
-- SECC DC poll-loop self-looping (CableCheck/PreCharge/WeldingDetection) → a full reverse DC charge loop.
+- ~~SECC DC poll-loop self-looping (CableCheck/PreCharge/WeldingDetection)~~ ✅ **done** (see above).
+- Re-run the reverse live session with the self-loop fix to drive it past PreCharge → PowerDelivery →
+  ChargeLoop → WeldingDetection → SessionStop, and fix any downstream content the EVCC rejects.
 - Accept `SessionStop` in any phase (graceful abort handling).
 - Then the same over **TLS 1.3** (Josev `SECC_ENFORCE_TLS=True`, our BouncyCastle backend).

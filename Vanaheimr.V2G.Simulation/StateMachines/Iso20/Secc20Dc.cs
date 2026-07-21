@@ -18,6 +18,16 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected override bool HasPostChargeSequence => true;
         protected override ushort EnergyServiceId => 2;   // ISO 15118-20 DC energy-transfer service
 
+        /// <summary>Classifies the DC poll requests so the base can self-loop CableCheck/PreCharge/WeldingDetection
+        /// until the EV sends the next-phase message (the first DC_PreChargeReq, PowerDeliveryReq, SessionStopReq).</summary>
+        protected override bool IsPollFor(Phase20 phase, object request) => phase switch
+        {
+            Phase20.CableCheck       => request is Dc20.DC_CableCheckReq,
+            Phase20.PreCharge        => request is Dc20.DC_PreChargeReq,
+            Phase20.WeldingDetection => request is Dc20.DC_WeldingDetectionReq,
+            _                        => false,
+        };
+
         protected override (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request)
         {
             var req = (Dc20.DC_ChargeParameterDiscoveryReq)request;

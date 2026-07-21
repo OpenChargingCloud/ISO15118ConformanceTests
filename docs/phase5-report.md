@@ -17,7 +17,7 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state: **564 green** (`dotnet test -c Release`) — 519 in `Vanaheimr.V2G.Exi.Tests`, 45 in
+Test state: **566 green** (`dotnet test -c Release`) — 519 in `Vanaheimr.V2G.Exi.Tests`, 47 in
 `Vanaheimr.V2G.Simulation.Tests`; the 2 live over-the-wire Josev tests are `[Explicit]` and
 excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 
@@ -109,12 +109,15 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   `docs/interop-runs/2026-07-21-iso20-dc-tcp-live/`). *Reverse* (Josev EVCC → our SECC) runs through SDP →
   SAP → the whole service negotiation → ScheduleExchange → DC_CableCheck → DC_PreCharge, after fixing three
   more real SECC bugs (mode-aware ServiceID, the ControlMode parameter, a PriceLevelSchedule) plus IPv6
-  dual-stack listening (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`). Remaining: (a) the reverse
-  loop's SECC **DC poll-loop sequencing** (self-loop CableCheck/PreCharge/WeldingDetection until the
-  next-phase message) + graceful `SessionStop`-in-any-phase, to complete a full reverse charge loop; (b) the
-  same over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`); (c) fixing the
-  WWCP SDP components' multicast interface binding so `--sdp` works without the SDP shim; (d) optionally,
-  live -20 **Plug & Charge** rather than EIM.
+  dual-stack listening (`docs/interop-runs/2026-07-21-iso20-dc-tcp-reverse/`). The reverse loop's SECC **DC
+  poll-loop sequencing** is now **fixed** — `Secc20Base` self-loops CableCheck/PreCharge/WeldingDetection
+  (answering each poll in place) and only advances on the next-phase message, via a `Secc20Dc.IsPollFor`
+  classifier + a pre-switch advance-without-consume loop, covered by `Secc20DcTransitionTests`. Remaining:
+  (a) re-run the reverse session with the fix to close any **downstream content** the EVCC rejects past
+  PreCharge, plus graceful `SessionStop`-in-any-phase, to sign off a full reverse charge loop; (b) the same
+  over **TLS 1.3** via the BouncyCastle backend (Josev with `SECC_ENFORCE_TLS=True`); (c) fixing the WWCP SDP
+  components' multicast interface binding so `--sdp` works without the SDP shim; (d) optionally, live -20
+  **Plug & Charge** rather than EIM.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.

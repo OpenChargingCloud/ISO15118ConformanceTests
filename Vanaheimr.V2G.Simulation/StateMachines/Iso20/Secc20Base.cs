@@ -35,6 +35,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected abstract bool HasPostChargeSequence { get; }
 
         protected abstract (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request);
+
+        /// <summary>DC only: is <paramref name="request"/> another poll of the self-looping <paramref name="phase"/>
+        /// (CableCheck/PreCharge/WeldingDetection) — so the SECC answers it and stays put — rather than the
+        /// next-phase message that ends the loop? The base can't name the DC request types (they live in a
+        /// separate, colliding namespace), so <see cref="Secc20Dc"/> classifies them. AC never self-loops.</summary>
+        protected virtual bool IsPollFor(Phase20 phase, object request) => false;
+
         protected virtual (MessageSet Set, object Response) HandleCableCheck(object request) =>
             throw new NotSupportedException("CableCheck has no handler for this energy-transfer mode.");
         protected virtual (MessageSet Set, object Response) HandlePreCharge(object request) =>
@@ -50,6 +57,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             if (Phase is not Phase20.SessionSetup && now - _lastSeen > sequenceTimeout)
                 throw new SessionAborted($"SECC sequence timeout: EV silent for > {sequenceTimeout.TotalSeconds:0}s");
             _lastSeen = now;
+
+            // A real EV *polls* the DC self-looping phases (CableCheck/PreCharge/WeldingDetection) — sending
+            // the same request until it decides the step is done, then sending the next-phase message. Answer
+            // each poll and stay put (the switch cases below map these phases onto themselves); when a non-poll
+            // message arrives, advance through the self-loop phases *without consuming it* and re-evaluate it in
+            // the phase it belongs to. So e.g. the first DC_PreChargeReq ends the CableCheck loop and is handled
+            // by the PreCharge phase, and PowerDeliveryReq(Start) ends PreCharge and is handled by PowerOn.
+            while (IsSelfLoopPhase(Phase) && !IsPollFor(Phase, request))
+                Phase = NextAfter(Phase);
 
             var (respSet, response, next) = (Phase, set, request) switch
             {
@@ -77,11 +93,14 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 (Phase20.ScheduleExchange, MessageSet.Iso20CommonMessages, ScheduleExchangeReq r) =>
                     Step(MessageSet.Iso20CommonMessages, ScheduleExchange(r), HasPreChargeSequence ? Phase20.CableCheck : Phase20.PowerOn),
 
+                // Self-looping poll phases: stay put and answer each poll. The pre-switch loop above guarantees
+                // that if we're still in one of these phases, the request IS a poll for it (a next-phase message
+                // would already have advanced Phase past here), and advances out when the loop ends.
                 (Phase20.CableCheck, _, _) when HasPreChargeSequence =>
-                    Append(HandleCableCheck(request), Phase20.PreCharge),
+                    Append(HandleCableCheck(request), Phase20.CableCheck),
 
                 (Phase20.PreCharge, _, _) when HasPreChargeSequence =>
-                    Append(HandlePreCharge(request), Phase20.PowerOn),
+                    Append(HandlePreCharge(request), Phase20.PreCharge),
 
                 (Phase20.PowerOn, MessageSet.Iso20CommonMessages, PowerDeliveryReq { ChargeProgress: ChargeProgress.Start } r) =>
                     Step(MessageSet.Iso20CommonMessages, PowerDelivery(r), Phase20.Charging),
@@ -93,7 +112,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                     Append(HandleChargeLoop(request), Phase20.Charging),
 
                 (Phase20.WeldingDetection, _, _) when HasPostChargeSequence =>
-                    Append(HandleWeldingDetection(request), Phase20.SessionStop),
+                    Append(HandleWeldingDetection(request), Phase20.WeldingDetection),
 
                 (Phase20.SessionStop, MessageSet.Iso20CommonMessages, SessionStopReq r) =>
                     Step(MessageSet.Iso20CommonMessages, SessionStop(r), Phase20.Done),
@@ -127,6 +146,20 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         private static (MessageSet, object, Phase20) Step(MessageSet set, object response, Phase20 next) => (set, response, next);
         private static (MessageSet, object, Phase20) Append((MessageSet Set, object Response) result, Phase20 next) =>
             (result.Set, result.Response, next);
+
+        /// <summary>The DC phases an EV polls (repeats) until it decides the step is done. AC has none.</summary>
+        private bool IsSelfLoopPhase(Phase20 p) =>
+            ((p is Phase20.CableCheck or Phase20.PreCharge) && HasPreChargeSequence)
+            || (p is Phase20.WeldingDetection && HasPostChargeSequence);
+
+        /// <summary>Where a self-looping phase hands off once its poll loop ends (the next-phase message arrives).</summary>
+        private static Phase20 NextAfter(Phase20 p) => p switch
+        {
+            Phase20.CableCheck       => Phase20.PreCharge,
+            Phase20.PreCharge        => Phase20.PowerOn,
+            Phase20.WeldingDetection => Phase20.SessionStop,
+            _                        => p,
+        };
 
         // ── CommonMessages phase handlers (identical for AC and DC — EIM only) ─
         private SessionSetupRes SessionSetup(SessionSetupReq req)
