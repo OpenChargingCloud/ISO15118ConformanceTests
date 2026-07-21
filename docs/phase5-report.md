@@ -17,7 +17,7 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state: **561 green** (`dotnet test -c Release`) — 516 in `Vanaheimr.V2G.Exi.Tests`, 45 in
+Test state: **564 green** (`dotnet test -c Release`) — 519 in `Vanaheimr.V2G.Exi.Tests`, 45 in
 `Vanaheimr.V2G.Simulation.Tests`; the 2 live over-the-wire Josev tests are `[Explicit]` and
 excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 
@@ -29,7 +29,7 @@ excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 | 2 | SDP discovery (unit tests + used in E2E) | ◑ partial | Message layer + result mapping CI-tested and wired into the full-stack E2E; the **live UDP/IPv6 multicast exchange is not** CI-tested (a single host can't hear its own multicast). Documented gap. |
 | 3 | TLS variant for -2 and -20 with test certs | ✅ done | Two backends — .NET `SslStream` (P-256) and **BouncyCastle** (TLS 1.3, secp521r1 **and** Ed448, mutual). Loopback tests on both. |
 | 4 | Interop documented (-2 AC EIM both directions min.) | ◑ adjusted | Cross-validated in **record mode** (capture Josev's EXI, re-encode with our codec byte-for-byte) rather than live over-the-wire — same conformance signal, no L2 bridging. -2 AC, -2 DC, and -20 DC PnC all byte-exact; artifacts checked in. Live over-the-wire both-directions is deferred (item in §5). |
-| 5 | Record mode → curated vector adoption | ◑ partial | Record mode works and its frames are baked into CI tests (`JosevCapturedFrames{,Dc,20}Tests`). Formal curation into the regular `Tests/Vectors/` files is **not yet done**. |
+| 5 | Record mode → curated vector adoption | ✅ done | Record mode works, and three -20 DC frames are curated into the vector suite as `Vectors/Iso15118_20.DC.josev.vectors.json` (`referenceEncoder = Josev/EXIficient @ d645255`), validated by decode → re-encode in `JosevCuratedVectorTests`. |
 | 6 | CLI documented + architecture chapter | ✅ done | `README.md` — CLI usage (`evcc`/`secc`, tls/stage flags) + the "EV↔EVSE simulation (Phase 5)" chapter. |
 | 7 | Closing report | ✅ this document | |
 
@@ -96,8 +96,6 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
 - **WPT / ACDP interop.** Their codecs are byte-exact vs cbV2G, but there is no Josev (or other
   independent) counterpart to interop against; two WPT grammar shapes remain self-consistency-only
   (see `README.md`).
-- **Record-mode vector curation.** Captured Josev frames are baked into CI tests but not yet promoted
-  into the regular `Tests/Vectors/` files with a `source: "josev@<sha>"` provenance.
 - **`TransformType` present-content fidelity.** The generator fix is byte-exact vs cbexigen for the
   empty `Transform` (the only real case); for *present* content (an XPath or wildcard child, which no
   ISO 15118 message carries) it models sequence rather than choice-reduced semantics — untested,

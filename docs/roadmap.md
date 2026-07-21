@@ -6,14 +6,14 @@ Last updated: **2026-07-21**. Authoritative per-phase detail lives in
 
 ## Current status
 
-The solution builds cleanly and **all 561 tests are green** (`dotnet test -c Release`:
-516 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
+The solution builds cleanly and **all 564 tests are green** (`dotnet test -c Release`:
+519 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
 over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C toolchain, JRE, or
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
 (SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
 -20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**, and the
 [Phase 5 closing report](phase5-report.md) is written. What's left is optional wrap-up
-(live over-the-wire interop, record-mode vector curation) — see the report.
+(live over-the-wire interop) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -59,9 +59,10 @@ The whole in-repo stack now runs and is tested over loopback (see the Simulation
    run also surfaced and **fixed** a real source-generator gap (the xmldsig `Transforms` EXI-canonicalisation
    grammar — see the resolved item below). Optionally, live over-the-network interop via the
    `JosevInteropTests` opt-in hook (needs both stacks on one L2 network; record-mode gives the same signal).
-2. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
-   vector candidates under `Tests/Vectors/captured/`; curate at least one into the regular
-   vector files. Frames from an independent stack are the most valuable conformance vectors.
+2. ✅ **Record mode / vector capture** — three -20 DC frames from the Josev PnC run are curated into the
+   vector suite as `Tests/Vectors/Iso15118_20.DC.josev.vectors.json` (`referenceEncoder = Josev/EXIficient
+   @ d645255`), validated by decode → re-encode in `JosevCuratedVectorTests`. Frames from an independent
+   stack are the most valuable conformance vectors; more can be promoted the same way as runs accumulate.
 3. ✅ **Phase 5 closing report** — [`docs/phase5-report.md`](phase5-report.md): DoD scorecard, the
    codec/sequence findings (the fixed xmldsig `Transforms` bug; string-value-tables watched-not-triggered),
    timing findings, and the honest known-gaps list (live over-the-wire interop, SDP multicast in CI,
