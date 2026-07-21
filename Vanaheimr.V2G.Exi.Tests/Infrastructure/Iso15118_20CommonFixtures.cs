@@ -212,7 +212,9 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
             if (consumed != wireBytes.Length)
                 throw new InvalidDataException($"decoder consumed {consumed} of {wireBytes.Length} bytes");
 
-            var buf = new byte[512];
+            // Large enough for a signed PnC AuthorizationReq with a full contract-cert chain
+            // (the Josev captured-frame cross-check re-encodes ~1.3 KB messages through here).
+            var buf = new byte[8192];
             if (!TryReEncode(decoded, buf, out int n))
                 throw new InvalidDataException("re-encode failed");
             return buf.AsSpan(0, n).ToArray();

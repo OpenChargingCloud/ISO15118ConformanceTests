@@ -76,12 +76,21 @@ pip install -e .                 # + a JRE on PATH for EXICodec.jar
 
 ## Scenario order
 
-Work up in difficulty; capture each result:
+Work up in difficulty; capture each result (all three below are **done** — see `docs/interop-runs/`):
 
-1. **-2 AC, EIM, no TLS** — the simplest full session. Get this green first.
-2. **-2 DC, EIM, no TLS**.
-3. **-20** (AC then DC) — needs TLS 1.3; use our **BouncyCastle** backend for the -20-faithful
-   secp521r1 profile (Schannel can't). Mutual TLS + Vehicle/Contract certs per `docs/pki-model.md`.
+1. ✅ **-2 AC, EIM, no TLS** — the simplest full session.
+2. ✅ **-2 DC, EIM, no TLS**.
+3. ✅ **-20 DC, Plug & Charge, no TLS** — captured in **record mode**. Josev's `-20 DC` example config sets
+   `useTls:false`, and record mode logs the *plaintext* EXI (TLS only wraps the transport), so no TLS backend
+   is needed to cross-validate the -20 message encoding. Point `EVCC_CONFIG_PATH` at the venv copy
+   (`/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_20/evcc_config_dc.json` — the
+   image's working-dir tree only carries the -2 examples), keep `SECC_ENFORCE_TLS=False`, run the session.
+   29/30 frames round-trip byte-exact; the signed `AuthorizationReq` is a tracked generator gap. See
+   `docs/interop-runs/2026-07-21-iso20-dc-pnc-notls/`.
+
+Still open: **live over-the-wire -20** (our stack ↔ Josev) — that one needs TLS 1.3; use our **BouncyCastle**
+backend for the -20-faithful secp521r1 profile (Schannel can't). Mutual TLS + Vehicle/Contract certs per
+`docs/pki-model.md`. Record mode already gives the codec-level conformance signal without it.
 
 ## Running
 

@@ -353,11 +353,18 @@ and `docs/roadmap.md`.
 
 The one big remaining conformance signal is external-stack interop:
 
-1. **Josev interop** (`tools/interop-josev/`) — **-2 AC and DC EIM are done and byte-exact**:
-   Josev's own EXIficient-encoded frames (SAP + the full DC charge loop) decode and re-encode
-   *identically* through our codec (`JosevCapturedFrames{,Dc}Tests`, run in CI; artifacts under
-   `docs/interop-runs/2026-07-21-iso2-*/`). On the SAP frames, **our codec ≡ cbV2G ≡ EXIficient**.
-   Remaining: **-20** (TLS 1.3, via the BouncyCastle backend), and optionally live over-the-wire
-   interop via the `[Explicit]` `JosevInteropTests` hook (record mode gives the same signal).
-2. **Phase 5 closing report** — codec/sequence discrepancies, timing findings, and known gaps
+1. **Josev interop** (`tools/interop-josev/`) — **-2 AC/DC EIM and -20 DC Plug & Charge are done and
+   byte-exact**. Josev's own EXIficient-encoded frames decode and re-encode *identically* through our codec:
+   for -2, SAP + the full DC charge loop; for -20, SAP + **29 of 30** distinct frames of a full PnC DC
+   session across both schema sets (`JosevCapturedFrames{,Dc,20}Tests`, run in CI; artifacts under
+   `docs/interop-runs/2026-07-21-iso2*-*/`). On the SAP frames, **our codec ≡ cbV2G ≡ EXIficient**. The one
+   -20 frame that doesn't round-trip — the signed `AuthorizationReq` whose `SignedInfo`/`Reference` carries
+   an EXI-canonicalisation `Transforms` element — surfaced a real source-generator gap (see next item).
+   Optionally, live over-the-wire interop via the `[Explicit]` `JosevInteropTests` hook (record mode gives
+   the same signal).
+2. **Fix the xmldsig `Transforms` generator gap** — `TransformType`'s `minOccurs=0 maxOccurs=unbounded`
+   choice was emitted as a mandatory single choice (and `TransformsType`'s unbounded list got a broken
+   bound/terminator), so any signed message carrying the canonical-EXI transform fails to decode. Captured
+   as an `[Ignore]`d ready-to-flip test.
+3. **Phase 5 closing report** — codec/sequence discrepancies, timing findings, and known gaps
    (live Plug & Charge contract-cert provisioning, WPT/ACDP interop).
