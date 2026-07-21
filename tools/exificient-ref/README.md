@@ -101,3 +101,14 @@ start-tags to see exactly which event get 2nd-level vs. 1st-level codes for the
 | `fixtures/*.xml` | the exact SignedInfo content from the C# fragment tests, as standalone XML |
 | `fixtures/*-expected.hex` | the cbV2G-verified `expectedHex` from the C# tests, space-separated |
 | `fixtures/*-expected-decoded.xml` | EXIficient's decode of the above — the cross-validation evidence |
+
+## Plug & Charge SignedInfo signing form (2026-07-21 finding)
+
+`fixtures/iso20-common-signedinfo-transforms.xml` is Josev's exact live PnC `SignedInfo` (a `Transforms`
+element + SHA-256 URIs). Set `EXIF_CANONICAL=1` to encode in EXIficient's **Canonical EXI** (W3C exi-c14n)
+mode instead of the default. Encoding it three ways — our cbV2G-matched fragment, EXIficient default
+(namespace-preserving), EXIficient Canonical EXI — and verifying Josev's real signature against each shows
+**none** reproduce the bytes Josev signed, even though our fragment codec is byte-exact for the reference
+digest. So Josev's `SignedInfo` signing octets are a non-standard form; not a codec bug. See
+`Vanaheimr.V2G.Exi.Tests/Interop/JosevPnCSignatureDiag.cs` and
+`docs/interop-runs/2026-07-21-iso20-dc-pnc-tls/notes.md`.

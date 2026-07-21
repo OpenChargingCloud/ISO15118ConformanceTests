@@ -33,17 +33,27 @@
   independent EXIficient encoder over a *live* message — the highest-value conformance signal short of a full
   signature verify.
 
-## Open item — SignedInfo-fragment signature verification
+## Open item — SignedInfo signature verification (investigated: **not a codec bug**)
 
-The ECDSA signature over the `SignedInfo` fragment failed to verify even though the reference digest matched.
-The signature is `sign(contractKey, SHA-256(canonical-EXI(SignedInfo)))`; we verify with the contract leaf's
-public key and the message's own `ecdsa-sha256`/`sha256` URIs (raw 64-byte r‖s). The most likely cause is a
-**canonical-EXI fragment-encoding difference** for a `SignedInfo` whose `Reference` carries a `Transforms`
-element (canonical-exi transform) and SHA-256 URIs — the area of the earlier Transforms generator fix, and one
-the earlier EXIficient `SignedInfo` cross-check (no Transforms, SHA-512) didn't cover. This is a codec
-follow-up (byte-diff `EncodeFragment_SignedInfo` vs EXIficient for that case), not a protocol-flow issue — the
-session ran to completion regardless. A reproducible offline check: decode the captured signed AuthorizationReq
-in `JosevCapturedFrames20Tests` and verify its embedded signature.
+The ECDSA signature over `SignedInfo` failed to verify even though the reference digest matched. This was
+investigated to ground truth (offline, reproducible in
+`JosevPnCSignatureDiag.ReferenceDigestIsByteExact_ButJosevSignedInfoSignatureIsANonReproducibleForm`, and via
+`tools/exificient-ref`), and the original "our fragment canonicalization is wrong" hypothesis is **refuted**:
+
+- The crypto is sound — P-256 contract leaf (`CN=UKSWI123456791A`), 64-byte r‖s signature, `ecdsa-sha256`.
+- Our codec is **byte-exact**: the reference digest = `SHA-256(our re-encoded PnC_AReqAuthorizationMode
+  fragment)` equals Josev's `DigestValue` byte-for-byte.
+- Josev's signature verifies against **none** of the three standard EXI encodings of that `SignedInfo`:
+  1. our cbV2G-matched fragment (210 B),
+  2. EXIficient's default namespace-preserving fragment (245 B),
+  3. EXIficient's Canonical EXI / W3C exi-c14n form (246 B).
+
+So Josev signs a `SignedInfo` octet form that **no standard EXI encoder we have reproduces**. This is an
+interop question about Josev's specific signing canonicalization — not a defect in our byte-exact codec, which
+per the project ground rule (no speculative wire changes without a concrete reference byte-diff) must not be
+altered to chase a single non-reference stack. The session runs to completion regardless; the digest match is
+the meaningful conformance result. Resolving verification would need Josev's exact signing octets
+reverse-engineered (or a second PnC oracle whose `SignedInfo` signing form we *can* reproduce).
 
 ## Reproduce
 

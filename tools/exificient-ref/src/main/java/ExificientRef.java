@@ -68,6 +68,11 @@ public class ExificientRef {
         ef.setGrammars(grammars);
         ef.setFidelityOptions(FidelityOptions.createDefault());
         ef.setFragment(fragment);
+        if (System.getenv("EXIF_CANONICAL") != null) {
+            try {
+                ef.getEncodingOptions().setOption(com.siemens.ct.exi.core.EncodingOptions.CANONICAL_EXI);
+            } catch (Exception e) { System.err.println("no canonical option: " + e); }
+        }
         return ef;
     }
 

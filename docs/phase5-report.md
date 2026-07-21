@@ -17,7 +17,7 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state: **573 green** (`dotnet test -c Release`) — 519 in `Vanaheimr.V2G.Exi.Tests`, 54 in
+Test state: **574 green** (`dotnet test -c Release`) — 520 in `Vanaheimr.V2G.Exi.Tests`, 54 in
 `Vanaheimr.V2G.Simulation.Tests`; the 2 live over-the-wire Josev tests are `[Explicit]` and
 excluded. Offline: no C toolchain, JRE, or network beyond loopback.
 
@@ -135,11 +135,17 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   (`docs/interop-runs/2026-07-21-iso20-dc-pnc-tls/`). The **GenChallenge echo and reference digest verify**;
   the digest match is the strong result — it proves our canonical-EXI encoding of the signed element
   (`PnC_AReqAuthorizationMode`, incl. the contract chain) is **byte-exact vs EXIficient over a live message**.
-  Josev signs with a **P-256** contract cert / `ecdsa-sha256`. **Open follow-up:** the ECDSA signature over the
-  `SignedInfo` *fragment* did not verify — most likely a canonical-EXI fragment-encoding difference for a
-  `SignedInfo` carrying a `Transforms` element + SHA-256 URIs (the earlier EXIficient SignedInfo cross-check
-  had neither); a codec byte-diff, not a flow issue. Remaining: (a) that SignedInfo-fragment canonicalization
-  fix; (b) fixing the WWCP SDP components' multicast interface binding so `--sdp` works without the SDP shim.
+  Josev signs with a **P-256** contract cert / `ecdsa-sha256`. **Signature verification — investigated, not a
+  codec bug:** the ECDSA signature over `SignedInfo` did not verify, but this was chased to ground truth
+  (offline in `JosevPnCSignatureDiag`, and via `tools/exificient-ref`) and the "our canonicalization is wrong"
+  hypothesis is **refuted**. Our codec is byte-exact (the reference digest matches Josev's `DigestValue`
+  byte-for-byte); Josev's `SignedInfo` signature verifies against **none** of the three standard EXI encodings
+  — our cbV2G-matched fragment (210 B), EXIficient's default namespace-preserving fragment (245 B), or
+  EXIficient's Canonical EXI / exi-c14n form (246 B). So Josev signs a `SignedInfo` octet form no standard EXI
+  encoder reproduces — an interop question about Josev's signing canonicalization, not a defect in our
+  byte-exact codec (which the ground rule says not to change speculatively). Remaining: (a) reverse-engineer
+  Josev's exact signing octets, or find a second PnC oracle whose `SignedInfo` form we can reproduce; (b) fix
+  the WWCP SDP components' multicast interface binding so `--sdp` works without the SDP shim.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.
