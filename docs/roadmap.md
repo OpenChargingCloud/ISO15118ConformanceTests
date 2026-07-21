@@ -6,10 +6,11 @@ Last updated: **2026-07-21**. Authoritative per-phase detail lives in
 
 ## Current status
 
-The solution builds cleanly and **all 494 tests are green** (`dotnet test -c Release`:
-476 in `Vanaheimr.V2G.Exi.Tests`, 18 in `Vanaheimr.V2G.Simulation.Tests`) — offline, with
-no C toolchain, JRE, or network beyond loopback. Phases 0–4 are complete and Phase 5 is in
-progress (slice 1 done).
+The solution builds cleanly and **all 521 tests are green** (`dotnet test -c Release`:
+476 in `Vanaheimr.V2G.Exi.Tests`, 45 in `Vanaheimr.V2G.Simulation.Tests`) — offline, with
+no C toolchain, JRE, or network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo
+simulation is largely done (SLAC/SDP/TLS/session all wired + tested); only external Josev
+interop and the closing report remain.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -18,7 +19,7 @@ progress (slice 1 done).
 | 2 | Source generator lifted to the real ISO 15118-2 schema set | ✅ **done** |
 | 3 | All 17 -2 message pairs + XMLDSig over EXI fragments (ECDSA-P256/SHA-256) | ✅ **done** |
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
-| 5 | EV↔EVSE simulation (SDP, TCP/TLS, state machines, Josev interop) | 🚧 **in progress** — slice 1 ✅ done |
+| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop) | 🚧 **in progress** — in-repo stack ✅; Josev interop ⬜ |
 
 What exists today, at a glance:
 
@@ -30,7 +31,7 @@ What exists today, at a glance:
 | ✅ [SourceGenerator](../Vanaheimr.V2G.Exi.SourceGenerator/ExiCodecGenerator.cs) | `IIncrementalGenerator`: XSD set → grammar plan → C# document + fragment codecs; fail-loud on unknown constructs; emits block-scoped namespaces |
 | ✅ ISO 15118-2 codec | All 17 message pairs **byte-exact vs cbV2G**; signed `AuthorizationReq` byte-exact; `SignedInfo` fragment cross-checked vs EXIficient |
 | ✅ ISO 15118-20 codecs (×5) | CommonMessages/DC/AC/WPT/ACDP all generate + compile + byte-exact vs cbV2G; XMLDSig for CommonMessages/DC/AC (ECDSA-P521/SHA-512 **and** Ed448 via BouncyCastle) |
-| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5 slice 1) | Real TCP/TLS EVCC↔SECC over loopback; all four happy paths (-2 AC/DC, -20 AC/DC) run to SessionStop; injectable clock/delay. Slice 1 ✅; SDP + interop still open |
+| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Open: Josev interop |
 | ✅ Test infrastructure | Vector-driven (JSON), bit-exact diff on failure; property-based round-trips (CsCheck); reference oracles pinned under `tools/` |
 
 The original "decisive weakness" (self-encoded seed vectors that only proved internal
@@ -41,41 +42,42 @@ W3C-EXI processor.
 
 ## What remains (Phase 5)
 
-Slice 1 (✅ done) deliberately cut SDP and Josev interop (fixed host:port instead of
-discovery). Remaining, in the order that minimises external dependencies:
+The whole in-repo stack now runs and is tested over loopback (see the Simulation row above and
+`docs/pki-model.md`). The remaining items all need an **external** stack or are wrap-up:
 
-1. ⬜ **SDP (SECC Discovery Protocol)** — UDP/IPv6 discovery as V2GTP frames; the only
-   remaining item with no external-toolchain dependency (loopback-testable). Exact
-   payload-type IDs, ports, and the security/transport-protocol byte layout come from the
-   spec or libcbv2g/Josev — not guessed.
-2. ⬜ **Josev interop** (`tools/interop-josev/`, not started) — our EVCC ↔ Josev SECC and the
+1. ⬜ **Josev interop** (`tools/interop-josev/`, not started) — our EVCC ↔ Josev SECC and the
    reverse, over WSL2/Docker; -2 AC EIM (no TLS) first, then -2 DC, then -20. This is what
-   actually validates the DC/AC ECDSA-P521 signature paths and the codecs against an
-   independent stack, beyond the fragment-level EXIficient cross-check and the in-repo
-   loopback E2E tests.
-3. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
+   actually validates the codecs + signature paths against an independent stack, beyond the
+   fragment-level EXIficient cross-check and the in-repo loopback E2E tests. **The single most
+   valuable next step.**
+2. ⬜ **Record mode / vector capture** — save received EXI streams from interop runs as
    vector candidates under `Tests/Vectors/captured/`; curate at least one into the regular
    vector files. Frames from an independent stack are the most valuable conformance vectors.
-4. ⬜ **Phase 5 closing report** — codec/sequence discrepancies found, timing findings, known
-   gaps (mutual TLS, Plug & Charge contract certs, WPT/ACDP interop).
+3. ⬜ **Phase 5 closing report** — codec/sequence discrepancies found, timing findings, known
+   gaps (Plug & Charge contract-cert provisioning, WPT/ACDP interop, the CLI dev-cert caveats).
 
-**Known conformance gaps for real -20** — mandated by the standard, deferred by this
-simulation slice; must be closed before claiming -20 conformance or live interop:
-- ⬜ **Mutual TLS 1.3.** This is a headline change from -2, *not* an optional feature. ISO
-  15118-2 uses *unilateral* TLS (server-authenticated only) — the EV does not present a TLS
-  client certificate, and Plug & Charge authenticates the EV at the *application* layer via
-  the contract-certificate XMLDSig signature on `AuthorizationReq` (what `V2GSignature`
-  already does). ISO 15118-20 instead mandates *bilateral* TLS 1.3: both SECC and EVCC
-  present certificates at the handshake. Slice 1 implements server-side TLS only; the client
-  certificate side and the spec's cipher-suite/curve pinning are not done yet.
+Cleanups / smaller follow-ups (not blockers):
+- ⬜ **Slim down Hermod** — the SLAC stage pulls the heavy `Hermod`/`Styx` chain into the core
+  Simulation library (a deliberate Option-A tradeoff); revisit once Hermod is leaner, or split
+  SLAC into a separate integration project.
+- ⬜ **SDP over the wire in CI** — only the SDP message layer + result mapping are CI-tested; the
+  live UDP/IPv6 multicast exchange isn't (an EVCC+SECC in one process on one host can't hear each
+  other's multicast). A two-host or loopback-unicast test mode would close this.
+- ⬜ **Real Plug & Charge session flow** — contract-cert provisioning + `CertificateInstallation`
+  live (the *messages* are already codec-tested; the live cert handling + its mTLS binding are not).
+
+**Resolved this phase** (were open gaps, now done):
+- ✅ **SLAC pairing** — real EV↔EVSE match over loopback UDP, PLC-chip programming, AVLN-ready step.
+- ✅ **SDP discovery** — `ISeccDiscovery` seam (`Fixed`/`Sdp`) + advertiser; message layer CI-tested.
+- ✅ **Mutual TLS 1.3** — the -20 headline change (bilateral auth; ISO 15118-2 stays unilateral +
+  app-layer PnC). Two backends: .NET `SslStream` (Schannel caps it at P-256) and **BouncyCastle**
+  running the -20-faithful profile (TLS 1.3, secp521r1 **and** Ed448, exact cipher-suite pinning).
+- ✅ **Vehicle certificate** — the dedicated -20 TLS-client identity (CharIN 2nd-gen PKI), added to
+  the WWCP PKI builder; distinct from the app-layer Contract cert. See `docs/pki-model.md`.
+- ✅ **Full-stack E2E** — one test composes SLAC → SDP → mutual TLS (P-521) → SAP → -20 DC session.
 
 **Deliberate non-goals** — legitimately out of scope for a happy-path simulation:
-- SLAC/PLC — the powerline layer below TCP/IP.
-- Plug & Charge *in the live session*: contract-certificate provisioning and the
-  certificate-installation session flow (stretch goal). Note the PnC *messages* themselves
-  (the -20 Authorization PnC variant, CertificateInstallation) are already generated and
-  vector-tested — it is the live certificate handling, and its binding to mTLS, that is
-  deferred.
+- Plug & Charge *in the live session* (see follow-up above).
 - Pause/resume, renegotiation, smart-charging detail.
 
 ---
