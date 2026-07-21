@@ -77,13 +77,16 @@ phase until the next-phase message):
 Josev's EVCC exited **code 0** and our SECC logged **"✓ Session complete in 78906 ms."** No downstream
 content bugs surfaced — the poll-loop sequencing was the only thing that had blocked the full reverse loop.
 
-## Remaining (orthogonal robustness / other transports)
+## Remaining (other transports)
 
-- **Graceful `SessionStop` in any phase.** Our SECC's sequence guard still rejects a `SessionStopReq`
-  mid-session (it errors instead of answering), so when Josev *aborts early* our SECC logs a
-  `FAILED_SequenceError` rather than a graceful stop — a small robustness follow-up (a SECC should accept
-  `SessionStop` in any phase). This is orthogonal to the completed happy path, which sends `SessionStop` only
-  at the end.
+- **Graceful `SessionStop` in any phase** — ✅ **done.** Both SECCs (`Secc20Base`, `Secc2`) now accept a
+  `SessionStopReq` in *any* phase, answer `SessionStopRes(OK)`, and end the session cleanly instead of raising
+  the sequence guard (`FAILED_SequenceError`) on an early abort. In -20 it's handled ahead of the phase switch
+  so it wins over the wildcard poll/charge-loop arms that would otherwise mis-cast it. Covered by
+  `Secc20DcTransitionTests` (abort mid-PreCharge and right after setup) and `Secc2TransitionTests` (abort
+  mid-session).
+- **TLS 1.3** live (Josev `SECC_ENFORCE_TLS=True`, our BouncyCastle backend) and, optionally, live -20
+  **Plug & Charge** rather than EIM.
 
 ## Reproduce
 
@@ -97,5 +100,5 @@ content bugs surfaced — the poll-loop sequencing was the only thing that had b
 
 - ~~SECC DC poll-loop self-looping (CableCheck/PreCharge/WeldingDetection)~~ ✅ **done**.
 - ~~Re-run the reverse live session end to end~~ ✅ **done** — full loop to SessionStop, no content bugs.
-- Accept `SessionStop` in any phase (graceful abort handling — the one remaining robustness item).
+- ~~Accept `SessionStop` in any phase (graceful abort handling)~~ ✅ **done** (both -2 and -20 SECCs).
 - Then the same over **TLS 1.3** (Josev `SECC_ENFORCE_TLS=True`, our BouncyCastle backend).

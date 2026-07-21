@@ -99,7 +99,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             (Phase.WeldingDetection, WeldingDetectionReqType) =>
                 (new WeldingDetectionResType(ResponseCode.OK, DcEvseStatus(), Volt(5)), Phase.SessionStop),
 
-            (Phase.SessionStop, SessionStopReqType) =>
+            // A SessionStopReq is legal in *any* phase (ISO 15118-2 §8.4): the EV may abort the session at any
+            // time, and the SECC answers gracefully and ends the session rather than raising the sequence
+            // guard. Typed on the request, so it only ever matches a SessionStopReq (never the normal flow).
+            (_, SessionStopReqType) =>
                 (new SessionStopResType(ResponseCode.OK), Phase.Done),
 
             _ => throw new SessionAborted(

@@ -6,8 +6,8 @@ Last updated: **2026-07-21**. Authoritative per-phase detail lives in
 
 ## Current status
 
-The solution builds cleanly and **all 566 tests are green** (`dotnet test -c Release`:
-519 in `Vanaheimr.V2G.Exi.Tests`, 47 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
+The solution builds cleanly and **all 569 tests are green** (`dotnet test -c Release`:
+519 in `Vanaheimr.V2G.Exi.Tests`, 50 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
 over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C toolchain, JRE, or
 network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
 (SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
@@ -17,8 +17,8 @@ session end to end to SessionStop in **both directions** — forward (our EVCC �
 (Josev EVCC → our SECC), the latter after teaching our SECC to **self-loop the CableCheck/PreCharge/
 WeldingDetection poll phases** (a real EV polls each until it decides the step is done; the validated reverse
 run saw 4 PreCharge + 5 WeldingDetection polls, all answered in place). Together the two directions caught and
-fixed **ten** real conformance bugs. What's left is optional wrap-up (`SessionStop`-in-any-phase robustness,
-live TLS, live Plug & Charge) — see the report.
+fixed **ten** real conformance bugs. Both SECCs now also accept a `SessionStopReq` in any phase (graceful
+early-abort). What's left is optional wrap-up (live TLS, live Plug & Charge) — see the report.
 
 | Phase | Scope | Status |
 |---|---|---|

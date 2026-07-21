@@ -107,6 +107,37 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
             Assert.That(secc.IsDone, Is.True);
         }
 
+        [Test]
+        public void SessionStopMidPreCharge_IsAcceptedAndEndsGracefully()
+        {
+            // The EV may abort at any time. Drive into the PreCharge poll phase, then send SessionStopReq
+            // instead of continuing — it must be answered (not sequence-guarded, and not mis-cast to a DC
+            // poll/charge-loop request by the wildcard phase arms). This is the live reverse-run abort case.
+            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            RunSetup(secc);
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_CableCheckReq(Dc));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_PreChargeReq(Dc, Dc20.Processing.Ongoing, Rat(0), Rat(400)));
+
+            var (set, resp) = secc.Handle(MessageSet.Iso20CommonMessages, new SessionStopReq(Common, ChargingSession.Terminate, null, null));
+            Assert.That(set, Is.EqualTo(MessageSet.Iso20CommonMessages));
+            Assert.That(resp, Is.InstanceOf<SessionStopRes>());
+            Assert.That(((SessionStopRes)resp).ResponseCode, Is.EqualTo(ResponseCode.OK));
+            Assert.That(secc.IsDone, Is.True);
+        }
+
+        [Test]
+        public void SessionStopRightAfterSetup_IsAcceptedAndEndsGracefully()
+        {
+            // Earliest realistic abort: right after ServiceSelection, before any DC exchange.
+            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
+
+            var (_, resp) = secc.Handle(MessageSet.Iso20CommonMessages, new SessionStopReq(Common, ChargingSession.Terminate, null, null));
+            Assert.That(resp, Is.InstanceOf<SessionStopRes>());
+            Assert.That(secc.IsDone, Is.True);
+        }
+
         private EVPowerProfileType BuildProfile() => new(
             TimeAnchor: 0, Dynamic_EVPPTControlMode: null,
             Scheduled_EVPPTControlMode: new Scheduled_EVPPTControlModeType(1, PowerToleranceAcceptance.PowerToleranceConfirmed),

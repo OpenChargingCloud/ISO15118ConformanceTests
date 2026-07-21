@@ -72,6 +72,25 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
         }
 
         [Test]
+        public void SessionStopMidSession_IsAcceptedAndEndsGracefully()
+        {
+            // The EV may abort at any time: a SessionStopReq must be answered (not sequence-guarded) in any
+            // phase. Drive to mid-session, then abort right after Authorization (well before SessionStop).
+            var secc = new Secc2(PowerMode.Dc, TimeSpan.FromSeconds(60), TimeProvider.System);
+            var sid = new byte[8];
+
+            secc.Handle(Wrap(sid, new SessionSetupReqType(new byte[] { 1 })));
+            secc.Handle(Wrap(sid, new ServiceDiscoveryReqType(null, null)));
+            secc.Handle(Wrap(sid, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
+                new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
+            secc.Handle(Wrap(sid, new AuthorizationReqType(null, null)));
+
+            var stopRes = (SessionStopResType)secc.Handle(Wrap(sid, new SessionStopReqType(ChargingSession.Terminate))).Body.BodyElement!;
+            Assert.That(stopRes.ResponseCode, Is.EqualTo(ResponseCode.OK));
+            Assert.That(secc.IsDone, Is.True);
+        }
+
+        [Test]
         public void OutOfOrderRequest_ThrowsSessionAborted()
         {
             var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);

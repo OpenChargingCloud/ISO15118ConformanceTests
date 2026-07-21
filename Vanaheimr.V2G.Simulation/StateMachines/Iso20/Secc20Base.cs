@@ -58,6 +58,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 throw new SessionAborted($"SECC sequence timeout: EV silent for > {sequenceTimeout.TotalSeconds:0}s");
             _lastSeen = now;
 
+            // A SessionStopReq is legal in *any* phase (ISO 15118-20 §7.9.2.4): the EV may abort the session at
+            // any time, and the SECC answers gracefully and ends the session rather than raising the sequence
+            // guard. Handled ahead of the phase switch so it wins over the wildcard poll / charge-loop arms
+            // (which would otherwise mis-cast it to a DC/AC request). A live Josev reverse run showed an early
+            // abort logging FAILED_SequenceError instead of a clean stop.
+            if (set == MessageSet.Iso20CommonMessages && request is SessionStopReq stopReq)
+            {
+                Phase = Phase20.Done;
+                return (MessageSet.Iso20CommonMessages, SessionStop(stopReq));
+            }
+
             // A real EV *polls* the DC self-looping phases (CableCheck/PreCharge/WeldingDetection) — sending
             // the same request until it decides the step is done, then sending the next-phase message. Answer
             // each poll and stay put (the switch cases below map these phases onto themselves); when a non-poll
@@ -114,8 +125,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 (Phase20.WeldingDetection, _, _) when HasPostChargeSequence =>
                     Append(HandleWeldingDetection(request), Phase20.WeldingDetection),
 
-                (Phase20.SessionStop, MessageSet.Iso20CommonMessages, SessionStopReq r) =>
-                    Step(MessageSet.Iso20CommonMessages, SessionStop(r), Phase20.Done),
+                // SessionStopReq (in the normal SessionStop phase *and* any early-abort phase) is handled
+                // ahead of this switch — see the top of Handle.
 
                 _ => throw new SessionAborted(
                     $"SECC sequence guard: {request.GetType().Name} not allowed in phase {Phase} " +
