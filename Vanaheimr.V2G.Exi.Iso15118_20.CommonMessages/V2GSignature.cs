@@ -39,9 +39,12 @@ namespace Vanaheimr.V2G.Iso15118_20.CommonMessages
         /// element digest, with the fixed EXI-C14N / SHA-512 algorithm URIs and the given signature
         /// method (<see cref="EcdsaSha512"/> by default, or <see cref="EddsaEd448"/>). The reference URI
         /// is <c>"#" + <paramref name="referenceId"/></c> — the <c>Id</c> attribute of the signed
-        /// element.</summary>
+        /// element. <paramref name="includeExiTransform"/> adds the (schema-optional) <c>Transforms</c>
+        /// list with the single EXI-C14N transform — some peers (Josev's pydantic models) treat it as
+        /// mandatory and reject a Reference without it.</summary>
         public static SignedInfoType BuildSignedInfo(
-            string referenceId, byte[] digest, string signatureMethodAlgorithm = EcdsaSha512) =>
+            string referenceId, byte[] digest, string signatureMethodAlgorithm = EcdsaSha512,
+            bool includeExiTransform = false) =>
             new(
                 Id: null,
                 CanonicalizationMethod: new CanonicalizationMethodType(Algorithm: CanonicalizationExi, ANY: null),
@@ -49,7 +52,10 @@ namespace Vanaheimr.V2G.Iso15118_20.CommonMessages
                 Reference: new[]
                 {
                     new ReferenceType(
-                        Id: null, Type: null, URI: "#" + referenceId, Transforms: null,
+                        Id: null, Type: null, URI: "#" + referenceId,
+                        Transforms: includeExiTransform
+                            ? new TransformsType(new[] { new TransformType(CanonicalizationExi, XPath: null, ANY: null) })
+                            : null,
                         DigestMethod: new DigestMethodType(Algorithm: Sha512, ANY: null),
                         DigestValue: digest),
                 });

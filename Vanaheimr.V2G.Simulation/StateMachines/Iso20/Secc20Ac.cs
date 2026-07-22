@@ -73,6 +73,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 case SessionSetupRes m:                    ok = m.TryEncode(dest, out n); break;
                 case AuthorizationSetupRes m:               ok = m.TryEncode(dest, out n); break;
                 case AuthorizationRes m:                    ok = m.TryEncode(dest, out n); break;
+                case CertificateInstallationRes m:          ok = m.TryEncode(dest, out n); break;
                 case ServiceDiscoveryRes m:                 ok = m.TryEncode(dest, out n); break;
                 case ServiceDetailRes m:                    ok = m.TryEncode(dest, out n); break;
                 case ServiceSelectionRes m:                 ok = m.TryEncode(dest, out n); break;

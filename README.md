@@ -406,6 +406,20 @@ all of this out of the offline CI run.
   TLS 1.3 ([`2026-07-22-iso20-dc-pnc-forward-signed`](docs/interop-runs/2026-07-22-iso20-dc-pnc-forward-signed/)).
   With that, **-20 PnC is live-validated in both directions** (they sign → we verify; we sign → they verify);
   CI guard: `Iso20LoopbackTests.DcPncSession_SignedAuthorization_VerifiesAtSecc`.
+- **Live -20 contract provisioning (CertificateInstallation):** our SECC announces the service, **verifies a
+  real Josev EVCC's signed `CertificateInstallationReq` live** (OEM provisioning chain; digest + ECDSA over
+  the standalone-xmldsig grammar) and issues a **signed, Josev-validated** `CertificateInstallationRes` —
+  fresh P-521 dev contract, private scalar wrapped via secp521r1 ECDH → ConcatKDF-SHA512 → AES-256-GCM
+  (`ContractProvisioning`; self-consistent-only crypto octets — no independent stack implements -20
+  provisioning to diff against). Josev then stops at its own `NotImplementedError` (it implements
+  cert-install on neither side), so the live exchange reaches the maximum possible; the **full roundtrip**
+  (EVCC requests → SECC issues → EVCC unwraps a *working* contract key) runs in-repo
+  (`Iso20LoopbackTests.DcCertInstallSession_ProvisionsAWorkingContractKey`). Three interop findings en route:
+  Josev mis-frames the req with V2GTP payload type 0x8001 (a `create_next_message` default-arg bug — our -20
+  SECC read path tolerates it), our new `OEMProvisioningCertificateChain` fragment codec is byte-identical to
+  EXIficient's (1476 B, real-material digest + signature verify), and Josev's pydantic `Reference` model
+  requires the schema-optional `Transforms` (our res now includes the EXI-C14N transform). See
+  [`2026-07-22-iso20-certinstall-sdp`](docs/interop-runs/2026-07-22-iso20-certinstall-sdp/).
 
 - **Live SDP discovery (no shim):** `secc --sdp --interface <nic>` now drives a real Josev EVCC end to end —
   the WWCP `SECC_SDPServer` binds `[::]:15118`, joins `FF02::1`, and answers the EVCC's `SDP_Request` with our

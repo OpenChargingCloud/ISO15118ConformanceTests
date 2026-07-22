@@ -103,12 +103,23 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     ? new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System)
                     : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
                 secc.PreferDynamicControlMode = args.PreferDynamic;
-                await secc.RunAsync(stream);
+                // finally: the PnC/cert-install verdicts are the run's evidence — print them even when the
+                // peer aborts mid-session (e.g. Josev's EVCC crashes on its own unimplemented cert-install res).
+                try { await secc.RunAsync(stream); }
+                finally { PrintSeccVerdicts(secc); }
+            }
+        }
+
+        private static void PrintSeccVerdicts(Secc20Base secc)
+        {
                 if (secc.PnCAuth is { } pnc)
                     Console.WriteLine($"Plug & Charge: contract {pnc.ContractSubject}; challenge {(pnc.ChallengeOk ? "OK" : "MISMATCH")}, " +
                                       $"digest {(pnc.DigestOk ? "OK" : "FAIL")}, signature {(pnc.SignatureOk ? "OK" : "FAIL")} " +
                                       $"({pnc.SignatureMethod}{(pnc.SignatureOk ? $", grammar={pnc.SignatureGrammar}" : "")}).");
-            }
+                if (secc.CertInstall is { } ci)
+                    Console.WriteLine($"CertificateInstallation: OEM {ci.OemSubject}; digest {(ci.DigestOk ? "OK" : "FAIL")}, " +
+                                      $"signature {(ci.SignatureOk ? "OK" : "FAIL")}{(ci.SignatureOk ? $" (grammar={ci.SignatureGrammar})" : "")}, " +
+                                      $"contract issued ({(ci.EncryptedForOem ? "key wrapped for OEM key" : "OEM key not P-521 — blob undecryptable for EV")}).");
         }
 
         private static async Task RunSeccSlacAsync(CliArgs args)

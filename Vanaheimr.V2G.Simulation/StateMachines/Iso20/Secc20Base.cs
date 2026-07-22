@@ -18,6 +18,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     public sealed record PnCAuthResult(bool ChallengeOk, bool DigestOk, bool SignatureOk, string ContractSubject,
                                        string SignatureMethod, string SignatureGrammar);
 
+    /// <summary>Outcome of a live -20 <c>CertificateInstallationReq</c> (contract provisioning): whether the
+    /// OEM-provisioning-chain digest and ECDSA signature verified (and under which SignedInfo grammar — see
+    /// <see cref="PnCAuthResult"/>), the OEM leaf's subject, and whether the issued contract key could actually
+    /// be <b>encrypted for</b> that OEM key (requires a P-521 OEM-provisioning key; a -2-era P-256 OEM cert —
+    /// what Josev ships — cannot take part in the -20 secp521r1 ECDH, so the response is well-formed but
+    /// undecryptable for the EV).</summary>
+    public sealed record CertInstallResult(bool DigestOk, bool SignatureOk, string SignatureGrammar,
+                                           string OemSubject, bool EncryptedForOem);
+
     /// <summary>
     /// The SECC side of an ISO 15118-20 session, shared between AC and DC: the CommonMessages phases
     /// (SessionSetup..ServiceSelection, PowerDelivery, SessionStop) live here — it offers both EIM and Plug &amp;
@@ -46,6 +55,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         /// <summary>The result of validating a PnC AuthorizationReq, if the EV authenticated via Plug &amp; Charge (null for EIM).</summary>
         public PnCAuthResult? PnCAuth { get; private set; }
+
+        /// <summary>The result of handling a CertificateInstallationReq, if the EV requested contract provisioning.</summary>
+        public CertInstallResult? CertInstall { get; private set; }
 
         /// <summary>Advertise the Dynamic (ControlMode=2) parameter set ahead of Scheduled in ServiceDetailRes.
         /// Both modes are always offered ([V2G20-2656]: the SECC shall support Scheduled and Dynamic); the order
@@ -115,6 +127,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 (Phase20.AuthorizationSetup, MessageSet.Iso20CommonMessages, AuthorizationSetupReq r) =>
                     Step(MessageSet.Iso20CommonMessages, AuthSetup(r), Phase20.Authorization),
 
+                // Contract provisioning: an EV that needs a contract cert sends a CertificateInstallationReq
+                // *instead of* its first AuthorizationReq (we announced CertificateInstallationService=true);
+                // answer it and stay in Authorization — the AuthorizationReq follows.
+                (Phase20.Authorization, MessageSet.Iso20CommonMessages, CertificateInstallationReq r) =>
+                    Step(MessageSet.Iso20CommonMessages, CertInstallation(r), Phase20.Authorization),
+
                 (Phase20.Authorization, MessageSet.Iso20CommonMessages, AuthorizationReq r) =>
                     Step(MessageSet.Iso20CommonMessages, Auth(r), Phase20.ServiceDiscovery),
 
@@ -172,15 +190,39 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>Reads/handles/replies over <paramref name="stream"/> until the session reaches <see cref="Phase20.Done"/>.</summary>
         public async Task RunAsync(Stream stream, CancellationToken ct = default)
         {
-            var buf = new byte[1024];
+            // 8 KiB: a CertificateInstallationRes (contract chain + encrypted key + CPS chain + signature)
+            // outgrows the 1 KiB the plain charge messages need.
+            var buf = new byte[8192];
             while (!IsDone)
             {
-                var (set, message) = await V2GTPStream.ReadFrameAsync(stream, ct).ConfigureAwait(false);
+                var (set, message) = await ReadFrame20Async(stream, ct).ConfigureAwait(false);
                 var (replySet, reply) = Handle(set, message);
 
                 int n = EncodeAny(replySet, reply, buf);
                 await V2GTPStream.WriteFrameAsync(stream, replySet, buf.AsMemory(0, n), ct).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// <see cref="V2GTPStream.ReadFrameAsync"/> plus one interop tolerance: a Josev EVCC frames its -20
+        /// <c>CertificateInstallationReq</c> with V2GTP payload type <b>0x8001</b> — the ISO 15118-<b>2</b>
+        /// <c>EXI_ENCODED</c> value — because its <c>create_next_message</c> defaults the payload type and the
+        /// cert-install call site forgets to pass <c>ISOV20PayloadTypes.MAINSTREAM</c> (0x8002). The regular
+        /// dispatcher would route 0x8001 to the -2 codec ("Unknown document index 14", found live 2026-07-22).
+        /// Inside a -20 session a 0x8001 frame can only be such a mis-framed message, so decode it as
+        /// CommonMessages.
+        /// </summary>
+        private static async Task<(MessageSet Set, object Message)> ReadFrame20Async(Stream stream, CancellationToken ct)
+        {
+            var (frame, payloadType) = await V2GTPStream.ReadRawFrameAsync(stream, ct).ConfigureAwait(false);
+
+            if (payloadType == V2GTP.PayloadType_DinIso2Main)   // 0x8001 — see doc comment
+                return (MessageSet.Iso20CommonMessages,
+                        CommonMessagesCodec.DecodeAny(frame.AsSpan(V2GTP.HeaderSize), out _));
+
+            if (!V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error))
+                throw new InvalidDataException($"V2GTP frame: {error}");
+            return (set, message!);
         }
 
         /// <summary>Encodes a reply of any of the three message sets this project drives — implemented per concrete subclass since only it knows which DC/AC types it produces.</summary>
@@ -226,7 +268,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             // EIM regardless; a PnC EV (Josev with a contract cert) reads the challenge and signs.
             return new(SessionCtx.ToCommonHeader(), ResponseCode.OK,
                 new[] { Authorization.PnC, Authorization.EIM },
-                CertificateInstallationService: false,
+                // Contract provisioning is offered: an EV that needs a contract cert (e.g. a Josev EVCC with
+                // isCertInstallNeeded=true) sends a CertificateInstallationReq before its AuthorizationReq.
+                CertificateInstallationService: true,
                 EIM_ASResAuthorizationMode: null,
                 new PnC_ASResAuthorizationModeType(_genChallenge, SupportedProviders: null));
         }
@@ -363,6 +407,114 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             return new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished, GoToPause: false,
                 Dynamic_SEResControlMode: null,
                 Scheduled_SEResControlMode: new Scheduled_SEResControlModeType(new[] { scheduleTuple }));
+        }
+
+        /// <summary>
+        /// Handles a live -20 <c>CertificateInstallationReq</c>: (1) verifies the OEM-provisioning-chain
+        /// signature — reference digest over the <c>OEMProvisioningCertificateChain</c> EXI fragment, then the
+        /// ECDSA signature over the SignedInfo under our combined grammar or the Josev standalone-xmldsig one
+        /// (same dual-grammar dance as <see cref="VerifyPnc"/>) — and (2) issues a throwaway dev contract:
+        /// fresh P-521 contract + CPS certs, the contract private scalar ECDH/AES-GCM-wrapped for the EV's OEM
+        /// key (<see cref="ContractProvisioning"/>; a P-256 OEM cert — Josev's — cannot join the secp521r1
+        /// ECDH, so the blob is then well-formed but undecryptable and <c>EncryptedForOem</c> is false), and
+        /// the <c>SignedInstallationData</c> signed with the CPS leaf via <c>V2GSignature</c>.
+        /// </summary>
+        private CertificateInstallationRes CertInstallation(CertificateInstallationReq req)
+        {
+            // ── 1. verify the EV's signature over the OEM provisioning chain ─
+            var chain = req.OEMProvisioningCertificateChain;
+            var fragBuf = new byte[8192];
+            bool fragOk = CommonMessagesCodec.EncodeFragment_OEMProvisioningCertificateChain(chain, fragBuf, out int fragLen);
+
+            bool digestOk = false, signatureOk = false;
+            string grammar = "none", oemSubject = "?";
+            ECDsa? oemVerifyKey = null;
+            try
+            {
+                using var oemLeaf = X509CertificateLoader.LoadCertificate(chain.Certificate);
+                oemSubject = oemLeaf.Subject;
+                oemVerifyKey = oemLeaf.GetECDsaPublicKey();
+
+                if (fragOk && req.Header.Signature is { } sig && sig.SignedInfo.Reference.Count > 0 && oemVerifyKey is not null)
+                {
+                    var reference = sig.SignedInfo.Reference[0];
+                    digestOk = HashOf(reference.DigestMethod.Algorithm, fragBuf.AsSpan(0, fragLen))
+                        .AsSpan().SequenceEqual(reference.DigestValue);
+
+                    var hashName = HashNameFor(sig.SignedInfo.SignatureMethod.Algorithm);
+                    if (oemVerifyKey.VerifyData(V2GSignature.SignedInfoFragment(sig.SignedInfo), sig.SignatureValue.Value,
+                                                hashName, DSASignatureFormat.IeeeP1363FixedFieldConcatenation))
+                        (signatureOk, grammar) = (true, "iso20-commonmessages");
+                    else if (XmlDsigInteropVerify.VerifyStandaloneXmldsig(sig.SignedInfo, sig.SignatureValue.Value, oemVerifyKey, hashName))
+                        (signatureOk, grammar) = (true, "xmldsig-standalone");
+                }
+            }
+            catch (Exception ex) { oemSubject = $"cert-error: {ex.Message}"; }
+            finally { oemVerifyKey?.Dispose(); }
+
+            // ── 2. issue a dev contract, key-wrapped for the EV's OEM key where possible ─
+            using var contractKey = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+            using var contractCert = new CertificateRequest("CN=DE*VAN*C*000001, O=Vanaheimr (dev)", contractKey, HashAlgorithmName.SHA512)
+                .CreateSelfSigned(clock.GetUtcNow().AddMinutes(-5), clock.GetUtcNow().AddYears(2));
+            using var cpsKey = ECDsa.Create(ECCurve.NamedCurves.nistP521);
+            using var cpsCert = new CertificateRequest("CN=Vanaheimr CPS (dev)", cpsKey, HashAlgorithmName.SHA512)
+                .CreateSelfSigned(clock.GetUtcNow().AddMinutes(-5), clock.GetUtcNow().AddYears(2));
+
+            bool encryptedForOem = false;
+            byte[] dhPub, wrapped;
+            using (var oemLeaf = X509CertificateLoader.LoadCertificate(chain.Certificate))
+            {
+                var oemEcdh = TryGetP521KeyAgreement(oemLeaf);
+                if (oemEcdh is not null)
+                {
+                    using (oemEcdh)
+                        (dhPub, wrapped) = ContractProvisioning.EncryptContractKey(oemEcdh.PublicKey, contractKey);
+                    encryptedForOem = true;
+                }
+                else
+                {
+                    // Non-P-521 OEM key (e.g. Josev's -2-era P-256 provisioning cert): no shared secp521r1
+                    // ECDH exists. Fill the mandatory choice with a well-formed blob wrapped for a throwaway
+                    // recipient so the message stays schema-valid; the EV cannot unwrap it (recorded above).
+                    using var throwaway = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP521);
+                    (dhPub, wrapped) = ContractProvisioning.EncryptContractKey(throwaway.PublicKey, contractKey);
+                }
+            }
+
+            var installData = new SignedInstallationDataType("sid1",
+                new ContractCertificateChainType(contractCert.RawData, new SubCertificatesType(new[] { cpsCert.RawData })),
+                EcdhCurve.SECP521, dhPub,
+                SECP521_EncryptedPrivateKey: wrapped, X448_EncryptedPrivateKey: null, TPM_EncryptedPrivateKey: null);
+
+            var dataBuf = new byte[8192];
+            if (!CommonMessagesCodec.EncodeFragment_SignedInstallationData(installData, dataBuf, out int dataLen))
+                throw new InvalidOperationException("SignedInstallationData fragment encode failed.");
+            // includeExiTransform: Josev's pydantic Reference model treats the (schema-optional) Transforms
+            // as mandatory — without it, its EVCC rejects the whole res with a V2GMessageValidationError
+            // before even reaching its own (unimplemented) cert-install handling. Found live 2026-07-22.
+            var signedInfo = V2GSignature.BuildSignedInfo("sid1", V2GSignature.Digest(dataBuf.AsSpan(0, dataLen)),
+                                                          includeExiTransform: true);
+            var resSignature = V2GSignature.BuildSignature(signedInfo, V2GSignature.Sign(signedInfo, cpsKey));
+
+            CertInstall = new CertInstallResult(digestOk, signatureOk, grammar, oemSubject, encryptedForOem);
+
+            return new CertificateInstallationRes(
+                SessionCtx.ToCommonHeader() with { Signature = resSignature },
+                ResponseCode.OK, Processing.Finished,
+                CPSCertificateChain: new CertificateChainType(cpsCert.RawData, SubCertificates: null),
+                SignedInstallationData: installData,
+                RemainingContractCertificateChains: 0);
+        }
+
+        /// <summary>The OEM leaf's key-agreement handle, but only if it is the P-521 key -20 provisioning
+        /// requires; <c>null</c> for any other curve (or a non-EC key).</summary>
+        private static ECDiffieHellman? TryGetP521KeyAgreement(X509Certificate2 oemLeaf)
+        {
+            var ecdh = oemLeaf.GetECDiffieHellmanPublicKey();
+            if (ecdh is null) return null;
+            if (ecdh.KeySize == 521) return ecdh;
+            ecdh.Dispose();
+            return null;
         }
 
         private PowerDeliveryRes PowerDelivery(PowerDeliveryReq req) =>

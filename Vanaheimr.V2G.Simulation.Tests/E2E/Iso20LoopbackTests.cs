@@ -97,6 +97,69 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             });
         }
 
+        /// <summary>
+        /// Full contract provisioning over loopback TCP: the EVCC (with a P-521 OEM provisioning identity)
+        /// sends a signed CertificateInstallationReq, the SECC verifies the OEM signature, issues a fresh
+        /// P-521 contract cert with the private scalar ECDH/AES-GCM-wrapped for the OEM key, signs the
+        /// SignedInstallationData with its CPS leaf — and the EVCC verifies that signature and unwraps a
+        /// working contract key. The session then continues through authorization to SessionStop.
+        /// </summary>
+        [Test]
+        public async Task DcCertInstallSession_ProvisionsAWorkingContractKey()
+        {
+            using var oemSignKey = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP521);
+            var oemReq = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+                "CN=LoopbackOEMProv", oemSignKey, System.Security.Cryptography.HashAlgorithmName.SHA512);
+            using var oemCert = oemReq.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
+            using var oemEcdh = System.Security.Cryptography.ECDiffieHellman.Create(
+                oemSignKey.ExportParameters(includePrivateParameters: true));
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            {
+                CertInstallRequest = new CertInstallEvccOptions(oemCert.RawData, new[] { oemCert.RawData }, oemSignKey, oemEcdh),
+            };
+            var evccTask = evcc.RunAsync(cts.Token);
+            await Task.WhenAll(evccTask, seccTask);
+
+            var secc = await seccTask;
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Assert.That(secc.CertInstall, Is.Not.Null);
+                Assert.That(secc.CertInstall!.SignatureOk, Is.True, "the EVCC's OEM signature must verify at the SECC");
+                Assert.That(secc.CertInstall.EncryptedForOem, Is.True, "a P-521 OEM key gets a real ECDH wrap");
+                Assert.That(evcc.InstalledContractSignatureOk, Is.True, "the CPS signature over SignedInstallationData must verify");
+                Assert.That(evcc.InstalledContractCertificate, Is.Not.Null);
+                Assert.That(evcc.InstalledContractKey, Is.Not.Null, "the contract key must unwrap");
+            });
+
+            // The unwrapped key is a working P-521 signer matching the issued contract certificate.
+            using var installedCert = System.Security.Cryptography.X509Certificates.X509CertificateLoader
+                .LoadCertificate(evcc.InstalledContractCertificate!);
+            using var contractPub = System.Security.Cryptography.X509Certificates.ECDsaCertificateExtensions
+                .GetECDsaPublicKey(installedCert);
+            var probe = new byte[] { 42, 42, 42 };
+            var sig = evcc.InstalledContractKey!.SignData(probe, System.Security.Cryptography.HashAlgorithmName.SHA512);
+            Assert.That(contractPub!.VerifyData(probe, sig, System.Security.Cryptography.HashAlgorithmName.SHA512), Is.True,
+                "the unwrapped private key must match the issued contract certificate's public key");
+            evcc.InstalledContractKey.Dispose();
+        }
+
         [Test]
         public async Task AcSession_RunsToCompletion()
         {

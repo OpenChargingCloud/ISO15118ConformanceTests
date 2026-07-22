@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 using Vanaheimr.V2G.Iso15118_20.CommonMessages;
 using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
@@ -36,6 +37,21 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// PnC AuthorizationReq was sent (requires <see cref="Pnc"/> set and the SECC offering PnC).</summary>
         public string AuthorizationMode { get; private set; } = "eim";
 
+        /// <summary>OEM-provisioning credentials; when set (and the SECC offers the service), the EVCC runs a
+        /// contract-provisioning exchange before authorization. <c>null</c> (default) skips it.</summary>
+        public CertInstallEvccOptions? CertInstallRequest { get; set; }
+
+        /// <summary>The contract certificate (DER) installed via CertificateInstallation, once recovered —
+        /// with <see cref="InstalledContractKey"/> proving the ECDH/AES-GCM key unwrap round-tripped.</summary>
+        public byte[]? InstalledContractCertificate { get; private set; }
+
+        /// <summary>The unwrapped contract private key (P-521); the caller owns disposal.</summary>
+        public System.Security.Cryptography.ECDsa? InstalledContractKey { get; private set; }
+
+        /// <summary>Whether the CertificateInstallationRes header signature (CPS leaf over the
+        /// SignedInstallationData fragment) verified.</summary>
+        public bool InstalledContractSignatureOk { get; private set; }
+
         /// <summary>Runs charge-parameter discovery exactly once (no polling — -20's DC/AC CPD response carries no EVSEProcessing field).</summary>
         protected abstract Task RunChargeParameterDiscoveryAsync(CancellationToken ct);
         /// <summary>DC: CableCheck+PreCharge. AC: no-op.</summary>
@@ -61,6 +77,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
             var authSetup = await Exchange<AuthorizationSetupRes>(MessageSet.Iso20CommonMessages,
                 dest => new AuthorizationSetupReq(SessionCtx.ToCommonHeader()).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+
+            if (CertInstallRequest is { } oem && authSetup.CertificateInstallationService)
+                await RunCertificateInstallationAsync(oem, ct);
 
             var encodeAuthReq = BuildAuthorizationReqEncoder(authSetup);
             while ((await Exchange<AuthorizationRes>(MessageSet.Iso20CommonMessages, encodeAuthReq, ct))
@@ -125,6 +144,51 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             await Exchange<SessionStopRes>(MessageSet.Iso20CommonMessages,
                 dest => new SessionStopReq(SessionCtx.ToCommonHeader(), ChargingSession.Terminate, null, null)
                     .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+        }
+
+        /// <summary>
+        /// Runs the contract-provisioning exchange (ISO 15118-20 CertificateInstallation): sends the signed
+        /// OEM provisioning chain (Id "id1", Josev-interop signature form over the chain's EXI fragment —
+        /// the same shape a live Josev EVCC produces), then verifies the response's CPS signature over the
+        /// <c>SignedInstallationData</c> fragment and ECDH-unwraps the issued contract private key.
+        /// </summary>
+        private async Task RunCertificateInstallationAsync(CertInstallEvccOptions oem, CancellationToken ct)
+        {
+            var chain = new SignedCertificateChainType("id1", oem.OemCertificate,
+                oem.OemSubCertificates.Count > 0 ? new SubCertificatesType(oem.OemSubCertificates.ToArray()) : null);
+
+            var fragment = new byte[8192];
+            if (!CommonMessagesCodec.EncodeFragment_OEMProvisioningCertificateChain(chain, fragment, out int fragmentLength))
+                throw EncodeFailed();
+            var signature = XmlDsigInteropSign.Sign("id1", fragment.AsSpan(0, fragmentLength), oem.OemSignKey);
+
+            var res = await Exchange<CertificateInstallationRes>(MessageSet.Iso20CommonMessages,
+                dest => new CertificateInstallationReq(SessionCtx.ToCommonHeader() with { Signature = signature },
+                    chain,
+                    new ListOfRootCertificateIDsType(new[] { new X509IssuerSerialType("CN=V2GRootCA (dev)", 1) }),
+                    MaximumContractCertificateChains: 1,
+                    PrioritizedEMAIDs: null).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+
+            // Verify the CPS signature over the SignedInstallationData fragment (our production form:
+            // combined grammar, P-521/SHA-512), then unwrap the contract key.
+            var dataBuf = new byte[8192];
+            if (CommonMessagesCodec.EncodeFragment_SignedInstallationData(res.SignedInstallationData, dataBuf, out int dataLen)
+                && res.Header.Signature is { } resSig
+                && resSig.SignedInfo.Reference.Count > 0
+                && V2GSignature.VerifyReference(resSig.SignedInfo.Reference[0], dataBuf.AsSpan(0, dataLen)))
+            {
+                using var cpsLeaf = X509CertificateLoader.LoadCertificate(res.CPSCertificateChain.Certificate);
+                using var cpsPub = cpsLeaf.GetECDsaPublicKey();
+                InstalledContractSignatureOk = cpsPub is not null
+                    && V2GSignature.Verify(resSig.SignedInfo, resSig.SignatureValue.Value, cpsPub);
+            }
+
+            if (res.SignedInstallationData.SECP521_EncryptedPrivateKey is { } wrapped)
+            {
+                InstalledContractKey = ContractProvisioning.RecoverContractKey(
+                    oem.OemKeyAgreement, res.SignedInstallationData.DHPublicKey, wrapped);
+                InstalledContractCertificate = res.SignedInstallationData.ContractCertificateChain.Certificate;
+            }
         }
 
         /// <summary>
