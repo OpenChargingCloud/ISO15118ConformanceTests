@@ -1,0 +1,35 @@
+INFO    2026-07-22 10:57:20,746 - iso15118.evcc.comm_session_handler (335): Sending SDPRequest: [Security: NO_TLS, Protocol: TCP]
+INFO    2026-07-22 10:57:20,805 - iso15118.evcc.comm_session_handler (485): SDPResponse received: [ IP address: fe80::215:5dff:fe46:863f, Port: 55000 , Security: NO_TLS , Transport: TCP ]
+INFO    2026-07-22 10:57:20,821 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+INFO    2026-07-22 10:57:21,244 - iso15118.shared.states (139): Entered state SessionSetup
+INFO    2026-07-22 10:57:21,951 - iso15118.shared.states (139): Entered state AuthorizationSetup
+INFO    2026-07-22 10:57:22,302 - iso15118.shared.states (139): Entered state Authorization
+INFO    2026-07-22 10:57:22,520 - iso15118.shared.states (139): Entered state ServiceDiscovery
+INFO    2026-07-22 10:57:22,574 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryRes":{"Header":{"SessionID":"744337738F555E4A","TimeStamp":1784717842},"ResponseCode":"OK","ServiceRenegotiationSupported":false,"EnergyTransferServiceList":{"Service":[{"ServiceID":1,"FreeService":true}]}}}
+INFO    2026-07-22 10:57:22,575 - iso15118.shared.comm_session (235): ServiceDiscoveryRes received
+INFO    2026-07-22 10:57:22,626 - iso15118.shared.states (139): Entered state ServiceDetail
+INFO    2026-07-22 10:57:22,680 - iso15118.evcc.states.iso15118_20_states (664): Selected Control Mode: 1
+INFO    2026-07-22 10:57:22,681 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq": {"Header": {"SessionID": "744337738F555E4A", "TimeStamp": 1784717842}, "SelectedEnergyTransferService": {"ServiceID": 1, "ParameterSetID": 1}}}
+INFO    2026-07-22 10:57:22,731 - iso15118.shared.comm_session (431): Sent ServiceSelectionReq
+INFO    2026-07-22 10:57:22,731 - iso15118.shared.states (139): Entered state ServiceSelection
+INFO    2026-07-22 10:57:22,777 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionRes":{"Header":{"SessionID":"744337738F555E4A","TimeStamp":1784717842},"ResponseCode":"OK"}}
+INFO    2026-07-22 10:57:22,777 - iso15118.shared.comm_session (235): ServiceSelectionRes received
+INFO    2026-07-22 10:57:22,838 - iso15118.shared.states (139): Entered state ACChargeParameterDiscovery
+INFO    2026-07-22 10:57:22,927 - iso15118.shared.states (139): Entered state ScheduleExchange
+INFO    2026-07-22 10:57:23,032 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 10:57:23,080 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes":{"Header":{"SessionID":"744337738F555E4A","TimeStamp":1784717843},"ResponseCode":"OK"}}
+INFO    2026-07-22 10:57:23,081 - iso15118.shared.comm_session (235): PowerDeliveryRes received
+INFO    2026-07-22 10:57:23,112 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,183 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,248 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,302 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,374 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,426 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,475 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,518 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,564 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,610 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 10:57:23,703 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 10:57:23,747 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes":{"Header":{"SessionID":"744337738F555E4A","TimeStamp":1784717843},"ResponseCode":"OK"}}
+INFO    2026-07-22 10:57:23,748 - iso15118.shared.comm_session (235): PowerDeliveryRes received
+INFO    2026-07-22 10:57:23,786 - iso15118.shared.states (139): Entered state SessionStop

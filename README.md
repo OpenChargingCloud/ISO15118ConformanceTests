@@ -404,6 +404,14 @@ all of this out of the offline CI run.
   **plaintext** SECC silently dropped a plaintext EVCC's `SDP_Request`. The CLI now sets it from our own TLS
   mode (`RejectNoTlsRequests = !noTls`), so plaintext `--sdp` discovery works too.
 
-Remaining interop wrap-up: extend live runs to AC / WPT / ACDP. The **Phase 5 closing report**
-([`docs/phase5-report.md`](docs/phase5-report.md)) has the full DoD scorecard, every fix, and the honest
-gaps list.
+- **Live -20 AC:** full AC session over plain TCP + `--sdp` to `SessionStop`
+  ([`2026-07-22-iso20-ac-eim-sdp`](docs/interop-runs/2026-07-22-iso20-ac-eim-sdp/)) — our `Secc20Ac` state
+  machine (`ACChargeParameterDiscovery` + `ACChargeLoop`) interops with a real Josev EVCC, and the same run
+  re-confirms plaintext `--sdp` discovery and PnC signature verify (`grammar=xmldsig-standalone`) live.
+
+Both -20 **DC and AC** now run live against Josev over TCP and TLS, plain and Plug & Charge. **WPT and ACDP
+stay codec-validated only** (record mode, byte-exact vs cbV2G): no live run is possible because Josev — the
+only independent -20 stack available — implements no WPT/ACDP session state machines (only AC/DC), and our own
+WPT/ACDP projects are codec-only by the same token; a live run would need full session state machines built on
+both sides. The **Phase 5 closing report** ([`docs/phase5-report.md`](docs/phase5-report.md)) has the full DoD
+scorecard, every fix, and the honest gaps list.
