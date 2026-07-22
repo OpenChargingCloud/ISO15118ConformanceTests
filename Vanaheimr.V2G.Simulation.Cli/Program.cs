@@ -96,7 +96,20 @@ namespace Vanaheimr.V2G.Simulation.Cli
         private static async Task RunSeccSessionAsync(Stream stream, CliArgs args)
         {
             if (args.Protocol == ProtocolVariant.Iso15118_2)
-                await new Secc2(args.Mode, TimeSpan.FromSeconds(60), TimeProvider.System).RunAsync(stream);
+            {
+                var secc2 = new Secc2(args.Mode, TimeSpan.FromSeconds(60), TimeProvider.System);
+                try { await secc2.RunAsync(stream); }
+                finally
+                {
+                    if (secc2.PnCAuth is { } pnc2)
+                        Console.WriteLine($"-2 Plug & Charge: contract {pnc2.ContractSubject}; challenge {(pnc2.ChallengeOk ? "OK" : "MISMATCH")}, " +
+                                          $"digest {(pnc2.DigestOk ? "OK" : "FAIL")}, signature {(pnc2.SignatureOk ? "OK" : "FAIL")}" +
+                                          $"{(pnc2.SignatureOk ? $" (grammar={pnc2.SignatureGrammar})" : "")}.");
+                    foreach (var r in secc2.MeteringReceipts)
+                        Console.WriteLine($"-2 MeteringReceipt: digest {(r.DigestOk ? "OK" : "FAIL")}, " +
+                                          $"signature {(r.SignatureOk ? "OK" : "FAIL")}{(r.SignatureOk ? $" (grammar={r.SignatureGrammar})" : "")}.");
+                }
+            }
             else
             {
                 Secc20Base secc = args.Mode == PowerMode.Dc
@@ -213,8 +226,11 @@ namespace Vanaheimr.V2G.Simulation.Cli
             if (args.Protocol == ProtocolVariant.Iso15118_2)
             {
                 var evcc = new Evcc2(stream, args.Mode, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2));
+                if (args.ContractCertPath is not null)
+                    evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
                 await evcc.RunAsync();
-                Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side).");
+                Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), " +
+                                  $"auth: {evcc.AuthorizationMode}, metering receipts sent: {evcc.MeteringReceiptsSent}.");
             }
             else
             {

@@ -32,9 +32,13 @@ namespace Vanaheimr.V2G.Simulation.Sap
         /// namespace), throws <see cref="SessionAborted"/> if the SECC rejects it.</summary>
         public static async Task RunEvccSideAsync(Stream stream, ProtocolVariant wanted, CancellationToken ct = default, PowerMode mode = PowerMode.Dc)
         {
+            // Version numbers per protocol: ISO 15118-2:2013 MsgDef is protocol version 2.0, the -20 sets
+            // are 1.0. A live Josev SECC matches namespace AND major version — offering -2 as "1.0" gets
+            // Failed_NoNegotiation (found live 2026-07-22; our own SECC matched on namespace only).
+            var (major, minor) = wanted == ProtocolVariant.Iso15118_2 ? (2u, 0u) : (1u, 0u);
             var req = new SupportedAppProtocolReq(new[]
             {
-                new AppProtocolEntry(NamespaceFor(wanted, mode), VersionNumberMajor: 1, VersionNumberMinor: 0, SchemaID: 1, Priority: 1),
+                new AppProtocolEntry(NamespaceFor(wanted, mode), VersionNumberMajor: major, VersionNumberMinor: minor, SchemaID: 1, Priority: 1),
             });
             var buf = new byte[128];
             if (!SupportedAppProtocolCodec.TryEncodeRequest(req, buf, out int n))

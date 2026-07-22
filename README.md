@@ -406,6 +406,17 @@ all of this out of the offline CI run.
   TLS 1.3 ([`2026-07-22-iso20-dc-pnc-forward-signed`](docs/interop-runs/2026-07-22-iso20-dc-pnc-forward-signed/)).
   With that, **-20 PnC is live-validated in both directions** (they sign → we verify; we sign → they verify);
   CI guard: `Iso20LoopbackTests.DcPncSession_SignedAuthorization_VerifiesAtSecc`.
+- **Live ISO 15118-2 Plug & Charge — both directions:** the full -2 PnC message set runs live over TLS
+  ([`2026-07-22-iso2-pnc-tls`](docs/interop-runs/2026-07-22-iso2-pnc-tls/)). Reverse (Josev EVCC → our
+  SECC): Contract offered, `PaymentDetails` + GenChallenge, Josev's **signed `AuthorizationReq`** and
+  **signed `MeteringReceiptReq`** both verify (`challenge OK, digest OK, signature OK,
+  grammar=xmldsig-standalone` — Josev's -2 signatures use the same standalone-xmldsig SignedInfo form as
+  its -20 ones), full session to `SessionStop`. Forward (our EVCC → Josev SECC): Contract payment with
+  `contract.p12`, our signed `AuthorizationReq` gets `=> Match: True` + `Signature verified successfully`
+  from Josev's own verifier. Three live findings fixed en route: `SAScheduleList` is mandatory with
+  `EVSEProcessing=Finished` [V2G2-905], a SECC must not demand a receipt on *every* status response (a
+  Josev EVCC then loops forever), and the -2 SAP offer must carry protocol version **2.0** (Josev matches
+  major version, not just the namespace). CI: `Secc2PnCTests` + the `AcPncSession` loopback E2E.
 - **Live -20 contract provisioning (CertificateInstallation):** our SECC announces the service, **verifies a
   real Josev EVCC's signed `CertificateInstallationReq` live** (OEM provisioning chain; digest + ECDSA over
   the standalone-xmldsig grammar) and issues a **signed, Josev-validated** `CertificateInstallationRes` —

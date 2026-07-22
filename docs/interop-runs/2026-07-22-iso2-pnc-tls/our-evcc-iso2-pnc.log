@@ -1,0 +1,5 @@
+WARNING: accepting any TLS server certificate — dev CLI only, never against a real SECC.
+PnC: contract cert DC=MO, C=UK, O=Switch, CN=UKSWI123456791A (+2 sub-CA(s)), key 256-bit EC.
+  12 exchanges, 2468 bytes on the wire (request side), auth: pnc-signed, metering receipts sent: 0.
+
+✓ Session complete in 2339 ms.

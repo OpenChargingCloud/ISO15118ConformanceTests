@@ -167,7 +167,14 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   property of one backend, not a project gap — the **BouncyCastle** backend runs the -20-faithful
   secp521r1/Ed448 profile. The `.NET` backend stays useful for -2 (P-256). Documented in
   [`pki-model.md`](pki-model.md).
-- **Live Plug & Charge session flow — closed.** The signed-Authorization half runs in **both directions**:
+- **ISO 15118-2 Plug & Charge session flow — closed** (was the last big codec-tested-only block): live in
+  both directions over TLS (`2026-07-22-iso2-pnc-tls`) — PaymentDetails, the signed AuthorizationReq and
+  the signed MeteringReceiptReq all verify, ours at Josev and Josev's at ours (dual-grammar; Josev's -2
+  signatures use the same standalone-xmldsig form as -20). Three live conformance findings fixed:
+  mandatory SAScheduleList [V2G2-905], receipt-once (Josev loops on receipt-every-cycle), -2 SAP version
+  2.0. What remains for -2 PnC: `CertificateInstallation`/`CertificateUpdate` live (codec-tested only;
+  Josev's -2 cert-install service path would need its CERTIFICATE VAS wiring on both sides).
+- **Live Plug & Charge session flow (-20) — closed.** The signed-Authorization half runs in **both directions**:
   Josev signs → our SECC verifies (`2026-07-22-iso20-dc-pnc-tls-verified`), and our EVCC signs → Josev's
   SECC verifies (`2026-07-22-iso20-dc-pnc-forward-signed`: Josev logs `=> Match: True` +
   `Signature verified successfully`; `evcc --contract-cert`, Josev-form signing via `XmlDsigInteropSign`).

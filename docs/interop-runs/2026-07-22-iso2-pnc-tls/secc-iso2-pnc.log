@@ -1,0 +1,7 @@
+Presenting server certificate: DC=CPO, C=UK, O=Switch, CN=SECCCert (+2 intermediate(s))
+SECC listening on [::]:55000 (protocol -2, AC, TLS Dotnet)...
+SDP: advertising [fe80::215:5dff:fe46:863f%2]:55000 (TLS) on eth0...
+-2 Plug & Charge: contract DC=MO, C=UK, O=Switch, CN=UKSWI123456791A; challenge OK, digest OK, signature OK (grammar=xmldsig-standalone).
+-2 MeteringReceipt: digest OK, signature OK (grammar=xmldsig-standalone).
+
+✓ Session complete in 14061 ms.

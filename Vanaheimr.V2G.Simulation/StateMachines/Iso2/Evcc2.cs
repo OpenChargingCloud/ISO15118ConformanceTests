@@ -1,7 +1,10 @@
+using System.Security.Cryptography.X509Certificates;
+
 using Vanaheimr.V2G.Iso15118_2;
 using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Session;
+using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Timing;
 using Vanaheimr.V2G.Tp;
 
@@ -14,28 +17,67 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
     /// ChargeParameterDiscovery) back off through <see cref="IAsyncDelay"/> instead of a hardcoded
     /// <c>Task.Delay</c>, and every exchange is checked against <paramref name="perMessageTimeout"/> using
     /// <paramref name="clock"/> — mirroring the ISO 15118-2 EV-side performance timeout, simplified.
+    /// Payment: EIM (<c>ExternalPayment</c>) by default; with <see cref="Pnc"/> set and the SECC offering
+    /// <c>Contract</c>, the session runs -2 Plug &amp; Charge — PaymentDetails (contract chain in,
+    /// GenChallenge out), a <b>signed</b> AuthorizationReq, and a <b>signed</b> MeteringReceiptReq whenever
+    /// a charging-status response demands one (all in Josev's signature form, <see cref="XmlDsigInterop2"/>).
     /// </summary>
     public sealed class Evcc2(
         Stream stream, PowerMode mode, TimeProvider clock, IAsyncDelay pollDelay, TimeSpan perMessageTimeout)
     {
         private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(50);
 
-        private readonly byte[] _buf = new byte[512];
+        // 8 KiB: a PaymentDetailsReq carries the full 3-cert contract chain (~2 KiB).
+        private readonly byte[] _buf = new byte[8192];
         private byte[] _sid = new byte[8];   // 0 until SessionSetupRes assigns one
 
         public int Exchanges { get; private set; }
         public long BytesOnWire { get; private set; }
 
+        /// <summary>Contract credentials (same shape as the -20 EVCC's); <c>null</c> (default) pays via EIM.</summary>
+        public PncEvccOptions? Pnc { get; set; }
+
+        /// <summary>How this session authorized: <c>"eim"</c>, or <c>"pnc-signed"</c> after a Contract
+        /// PaymentDetails + signed AuthorizationReq.</summary>
+        public string AuthorizationMode { get; private set; } = "eim";
+
+        /// <summary>How many signed MeteringReceiptReq this session sent (Contract only).</summary>
+        public int MeteringReceiptsSent { get; private set; }
+
         public async Task RunAsync(CancellationToken ct = default)
         {
             // ── SETUP ──────────────────────────────────────────────────────────
             await Send<SessionSetupResType>(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }), ct);
-            await Send<ServiceDiscoveryResType>(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null), ct);
-            await Send<PaymentServiceSelectionResType>(new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
+            var discovery = await Send<ServiceDiscoveryResType>(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null), ct);
+
+            bool contract = Pnc is not null && discovery.PaymentOptionList.PaymentOption.Contains(PaymentOption.Contract);
+            await Send<PaymentServiceSelectionResType>(new PaymentServiceSelectionReqType(
+                contract ? PaymentOption.Contract : PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(ServiceID: 1, ParameterSetID: null) })), ct);
 
             // ── AUTH (loop until authorised) ───────────────────────────────────
-            while ((await Send<AuthorizationResType>(new AuthorizationReqType(Id: null, GenChallenge: null), ct))
+            // Contract: PaymentDetails first (contract chain → GenChallenge), then a signed AuthorizationReq
+            // (Id "id1", challenge echo; body-element fragment digested, Josev-form signature). Signed once —
+            // the challenge does not change across polls. EIM: the plain unsigned request.
+            AuthorizationReqType authReq;
+            SignatureType? authSignature = null;
+            if (contract)
+            {
+                var details = await Send<PaymentDetailsResType>(new PaymentDetailsReqType(
+                    ContractEmaid(), new CertificateChainType(Id: null, Pnc!.ContractCertificate,
+                        new SubCertificatesType(Pnc.SubCertificates.ToArray()))), ct);
+
+                authReq = new AuthorizationReqType("id1", details.GenChallenge);
+                var fragment = new byte[1024];
+                if (!Iso2Codec.EncodeFragment_AuthorizationReq(authReq, fragment, out int n))
+                    throw new InvalidOperationException("AuthorizationReq fragment encode failed.");
+                authSignature = XmlDsigInterop2.Sign("id1", fragment.AsSpan(0, n), Pnc.ContractKey);
+                AuthorizationMode = "pnc-signed";
+            }
+            else
+                authReq = new AuthorizationReqType(Id: null, GenChallenge: null);
+
+            while ((await Send<AuthorizationResType>(authReq, ct, authSignature))
                        .EVSEProcessing != EVSEProcessing.Finished)
                 await pollDelay.Wait(PollInterval, ct);
 
@@ -58,10 +100,20 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 
             for (int cycle = 0; cycle < 3; cycle++)                    // a few charging-loop iterations
             {
+                // A Contract SECC may demand a receipt (ReceiptRequired) in its status response — answer with
+                // a signed MeteringReceiptReq echoing its MeterInfo (as a real EV, e.g. Josev, does).
                 if (mode == PowerMode.Dc)
-                    await Send<CurrentDemandResType>(CurrentDemand(), ct);
+                {
+                    var cd = await Send<CurrentDemandResType>(CurrentDemand(), ct);
+                    if (cd.ReceiptRequired == true && cd.MeterInfo is not null)
+                        await SendMeteringReceipt(cd.MeterInfo, cd.SAScheduleTupleID, ct);
+                }
                 else
-                    await Send<ChargingStatusResType>(new ChargingStatusReqType(), ct);
+                {
+                    var cs = await Send<ChargingStatusResType>(new ChargingStatusReqType(), ct);
+                    if (cs.ReceiptRequired == true && cs.MeterInfo is not null)
+                        await SendMeteringReceipt(cs.MeterInfo, cs.SAScheduleTupleID, ct);
+                }
                 await pollDelay.Wait(PollInterval, ct);
             }
 
@@ -73,9 +125,29 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             await Send<SessionStopResType>(new SessionStopReqType(ChargingSession.Terminate), ct);
         }
 
-        private async Task<T> Send<T>(BodyBaseType requestBody, CancellationToken ct) where T : BodyBaseType
+        /// <summary>Signs and sends one MeteringReceiptReq for the SECC's MeterInfo, in the Josev form.</summary>
+        private async Task SendMeteringReceipt(MeterInfoType meterInfo, byte? saScheduleTupleId, CancellationToken ct)
         {
-            var header = new MessageHeaderType(_sid, Notification: null, Signature: null);
+            var receipt = new MeteringReceiptReqType("id2", _sid, saScheduleTupleId, meterInfo);
+            var fragment = new byte[1024];
+            if (!Iso2Codec.EncodeFragment_MeteringReceiptReq(receipt, fragment, out int n))
+                throw new InvalidOperationException("MeteringReceiptReq fragment encode failed.");
+            var signature = XmlDsigInterop2.Sign("id2", fragment.AsSpan(0, n), Pnc!.ContractKey);
+
+            await Send<MeteringReceiptResType>(receipt, ct, signature);
+            MeteringReceiptsSent++;
+        }
+
+        /// <summary>The eMAID for PaymentDetails — the contract certificate's CN (e.g. <c>UKSWI123456791A</c>).</summary>
+        private string ContractEmaid()
+        {
+            using var contract = X509CertificateLoader.LoadCertificate(Pnc!.ContractCertificate);
+            return contract.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
+        }
+
+        private async Task<T> Send<T>(BodyBaseType requestBody, CancellationToken ct, SignatureType? signature = null) where T : BodyBaseType
+        {
+            var header = new MessageHeaderType(_sid, Notification: null, Signature: signature);
             var request = new V2G_Message(header, new BodyType(requestBody));
             if (!request.TryEncode(_buf, out int reqLen))
                 throw new InvalidOperationException("EXI encode failed (buffer too small?).");
