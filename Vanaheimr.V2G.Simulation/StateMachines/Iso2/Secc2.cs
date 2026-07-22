@@ -62,6 +62,18 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// <summary>True once the session has reached its terminal (post-SessionStop) phase.</summary>
         public bool IsDone => _phase == Phase.Done;
 
+        /// <summary>True when the session ended with <c>ChargingSession.Pause</c> rather than Terminate —
+        /// the caller should keep <see cref="SessionId"/> and offer it as <see cref="ResumeSessionId"/> to
+        /// the next <see cref="Secc2"/> instance so the EV can rejoin ([V2G2-740]).</summary>
+        public bool Paused { get; private set; }
+
+        /// <summary>The session id this SECC assigned (or rejoined).</summary>
+        public byte[] SessionId => _sessionId;
+
+        /// <summary>A paused predecessor's session id: a SessionSetupReq carrying it rejoins the old session
+        /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts a fresh one.</summary>
+        public byte[]? ResumeSessionId { get; set; }
+
         public V2G_Message Handle(V2G_Message request)
         {
             var now = clock.GetUtcNow();
@@ -144,8 +156,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             // A SessionStopReq is legal in *any* phase (ISO 15118-2 §8.4): the EV may abort the session at any
             // time, and the SECC answers gracefully and ends the session rather than raising the sequence
             // guard. Typed on the request, so it only ever matches a SessionStopReq (never the normal flow).
-            (_, SessionStopReqType) =>
-                (new SessionStopResType(ResponseCode.OK), Phase.Done),
+            // ChargingSession=Pause parks the session instead of terminating it (Paused + SessionId let the
+            // caller resume it on the next connection).
+            (_, SessionStopReqType r) =>
+                (SessionStop(r), Phase.Done),
 
             _ => throw new SessionAborted(
                 $"SECC sequence guard: {req.GetType().Name.Replace("Type", "")} not allowed in phase {_phase} " +
@@ -155,8 +169,22 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         // ── response builders ─────────────────────────────────────────────────
         private BodyBaseType NewSession()
         {
+            // Resume ([V2G2-740]): a SessionSetupReq whose header carries a paused predecessor's session id
+            // rejoins that session; any other id (normally all-zero) starts a fresh one.
+            if (ResumeSessionId is not null && _requestHeader!.SessionID.AsSpan().SequenceEqual(ResumeSessionId))
+            {
+                _sessionId = ResumeSessionId;
+                return new SessionSetupResType(ResponseCode.OK_OldSessionJoined, "DE*ABC*E1", 1_600_000_000L);
+            }
+
             _sessionId = RandomNumberGenerator.GetBytes(8);
             return new SessionSetupResType(ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1", 1_600_000_000L);
+        }
+
+        private BodyBaseType SessionStop(SessionStopReqType req)
+        {
+            Paused = req.ChargingSession == ChargingSession.Pause;
+            return new SessionStopResType(ResponseCode.OK);
         }
 
         private BodyBaseType Discovery() =>

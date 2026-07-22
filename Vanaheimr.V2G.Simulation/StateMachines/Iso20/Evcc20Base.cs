@@ -52,6 +52,21 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// SignedInstallationData fragment) verified.</summary>
         public bool InstalledContractSignatureOk { get; private set; }
 
+        /// <summary>How to end the session: <c>Terminate</c> (default) or <c>Pause</c> — after a pause the
+        /// caller reconnects and resumes via <see cref="ResumeSessionId"/>.</summary>
+        public ChargingSession StopMode { get; set; } = ChargingSession.Terminate;
+
+        /// <summary>A paused predecessor's session id: the opening SessionSetupReq carries it so the SECC
+        /// rejoins the old session instead of assigning a new one.</summary>
+        public byte[]? ResumeSessionId { get; set; }
+
+        /// <summary>The SECC's SessionSetup verdict: <c>OK_NewSessionEstablished</c>, or on a successful
+        /// resume <c>OK_OldSessionJoined</c>.</summary>
+        public ResponseCode SessionSetupCode { get; private set; }
+
+        /// <summary>The session id in effect — keep it for a resume after a paused session.</summary>
+        public byte[] SessionId => SessionCtx.SessionId;
+
         /// <summary>Runs charge-parameter discovery exactly once (no polling — -20's DC/AC CPD response carries no EVSEProcessing field).</summary>
         protected abstract Task RunChargeParameterDiscoveryAsync(CancellationToken ct);
         /// <summary>DC: CableCheck+PreCharge. AC: no-op.</summary>
@@ -67,8 +82,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         public async Task RunAsync(CancellationToken ct = default)
         {
+            if (ResumeSessionId is not null)
+                SessionCtx.SessionId = ResumeSessionId;   // rejoin: the SessionSetupReq header carries the paused id
+
             var setupRes = await Exchange<SessionSetupRes>(MessageSet.Iso20CommonMessages,
                 dest => new SessionSetupReq(SessionCtx.ToCommonHeader(), "EVCC01").TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+            SessionSetupCode = setupRes.ResponseCode;
 
             // Adopt the SECC-assigned SessionID: every subsequent request header must carry it, not the
             // all-zero id the EVCC opens SessionSetup with (ISO 15118-20 §7.9.2.4). A live Josev interop run
@@ -142,7 +161,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             await RunPostChargeSequenceAsync(ct);
 
             await Exchange<SessionStopRes>(MessageSet.Iso20CommonMessages,
-                dest => new SessionStopReq(SessionCtx.ToCommonHeader(), ChargingSession.Terminate, null, null)
+                dest => new SessionStopReq(SessionCtx.ToCommonHeader(), StopMode, null, null)
                     .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
         }
 

@@ -167,6 +167,11 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   property of one backend, not a project gap — the **BouncyCastle** backend runs the -20-faithful
   secp521r1/Ed448 profile. The `.NET` backend stays useful for -2 (P-256). Documented in
   [`pki-model.md`](pki-model.md).
+- **Pause/Resume — closed** (was a declared non-goal, now implemented): `SessionStopReq(Pause)` + rejoin
+  via the old session id (`OK_OldSessionJoined`), both protocols, loopback E2Es + live forward vs Josev
+  (`2026-07-22-pause-resume`). The -2 flow round-trips fully; Josev's -20 side preserves an empty session
+  context and degrades to a graceful new session — documented as its gap. Still out of scope:
+  renegotiation and smart-charging detail.
 - **ISO 15118-2 Plug & Charge session flow — closed** (was the last big codec-tested-only block): live in
   both directions over TLS (`2026-07-22-iso2-pnc-tls`) — PaymentDetails, the signed AuthorizationReq and
   the signed MeteringReceiptReq all verify, ours at Josev and Josev's at ours (dual-grammar; Josev's -2

@@ -88,16 +88,27 @@ namespace Vanaheimr.V2G.Simulation.Cli
 
             await using var sdp = args.UseSdp ? await StartSeccSdpAsync(args, listener.LocalEndpoint.Port) : null;
 
-            using var stream = await listener.AcceptAsync();
-            await SapHandshake.RunSeccSideAsync(stream, args.Protocol, mode: args.Mode);
-            await RunSeccSessionAsync(stream, args);
+            // Pause/resume: a session that ends with ChargingSession.Pause hands back its session id — keep
+            // accepting connections and offer it, so the EV can rejoin (OK_OldSessionJoined) after reconnecting.
+            byte[]? resumeId = null;
+            do
+            {
+                using var stream = await listener.AcceptAsync();
+                await SapHandshake.RunSeccSideAsync(stream, args.Protocol, mode: args.Mode);
+                resumeId = await RunSeccSessionAsync(stream, args, resumeId);
+                if (resumeId is not null)
+                    Console.WriteLine($"Session paused (id {Convert.ToHexString(resumeId)}) — awaiting resume...");
+            }
+            while (resumeId is not null);
         }
 
-        private static async Task RunSeccSessionAsync(Stream stream, CliArgs args)
+        /// <summary>Runs one session; returns the session id when it ended <b>paused</b> (offer it to the
+        /// next session as the resume id), else <c>null</c>.</summary>
+        private static async Task<byte[]?> RunSeccSessionAsync(Stream stream, CliArgs args, byte[]? resumeId = null)
         {
             if (args.Protocol == ProtocolVariant.Iso15118_2)
             {
-                var secc2 = new Secc2(args.Mode, TimeSpan.FromSeconds(60), TimeProvider.System);
+                var secc2 = new Secc2(args.Mode, TimeSpan.FromSeconds(60), TimeProvider.System) { ResumeSessionId = resumeId };
                 try { await secc2.RunAsync(stream); }
                 finally
                 {
@@ -109,6 +120,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
                         Console.WriteLine($"-2 MeteringReceipt: digest {(r.DigestOk ? "OK" : "FAIL")}, " +
                                           $"signature {(r.SignatureOk ? "OK" : "FAIL")}{(r.SignatureOk ? $" (grammar={r.SignatureGrammar})" : "")}.");
                 }
+                return secc2.Paused ? secc2.SessionId : null;
             }
             else
             {
@@ -116,10 +128,12 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     ? new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System)
                     : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
                 secc.PreferDynamicControlMode = args.PreferDynamic;
+                secc.ResumeSessionId = resumeId;
                 // finally: the PnC/cert-install verdicts are the run's evidence — print them even when the
                 // peer aborts mid-session (e.g. Josev's EVCC crashes on its own unimplemented cert-install res).
                 try { await secc.RunAsync(stream); }
                 finally { PrintSeccVerdicts(secc); }
+                return secc.Paused ? secc.SessionId : null;
             }
         }
 
@@ -185,11 +199,32 @@ namespace Vanaheimr.V2G.Simulation.Cli
             if (args.UseSlac)
                 await RunEvccSlacAsync(args);
 
-            var (host, port) = await ResolveEvccEndpointAsync(args);
+            if (!args.PauseResume)
+            {
+                // --pause / --resume <hex>: the two pause/resume halves as separate invocations, for
+                // orchestration by an outer script (e.g. when the SECC moves ports between sessions).
+                var oneShotResume = args.ResumeSessionIdHex is null ? null : Convert.FromHexString(args.ResumeSessionIdHex);
+                var sid = await RunOneEvccConnectionAsync(args, pause: args.EndPaused, resumeId: oneShotResume);
+                if (args.EndPaused)
+                    Console.WriteLine($"Paused session id: {Convert.ToHexString(sid)}");
+                return;
+            }
 
+            // Pause/resume: session 1 ends with ChargingSession.Pause; then a completely fresh connection
+            // (incl. SDP re-discovery when --sdp) rejoins the paused session by its id — the SECC must
+            // answer SessionSetup with OK_OldSessionJoined.
+            var sessionId = await RunOneEvccConnectionAsync(args, pause: true, resumeId: null);
+            Console.WriteLine($"\n— Paused (session {Convert.ToHexString(sessionId)}); reconnecting to resume —\n");
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            await RunOneEvccConnectionAsync(args, pause: false, resumeId: sessionId);
+        }
+
+        private static async Task<byte[]> RunOneEvccConnectionAsync(CliArgs args, bool pause, byte[]? resumeId)
+        {
+            var (host, port) = await ResolveEvccEndpointAsync(args);
             using var stream = await ConnectEvccAsync(args, host, port);
             await SapHandshake.RunEvccSideAsync(stream, args.Protocol, mode: args.Mode);
-            await RunEvccSessionAsync(stream, args);
+            return await RunEvccSessionAsync(stream, args, pause, resumeId);
         }
 
         private static async Task<Stream> ConnectEvccAsync(CliArgs args, string host, int port)
@@ -221,26 +256,38 @@ namespace Vanaheimr.V2G.Simulation.Cli
             }
         }
 
-        private static async Task RunEvccSessionAsync(Stream stream, CliArgs args)
+        private static async Task<byte[]> RunEvccSessionAsync(Stream stream, CliArgs args, bool pause = false, byte[]? resumeId = null)
         {
             if (args.Protocol == ProtocolVariant.Iso15118_2)
             {
-                var evcc = new Evcc2(stream, args.Mode, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2));
+                var evcc = new Evcc2(stream, args.Mode, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2))
+                {
+                    StopMode = pause ? Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Pause
+                                     : Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Terminate,
+                    ResumeSessionId = resumeId,
+                };
                 if (args.ContractCertPath is not null)
                     evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
                 await evcc.RunAsync();
                 Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), " +
-                                  $"auth: {evcc.AuthorizationMode}, metering receipts sent: {evcc.MeteringReceiptsSent}.");
+                                  $"auth: {evcc.AuthorizationMode}, metering receipts sent: {evcc.MeteringReceiptsSent}, " +
+                                  $"session setup: {evcc.SessionSetupCode}.");
+                return evcc.SessionId;
             }
             else
             {
                 Evcc20Base evcc = args.Mode == PowerMode.Dc
                     ? new Evcc20Dc(stream, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2))
                     : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2));
+                evcc.StopMode = pause ? Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Pause
+                                      : Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Terminate;
+                evcc.ResumeSessionId = resumeId;
                 if (args.ContractCertPath is not null)
                     evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
                 await evcc.RunAsync();
-                Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), auth: {evcc.AuthorizationMode}.");
+                Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), " +
+                                  $"auth: {evcc.AuthorizationMode}, session setup: {evcc.SessionSetupCode}.");
+                return evcc.SessionId;
             }
         }
 

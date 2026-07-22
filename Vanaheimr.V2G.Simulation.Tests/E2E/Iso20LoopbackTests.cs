@@ -160,6 +160,69 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             evcc.InstalledContractKey.Dispose();
         }
 
+        /// <summary>
+        /// -20 pause/resume across two real TCP connections: session 1 ends with
+        /// <c>ChargingSession.Pause</c>, session 2 reconnects (fresh SAP) and rejoins with the old session
+        /// id — the SECC answers <c>OK_OldSessionJoined</c> and the resumed session completes.
+        /// </summary>
+        [Test]
+        public async Task DcSession_PauseThenResume_RejoinsOldSession()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var secc1Task = Task.Run(async () =>
+            {
+                using var s = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(s, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(s, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            byte[] sessionId;
+            using (var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token))
+            {
+                await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+                {
+                    StopMode = Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Pause,
+                };
+                await evcc.RunAsync(cts.Token);
+                sessionId = evcc.SessionId;
+            }
+            var secc1 = await secc1Task;
+            Assert.That(secc1.Paused, Is.True);
+            Assert.That(secc1.SessionId, Is.EqualTo(sessionId));
+
+            var secc2Task = Task.Run(async () =>
+            {
+                using var s = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(s, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System) { ResumeSessionId = sessionId };
+                await secc.RunAsync(s, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream2 = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream2, ProtocolVariant.Iso15118_20, cts.Token);
+            var evcc2 = new Evcc20Dc(evccStream2, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            {
+                ResumeSessionId = sessionId,
+            };
+            await evcc2.RunAsync(cts.Token);
+            var secc2 = await secc2Task;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(evcc2.SessionSetupCode,
+                    Is.EqualTo(Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ResponseCode.OK_OldSessionJoined));
+                Assert.That(evcc2.SessionId, Is.EqualTo(sessionId));
+                Assert.That(secc2.IsDone, Is.True);
+                Assert.That(secc2.Paused, Is.False);
+            });
+        }
+
         [Test]
         public async Task AcSession_RunsToCompletion()
         {

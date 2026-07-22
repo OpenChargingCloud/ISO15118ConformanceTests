@@ -59,6 +59,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>The result of handling a CertificateInstallationReq, if the EV requested contract provisioning.</summary>
         public CertInstallResult? CertInstall { get; private set; }
 
+        /// <summary>True when the session ended with <c>ChargingSession.Pause</c> — keep <see cref="SessionId"/>
+        /// and hand it to the next instance as <see cref="ResumeSessionId"/> so the EV can rejoin.</summary>
+        public bool Paused { get; private set; }
+
+        /// <summary>The session id this SECC assigned (or rejoined).</summary>
+        public byte[] SessionId => SessionCtx.SessionId;
+
+        /// <summary>A paused predecessor's session id: a SessionSetupReq carrying it rejoins the old session
+        /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts fresh.</summary>
+        public byte[]? ResumeSessionId { get; set; }
+
         /// <summary>Advertise the Dynamic (ControlMode=2) parameter set ahead of Scheduled in ServiceDetailRes.
         /// Both modes are always offered ([V2G20-2656]: the SECC shall support Scheduled and Dynamic); the order
         /// only decides which one an EV that simply takes the first offered set (e.g. Josev) actually runs —
@@ -106,6 +117,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             // abort logging FAILED_SequenceError instead of a clean stop.
             if (set == MessageSet.Iso20CommonMessages && request is SessionStopReq stopReq)
             {
+                Paused = stopReq.ChargingSession == ChargingSession.Pause;
                 Phase = Phase20.Done;
                 return (MessageSet.Iso20CommonMessages, SessionStop(stopReq));
             }
@@ -252,6 +264,14 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         // ── CommonMessages phase handlers (identical for AC and DC — EIM only) ─
         private SessionSetupRes SessionSetup(SessionSetupReq req)
         {
+            // Resume: a SessionSetupReq whose header carries a paused predecessor's session id rejoins that
+            // session (ISO 15118-20 §8.4 — same OldSessionJoined mechanic as -2); anything else starts fresh.
+            if (ResumeSessionId is not null && req.Header.SessionID.AsSpan().SequenceEqual(ResumeSessionId))
+            {
+                SessionCtx.SessionId = ResumeSessionId;
+                return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_OldSessionJoined, "DE*ABC*E1");
+            }
+
             SessionCtx.SessionId = System.Security.Cryptography.RandomNumberGenerator.GetBytes(8);
             return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1");
         }

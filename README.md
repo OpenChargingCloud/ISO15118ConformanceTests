@@ -406,6 +406,14 @@ all of this out of the offline CI run.
   TLS 1.3 ([`2026-07-22-iso20-dc-pnc-forward-signed`](docs/interop-runs/2026-07-22-iso20-dc-pnc-forward-signed/)).
   With that, **-20 PnC is live-validated in both directions** (they sign → we verify; we sign → they verify);
   CI guard: `Iso20LoopbackTests.DcPncSession_SignedAuthorization_VerifiesAtSecc`.
+- **Live Pause/Resume:** sessions can end with `ChargingSession.Pause` and be rejoined on a fresh
+  connection ([`2026-07-22-pause-resume`](docs/interop-runs/2026-07-22-pause-resume/)). Forward vs a real
+  Josev SECC: the **-2** flow works end to end — Josev preserves the session context across connections and
+  answers the resumed `SessionSetupReq` (old id, after a fresh SDP discovery — Josev moves ports on pause)
+  with **`OK_OldSessionJoined`**. For **-20**, Josev preserves an *empty* context (its -20 states never fill
+  it) and degrades to a graceful new session — a Josev gap; our own -20 resume answers `OK_OldSessionJoined`
+  (loopback E2Es for both protocols). CLI: `evcc --pause-resume`, or `--pause`/`--resume <hex>` as separate
+  invocations; the SECC keeps accepting while paused.
 - **Live ISO 15118-2 Plug & Charge — both directions:** the full -2 PnC message set runs live over TLS
   ([`2026-07-22-iso2-pnc-tls`](docs/interop-runs/2026-07-22-iso2-pnc-tls/)). Reverse (Josev EVCC → our
   SECC): Contract offered, `PaymentDetails` + GenChallenge, Josev's **signed `AuthorizationReq`** and

@@ -44,10 +44,28 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// <summary>How many signed MeteringReceiptReq this session sent (Contract only).</summary>
         public int MeteringReceiptsSent { get; private set; }
 
+        /// <summary>How to end the session: <c>Terminate</c> (default) or <c>Pause</c> — after a pause the
+        /// caller reconnects and resumes via <see cref="ResumeSessionId"/> ([V2G2-740]).</summary>
+        public ChargingSession StopMode { get; set; } = ChargingSession.Terminate;
+
+        /// <summary>A paused predecessor's session id: the opening SessionSetupReq carries it (instead of
+        /// the all-zero id) so the SECC rejoins the old session.</summary>
+        public byte[]? ResumeSessionId { get; set; }
+
+        /// <summary>The SECC's SessionSetup verdict: <c>OK_NewSessionEstablished</c> or, on a successful
+        /// resume, <c>OK_OldSessionJoined</c>.</summary>
+        public ResponseCode SessionSetupCode { get; private set; }
+
+        /// <summary>The session id in effect (SECC-assigned, or the rejoined one) — keep it for a resume.</summary>
+        public byte[] SessionId => _sid;
+
         public async Task RunAsync(CancellationToken ct = default)
         {
             // ── SETUP ──────────────────────────────────────────────────────────
-            await Send<SessionSetupResType>(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }), ct);
+            if (ResumeSessionId is not null)
+                _sid = ResumeSessionId;   // rejoin: the SessionSetupReq header carries the paused session's id
+            var setup = await Send<SessionSetupResType>(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }), ct);
+            SessionSetupCode = setup.ResponseCode;
             var discovery = await Send<ServiceDiscoveryResType>(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null), ct);
 
             bool contract = Pnc is not null && discovery.PaymentOptionList.PaymentOption.Contains(PaymentOption.Contract);
@@ -122,7 +140,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             // ── STOP ───────────────────────────────────────────────────────────
             if (mode == PowerMode.Dc)
                 await Send<WeldingDetectionResType>(new WeldingDetectionReqType(EvStatus()), ct);
-            await Send<SessionStopResType>(new SessionStopReqType(ChargingSession.Terminate), ct);
+            await Send<SessionStopResType>(new SessionStopReqType(StopMode), ct);
         }
 
         /// <summary>Signs and sends one MeteringReceiptReq for the SECC's MeterInfo, in the Josev form.</summary>

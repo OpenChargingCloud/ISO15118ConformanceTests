@@ -1,0 +1,276 @@
+INFO    2026-07-22 17:34:23,094 - iso15118.secc.secc_settings (112): SECC settings:
+INFO    2026-07-22 17:34:23,094 - iso15118.secc.secc_settings (114): NETWORK_INTERFACE             : eth0
+INFO    2026-07-22 17:34:23,094 - iso15118.secc.secc_settings (114): LOG_LEVEL                     : INFO
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): SECC_ENFORCE_TLS              : False
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): FREE_CHARGING_SERVICE         : False
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): FREE_CERT_INSTALL_SERVICE     : True
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): USE_CPO_BACKEND               : False
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): ALLOW_CERT_INSTALL_SERVICE    : True
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): PROTOCOLS                     : ['DIN_SPEC_70121', 'ISO_15118_2', 'ISO_15118_20_AC', 'ISO_15118_20_DC']
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): AUTH_MODES                    : ['EIM', 'PNC']
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): STANDBY_ALLOWED               : False
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): PKI_PATH                      : /venv/lib/python3.10/site-packages/iso15118/shared/pki/
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): MESSAGE_LOG_JSON              : True
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): MESSAGE_LOG_EXI               : False
+INFO    2026-07-22 17:34:23,095 - iso15118.secc.secc_settings (114): ENABLE_TLS_1_3                : False
+INFO    2026-07-22 17:34:24,576 - iso15118.shared.exi_codec (177): EXI Codec version: 1.55
+INFO    2026-07-22 17:34:24,576 - iso15118.secc (31): Starting 15118 version: 0.31.2
+INFO    2026-07-22 17:34:24,576 - iso15118.secc.comm_session_handler (235): Communication session handler started
+INFO    2026-07-22 17:34:24,577 - iso15118.secc.transport.udp_server (137): UDP server socket ready
+INFO    2026-07-22 17:34:24,577 - iso15118.secc.transport.udp_server (123): UDP server started at address FF02::1%eth0 and port 15118
+INFO    2026-07-22 17:34:30,712 - iso15118.secc.comm_session_handler (437): SDPRequest received: [Security: NO_TLS, Protocol: TCP]
+INFO    2026-07-22 17:34:30,728 - iso15118.secc.transport.tcp_server (134): TCP server started at address fe80::215:5dff:fe46:863f%eth0 and port 52491
+INFO    2026-07-22 17:34:30,739 - iso15118.secc.comm_session_handler (464): Sending SDPResponse: [ IP address: fe80::215:5dff:fe46:863f, Port: 52491 , Security: NO_TLS , Transport: TCP ]
+INFO    2026-07-22 17:34:30,995 - iso15118.secc.transport.udp_server (201): UDP server has been paused.
+INFO    2026-07-22 17:34:30,996 - iso15118.secc.comm_session_handler (284): TCP client connected, client address is ('fe80::215:5dff:fe46:863f', 50242, 0, 2).
+INFO    2026-07-22 17:34:31,005 - iso15118.shared.comm_session (344): Starting a new communication session
+INFO    2026-07-22 17:34:31,005 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+INFO    2026-07-22 17:34:31,172 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolReq":{"AppProtocol":[{"ProtocolNamespace":"urn:iso:std:iso:15118:-20:DC","VersionNumberMajor":1,"VersionNumberMinor":0,"SchemaID":1,"Priority":1}]}}
+INFO    2026-07-22 17:34:31,172 - iso15118.shared.comm_session (235): supportedAppProtocolReq received
+INFO    2026-07-22 17:34:31,173 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolRes": {"ResponseCode": "OK_SuccessfulNegotiation", "SchemaID": 1}}
+INFO    2026-07-22 17:34:31,225 - iso15118.secc.states.sap_states (147): Chosen protocol: ISO_15118_20_DC
+INFO    2026-07-22 17:34:31,225 - iso15118.shared.comm_session (431): Sent supportedAppProtocolRes
+INFO    2026-07-22 17:34:31,225 - iso15118.secc.controller.simulator (766): iso15118 state: SupportedAppProtocol
+INFO    2026-07-22 17:34:31,226 - iso15118.shared.states (139): Entered state SessionSetup
+INFO    2026-07-22 17:34:31,514 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupReq":{"Header":{"SessionID":"0000000000000000","TimeStamp":1784741671},"EVCCID":"EVCC01"}}
+INFO    2026-07-22 17:34:31,514 - iso15118.shared.comm_session (235): SessionSetupReq received
+WARNING    2026-07-22 17:34:31,515 - iso15118.secc.states.iso15118_20_states (161): EVCC's session ID 0000000000000000 does not match . New session ID 4BED567663CF0B84 assigned
+INFO    2026-07-22 17:34:31,515 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741671}, "ResponseCode": "OK_NewSessionEstablished", "EVSEID": "UK123E1234"}}
+INFO    2026-07-22 17:34:31,627 - iso15118.shared.comm_session (431): Sent SessionSetupRes
+INFO    2026-07-22 17:34:31,627 - iso15118.secc.controller.simulator (766): iso15118 state: SessionSetup
+INFO    2026-07-22 17:34:31,627 - iso15118.shared.states (139): Entered state AuthorizationSetup
+INFO    2026-07-22 17:34:31,816 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741671}}}
+INFO    2026-07-22 17:34:31,816 - iso15118.shared.comm_session (235): AuthorizationSetupReq received
+INFO    2026-07-22 17:34:31,817 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741671}, "ResponseCode": "OK", "AuthorizationServices": ["PnC", "EIM"], "CertificateInstallationService": true, "PnC_ASResAuthorizationMode": {"GenChallenge": "p79gg9T5yiKZpW3yn8ZD2g=="}}}
+INFO    2026-07-22 17:34:31,976 - iso15118.shared.comm_session (431): Sent AuthorizationSetupRes
+INFO    2026-07-22 17:34:31,976 - iso15118.secc.controller.simulator (766): iso15118 state: AuthorizationSetup
+INFO    2026-07-22 17:34:32,144 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741671},"SelectedAuthorizationService":"EIM","EIM_AReqAuthorizationMode":{}}}
+INFO    2026-07-22 17:34:32,145 - iso15118.shared.comm_session (235): AuthorizationReq received
+INFO    2026-07-22 17:34:32,145 - iso15118.shared.states (139): Entered state Authorization
+INFO    2026-07-22 17:34:32,146 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741672}, "ResponseCode": "OK", "EVSEProcessing": "Finished"}}
+INFO    2026-07-22 17:34:32,298 - iso15118.shared.comm_session (431): Sent AuthorizationRes
+INFO    2026-07-22 17:34:32,299 - iso15118.secc.controller.simulator (766): iso15118 state: Authorization
+INFO    2026-07-22 17:34:32,426 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741672}}}
+INFO    2026-07-22 17:34:32,427 - iso15118.shared.comm_session (235): ServiceDiscoveryReq received
+INFO    2026-07-22 17:34:32,428 - iso15118.shared.states (139): Entered state ServiceDiscovery
+INFO    2026-07-22 17:34:32,430 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741672}, "ResponseCode": "OK", "ServiceRenegotiationSupported": false, "EnergyTransferServiceList": {"Service": [{"ServiceID": 2, "FreeService": false}, {"ServiceID": 6, "FreeService": false}]}}}
+INFO    2026-07-22 17:34:32,561 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryRes
+INFO    2026-07-22 17:34:32,561 - iso15118.secc.controller.simulator (766): iso15118 state: ServiceDiscovery
+INFO    2026-07-22 17:34:32,659 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741672},"ServiceID":2}}
+INFO    2026-07-22 17:34:32,659 - iso15118.shared.comm_session (235): ServiceDetailReq received
+INFO    2026-07-22 17:34:32,659 - iso15118.shared.states (139): Entered state ServiceDetail
+INFO    2026-07-22 17:34:32,661 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741672}, "ResponseCode": "OK", "ServiceID": 2, "ServiceParameterList": {"ParameterSet": [{"ParameterSetID": 1, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 1}, {"Name": "MobilityNeedsMode", "intValue": 1}]}, {"ParameterSetID": 2, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 2}, {"Name": "MobilityNeedsMode", "intValue": 2}]}, {"ParameterSetID": 3, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 2}, {"Name": "MobilityNeedsMode", "intValue": 1}]}]}}}
+INFO    2026-07-22 17:34:32,770 - iso15118.shared.comm_session (431): Sent ServiceDetailRes
+INFO    2026-07-22 17:34:32,771 - iso15118.secc.controller.simulator (766): iso15118 state: ServiceDetail
+INFO    2026-07-22 17:34:32,889 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741672},"SelectedEnergyTransferService":{"ServiceID":2,"ParameterSetID":1}}}
+INFO    2026-07-22 17:34:32,889 - iso15118.shared.comm_session (235): ServiceSelectionReq received
+INFO    2026-07-22 17:34:32,889 - iso15118.shared.states (139): Entered state ServiceSelection
+INFO    2026-07-22 17:34:32,890 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741672}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:32,967 - iso15118.shared.comm_session (431): Sent ServiceSelectionRes
+INFO    2026-07-22 17:34:32,967 - iso15118.secc.controller.simulator (766): iso15118 state: ServiceSelection
+INFO    2026-07-22 17:34:32,967 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
+INFO    2026-07-22 17:34:33,075 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeParameterDiscoveryReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741672},"DC_CPDReqEnergyTransferMode":{"EVMaximumChargePower":{"Exponent":1,"Value":5000},"EVMinimumChargePower":{"Exponent":0,"Value":0},"EVMaximumChargeCurrent":{"Exponent":0,"Value":200},"EVMinimumChargeCurrent":{"Exponent":0,"Value":0},"EVMaximumVoltage":{"Exponent":0,"Value":500},"EVMinimumVoltage":{"Exponent":0,"Value":50},"TargetSOC":80}}}
+INFO    2026-07-22 17:34:33,076 - iso15118.shared.comm_session (235): DC_ChargeParameterDiscoveryReq received
+INFO    2026-07-22 17:34:33,077 - iso15118.secc.controller.simulator (1109): Send rated limits to CS.
+INFO    2026-07-22 17:34:33,077 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeParameterDiscoveryRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741673}, "ResponseCode": "OK", "DC_CPDResEnergyTransferMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMinimumChargeCurrent": {"Exponent": 0, "Value": 10}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}, "EVSEMinimumVoltage": {"Exponent": 0, "Value": 10}, "EVSEPowerRampLimitation": {"Exponent": 0, "Value": 10}}}}
+INFO    2026-07-22 17:34:33,144 - iso15118.shared.comm_session (431): Sent DC_ChargeParameterDiscoveryRes
+INFO    2026-07-22 17:34:33,144 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeParameterDiscovery
+INFO    2026-07-22 17:34:33,145 - iso15118.shared.states (139): Entered state ScheduleExchange
+INFO    2026-07-22 17:34:33,263 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ScheduleExchangeReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741673},"MaximumSupportingPoints":12,"Scheduled_SEReqControlMode":{}}}
+INFO    2026-07-22 17:34:33,263 - iso15118.shared.comm_session (235): ScheduleExchangeReq received
+INFO    2026-07-22 17:34:33,266 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ScheduleExchangeRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741673}, "ResponseCode": "OK", "EVSEProcessing": "Finished", "Scheduled_SEResControlMode": {"ScheduleTuple": [{"ScheduleTupleID": 1, "ChargingSchedule": {"PowerSchedule": {"TimeAnchor": 0, "AvailableEnergy": {"Exponent": 3, "Value": 300}, "PowerTolerance": {"Exponent": 0, "Value": 2000}, "PowerScheduleEntries": {"PowerScheduleEntry": [{"Duration": 3600, "Power": {"Exponent": 3, "Value": 10}}]}}, "AbsolutePriceSchedule": {"TimeAnchor": 0, "PriceScheduleID": 1, "Currency": "EUR", "Language": "ENG", "PriceAlgorithm": "urn:iso:std:iso:15118:-20:PriceAlgorithm:1-Power", "MinimumCost": {"Exponent": 0, "Value": 1}, "MaximumCost": {"Exponent": 0, "Value": 10}, "TaxRules": {"TaxRule": [{"TaxRuleID": 1, "TaxRuleName": "What a great tax rule", "TaxRate": {"Exponent": 0, "Value": 10}, "TaxIncludedInPrice": false, "AppliesToEnergyFee": true, "AppliesToParkingFee": true, "AppliesToOverstayFee": true, "AppliesMinimumMaximumCost": true}]}, "PriceRuleStacks": {"PriceRuleStack": [{"Duration": 3600, "PriceRule": [{"EnergyFee": {"Exponent": 0, "Value": 20}, "ParkingFee": {"Exponent": 0, "Value": 0}, "ParkingFeePeriod": 0, "CarbonDioxideEmission": 0, "RenewableGenerationPercentage": 0, "PowerRangeStart": {"Exponent": 0, "Value": 0}}]}]}, "OverstayRules": {"OverstayTimeThreshold": 3600, "OverstayPowerThreshold": {"Exponent": 3, "Value": 30}, "OverstayRule": [{"OverstayRuleDescription": "What a great description", "StartTime": 0, "OverstayFee": {"Exponent": 0, "Value": 50}, "OverstayFeePeriod": 3600}]}, "AdditionalSelectedServices": {"AdditionalService": [{"ServiceName": "What a great service name", "ServiceFee": {"Exponent": 0, "Value": 0}}]}}}, "DischargingSchedule": {"PowerSchedule": {"TimeAnchor": 0, "PowerScheduleEntries": {"PowerScheduleEntry": [{"Duration": 3600, "Power": {"Exponent": 3, "Value": 10}}]}}, "AbsolutePriceSchedule": {"TimeAnchor": 0, "PriceScheduleID": 1, "Currency": "EUR", "Language": "ENG", "PriceAlgorithm": "urn:iso:std:iso:15118:-20:PriceAlgorithm:1-Power", "MinimumCost": {"Exponent": 0, "Value": 1}, "MaximumCost": {"Exponent": 0, "Value": 10}, "TaxRules": {"TaxRule": [{"TaxRuleID": 1, "TaxRuleName": "What a great tax rule", "TaxRate": {"Exponent": 0, "Value": 10}, "TaxIncludedInPrice": false, "AppliesToEnergyFee": true, "AppliesToParkingFee": true, "AppliesToOverstayFee": true, "AppliesMinimumMaximumCost": true}]}, "PriceRuleStacks": {"PriceRuleStack": [{"Duration": 3600, "PriceRule": [{"EnergyFee": {"Exponent": 0, "Value": 20}, "ParkingFee": {"Exponent": 0, "Value": 0}, "ParkingFeePeriod": 0, "CarbonDioxideEmission": 0, "RenewableGenerationPercentage": 0, "PowerRangeStart": {"Exponent": 0, "Value": 0}}]}]}, "OverstayRules": {"OverstayTimeThreshold": 3600, "OverstayPowerThreshold": {"Exponent": 3, "Value": 30}, "OverstayRule": [{"OverstayRuleDescription": "What a great description", "StartTime": 0, "OverstayFee": {"Exponent": 0, "Value": 50}, "OverstayFeePeriod": 3600}]}, "AdditionalSelectedServices": {"AdditionalService": [{"ServiceName": "What a great service name", "ServiceFee": {"Exponent": 0, "Value": 0}}]}}}}]}}}
+INFO    2026-07-22 17:34:33,397 - iso15118.shared.comm_session (431): Sent ScheduleExchangeRes
+INFO    2026-07-22 17:34:33,397 - iso15118.secc.controller.simulator (766): iso15118 state: ScheduleExchange
+INFO    2026-07-22 17:34:33,474 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741673}}}
+INFO    2026-07-22 17:34:33,475 - iso15118.shared.comm_session (235): DC_CableCheckReq received
+INFO    2026-07-22 17:34:33,475 - iso15118.shared.states (139): Entered state DCCableCheck
+INFO    2026-07-22 17:34:33,476 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741673}, "ResponseCode": "OK", "EVSEProcessing": "Ongoing"}}
+INFO    2026-07-22 17:34:33,549 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
+INFO    2026-07-22 17:34:33,549 - iso15118.secc.controller.simulator (766): iso15118 state: DCCableCheck
+INFO    2026-07-22 17:34:33,687 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741673}}}
+INFO    2026-07-22 17:34:33,688 - iso15118.shared.comm_session (235): DC_CableCheckReq received
+INFO    2026-07-22 17:34:33,689 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741673}, "ResponseCode": "OK", "EVSEProcessing": "Finished"}}
+INFO    2026-07-22 17:34:33,729 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
+INFO    2026-07-22 17:34:33,730 - iso15118.secc.controller.simulator (766): iso15118 state: DCCableCheck
+INFO    2026-07-22 17:34:33,731 - iso15118.shared.states (139): Entered state DCPreCharge
+INFO    2026-07-22 17:34:33,789 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741673},"EVProcessing":"Finished","EVPresentVoltage":{"Exponent":0,"Value":0},"EVTargetVoltage":{"Exponent":0,"Value":400}}}
+INFO    2026-07-22 17:34:33,790 - iso15118.shared.comm_session (235): DC_PreChargeReq received
+INFO    2026-07-22 17:34:33,791 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741673}, "ResponseCode": "OK", "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}}}
+INFO    2026-07-22 17:34:33,828 - iso15118.shared.comm_session (431): Sent DC_PreChargeRes
+INFO    2026-07-22 17:34:33,828 - iso15118.secc.controller.simulator (766): iso15118 state: DCPreCharge
+INFO    2026-07-22 17:34:33,828 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 17:34:33,918 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741673},"EVProcessing":"Finished","ChargeProgress":"Start","EVPowerProfile":{"TimeAnchor":0,"Scheduled_EVPPTControlMode":{"SelectedScheduleTupleID":1,"PowerToleranceAcceptance":"PowerToleranceConfirmed"},"EVPowerProfileEntries":{"EVPowerProfileEntry":[{"Duration":3600,"Power":{"Exponent":3,"Value":10}}]}}}}
+INFO    2026-07-22 17:34:33,919 - iso15118.shared.comm_session (235): PowerDeliveryReq received
+INFO    2026-07-22 17:34:33,920 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741673}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:33,981 - iso15118.shared.comm_session (431): Sent PowerDeliveryRes
+INFO    2026-07-22 17:34:33,981 - iso15118.secc.controller.simulator (766): iso15118 state: PowerDelivery
+INFO    2026-07-22 17:34:33,981 - iso15118.shared.states (139): Entered state DCChargeLoop
+INFO    2026-07-22 17:34:34,043 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741673},"MeterInfoRequested":false,"EVPresentVoltage":{"Exponent":0,"Value":400},"Scheduled_DC_CLReqControlMode":{"EVTargetCurrent":{"Exponent":0,"Value":120},"EVTargetVoltage":{"Exponent":0,"Value":400}}}}
+INFO    2026-07-22 17:34:34,043 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+INFO    2026-07-22 17:34:34,044 - iso15118.secc.controller.simulator (1103): Send display params to CS.
+INFO    2026-07-22 17:34:34,045 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741674}, "ResponseCode": "OK", "EVSEPresentCurrent": {"Exponent": 0, "Value": 1}, "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}, "EVSEPowerLimitAchieved": false, "EVSECurrentLimitAchieved": false, "EVSEVoltageLimitAchieved": false, "Scheduled_DC_CLResControlMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}}}}
+INFO    2026-07-22 17:34:34,088 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+INFO    2026-07-22 17:34:34,088 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeLoop
+INFO    2026-07-22 17:34:34,178 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741674},"MeterInfoRequested":false,"EVPresentVoltage":{"Exponent":0,"Value":400},"Scheduled_DC_CLReqControlMode":{"EVTargetCurrent":{"Exponent":0,"Value":120},"EVTargetVoltage":{"Exponent":0,"Value":400}}}}
+INFO    2026-07-22 17:34:34,178 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+INFO    2026-07-22 17:34:34,179 - iso15118.secc.controller.simulator (1103): Send display params to CS.
+INFO    2026-07-22 17:34:34,180 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741674}, "ResponseCode": "OK", "EVSEPresentCurrent": {"Exponent": 0, "Value": 1}, "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}, "EVSEPowerLimitAchieved": false, "EVSECurrentLimitAchieved": false, "EVSEVoltageLimitAchieved": false, "Scheduled_DC_CLResControlMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}}}}
+INFO    2026-07-22 17:34:34,213 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+INFO    2026-07-22 17:34:34,214 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeLoop
+INFO    2026-07-22 17:34:34,309 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741674},"MeterInfoRequested":false,"EVPresentVoltage":{"Exponent":0,"Value":400},"Scheduled_DC_CLReqControlMode":{"EVTargetCurrent":{"Exponent":0,"Value":120},"EVTargetVoltage":{"Exponent":0,"Value":400}}}}
+INFO    2026-07-22 17:34:34,310 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+INFO    2026-07-22 17:34:34,310 - iso15118.secc.controller.simulator (1103): Send display params to CS.
+INFO    2026-07-22 17:34:34,311 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741674}, "ResponseCode": "OK", "EVSEPresentCurrent": {"Exponent": 0, "Value": 1}, "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}, "EVSEPowerLimitAchieved": false, "EVSECurrentLimitAchieved": false, "EVSEVoltageLimitAchieved": false, "Scheduled_DC_CLResControlMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}}}}
+INFO    2026-07-22 17:34:34,369 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+INFO    2026-07-22 17:34:34,369 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeLoop
+INFO    2026-07-22 17:34:34,456 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741674},"EVProcessing":"Finished","ChargeProgress":"Stop"}}
+INFO    2026-07-22 17:34:34,456 - iso15118.shared.comm_session (235): PowerDeliveryReq received
+INFO    2026-07-22 17:34:34,456 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 17:34:34,457 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741674}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:34,496 - iso15118.shared.comm_session (431): Sent PowerDeliveryRes
+INFO    2026-07-22 17:34:34,497 - iso15118.secc.controller.simulator (766): iso15118 state: PowerDelivery
+INFO    2026-07-22 17:34:34,530 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741674},"EVProcessing":"Finished"}}
+INFO    2026-07-22 17:34:34,531 - iso15118.shared.comm_session (235): DC_WeldingDetectionReq received
+INFO    2026-07-22 17:34:34,531 - iso15118.shared.states (139): Entered state DCWeldingDetection
+INFO    2026-07-22 17:34:34,532 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741674}, "ResponseCode": "OK", "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}}}
+INFO    2026-07-22 17:34:34,569 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionRes
+INFO    2026-07-22 17:34:34,570 - iso15118.secc.controller.simulator (766): iso15118 state: DCWeldingDetection
+INFO    2026-07-22 17:34:34,624 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741674},"ChargingSession":"Pause"}}
+INFO    2026-07-22 17:34:34,625 - iso15118.shared.comm_session (235): SessionStopReq received
+INFO    2026-07-22 17:34:34,625 - iso15118.shared.states (139): Entered state SessionStop
+INFO    2026-07-22 17:34:34,625 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopRes": {"Header": {"SessionID": "4BED567663CF0B84", "TimeStamp": 1784741674}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:34,673 - iso15118.shared.comm_session (431): Sent SessionStopRes
+INFO    2026-07-22 17:34:34,674 - iso15118.secc.controller.simulator (766): iso15118 state: SessionStop
+INFO    2026-07-22 17:34:34,674 - iso15118.shared.comm_session (395): The data link will terminate in 2 seconds and the TCP connection will close in 5 seconds. 
+INFO    2026-07-22 17:34:34,674 - iso15118.shared.comm_session (399): Reason: Communication session paused. EV Info: 
+INFO    2026-07-22 17:34:36,677 - iso15118.secc.controller.simulator (1097): Session ended in SessionStop (Communication session paused. EV Info: ).
+INFO    2026-07-22 17:34:36,677 - iso15118.shared.comm_session (410): terminated the data link
+INFO    2026-07-22 17:34:39,681 - iso15118.shared.comm_session (417): TCP connection closed to peer with address ('fe80::215:5dff:fe46:863f', 50242, 0, 2)
+WARNING    2026-07-22 17:34:39,681 - iso15118.secc.transport.tcp_server (149): Closing TCP server
+INFO    2026-07-22 17:34:39,681 - iso15118.secc.comm_session_handler (368): Preserved session state: EVSessionContext15118(session_id=None, auth_options=None, charge_service=None, sa_schedule_tuple_id=None)
+INFO    2026-07-22 17:34:39,682 - iso15118.secc.transport.udp_server (209): UDP server has been resumed.
+INFO    2026-07-22 17:34:39,806 - iso15118.secc.comm_session_handler (437): SDPRequest received: [Security: NO_TLS, Protocol: TCP]
+INFO    2026-07-22 17:34:39,808 - iso15118.secc.transport.tcp_server (134): TCP server started at address fe80::215:5dff:fe46:863f%eth0 and port 52491
+INFO    2026-07-22 17:34:39,819 - iso15118.secc.comm_session_handler (464): Sending SDPResponse: [ IP address: fe80::215:5dff:fe46:863f, Port: 52491 , Security: NO_TLS , Transport: TCP ]
+INFO    2026-07-22 17:34:40,088 - iso15118.secc.transport.udp_server (201): UDP server has been paused.
+INFO    2026-07-22 17:34:40,089 - iso15118.secc.comm_session_handler (284): TCP client connected, client address is ('fe80::215:5dff:fe46:863f', 41754, 0, 2).
+INFO    2026-07-22 17:34:40,089 - iso15118.shared.comm_session (344): Starting a new communication session
+INFO    2026-07-22 17:34:40,089 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+INFO    2026-07-22 17:34:40,117 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolReq":{"AppProtocol":[{"ProtocolNamespace":"urn:iso:std:iso:15118:-20:DC","VersionNumberMajor":1,"VersionNumberMinor":0,"SchemaID":1,"Priority":1}]}}
+INFO    2026-07-22 17:34:40,117 - iso15118.shared.comm_session (235): supportedAppProtocolReq received
+INFO    2026-07-22 17:34:40,118 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:15118:2:2010:AppProtocol): {"supportedAppProtocolRes": {"ResponseCode": "OK_SuccessfulNegotiation", "SchemaID": 1}}
+INFO    2026-07-22 17:34:40,121 - iso15118.secc.states.sap_states (147): Chosen protocol: ISO_15118_20_DC
+INFO    2026-07-22 17:34:40,121 - iso15118.shared.comm_session (431): Sent supportedAppProtocolRes
+INFO    2026-07-22 17:34:40,121 - iso15118.secc.controller.simulator (766): iso15118 state: SupportedAppProtocol
+INFO    2026-07-22 17:34:40,122 - iso15118.shared.states (139): Entered state SessionSetup
+INFO    2026-07-22 17:34:40,242 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupReq":{"Header":{"SessionID":"4BED567663CF0B84","TimeStamp":1784741680},"EVCCID":"EVCC01"}}
+INFO    2026-07-22 17:34:40,242 - iso15118.shared.comm_session (235): SessionSetupReq received
+WARNING    2026-07-22 17:34:40,242 - iso15118.secc.states.iso15118_20_states (161): EVCC's session ID 4BED567663CF0B84 does not match . New session ID 481E6E7B4B75891D assigned
+INFO    2026-07-22 17:34:40,243 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionSetupRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK_NewSessionEstablished", "EVSEID": "UK123E1234"}}
+INFO    2026-07-22 17:34:40,277 - iso15118.shared.comm_session (431): Sent SessionSetupRes
+INFO    2026-07-22 17:34:40,277 - iso15118.secc.controller.simulator (766): iso15118 state: SessionSetup
+INFO    2026-07-22 17:34:40,277 - iso15118.shared.states (139): Entered state AuthorizationSetup
+INFO    2026-07-22 17:34:40,356 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680}}}
+INFO    2026-07-22 17:34:40,356 - iso15118.shared.comm_session (235): AuthorizationSetupReq received
+INFO    2026-07-22 17:34:40,357 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationSetupRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK", "AuthorizationServices": ["PnC", "EIM"], "CertificateInstallationService": true, "PnC_ASResAuthorizationMode": {"GenChallenge": "1kEE4OwNoP3yWy4gYV4cHg=="}}}
+INFO    2026-07-22 17:34:40,387 - iso15118.shared.comm_session (431): Sent AuthorizationSetupRes
+INFO    2026-07-22 17:34:40,387 - iso15118.secc.controller.simulator (766): iso15118 state: AuthorizationSetup
+INFO    2026-07-22 17:34:40,419 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680},"SelectedAuthorizationService":"EIM","EIM_AReqAuthorizationMode":{}}}
+INFO    2026-07-22 17:34:40,419 - iso15118.shared.comm_session (235): AuthorizationReq received
+INFO    2026-07-22 17:34:40,420 - iso15118.shared.states (139): Entered state Authorization
+INFO    2026-07-22 17:34:40,420 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"AuthorizationRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK", "EVSEProcessing": "Finished"}}
+INFO    2026-07-22 17:34:40,446 - iso15118.shared.comm_session (431): Sent AuthorizationRes
+INFO    2026-07-22 17:34:40,446 - iso15118.secc.controller.simulator (766): iso15118 state: Authorization
+INFO    2026-07-22 17:34:40,483 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680}}}
+INFO    2026-07-22 17:34:40,483 - iso15118.shared.comm_session (235): ServiceDiscoveryReq received
+INFO    2026-07-22 17:34:40,483 - iso15118.shared.states (139): Entered state ServiceDiscovery
+INFO    2026-07-22 17:34:40,484 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDiscoveryRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK", "ServiceRenegotiationSupported": false, "EnergyTransferServiceList": {"Service": [{"ServiceID": 2, "FreeService": false}, {"ServiceID": 6, "FreeService": false}]}}}
+INFO    2026-07-22 17:34:40,525 - iso15118.shared.comm_session (431): Sent ServiceDiscoveryRes
+INFO    2026-07-22 17:34:40,525 - iso15118.secc.controller.simulator (766): iso15118 state: ServiceDiscovery
+INFO    2026-07-22 17:34:40,591 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680},"ServiceID":2}}
+INFO    2026-07-22 17:34:40,592 - iso15118.shared.comm_session (235): ServiceDetailReq received
+INFO    2026-07-22 17:34:40,592 - iso15118.shared.states (139): Entered state ServiceDetail
+INFO    2026-07-22 17:34:40,593 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceDetailRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK", "ServiceID": 2, "ServiceParameterList": {"ParameterSet": [{"ParameterSetID": 1, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 1}, {"Name": "MobilityNeedsMode", "intValue": 1}]}, {"ParameterSetID": 2, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 2}, {"Name": "MobilityNeedsMode", "intValue": 2}]}, {"ParameterSetID": 3, "Parameter": [{"Name": "Connector", "intValue": 2}, {"Name": "EVSENominalVoltage", "intValue": 400}, {"Name": "Pricing", "intValue": 0}, {"Name": "ControlMode", "intValue": 2}, {"Name": "MobilityNeedsMode", "intValue": 1}]}]}}}
+INFO    2026-07-22 17:34:40,655 - iso15118.shared.comm_session (431): Sent ServiceDetailRes
+INFO    2026-07-22 17:34:40,655 - iso15118.secc.controller.simulator (766): iso15118 state: ServiceDetail
+INFO    2026-07-22 17:34:40,755 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680},"SelectedEnergyTransferService":{"ServiceID":2,"ParameterSetID":1}}}
+INFO    2026-07-22 17:34:40,756 - iso15118.shared.comm_session (235): ServiceSelectionReq received
+INFO    2026-07-22 17:34:40,756 - iso15118.shared.states (139): Entered state ServiceSelection
+INFO    2026-07-22 17:34:40,756 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:40,808 - iso15118.shared.comm_session (431): Sent ServiceSelectionRes
+INFO    2026-07-22 17:34:40,809 - iso15118.secc.controller.simulator (766): iso15118 state: ServiceSelection
+INFO    2026-07-22 17:34:40,809 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
+INFO    2026-07-22 17:34:40,855 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeParameterDiscoveryReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680},"DC_CPDReqEnergyTransferMode":{"EVMaximumChargePower":{"Exponent":1,"Value":5000},"EVMinimumChargePower":{"Exponent":0,"Value":0},"EVMaximumChargeCurrent":{"Exponent":0,"Value":200},"EVMinimumChargeCurrent":{"Exponent":0,"Value":0},"EVMaximumVoltage":{"Exponent":0,"Value":500},"EVMinimumVoltage":{"Exponent":0,"Value":50},"TargetSOC":80}}}
+INFO    2026-07-22 17:34:40,855 - iso15118.shared.comm_session (235): DC_ChargeParameterDiscoveryReq received
+INFO    2026-07-22 17:34:40,856 - iso15118.secc.controller.simulator (1109): Send rated limits to CS.
+INFO    2026-07-22 17:34:40,856 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeParameterDiscoveryRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK", "DC_CPDResEnergyTransferMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMinimumChargeCurrent": {"Exponent": 0, "Value": 10}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}, "EVSEMinimumVoltage": {"Exponent": 0, "Value": 10}, "EVSEPowerRampLimitation": {"Exponent": 0, "Value": 10}}}}
+INFO    2026-07-22 17:34:40,891 - iso15118.shared.comm_session (431): Sent DC_ChargeParameterDiscoveryRes
+INFO    2026-07-22 17:34:40,892 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeParameterDiscovery
+INFO    2026-07-22 17:34:40,892 - iso15118.shared.states (139): Entered state ScheduleExchange
+INFO    2026-07-22 17:34:40,936 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ScheduleExchangeReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680},"MaximumSupportingPoints":12,"Scheduled_SEReqControlMode":{}}}
+INFO    2026-07-22 17:34:40,937 - iso15118.shared.comm_session (235): ScheduleExchangeReq received
+INFO    2026-07-22 17:34:40,939 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ScheduleExchangeRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741680}, "ResponseCode": "OK", "EVSEProcessing": "Finished", "Scheduled_SEResControlMode": {"ScheduleTuple": [{"ScheduleTupleID": 1, "ChargingSchedule": {"PowerSchedule": {"TimeAnchor": 0, "AvailableEnergy": {"Exponent": 3, "Value": 300}, "PowerTolerance": {"Exponent": 0, "Value": 2000}, "PowerScheduleEntries": {"PowerScheduleEntry": [{"Duration": 3600, "Power": {"Exponent": 3, "Value": 10}}]}}, "AbsolutePriceSchedule": {"TimeAnchor": 0, "PriceScheduleID": 1, "Currency": "EUR", "Language": "ENG", "PriceAlgorithm": "urn:iso:std:iso:15118:-20:PriceAlgorithm:1-Power", "MinimumCost": {"Exponent": 0, "Value": 1}, "MaximumCost": {"Exponent": 0, "Value": 10}, "TaxRules": {"TaxRule": [{"TaxRuleID": 1, "TaxRuleName": "What a great tax rule", "TaxRate": {"Exponent": 0, "Value": 10}, "TaxIncludedInPrice": false, "AppliesToEnergyFee": true, "AppliesToParkingFee": true, "AppliesToOverstayFee": true, "AppliesMinimumMaximumCost": true}]}, "PriceRuleStacks": {"PriceRuleStack": [{"Duration": 3600, "PriceRule": [{"EnergyFee": {"Exponent": 0, "Value": 20}, "ParkingFee": {"Exponent": 0, "Value": 0}, "ParkingFeePeriod": 0, "CarbonDioxideEmission": 0, "RenewableGenerationPercentage": 0, "PowerRangeStart": {"Exponent": 0, "Value": 0}}]}]}, "OverstayRules": {"OverstayTimeThreshold": 3600, "OverstayPowerThreshold": {"Exponent": 3, "Value": 30}, "OverstayRule": [{"OverstayRuleDescription": "What a great description", "StartTime": 0, "OverstayFee": {"Exponent": 0, "Value": 50}, "OverstayFeePeriod": 3600}]}, "AdditionalSelectedServices": {"AdditionalService": [{"ServiceName": "What a great service name", "ServiceFee": {"Exponent": 0, "Value": 0}}]}}}, "DischargingSchedule": {"PowerSchedule": {"TimeAnchor": 0, "PowerScheduleEntries": {"PowerScheduleEntry": [{"Duration": 3600, "Power": {"Exponent": 3, "Value": 10}}]}}, "AbsolutePriceSchedule": {"TimeAnchor": 0, "PriceScheduleID": 1, "Currency": "EUR", "Language": "ENG", "PriceAlgorithm": "urn:iso:std:iso:15118:-20:PriceAlgorithm:1-Power", "MinimumCost": {"Exponent": 0, "Value": 1}, "MaximumCost": {"Exponent": 0, "Value": 10}, "TaxRules": {"TaxRule": [{"TaxRuleID": 1, "TaxRuleName": "What a great tax rule", "TaxRate": {"Exponent": 0, "Value": 10}, "TaxIncludedInPrice": false, "AppliesToEnergyFee": true, "AppliesToParkingFee": true, "AppliesToOverstayFee": true, "AppliesMinimumMaximumCost": true}]}, "PriceRuleStacks": {"PriceRuleStack": [{"Duration": 3600, "PriceRule": [{"EnergyFee": {"Exponent": 0, "Value": 20}, "ParkingFee": {"Exponent": 0, "Value": 0}, "ParkingFeePeriod": 0, "CarbonDioxideEmission": 0, "RenewableGenerationPercentage": 0, "PowerRangeStart": {"Exponent": 0, "Value": 0}}]}]}, "OverstayRules": {"OverstayTimeThreshold": 3600, "OverstayPowerThreshold": {"Exponent": 3, "Value": 30}, "OverstayRule": [{"OverstayRuleDescription": "What a great description", "StartTime": 0, "OverstayFee": {"Exponent": 0, "Value": 50}, "OverstayFeePeriod": 3600}]}, "AdditionalSelectedServices": {"AdditionalService": [{"ServiceName": "What a great service name", "ServiceFee": {"Exponent": 0, "Value": 0}}]}}}}]}}}
+INFO    2026-07-22 17:34:40,982 - iso15118.shared.comm_session (431): Sent ScheduleExchangeRes
+INFO    2026-07-22 17:34:40,983 - iso15118.secc.controller.simulator (766): iso15118 state: ScheduleExchange
+INFO    2026-07-22 17:34:41,023 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741680}}}
+INFO    2026-07-22 17:34:41,024 - iso15118.shared.comm_session (235): DC_CableCheckReq received
+INFO    2026-07-22 17:34:41,024 - iso15118.shared.states (139): Entered state DCCableCheck
+INFO    2026-07-22 17:34:41,024 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEProcessing": "Ongoing"}}
+INFO    2026-07-22 17:34:41,050 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
+INFO    2026-07-22 17:34:41,050 - iso15118.secc.controller.simulator (766): iso15118 state: DCCableCheck
+INFO    2026-07-22 17:34:41,124 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681}}}
+INFO    2026-07-22 17:34:41,124 - iso15118.shared.comm_session (235): DC_CableCheckReq received
+INFO    2026-07-22 17:34:41,125 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_CableCheckRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEProcessing": "Finished"}}
+INFO    2026-07-22 17:34:41,146 - iso15118.shared.comm_session (431): Sent DC_CableCheckRes
+INFO    2026-07-22 17:34:41,147 - iso15118.secc.controller.simulator (766): iso15118 state: DCCableCheck
+INFO    2026-07-22 17:34:41,147 - iso15118.shared.states (139): Entered state DCPreCharge
+INFO    2026-07-22 17:34:41,185 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"EVProcessing":"Finished","EVPresentVoltage":{"Exponent":0,"Value":0},"EVTargetVoltage":{"Exponent":0,"Value":400}}}
+INFO    2026-07-22 17:34:41,186 - iso15118.shared.comm_session (235): DC_PreChargeReq received
+INFO    2026-07-22 17:34:41,186 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_PreChargeRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}}}
+INFO    2026-07-22 17:34:41,218 - iso15118.shared.comm_session (431): Sent DC_PreChargeRes
+INFO    2026-07-22 17:34:41,218 - iso15118.secc.controller.simulator (766): iso15118 state: DCPreCharge
+INFO    2026-07-22 17:34:41,218 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 17:34:41,267 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"EVProcessing":"Finished","ChargeProgress":"Start","EVPowerProfile":{"TimeAnchor":0,"Scheduled_EVPPTControlMode":{"SelectedScheduleTupleID":1,"PowerToleranceAcceptance":"PowerToleranceConfirmed"},"EVPowerProfileEntries":{"EVPowerProfileEntry":[{"Duration":3600,"Power":{"Exponent":3,"Value":10}}]}}}}
+INFO    2026-07-22 17:34:41,268 - iso15118.shared.comm_session (235): PowerDeliveryReq received
+INFO    2026-07-22 17:34:41,269 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:41,312 - iso15118.shared.comm_session (431): Sent PowerDeliveryRes
+INFO    2026-07-22 17:34:41,312 - iso15118.secc.controller.simulator (766): iso15118 state: PowerDelivery
+INFO    2026-07-22 17:34:41,312 - iso15118.shared.states (139): Entered state DCChargeLoop
+INFO    2026-07-22 17:34:41,337 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"MeterInfoRequested":false,"EVPresentVoltage":{"Exponent":0,"Value":400},"Scheduled_DC_CLReqControlMode":{"EVTargetCurrent":{"Exponent":0,"Value":120},"EVTargetVoltage":{"Exponent":0,"Value":400}}}}
+INFO    2026-07-22 17:34:41,337 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+INFO    2026-07-22 17:34:41,337 - iso15118.secc.controller.simulator (1103): Send display params to CS.
+INFO    2026-07-22 17:34:41,338 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEPresentCurrent": {"Exponent": 0, "Value": 1}, "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}, "EVSEPowerLimitAchieved": false, "EVSECurrentLimitAchieved": false, "EVSEVoltageLimitAchieved": false, "Scheduled_DC_CLResControlMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}}}}
+INFO    2026-07-22 17:34:41,357 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+INFO    2026-07-22 17:34:41,357 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeLoop
+INFO    2026-07-22 17:34:41,435 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"MeterInfoRequested":false,"EVPresentVoltage":{"Exponent":0,"Value":400},"Scheduled_DC_CLReqControlMode":{"EVTargetCurrent":{"Exponent":0,"Value":120},"EVTargetVoltage":{"Exponent":0,"Value":400}}}}
+INFO    2026-07-22 17:34:41,435 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+INFO    2026-07-22 17:34:41,436 - iso15118.secc.controller.simulator (1103): Send display params to CS.
+INFO    2026-07-22 17:34:41,436 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEPresentCurrent": {"Exponent": 0, "Value": 1}, "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}, "EVSEPowerLimitAchieved": false, "EVSECurrentLimitAchieved": false, "EVSEVoltageLimitAchieved": false, "Scheduled_DC_CLResControlMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}}}}
+INFO    2026-07-22 17:34:41,456 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+INFO    2026-07-22 17:34:41,457 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeLoop
+INFO    2026-07-22 17:34:41,525 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"MeterInfoRequested":false,"EVPresentVoltage":{"Exponent":0,"Value":400},"Scheduled_DC_CLReqControlMode":{"EVTargetCurrent":{"Exponent":0,"Value":120},"EVTargetVoltage":{"Exponent":0,"Value":400}}}}
+INFO    2026-07-22 17:34:41,525 - iso15118.shared.comm_session (235): DC_ChargeLoopReq received
+INFO    2026-07-22 17:34:41,525 - iso15118.secc.controller.simulator (1103): Send display params to CS.
+INFO    2026-07-22 17:34:41,526 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_ChargeLoopRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEPresentCurrent": {"Exponent": 0, "Value": 1}, "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}, "EVSEPowerLimitAchieved": false, "EVSECurrentLimitAchieved": false, "EVSEVoltageLimitAchieved": false, "Scheduled_DC_CLResControlMode": {"EVSEMaximumChargePower": {"Exponent": 0, "Value": 1000}, "EVSEMinimumChargePower": {"Exponent": 0, "Value": 100}, "EVSEMaximumChargeCurrent": {"Exponent": 0, "Value": 100}, "EVSEMaximumVoltage": {"Exponent": 0, "Value": 500}}}}
+INFO    2026-07-22 17:34:41,552 - iso15118.shared.comm_session (431): Sent DC_ChargeLoopRes
+INFO    2026-07-22 17:34:41,552 - iso15118.secc.controller.simulator (766): iso15118 state: DCChargeLoop
+INFO    2026-07-22 17:34:41,636 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"EVProcessing":"Finished","ChargeProgress":"Stop"}}
+INFO    2026-07-22 17:34:41,636 - iso15118.shared.comm_session (235): PowerDeliveryReq received
+INFO    2026-07-22 17:34:41,637 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 17:34:41,637 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"PowerDeliveryRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:41,674 - iso15118.shared.comm_session (431): Sent PowerDeliveryRes
+INFO    2026-07-22 17:34:41,674 - iso15118.secc.controller.simulator (766): iso15118 state: PowerDelivery
+INFO    2026-07-22 17:34:41,701 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"EVProcessing":"Finished"}}
+INFO    2026-07-22 17:34:41,702 - iso15118.shared.comm_session (235): DC_WeldingDetectionReq received
+INFO    2026-07-22 17:34:41,702 - iso15118.shared.states (139): Entered state DCWeldingDetection
+INFO    2026-07-22 17:34:41,702 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:DC): {"DC_WeldingDetectionRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK", "EVSEPresentVoltage": {"Exponent": 0, "Value": 1}}}
+INFO    2026-07-22 17:34:41,723 - iso15118.shared.comm_session (431): Sent DC_WeldingDetectionRes
+INFO    2026-07-22 17:34:41,723 - iso15118.secc.controller.simulator (766): iso15118 state: DCWeldingDetection
+INFO    2026-07-22 17:34:41,758 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopReq":{"Header":{"SessionID":"481E6E7B4B75891D","TimeStamp":1784741681},"ChargingSession":"Terminate"}}
+INFO    2026-07-22 17:34:41,758 - iso15118.shared.comm_session (235): SessionStopReq received
+INFO    2026-07-22 17:34:41,758 - iso15118.shared.states (139): Entered state SessionStop
+INFO    2026-07-22 17:34:41,759 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopRes": {"Header": {"SessionID": "481E6E7B4B75891D", "TimeStamp": 1784741681}, "ResponseCode": "OK"}}
+INFO    2026-07-22 17:34:41,791 - iso15118.shared.comm_session (431): Sent SessionStopRes
+INFO    2026-07-22 17:34:41,791 - iso15118.secc.controller.simulator (766): iso15118 state: SessionStop
+INFO    2026-07-22 17:34:41,791 - iso15118.shared.comm_session (395): The data link will terminate in 2 seconds and the TCP connection will close in 5 seconds. 
+INFO    2026-07-22 17:34:41,791 - iso15118.shared.comm_session (399): Reason: Communication session terminated. EV Info: 

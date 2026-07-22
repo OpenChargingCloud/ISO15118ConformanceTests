@@ -87,6 +87,72 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             });
         }
 
+        /// <summary>
+        /// Pause/resume across two real TCP connections ([V2G2-740]): session 1 ends with
+        /// <c>ChargingSession.Pause</c> (SECC parks the session id), session 2 reconnects, re-runs SAP, and
+        /// rejoins with the old id — the SECC answers <c>OK_OldSessionJoined</c> and the session completes.
+        /// </summary>
+        [Test]
+        public async Task AcSession_PauseThenResume_RejoinsOldSession()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            // ── session 1: run to a PAUSE stop ─
+            var secc1Task = Task.Run(async () =>
+            {
+                using var s = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(s, ProtocolVariant.Iso15118_2, cts.Token);
+                var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(s, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            byte[] sessionId;
+            using (var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token))
+            {
+                await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
+                var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+                {
+                    StopMode = Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Pause,
+                };
+                await evcc.RunAsync(cts.Token);
+                sessionId = evcc.SessionId;
+            }
+            var secc1 = await secc1Task;
+            Assert.That(secc1.Paused, Is.True, "the SECC must record the pause");
+            Assert.That(secc1.SessionId, Is.EqualTo(sessionId));
+
+            // ── session 2: reconnect and resume with the old id ─
+            var secc2Task = Task.Run(async () =>
+            {
+                using var s = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(s, ProtocolVariant.Iso15118_2, cts.Token);
+                var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System) { ResumeSessionId = sessionId };
+                await secc.RunAsync(s, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream2 = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream2, ProtocolVariant.Iso15118_2, cts.Token);
+            var evcc2 = new Evcc2(evccStream2, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            {
+                ResumeSessionId = sessionId,
+            };
+            await evcc2.RunAsync(cts.Token);
+            var secc2 = await secc2Task;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(evcc2.SessionSetupCode,
+                    Is.EqualTo(Vanaheimr.V2G.Iso15118_2.Generated.ResponseCode.OK_OldSessionJoined),
+                    "the resumed SessionSetup must rejoin the paused session");
+                Assert.That(evcc2.SessionId, Is.EqualTo(sessionId), "the session id survives the pause");
+                Assert.That(secc2.IsDone, Is.True);
+                Assert.That(secc2.Paused, Is.False, "session 2 ends with Terminate");
+            });
+        }
+
         private static async Task RunSessionAsync(PowerMode mode)
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));

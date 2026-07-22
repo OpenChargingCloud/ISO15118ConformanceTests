@@ -21,7 +21,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
         bool UseSlac, int SlacListenPort, string? SlacPeerHost, int SlacPeerPort,
         string? PkiDir, string? ClientCertPath, string? ClientCertPass,
         string? ServerCertPath, string? ServerCertPass, bool RequireClientCert,
-        string? ContractCertPath, string? ContractCertPass)
+        string? ContractCertPath, string? ContractCertPass, bool PauseResume,
+        bool EndPaused, string? ResumeSessionIdHex)
     {
         public static CliArgs Parse(string[] args)
         {
@@ -35,7 +36,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var mode = PowerMode.Ac;
             var backend = TlsBackend.None;
             bool tls = false;
-            bool useSdp = false, useSlac = false, requireClientCert = false, preferDynamic = false;
+            bool useSdp = false, useSlac = false, requireClientCert = false, preferDynamic = false, pauseResume = false, endPaused = false;
+            string? resumeSessionIdHex = null;
             string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
             string? serverCertPath = null, serverCertPass = null, contractCertPath = null, contractCertPass = null;
             int slacListenPort = 0, slacPeerPort = 0;
@@ -119,6 +121,15 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     case "--contract-cert-pass":
                         contractCertPass = args[++i];
                         break;
+                    case "--pause-resume":
+                        pauseResume = true;
+                        break;
+                    case "--pause":
+                        endPaused = true;
+                        break;
+                    case "--resume":
+                        resumeSessionIdHex = args[++i];
+                        break;
                     default:
                         throw new ArgumentException($"unknown argument '{args[i]}'.\n{Usage}");
                 }
@@ -133,7 +144,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
                                useSdp, iface, preferDynamic, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
                                clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert,
-                               contractCertPath, contractCertPass);
+                               contractCertPath, contractCertPass, pauseResume, endPaused, resumeSessionIdHex);
         }
 
         private static void Validate(Role role, string? connectHost, int listenPort, TlsBackend backend,
@@ -188,7 +199,9 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "         secc --server-cert <pfx> [--server-cert-pass <pw>] [--require-client-cert]  (.NET backend)\n" +
             "  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)\n" +
             "  Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)\n" +
-            "  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-20: signed Plug & Charge auth)\n" +
+            "  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-2/-20: signed Plug & Charge auth)\n" +
+            "  Pause: evcc --pause-resume    (pause after the charge loop, reconnect, rejoin the old session)\n" +
+            "         evcc --pause | --resume <hex-session-id>   (the two halves as separate invocations)\n" +
             "  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)";
     }
 }

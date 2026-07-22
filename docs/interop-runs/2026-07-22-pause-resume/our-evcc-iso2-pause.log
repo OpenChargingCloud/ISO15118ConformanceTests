@@ -1,0 +1,7 @@
+  11 exchanges, 267 bytes on the wire (request side), auth: eim, metering receipts sent: 0, session setup: OK_NewSessionEstablished.
+Paused session id: 1A1839A991FB4F8D
+
+✓ Session complete in 2486 ms.
+  11 exchanges, 267 bytes on the wire (request side), auth: eim, metering receipts sent: 0, session setup: OK_OldSessionJoined.
+
+✓ Session complete in 1044 ms.
