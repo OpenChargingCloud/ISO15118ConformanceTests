@@ -176,9 +176,12 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   machines** (only AC/DC; confirmed 2026-07-22, `iso15118_20_states.py` has AC/DC states only and ships only
   `evcc_config_{ac,dc}[_bpt].json`), and our own WPT/ACDP projects are codec-only by the same token. A live
   run would need full session state machines built on **both** sides. Two WPT grammar shapes also remain
-  self-consistency-only (see `README.md`). **AC and DC, by contrast, both run live** — a full **-20 AC**
-  session (plain TCP + `--sdp`) completed to SessionStop on 2026-07-22
-  (`docs/interop-runs/2026-07-22-iso20-ac-eim-sdp/`).
+  self-consistency-only (see `README.md`). **DC, AC, and their bidirectional (BPT/V2G) variants, by contrast,
+  all run live** against Josev — full **-20 AC** (plain + TLS), **DC_BPT**, and **AC_BPT** sessions completed to
+  SessionStop on 2026-07-22 (`docs/interop-runs/2026-07-22-iso20-{ac-eim,ac-tls,dc-bpt,ac-bpt}-sdp/`). BPT
+  support: the SECC advertises both the unidirectional and BPT energy-transfer services and replies with the
+  matching charge-and-discharge mode/control-mode variant (guarded by
+  `Secc20DcTransitionTests.DcBptSession_*` / `Secc20AcBptTests`).
 - **`TransformType` present-content fidelity.** The generator fix is byte-exact vs cbexigen for the
   empty `Transform` (the only real case); for *present* content (an XPath or wildcard child, which no
   ISO 15118 message carries) it models sequence rather than choice-reduced semantics — untested,

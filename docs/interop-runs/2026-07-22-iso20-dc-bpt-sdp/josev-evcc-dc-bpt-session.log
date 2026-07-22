@@ -1,0 +1,19 @@
+INFO    2026-07-22 12:29:52,785 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+INFO    2026-07-22 12:29:53,696 - iso15118.shared.states (139): Entered state SessionSetup
+INFO    2026-07-22 12:29:54,153 - iso15118.shared.states (139): Entered state AuthorizationSetup
+INFO    2026-07-22 12:29:54,847 - iso15118.shared.states (139): Entered state Authorization
+INFO    2026-07-22 12:29:55,090 - iso15118.shared.states (139): Entered state ServiceDiscovery
+INFO    2026-07-22 12:29:55,267 - iso15118.shared.states (139): Entered state ServiceDetail
+INFO    2026-07-22 12:29:55,376 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq": {"Header": {"SessionID": "8825BCE28525560B", "TimeStamp": 1784723395}, "SelectedEnergyTransferService": {"ServiceID": 6, "ParameterSetID": 1}}}
+INFO    2026-07-22 12:29:55,472 - iso15118.shared.states (139): Entered state ServiceSelection
+INFO    2026-07-22 12:29:55,656 - iso15118.shared.states (139): Entered state DCChargeParameterDiscovery
+INFO    2026-07-22 12:29:55,804 - iso15118.shared.states (139): Entered state ScheduleExchange
+INFO    2026-07-22 12:29:55,964 - iso15118.shared.states (139): Entered state DCCableCheck
+INFO    2026-07-22 12:29:56,056 - iso15118.shared.states (139): Entered state DCPreCharge
+INFO    2026-07-22 12:29:56,446 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 12:29:56,565 - iso15118.shared.states (139): Entered state DCChargeLoop
+INFO    2026-07-22 12:29:57,639 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 12:29:57,760 - iso15118.shared.states (139): Entered state DCWeldingDetection
+INFO    2026-07-22 12:29:58,307 - iso15118.shared.states (139): Entered state SessionStop
+INFO    2026-07-22 12:29:58,423 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopRes":{"Header":{"SessionID":"8825BCE28525560B","TimeStamp":1784723398},"ResponseCode":"OK"}}
+INFO    2026-07-22 12:29:58,424 - iso15118.shared.comm_session (235): SessionStopRes received

@@ -409,7 +409,17 @@ all of this out of the offline CI run.
   and over **mutual TLS 1.3 + `--sdp`** ([`2026-07-22-iso20-ac-tls-sdp`](docs/interop-runs/2026-07-22-iso20-ac-tls-sdp/)),
   each re-confirming plaintext/TLS `--sdp` discovery and PnC signature verify (`grammar=xmldsig-standalone`).
 
-Both -20 **DC and AC** now run live against Josev over TCP and TLS, plain and Plug & Charge. **WPT and ACDP
+- **Live -20 bidirectional (BPT / V2G):** full **DC_BPT** and **AC_BPT** sessions to `SessionStop`
+  ([`2026-07-22-iso20-dc-bpt-sdp`](docs/interop-runs/2026-07-22-iso20-dc-bpt-sdp/),
+  [`2026-07-22-iso20-ac-bpt-sdp`](docs/interop-runs/2026-07-22-iso20-ac-bpt-sdp/)). The SECC advertises both the
+  unidirectional and BPT energy-transfer services (DC `{2,6}`, AC `{1,5}`) and, because the -20 CPD/charge-loop
+  energy-transfer-mode & control-mode are polymorphic (`BPT_*` derives from the unidirectional type), replies
+  with the matching charge-**and-discharge** variant whenever the EV sends a BPT request — Josev selects
+  `ServiceID 6`/`5` and runs the charge loop with discharge parameters. Backward-compatible: unidirectional
+  runs still select service `2`/`1`.
+
+All four -20 energy modes any independent stack implements — **DC, AC, DC_BPT, AC_BPT** — now run live against
+Josev over TCP and TLS, plain and Plug & Charge. **WPT and ACDP
 stay codec-validated only** (record mode, byte-exact vs cbV2G): no live run is possible because Josev — the
 only independent -20 stack available — implements no WPT/ACDP session state machines (only AC/DC), and our own
 WPT/ACDP projects are codec-only by the same token; a live run would need full session state machines built on

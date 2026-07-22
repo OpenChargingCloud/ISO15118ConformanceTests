@@ -1,3 +1,5 @@
+using System.Linq;
+
 using NUnit.Framework;
 
 using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
@@ -141,6 +143,46 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
 
             var (_, resp) = secc.Handle(MessageSet.Iso20CommonMessages, new SessionStopReq(Common, ChargingSession.Terminate, null, null));
             Assert.That(resp, Is.InstanceOf<SessionStopRes>());
+            Assert.That(secc.IsDone, Is.True);
+        }
+
+        [Test]
+        public void DcBptSession_OffersBothServices_AndAnswersBptCpdAndChargeLoop()
+        {
+            // Bidirectional (DC_BPT) EV: our SECC must advertise the BPT service (id 6) alongside DC (id 2) —
+            // else Josev aborts with WrongServiceID — and answer with the BPT energy-transfer-mode + control-mode
+            // variants. Mirrors the live 2026-07-22 DC_BPT run.
+            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
+            secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
+
+            var disc = (ServiceDiscoveryRes)secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null)).Response;
+            var ids = disc.EnergyTransferServiceList.Service.Select(s => s.ServiceID).ToArray();
+            Assert.That(ids, Does.Contain((ushort)2).And.Contain((ushort)6), "offers both DC and DC_BPT");
+
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDetailReq(Common, 6));
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceSelectionReq(Common, new SelectedServiceType(6, 1), null));
+
+            var cpd = (Dc20.DC_ChargeParameterDiscoveryRes)secc.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryReq(Dc,
+                new Dc20.BPT_DC_CPDReqEnergyTransferModeType(Rat(5_000, 1), Rat(0), Rat(200), Rat(0), Rat(500), Rat(50), TargetSOC: 80,
+                    EVMaximumDischargePower: Rat(5_000, 1), EVMinimumDischargePower: Rat(0), EVMaximumDischargeCurrent: Rat(200), EVMinimumDischargeCurrent: Rat(0)))).Response;
+            Assert.That(cpd.DC_CPDResEnergyTransferMode, Is.InstanceOf<Dc20.BPT_DC_CPDResEnergyTransferModeType>(),
+                "a BPT charge-parameter request must get a BPT response with discharge limits");
+
+            secc.Handle(MessageSet.Iso20CommonMessages, new ScheduleExchangeReq(Common, 12, null, new Scheduled_SEReqControlModeType(null, null, null, null, null)));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_CableCheckReq(Dc));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_PreChargeReq(Dc, Dc20.Processing.Finished, Rat(0), Rat(400)));
+            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Start, BuildProfile(), null));
+
+            var loop = (Dc20.DC_ChargeLoopRes)secc.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeLoopReq(Dc, null, false, Rat(400),
+                new Dc20.BPT_Scheduled_DC_CLReqControlModeType(null, null, null, Rat(120), Rat(400), null, null, null, null, null, null, null, null))).Response;
+            Assert.That(loop.CLResControlMode, Is.InstanceOf<Dc20.BPT_Scheduled_DC_CLResControlModeType>(),
+                "a BPT charge-loop control mode must get a BPT response control mode");
+
+            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Stop, null, null));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_WeldingDetectionReq(Dc, Dc20.Processing.Finished));
+            secc.Handle(MessageSet.Iso20CommonMessages, new SessionStopReq(Common, ChargingSession.Terminate, null, null));
             Assert.That(secc.IsDone, Is.True);
         }
 

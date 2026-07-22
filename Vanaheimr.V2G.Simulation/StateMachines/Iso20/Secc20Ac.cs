@@ -15,27 +15,38 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     {
         protected override bool HasPreChargeSequence => false;
         protected override bool HasPostChargeSequence => false;
-        protected override ushort EnergyServiceId => 1;   // ISO 15118-20 AC energy-transfer service
+        protected override IReadOnlyList<ushort> EnergyServiceIds => new ushort[] { 1, 5 };   // AC + AC_BPT
 
         protected override (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request)
         {
             var req = (Ac20.AC_ChargeParameterDiscoveryReq)request;
-            var res = new Ac20.AC_ChargeParameterDiscoveryRes(SessionCtx.ToAcHeader(), Ac20.ResponseCode.OK,
-                new Ac20.AC_CPDResEnergyTransferModeType(
+            // Bidirectional (BPT) EV → advertise discharge power too; else the charge-only mode.
+            Ac20.AC_CPDResEnergyTransferModeType mode = req.AC_CPDReqEnergyTransferMode is Ac20.BPT_AC_CPDReqEnergyTransferModeType
+                ? new Ac20.BPT_AC_CPDResEnergyTransferModeType(
                     EVSEMaximumChargePower: Rat(2_200, exponent: 1), EVSEMaximumChargePower_L2: null, EVSEMaximumChargePower_L3: null,
                     EVSEMinimumChargePower: Rat(0), EVSEMinimumChargePower_L2: null, EVSEMinimumChargePower_L3: null,
-                    EVSENominalFrequency: Rat(50),
-                    MaximumPowerAsymmetry: null, EVSEPowerRampLimitation: null,
-                    EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null));
-            return (MessageSet.Iso20AC, res);
+                    EVSENominalFrequency: Rat(50), MaximumPowerAsymmetry: null, EVSEPowerRampLimitation: null,
+                    EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null,
+                    EVSEMaximumDischargePower: Rat(2_200, exponent: 1), EVSEMaximumDischargePower_L2: null, EVSEMaximumDischargePower_L3: null,
+                    EVSEMinimumDischargePower: Rat(0), EVSEMinimumDischargePower_L2: null, EVSEMinimumDischargePower_L3: null)
+                : new Ac20.AC_CPDResEnergyTransferModeType(
+                    EVSEMaximumChargePower: Rat(2_200, exponent: 1), EVSEMaximumChargePower_L2: null, EVSEMaximumChargePower_L3: null,
+                    EVSEMinimumChargePower: Rat(0), EVSEMinimumChargePower_L2: null, EVSEMinimumChargePower_L3: null,
+                    EVSENominalFrequency: Rat(50), MaximumPowerAsymmetry: null, EVSEPowerRampLimitation: null,
+                    EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null);
+            return (MessageSet.Iso20AC, new Ac20.AC_ChargeParameterDiscoveryRes(SessionCtx.ToAcHeader(), Ac20.ResponseCode.OK, mode));
         }
 
         protected override (MessageSet Set, object Response) HandleChargeLoop(object request)
         {
             var req = (Ac20.AC_ChargeLoopReq)request;
+            // Match the EV's control mode: a BPT (bidirectional) EV sends a BPT_* control mode → reply in kind.
+            Ac20.CLResControlModeType clRes = req.CLReqControlMode is Ac20.BPT_Scheduled_AC_CLReqControlModeType or Ac20.BPT_Dynamic_AC_CLReqControlModeType
+                ? new Ac20.BPT_Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null)
+                : new Ac20.Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null);
             var res = new Ac20.AC_ChargeLoopRes(SessionCtx.ToAcHeader(), Ac20.ResponseCode.OK,
                 EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
-                CLResControlMode: new Ac20.Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null));
+                CLResControlMode: clRes);
             return (MessageSet.Iso20AC, res);
         }
 

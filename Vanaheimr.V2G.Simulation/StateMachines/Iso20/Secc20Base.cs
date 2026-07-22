@@ -291,13 +291,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         private static HashAlgorithmName HashNameFor(string algorithmUri) =>
             algorithmUri.Contains("sha256") ? HashAlgorithmName.SHA256 : HashAlgorithmName.SHA512;
 
-        /// <summary>The ISO 15118-20 energy-transfer service id this SECC advertises (Table 204): DC=2, AC=1.
-        /// A live Josev EVCC rejects a DC session offered under the AC id 1 (WrongServiceID).</summary>
-        protected abstract ushort EnergyServiceId { get; }
+        /// <summary>The ISO 15118-20 energy-transfer service ids this SECC advertises (Table 204): DC=2, AC=1,
+        /// plus their bidirectional (BPT) variants DC_BPT=6, AC_BPT=5. A live Josev EVCC rejects a session with
+        /// <c>WrongServiceID</c> if the mode it wants (e.g. DC_BPT) is not offered, so each subclass advertises
+        /// both its unidirectional and BPT service; the actual direction is driven per-message by whether the
+        /// EV sends a BPT energy-transfer-mode / control-mode (see the DC/AC charge-parameter and charge-loop
+        /// hooks).</summary>
+        protected abstract IReadOnlyList<ushort> EnergyServiceIds { get; }
 
         private ServiceDiscoveryRes SvcDiscovery(ServiceDiscoveryReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, ServiceRenegotiationSupported: false,
-                new ServiceListType(new[] { new ServiceType(EnergyServiceId, FreeService: true) }), VASList: null);
+                new ServiceListType(EnergyServiceIds.Select(id => new ServiceType(id, FreeService: true)).ToArray()), VASList: null);
 
         private ServiceDetailRes SvcDetail(ServiceDetailReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, req.ServiceID,

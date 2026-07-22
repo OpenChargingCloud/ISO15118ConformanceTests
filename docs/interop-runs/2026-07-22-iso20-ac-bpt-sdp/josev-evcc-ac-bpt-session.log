@@ -1,0 +1,25 @@
+INFO    2026-07-22 12:31:28,375 - iso15118.shared.states (139): Entered state SupportedAppProtocol
+INFO    2026-07-22 12:31:29,403 - iso15118.shared.states (139): Entered state SessionSetup
+INFO    2026-07-22 12:31:29,919 - iso15118.shared.states (139): Entered state AuthorizationSetup
+INFO    2026-07-22 12:31:30,892 - iso15118.shared.states (139): Entered state Authorization
+INFO    2026-07-22 12:31:31,249 - iso15118.shared.states (139): Entered state ServiceDiscovery
+INFO    2026-07-22 12:31:31,439 - iso15118.shared.states (139): Entered state ServiceDetail
+INFO    2026-07-22 12:31:31,566 - iso15118.shared.exi_codec (248): Message to encode (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"ServiceSelectionReq": {"Header": {"SessionID": "741A109F4AFDFABB", "TimeStamp": 1784723491}, "SelectedEnergyTransferService": {"ServiceID": 5, "ParameterSetID": 1}}}
+INFO    2026-07-22 12:31:31,668 - iso15118.shared.states (139): Entered state ServiceSelection
+INFO    2026-07-22 12:31:31,922 - iso15118.shared.states (139): Entered state ACChargeParameterDiscovery
+INFO    2026-07-22 12:31:32,110 - iso15118.shared.states (139): Entered state ScheduleExchange
+INFO    2026-07-22 12:31:32,309 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 12:31:32,442 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:32,549 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:32,642 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:32,748 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:32,849 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:32,921 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:33,001 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:33,067 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:33,139 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:33,198 - iso15118.shared.states (139): Entered state ACChargeLoop
+INFO    2026-07-22 12:31:33,270 - iso15118.shared.states (139): Entered state PowerDelivery
+INFO    2026-07-22 12:31:33,394 - iso15118.shared.states (139): Entered state SessionStop
+INFO    2026-07-22 12:31:33,462 - iso15118.shared.exi_codec (302): Decoded message (ns=urn:iso:std:iso:15118:-20:CommonMessages): {"SessionStopRes":{"Header":{"SessionID":"741A109F4AFDFABB","TimeStamp":1784723493},"ResponseCode":"OK"}}
+INFO    2026-07-22 12:31:33,462 - iso15118.shared.comm_session (235): SessionStopRes received

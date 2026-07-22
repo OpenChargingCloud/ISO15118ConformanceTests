@@ -16,7 +16,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     {
         protected override bool HasPreChargeSequence => true;
         protected override bool HasPostChargeSequence => true;
-        protected override ushort EnergyServiceId => 2;   // ISO 15118-20 DC energy-transfer service
+        protected override IReadOnlyList<ushort> EnergyServiceIds => new ushort[] { 2, 6 };   // DC + DC_BPT
 
         /// <summary>Classifies the DC poll requests so the base can self-loop CableCheck/PreCharge/WeldingDetection
         /// until the EV sends the next-phase message (the first DC_PreChargeReq, PowerDeliveryReq, SessionStopReq).</summary>
@@ -31,13 +31,19 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected override (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request)
         {
             var req = (Dc20.DC_ChargeParameterDiscoveryReq)request;
-            var res = new Dc20.DC_ChargeParameterDiscoveryRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK,
-                new Dc20.DC_CPDResEnergyTransferModeType(
+            // Bidirectional (BPT) EV → respond with discharge limits too; else the charge-only mode.
+            Dc20.DC_CPDResEnergyTransferModeType mode = req.DC_CPDReqEnergyTransferMode is Dc20.BPT_DC_CPDReqEnergyTransferModeType
+                ? new Dc20.BPT_DC_CPDResEnergyTransferModeType(
                     EVSEMaximumChargePower: Rat(5_000, exponent: 1), EVSEMinimumChargePower: Rat(0),
                     EVSEMaximumChargeCurrent: Rat(200), EVSEMinimumChargeCurrent: Rat(0),
-                    EVSEMaximumVoltage: Rat(500), EVSEMinimumVoltage: Rat(50),
-                    EVSEPowerRampLimitation: null));
-            return (MessageSet.Iso20DC, res);
+                    EVSEMaximumVoltage: Rat(500), EVSEMinimumVoltage: Rat(50), EVSEPowerRampLimitation: null,
+                    EVSEMaximumDischargePower: Rat(5_000, exponent: 1), EVSEMinimumDischargePower: Rat(0),
+                    EVSEMaximumDischargeCurrent: Rat(200), EVSEMinimumDischargeCurrent: Rat(0))
+                : new Dc20.DC_CPDResEnergyTransferModeType(
+                    EVSEMaximumChargePower: Rat(5_000, exponent: 1), EVSEMinimumChargePower: Rat(0),
+                    EVSEMaximumChargeCurrent: Rat(200), EVSEMinimumChargeCurrent: Rat(0),
+                    EVSEMaximumVoltage: Rat(500), EVSEMinimumVoltage: Rat(50), EVSEPowerRampLimitation: null);
+            return (MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK, mode));
         }
 
         protected override (MessageSet Set, object Response) HandleCableCheck(object request)
@@ -55,11 +61,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected override (MessageSet Set, object Response) HandleChargeLoop(object request)
         {
             var req = (Dc20.DC_ChargeLoopReq)request;
+            // Match the EV's control mode: a BPT (bidirectional) EV sends a BPT_* control mode → reply in kind.
+            Dc20.CLResControlModeType clRes = req.CLReqControlMode is Dc20.BPT_Scheduled_DC_CLReqControlModeType or Dc20.BPT_Dynamic_DC_CLReqControlModeType
+                ? new Dc20.BPT_Scheduled_DC_CLResControlModeType(null, null, null, null, null, null, null, null)
+                : new Dc20.Scheduled_DC_CLResControlModeType(null, null, null, null);
             var res = new Dc20.DC_ChargeLoopRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK,
                 EVSEStatus: null, MeterInfo: null, Receipt: null,
                 EVSEPresentCurrent: Rat(120), EVSEPresentVoltage: Rat(400),
                 EVSEPowerLimitAchieved: false, EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false,
-                CLResControlMode: new Dc20.Scheduled_DC_CLResControlModeType(null, null, null, null));
+                CLResControlMode: clRes);
             return (MessageSet.Iso20DC, res);
         }
 
