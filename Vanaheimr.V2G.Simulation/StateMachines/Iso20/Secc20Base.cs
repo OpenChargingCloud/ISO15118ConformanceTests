@@ -11,8 +11,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
     /// <summary>Outcome of validating a live Plug &amp; Charge <c>AuthorizationReq</c>: whether the EV echoed our
     /// <c>GenChallenge</c>, whether the signed-element digest matched its reference, and whether the ECDSA
-    /// signature verified against the contract leaf — plus what was observed (contract subject, signature method).</summary>
-    public sealed record PnCAuthResult(bool ChallengeOk, bool DigestOk, bool SignatureOk, string ContractSubject, string SignatureMethod);
+    /// signature verified against the contract leaf — plus what was observed (contract subject, signature method,
+    /// and which <c>SignedInfo</c> grammar the signature verified under: <c>iso20-commonmessages</c> for our/cbV2G
+    /// combined-schema form, <c>xmldsig-standalone</c> for the Josev-style standalone-xmldsig form, or
+    /// <c>none</c>).</summary>
+    public sealed record PnCAuthResult(bool ChallengeOk, bool DigestOk, bool SignatureOk, string ContractSubject,
+                                       string SignatureMethod, string SignatureGrammar);
 
     /// <summary>
     /// The SECC side of an ISO 15118-20 session, shared between AC and DC: the CommonMessages phases
@@ -242,31 +246,43 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
             var buf = new byte[8192];
             if (!CommonMessagesCodec.EncodeFragment_PnC_AReqAuthorizationMode(pnc, buf, out int n))
-                return new PnCAuthResult(challengeOk, DigestOk: false, SignatureOk: false, "?", "fragment-encode-failed");
+                return new PnCAuthResult(challengeOk, DigestOk: false, SignatureOk: false, "?", "fragment-encode-failed", "none");
             var fragment = buf.AsSpan(0, n);
 
             if (req.Header.Signature is not { } sig || sig.SignedInfo.Reference.Count == 0)
-                return new PnCAuthResult(challengeOk, false, false, "?", "no-signature");
+                return new PnCAuthResult(challengeOk, false, false, "?", "no-signature", "none");
 
             var reference = sig.SignedInfo.Reference[0];
             bool digestOk = HashOf(reference.DigestMethod.Algorithm, fragment).AsSpan().SequenceEqual(reference.DigestValue);
 
             string subject = "?";
             bool signatureOk = false;
+            string grammar = "none";
             try
             {
                 using var contract = X509CertificateLoader.LoadCertificate(pnc.ContractCertificateChain.Certificate);
                 subject = contract.Subject;
                 using var ecdsa = contract.GetECDsaPublicKey();
                 if (ecdsa is not null)
-                    signatureOk = ecdsa.VerifyData(
-                        V2GSignature.SignedInfoFragment(sig.SignedInfo), sig.SignatureValue.Value,
-                        HashNameFor(sig.SignedInfo.SignatureMethod.Algorithm),
-                        DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+                {
+                    var hashName = HashNameFor(sig.SignedInfo.SignatureMethod.Algorithm);
+
+                    // 1. Our production grammar: SignedInfo as a fragment of the full CommonMessages schema set
+                    //    (byte-exact vs cbV2G). This is what our own EVCC signs.
+                    if (ecdsa.VerifyData(V2GSignature.SignedInfoFragment(sig.SignedInfo), sig.SignatureValue.Value,
+                                         hashName, DSASignatureFormat.IeeeP1363FixedFieldConcatenation))
+                        (signatureOk, grammar) = (true, "iso20-commonmessages");
+
+                    // 2. Interop fallback: SignedInfo over the standalone xmldsig grammar (what Josev's stack
+                    //    signs — see XmlDsigInteropVerify). Verify-only; we never sign this form.
+                    else if (XmlDsigInteropVerify.VerifyStandaloneXmldsig(sig.SignedInfo, sig.SignatureValue.Value, ecdsa, hashName))
+                        (signatureOk, grammar) = (true, "xmldsig-standalone");
+                }
             }
             catch (Exception ex) { subject = $"cert-error: {ex.Message}"; }
 
-            return new PnCAuthResult(challengeOk, digestOk, signatureOk, subject, sig.SignedInfo.SignatureMethod.Algorithm);
+            return new PnCAuthResult(challengeOk, digestOk, signatureOk, subject,
+                                     sig.SignedInfo.SignatureMethod.Algorithm, grammar);
         }
 
         private static byte[] HashOf(string algorithmUri, ReadOnlySpan<byte> data) =>

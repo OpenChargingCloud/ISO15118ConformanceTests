@@ -105,7 +105,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 await secc.RunAsync(stream);
                 if (secc.PnCAuth is { } pnc)
                     Console.WriteLine($"Plug & Charge: contract {pnc.ContractSubject}; challenge {(pnc.ChallengeOk ? "OK" : "MISMATCH")}, " +
-                                      $"digest {(pnc.DigestOk ? "OK" : "FAIL")}, signature {(pnc.SignatureOk ? "OK" : "FAIL")} ({pnc.SignatureMethod}).");
+                                      $"digest {(pnc.DigestOk ? "OK" : "FAIL")}, signature {(pnc.SignatureOk ? "OK" : "FAIL")} " +
+                                      $"({pnc.SignatureMethod}{(pnc.SignatureOk ? $", grammar={pnc.SignatureGrammar}" : "")}).");
             }
         }
 

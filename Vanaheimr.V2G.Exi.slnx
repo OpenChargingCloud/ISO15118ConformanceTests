@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="Vanaheimr.V2G.Exi.Iso15118_2/Vanaheimr.V2G.Exi.Iso15118_2.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.csproj" />
+  <Project Path="Vanaheimr.V2G.Exi.XmlDsig/Vanaheimr.V2G.Exi.XmlDsig.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Iso15118_20.DC/Vanaheimr.V2G.Exi.Iso15118_20.DC.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Iso15118_20.AC/Vanaheimr.V2G.Exi.Iso15118_20.AC.csproj" />
   <Project Path="Vanaheimr.V2G.Exi.Iso15118_20.WPT/Vanaheimr.V2G.Exi.Iso15118_20.WPT.csproj" />

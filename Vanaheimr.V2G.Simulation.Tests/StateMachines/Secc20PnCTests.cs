@@ -9,6 +9,8 @@ using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Tp;
 
+using X = Vanaheimr.V2G.XmlDsig.Generated;
+
 namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
 {
     /// <summary>
@@ -64,6 +66,53 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
             Assert.That(secc.PnCAuth!.ChallengeOk, Is.True, "GenChallenge must echo");
             Assert.That(secc.PnCAuth.DigestOk, Is.True, "reference digest must match the signed element");
             Assert.That(secc.PnCAuth.SignatureOk, Is.True, "ECDSA signature over the contract leaf must verify");
+            Assert.That(secc.PnCAuth.SignatureGrammar, Is.EqualTo("iso20-commonmessages"),
+                "our own EVCC signs the SignedInfo over the combined CommonMessages grammar");
+        }
+
+        /// <summary>
+        /// Interop: a PnC <c>AuthorizationReq</c> whose <c>SignedInfo</c> was signed over the <b>standalone
+        /// xmldsig grammar</b> (as Josev's stack does) still verifies — the SECC falls back to that grammar and
+        /// reports <c>SignatureGrammar == "xmldsig-standalone"</c>. This is the offline analogue of the live
+        /// Josev PnC run (docs/interop-runs/2026-07-21-iso20-dc-pnc-tls/): our combined-grammar encoding does
+        /// not match, so the first verify fails and the standalone-xmldsig fallback succeeds.
+        /// </summary>
+        [Test]
+        public void SignedPnCAuthorizationReq_OverStandaloneXmldsigGrammar_VerifiesViaFallback()
+        {
+            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(), "EVCC01"));
+            var setup = (AuthorizationSetupRes)secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr())).Response;
+            byte[] challenge = setup.PnC_ASResAuthorizationMode!.GenChallenge;
+
+            using var contractKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var certReq = new CertificateRequest("CN=JosevStyleContract", contractKey, HashAlgorithmName.SHA256);
+            using var contract = certReq.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
+
+            var pncMode = new PnC_AReqAuthorizationModeType("authId", challenge,
+                new ContractCertificateChainType(contract.RawData, new SubCertificatesType(new[] { contract.RawData })));
+
+            var buf = new byte[8192];
+            Assert.That(CommonMessagesCodec.EncodeFragment_PnC_AReqAuthorizationMode(pncMode, buf, out int n), Is.True);
+            var digest = V2GSignature.Digest(buf.AsSpan(0, n));
+            var signedInfo = V2GSignature.BuildSignedInfo("authId", digest); // SHA-512 / ecdsa-sha512
+
+            // Sign the SignedInfo as Josev would: over the STANDALONE xmldsig grammar, not our combined one.
+            var xsi = new X.SignedInfoType(
+                signedInfo.Id,
+                new X.CanonicalizationMethodType(signedInfo.CanonicalizationMethod.Algorithm, signedInfo.CanonicalizationMethod.ANY),
+                new X.SignatureMethodType(signedInfo.SignatureMethod.Algorithm, signedInfo.SignatureMethod.HMACOutputLength, signedInfo.SignatureMethod.ANY),
+                new[] { new X.ReferenceType(null, null, "#authId", null, new X.DigestMethodType(signedInfo.Reference[0].DigestMethod.Algorithm, null), digest) });
+            var xbuf = new byte[512];
+            Assert.That(X.XmlDsigCodec.EncodeFragment_SignedInfo(xsi, xbuf, out int xn), Is.True);
+            var rawSig = contractKey.SignData(xbuf.AsSpan(0, xn), HashAlgorithmName.SHA512, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+            var signature = V2GSignature.BuildSignature(signedInfo, rawSig);
+
+            secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Hdr(signature), Authorization.PnC, null, pncMode));
+
+            Assert.That(secc.PnCAuth!.DigestOk, Is.True);
+            Assert.That(secc.PnCAuth.SignatureOk, Is.True, "signature over the standalone xmldsig grammar must verify via fallback");
+            Assert.That(secc.PnCAuth.SignatureGrammar, Is.EqualTo("xmldsig-standalone"));
         }
 
         [Test]
