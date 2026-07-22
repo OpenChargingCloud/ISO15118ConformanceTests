@@ -304,6 +304,7 @@ skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired 
   TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)
   SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)
   Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)
+  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-20: signed Plug & Charge auth)
   SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)
   ```
   One-shot: the SECC accepts a single connection, runs one session, and exits. `--tls-backend bc`
@@ -394,8 +395,17 @@ all of this out of the offline CI run.
   **209-byte** `SignedInfo` (one-bit-narrower top-level code, whole bitstream shifted) vs our/cbV2G **210-byte**
   form, though both decode identically. Our own generator reproduces the 209-byte form byte-for-byte from the
   same schema (`Vanaheimr.V2G.Exi.XmlDsig` project; `XmlDsigStandaloneGrammarReproducesJosev`), so our SECC
-  **verifies** Josev-style signatures via a standalone-xmldsig fallback (`XmlDsigInteropVerify`) while our own
-  signing stays cbV2G-byte-exact (we never sign that form). See `JosevPnCSignatureDiag`.
+  **verifies** Josev-style signatures via a standalone-xmldsig fallback (`XmlDsigInteropVerify`) while our
+  default signing stays cbV2G-byte-exact. See `JosevPnCSignatureDiag`.
+- **Live Plug & Charge, forward — our EVCC signs, Josev verifies:** the closing counterpart. `evcc
+  --contract-cert <pfx>` switches the EVCC from EIM to a **signed** PnC `AuthorizationReq` (challenge echo +
+  contract chain, signed in Josev's exact interop form via `XmlDsigInteropSign`: SHA-256 fragment digest +
+  `Transforms`=[EXI C14N], SignedInfo over the **standalone xmldsig** grammar, `ecdsa-sha256` raw `r‖s`).
+  A real Josev SECC — re-encoding everything with its own EXIficient codec — logs `=> Match: True` and
+  **`Signature verified successfully`**, then runs the full DC PnC session to `SessionStop` over mutual
+  TLS 1.3 ([`2026-07-22-iso20-dc-pnc-forward-signed`](docs/interop-runs/2026-07-22-iso20-dc-pnc-forward-signed/)).
+  With that, **-20 PnC is live-validated in both directions** (they sign → we verify; we sign → they verify);
+  CI guard: `Iso20LoopbackTests.DcPncSession_SignedAuthorization_VerifiesAtSecc`.
 
 - **Live SDP discovery (no shim):** `secc --sdp --interface <nic>` now drives a real Josev EVCC end to end —
   the WWCP `SECC_SDPServer` binds `[::]:15118`, joins `FF02::1`, and answers the EVCC's `SDP_Request` with our

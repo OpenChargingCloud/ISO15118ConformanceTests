@@ -15,8 +15,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     /// xmldsig-core-schema.xsd alone), which gives the EXI <i>Fragment</i> top-level element event code one fewer
     /// bit and shifts the whole bitstream, yielding a 209-byte form vs our/cbV2G 210-byte one. Our own generator
     /// reproduces those exact bytes from the same schema (see the <c>Vanaheimr.V2G.Exi.XmlDsig</c> project and
-    /// <c>XmlDsigStandaloneGrammarReproducesJosev</c>), so we can <b>verify</b> such signatures. We never
-    /// <b>sign</b> with this grammar; our signing stays cbV2G-byte-exact per the project ground rule.
+    /// <c>XmlDsigStandaloneGrammarReproducesJosev</c>), so we can <b>verify</b> such signatures — and, for the
+    /// EVCC-side interop path, <b>sign</b> in the same form (see <see cref="XmlDsigInteropSign"/>): a Josev SECC
+    /// re-encodes a received SignedInfo with its own standalone grammar before checking the ECDSA signature, so
+    /// only this form verifies over there. Our production/default signing (<c>V2GSignature</c>) stays
+    /// cbV2G-byte-exact per the project ground rule.
     /// </para>
     /// See <c>docs/interop-runs/2026-07-21-iso20-dc-pnc-tls/notes.md</c>.
     /// </summary>
@@ -30,16 +33,25 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         public static bool VerifyStandaloneXmldsig(
             C.SignedInfoType signedInfo, byte[] signatureValue, ECDsa publicKey, HashAlgorithmName hashName)
         {
+            var octets = EncodeStandalone(signedInfo);
+            return octets is not null
+                && publicKey.VerifyData(octets, signatureValue, hashName,
+                                        DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        }
+
+        /// <summary>Encodes a CommonMessages <c>SignedInfo</c> under the standalone xmldsig grammar — the exact
+        /// octets Josev's stack signs/verifies. <c>null</c> if the grammar encode fails.</summary>
+        internal static byte[]? EncodeStandalone(C.SignedInfoType signedInfo)
+        {
             var mapped = Map(signedInfo);
             var buf = new byte[512];
             while (!X.XmlDsigCodec.EncodeFragment_SignedInfo(mapped, buf, out _))
             {
-                if (buf.Length >= 1 << 20) return false; // guard; a SignedInfo never approaches 1 MiB
+                if (buf.Length >= 1 << 20) return null; // guard; a SignedInfo never approaches 1 MiB
                 buf = new byte[buf.Length * 2];
             }
             X.XmlDsigCodec.EncodeFragment_SignedInfo(mapped, buf, out int n);
-            return publicKey.VerifyData(buf.AsSpan(0, n), signatureValue, hashName,
-                                        DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+            return buf.AsSpan(0, n).ToArray();
         }
 
         // The two SignedInfo type families are generated from the same xmldsig-core-schema.xsd, so this is a

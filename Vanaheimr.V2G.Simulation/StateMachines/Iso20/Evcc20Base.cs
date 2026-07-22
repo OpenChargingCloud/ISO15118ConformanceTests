@@ -1,5 +1,6 @@
 using System.Linq;
 
+using Vanaheimr.V2G.Iso15118_20.CommonMessages;
 using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Session;
@@ -10,9 +11,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
     /// <summary>
     /// The EVCC side of an ISO 15118-20 session, shared between AC and DC: drives the CommonMessages
-    /// phases directly (EIM only), and calls the <c>protected abstract</c> hooks below for the diverging
-    /// middle — implemented by <see cref="Evcc20Dc"/>/<see cref="Evcc20Ac"/>, which know which DC/AC codec
-    /// and concrete request/response types their energy-transfer mode actually uses.
+    /// phases directly (EIM by default; Plug &amp; Charge with a signed AuthorizationReq when
+    /// <see cref="Pnc"/> is set and the SECC offers it), and calls the <c>protected abstract</c> hooks below
+    /// for the diverging middle — implemented by <see cref="Evcc20Dc"/>/<see cref="Evcc20Ac"/>, which know
+    /// which DC/AC codec and concrete request/response types their energy-transfer mode actually uses.
     /// </summary>
     public abstract class Evcc20Base(
         Stream stream, TimeProvider clock, IAsyncDelay pollDelay, TimeSpan perMessageTimeout)
@@ -21,10 +23,18 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         protected readonly SessionContext SessionCtx = new(clock);
         protected IAsyncDelay PollDelay => pollDelay;
-        private readonly byte[] _buf = new byte[1024];
+        // 8 KiB: a signed PnC AuthorizationReq carries a 3-cert contract chain (~2 KiB) — 1 KiB is too small.
+        private readonly byte[] _buf = new byte[8192];
 
         public int Exchanges { get; private set; }
         public long BytesOnWire { get; private set; }
+
+        /// <summary>Contract credentials enabling Plug &amp; Charge; <c>null</c> (default) authorizes via EIM.</summary>
+        public PncEvccOptions? Pnc { get; set; }
+
+        /// <summary>How this session actually authorized: <c>"eim"</c>, or <c>"pnc-signed"</c> when a signed
+        /// PnC AuthorizationReq was sent (requires <see cref="Pnc"/> set and the SECC offering PnC).</summary>
+        public string AuthorizationMode { get; private set; } = "eim";
 
         /// <summary>Runs charge-parameter discovery exactly once (no polling — -20's DC/AC CPD response carries no EVSEProcessing field).</summary>
         protected abstract Task RunChargeParameterDiscoveryAsync(CancellationToken ct);
@@ -49,12 +59,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             // caught this — Josev's SECC strictly rejects a mismatched session id (our loopback SECC did not).
             SessionCtx.SessionId = setupRes.Header.SessionID;
 
-            await Exchange<AuthorizationSetupRes>(MessageSet.Iso20CommonMessages,
+            var authSetup = await Exchange<AuthorizationSetupRes>(MessageSet.Iso20CommonMessages,
                 dest => new AuthorizationSetupReq(SessionCtx.ToCommonHeader()).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
 
-            while ((await Exchange<AuthorizationRes>(MessageSet.Iso20CommonMessages,
-                       dest => new AuthorizationReq(SessionCtx.ToCommonHeader(), Authorization.EIM,
-                           new EIM_AReqAuthorizationModeType(), null).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct))
+            var encodeAuthReq = BuildAuthorizationReqEncoder(authSetup);
+            while ((await Exchange<AuthorizationRes>(MessageSet.Iso20CommonMessages, encodeAuthReq, ct))
                    .EVSEProcessing != Processing.Finished)
                 await pollDelay.Wait(PollInterval, ct);
 
@@ -116,6 +125,38 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             await Exchange<SessionStopRes>(MessageSet.Iso20CommonMessages,
                 dest => new SessionStopReq(SessionCtx.ToCommonHeader(), ChargingSession.Terminate, null, null)
                     .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
+        }
+
+        /// <summary>
+        /// Picks the authorization mode for this session and returns the AuthorizationReq encoder the poll
+        /// loop reuses. Plug &amp; Charge — when <see cref="Pnc"/> is set AND the SECC both offers PnC and sent
+        /// a GenChallenge — builds and signs the request <b>once</b> (the challenge does not change across
+        /// polls): challenge echo + contract chain in <c>PnC_AReqAuthorizationMode</c> (Id "id1"), and the
+        /// header signature over its EXI fragment in Josev's interop form (<see cref="XmlDsigInteropSign"/>).
+        /// Everything else falls back to EIM.
+        /// </summary>
+        private Func<byte[], int> BuildAuthorizationReqEncoder(AuthorizationSetupRes authSetup)
+        {
+            if (Pnc is { } pnc
+                && authSetup.AuthorizationServices.Contains(Authorization.PnC)
+                && authSetup.PnC_ASResAuthorizationMode is { } pncSetup)
+            {
+                var pncMode = new PnC_AReqAuthorizationModeType("id1", pncSetup.GenChallenge,
+                    new ContractCertificateChainType(pnc.ContractCertificate,
+                        new SubCertificatesType(pnc.SubCertificates.ToArray())));
+
+                var fragment = new byte[8192];
+                if (!CommonMessagesCodec.EncodeFragment_PnC_AReqAuthorizationMode(pncMode, fragment, out int fragmentLength))
+                    throw EncodeFailed();
+                var signature = XmlDsigInteropSign.Sign("id1", fragment.AsSpan(0, fragmentLength), pnc.ContractKey);
+
+                AuthorizationMode = "pnc-signed";
+                return dest => new AuthorizationReq(SessionCtx.ToCommonHeader() with { Signature = signature },
+                    Authorization.PnC, null, pncMode).TryEncode(dest, out int n) ? n : throw EncodeFailed();
+            }
+
+            return dest => new AuthorizationReq(SessionCtx.ToCommonHeader(), Authorization.EIM,
+                new EIM_AReqAuthorizationModeType(), null).TryEncode(dest, out int n) ? n : throw EncodeFailed();
         }
 
         /// <summary>

@@ -167,10 +167,12 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   property of one backend, not a project gap — the **BouncyCastle** backend runs the -20-faithful
   secp521r1/Ed448 profile. The `.NET` backend stays useful for -2 (P-256). Documented in
   [`pki-model.md`](pki-model.md).
-- **Live Plug & Charge session flow.** The PnC *messages* (AuthorizationSetup, signed Authorization,
-  CertificateInstallation) are all codec-tested and the -20 PnC frames are byte-exact against Josev,
-  but contract-cert provisioning + the live `CertificateInstallation` handling and its mTLS binding
-  are not exercised end-to-end.
+- **Live Plug & Charge session flow.** The signed-Authorization half is now closed in **both directions**:
+  Josev signs → our SECC verifies (`2026-07-22-iso20-dc-pnc-tls-verified`), and our EVCC signs → Josev's
+  SECC verifies (`2026-07-22-iso20-dc-pnc-forward-signed`: Josev logs `=> Match: True` +
+  `Signature verified successfully`; `evcc --contract-cert`, Josev-form signing via `XmlDsigInteropSign`).
+  What remains is contract-cert **provisioning**: the live `CertificateInstallation` handling and its mTLS
+  binding are not exercised end-to-end (the messages are codec-tested).
 - **WPT / ACDP interop — not runnable.** Their codecs are byte-exact vs cbV2G (record mode), but a live run
   is impossible: Josev — the only independent -20 stack available — implements **no WPT/ACDP session state
   machines** (only AC/DC; confirmed 2026-07-22, `iso15118_20_states.py` has AC/DC states only and ships only

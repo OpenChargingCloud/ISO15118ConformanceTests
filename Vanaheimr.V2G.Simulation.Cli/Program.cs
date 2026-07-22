@@ -210,9 +210,27 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 Evcc20Base evcc = args.Mode == PowerMode.Dc
                     ? new Evcc20Dc(stream, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2))
                     : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2));
+                if (args.ContractCertPath is not null)
+                    evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
                 await evcc.RunAsync();
-                Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side).");
+                Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), auth: {evcc.AuthorizationMode}.");
             }
+        }
+
+        /// <summary>Loads the Plug &amp; Charge contract credentials from a PKCS#12: the cert with a private key
+        /// is the contract leaf (its ECDSA key signs), every other cert goes into SubCertificates in file order
+        /// (the MO sub-CAs). Fails loud if no cert carries an EC private key.</summary>
+        private static PncEvccOptions LoadContractCredentials(string path, string? password)
+        {
+            var collection = X509CertificateLoader.LoadPkcs12CollectionFromFile(path, password,
+                X509KeyStorageFlags.EphemeralKeySet);
+            var leaf = collection.FirstOrDefault(c => c.HasPrivateKey)
+                ?? throw new ArgumentException($"--contract-cert: no certificate in '{path}' carries a private key.");
+            var key = leaf.GetECDsaPrivateKey()
+                ?? throw new ArgumentException($"--contract-cert: the contract leaf's private key is not ECDSA.");
+            var subCerts = collection.Where(c => !c.HasPrivateKey).Select(c => c.RawData).ToArray();
+            Console.WriteLine($"PnC: contract cert {leaf.Subject} (+{subCerts.Length} sub-CA(s)), key {key.KeySize}-bit EC.");
+            return new PncEvccOptions(leaf.RawData, subCerts, key);
         }
 
         private static async Task<(string Host, int Port)> ResolveEvccEndpointAsync(CliArgs args)

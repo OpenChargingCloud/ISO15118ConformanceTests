@@ -20,7 +20,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
         bool UseSdp, string? Interface, bool PreferDynamic,
         bool UseSlac, int SlacListenPort, string? SlacPeerHost, int SlacPeerPort,
         string? PkiDir, string? ClientCertPath, string? ClientCertPass,
-        string? ServerCertPath, string? ServerCertPass, bool RequireClientCert)
+        string? ServerCertPath, string? ServerCertPass, bool RequireClientCert,
+        string? ContractCertPath, string? ContractCertPass)
     {
         public static CliArgs Parse(string[] args)
         {
@@ -36,7 +37,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             bool tls = false;
             bool useSdp = false, useSlac = false, requireClientCert = false, preferDynamic = false;
             string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
-            string? serverCertPath = null, serverCertPass = null;
+            string? serverCertPath = null, serverCertPass = null, contractCertPath = null, contractCertPass = null;
             int slacListenPort = 0, slacPeerPort = 0;
 
             for (int i = 1; i < args.Length; i++)
@@ -112,6 +113,12 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     case "--require-client-cert":
                         requireClientCert = true;
                         break;
+                    case "--contract-cert":
+                        contractCertPath = args[++i];
+                        break;
+                    case "--contract-cert-pass":
+                        contractCertPass = args[++i];
+                        break;
                     default:
                         throw new ArgumentException($"unknown argument '{args[i]}'.\n{Usage}");
                 }
@@ -125,7 +132,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
 
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
                                useSdp, iface, preferDynamic, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
-                               clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert);
+                               clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert,
+                               contractCertPath, contractCertPass);
         }
 
         private static void Validate(Role role, string? connectHost, int listenPort, TlsBackend backend,
@@ -180,6 +188,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "         secc --server-cert <pfx> [--server-cert-pass <pw>] [--require-client-cert]  (.NET backend)\n" +
             "  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)\n" +
             "  Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)\n" +
+            "  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-20: signed Plug & Charge auth)\n" +
             "  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)";
     }
 }
