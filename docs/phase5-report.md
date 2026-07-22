@@ -152,8 +152,14 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   + `XmlDsigInteropVerify`), and `Secc20Base.VerifyPnc` falls back to it. **Verified live** on 2026-07-22
   (Josev EVCC → our SECC, mutual TLS 1.3): `challenge OK, digest OK, signature OK … grammar=xmldsig-standalone`,
   full DC loop to `SessionStop` (`docs/interop-runs/2026-07-22-iso20-dc-pnc-tls-verified/`). Our own signing
-  stays cbV2G-byte-exact (we never sign that form). Remaining: fix the WWCP SDP components' multicast interface
-  binding so `--sdp` works without the SDP shim.
+  stays cbV2G-byte-exact (we never sign that form).
+- **Live SDP discovery without the shim — now closed.** `secc --sdp --interface <nic>` drives a real Josev
+  EVCC end to end (`docs/interop-runs/2026-07-22-iso20-dc-sdp-noshim/`). The multicast interface binding was
+  never actually broken — the WWCP `SECC_SDPServer` binds `[::]:15118`, joins `FF02::1`, and answers correctly.
+  The earlier shim worked around a *policy* default: `SECC_SDPServerOptions.RejectNoTlsRequests` is `true`
+  (TLS-deployment-oriented), so a **plaintext** SECC silently dropped a plaintext EVCC's `SDP_Request`. Fix is
+  in the CLI (not the submodule): `Program.BuildSeccSdpOptions` sets `RejectNoTlsRequests = !noTls`, guarded by
+  `SeccSdpOptionsTests`; also fixed a cosmetic `%scope%scope` doubling in the advertise log.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.

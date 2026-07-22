@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Vanaheimr.V2G.Simulation.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Vanaheimr.V2G.Simulation\Vanaheimr.V2G.Simulation.csproj" />
     <!-- The BouncyCastle TLS backend option generates a strict-20 V2G PKI at runtime and shares it
          via a pki-dir between the two dev processes. -->

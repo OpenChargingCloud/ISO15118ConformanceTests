@@ -396,7 +396,14 @@ all of this out of the offline CI run.
   **verifies** Josev-style signatures via a standalone-xmldsig fallback (`XmlDsigInteropVerify`) while our own
   signing stays cbV2G-byte-exact (we never sign that form). See `JosevPnCSignatureDiag`.
 
-Remaining interop wrap-up: fix the WWCP SDP multicast interface binding so `--sdp` works without the SDP
-responder shim; extend live runs to AC / WPT / ACDP. The **Phase 5 closing report**
+- **Live SDP discovery (no shim):** `secc --sdp --interface <nic>` now drives a real Josev EVCC end to end —
+  the WWCP `SECC_SDPServer` binds `[::]:15118`, joins `FF02::1`, and answers the EVCC's `SDP_Request` with our
+  TCP/TLS endpoint (verified: full PnC-over-TLS session to `SessionStop`, [`2026-07-22-iso20-dc-sdp-noshim`](docs/interop-runs/2026-07-22-iso20-dc-sdp-noshim/)).
+  The multicast binding was never actually broken; the earlier "SDP multicast" shim was worked around a
+  *policy* default — `SECC_SDPServerOptions.RejectNoTlsRequests` is `true` (TLS-deployment-oriented), so a
+  **plaintext** SECC silently dropped a plaintext EVCC's `SDP_Request`. The CLI now sets it from our own TLS
+  mode (`RejectNoTlsRequests = !noTls`), so plaintext `--sdp` discovery works too.
+
+Remaining interop wrap-up: extend live runs to AC / WPT / ACDP. The **Phase 5 closing report**
 ([`docs/phase5-report.md`](docs/phase5-report.md)) has the full DoD scorecard, every fix, and the honest
 gaps list.

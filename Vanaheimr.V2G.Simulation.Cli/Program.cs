@@ -123,19 +123,35 @@ namespace Vanaheimr.V2G.Simulation.Cli
 
         private static async Task<SeccSdpAdvertiser> StartSeccSdpAsync(CliArgs args, int tcpPort)
         {
-            var iface = ResolveInterface(args.Interface!);
-            var server = new SECC_SDPServer(new SECC_SDPServerOptions
-            {
-                Interface        = iface,
-                SeccPort         = (ushort) tcpPort,
-                AcceptedVersions = new HashSet<SDP_Version> { SDP_Version.ISO_15118_2, SDP_Version.ISO_15118_20 },
-                OfferedSecurity  = args.TlsBackend == TlsBackend.None ? SDP_Security.NoTLS : SDP_Security.TLS,
-            });
-            Console.WriteLine($"SDP: advertising [{iface.LinkLocalIPAddress}%{iface.Index}]:{tcpPort} on {iface.Name}...");
+            var iface   = ResolveInterface(args.Interface!);
+            var noTls   = args.TlsBackend == TlsBackend.None;
+            var server  = new SECC_SDPServer(BuildSeccSdpOptions(iface, tcpPort, noTls));
+            // iface.LinkLocalIPAddress already carries the interface ScopeId on Linux; re-derive a scoped
+            // address so the display shows the scope exactly once (not "…%2%2").
+            var scoped  = new IPAddress(iface.LinkLocalIPAddress.GetAddressBytes(), iface.Index);
+            Console.WriteLine($"SDP: advertising [{scoped}]:{tcpPort} ({(noTls ? "NoTLS" : "TLS")}) on {iface.Name}...");
             var advertiser = new SeccSdpAdvertiser(server);
             await advertiser.StartAsync();
             return advertiser;
         }
+
+        /// <summary>
+        /// Builds the SECC SDP-server options for the CLI. A <b>plaintext</b> SECC (<paramref name="noTls"/>)
+        /// advertises <see cref="SDP_Security.NoTLS"/> and — crucially — sets
+        /// <see cref="SECC_SDPServerOptions.RejectNoTlsRequests"/> to <c>false</c> so it actually answers a
+        /// plaintext EVCC's SDP_Request; the option's TLS-deployment-oriented default (<c>true</c>) would
+        /// otherwise silently drop it and make <c>--sdp</c> discovery appear broken. A TLS SECC advertises
+        /// <see cref="SDP_Security.TLS"/> and keeps rejecting no-TLS downgrade requests.
+        /// </summary>
+        internal static SECC_SDPServerOptions BuildSeccSdpOptions(V2GNetworkInterface iface, int tcpPort, bool noTls)
+            => new()
+            {
+                Interface           = iface,
+                SeccPort            = (ushort) tcpPort,
+                AcceptedVersions    = new HashSet<SDP_Version> { SDP_Version.ISO_15118_2, SDP_Version.ISO_15118_20 },
+                OfferedSecurity     = noTls ? SDP_Security.NoTLS : SDP_Security.TLS,
+                RejectNoTlsRequests = !noTls,
+            };
 
         // ── EVCC ───────────────────────────────────────────────────────────────────────────────────
 
