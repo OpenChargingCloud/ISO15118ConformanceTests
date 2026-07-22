@@ -10,12 +10,14 @@ namespace Vanaheimr.V2G.Simulation.Cli
     ///         (-20-faithful mutual TLS; needs <c>--pki-dir</c>).</item>
     ///   <item><c>--slac</c> — run a SLAC pairing stage first (SECC <c>--slac-listen</c>, EVCC <c>--slac-peer</c>).</item>
     ///   <item><c>--sdp</c> — discover/advertise the endpoint via SDP on <c>--interface</c> instead of a fixed one.</item>
+    ///   <item><c>--dynamic</c> — SECC, -20 only: advertise the Dynamic (ControlMode=2) parameter set first,
+    ///         so an EV that takes the first offered set (e.g. Josev) runs a Dynamic-mode session.</item>
     /// </list>
     /// </summary>
     public sealed record CliArgs(
         Role Role, string? ConnectHost, int ConnectPort, int ListenPort,
         ProtocolVariant Protocol, PowerMode Mode, TlsBackend TlsBackend,
-        bool UseSdp, string? Interface,
+        bool UseSdp, string? Interface, bool PreferDynamic,
         bool UseSlac, int SlacListenPort, string? SlacPeerHost, int SlacPeerPort,
         string? PkiDir, string? ClientCertPath, string? ClientCertPass,
         string? ServerCertPath, string? ServerCertPass, bool RequireClientCert)
@@ -32,7 +34,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var mode = PowerMode.Ac;
             var backend = TlsBackend.None;
             bool tls = false;
-            bool useSdp = false, useSlac = false, requireClientCert = false;
+            bool useSdp = false, useSlac = false, requireClientCert = false, preferDynamic = false;
             string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
             string? serverCertPath = null, serverCertPass = null;
             int slacListenPort = 0, slacPeerPort = 0;
@@ -77,6 +79,9 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     case "--sdp":
                         useSdp = true;
                         break;
+                    case "--dynamic":
+                        preferDynamic = true;
+                        break;
                     case "--interface":
                         iface = args[++i];
                         break;
@@ -119,7 +124,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             Validate(role, connectHost, listenPort, backend, useSdp, iface, useSlac, slacListenPort, slacPeerHost, pkiDir);
 
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
-                               useSdp, iface, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
+                               useSdp, iface, preferDynamic, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
                                clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert);
         }
 
@@ -174,6 +179,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "         evcc --client-cert <pfx> [--client-cert-pass <pw>]  (mutual TLS on the .NET backend)\n" +
             "         secc --server-cert <pfx> [--server-cert-pass <pw>] [--require-client-cert]  (.NET backend)\n" +
             "  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)\n" +
+            "  Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)\n" +
             "  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)";
     }
 }

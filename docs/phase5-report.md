@@ -181,7 +181,12 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   SessionStop on 2026-07-22 (`docs/interop-runs/2026-07-22-iso20-{ac-eim,ac-tls,dc-bpt,ac-bpt}-sdp/`). BPT
   support: the SECC advertises both the unidirectional and BPT energy-transfer services and replies with the
   matching charge-and-discharge mode/control-mode variant (guarded by
-  `Secc20DcTransitionTests.DcBptSession_*` / `Secc20AcBptTests`).
+  `Secc20DcTransitionTests.DcBptSession_*` / `Secc20AcBptTests`). **Both control modes** also run live:
+  the SECC offers Scheduled *and* Dynamic parameter sets ([V2G20-2656]) and answers ScheduleExchange and
+  the charge loop strictly in kind for all four control-mode variants — before this fix a Dynamic-mode EV
+  got Scheduled res types, a wire-type mismatch that never fired because all earlier runs were Scheduled.
+  Live Dynamic sessions (DC, DC_BPT, AC_BPT via `secc --dynamic`) completed to SessionStop on 2026-07-22
+  (`docs/interop-runs/2026-07-22-iso20-dynamic-sdp/`; guarded by `Secc20DynamicModeTests`).
 - **`TransformType` present-content fidelity.** The generator fix is byte-exact vs cbexigen for the
   empty `Transform` (the only real case); for *present* content (an XPath or wildcard child, which no
   ISO 15118 message carries) it models sequence rather than choice-reduced semantics — untested,

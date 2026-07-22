@@ -61,10 +61,25 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected override (MessageSet Set, object Response) HandleChargeLoop(object request)
         {
             var req = (Dc20.DC_ChargeLoopReq)request;
-            // Match the EV's control mode: a BPT (bidirectional) EV sends a BPT_* control mode → reply in kind.
-            Dc20.CLResControlModeType clRes = req.CLReqControlMode is Dc20.BPT_Scheduled_DC_CLReqControlModeType or Dc20.BPT_Dynamic_DC_CLReqControlModeType
-                ? new Dc20.BPT_Scheduled_DC_CLResControlModeType(null, null, null, null, null, null, null, null)
-                : new Dc20.Scheduled_DC_CLResControlModeType(null, null, null, null);
+            // Answer strictly in kind: the res control mode must be the same variant (Scheduled/Dynamic,
+            // BPT or not) as the req's ([V2G20-1600]). The Dynamic res types carry *mandatory* EVSE limits
+            // (in dynamic mode the SECC dictates the operating point); Scheduled res fields are all optional.
+            // BPT_Dynamic derives from Dynamic — match the BPT subtypes first.
+            Dc20.CLResControlModeType clRes = req.CLReqControlMode switch
+            {
+                Dc20.BPT_Dynamic_DC_CLReqControlModeType => new Dc20.BPT_Dynamic_DC_CLResControlModeType(
+                    DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                    EVSEMaximumChargePower: Rat(5_000, exponent: 1), EVSEMinimumChargePower: Rat(0),
+                    EVSEMaximumChargeCurrent: Rat(200), EVSEMaximumVoltage: Rat(500),
+                    EVSEMaximumDischargePower: Rat(5_000, exponent: 1), EVSEMinimumDischargePower: Rat(0),
+                    EVSEMaximumDischargeCurrent: Rat(200), EVSEMinimumVoltage: Rat(50)),
+                Dc20.Dynamic_DC_CLReqControlModeType => new Dc20.Dynamic_DC_CLResControlModeType(
+                    DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                    EVSEMaximumChargePower: Rat(5_000, exponent: 1), EVSEMinimumChargePower: Rat(0),
+                    EVSEMaximumChargeCurrent: Rat(200), EVSEMaximumVoltage: Rat(500)),
+                Dc20.BPT_Scheduled_DC_CLReqControlModeType => new Dc20.BPT_Scheduled_DC_CLResControlModeType(null, null, null, null, null, null, null, null),
+                _ => new Dc20.Scheduled_DC_CLResControlModeType(null, null, null, null),
+            };
             var res = new Dc20.DC_ChargeLoopRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK,
                 EVSEStatus: null, MeterInfo: null, Receipt: null,
                 EVSEPresentCurrent: Rat(120), EVSEPresentVoltage: Rat(400),

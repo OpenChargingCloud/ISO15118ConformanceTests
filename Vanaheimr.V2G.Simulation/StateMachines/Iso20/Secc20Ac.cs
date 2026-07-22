@@ -40,10 +40,25 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected override (MessageSet Set, object Response) HandleChargeLoop(object request)
         {
             var req = (Ac20.AC_ChargeLoopReq)request;
-            // Match the EV's control mode: a BPT (bidirectional) EV sends a BPT_* control mode → reply in kind.
-            Ac20.CLResControlModeType clRes = req.CLReqControlMode is Ac20.BPT_Scheduled_AC_CLReqControlModeType or Ac20.BPT_Dynamic_AC_CLReqControlModeType
-                ? new Ac20.BPT_Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null)
-                : new Ac20.Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null);
+            // Answer strictly in kind: the res control mode must be the same variant (Scheduled/Dynamic,
+            // BPT or not) as the req's ([V2G20-1600]). Dynamic res carries a *mandatory* EVSETargetActivePower
+            // (in dynamic mode the SECC dictates the operating point). BPT_Dynamic derives from Dynamic —
+            // match the BPT subtypes first.
+            Ac20.CLResControlModeType clRes = req.CLReqControlMode switch
+            {
+                Ac20.BPT_Dynamic_AC_CLReqControlModeType => new Ac20.BPT_Dynamic_AC_CLResControlModeType(
+                    DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                    EVSETargetActivePower: Rat(2_200, exponent: 1), EVSETargetActivePower_L2: null, EVSETargetActivePower_L3: null,
+                    EVSETargetReactivePower: null, EVSETargetReactivePower_L2: null, EVSETargetReactivePower_L3: null,
+                    EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null),
+                Ac20.Dynamic_AC_CLReqControlModeType => new Ac20.Dynamic_AC_CLResControlModeType(
+                    DepartureTime: null, MinimumSOC: null, TargetSOC: null, AckMaxDelay: null,
+                    EVSETargetActivePower: Rat(2_200, exponent: 1), EVSETargetActivePower_L2: null, EVSETargetActivePower_L3: null,
+                    EVSETargetReactivePower: null, EVSETargetReactivePower_L2: null, EVSETargetReactivePower_L3: null,
+                    EVSEPresentActivePower: null, EVSEPresentActivePower_L2: null, EVSEPresentActivePower_L3: null),
+                Ac20.BPT_Scheduled_AC_CLReqControlModeType => new Ac20.BPT_Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null),
+                _ => new Ac20.Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null),
+            };
             var res = new Ac20.AC_ChargeLoopRes(SessionCtx.ToAcHeader(), Ac20.ResponseCode.OK,
                 EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
                 CLResControlMode: clRes);

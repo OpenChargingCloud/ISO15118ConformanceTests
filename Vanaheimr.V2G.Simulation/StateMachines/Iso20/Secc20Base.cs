@@ -47,6 +47,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>The result of validating a PnC AuthorizationReq, if the EV authenticated via Plug &amp; Charge (null for EIM).</summary>
         public PnCAuthResult? PnCAuth { get; private set; }
 
+        /// <summary>Advertise the Dynamic (ControlMode=2) parameter set ahead of Scheduled in ServiceDetailRes.
+        /// Both modes are always offered ([V2G20-2656]: the SECC shall support Scheduled and Dynamic); the order
+        /// only decides which one an EV that simply takes the first offered set (e.g. Josev) actually runs —
+        /// the SECC itself answers whatever control mode the EV's requests carry, in kind.</summary>
+        public bool PreferDynamicControlMode { get; set; }
+
         public bool IsDone => Phase == Phase20.Done;
 
         /// <summary>DC: CableCheck+PreCharge run between ScheduleExchange and PowerDelivery(Start). AC: skipped.</summary>
@@ -303,27 +309,44 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, ServiceRenegotiationSupported: false,
                 new ServiceListType(EnergyServiceIds.Select(id => new ServiceType(id, FreeService: true)).ToArray()), VASList: null);
 
-        private ServiceDetailRes SvcDetail(ServiceDetailReq req) =>
-            new(SessionCtx.ToCommonHeader(), ResponseCode.OK, req.ServiceID,
-                new ServiceParameterListType(new[]
-                {
-                    // The standard -20 energy-transfer parameter set. A live Josev EVCC requires at least the
-                    // ControlMode parameter ("Control mode parameter missing" otherwise); ControlMode=1 is
-                    // Scheduled, which is what our schedule/PowerDelivery flow uses.
-                    new ParameterSetType(1, new[]
-                    {
-                        new ParameterType("Connector", null, null, null, IntValue: 1, null, null),
-                        new ParameterType("ControlMode", null, null, null, IntValue: 1, null, null),
-                        new ParameterType("MobilityNeedsMode", null, null, null, IntValue: 1, null, null),
-                        new ParameterType("Pricing", null, null, null, IntValue: 0, null, null),
-                    }),
-                }));
+        private ServiceDetailRes SvcDetail(ServiceDetailReq req)
+        {
+            // The standard -20 energy-transfer parameter sets. A live Josev EVCC requires at least the
+            // ControlMode parameter ("Control mode parameter missing" otherwise). We offer both control
+            // modes — set 1: Scheduled (ControlMode=1), set 2: Dynamic (ControlMode=2) — ordered by
+            // PreferDynamicControlMode, since a Josev EVCC adopts the *first* offered set's ControlMode.
+            // MobilityNeedsMode=1 (mobility needs provided by the EVCC) is legal for both modes
+            // ([V2G20-2663] only restricts MobilityNeedsMode=2 to Dynamic).
+            static ParameterSetType ParamSet(ushort id, int controlMode) => new(id, new[]
+            {
+                new ParameterType("Connector", null, null, null, IntValue: 1, null, null),
+                new ParameterType("ControlMode", null, null, null, IntValue: controlMode, null, null),
+                new ParameterType("MobilityNeedsMode", null, null, null, IntValue: 1, null, null),
+                new ParameterType("Pricing", null, null, null, IntValue: 0, null, null),
+            });
+            var scheduled = ParamSet(1, controlMode: 1);
+            var dynamic   = ParamSet(2, controlMode: 2);
+            return new(SessionCtx.ToCommonHeader(), ResponseCode.OK, req.ServiceID,
+                new ServiceParameterListType(PreferDynamicControlMode
+                    ? new[] { dynamic, scheduled }
+                    : new[] { scheduled, dynamic }));
+        }
 
         private ServiceSelectionRes SvcSelection(ServiceSelectionReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK);
 
         private ScheduleExchangeRes ScheduleExchange(ScheduleExchangeReq req)
         {
+            // Answer in kind ([V2G20-1600]): a Dynamic-mode EV sends Dynamic_SEReqControlMode and must get a
+            // Dynamic res (all fields optional — Processing=Finished is the actual signal); a Scheduled-mode
+            // EV gets the schedule-tuple offer below.
+            if (req.Dynamic_SEReqControlMode is not null)
+                return new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished, GoToPause: false,
+                    Dynamic_SEResControlMode: new Dynamic_SEResControlModeType(
+                        DepartureTime: req.Dynamic_SEReqControlMode.DepartureTime,
+                        MinimumSOC: null, TargetSOC: null, AbsolutePriceSchedule: null, PriceLevelSchedule: null),
+                    Scheduled_SEResControlMode: null);
+
             var powerSchedule = new PowerScheduleType(TimeAnchor: 0, AvailableEnergy: null, PowerTolerance: null,
                 new PowerScheduleEntryListType(new[] { new PowerScheduleEntryType(Duration: 3600, Power: new RationalNumberType(0, 100), null, null) }));
 

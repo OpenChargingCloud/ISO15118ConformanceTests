@@ -102,6 +102,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 Secc20Base secc = args.Mode == PowerMode.Dc
                     ? new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System)
                     : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
+                secc.PreferDynamicControlMode = args.PreferDynamic;
                 await secc.RunAsync(stream);
                 if (secc.PnCAuth is { } pnc)
                     Console.WriteLine($"Plug & Charge: contract {pnc.ContractSubject}; challenge {(pnc.ChallengeOk ? "OK" : "MISMATCH")}, " +

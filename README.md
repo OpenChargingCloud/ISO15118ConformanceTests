@@ -303,6 +303,7 @@ skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired 
 
   TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)
   SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)
+  Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)
   SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)
   ```
   One-shot: the SECC accepts a single connection, runs one session, and exits. `--tls-backend bc`
@@ -418,8 +419,15 @@ all of this out of the offline CI run.
   `ServiceID 6`/`5` and runs the charge loop with discharge parameters. Backward-compatible: unidirectional
   runs still select service `2`/`1`.
 
+- **Live -20 Dynamic control mode:** full **DC, DC_BPT and AC_BPT** sessions in **Dynamic** mode to
+  `SessionStop` ([`2026-07-22-iso20-dynamic-sdp`](docs/interop-runs/2026-07-22-iso20-dynamic-sdp/)). The SECC
+  offers both control-mode parameter sets (Scheduled=1, Dynamic=2; `secc --dynamic` puts Dynamic first, which
+  is what a Josev EVCC then adopts) and answers ScheduleExchange + charge loop **strictly in kind** across all
+  four control-mode variants — fixing a latent wire-type mismatch where a Dynamic-mode EV got Scheduled res
+  types (guarded by `Secc20DynamicModeTests`).
+
 All four -20 energy modes any independent stack implements — **DC, AC, DC_BPT, AC_BPT** — now run live against
-Josev over TCP and TLS, plain and Plug & Charge. **WPT and ACDP
+Josev over TCP and TLS, plain and Plug & Charge, in Scheduled **and** Dynamic control mode. **WPT and ACDP
 stay codec-validated only** (record mode, byte-exact vs cbV2G): no live run is possible because Josev — the
 only independent -20 stack available — implements no WPT/ACDP session state machines (only AC/DC), and our own
 WPT/ACDP projects are codec-only by the same token; a live run would need full session state machines built on
