@@ -380,19 +380,21 @@ all of this out of the offline CI run.
   Josev-facing TLS is the .NET `SslStream` backend; our secp521r1/Ed448 BouncyCastle backend stays proven in
   loopback. Found + fixed a client/server certificate-**chain** transmission bug (`SslStream` sent only the
   leaf, breaking a root-only peer) via `SslStreamCertificateContext`.
-- **Live Plug & Charge over TLS:** our SECC offers PnC + a `GenChallenge` and validates Josev's signed
-  `AuthorizationReq`. The **`GenChallenge` echo and reference digest verify** — the digest match proves our
-  signed-element fragment codec is **byte-exact vs EXIficient over a live message**. The ECDSA signature over
-  the `SignedInfo` fragment does *not* verify against our (cbV2G-matched) fragment — **root-caused, reproduced,
-  and no codec bug**: Josev EXI-encodes the `SignedInfo` under the **standalone `xmldsig-core-schema.xsd`
-  grammar** (its `to_exi(signed_info, Namespace.XML_DSIG)` selects `BuiltInSchema.XSDCore` /
-  `XMLDSIG_Core_Schema_Grammar`), whereas we — like cbV2G, our authoritative reference — encode it as a
-  fragment of the full `V2G_CI_CommonMessages` schema set. The EXI *Fragment* grammar's leading element
-  event-code width tracks the number of global elements in the loaded schema, so the standalone-xmldsig grammar
-  yields a **209-byte** `SignedInfo` (one-bit-narrower top-level code, whole bitstream shifted) vs our/cbV2G
-  **210-byte** form, though both decode identically. Josev's own codec (`iso15118-secc` container →
-  `EXI().to_exi(SignedInfo, XML_DSIG)`) reproduces the 209 bytes exactly, and Josev's captured signature
-  verifies against them — see `JosevPnCSignatureDiag`.
+- **Live Plug & Charge over TLS — fully verified:** our SECC offers PnC + a `GenChallenge` and validates
+  Josev's signed `AuthorizationReq` **end to end — `GenChallenge` echo, reference digest, and the ECDSA
+  signature all verify** (live run [`2026-07-22-iso20-dc-pnc-tls-verified`](docs/interop-runs/2026-07-22-iso20-dc-pnc-tls-verified/):
+  `challenge OK, digest OK, signature OK … grammar=xmldsig-standalone`, then the full DC charge loop to
+  `SessionStop`). The signature verification took a short investigation, since Josev signs the `SignedInfo`
+  over a **different EXI grammar** than we do: its `to_exi(signed_info, Namespace.XML_DSIG)` selects
+  `BuiltInSchema.XSDCore` / `XMLDSIG_Core_Schema_Grammar` — a grammar built from **`xmldsig-core-schema.xsd`
+  standalone** — whereas we (like cbV2G, our authoritative reference) encode the `SignedInfo` as a fragment of
+  the full `V2G_CI_CommonMessages` schema set. The EXI *Fragment* grammar's leading element event-code width
+  tracks the number of global elements in the loaded schema, so the standalone-xmldsig grammar yields a
+  **209-byte** `SignedInfo` (one-bit-narrower top-level code, whole bitstream shifted) vs our/cbV2G **210-byte**
+  form, though both decode identically. Our own generator reproduces the 209-byte form byte-for-byte from the
+  same schema (`Vanaheimr.V2G.Exi.XmlDsig` project; `XmlDsigStandaloneGrammarReproducesJosev`), so our SECC
+  **verifies** Josev-style signatures via a standalone-xmldsig fallback (`XmlDsigInteropVerify`) while our own
+  signing stays cbV2G-byte-exact (we never sign that form). See `JosevPnCSignatureDiag`.
 
 Remaining interop wrap-up: fix the WWCP SDP multicast interface binding so `--sdp` works without the SDP
 responder shim; extend live runs to AC / WPT / ACDP. The **Phase 5 closing report**

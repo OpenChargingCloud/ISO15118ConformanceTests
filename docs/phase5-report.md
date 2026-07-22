@@ -146,10 +146,14 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   tracks the schema's global-element count, so Josev's form is **209 B** (one-bit-narrower code, whole stream
   shifted) vs our/cbV2G **210 B**, though both decode identically. Josev's own codec (in the `iso15118-secc`
   container) reproduces the 209 bytes exactly and Josev's captured signature verifies against them — checked in
-  as `JosevPnCSignatureDiag.JosevStandaloneXmldsigSignedInfoHex` (runs in CI, no Java). Remaining: (a) an
-  interop-only path that re-encodes `SignedInfo` under a standalone-xmldsig grammar so our SECC can *verify*
-  Josev's PnC signatures live (our generator does not emit that grammar today); (b) fix the WWCP SDP
-  components' multicast interface binding so `--sdp` works without the SDP shim.
+  as `JosevPnCSignatureDiag.JosevStandaloneXmldsigSignedInfoHex` (runs in CI, no Java). **Now closed:** a
+  verify-only interop path re-encodes `SignedInfo` under the standalone-xmldsig grammar
+  (`Vanaheimr.V2G.Exi.XmlDsig` — our own generator reproduces Josev's 209 bytes byte-for-byte —
+  + `XmlDsigInteropVerify`), and `Secc20Base.VerifyPnc` falls back to it. **Verified live** on 2026-07-22
+  (Josev EVCC → our SECC, mutual TLS 1.3): `challenge OK, digest OK, signature OK … grammar=xmldsig-standalone`,
+  full DC loop to `SessionStop` (`docs/interop-runs/2026-07-22-iso20-dc-pnc-tls-verified/`). Our own signing
+  stays cbV2G-byte-exact (we never sign that form). Remaining: fix the WWCP SDP components' multicast interface
+  binding so `--sdp` works without the SDP shim.
 - **SDP live multicast in CI.** Only the SDP message layer + result mapping are CI-tested; the live
   UDP/IPv6 multicast exchange is not (single-host can't hear its own multicast). A two-host or
   loopback-unicast test mode would close this.
