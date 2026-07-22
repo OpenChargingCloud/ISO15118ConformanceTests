@@ -10,6 +10,11 @@ using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
+    /// <summary>The EV's verdict over a signed -20 <c>AbsolutePriceSchedule</c> in ScheduleExchangeRes:
+    /// whether the header carried a signature, the reference digest matched the schedule's re-encoded EXI
+    /// fragment, and the ECDSA-P521/SHA-512 signature verified.</summary>
+    public sealed record Iso20TariffResult(bool SignaturePresent, bool DigestOk, bool SignatureOk);
+
     /// <summary>
     /// The EVCC side of an ISO 15118-20 session, shared between AC and DC: drives the CommonMessages
     /// phases directly (EIM by default; Plug &amp; Charge with a signed AuthorizationReq when
@@ -66,6 +71,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         /// <summary>The session id in effect — keep it for a resume after a paused session.</summary>
         public byte[] SessionId => SessionCtx.SessionId;
+
+        /// <summary>The tariff signer's public key (fachlich the eMSP's). When set and the Scheduled-mode
+        /// ScheduleExchangeRes carries a signed AbsolutePriceSchedule, the EV verifies it.</summary>
+        public System.Security.Cryptography.ECDsa? TariffVerifyKey { get; set; }
+
+        /// <summary>The price-schedule verdict; null while no signed AbsolutePriceSchedule was seen.</summary>
+        public Iso20TariffResult? Tariff { get; private set; }
 
         /// <summary>Runs charge-parameter discovery exactly once (no polling — -20's DC/AC CPD response carries no EVSEProcessing field).</summary>
         protected abstract Task RunChargeParameterDiscoveryAsync(CancellationToken ct);
@@ -137,6 +149,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                     await pollDelay.Wait(PollInterval, ct);
             }
             while (scheduleRes.EVSEProcessing != Processing.Finished);
+
+            VerifyPriceSchedule(scheduleRes);
 
             await RunPreChargeSequenceAsync(ct);
 
@@ -301,6 +315,35 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
             var scheduled = sets.FirstOrDefault(p => p.Parameter.Any(x => x.Name == "ControlMode" && x.IntValue == 1));
             return (scheduled ?? sets[0]).ParameterSetID;
+        }
+
+        /// <summary>Verifies a signed <c>AbsolutePriceSchedule</c> in the Scheduled-mode offer, if any:
+        /// reference digest over the schedule's re-encoded EXI fragment, then (with
+        /// <see cref="TariffVerifyKey"/>) the ECDSA-P521/SHA-512 signature over the SignedInfo — the -20
+        /// analogue of the -2 SalesTariff check. No signed schedule → <see cref="Tariff"/> stays null
+        /// (Josev's SECC, for one, never signs its price schedules).</summary>
+        private void VerifyPriceSchedule(ScheduleExchangeRes res)
+        {
+            var priceSchedule = res.Scheduled_SEResControlMode?.ScheduleTuple
+                .Select(t => t.ChargingSchedule.AbsolutePriceSchedule)
+                .FirstOrDefault(p => p?.Id is not null);
+            if (priceSchedule is null)
+                return;
+
+            bool signaturePresent = res.Header.Signature is not null;
+            bool digestOk = false, signatureOk = false;
+            if (signaturePresent)
+            {
+                var sig = res.Header.Signature!;
+                var buf = new byte[4096];
+                var reference = sig.SignedInfo.Reference.FirstOrDefault(r => r.URI == "#" + priceSchedule.Id);
+                digestOk = reference is not null
+                    && CommonMessagesCodec.EncodeFragment_AbsolutePriceSchedule(priceSchedule, buf, out int n)
+                    && V2GSignature.VerifyReference(reference, buf.AsSpan(0, n));
+                signatureOk = TariffVerifyKey is not null
+                    && V2GSignature.Verify(sig.SignedInfo, sig.SignatureValue.Value, TariffVerifyKey);
+            }
+            Tariff = new Iso20TariffResult(signaturePresent, digestOk, signatureOk);
         }
 
         /// <summary>Builds the Scheduled-mode EVPowerProfile that <c>PowerDelivery(Start)</c> must carry: it

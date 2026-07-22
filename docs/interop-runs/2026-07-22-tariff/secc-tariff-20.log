@@ -1,0 +1,6 @@
+SECC listening on [::]:55000 (protocol -20, AC, TLS None)...
+SDP: advertising [fe80::215:5dff:fe46:863f%2]:55000 (NoTLS) on eth0...
+Tariff: signing with CN=VanaheimrDevTariffEMSP, 521-bit EC.
+Plug & Charge: contract DC=MO, C=UK, O=Switch, CN=UKSWI123456791A; challenge OK, digest OK, signature OK (http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256, grammar=xmldsig-standalone).
+
+✓ Session complete in 15909 ms.

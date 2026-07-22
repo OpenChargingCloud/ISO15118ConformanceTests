@@ -53,6 +53,29 @@ namespace Vanaheimr.V2G.Iso15118_2
                         DigestValue: digest),
                 });
 
+        /// <summary>Builds a multi-reference <see cref="SignedInfoType"/> — one reference per signed
+        /// element, all under ONE header signature (e.g. every signed <c>SalesTariff</c> of an
+        /// SAScheduleList offer, §7.9.2.5). Reference URIs are <c>"#" + ReferenceId</c>.
+        /// <paramref name="includeExiTransform"/> adds the (schema-optional) <c>Transforms</c> list with
+        /// the single EXI-C14N transform — some peers (Josev's pydantic models) treat it as mandatory and
+        /// fail message validation on a Reference without it (seen live in -2 ChargeParameterDiscovery,
+        /// same bug class as its -20 CertificateInstallation counterpart).</summary>
+        public static SignedInfoType BuildSignedInfo(IReadOnlyList<(string ReferenceId, byte[] Digest)> references,
+                                                     bool includeExiTransform = false) =>
+            new(
+                Id: null,
+                CanonicalizationMethod: new CanonicalizationMethodType(Algorithm: CanonicalizationExi, ANY: null),
+                SignatureMethod: new SignatureMethodType(Algorithm: EcdsaSha256, HMACOutputLength: null, ANY: null),
+                Reference: references
+                    .Select(r => new ReferenceType(
+                        Id: null, Type: null, URI: "#" + r.ReferenceId,
+                        Transforms: includeExiTransform
+                            ? new TransformsType(new[] { new TransformType(CanonicalizationExi, XPath: null, ANY: null) })
+                            : null,
+                        DigestMethod: new DigestMethodType(Algorithm: Sha256, ANY: null),
+                        DigestValue: r.Digest))
+                    .ToArray());
+
         /// <summary>Assembles the header <see cref="SignatureType"/> from a signed <c>SignedInfo</c> and
         /// its raw <c>r‖s</c> <c>SignatureValue</c> (KeyInfo/Object absent, as ISO 15118-2 uses).</summary>
         public static SignatureType BuildSignature(SignedInfoType signedInfo, byte[] signatureValue) =>

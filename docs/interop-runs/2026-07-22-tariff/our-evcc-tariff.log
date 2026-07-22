@@ -1,0 +1,5 @@
+Tariff: verifying with DC=MO, C=UK, O=Switch, CN=PKI-Ext_CRT_MO_SUB2_VALID, 256-bit EC.
+  11 exchanges, 273 bytes on the wire (request side), auth: eim, metering receipts sent: 0, renegotiations: 0, session setup: OK_NewSessionEstablished.
+-2 Tariff: 1 tuple(s), signature present, digests OK, ECDSA OK (grammar=xmldsig-standalone); chose tuple 1, profile 1 entry.
+
+✓ Session complete in 2683 ms.

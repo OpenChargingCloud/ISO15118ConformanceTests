@@ -176,7 +176,24 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   [V2G20-1477] implemented with session re-entry at ServiceDiscovery — live to the point where Josev's
   own EVCC drops the link (three documented Josev gaps: empty -20 pause context, DC stop path hardcoding
   Terminate, and the stop notification beating its own ServiceDiscovery re-entry); the full cycle is
-  CI-guarded (`2026-07-22-renegotiation`). Still out of scope: smart-charging/SalesTariff detail.
+  CI-guarded (`2026-07-22-renegotiation`).
+- **Smart charging / signed tariffs — closed** (was the last declared non-goal): -2 SalesTariff §7.9.2.5
+  — the SECC offers a two-tuple SAScheduleList with both SalesTariffs digitally signed into ONE header
+  signature, and validates the EV's `PowerDeliveryReq(Start)` (`FAILED_TariffSelectionInvalid` /
+  `FAILED_ChargingProfileInvalid` [V2G2-761]); the EVCC verifies the tariff signature (dual-grammar),
+  picks the cheapest tuple by average EPriceLevel, and shapes its ChargingProfile to that tuple's
+  PMaxSchedule. -20: the Scheduled-mode ScheduleExchangeRes carries a rich **signed
+  `AbsolutePriceSchedule`** (power-banded EUR/kWh PriceRuleStacks, ECDSA-P521/SHA-512) instead of the
+  flat PriceLevelSchedule. Live (`2026-07-22-tariff`, three runs): a Josev EVCC consumed our signed
+  two-tuple offer, **chose the cheap tuple** and sent a PMax-shaped profile our validation accepted;
+  a Josev AC EVCC consumed the signed -20 AbsolutePriceSchedule; and — the surprise — **our EVCC
+  live-verified a real MO-Sub-CA2-signed Josev SalesTariff** (`digests OK, ECDSA OK,
+  grammar=xmldsig-standalone`), giving the -2 verify path a genuine external oracle. Honest residue:
+  our -2 combined-grammar signing form and the -20 price-schedule signature have **no external
+  verifier** (Josev's EVCC tariff check is a code TODO; nothing external touches -20 price-schedule
+  signatures) — both are CI-guarded only. One more Josev gap found: its pydantic `Reference` model
+  requires the schema-optional `Transforms` in -2 as well (empty-messaged `V2GMessageValidationError`
+  in ChargeParameterDiscovery without it) — our tariff references include `Transforms=[EXI C14N]`.
 - **ISO 15118-2 Plug & Charge session flow — closed** (was the last big codec-tested-only block): live in
   both directions over TLS (`2026-07-22-iso2-pnc-tls`) — PaymentDetails, the signed AuthorizationReq and
   the signed MeteringReceiptReq all verify, ours at Josev and Josev's at ours (dual-grammar; Josev's -2

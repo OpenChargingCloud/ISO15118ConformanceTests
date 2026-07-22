@@ -19,6 +19,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
     /// <summary>Outcome of validating one signed -2 <c>MeteringReceiptReq</c> (same dual-grammar dance).</summary>
     public sealed record Iso2ReceiptResult(bool DigestOk, bool SignatureOk, string SignatureGrammar);
 
+    /// <summary>Outcome of validating the EV's <c>PowerDeliveryReq(Start)</c> against the SASchedule offer:
+    /// the chosen tuple id must be one we offered ([V2G2-773], else <c>FAILED_TariffSelectionInvalid</c>)
+    /// and every ChargingProfile entry must stay within the PMax active at its start time ([V2G2-761],
+    /// else <c>FAILED_ChargingProfileInvalid</c>).</summary>
+    public sealed record Iso2ProfileResult(bool TupleIdOk, bool WithinPMax, byte TupleId, int ProfileEntries);
+
     /// <summary>
     /// The charge point (SECC) side of an ISO 15118-2 session — a <b>sequence-guarded</b> responder. It
     /// advances through the charging state machine and only accepts the request expected next; anything
@@ -85,6 +91,20 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         private bool _renegotiationSignalled;   // the notification is sent exactly once
         private bool _renegotiated;             // post-renegotiation: CPD hands to PowerOn (no new CableCheck)
 
+        // ── smart-charging state (see Schedules()) ──
+        private SAScheduleListType? _offeredSchedules;   // what ChargeParameterDiscoveryRes offered
+        private SignatureType? _responseSignature;       // set by a builder for THIS response's header
+        private byte _chosenTupleId = 1;                 // the tuple the EV's PowerDeliveryReq(Start) picked
+
+        /// <summary>When set, the SASchedule offer becomes a two-tuple choice whose SalesTariffs are
+        /// <b>digitally signed</b> with this key (the Mobility Operator's, §7.9.2.5 — one header signature,
+        /// one reference per tariff). Null (default): the plain single unsigned tuple.</summary>
+        public ECDsa? TariffSignKey { get; set; }
+
+        /// <summary>The <c>PowerDeliveryReq(Start)</c> validation verdict (tuple choice + ChargingProfile
+        /// against PMax); null until the EV sends one.</summary>
+        public Iso2ProfileResult? ChargingProfileCheck { get; private set; }
+
         public V2G_Message Handle(V2G_Message request)
         {
             var now = clock.GetUtcNow();
@@ -93,15 +113,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             _lastSeen = now;
 
             _requestHeader = request.Header;   // the PnC verify paths need the header signature
+            _responseSignature = null;         // a response builder (ChargeParams) may set one
             var (body, next) = Dispatch(request.Body.BodyElement!);
             _phase = next;
-            return new V2G_Message(new MessageHeaderType(_sessionId, Notification: null, Signature: null), new BodyType(body));
+            return new V2G_Message(new MessageHeaderType(_sessionId, Notification: null, Signature: _responseSignature), new BodyType(body));
         }
 
         /// <summary>Reads/handles/replies over <paramref name="stream"/> until the session reaches <see cref="Phase.Done"/>.</summary>
         public async Task RunAsync(Stream stream, CancellationToken ct = default)
         {
-            var buf = new byte[512];
+            // 4 KiB: a signed two-tuple SASchedule offer (tariffs + header signature) tops ~1 KiB.
+            var buf = new byte[4096];
             while (!IsDone)
             {
                 var (set, message) = await V2GTPStream.ReadFrameAsync(stream, ct).ConfigureAwait(false);
@@ -147,8 +169,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             (Phase.PreCharge, PreChargeReqType) =>
                 (new PreChargeResType(ResponseCode.OK, DcEvseStatus(), Volt(390)), Phase.PowerOn),
 
-            (Phase.PowerOn, PowerDeliveryReqType { ChargeProgress: ChargeProgress.Start }) =>
-                (PowerOnOrOff(), Phase.Charging),
+            (Phase.PowerOn, PowerDeliveryReqType { ChargeProgress: ChargeProgress.Start } r) =>
+                PowerOn(r),
 
             // ── charging loop (mode-specific request) ──
             (Phase.Charging, CurrentDemandReqType) when mode == PowerMode.Dc =>
@@ -232,8 +254,19 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 
         /// <summary>The SASchedule offer: with EVSEProcessing=Finished the response must carry a
         /// SAScheduleList ([V2G2-905]) — a live Josev EVCC crashes on its absence (found 2026-07-22; our
-        /// loopback EVCC never read it, which masked the gap). One tuple, one 1-hour 11-kW PMax entry.</summary>
-        private static SAScheduleListType Schedules() =>
+        /// loopback EVCC never read it, which masked the gap). Without a <see cref="TariffSignKey"/>: one
+        /// tuple, one 1-hour 11-kW PMax entry. With one: a two-tuple smart-charging offer whose SalesTariffs
+        /// are digitally signed into this response's header (§7.9.2.5).</summary>
+        private SAScheduleListType Schedules()
+        {
+            var schedules = TariffSignKey is null ? PlainSchedule() : TariffSchedules();
+            _offeredSchedules = schedules;
+            if (TariffSignKey is not null)
+                _responseSignature = SignTariffs(schedules);
+            return schedules;
+        }
+
+        private static SAScheduleListType PlainSchedule() =>
             new(new[]
             {
                 new SAScheduleTupleType(SAScheduleTupleID: 1,
@@ -244,10 +277,98 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                     SalesTariff: null),
             });
 
-        private BodyBaseType PowerOnOrOff() =>
+        /// <summary>The smart-charging offer: tuple 1 is a flat 11 kW at price levels 2→3, tuple 2 starts
+        /// capped at 7.4 kW on level 1 and opens to 22 kW on level 2 after 30 min — a price-aware EV picks
+        /// tuple 2 (average level 1.5 vs 2.5) and shapes its ChargingProfile to the 7.4/22 kW steps.</summary>
+        private static SAScheduleListType TariffSchedules() =>
+            new(new[]
+            {
+                new SAScheduleTupleType(SAScheduleTupleID: 1,
+                    new PMaxScheduleType(new[]
+                    {
+                        new PMaxScheduleEntryType(new RelativeTimeIntervalType(Start: 0, Duration: 3600), PMax: Watt(11_000)),
+                    }),
+                    new SalesTariffType(Id: "salesTariff1", SalesTariffID: 1, SalesTariffDescription: "standard",
+                        NumEPriceLevels: 3, SalesTariffEntry: new[] { TariffEntry(0, level: 2), TariffEntry(1800, level: 3) })),
+                new SAScheduleTupleType(SAScheduleTupleID: 2,
+                    new PMaxScheduleType(new[]
+                    {
+                        new PMaxScheduleEntryType(new RelativeTimeIntervalType(Start: 0, Duration: 1800), PMax: Watt(7_400)),
+                        new PMaxScheduleEntryType(new RelativeTimeIntervalType(Start: 1800, Duration: 1800), PMax: Watt(22_000)),
+                    }),
+                    new SalesTariffType(Id: "salesTariff2", SalesTariffID: 2, SalesTariffDescription: "off-peak boost",
+                        NumEPriceLevels: 3, SalesTariffEntry: new[] { TariffEntry(0, level: 1), TariffEntry(1800, level: 2) })),
+            });
+
+        private static SalesTariffEntryType TariffEntry(uint start, byte level) =>
+            new(new RelativeTimeIntervalType(Start: start, Duration: null), EPriceLevel: level,
+                ConsumptionCost: Array.Empty<ConsumptionCostType>());
+
+        /// <summary>ONE header signature covering ALL offered SalesTariffs (one reference per tariff Id,
+        /// §7.9.2.5), in the spec/cbV2G combined-grammar form. Fachlich this is the Mobility Operator's
+        /// signature relayed by the SECC; here the configured tariff key signs directly. NOTE the honest
+        /// validation limit: a Josev EVCC carries tariff verification only as a code TODO and ignores the
+        /// signature — only our own EVCC (loopback/CI) actually verifies it.</summary>
+        private SignatureType SignTariffs(SAScheduleListType schedules)
+        {
+            var references = new List<(string ReferenceId, byte[] Digest)>();
+            var buf = new byte[2048];
+            foreach (var tuple in schedules.SAScheduleTuple)
+            {
+                if (tuple.SalesTariff?.Id is not { } id) continue;
+                if (!Iso2Codec.EncodeFragment_SalesTariff(tuple.SalesTariff, buf, out int n))
+                    throw new InvalidOperationException("SalesTariff fragment encode failed.");
+                references.Add((id, V2GSignature.Digest(buf.AsSpan(0, n))));
+            }
+            // Transforms=[EXI C14N] is schema-optional but included: a live Josev EVCC fails V2G message
+            // validation on any Reference without it (its pydantic model requires the field) and drops the
+            // session in ChargeParameterDiscovery — found live 2026-07-22, same bug class as its -20
+            // CertificateInstallation counterpart.
+            var signedInfo = V2GSignature.BuildSignedInfo(references, includeExiTransform: true);
+            return V2GSignature.BuildSignature(signedInfo, V2GSignature.Sign(signedInfo, TariffSignKey!));
+        }
+
+        /// <summary>Validates the <c>PowerDeliveryReq(Start)</c> against the offer: unknown tuple id →
+        /// <c>FAILED_TariffSelectionInvalid</c>; a ChargingProfile entry above the PMax active at its start
+        /// → <c>FAILED_ChargingProfileInvalid</c> ([V2G2-761]). Invalid requests do NOT advance the phase —
+        /// the EV may retry with a corrected choice.</summary>
+        private (BodyBaseType, Phase) PowerOn(PowerDeliveryReqType req)
+        {
+            var tuple = _offeredSchedules?.SAScheduleTuple.FirstOrDefault(t => t.SAScheduleTupleID == req.SAScheduleTupleID);
+            bool withinPMax = tuple is not null && ProfileWithinPMax(req.ChargingProfile, tuple.PMaxSchedule);
+            ChargingProfileCheck = new Iso2ProfileResult(tuple is not null, withinPMax, req.SAScheduleTupleID,
+                                                         req.ChargingProfile?.ProfileEntry.Count ?? 0);
+
+            if (tuple is null)  return (PowerDeliveryRes(ResponseCode.FAILED_TariffSelectionInvalid), Phase.PowerOn);
+            if (!withinPMax)    return (PowerDeliveryRes(ResponseCode.FAILED_ChargingProfileInvalid), Phase.PowerOn);
+            _chosenTupleId = req.SAScheduleTupleID;   // the charging-status responses echo the EV's choice
+            return (PowerOnOrOff(), Phase.Charging);
+        }
+
+        /// <summary>Each profile entry's max power must stay within the PMax entry active at its start time
+        /// (the last PMax entry whose start ≤ the profile entry's start). A profile-free request is fine —
+        /// the ChargingProfile is schema-optional, and an EV without one simply follows PMax.</summary>
+        private static bool ProfileWithinPMax(ChargingProfileType? profile, PMaxScheduleType pmaxSchedule)
+        {
+            if (profile is null) return true;
+            foreach (var entry in profile.ProfileEntry)
+            {
+                decimal? pmax = null;
+                foreach (var p in pmaxSchedule.PMaxScheduleEntry)
+                    if (p.TimeInterval is RelativeTimeIntervalType rti && rti.Start <= entry.ChargingProfileEntryStart)
+                        pmax = p.PMax.ToDecimal();
+                if (pmax is null || entry.ChargingProfileEntryMaxPower.ToDecimal() > pmax)
+                    return false;
+            }
+            return true;
+        }
+
+        private BodyBaseType PowerOnOrOff() => PowerDeliveryRes(ResponseCode.OK);
+
+        private BodyBaseType PowerDeliveryRes(ResponseCode code) =>
             mode == PowerMode.Dc
-                ? new PowerDeliveryResType(ResponseCode.OK, DcEvseStatus())
-                : new PowerDeliveryResType(ResponseCode.OK, AcEvseStatus());
+                ? new PowerDeliveryResType(code, DcEvseStatus())
+                : new PowerDeliveryResType(code, AcEvseStatus());
 
         private BodyBaseType CurrentDemand()
         {
@@ -256,7 +377,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 EVSEPresentVoltage: Volt(400), EVSEPresentCurrent: Amp(120),
                 EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false, EVSEPowerLimitAchieved: false,
                 EVSEMaximumVoltageLimit: null, EVSEMaximumCurrentLimit: null, EVSEMaximumPowerLimit: null,
-                EVSEID: "DE*ABC*E1", SAScheduleTupleID: 1,
+                EVSEID: "DE*ABC*E1", SAScheduleTupleID: _chosenTupleId,
                 MeterInfo: receipt ? Meter() : null, ReceiptRequired: receipt ? true : null);
         }
 
@@ -265,7 +386,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             // A Contract session gets ReceiptRequired + the MeterInfo the EV echoes back inside its
             // signed MeteringReceiptReq (a Josev EVCC only honours this over TLS).
             bool receipt = DemandReceipt();
-            return new ChargingStatusResType(ResponseCode.OK, "DE*ABC*E1", SAScheduleTupleID: 1,
+            return new ChargingStatusResType(ResponseCode.OK, "DE*ABC*E1", SAScheduleTupleID: _chosenTupleId,
                 EVSEMaxCurrent: null,
                 MeterInfo: receipt ? Meter() : null, ReceiptRequired: receipt ? true : null,
                 AcEvseStatus(Notification()));

@@ -79,6 +79,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>How many service-renegotiation cycles this session ran.</summary>
         public int Renegotiations { get; private set; }
 
+        /// <summary>When set, the Scheduled-mode ScheduleExchangeRes carries the rich, <b>digitally
+        /// signed</b> <c>AbsolutePriceSchedule</c> (fachlich the eMSP's tariff) instead of the compact flat
+        /// PriceLevelSchedule. P-521 — the -20 mandatory suite is ECDSA-P521/SHA-512.</summary>
+        public ECDsa? TariffSignKey { get; set; }
+
         private bool _renegotiationSignalled;   // the notification goes out exactly once
 
         /// <summary>For the DC/AC charge-loop hooks: whether THIS response should carry the
@@ -444,18 +449,78 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 new PowerScheduleEntryListType(new[] { new PowerScheduleEntryType(Duration: 3600, Power: new RationalNumberType(0, 100), null, null) }));
 
             // A ChargingSchedule must carry a price schedule (either PriceLevel or AbsolutePrice) — a live
-            // Josev EVCC rejects the tuple otherwise. PriceLevelSchedule is the compact form (one flat level).
-            var priceLevelSchedule = new PriceLevelScheduleType(Id: null, TimeAnchor: 0, PriceScheduleID: 1,
-                PriceScheduleDescription: null, NumberOfPriceLevels: 1,
-                new PriceLevelScheduleEntryListType(new[] { new PriceLevelScheduleEntryType(Duration: 3600, PriceLevel: 0) }));
+            // Josev EVCC rejects the tuple otherwise. Default: PriceLevelSchedule, the compact form (one
+            // flat level). With a TariffSignKey: the rich, digitally signed AbsolutePriceSchedule instead.
+            ChargingScheduleType chargingSchedule;
+            var header = SessionCtx.ToCommonHeader();
+            if (TariffSignKey is null)
+            {
+                var priceLevelSchedule = new PriceLevelScheduleType(Id: null, TimeAnchor: 0, PriceScheduleID: 1,
+                    PriceScheduleDescription: null, NumberOfPriceLevels: 1,
+                    new PriceLevelScheduleEntryListType(new[] { new PriceLevelScheduleEntryType(Duration: 3600, PriceLevel: 0) }));
+                chargingSchedule = new ChargingScheduleType(powerSchedule, AbsolutePriceSchedule: null, priceLevelSchedule);
+            }
+            else
+            {
+                var priceSchedule = AbsolutePriceSchedule();
+                chargingSchedule = new ChargingScheduleType(powerSchedule, priceSchedule, PriceLevelSchedule: null);
+                header = header with { Signature = SignPriceSchedule(priceSchedule) };
+            }
 
             var scheduleTuple = new ScheduleTupleType(ScheduleTupleID: 1,
-                ChargingSchedule: new ChargingScheduleType(powerSchedule, AbsolutePriceSchedule: null, priceLevelSchedule),
+                ChargingSchedule: chargingSchedule,
                 DischargingSchedule: null);
 
-            return new(SessionCtx.ToCommonHeader(), ResponseCode.OK, Processing.Finished, GoToPause: false,
+            return new(header, ResponseCode.OK, Processing.Finished, GoToPause: false,
                 Dynamic_SEResControlMode: null,
                 Scheduled_SEResControlMode: new Scheduled_SEResControlModeType(new[] { scheduleTuple }));
+        }
+
+        /// <summary>The rich -20 tariff: energy fees per power band (≤ 11 kW cheap, above pricier), stepping
+        /// up after 30 min — the -20 analogue of the -2 SalesTariff offer. Fees are EUR/kWh scaled 10^-2
+        /// (0.25 → RationalNumber(-2, 25)).</summary>
+        private static AbsolutePriceScheduleType AbsolutePriceSchedule() =>
+            new(Id: "absolutePriceSchedule1", TimeAnchor: 0, PriceScheduleID: 1,
+                PriceScheduleDescription: "off-peak first",
+                Currency: "EUR", Language: "en",
+                PriceAlgorithm: "urn:iso:std:iso:15118:-20:PriceAlgorithm:1-Power",
+                MinimumCost: null, MaximumCost: null, TaxRules: null,
+                PriceRuleStacks: new PriceRuleStackListType(new[]
+                {
+                    new PriceRuleStackType(Duration: 1800, new[]
+                    {
+                        PriceRule(feeCents: 25, powerRangeStartKw: 0),
+                        PriceRule(feeCents: 35, powerRangeStartKw: 11),
+                    }),
+                    new PriceRuleStackType(Duration: 1800, new[]
+                    {
+                        PriceRule(feeCents: 30, powerRangeStartKw: 0),
+                        PriceRule(feeCents: 45, powerRangeStartKw: 11),
+                    }),
+                }),
+                OverstayRules: null, AdditionalSelectedServices: null);
+
+        private static PriceRuleType PriceRule(short feeCents, short powerRangeStartKw) =>
+            new(EnergyFee: new RationalNumberType(-2, feeCents),
+                ParkingFee: null, ParkingFeePeriod: null,
+                CarbonDioxideEmission: null, RenewableGenerationPercentage: null,
+                PowerRangeStart: new RationalNumberType(3, powerRangeStartKw));
+
+        /// <summary>Signs the AbsolutePriceSchedule into the response header (one reference over the
+        /// schedule's EXI fragment, ECDSA-P521/SHA-512 — the -20 mandatory suite; fachlich the eMSP's
+        /// signature, here the configured tariff key). Transforms=[EXI C14N] is included because Josev's
+        /// pydantic Reference model requires it to even parse the message. NOTE the honest validation
+        /// limit: no external implementation verifies -20 price-schedule signatures — only our own EVCC
+        /// (loopback/CI) checks this.</summary>
+        private SignatureType SignPriceSchedule(AbsolutePriceScheduleType priceSchedule)
+        {
+            var buf = new byte[4096];
+            if (!CommonMessagesCodec.EncodeFragment_AbsolutePriceSchedule(priceSchedule, buf, out int n))
+                throw new InvalidOperationException("AbsolutePriceSchedule fragment encode failed.");
+
+            var signedInfo = V2GSignature.BuildSignedInfo(priceSchedule.Id!,
+                V2GSignature.Digest(buf.AsSpan(0, n)), includeExiTransform: true);
+            return V2GSignature.BuildSignature(signedInfo, V2GSignature.Sign(signedInfo, TariffSignKey!));
         }
 
         /// <summary>

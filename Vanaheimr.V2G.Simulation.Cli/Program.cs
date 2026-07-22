@@ -112,6 +112,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 {
                     ResumeSessionId = resumeId,
                     RequestRenegotiation = args.Renegotiate,
+                    TariffSignKey = args.TariffCertPath is not null
+                        ? LoadTariffKey(args.TariffCertPath, args.TariffCertPass, signing: true) : null,
                 };
                 try { await secc2.RunAsync(stream); }
                 finally
@@ -123,6 +125,10 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     foreach (var r in secc2.MeteringReceipts)
                         Console.WriteLine($"-2 MeteringReceipt: digest {(r.DigestOk ? "OK" : "FAIL")}, " +
                                           $"signature {(r.SignatureOk ? "OK" : "FAIL")}{(r.SignatureOk ? $" (grammar={r.SignatureGrammar})" : "")}.");
+                    if (secc2.ChargingProfileCheck is { } cp)
+                        Console.WriteLine($"-2 SmartCharging: EV chose tuple {cp.TupleId} " +
+                                          $"({(cp.TupleIdOk ? "offered" : "NOT OFFERED")}), ChargingProfile {cp.ProfileEntries} " +
+                                          $"entr{(cp.ProfileEntries == 1 ? "y" : "ies")}, within PMax: {(cp.WithinPMax ? "OK" : "VIOLATED")}.");
                 }
                 if (secc2.Renegotiations > 0)
                     Console.WriteLine($"-2 Renegotiation cycles: {secc2.Renegotiations}.");
@@ -136,6 +142,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 secc.PreferDynamicControlMode = args.PreferDynamic;
                 secc.ResumeSessionId = resumeId;
                 secc.RequestRenegotiation = args.Renegotiate;
+                if (args.TariffCertPath is not null)
+                    secc.TariffSignKey = LoadTariffKey(args.TariffCertPath, args.TariffCertPass, signing: true);
                 // finally: the PnC/cert-install verdicts are the run's evidence — print them even when the
                 // peer aborts mid-session (e.g. Josev's EVCC crashes on its own unimplemented cert-install res).
                 try { await secc.RunAsync(stream); }
@@ -281,10 +289,17 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 };
                 if (args.ContractCertPath is not null)
                     evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
+                if (args.TariffCertPath is not null)
+                    evcc.TariffVerifyKey = LoadTariffKey(args.TariffCertPath, args.TariffCertPass, signing: false);
                 await evcc.RunAsync();
                 Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), " +
                                   $"auth: {evcc.AuthorizationMode}, metering receipts sent: {evcc.MeteringReceiptsSent}, " +
                                   $"renegotiations: {evcc.Renegotiations}, session setup: {evcc.SessionSetupCode}.");
+                if (evcc.Tariff is { } t2)
+                    Console.WriteLine($"-2 Tariff: {t2.TuplesOffered} tuple(s), signature " +
+                                      $"{(t2.SignaturePresent ? $"present, digests {(t2.DigestOk ? "OK" : "FAIL")}, " +
+                                        $"ECDSA {(t2.SignatureOk ? $"OK (grammar={t2.SignatureGrammar})" : "FAIL/unverified")}" : "absent")}; " +
+                                      $"chose tuple {t2.ChosenTupleId}, profile {t2.ProfileEntries} entr{(t2.ProfileEntries == 1 ? "y" : "ies")}.");
                 return evcc.SessionId;
             }
             else
@@ -297,9 +312,14 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 evcc.ResumeSessionId = resumeId;
                 if (args.ContractCertPath is not null)
                     evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
+                if (args.TariffCertPath is not null)
+                    evcc.TariffVerifyKey = LoadTariffKey(args.TariffCertPath, args.TariffCertPass, signing: false);
                 await evcc.RunAsync();
                 Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), " +
                                   $"auth: {evcc.AuthorizationMode}, session setup: {evcc.SessionSetupCode}.");
+                if (evcc.Tariff is { } t20)
+                    Console.WriteLine($"-20 AbsolutePriceSchedule: signature {(t20.SignaturePresent ? "present" : "absent")}, " +
+                                      $"digest {(t20.DigestOk ? "OK" : "FAIL")}, ECDSA-P521/SHA-512 {(t20.SignatureOk ? "OK" : "FAIL/unverified")}.");
                 return evcc.SessionId;
             }
         }
@@ -318,6 +338,22 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var subCerts = collection.Where(c => !c.HasPrivateKey).Select(c => c.RawData).ToArray();
             Console.WriteLine($"PnC: contract cert {leaf.Subject} (+{subCerts.Length} sub-CA(s)), key {key.KeySize}-bit EC.");
             return new PncEvccOptions(leaf.RawData, subCerts, key);
+        }
+
+        /// <summary>Loads the tariff key from a PKCS#12: SECC (<paramref name="signing"/>) → the leaf's
+        /// ECDSA private key, which signs the -2 SalesTariffs / -20 AbsolutePriceSchedule offer; EVCC →
+        /// the leaf's public key, which verifies that signature.</summary>
+        private static ECDsa LoadTariffKey(string path, string? password, bool signing)
+        {
+            var collection = X509CertificateLoader.LoadPkcs12CollectionFromFile(path, password,
+                X509KeyStorageFlags.EphemeralKeySet);
+            var leaf = collection.FirstOrDefault(c => c.HasPrivateKey) ?? collection.FirstOrDefault()
+                ?? throw new ArgumentException($"--tariff-cert: '{path}' contains no certificate.");
+            var key = signing
+                ? leaf.GetECDsaPrivateKey() ?? throw new ArgumentException("--tariff-cert: the SECC side needs an ECDSA private key to sign.")
+                : leaf.GetECDsaPublicKey() ?? throw new ArgumentException("--tariff-cert: the leaf's key is not ECDSA.");
+            Console.WriteLine($"Tariff: {(signing ? "signing" : "verifying")} with {leaf.Subject}, {key.KeySize}-bit EC.");
+            return key;
         }
 
         private static async Task<(string Host, int Port)> ResolveEvccEndpointAsync(CliArgs args)

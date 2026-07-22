@@ -47,6 +47,56 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         }
 
         /// <summary>
+        /// -20 smart-charging loopback (DC, Scheduled mode): with a tariff key the SECC's
+        /// ScheduleExchangeRes carries the rich <c>AbsolutePriceSchedule</c> (power-banded EUR/kWh price
+        /// rule stacks) instead of the flat PriceLevelSchedule, digitally signed into the response header
+        /// (ECDSA-P521/SHA-512, the -20 mandatory suite); the EVCC verifies digest + signature. NOTE: the
+        /// -20 signature half stays self-consistent in-repo validation — no external implementation signs
+        /// or verifies -20 price schedules (unlike -2, where Josev MO-signs its SalesTariff and gave our
+        /// verify path a live oracle); a live Josev AC EVCC did consume this signed schedule and complete.
+        /// </summary>
+        [Test]
+        public async Task DcTariffSession_SignedAbsolutePriceSchedule_VerifiesAtEv()
+        {
+            using var tariffKey = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP521);
+            using var tariffPublic = System.Security.Cryptography.ECDsa.Create(
+                tariffKey.ExportParameters(includePrivateParameters: false));
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+                var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System) { TariffSignKey = tariffKey };
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            {
+                TariffVerifyKey = tariffPublic,
+            };
+            var evccTask = evcc.RunAsync(cts.Token);
+            await Task.WhenAll(evccTask, seccTask);
+
+            var secc = await seccTask;
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Assert.That(evcc.Tariff, Is.Not.Null, "the EV must see the signed AbsolutePriceSchedule");
+                Assert.That(evcc.Tariff!.SignaturePresent, Is.True);
+                Assert.That(evcc.Tariff.DigestOk, Is.True, "the schedule digest must match its fragment");
+                Assert.That(evcc.Tariff.SignatureOk, Is.True, "the P-521/SHA-512 signature must verify");
+            });
+        }
+
+        /// <summary>
         /// Full Plug &amp; Charge loopback: the EVCC (with contract credentials) signs its AuthorizationReq in
         /// the Josev interop form (<see cref="XmlDsigInteropSign"/>) and the SECC's live verify path accepts it
         /// via the standalone-xmldsig fallback — challenge echo, reference digest, and ECDSA signature all OK.

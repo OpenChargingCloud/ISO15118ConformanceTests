@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 using Vanaheimr.V2G.Iso15118_2;
@@ -10,6 +11,14 @@ using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 {
+    /// <summary>The EV's smart-charging verdict over the SASchedule offer: how many tuples were offered,
+    /// whether the SalesTariffs carried a header signature and it verified (digest per tariff + ECDSA,
+    /// dual-grammar like the SECC's checks), which tuple the EV chose (lowest average EPriceLevel), and how
+    /// many ChargingProfile entries it derived from that tuple's PMaxSchedule.</summary>
+    public sealed record Iso2TariffResult(int TuplesOffered, bool SignaturePresent, bool DigestOk,
+                                          bool SignatureOk, string SignatureGrammar,
+                                          byte ChosenTupleId, int ProfileEntries);
+
     /// <summary>
     /// The vehicle (EVCC) side of an ISO 15118-2 session — it drives the session over an already-connected
     /// (and, for -20, already-SAP-negotiated) <see cref="Stream"/>. Each step is one request/response
@@ -67,6 +76,19 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// <summary>How many renegotiation cycles this session ran (own + SECC-requested).</summary>
         public int Renegotiations { get; private set; }
 
+        /// <summary>The tariff signer's public key (fachlich the Mobility Operator's). When set AND the
+        /// SECC's SASchedule offer carries signed SalesTariffs, the EV verifies them (§7.9.2.5); without a
+        /// key the tariffs are still read for the price-aware tuple choice, just not verified.</summary>
+        public ECDsa? TariffVerifyKey { get; set; }
+
+        /// <summary>The smart-charging verdict over the (last) SASchedule offer; null until
+        /// ChargeParameterDiscovery finished.</summary>
+        public Iso2TariffResult? Tariff { get; private set; }
+
+        private MessageHeaderType? _lastHeader;             // the header of the response just received
+        private byte _chosenTupleId = 1;                    // the SAScheduleTuple the EV selected
+        private ChargingProfileType? _chargingProfile;      // derived from the chosen tuple's PMaxSchedule
+
         public async Task RunAsync(CancellationToken ct = default)
         {
             // ── SETUP ──────────────────────────────────────────────────────────
@@ -108,9 +130,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 await pollDelay.Wait(PollInterval, ct);
 
             // ── CHARGE PARAMETERS (+ DC cable check / pre-charge) ──────────────
-            while ((await Send<ChargeParameterDiscoveryResType>(ChargeParameterDiscovery(), ct))
-                       .EVSEProcessing != EVSEProcessing.Finished)
-                await pollDelay.Wait(PollInterval, ct);
+            await RunChargeParameterDiscovery(ct);
 
             if (mode == PowerMode.Dc)
             {
@@ -153,9 +173,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                     renegotiated = true;
                     Renegotiations++;
                     await Send<PowerDeliveryResType>(PowerDelivery(ChargeProgress.Renegotiate), ct);
-                    while ((await Send<ChargeParameterDiscoveryResType>(ChargeParameterDiscovery(), ct))
-                               .EVSEProcessing != EVSEProcessing.Finished)
-                        await pollDelay.Wait(PollInterval, ct);
+                    await RunChargeParameterDiscovery(ct);
                     await Send<PowerDeliveryResType>(PowerDelivery(ChargeProgress.Start), ct);
                 }
                 await pollDelay.Wait(PollInterval, ct);
@@ -168,6 +186,85 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 await Send<WeldingDetectionResType>(new WeldingDetectionReqType(EvStatus()), ct);
             await Send<SessionStopResType>(new SessionStopReqType(StopMode), ct);
         }
+
+        /// <summary>Polls ChargeParameterDiscovery until Finished, then evaluates the SASchedule offer:
+        /// verify signed SalesTariffs, pick the cheapest tuple, derive the ChargingProfile. Runs again
+        /// after a renegotiation (the offer may have changed).</summary>
+        private async Task RunChargeParameterDiscovery(CancellationToken ct)
+        {
+            ChargeParameterDiscoveryResType cpd;
+            while ((cpd = await Send<ChargeParameterDiscoveryResType>(ChargeParameterDiscovery(), ct))
+                       .EVSEProcessing != EVSEProcessing.Finished)
+                await pollDelay.Wait(PollInterval, ct);
+            EvaluateSchedules(cpd);
+        }
+
+        /// <summary>The EV-side smart-charging step over a finished ChargeParameterDiscoveryRes:
+        /// (1) if the offer's SalesTariffs are signed (§7.9.2.5), check each tariff's reference digest
+        /// against its re-encoded EXI fragment and (with <see cref="TariffVerifyKey"/>) the ECDSA signature
+        /// — dual-grammar, like every other signature in this interop; (2) choose the tuple with the lowest
+        /// average EPriceLevel; (3) shape the ChargingProfile to the chosen tuple's PMaxSchedule (entry for
+        /// entry — this simulated EV can always draw PMax; a weaker EV would cap at its own limit).</summary>
+        private void EvaluateSchedules(ChargeParameterDiscoveryResType cpd)
+        {
+            if (cpd.SASchedules is not SAScheduleListType offer || offer.SAScheduleTuple.Count == 0)
+            {
+                Tariff = null;   // no offer (EVSEProcessing games aside, [V2G2-905] makes this a SECC bug)
+                _chosenTupleId = 1;
+                _chargingProfile = null;
+                return;
+            }
+
+            // (1) tariff signature: one header signature, one reference per SalesTariff Id.
+            var signedTariffs = offer.SAScheduleTuple
+                .Where(t => t.SalesTariff?.Id is not null)
+                .Select(t => t.SalesTariff!)
+                .ToList();
+            bool signaturePresent = _lastHeader?.Signature is not null && signedTariffs.Count > 0;
+            bool digestOk = signaturePresent;
+            if (signaturePresent)
+            {
+                var sig = _lastHeader!.Signature!;
+                var buf = new byte[2048];
+                foreach (var tariff in signedTariffs)
+                {
+                    var reference = sig.SignedInfo.Reference.FirstOrDefault(r => r.URI == "#" + tariff.Id);
+                    digestOk &= reference is not null
+                        && Iso2Codec.EncodeFragment_SalesTariff(tariff, buf, out int n)
+                        && V2GSignature.VerifyReference(reference, buf.AsSpan(0, n));
+                }
+            }
+            var (signatureOk, grammar) = (false, "none");
+            if (signaturePresent && TariffVerifyKey is not null)
+            {
+                var sig = _lastHeader!.Signature!;
+                if (V2GSignature.Verify(sig.SignedInfo, sig.SignatureValue.Value, TariffVerifyKey))
+                    (signatureOk, grammar) = (true, "iso2-msgdef");
+                else if (XmlDsigInterop2.VerifyStandaloneXmldsig(sig.SignedInfo, sig.SignatureValue.Value, TariffVerifyKey))
+                    (signatureOk, grammar) = (true, "xmldsig-standalone");
+            }
+
+            // (2) cheapest tuple: lowest average EPriceLevel; tariff-less tuples rank last, ties keep offer order.
+            var chosen = offer.SAScheduleTuple.OrderBy(AveragePriceLevel).First();
+            _chosenTupleId = chosen.SAScheduleTupleID;
+
+            // (3) the ChargingProfile follows the chosen tuple's PMaxSchedule step for step.
+            _chargingProfile = new ChargingProfileType(chosen.PMaxSchedule.PMaxScheduleEntry
+                .Select(p => new ProfileEntryType(
+                    ChargingProfileEntryStart: p.TimeInterval is RelativeTimeIntervalType rti ? rti.Start : 0,
+                    ChargingProfileEntryMaxPower: p.PMax,
+                    ChargingProfileEntryMaxNumberOfPhasesInUse: null))
+                .ToArray());
+
+            Tariff = new Iso2TariffResult(offer.SAScheduleTuple.Count, signaturePresent, digestOk,
+                                          signatureOk, grammar, _chosenTupleId,
+                                          _chargingProfile.ProfileEntry.Count);
+        }
+
+        private static double AveragePriceLevel(SAScheduleTupleType tuple) =>
+            tuple.SalesTariff is { SalesTariffEntry.Count: > 0 } tariff
+                ? tariff.SalesTariffEntry.Average(e => (double?)e.EPriceLevel ?? byte.MaxValue)
+                : double.MaxValue;
 
         /// <summary>Signs and sends one MeteringReceiptReq for the SECC's MeterInfo, in the Josev form.</summary>
         private async Task SendMeteringReceipt(MeterInfoType meterInfo, byte? saScheduleTupleId, CancellationToken ct)
@@ -212,12 +309,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             BytesOnWire += V2GTP.HeaderSize + reqLen; // request side; response side is the peer's own accounting
 
             _sid = reply.Header.SessionID;             // adopt the SECC-assigned session id
+            _lastHeader = reply.Header;                // tariff verification reads the response signature
             return (T)reply.Body.BodyElement!;
         }
 
         // ── request builders ──────────────────────────────────────────────────
-        private static PowerDeliveryReqType PowerDelivery(ChargeProgress progress) =>
-            new(progress, SAScheduleTupleID: 1, ChargingProfile: null, EVPowerDeliveryParameter: null);
+        /// <summary>Start carries the smart-charging outcome: the chosen tuple id and the PMax-shaped
+        /// ChargingProfile; Renegotiate/Stop reference the tuple without a profile.</summary>
+        private PowerDeliveryReqType PowerDelivery(ChargeProgress progress) =>
+            new(progress, SAScheduleTupleID: _chosenTupleId,
+                ChargingProfile: progress == ChargeProgress.Start ? _chargingProfile : null,
+                EVPowerDeliveryParameter: null);
 
         private ChargeParameterDiscoveryReqType ChargeParameterDiscovery() =>
             mode == PowerMode.Dc

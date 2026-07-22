@@ -22,7 +22,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
         string? PkiDir, string? ClientCertPath, string? ClientCertPass,
         string? ServerCertPath, string? ServerCertPass, bool RequireClientCert,
         string? ContractCertPath, string? ContractCertPass, bool PauseResume,
-        bool EndPaused, string? ResumeSessionIdHex, bool Renegotiate)
+        bool EndPaused, string? ResumeSessionIdHex, bool Renegotiate,
+        string? TariffCertPath, string? TariffCertPass)
     {
         public static CliArgs Parse(string[] args)
         {
@@ -40,6 +41,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             string? resumeSessionIdHex = null;
             string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
             string? serverCertPath = null, serverCertPass = null, contractCertPath = null, contractCertPass = null;
+            string? tariffCertPath = null, tariffCertPass = null;
             int slacListenPort = 0, slacPeerPort = 0;
 
             for (int i = 1; i < args.Length; i++)
@@ -133,6 +135,12 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     case "--renegotiate":
                         renegotiate = true;
                         break;
+                    case "--tariff-cert":
+                        tariffCertPath = args[++i];
+                        break;
+                    case "--tariff-cert-pass":
+                        tariffCertPass = args[++i];
+                        break;
                     default:
                         throw new ArgumentException($"unknown argument '{args[i]}'.\n{Usage}");
                 }
@@ -147,7 +155,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
                                useSdp, iface, preferDynamic, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
                                clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert,
-                               contractCertPath, contractCertPass, pauseResume, endPaused, resumeSessionIdHex, renegotiate);
+                               contractCertPath, contractCertPass, pauseResume, endPaused, resumeSessionIdHex, renegotiate,
+                               tariffCertPath, tariffCertPass);
         }
 
         private static void Validate(Role role, string? connectHost, int listenPort, TlsBackend backend,
@@ -205,6 +214,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-2/-20: signed Plug & Charge auth)\n" +
             "  Pause: evcc --pause-resume    (pause after the charge loop, reconnect, rejoin the old session)\n" +
             "         evcc --pause | --resume <hex-session-id>   (the two halves as separate invocations)\n" +
+            "  Tariff: secc --tariff-cert <pfx> [--tariff-cert-pass <pw>]  (signed SalesTariff/-20 AbsolutePriceSchedule offer)\n" +
+            "          evcc --tariff-cert <pfx>   (verify the tariff signature with the cert's public key)\n" +
             "  Reneg: secc --renegotiate  (notify ReNegotiation/ServiceRenegotiation once mid-loop)\n" +
             "         evcc --renegotiate  (-2: EV-initiated PowerDelivery(Renegotiate) after the first cycle)\n" +
             "  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)";
