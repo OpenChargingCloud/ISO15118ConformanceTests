@@ -74,6 +74,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts a fresh one.</summary>
         public byte[]? ResumeSessionId { get; set; }
 
+        /// <summary>When set, the SECC requests a <b>renegotiation</b> once: the first charging-status
+        /// response carries <c>EVSENotification.ReNegotiation</c>, the EV answers
+        /// <c>PowerDeliveryReq(Renegotiate)</c> and re-runs ChargeParameterDiscovery ([V2G2-841]).</summary>
+        public bool RequestRenegotiation { get; set; }
+
+        /// <summary>How many renegotiation cycles this session ran (EV-initiated or SECC-requested).</summary>
+        public int Renegotiations { get; private set; }
+
+        private bool _renegotiationSignalled;   // the notification is sent exactly once
+        private bool _renegotiated;             // post-renegotiation: CPD hands to PowerOn (no new CableCheck)
+
         public V2G_Message Handle(V2G_Message request)
         {
             var now = clock.GetUtcNow();
@@ -125,8 +136,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             (Phase.Authorization, AuthorizationReqType r) =>
                 (Authorize(r), Phase.ChargeParams),
 
+            // After a renegotiation the cable is already checked — the EV proceeds straight from the new
+            // ChargeParameterDiscovery to PowerDelivery(Start), DC included (a Josev EVCC does exactly that).
             (Phase.ChargeParams, ChargeParameterDiscoveryReqType) =>
-                (ChargeParams(), mode == PowerMode.Dc ? Phase.CableCheck : Phase.PowerOn),
+                (ChargeParams(), mode == PowerMode.Dc && !_renegotiated ? Phase.CableCheck : Phase.PowerOn),
 
             // ── DC-only pre-charge sequence ──
             (Phase.CableCheck, CableCheckReqType) =>
@@ -146,6 +159,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             // EV answers with a signed MeteringReceiptReq — verify it and stay in the charging loop.
             (Phase.Charging, MeteringReceiptReqType r) when _contract =>
                 (MeteringReceipt(r), Phase.Charging),
+
+            // Renegotiation ([V2G2-841]): the EV re-opens ChargeParameterDiscovery mid-loop — either on its
+            // own or because our charging-status response carried EVSENotification.ReNegotiation.
+            (Phase.Charging, PowerDeliveryReqType { ChargeProgress: ChargeProgress.Renegotiate }) =>
+                (Renegotiate(), Phase.ChargeParams),
 
             (Phase.Charging, PowerDeliveryReqType { ChargeProgress: ChargeProgress.Stop }) =>
                 (PowerOnOrOff(), mode == PowerMode.Dc ? Phase.WeldingDetection : Phase.SessionStop),
@@ -234,7 +252,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         private BodyBaseType CurrentDemand()
         {
             bool receipt = DemandReceipt();
-            return new CurrentDemandResType(ResponseCode.OK, DcEvseStatus(),
+            return new CurrentDemandResType(ResponseCode.OK, DcEvseStatus(Notification()),
                 EVSEPresentVoltage: Volt(400), EVSEPresentCurrent: Amp(120),
                 EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false, EVSEPowerLimitAchieved: false,
                 EVSEMaximumVoltageLimit: null, EVSEMaximumCurrentLimit: null, EVSEMaximumPowerLimit: null,
@@ -250,7 +268,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             return new ChargingStatusResType(ResponseCode.OK, "DE*ABC*E1", SAScheduleTupleID: 1,
                 EVSEMaxCurrent: null,
                 MeterInfo: receipt ? Meter() : null, ReceiptRequired: receipt ? true : null,
-                AcEvseStatus());
+                AcEvseStatus(Notification()));
         }
 
         /// <summary>Whether THIS status response demands a receipt: exactly once per Contract session. A
@@ -262,6 +280,23 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             if (!_contract || _receiptRequested) return false;
             _receiptRequested = true;
             return true;
+        }
+
+        /// <summary>Whether THIS status response carries <c>EVSENotification.ReNegotiation</c>: exactly once
+        /// (same once-per-session logic as <see cref="DemandReceipt"/> — the EV answers every notified
+        /// response with a renegotiation, so repeating it would loop).</summary>
+        private EVSENotification Notification()
+        {
+            if (!RequestRenegotiation || _renegotiationSignalled) return EVSENotification.None;
+            _renegotiationSignalled = true;
+            return EVSENotification.ReNegotiation;
+        }
+
+        private BodyBaseType Renegotiate()
+        {
+            _renegotiated = true;
+            Renegotiations++;
+            return PowerOnOrOff();
         }
 
         // ── Plug & Charge handlers ────────────────────────────────────────────
@@ -335,10 +370,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             new("VAN*M1", MeterReading: 42, SigMeterReading: null, MeterStatus: null,
                 TMeter: clock.GetUtcNow().ToUnixTimeSeconds());
 
-        private static DC_EVSEStatusType DcEvseStatus() =>
-            new(NotificationMaxDelay: 0, EVSENotification.None, EVSEIsolationStatus: null, DC_EVSEStatusCode.EVSE_Ready);
-        private static AC_EVSEStatusType AcEvseStatus() =>
-            new(NotificationMaxDelay: 0, EVSENotification.None, RCD: false);
+        private static DC_EVSEStatusType DcEvseStatus(EVSENotification notification = EVSENotification.None) =>
+            new(NotificationMaxDelay: 0, notification, EVSEIsolationStatus: null, DC_EVSEStatusCode.EVSE_Ready);
+        private static AC_EVSEStatusType AcEvseStatus(EVSENotification notification = EVSENotification.None) =>
+            new(NotificationMaxDelay: 0, notification, RCD: false);
 
         private static PhysicalValueType Volt(short v) => new(0, UnitSymbol.V, v);
         private static PhysicalValueType Amp(short a)  => new(0, UnitSymbol.A, a);

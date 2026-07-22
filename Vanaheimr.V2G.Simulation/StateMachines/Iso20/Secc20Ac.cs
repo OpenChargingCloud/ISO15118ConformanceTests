@@ -60,7 +60,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 _ => new Ac20.Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null),
             };
             var res = new Ac20.AC_ChargeLoopRes(SessionCtx.ToAcHeader(), Ac20.ResponseCode.OK,
-                EVSEStatus: null, MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
+                // Service renegotiation is requested via the (otherwise absent) EVSEStatus ([V2G20-1477]).
+                EVSEStatus: SignalRenegotiationOnce()
+                    ? new Ac20.EVSEStatusType(NotificationMaxDelay: 0, Ac20.EvseNotification.ServiceRenegotiation)
+                    : null,
+                MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
                 CLResControlMode: clRes);
             return (MessageSet.Iso20AC, res);
         }

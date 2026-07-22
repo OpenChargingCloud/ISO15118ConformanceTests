@@ -81,7 +81,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 _ => new Dc20.Scheduled_DC_CLResControlModeType(null, null, null, null),
             };
             var res = new Dc20.DC_ChargeLoopRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK,
-                EVSEStatus: null, MeterInfo: null, Receipt: null,
+                // Service renegotiation is requested via the (otherwise absent) EVSEStatus ([V2G20-1477]);
+                // a Josev EVCC reacts with PowerDelivery(Stop) + SessionStopReq(ServiceRenegotiation).
+                EVSEStatus: SignalRenegotiationOnce()
+                    ? new Dc20.EVSEStatusType(NotificationMaxDelay: 0, Dc20.EvseNotification.ServiceRenegotiation)
+                    : null,
+                MeterInfo: null, Receipt: null,
                 EVSEPresentCurrent: Rat(120), EVSEPresentVoltage: Rat(400),
                 EVSEPowerLimitAchieved: false, EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false,
                 CLResControlMode: clRes);

@@ -170,8 +170,13 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
 - **Pause/Resume — closed** (was a declared non-goal, now implemented): `SessionStopReq(Pause)` + rejoin
   via the old session id (`OK_OldSessionJoined`), both protocols, loopback E2Es + live forward vs Josev
   (`2026-07-22-pause-resume`). The -2 flow round-trips fully; Josev's -20 side preserves an empty session
-  context and degrades to a graceful new session — documented as its gap. Still out of scope:
-  renegotiation and smart-charging detail.
+  context and degrades to a graceful new session — documented as its gap.
+- **Renegotiation — closed** (the last item of the gap list): -2 [V2G2-841] SECC-triggered **and**
+  EV-initiated, both live-complete against Josev in both directions; -20 ServiceRenegotiation
+  [V2G20-1477] implemented with session re-entry at ServiceDiscovery — live to the point where Josev's
+  own EVCC drops the link (three documented Josev gaps: empty -20 pause context, DC stop path hardcoding
+  Terminate, and the stop notification beating its own ServiceDiscovery re-entry); the full cycle is
+  CI-guarded (`2026-07-22-renegotiation`). Still out of scope: smart-charging/SalesTariff detail.
 - **ISO 15118-2 Plug & Charge session flow — closed** (was the last big codec-tested-only block): live in
   both directions over TLS (`2026-07-22-iso2-pnc-tls`) — PaymentDetails, the signed AuthorizationReq and
   the signed MeteringReceiptReq all verify, ours at Josev and Josev's at ours (dual-grammar; Josev's -2

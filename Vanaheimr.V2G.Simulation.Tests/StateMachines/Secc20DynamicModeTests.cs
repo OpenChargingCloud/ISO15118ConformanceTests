@@ -50,6 +50,59 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceSelectionReq(Common, new SelectedServiceType(serviceId, 2), null));
         }
 
+        /// <summary>
+        /// Service renegotiation ([V2G20-1477]) at the Handle level: the SECC (RequestRenegotiation) puts
+        /// <c>EvseNotification.ServiceRenegotiation</c> into the first charge-loop response; the EV stops
+        /// power delivery and sends <c>SessionStopReq(ServiceRenegotiation)</c> — the session does NOT end
+        /// but re-enters ServiceDiscovery, re-runs the whole middle, and terminates normally afterwards.
+        /// This mirrors exactly what a live Josev EVCC does on that notification.
+        /// </summary>
+        [Test]
+        public void ServiceRenegotiation_ReentersServiceDiscovery_AndCompletes()
+        {
+            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System) { RequestRenegotiation = true };
+            RunDcSetup(secc, serviceId: 2);
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryReq(Dc,
+                new Dc20.DC_CPDReqEnergyTransferModeType(DcRat(5_000, 1), DcRat(0), DcRat(200), DcRat(0), DcRat(500), DcRat(50), TargetSOC: 80)));
+            secc.Handle(MessageSet.Iso20CommonMessages, new ScheduleExchangeReq(Common, 12, null,
+                new Scheduled_SEReqControlModeType(null, null, null, null, null)));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_CableCheckReq(Dc));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_PreChargeReq(Dc, Dc20.Processing.Finished, DcRat(0), DcRat(400)));
+            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Start, null, null));
+
+            // First charge-loop response must carry the one-shot ServiceRenegotiation notification.
+            var loop = (Dc20.DC_ChargeLoopRes)secc.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeLoopReq(Dc, null, false, DcRat(400),
+                new Dc20.Scheduled_DC_CLReqControlModeType(null, null, null, DcRat(120), DcRat(400), null, null, null, null, null))).Response;
+            Assert.That(loop.EVSEStatus?.EVSENotification, Is.EqualTo(Dc20.EvseNotification.ServiceRenegotiation));
+
+            // The EV reacts: PowerDelivery(Stop) + SessionStopReq(ServiceRenegotiation) → session continues.
+            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Stop, null, null));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_WeldingDetectionReq(Dc, Dc20.Processing.Finished));
+            var stop = (SessionStopRes)secc.Handle(MessageSet.Iso20CommonMessages,
+                new SessionStopReq(Common, ChargingSession.ServiceRenegotiation, null, null)).Response;
+            Assert.That(stop.ResponseCode, Is.EqualTo(ResponseCode.OK));
+            Assert.That(secc.IsDone, Is.False, "ServiceRenegotiation must NOT end the session");
+            Assert.That(secc.Renegotiations, Is.EqualTo(1));
+
+            // Round 2: the full middle replays from ServiceDiscovery — no second notification this time.
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null));
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDetailReq(Common, 2));
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceSelectionReq(Common, new SelectedServiceType(2, 1), null));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryReq(Dc,
+                new Dc20.DC_CPDReqEnergyTransferModeType(DcRat(5_000, 1), DcRat(0), DcRat(200), DcRat(0), DcRat(500), DcRat(50), TargetSOC: 80)));
+            secc.Handle(MessageSet.Iso20CommonMessages, new ScheduleExchangeReq(Common, 12, null,
+                new Scheduled_SEReqControlModeType(null, null, null, null, null)));
+            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Start, null, null));
+            var loop2 = (Dc20.DC_ChargeLoopRes)secc.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeLoopReq(Dc, null, false, DcRat(400),
+                new Dc20.Scheduled_DC_CLReqControlModeType(null, null, null, DcRat(120), DcRat(400), null, null, null, null, null))).Response;
+            Assert.That(loop2.EVSEStatus, Is.Null, "the renegotiation notification fires exactly once");
+
+            secc.Handle(MessageSet.Iso20CommonMessages, new PowerDeliveryReq(Common, Processing.Finished, ChargeProgress.Stop, null, null));
+            secc.Handle(MessageSet.Iso20DC, new Dc20.DC_WeldingDetectionReq(Dc, Dc20.Processing.Finished));
+            secc.Handle(MessageSet.Iso20CommonMessages, new SessionStopReq(Common, ChargingSession.Terminate, null, null));
+            Assert.That(secc.IsDone, Is.True);
+        }
+
         [Test]
         public void ServiceDetail_OffersBothControlModes_ScheduledFirstByDefault()
         {

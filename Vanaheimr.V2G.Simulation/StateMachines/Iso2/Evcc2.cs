@@ -59,6 +59,14 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// <summary>The session id in effect (SECC-assigned, or the rejoined one) — keep it for a resume.</summary>
         public byte[] SessionId => _sid;
 
+        /// <summary>When set, the EV initiates one renegotiation on its own after the first charging-status
+        /// cycle (<c>PowerDeliveryReq(Renegotiate)</c> → new ChargeParameterDiscovery → PowerDelivery(Start)).
+        /// Independent of that, the EV always reacts to a SECC-side <c>EVSENotification.ReNegotiation</c>.</summary>
+        public bool Renegotiate { get; set; }
+
+        /// <summary>How many renegotiation cycles this session ran (own + SECC-requested).</summary>
+        public int Renegotiations { get; private set; }
+
         public async Task RunAsync(CancellationToken ct = default)
         {
             // ── SETUP ──────────────────────────────────────────────────────────
@@ -116,21 +124,39 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             // ── CHARGE ─────────────────────────────────────────────────────────
             await Send<PowerDeliveryResType>(PowerDelivery(ChargeProgress.Start), ct);
 
+            bool renegotiated = false;
             for (int cycle = 0; cycle < 3; cycle++)                    // a few charging-loop iterations
             {
                 // A Contract SECC may demand a receipt (ReceiptRequired) in its status response — answer with
                 // a signed MeteringReceiptReq echoing its MeterInfo (as a real EV, e.g. Josev, does).
+                EVSENotification notification;
                 if (mode == PowerMode.Dc)
                 {
                     var cd = await Send<CurrentDemandResType>(CurrentDemand(), ct);
+                    notification = cd.DC_EVSEStatus.EVSENotification;
                     if (cd.ReceiptRequired == true && cd.MeterInfo is not null)
                         await SendMeteringReceipt(cd.MeterInfo, cd.SAScheduleTupleID, ct);
                 }
                 else
                 {
                     var cs = await Send<ChargingStatusResType>(new ChargingStatusReqType(), ct);
+                    notification = cs.AC_EVSEStatus.EVSENotification;
                     if (cs.ReceiptRequired == true && cs.MeterInfo is not null)
                         await SendMeteringReceipt(cs.MeterInfo, cs.SAScheduleTupleID, ct);
+                }
+
+                // Renegotiation ([V2G2-841]) — reactive (the SECC notified ReNegotiation) or proactive
+                // (Renegotiate option, once): PowerDelivery(Renegotiate) → fresh ChargeParameterDiscovery →
+                // PowerDelivery(Start), then the charging loop continues.
+                if (!renegotiated && (notification == EVSENotification.ReNegotiation || Renegotiate))
+                {
+                    renegotiated = true;
+                    Renegotiations++;
+                    await Send<PowerDeliveryResType>(PowerDelivery(ChargeProgress.Renegotiate), ct);
+                    while ((await Send<ChargeParameterDiscoveryResType>(ChargeParameterDiscovery(), ct))
+                               .EVSEProcessing != EVSEProcessing.Finished)
+                        await pollDelay.Wait(PollInterval, ct);
+                    await Send<PowerDeliveryResType>(PowerDelivery(ChargeProgress.Start), ct);
                 }
                 await pollDelay.Wait(PollInterval, ct);
             }

@@ -153,6 +153,74 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             });
         }
 
+        /// <summary>
+        /// SECC-triggered renegotiation ([V2G2-841]) over loopback: the SECC's first charging-status response
+        /// carries <c>EVSENotification.ReNegotiation</c>, the EVCC reacts with
+        /// <c>PowerDeliveryReq(Renegotiate)</c> → a fresh ChargeParameterDiscovery → PowerDelivery(Start),
+        /// and the session still completes normally.
+        /// </summary>
+        [Test]
+        public async Task DcSession_SeccTriggeredRenegotiation_RunsToCompletion()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var s = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(s, ProtocolVariant.Iso15118_2, cts.Token);
+                var secc = new Secc2(PowerMode.Dc, TimeSpan.FromSeconds(60), TimeProvider.System) { RequestRenegotiation = true };
+                await secc.RunAsync(s, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
+            var evcc = new Evcc2(evccStream, PowerMode.Dc, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+            await evcc.RunAsync(cts.Token);
+            var secc = await seccTask;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Assert.That(evcc.Renegotiations, Is.EqualTo(1), "the EVCC must react to the ReNegotiation notification");
+                Assert.That(secc.Renegotiations, Is.EqualTo(1), "the SECC must see one PowerDelivery(Renegotiate)");
+            });
+        }
+
+        /// <summary>EV-initiated renegotiation: same flow, but the EVCC opens it on its own.</summary>
+        [Test]
+        public async Task AcSession_EvInitiatedRenegotiation_RunsToCompletion()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var s = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(s, ProtocolVariant.Iso15118_2, cts.Token);
+                var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(s, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
+            var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            {
+                Renegotiate = true,
+            };
+            await evcc.RunAsync(cts.Token);
+            var secc = await seccTask;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Assert.That(evcc.Renegotiations, Is.EqualTo(1));
+                Assert.That(secc.Renegotiations, Is.EqualTo(1));
+            });
+        }
+
         private static async Task RunSessionAsync(PowerMode mode)
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));

@@ -108,7 +108,11 @@ namespace Vanaheimr.V2G.Simulation.Cli
         {
             if (args.Protocol == ProtocolVariant.Iso15118_2)
             {
-                var secc2 = new Secc2(args.Mode, TimeSpan.FromSeconds(60), TimeProvider.System) { ResumeSessionId = resumeId };
+                var secc2 = new Secc2(args.Mode, TimeSpan.FromSeconds(60), TimeProvider.System)
+                {
+                    ResumeSessionId = resumeId,
+                    RequestRenegotiation = args.Renegotiate,
+                };
                 try { await secc2.RunAsync(stream); }
                 finally
                 {
@@ -120,6 +124,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
                         Console.WriteLine($"-2 MeteringReceipt: digest {(r.DigestOk ? "OK" : "FAIL")}, " +
                                           $"signature {(r.SignatureOk ? "OK" : "FAIL")}{(r.SignatureOk ? $" (grammar={r.SignatureGrammar})" : "")}.");
                 }
+                if (secc2.Renegotiations > 0)
+                    Console.WriteLine($"-2 Renegotiation cycles: {secc2.Renegotiations}.");
                 return secc2.Paused ? secc2.SessionId : null;
             }
             else
@@ -129,10 +135,16 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
                 secc.PreferDynamicControlMode = args.PreferDynamic;
                 secc.ResumeSessionId = resumeId;
+                secc.RequestRenegotiation = args.Renegotiate;
                 // finally: the PnC/cert-install verdicts are the run's evidence — print them even when the
                 // peer aborts mid-session (e.g. Josev's EVCC crashes on its own unimplemented cert-install res).
                 try { await secc.RunAsync(stream); }
-                finally { PrintSeccVerdicts(secc); }
+                finally
+                {
+                    PrintSeccVerdicts(secc);
+                    if (secc.Renegotiations > 0)
+                        Console.WriteLine($"-20 ServiceRenegotiation cycles: {secc.Renegotiations}.");
+                }
                 return secc.Paused ? secc.SessionId : null;
             }
         }
@@ -265,13 +277,14 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     StopMode = pause ? Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Pause
                                      : Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Terminate,
                     ResumeSessionId = resumeId,
+                    Renegotiate = args.Renegotiate,
                 };
                 if (args.ContractCertPath is not null)
                     evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);
                 await evcc.RunAsync();
                 Console.WriteLine($"  {evcc.Exchanges} exchanges, {evcc.BytesOnWire} bytes on the wire (request side), " +
                                   $"auth: {evcc.AuthorizationMode}, metering receipts sent: {evcc.MeteringReceiptsSent}, " +
-                                  $"session setup: {evcc.SessionSetupCode}.");
+                                  $"renegotiations: {evcc.Renegotiations}, session setup: {evcc.SessionSetupCode}.");
                 return evcc.SessionId;
             }
             else

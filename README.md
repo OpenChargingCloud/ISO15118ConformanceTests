@@ -406,6 +406,17 @@ all of this out of the offline CI run.
   TLS 1.3 ([`2026-07-22-iso20-dc-pnc-forward-signed`](docs/interop-runs/2026-07-22-iso20-dc-pnc-forward-signed/)).
   With that, **-20 PnC is live-validated in both directions** (they sign → we verify; we sign → they verify);
   CI guard: `Iso20LoopbackTests.DcPncSession_SignedAuthorization_VerifiesAtSecc`.
+- **Live Renegotiation:** mid-session renegotiation in every direction Josev supports
+  ([`2026-07-22-renegotiation`](docs/interop-runs/2026-07-22-renegotiation/)). **-2 both ways** [V2G2-841]:
+  SECC-triggered (`secc --renegotiate` → `EVSENotification.ReNegotiation` → Josev answers
+  `PowerDeliveryReq(Renegotiate)` + a second ChargeParameterDiscovery) and EV-initiated
+  (`evcc --renegotiate` vs Josev's SECC) — both to `SessionStop`. **-20** [V2G20-1477]: our SECC's
+  `ServiceRenegotiation` notification makes a Josev AC EVCC send a real
+  `SessionStopReq(ServiceRenegotiation)`, which our SECC answers **without ending the session**
+  (re-entry at ServiceDiscovery) — Josev then drops the link anyway (its EVCC posts the terminating stop
+  notification before honouring its own `next_state = ServiceDiscovery`; its DC path even hardcodes
+  `Terminate`), so the full -20 cycle incl. the second round is guarded by
+  `Secc20DynamicModeTests.ServiceRenegotiation_ReentersServiceDiscovery_AndCompletes`.
 - **Live Pause/Resume:** sessions can end with `ChargingSession.Pause` and be rejoined on a fresh
   connection ([`2026-07-22-pause-resume`](docs/interop-runs/2026-07-22-pause-resume/)). Forward vs a real
   Josev SECC: the **-2** flow works end to end — Josev preserves the session context across connections and

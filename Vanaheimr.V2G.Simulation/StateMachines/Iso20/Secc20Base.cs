@@ -70,6 +70,26 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts fresh.</summary>
         public byte[]? ResumeSessionId { get; set; }
 
+        /// <summary>When set, the SECC requests a <b>service renegotiation</b> once: the first charge-loop
+        /// response carries <c>EvseNotification.ServiceRenegotiation</c> in its EVSEStatus; the EV then stops
+        /// power delivery, sends <c>SessionStopReq(ServiceRenegotiation)</c>, and the session re-enters
+        /// ServiceDiscovery instead of terminating ([V2G20-1477]).</summary>
+        public bool RequestRenegotiation { get; set; }
+
+        /// <summary>How many service-renegotiation cycles this session ran.</summary>
+        public int Renegotiations { get; private set; }
+
+        private bool _renegotiationSignalled;   // the notification goes out exactly once
+
+        /// <summary>For the DC/AC charge-loop hooks: whether THIS response should carry the
+        /// ServiceRenegotiation notification (fires once, see <see cref="RequestRenegotiation"/>).</summary>
+        protected bool SignalRenegotiationOnce()
+        {
+            if (!RequestRenegotiation || _renegotiationSignalled) return false;
+            _renegotiationSignalled = true;
+            return true;
+        }
+
         /// <summary>Advertise the Dynamic (ControlMode=2) parameter set ahead of Scheduled in ServiceDetailRes.
         /// Both modes are always offered ([V2G20-2656]: the SECC shall support Scheduled and Dynamic); the order
         /// only decides which one an EV that simply takes the first offered set (e.g. Josev) actually runs —
@@ -117,6 +137,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             // abort logging FAILED_SequenceError instead of a clean stop.
             if (set == MessageSet.Iso20CommonMessages && request is SessionStopReq stopReq)
             {
+                // Service renegotiation ([V2G20-1477]): the session does NOT end — it re-enters
+                // ServiceDiscovery, and the EV re-runs service selection / charge parameters / the loop.
+                if (stopReq.ChargingSession == ChargingSession.ServiceRenegotiation)
+                {
+                    Renegotiations++;
+                    Phase = Phase20.ServiceDiscovery;
+                    return (MessageSet.Iso20CommonMessages, SessionStop(stopReq));
+                }
+
                 Paused = stopReq.ChargingSession == ChargingSession.Pause;
                 Phase = Phase20.Done;
                 return (MessageSet.Iso20CommonMessages, SessionStop(stopReq));
@@ -370,7 +399,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         protected abstract IReadOnlyList<ushort> EnergyServiceIds { get; }
 
         private ServiceDiscoveryRes SvcDiscovery(ServiceDiscoveryReq req) =>
-            new(SessionCtx.ToCommonHeader(), ResponseCode.OK, ServiceRenegotiationSupported: false,
+            new(SessionCtx.ToCommonHeader(), ResponseCode.OK, ServiceRenegotiationSupported: true,
                 new ServiceListType(EnergyServiceIds.Select(id => new ServiceType(id, FreeService: true)).ToArray()), VASList: null);
 
         private ServiceDetailRes SvcDetail(ServiceDetailReq req)
