@@ -87,6 +87,22 @@ Cleanups / smaller follow-ups (not blockers):
   other's multicast). A two-host or loopback-unicast test mode would close this. (Live it works —
   every `--sdp` interop run exercises it, both directions.)
 
+**Future ideas** (beyond the original roadmap, parked with a concrete trigger each):
+- ⬜ **ISO 15118-8 wireless-link demo** — -8 profiles 802.11n as the wireless PHY/DLL (buses,
+  pantograph, WPT); it carries **no EXI schemas or messages**, and from IP upward our stack runs
+  unchanged — so the honest slice is a link-agnosticism demo, not codec work: virtual 802.11 radios
+  via Linux `mac80211_hwsim`, `hostapd` (EVSE as AP) + `wpa_supplicant` (EV as station) doing a real
+  802.11 association in software — both canonical, independent implementations of the only layer -8
+  actually touches — then the existing SDP → TLS → session pipeline (ideally vs Josev) over that
+  link, as an optional front stage analogous to SLAC. Limits: this validates 802.11 conformance, not
+  -8-specific RF/channel/timing requirements (hardware territory); WSL2's stock kernel lacks
+  `mac80211_hwsim` (custom kernel or a small Linux VM).
+- ⬜ **VDV 261 bus-depot VAS** (preconditioning) — see the research notes in the session task list:
+  not EXI over the cable, but a 15118-negotiated VAS after which the SECC bridges IPv6 (RS/RA) and
+  the bus talks HTTPS/JSON to the dispositive backend; VDV 463 schemas are public
+  (github.com/VDVde/VDV463), Siemens DepotFinity documents a VDV-261 REST API. Trigger: access to a
+  testable counterpart (e.g. a DepotFinity sandbox).
+
 **Resolved across Phase 5** (each was once an open gap):
 - ✅ **EVCC-side live SDP** (2026-07-23) — the CLI EVCC's `EVCC_SDPClient` timed out against a live
   Josev SECC; root cause was neither bind nor scope handling but the client's hardcoded
