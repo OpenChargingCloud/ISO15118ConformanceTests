@@ -45,8 +45,9 @@ Both sessions still complete cleanly; the old-session **rejoin** for -20 is Jose
   carries the old id) + `SessionSetupCode`/`SessionId` surfaced.
 - CLI: `evcc --pause-resume` (both halves in one process, incl. re-discovery) and
   `evcc --pause` / `evcc --resume <hex>` (the halves as separate invocations, for scripts that must
-  re-probe SDP between them — this is what the live run uses, since our CLI's own EVCC-side SDP client
-  remains a CI-only gap).
+  re-discover SDP between them — at the time of this run via an in-script python probe, since the
+  CLI's own EVCC-side SDP client timed out live. *That gap is fixed since 2026-07-23* (multicast
+  loopback, see the roadmap's resolved list) — the script now runs `evcc --sdp` per session natively.
 
 CI: `Iso2LoopbackTests.AcSession_PauseThenResume_RejoinsOldSession` and
 `Iso20LoopbackTests.DcSession_PauseThenResume_RejoinsOldSession` — two real TCP connections each, asserting

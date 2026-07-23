@@ -364,8 +364,17 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var iface = ResolveInterface(args.Interface!);
             var discovery = new SdpSeccDiscovery(new EVCC_SDPClientOptions
             {
-                Interface         = iface,
-                RequestedSecurity = args.TlsBackend == TlsBackend.None ? SDP_Security.NoTLS : SDP_Security.TLS,
+                Interface            = iface,
+                RequestedSecurity    = args.TlsBackend == TlsBackend.None ? SDP_Security.NoTLS : SDP_Security.TLS,
+                // Single-host interop (the SECC on the same machine, e.g. Josev in Docker/WSL): the
+                // ff02::1 SDP_Request only reaches a LOCAL SECC via multicast loopback — with the
+                // client's real-hardware default (off) the discovery times out against a healthy SECC
+                // (root-caused live 2026-07-23). Harmless on real networks: the client discards its
+                // own looped-back request by V2GTP payload type.
+                MulticastLoopback    = true,
+                // A plaintext run must accept the NoTLS response it asked for — the client's CRA/NIS2
+                // default rejects it (the EVCC-side mirror of the SECC's RejectNoTlsRequests policy).
+                RejectNoTlsResponses = args.TlsBackend != TlsBackend.None,
             });
             Console.WriteLine($"SDP: discovering the SECC on {iface.Name}...");
             var endpoint = await discovery.DiscoverAsync();

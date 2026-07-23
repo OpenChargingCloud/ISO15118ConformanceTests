@@ -28,29 +28,15 @@ docker run -d --rm --name josev-secc --network host -e NETWORK_INTERFACE="$IFACE
     iso15118-secc:latest >/dev/null
 sleep 8
 
-ep=$(IFACE="$IFACE" python3 - <<'PY'
-import os, socket, struct
-req = bytes([0x01, 0xFE, 0x90, 0x00, 0x00, 0x00, 0x00, 0x02, 0x10, 0x00])  # SDP: NoTLS
-ifidx = socket.if_nametoindex(os.environ["IFACE"])
-s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, struct.pack("I", ifidx))
-s.settimeout(5)
-s.sendto(req, ("ff02::1", 15118, 0, ifidx))
-data, _ = s.recvfrom(1024)
-p = data[8:]
-print(socket.inet_ntop(socket.AF_INET6, p[0:16]), int.from_bytes(p[16:18], "big"))
-PY
-) || { echo "!! SDP discovery failed"; exit 1; }
-addr=$(echo "$ep" | awk '{print $1}'); port=$(echo "$ep" | awk '{print $2}')
-echo ">>> SECC at [$addr%$IFACE]:$port — our EVCC verifies the MO-Sub-CA2-signed SalesTariff"
-dotnet "$DLL" evcc --connect "[$addr%$IFACE]:$port" --protocol 2 --mode ac \
+echo ">>> our EVCC: --sdp discovery + MO-Sub-CA2 tariff verification"
+dotnet "$DLL" evcc --sdp --interface "$IFACE" --protocol 2 --mode ac \
     --tariff-cert /tmp/mo-subca2.p12 --tariff-cert-pass 12345 >"$EVCC_LOG" 2>&1
 rc=$?
 sleep 1
 docker logs josev-secc >"$SECC_LOG" 2>&1
 
 echo ">>> our EVCC exited ($rc)"
-echo "== our EVCC =="; grep -E "Tariff:|Session complete|aborted" "$EVCC_LOG"
+echo "== our EVCC =="; grep -E "SDP:|Tariff:|Session complete|aborted" "$EVCC_LOG"
 echo "== Josev SECC =="
 grep -oE "(ChargeParameterDiscoveryReq|PowerDeliveryReq|SessionStopReq) received" "$SECC_LOG" | sort | uniq -c
 grep -iE "invalid|Traceback" "$SECC_LOG" | head -3

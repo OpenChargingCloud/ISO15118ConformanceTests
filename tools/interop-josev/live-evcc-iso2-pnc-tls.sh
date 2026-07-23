@@ -27,31 +27,15 @@ docker run -d --rm --name josev-secc --network host -e NETWORK_INTERFACE="$IFACE
     iso15118-secc:latest >/dev/null
 sleep 8
 
-ep=$(IFACE="$IFACE" python3 - <<'PY'
-import os, socket, struct
-req = bytes([0x01, 0xFE, 0x90, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00])  # SDP req: security=TLS
-ifidx = socket.if_nametoindex(os.environ["IFACE"])
-s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, struct.pack("I", ifidx))
-s.settimeout(5)
-s.sendto(req, ("ff02::1", 15118, 0, ifidx))
-data, _ = s.recvfrom(1024)
-p = data[8:]
-print(socket.inet_ntop(socket.AF_INET6, p[0:16]), int.from_bytes(p[16:18], "big"))
-PY
-) || { echo "!! SDP discovery failed"; docker logs josev-secc | tail -20; exit 1; }
-addr=$(echo "$ep" | awk '{print $1}'); port=$(echo "$ep" | awk '{print $2}')
-echo ">>> SDP discovered TLS SECC at [$addr%$IFACE]:$port"
-
-echo ">>> our EVCC: -2 AC, TLS, Contract payment (contract.p12) — signed AuthorizationReq"
-dotnet "$DLL" evcc --connect "[$addr%$IFACE]:$port" --protocol 2 --mode ac --tls-backend dotnet \
+echo ">>> our EVCC: -2 AC, --sdp discovery (TLS requested), Contract payment (contract.p12) — signed AuthorizationReq"
+dotnet "$DLL" evcc --sdp --interface "$IFACE" --protocol 2 --mode ac --tls-backend dotnet \
     --contract-cert /tmp/contract.p12 --contract-cert-pass 12345 >"$EVCC_LOG" 2>&1
 rc=$?
 sleep 1
 docker logs josev-secc >"$SECC_LOG" 2>&1
 
 echo ">>> our EVCC exited ($rc)"
-echo "== our EVCC =="; grep -E "PnC:|auth:|Session complete|aborted" "$EVCC_LOG"
+echo "== our EVCC =="; grep -E "SDP:|PnC:|auth:|Session complete|aborted" "$EVCC_LOG"
 echo "== Josev SECC: chain + signature verification =="
 grep -iE "Verifying signature|Verifying digest|Match:|verified successfully|certificate.*(valid|verif)|CertChainError|CertSignatureError" "$SECC_LOG" | head -8
 echo "== Josev SECC: session =="

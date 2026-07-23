@@ -85,11 +85,17 @@ Cleanups / smaller follow-ups (not blockers):
 - ⬜ **SDP over the wire in CI** — only the SDP message layer + result mapping are CI-tested; the
   live UDP/IPv6 multicast exchange isn't (an EVCC+SECC in one process on one host can't hear each
   other's multicast). A two-host or loopback-unicast test mode would close this. (Live it works —
-  every `--sdp` interop run exercises it.)
-- ⬜ **EVCC-side live SDP via WWCP** — the CLI EVCC's `EVCC_SDPClient` times out against a live Josev
-  SECC (the interop scripts sidestep it with an in-script SDP probe); reverse/SECC-side SDP works.
+  every `--sdp` interop run exercises it, both directions.)
 
 **Resolved across Phase 5** (each was once an open gap):
+- ✅ **EVCC-side live SDP** (2026-07-23) — the CLI EVCC's `EVCC_SDPClient` timed out against a live
+  Josev SECC; root cause was neither bind nor scope handling but the client's hardcoded
+  `IPV6_MULTICAST_LOOP = off`: on a single-host setup (Josev in Docker/WSL on the same machine) the
+  ff02::1 SDP_Request only reaches a *local* SECC via multicast loopback. Now an option
+  (`MulticastLoopback`, default off = real-hardware behaviour) which the CLI enables, plus the
+  EVCC-side mirror of the NoTLS policy fix (`RejectNoTlsResponses` follows the CLI's TLS mode).
+  `evcc --sdp` verified live (plaintext + TLS); every forward interop script now uses it natively —
+  the in-script python SDP probes are gone.
 - ✅ **SLAC pairing**, **SDP discovery** (incl. live no-shim `--sdp` after the `RejectNoTlsRequests`
   policy fix), **mutual TLS 1.3** (two backends: .NET `SslStream` P-256, BouncyCastle -20-faithful
   secp521r1/Ed448), **Vehicle certificate** (CharIN 2nd-gen PKI), **full-stack E2E**
