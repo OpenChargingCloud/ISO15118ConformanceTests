@@ -23,6 +23,17 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
 
         protected override int[] GetSupportedCipherSuites() => BcV2GTls.CipherSuites;
 
+        // EXPERIMENTAL seam (BcTlsOptions.ExperimentalNamedGroups): offer exactly the configured
+        // key-exchange groups (e.g. ML-KEM) instead of BouncyCastle's default list, and send the
+        // TLS 1.3 initial key_share for the first of them (avoids a HelloRetryRequest round-trip).
+        protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
+            => _options.ExperimentalNamedGroups?.ToList() ?? base.GetSupportedGroups(namedGroupRoles);
+
+        public override IList<int> GetEarlyKeyShareGroups()
+            => _options.ExperimentalNamedGroups is { Length: > 0 } groups
+                   ? new List<int> { groups[0] }
+                   : base.GetEarlyKeyShareGroups();
+
         public override TlsAuthentication GetAuthentication()
             => new V2GAuthentication(_crypto, _options, () => m_context);
 

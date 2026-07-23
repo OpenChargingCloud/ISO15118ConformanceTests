@@ -102,17 +102,20 @@ Cleanups / smaller follow-ups (not blockers):
   the bus talks HTTPS/JSON to the dispositive backend; VDV 463 schemas are public
   (github.com/VDVde/VDV463), Siemens DepotFinity documents a VDV-261 REST API. Trigger: access to a
   testable counterpart (e.g. a DepotFinity sandbox).
-- ⬜ **Post-quantum crypto experiments** — today PQC would be wire-non-conformant (both editions pin
-  classical suites; Ed448 is EC, *not* post-quantum), but the tooling is already in place: .NET 10
-  ships ML-KEM/ML-DSA/SLH-DSA (FIPS 203–205) natively, BouncyCastle 2.6.2 (in-repo) has the same
-  plus TLS hybrid support, XMLDSig is algorithm-agile by URI, and the EXI codec is crypto-agnostic
-  (byte-array signature/digest values). Two clearly-flagged loopback-only experiments: a hybrid KEM
-  (X25519MLKEM768) in the BouncyCastle TLS backend (transport-level, transparent to the 15118
-  layers), and an experimental ML-DSA `V2GSignature` suite behind its own URI — which would answer
-  the real question empirically: ML-DSA-87 signatures are ~4.6 KB vs 132 B (P-521), PnC chains grow
-  to 15–25 KB, so buffers, frames and fragment codecs all need re-measuring. Motivation:
-  harvest-now-decrypt-later — contract provisioning ECDH-wraps a *long-lived* private key, and
-  vehicles live 15–20 years. Trigger: a 15118 draft/amendment (or CharIN profile) with actual PQC
+- ◑ **Post-quantum crypto experiments — STARTED** (2026-07-23, `Vanaheimr.V2G.Experiments.Pqc` +
+  tests; results in [`docs/experiments/pqc.md`](experiments/pqc.md)). Both experiments run in CI,
+  clearly flagged wire-non-conformant (both editions pin classical suites; Ed448 is EC, *not*
+  post-quantum): (1) a complete **-20 DC session over an ML-KEM-1024 (FIPS 203) TLS 1.3 key
+  exchange** via the BouncyCastle backend (`BcTlsOptions.ExperimentalNamedGroups`; BC 2.6.2 has the
+  pure-ML-KEM codepoints, not yet the browser hybrid), with a classical-vs-PQC negative control;
+  (2) an **ML-DSA-87 (FIPS 204) signature suite** behind an experimental URI — the generated EXI
+  codec carries the 4 627-byte signature unchanged, full sign→encode→decode→verify roundtrip.
+  Headline measurement: the PnC AuthorizationReq flips from ~10 % signature (P-521) to **~80 %
+  signature** (ML-DSA-87), and EXI's entire saving over compact JSON (2.3 KB) is smaller than the
+  signature it carries (4.6 KB) — in a PQC 15118, the encoding choice becomes a rounding error.
+  Remaining (kept parked): the `X25519MLKEM768` *hybrid* once BC ships it, PQC certificate chains
+  (projected ~23 KB per 3-cert chain), .NET-10-native ML-DSA as a second implementation. Trigger
+  for anything beyond the experiment: a 15118 draft/amendment (or CharIN profile) with actual PQC
   commitments; no external oracle exists either way.
 
 **Resolved across Phase 5** (each was once an open gap):

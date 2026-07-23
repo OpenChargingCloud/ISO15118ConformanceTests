@@ -25,6 +25,8 @@ Vanaheimr.V2G.Exi.slnx
 ├─ Vanaheimr.V2G.Simulation/             class library: real TCP/TLS EVCC↔SECC session (Phase 5)
 ├─ Vanaheimr.V2G.Simulation.Cli/         console app: `evcc`/`secc` subcommands over Vanaheimr.V2G.Simulation
 ├─ Vanaheimr.V2G.Simulation.Tests/       NUnit: framing/state-machine/loopback E2E tests for Phase 5
+├─ Vanaheimr.V2G.Experiments.Pqc/        EXPERIMENT: post-quantum crypto (ML-KEM TLS, ML-DSA signatures) — wire-NON-conformant, see docs/experiments/pqc.md
+├─ Vanaheimr.V2G.Experiments.Pqc.Tests/  NUnit: the PQC experiments (ML-KEM -20 session E2E, ML-DSA roundtrip, size report)
 ├─ Vanaheimr.V2G.Exi.Tests/             NUnit test project
 │   ├─ Infrastructure/
 │   │   ├─ HexUtil.cs                   hex parse + bit-level diff for failures

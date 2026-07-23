@@ -15,5 +15,13 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
 
         /// <summary>SECC side only: require a client certificate from the EVCC (mutual TLS). Ignored on the client.</summary>
         public bool RequireClientCertificate { get; init; }
+
+        /// <summary><b>EXPERIMENTAL</b> (see <c>Vanaheimr.V2G.Experiments.Pqc</c>): override the TLS
+        /// named groups this side offers/accepts for the key exchange — e.g.
+        /// <c>Org.BouncyCastle.Tls.NamedGroup.MLKEM1024</c> for a post-quantum ML-KEM (FIPS 203) key
+        /// exchange. Setting this deviates from ISO 15118-20's TLS profile (which pins classical
+        /// groups) — loopback experiments only, never wire-conformant. Null (default): BouncyCastle's
+        /// standard list, i.e. the production behaviour, unchanged.</summary>
+        public int[]? ExperimentalNamedGroups { get; init; }
     }
 }

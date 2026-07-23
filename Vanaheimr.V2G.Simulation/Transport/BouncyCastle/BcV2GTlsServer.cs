@@ -22,6 +22,11 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
 
         protected override int[] GetSupportedCipherSuites() => BcV2GTls.CipherSuites;
 
+        // EXPERIMENTAL seam (BcTlsOptions.ExperimentalNamedGroups): accept exactly the configured
+        // key-exchange groups (e.g. ML-KEM) — a client offering none of them fails the handshake.
+        public override int[] GetSupportedGroups()
+            => _options.ExperimentalNamedGroups ?? base.GetSupportedGroups();
+
         public override TlsCredentials GetCredentials()
             => BcV2GTls.BuildSigner(_crypto, _options.OwnCredentials, m_context);
 
