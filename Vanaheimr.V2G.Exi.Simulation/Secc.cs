@@ -22,11 +22,11 @@ namespace Vanaheimr.V2G.Exi.Simulation
 
         private Phase _phase = Phase.SessionSetup;
         private byte[] _sessionId = new byte[8];
-        private DateTime _lastSeen = DateTime.UtcNow;
+        private DateTimeOffset _lastSeen = DateTimeOffset.UtcNow;
 
         public V2G_Message Handle(V2G_Message request)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
             if (_phase is not Phase.SessionSetup && now - _lastSeen > sequenceTimeout)
                 throw new SessionAborted($"SECC sequence timeout: EV silent for > {sequenceTimeout.TotalSeconds:0}s");
             _lastSeen = now;
