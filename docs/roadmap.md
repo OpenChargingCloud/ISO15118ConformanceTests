@@ -102,6 +102,18 @@ Cleanups / smaller follow-ups (not blockers):
   the bus talks HTTPS/JSON to the dispositive backend; VDV 463 schemas are public
   (github.com/VDVde/VDV463), Siemens DepotFinity documents a VDV-261 REST API. Trigger: access to a
   testable counterpart (e.g. a DepotFinity sandbox).
+- ⬜ **Post-quantum crypto experiments** — today PQC would be wire-non-conformant (both editions pin
+  classical suites; Ed448 is EC, *not* post-quantum), but the tooling is already in place: .NET 10
+  ships ML-KEM/ML-DSA/SLH-DSA (FIPS 203–205) natively, BouncyCastle 2.6.2 (in-repo) has the same
+  plus TLS hybrid support, XMLDSig is algorithm-agile by URI, and the EXI codec is crypto-agnostic
+  (byte-array signature/digest values). Two clearly-flagged loopback-only experiments: a hybrid KEM
+  (X25519MLKEM768) in the BouncyCastle TLS backend (transport-level, transparent to the 15118
+  layers), and an experimental ML-DSA `V2GSignature` suite behind its own URI — which would answer
+  the real question empirically: ML-DSA-87 signatures are ~4.6 KB vs 132 B (P-521), PnC chains grow
+  to 15–25 KB, so buffers, frames and fragment codecs all need re-measuring. Motivation:
+  harvest-now-decrypt-later — contract provisioning ECDH-wraps a *long-lived* private key, and
+  vehicles live 15–20 years. Trigger: a 15118 draft/amendment (or CharIN profile) with actual PQC
+  commitments; no external oracle exists either way.
 
 **Resolved across Phase 5** (each was once an open gap):
 - ✅ **EVCC-side live SDP** (2026-07-23) — the CLI EVCC's `EVCC_SDPClient` timed out against a live
