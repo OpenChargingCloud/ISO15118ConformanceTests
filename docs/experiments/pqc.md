@@ -37,17 +37,27 @@ Key result: **the generated EXI codec carries the 4 627-byte signature without a
 (base64Binary values are unbounded) — a full PnC `AuthorizationReq` with an ML-DSA-87 header
 signature encodes, decodes byte-exactly, and verifies (`MLDsaSignatureTests`).
 
+**Cross-validated between two independent FIPS 204 implementations** (`MLDsaCrossValidationTests`):
+BouncyCastle 2.6.2 and .NET 10's native `System.Security.Cryptography.MLDsa`
+(SYSLIB5006-experimental, OS-crypto-backed — supported on this dev machine) verify each other's
+signatures over the real SignedInfo EXI fragment in **both directions**, with raw FIPS-204 key
+interchange (2 592-byte public key, byte-identical re-export). The same
+two-independent-implementations pattern the codec uses with cbV2G vs EXIficient — an *internal*
+oracle for the PQC primitive, though still nothing 15118-external.
+
 ## The numbers — what PQC does to EXI's raison d'être
 
 Exemplar: the -20 Plug & Charge `AuthorizationReq` (16-byte challenge + a real 3-certificate P-256
-contract chain), as EXI (our codec) vs **compact JSON** (System.Text.Json over the same records,
-byte arrays as base64). One measured run (`SizeReportTests`; cert sizes vary by a few bytes):
+contract chain), encoded three ways: EXI (our codec), **CBOR** (System.Formats.Cbor, same structure
+and field names, byte strings **raw** — the binary-clean strawman), and **compact JSON**
+(System.Text.Json, byte arrays as base64). One measured run (`SizeReportTests`; cert sizes vary by
+a few bytes):
 
-| Signature | Sig bytes | EXI bytes | JSON bytes | EXI saving | Sig share of EXI |
-|---|--:|--:|--:|--:|--:|
-| unsigned | 0 | 946 | 1 470 | 524 B (35.6 %) | 0.0 % |
-| ECDSA-P521/SHA-512 | 132 | 1 282 | 2 073 | 791 B (38.2 %) | 10.3 % |
-| ML-DSA-87 (PQC) | 4 627 | 5 774 | 8 066 | 2 292 B (28.4 %) | **80.1 %** |
+| Signature | Sig bytes | EXI | CBOR | JSON | EXI vs JSON | EXI vs CBOR | Sig share of EXI |
+|---|--:|--:|--:|--:|--:|--:|--:|
+| unsigned | 0 | 947 | 1 119 | 1 470 | 523 B (35.6 %) | 172 B (15.4 %) | 0.0 % |
+| ECDSA-P521/SHA-512 | 132 | 1 283 | 1 613 | 2 073 | 790 B (38.1 %) | 330 B (20.5 %) | 10.3 % |
+| ML-DSA-87 (PQC) | 4 627 | 5 775 | 6 106 | 8 066 | 2 291 B (28.4 %) | **331 B (5.4 %)** | **80.1 %** |
 
 What the table says:
 
@@ -55,13 +65,15 @@ What the table says:
    is ~10 % of the message; under ML-DSA-87 it is ~80 %. Everything EXI's schema-informed grammar
    compresses so artfully — the structure — becomes the *minority* of the bytes; the majority is
    incompressible signature randomness that no encoding can shrink.
-2. **EXI's entire saving (2.3 KB) is smaller than the signature it now carries (4.6 KB).** The
-   argument "we need EXI because V2G links are slow" loses its force when a single PQC signature
-   costs twice what the whole encoding choice saves.
-3. **The honest nuance:** EXI's *absolute* saving actually grows in the PQC row — from 524 B to
-   2 292 B — but for an unflattering reason: JSON base64-inflates the 4.6-KB binary signature by
-   ~33 %. That advantage belongs to "any binary-clean framing" (CBOR, raw fields), not to EXI's
-   grammar machinery specifically. A trivial JSON+binary-attachment design would erase most of it.
+2. **EXI's entire saving vs JSON (2.3 KB) is smaller than the signature it now carries (4.6 KB).**
+   The argument "we need EXI because V2G links are slow" loses its force when a single PQC
+   signature costs twice what the whole encoding choice saves.
+3. **The CBOR column isolates the honest nuance.** EXI's saving vs *JSON* looks like it grows in
+   the PQC row (523 B → 2 291 B) — but that is almost entirely JSON base64-inflating the 4.6-KB
+   binary signature by ~33 %. Against CBOR, which keeps byte strings raw, EXI's advantage is
+   **absolutely flat (~330 B, pure structural overhead) and collapses relatively: 20.5 % → 5.4 %**.
+   Any binary-clean self-describing format gets within a rounding error of EXI in a PQC world —
+   with schema-free tooling, greppable dumps, and no grammar generator.
 4. **Certificates make it worse.** This table swaps only the signature. A full PQC migration also
    swaps the certificate chains: an ML-DSA-87 certificate carries a 2 592-byte public key plus a
    4 627-byte issuer signature — a 3-cert PnC chain goes from ~1.5 KB (P-256) to a projected
@@ -71,15 +83,15 @@ What the table says:
 **Conclusion for the standardization debate:** in a post-quantum ISO 15118, EXI's size advantage
 stops being an architectural argument. If message compactness is the goal, the crypto payload
 budget — signatures, chains, KEM material — is where the bytes are; the encoding choice becomes a
-rounding error, and a simpler self-describing format (JSON/CBOR) with binary-clean signature
-fields would buy enormous tooling/debuggability wins at negligible wire cost. (ML-DSA-44 at
-2 420 B, SLH-DSA at ~7.8–49 KB, or stateful hash-based schemes shift the constants, not the
-conclusion.)
+measured **5.4 % vs CBOR**, and a simpler self-describing binary-clean format would buy enormous
+tooling/debuggability wins at negligible wire cost. (ML-DSA-44 at 2 420 B, SLH-DSA at
+~7.8–49 KB, or stateful hash-based schemes shift the constants, not the conclusion.)
 
 ## Where this lives
 
-- `Vanaheimr.V2G.Experiments.Pqc/` — `MLDsaV2GSignature`, `PqcSizeReport` (+ project README)
-- `Vanaheimr.V2G.Experiments.Pqc.Tests/` — the five tests (ML-KEM E2E + negative control,
-  ML-DSA roundtrip + tamper, size report)
+- `Vanaheimr.V2G.Experiments.Pqc/` — `MLDsaV2GSignature`, `PqcSizeReport` incl. the CBOR encoder
+  (+ project README)
+- `Vanaheimr.V2G.Experiments.Pqc.Tests/` — the eight tests (ML-KEM E2E + negative control,
+  ML-DSA roundtrip + tamper, BC ↔ .NET 10 cross-validation ×3, size report)
 - The single production-code touchpoint: `BcTlsOptions.ExperimentalNamedGroups` (null = exactly
   the previous behaviour), honoured by `BcV2GTlsClient`/`BcV2GTlsServer`.

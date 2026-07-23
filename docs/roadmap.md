@@ -109,14 +109,16 @@ Cleanups / smaller follow-ups (not blockers):
   exchange** via the BouncyCastle backend (`BcTlsOptions.ExperimentalNamedGroups`; BC 2.6.2 has the
   pure-ML-KEM codepoints, not yet the browser hybrid), with a classical-vs-PQC negative control;
   (2) an **ML-DSA-87 (FIPS 204) signature suite** behind an experimental URI — the generated EXI
-  codec carries the 4 627-byte signature unchanged, full sign→encode→decode→verify roundtrip.
-  Headline measurement: the PnC AuthorizationReq flips from ~10 % signature (P-521) to **~80 %
-  signature** (ML-DSA-87), and EXI's entire saving over compact JSON (2.3 KB) is smaller than the
-  signature it carries (4.6 KB) — in a PQC 15118, the encoding choice becomes a rounding error.
-  Remaining (kept parked): the `X25519MLKEM768` *hybrid* once BC ships it, PQC certificate chains
-  (projected ~23 KB per 3-cert chain), .NET-10-native ML-DSA as a second implementation. Trigger
-  for anything beyond the experiment: a 15118 draft/amendment (or CharIN profile) with actual PQC
-  commitments; no external oracle exists either way.
+  codec carries the 4 627-byte signature unchanged, full sign→encode→decode→verify roundtrip,
+  **cross-validated between BouncyCastle and .NET 10's native `MLDsa`** (two independent FIPS 204
+  implementations, both directions, raw key interchange — an internal oracle for the primitive).
+  Headline measurement (EXI vs CBOR vs JSON): the PnC AuthorizationReq flips from ~10 % signature
+  (P-521) to **~80 % signature** (ML-DSA-87); EXI's saving over base64-JSON (2.3 KB) is smaller
+  than the signature it carries (4.6 KB), and against binary-clean **CBOR it collapses to ~330 B
+  = 5.4 %** — in a PQC 15118, the encoding choice becomes a rounding error. Remaining (kept
+  parked): the `X25519MLKEM768` *hybrid* once BC ships it, PQC certificate chains (projected
+  ~23 KB per 3-cert chain). Trigger for anything beyond the experiment: a 15118 draft/amendment
+  (or CharIN profile) with actual PQC commitments; no 15118-external oracle exists either way.
 
 **Resolved across Phase 5** (each was once an open gap):
 - ✅ **EVCC-side live SDP** (2026-07-23) — the CLI EVCC's `EVCC_SDPClient` timed out against a live

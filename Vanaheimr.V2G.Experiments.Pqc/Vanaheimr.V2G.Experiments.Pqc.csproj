@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
     <RootNamespace>Vanaheimr.V2G.Experiments.Pqc</RootNamespace>
+    <!-- SYSLIB5006: .NET 10's post-quantum crypto APIs (MLDsa & friends) are marked [Experimental] —
+         exactly the right label for this project; we opt in knowingly. -->
+    <NoWarn>$(NoWarn);SYSLIB5006</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +15,7 @@
          is wire-conformant, and nothing here is referenced by any production project. See README.md. -->
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <!-- The binary-clean JSON alternative in the size report: CBOR keeps byte strings raw (no base64). -->
+    <PackageReference Include="System.Formats.Cbor" Version="10.0.0" />
   </ItemGroup>
 </Project>

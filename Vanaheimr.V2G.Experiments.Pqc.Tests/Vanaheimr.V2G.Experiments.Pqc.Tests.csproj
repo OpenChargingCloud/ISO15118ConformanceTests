@@ -6,6 +6,8 @@
     <LangVersion>preview</LangVersion>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- SYSLIB5006: .NET 10's PQC APIs are [Experimental] — the cross-validation tests use them knowingly. -->
+    <NoWarn>$(NoWarn);SYSLIB5006</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

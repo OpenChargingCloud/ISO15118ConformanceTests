@@ -44,6 +44,17 @@ namespace Vanaheimr.V2G.Experiments.Pqc.Tests
                 Assert.That(mlDsa.ExiBytes - unsigned.ExiBytes,
                     Is.GreaterThan(mlDsa.SignatureBytes).And.LessThan(mlDsa.SignatureBytes + 400),
                     "signature + SignedInfo overhead, nothing else");
+
+                // CBOR — the binary-clean alternative — sits between EXI and JSON in every variant …
+                Assert.That(rows, Has.All.Matches<PqcSizeRow>(r => r.ExiBytes < r.CborBytes && r.CborBytes < r.JsonBytes));
+
+                // … and once byte strings stay raw, EXI's advantage collapses to structural overhead:
+                // against CBOR, EXI saves only a fraction of what it saves against base64-JSON …
+                Assert.That(mlDsa.ExiSavingVsCborBytes, Is.LessThan(mlDsa.ExiSavingBytes / 2),
+                    "most of EXI's PQC-row 'saving' vs JSON is just base64 avoidance");
+
+                // … single-digit percent of the message — the rounding error the conclusion talks about.
+                Assert.That(mlDsa.ExiSavingVsCborPercent, Is.LessThan(10));
             });
         }
     }

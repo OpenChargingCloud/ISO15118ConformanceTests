@@ -12,10 +12,13 @@ exists to answer, *ahead of that standardization*, two practical questions with 
 2. **What does a PQC signature do to 15118 message sizes?** — `MLDsaV2GSignature` signs the -20
    `SignedInfo` with **ML-DSA-87** (FIPS 204) behind an explicitly experimental URI, and the
    generated EXI codec carries the 4 627-byte signature without modification (byte-arrays are
-   unbounded). `PqcSizeReport` puts numbers on the consequence: once signatures dominate the
-   message, EXI's compactness advantage over plain JSON becomes a rounding error — see
-   `docs/experiments/pqc.md`.
+   unbounded). Cross-validated against **.NET 10's native `MLDsa`** (a second, independent
+   FIPS 204 implementation — both directions, raw key interchange). `PqcSizeReport` puts numbers
+   on the consequence, with EXI vs **CBOR** (binary-clean) vs **JSON** (base64) columns: once
+   signatures dominate the message, EXI's advantage over CBOR collapses to ~5 % structural
+   overhead — see `docs/experiments/pqc.md`.
 
-No external oracle exists for any of this (nothing independent signs or verifies ML-DSA 15118
-messages, nothing negotiates ML-KEM V2G TLS) — all validation is loopback/CI self-consistency,
-flagged as such, same honesty rule as everywhere else in this repo.
+No 15118-external oracle exists for any of this (nothing independent signs or verifies ML-DSA
+15118 messages, nothing negotiates ML-KEM V2G TLS) — the BC ↔ .NET cross-validation is an
+*internal* oracle for the primitive; everything else is loopback/CI self-consistency, flagged as
+such, same honesty rule as everywhere else in this repo.

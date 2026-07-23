@@ -9,13 +9,20 @@ using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
 namespace Vanaheimr.V2G.Experiments.Pqc
 {
     /// <summary>One measured wire-size variant of the exemplar message.</summary>
-    public sealed record PqcSizeRow(string Variant, int SignatureBytes, int ExiBytes, int JsonBytes)
+    public sealed record PqcSizeRow(string Variant, int SignatureBytes, int ExiBytes, int CborBytes, int JsonBytes)
     {
         /// <summary>EXI's absolute saving over compact JSON for this variant.</summary>
         public int ExiSavingBytes => JsonBytes - ExiBytes;
 
         /// <summary>EXI's relative saving over compact JSON for this variant.</summary>
         public double ExiSavingPercent => JsonBytes == 0 ? 0 : 100.0 * ExiSavingBytes / JsonBytes;
+
+        /// <summary>EXI's absolute saving over CBOR — the binary-clean alternative, so this is EXI's
+        /// *structural* advantage with the base64 effect removed.</summary>
+        public int ExiSavingVsCborBytes => CborBytes - ExiBytes;
+
+        /// <summary>EXI's relative saving over CBOR for this variant.</summary>
+        public double ExiSavingVsCborPercent => CborBytes == 0 ? 0 : 100.0 * ExiSavingVsCborBytes / CborBytes;
 
         /// <summary>How much of the EXI message is signature.</summary>
         public double SignatureShareOfExiPercent => ExiBytes == 0 ? 0 : 100.0 * SignatureBytes / ExiBytes;
@@ -89,20 +96,101 @@ namespace Vanaheimr.V2G.Experiments.Pqc
             if (!message.TryEncode(buf, out int exiLength))
                 throw new InvalidOperationException($"EXI encode failed for '{variant}'");
             var json = JsonSerializer.Serialize(message, CompactJson);
-            return new PqcSizeRow(variant, signatureBytes, exiLength, json.Length);
+            var cbor = ToCbor(message);
+            return new PqcSizeRow(variant, signatureBytes, exiLength, cbor.Length, json.Length);
         }
 
         public static string ToMarkdown(IReadOnlyList<PqcSizeRow> rows)
         {
             var lines = new List<string>
             {
-                "| Signature | Sig bytes | EXI bytes | JSON bytes | EXI saving | Sig share of EXI |",
-                "|---|--:|--:|--:|--:|--:|",
+                "| Signature | Sig bytes | EXI | CBOR | JSON | EXI vs JSON | EXI vs CBOR | Sig share of EXI |",
+                "|---|--:|--:|--:|--:|--:|--:|--:|",
             };
             lines.AddRange(rows.Select(r =>
-                $"| {r.Variant} | {r.SignatureBytes:N0} | {r.ExiBytes:N0} | {r.JsonBytes:N0} " +
-                $"| {r.ExiSavingBytes:N0} B ({r.ExiSavingPercent:F1} %) | {r.SignatureShareOfExiPercent:F1} % |"));
+                $"| {r.Variant} | {r.SignatureBytes:N0} | {r.ExiBytes:N0} | {r.CborBytes:N0} | {r.JsonBytes:N0} " +
+                $"| {r.ExiSavingBytes:N0} B ({r.ExiSavingPercent:F1} %) " +
+                $"| {r.ExiSavingVsCborBytes:N0} B ({r.ExiSavingVsCborPercent:F1} %) " +
+                $"| {r.SignatureShareOfExiPercent:F1} % |"));
             return string.Join("\n", lines);
+        }
+
+        // ── CBOR: the binary-clean strawman — same structure and field names as the JSON variant,
+        //    but byte arrays as raw CBOR byte strings (no base64 inflation). Hand-mapped because the
+        //    point is a *fair* minimal encoding, not a reflection framework. Nulls skipped like JSON.
+        private static byte[] ToCbor(AuthorizationReq m)
+        {
+            var w = new System.Formats.Cbor.CborWriter();
+
+            void Map(int count, Action body) { w.WriteStartMap(count); body(); w.WriteEndMap(); }
+            void Text(string key, string value) { w.WriteTextString(key); w.WriteTextString(value); }
+            void Bytes(string key, byte[] value) { w.WriteTextString(key); w.WriteByteString(value); }
+
+            Map(3, () =>
+            {
+                w.WriteTextString("Header");
+                var h = m.Header;
+                Map(h.Signature is null ? 2 : 3, () =>
+                {
+                    Bytes("SessionID", h.SessionID);
+                    w.WriteTextString("TimeStamp"); w.WriteUInt64(h.TimeStamp);
+                    if (h.Signature is { } sig)
+                    {
+                        w.WriteTextString("Signature");
+                        Map(2, () =>
+                        {
+                            w.WriteTextString("SignedInfo");
+                            var si = sig.SignedInfo;
+                            Map(3, () =>
+                            {
+                                w.WriteTextString("CanonicalizationMethod");
+                                Map(1, () => Text("Algorithm", si.CanonicalizationMethod.Algorithm));
+                                w.WriteTextString("SignatureMethod");
+                                Map(1, () => Text("Algorithm", si.SignatureMethod.Algorithm));
+                                w.WriteTextString("Reference");
+                                w.WriteStartArray(si.Reference.Count);
+                                foreach (var r in si.Reference)
+                                    Map(3, () =>
+                                    {
+                                        Text("URI", r.URI!);
+                                        w.WriteTextString("DigestMethod");
+                                        Map(1, () => Text("Algorithm", r.DigestMethod.Algorithm));
+                                        Bytes("DigestValue", r.DigestValue);
+                                    });
+                                w.WriteEndArray();
+                            });
+                            w.WriteTextString("SignatureValue");
+                            Map(1, () => Bytes("Value", sig.SignatureValue.Value));
+                        });
+                    }
+                });
+
+                Text("SelectedAuthorizationService", m.SelectedAuthorizationService.ToString());
+
+                w.WriteTextString("PnC_AReqAuthorizationMode");
+                var pnc = m.PnC_AReqAuthorizationMode!;
+                Map(3, () =>
+                {
+                    Text("Id", pnc.Id);
+                    Bytes("GenChallenge", pnc.GenChallenge);
+                    w.WriteTextString("ContractCertificateChain");
+                    Map(2, () =>
+                    {
+                        Bytes("Certificate", pnc.ContractCertificateChain.Certificate);
+                        w.WriteTextString("SubCertificates");
+                        Map(1, () =>
+                        {
+                            w.WriteTextString("Certificate");
+                            var subs = pnc.ContractCertificateChain.SubCertificates.Certificate;
+                            w.WriteStartArray(subs.Count);
+                            foreach (var c in subs) w.WriteByteString(c);
+                            w.WriteEndArray();
+                        });
+                    });
+                });
+            });
+
+            return w.Encode();
         }
     }
 }
