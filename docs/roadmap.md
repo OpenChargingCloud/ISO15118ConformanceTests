@@ -1,31 +1,37 @@
 # Roadmap & status
 
-Last updated: **2026-07-21**. Authoritative per-phase detail lives in
+Last updated: **2026-07-23**. Authoritative per-phase detail lives in
 [`docs/prompts/`](prompts/README.md) (the phase prompts + their status table) and the
 [`README.md`](../README.md); this file is the bird's-eye plan and the "why".
 
 ## Current status
 
-The solution builds cleanly and **all 574 tests are green** (`dotnet test -c Release`:
-520 in `Vanaheimr.V2G.Exi.Tests`, 54 in `Vanaheimr.V2G.Simulation.Tests`; the 2 live
-over-the-wire Josev tests are `[Explicit]`, excluded) — offline, with no C toolchain, JRE, or
-network beyond loopback. Phases 0–4 are complete; Phase 5's in-repo simulation is done
-(SLAC/SDP/TLS/session all wired + tested), Josev interop is byte-exact for **-2 AC/DC and
--20 DC (Plug & Charge, all 30 frames incl. the signed AuthorizationReq)**, and the
-[Phase 5 closing report](phase5-report.md) is written. Live over-the-wire -20 DC runs a **complete** charge
-session end to end to SessionStop in **both directions** — forward (our EVCC ↔ Josev SECC) and reverse
-(Josev EVCC → our SECC), the latter after teaching our SECC to **self-loop the CableCheck/PreCharge/
-WeldingDetection poll phases** (a real EV polls each until it decides the step is done; the validated reverse
-run saw 4 PreCharge + 5 WeldingDetection polls, all answered in place). Together the two directions caught and
-fixed **ten** real conformance bugs. Both SECCs now also accept a `SessionStopReq` in any phase (graceful
-early-abort). **Live TLS runs in both directions**: our EVCC → Josev SECC over **TLS 1.2 unilateral** and
-**TLS 1.3 mutual**, and Josev EVCC → our SECC over **TLS 1.3 mutual** — each a complete -20 DC session to
-SessionStop (Josev is P-256, so the .NET `SslStream` backend, not our secp521r1 BouncyCastle one; found +
-fixed a client/server chain-transmission bug and a `PowerDelivery(Start)` poll-phase bug). **Live Plug &
-Charge** also runs: our SECC offers PnC + a GenChallenge and validates Josev's signed `AuthorizationReq` —
-challenge echo + reference digest verify (the digest match proves our signed-element codec is byte-exact vs
-EXIficient over a live message); the ECDSA signature over the `SignedInfo` fragment is one open
-canonicalization follow-up. Phase 5 and its wrap-up are effectively complete — see the report.
+**All phases (0–5) are complete.** The solution builds cleanly and **all 609 tests are green**
+(`dotnet test -c Release`: 524 in `Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`) —
+offline, with no C toolchain, JRE, or network beyond loopback; the live over-the-wire Josev tests stay
+`[Explicit]`/script-driven.
+
+ISO 15118-2 and -20 are **feature-complete at session level** and validated live against the independent
+Josev stack in every direction Josev supports — the feature-gap list is **empty**:
+
+- **Both protocols, all four -20 energy modes** (DC, AC, DC_BPT, AC_BPT), plain TCP **and** TLS
+  (1.2 unilateral / 1.3 mutual), EIM **and** Plug & Charge, Scheduled **and** Dynamic control mode.
+- **Plug & Charge live in both directions in both protocols** — they sign → we verify, we sign → they
+  verify (dual-grammar: our cbV2G-byte-exact combined form + Josev's standalone-xmldsig form).
+- **-2 PnC session flow**: PaymentDetails, signed AuthorizationReq, signed MeteringReceiptReq — all live.
+- **-20 contract provisioning** (CertificateInstallation): live to the maximum Josev allows, full
+  roundtrip incl. working-key unwrap in-repo.
+- **Pause/Resume** ([V2G2-740]) and **Renegotiation** (-2 [V2G2-841], -20 ServiceRenegotiation
+  [V2G20-1477]) — live where Josev can follow, CI-guarded beyond.
+- **Smart charging / signed tariffs** (the last declared non-goal, closed 2026-07-23): signed -2
+  SalesTariff offers (§7.9.2.5) with EVCC-side verification, cheapest-tuple choice and PMax-shaped
+  ChargingProfiles (SECC-validated, [V2G2-761]); signed -20 AbsolutePriceSchedule. Live highlight: our
+  EVCC **verified a real MO-Sub-CA2-signed Josev SalesTariff** — an external oracle for the tariff
+  verification path.
+
+En route, the live runs caught and fixed **~15 real conformance bugs** invisible to loopback on our side
+and documented **~12 Josev bugs/gaps**. The full story: [Phase 5 closing report](phase5-report.md) (DoD
+scorecard + honest-gaps ledger) and the per-run write-ups under [`docs/interop-runs/`](interop-runs/).
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -34,7 +40,7 @@ canonicalization follow-up. Phase 5 and its wrap-up are effectively complete —
 | 2 | Source generator lifted to the real ISO 15118-2 schema set | ✅ **done** |
 | 3 | All 17 -2 message pairs + XMLDSig over EXI fragments (ECDSA-P256/SHA-256) | ✅ **done** |
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
-| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop) | 🚧 **in progress** — in-repo stack ✅; Josev interop -2 AC/DC ✅, -20 DC PnC ✅ (30/30 byte-exact); closing report ⬜ |
+| 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop, PnC/cert-install/pause/renegotiation/tariffs live) | ✅ **done** |
 
 What exists today, at a glance:
 
@@ -46,7 +52,7 @@ What exists today, at a glance:
 | ✅ [SourceGenerator](../Vanaheimr.V2G.Exi.SourceGenerator/ExiCodecGenerator.cs) | `IIncrementalGenerator`: XSD set → grammar plan → C# document + fragment codecs; fail-loud on unknown constructs; emits block-scoped namespaces |
 | ✅ ISO 15118-2 codec | All 17 message pairs **byte-exact vs cbV2G**; signed `AuthorizationReq` byte-exact; `SignedInfo` fragment cross-checked vs EXIficient |
 | ✅ ISO 15118-20 codecs (×5) | CommonMessages/DC/AC/WPT/ACDP all generate + compile + byte-exact vs cbV2G; XMLDSig for CommonMessages/DC/AC (ECDSA-P521/SHA-512 **and** Ed448 via BouncyCastle) |
-| 🚧 [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Josev interop: **-2 AC/DC + -20 DC PnC byte-exact** (30/30) |
+| ✅ [Simulation](../Vanaheimr.V2G.Simulation/) (Phase 5) | Full in-repo stack over loopback: **SLAC** pairing (real UDP match) → **SDP** discovery seam → **TLS** (two backends: .NET SslStream + BouncyCastle -20-faithful P-521/Ed448 mutual TLS) → SAP → -2/-20 AC/DC sessions to SessionStop; a full-stack SLAC→SDP→TLS→session E2E; CLI with stage/backend flags. Live vs Josev: all four -20 energy modes + both control modes, PnC both directions in both protocols, cert-install, pause/resume, renegotiation, signed tariffs |
 | ✅ Test infrastructure | Vector-driven (JSON), bit-exact diff on failure; property-based round-trips (CsCheck); reference oracles pinned under `tools/` |
 
 The original "decisive weakness" (self-encoded seed vectors that only proved internal
@@ -55,30 +61,22 @@ pinned commit, so green proves wire conformance. The `SignedInfo` fragments (-2 
 CommonMessages) are additionally cross-validated against EXIficient, an independent
 W3C-EXI processor.
 
-## What remains (Phase 5)
+## What remains
 
-The whole in-repo stack now runs and is tested over loopback (see the Simulation row above and
-`docs/pki-model.md`). The remaining items all need an **external** stack or are wrap-up:
+Everything the roadmap targeted is done — see [`phase5-report.md`](phase5-report.md) for the full
+scorecard. What is left over is either a **structural non-goal** (no independent counterpart exists to
+validate against) or a small cleanup:
 
-1. 🚧 **Josev interop** — **-2 AC/DC EIM and -20 DC Plug & Charge done** (SwitchEV/iso15118 @ `d645255`,
-   Docker in WSL2, rebuilt on Debian trixie). Our codec cross-validates Josev's EXIficient bytes
-   **byte-for-byte**: for -2, the SAP handshake + the whole DC charge loop; for -20, the SAP handshake and
-   **all 30** distinct frames of a full PnC DC session across both schema sets (CommonMessages + DC) —
-   SessionSetup, AuthorizationSetup, the **signed** Authorization, Service{Discovery,Detail,Selection},
-   ScheduleExchange, PowerDelivery, the whole DC loop (ChargeParameterDiscovery → CableCheck → PreCharge →
-   ChargeLoop → WeldingDetection), SessionStop (`JosevCapturedFrames{,Dc,20}Tests`, run in CI; artifacts in
-   `docs/interop-runs/2026-07-21-iso2*-*/`). On the SAP frames: **our codec ≡ cbV2G ≡ EXIficient**. The -20
-   run also surfaced and **fixed** a real source-generator gap (the xmldsig `Transforms` EXI-canonicalisation
-   grammar — see the resolved item below). Optionally, live over-the-network interop via the
-   `JosevInteropTests` opt-in hook (needs both stacks on one L2 network; record-mode gives the same signal).
-2. ✅ **Record mode / vector capture** — three -20 DC frames from the Josev PnC run are curated into the
-   vector suite as `Tests/Vectors/Iso15118_20.DC.josev.vectors.json` (`referenceEncoder = Josev/EXIficient
-   @ d645255`), validated by decode → re-encode in `JosevCuratedVectorTests`. Frames from an independent
-   stack are the most valuable conformance vectors; more can be promoted the same way as runs accumulate.
-3. ✅ **Phase 5 closing report** — [`docs/phase5-report.md`](phase5-report.md): DoD scorecard, the
-   codec/sequence findings (the fixed xmldsig `Transforms` bug; string-value-tables watched-not-triggered),
-   timing findings, and the honest known-gaps list (live over-the-wire interop, SDP multicast in CI,
-   record-mode vector curation, live PnC, WPT/ACDP interop, the CLI dev-cert caveats).
+**Remaining non-goals** (would need something that doesn't exist yet):
+- ⬜ **WPT / ACDP session state machines** — codecs are byte-exact vs cbV2G, but no independent stack
+  implements WPT/ACDP sessions (Josev has AC/DC only), so a live run would require building state
+  machines on *both* sides with no oracle for the behaviour.
+- ⬜ **-2 `CertificateInstallation`/`CertificateUpdate` live** — the messages are codec-tested; a live
+  run would need Josev's -2 CERTIFICATE VAS wiring on both sides (its service path is unimplemented).
+- ⬜ **Self-consistent-only crypto/grammar spots** — the -20 contract-provisioning crypto octets
+  (ECDH/ConcatKDF/AES-GCM), our -2 combined-grammar *tariff-signing* form, -20 price-schedule
+  signatures, and two WPT grammar shapes: schema-valid and CI-guarded, but nothing external produces
+  or checks them (documented per case).
 
 Cleanups / smaller follow-ups (not blockers):
 - ⬜ **Slim down Hermod** — the SLAC stage pulls the heavy `Hermod`/`Styx` chain into the core
@@ -86,28 +84,28 @@ Cleanups / smaller follow-ups (not blockers):
   SLAC into a separate integration project.
 - ⬜ **SDP over the wire in CI** — only the SDP message layer + result mapping are CI-tested; the
   live UDP/IPv6 multicast exchange isn't (an EVCC+SECC in one process on one host can't hear each
-  other's multicast). A two-host or loopback-unicast test mode would close this.
-- ⬜ **Real Plug & Charge session flow** — contract-cert provisioning + `CertificateInstallation`
-  live (the *messages* are already codec-tested; the live cert handling + its mTLS binding are not).
+  other's multicast). A two-host or loopback-unicast test mode would close this. (Live it works —
+  every `--sdp` interop run exercises it.)
+- ⬜ **EVCC-side live SDP via WWCP** — the CLI EVCC's `EVCC_SDPClient` times out against a live Josev
+  SECC (the interop scripts sidestep it with an in-script SDP probe); reverse/SECC-side SDP works.
 
-**Resolved this phase** (were open gaps, now done):
-- ✅ **SLAC pairing** — real EV↔EVSE match over loopback UDP, PLC-chip programming, AVLN-ready step.
-- ✅ **SDP discovery** — `ISeccDiscovery` seam (`Fixed`/`Sdp`) + advertiser; message layer CI-tested.
-- ✅ **Mutual TLS 1.3** — the -20 headline change (bilateral auth; ISO 15118-2 stays unilateral +
-  app-layer PnC). Two backends: .NET `SslStream` (Schannel caps it at P-256) and **BouncyCastle**
-  running the -20-faithful profile (TLS 1.3, secp521r1 **and** Ed448, exact cipher-suite pinning).
-- ✅ **Vehicle certificate** — the dedicated -20 TLS-client identity (CharIN 2nd-gen PKI), added to
-  the WWCP PKI builder; distinct from the app-layer Contract cert. See `docs/pki-model.md`.
-- ✅ **Full-stack E2E** — one test composes SLAC → SDP → mutual TLS (P-521) → SAP → -20 DC session.
-- ✅ **xmldsig `Transforms` generator gap** — found by the -20 Josev run (the signed `AuthorizationReq`
-  carries a `SignedInfo`/`Reference`/`Transforms` EXI-canonicalisation element cbV2G's vectors never emit).
-  The generator now models an optional/repeatable direct `xs:choice` (mixed `TransformType`) as an
-  EE-terminated optional run and promotes a lone repeating child's bound to the plan — matching cbexigen's
-  grammar exactly; the signed frame round-trips byte-for-byte, all cbV2G vectors still byte-exact.
-
-**Deliberate non-goals** — legitimately out of scope for a happy-path simulation:
-- Plug & Charge *in the live session* (see follow-up above).
-- Pause/resume, renegotiation, smart-charging detail.
+**Resolved across Phase 5** (each was once an open gap):
+- ✅ **SLAC pairing**, **SDP discovery** (incl. live no-shim `--sdp` after the `RejectNoTlsRequests`
+  policy fix), **mutual TLS 1.3** (two backends: .NET `SslStream` P-256, BouncyCastle -20-faithful
+  secp521r1/Ed448), **Vehicle certificate** (CharIN 2nd-gen PKI), **full-stack E2E**
+  (SLAC → SDP → mTLS → SAP → session), and the **xmldsig `Transforms` generator gap** found by record mode.
+- ✅ **Live Josev interop far beyond record mode:** complete sessions in both directions, plain + TLS,
+  all four -20 energy modes, both control modes ([V2G20-2656] both parameter sets offered, answered in
+  kind), graceful any-phase `SessionStop`, poll-phase self-looping.
+- ✅ **Plug & Charge live, both directions, both protocols** — incl. the dual-grammar signature story
+  (our combined cbV2G-byte-exact form + Josev's standalone-xmldsig form, sign and verify both ways).
+- ✅ **-20 contract provisioning** live to Josev's maximum + full in-repo roundtrip with working key unwrap.
+- ✅ **Pause/Resume** ([V2G2-740]) and **Renegotiation** ([V2G2-841]/[V2G20-1477]) — live where Josev
+  can follow; its limits documented as Josev gaps, the full cycles CI-guarded.
+- ✅ **Smart charging / signed tariffs** — signed -2 SalesTariff offers + EVCC verification +
+  cheapest-tuple choice + PMax-shaped, SECC-validated ChargingProfiles; signed -20
+  AbsolutePriceSchedule; live incl. verifying a real MO-Sub-CA2-signed Josev tariff
+  (`2026-07-22-tariff`).
 
 ---
 
@@ -156,11 +154,13 @@ Three classes of oracle, with independent sources of error:
    `tools/exificient-ref/` for the `SignedInfo` fragment cross-check (-2 and -20
    CommonMessages).
 3. **[SwitchEV/iso15118 (Josev)](https://github.com/SwitchEV/iso15118)** (Python,
-   Apache-2.0, -2 and -20) — *session-level oracle* for the Phase 5 end-to-end interop.
-   **Live and byte-exact for -2 AC/DC (EIM) and -20 DC (Plug & Charge)**: Josev's EXIficient-encoded
-   frames decode + re-encode identically through our codec (`JosevCapturedFrames{,Dc,20}Tests`, in CI),
-   all 30 -20 frames including the signed `AuthorizationReq` (the -20 run found and fixed an xmldsig
-   `Transforms` generator gap). The EVerest fork
+   Apache-2.0, -2 and -20) — *session-level oracle* for the Phase 5 end-to-end interop, used to the
+   fullest: byte-exact record mode (`JosevCapturedFrames{,Dc,20}Tests`, in CI — our codec ≡ EXIficient
+   on every captured frame) **plus complete live sessions in both directions** across -2 and -20, plain
+   TCP and TLS, EIM and PnC, all four -20 energy modes, both control modes, pause/resume, renegotiation
+   and signed tariffs (see `docs/interop-runs/`). ~12 Josev bugs/gaps documented en route (payload-type
+   0x8001 framing, pydantic `Transforms`-required, empty -20 pause context, renegotiation drops, tariff
+   verification TODO, …). The EVerest fork
    [ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118) is more
    actively maintained.
 

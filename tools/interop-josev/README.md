@@ -85,12 +85,23 @@ Work up in difficulty; capture each result (all three below are **done** — see
    is needed to cross-validate the -20 message encoding. Point `EVCC_CONFIG_PATH` at the venv copy
    (`/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_20/evcc_config_dc.json` — the
    image's working-dir tree only carries the -2 examples), keep `SECC_ENFORCE_TLS=False`, run the session.
-   29/30 frames round-trip byte-exact; the signed `AuthorizationReq` is a tracked generator gap. See
-   `docs/interop-runs/2026-07-21-iso20-dc-pnc-notls/`.
+   **All 30/30 frames round-trip byte-exact** (the signed `AuthorizationReq` initially exposed the xmldsig
+   `Transforms` generator gap, since fixed). See `docs/interop-runs/2026-07-21-iso20-dc-pnc-notls/`.
 
-Still open: **live over-the-wire -20** (our stack ↔ Josev) — that one needs TLS 1.3; use our **BouncyCastle**
-backend for the -20-faithful secp521r1 profile (Schannel can't). Mutual TLS + Vehicle/Contract certs per
-`docs/pki-model.md`. Record mode already gives the codec-level conformance signal without it.
+Everything past record mode is **also done** — complete live sessions in both directions, plain TCP and
+TLS, EIM and Plug & Charge, all four -20 energy modes, both control modes, plus cert-install,
+pause/resume, renegotiation and signed tariffs. One scenario script per feature block (each with a
+matching write-up under `docs/interop-runs/2026-07-22-*/`):
+
+| Script | Scenario |
+|---|---|
+| `reverse-dynamic-sdp.sh` | -20 Dynamic control mode (DC / DC_BPT / AC_BPT), Josev EVCC → our SECC |
+| `live-evcc-pnc-tls.sh` | -20 forward PnC over TLS: our signed AuthorizationReq verified by Josev |
+| `reverse-iso2-pnc-tls-sdp.sh` / `live-evcc-iso2-pnc-tls.sh` | -2 Plug & Charge over TLS, both directions |
+| `reverse-certinstall-sdp.sh` / `certinstall-probe.py` | -20 CertificateInstallation (contract provisioning) |
+| `live-evcc-pause-resume.sh` | Pause → reconnect → `OK_OldSessionJoined` resume, forward |
+| `reverse-renegotiate-sdp.sh` / `live-evcc-renegotiate.sh` | Renegotiation (-2 both ways, -20 to Josev's limit) |
+| `reverse-tariff-sdp.sh` / `live-evcc-tariff.sh` / `live-evcc-tariff-verify.sh` | Signed tariffs: our signed -2/-20 offers consumed by Josev; our EVCC verifying Josev's real MO-Sub-CA2-signed SalesTariff |
 
 ## Running
 

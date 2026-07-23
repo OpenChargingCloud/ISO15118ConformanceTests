@@ -1,9 +1,11 @@
 # Phase 5 closing report — EV↔EVSE simulation & interop
 
-Date: **2026-07-21**. Scope: `docs/prompts/phase5.md` (EV↔EVSE session simulation over real
-TCP/TLS, SLAC/SDP front stages, and interop against an independent stack). This report is the
-Definition-of-Done item 7: codec/sequence discrepancies found, timing findings, and the honest
-list of known gaps. Companion docs: [`roadmap.md`](roadmap.md), [`pki-model.md`](pki-model.md),
+Date: **2026-07-21**, updated through **2026-07-23** (the follow-up-work section at the end tracks
+everything after the original closing date — it has since closed the entire feature-gap list).
+Scope: `docs/prompts/phase5.md` (EV↔EVSE session simulation over real TCP/TLS, SLAC/SDP front
+stages, and interop against an independent stack). This report is the Definition-of-Done item 7:
+codec/sequence discrepancies found, timing findings, and the honest list of known gaps.
+Companion docs: [`roadmap.md`](roadmap.md), [`pki-model.md`](pki-model.md),
 [`interop-runs/`](interop-runs/).
 
 ## 1. What Phase 5 delivered
@@ -17,9 +19,10 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state: **574 green** (`dotnet test -c Release`) — 520 in `Vanaheimr.V2G.Exi.Tests`, 54 in
-`Vanaheimr.V2G.Simulation.Tests`; the 2 live over-the-wire Josev tests are `[Explicit]` and
-excluded. Offline: no C toolchain, JRE, or network beyond loopback.
+Test state (as of 2026-07-23): **609 green** (`dotnet test -c Release`) — 524 in
+`Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`; the live over-the-wire Josev
+tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain, JRE, or network
+beyond loopback.
 
 ## 2. Definition-of-Done scorecard (honest)
 

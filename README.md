@@ -301,11 +301,15 @@ skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired 
   secc --listen  <port>      --protocol 2|20 --mode ac|dc [tls/stage options]
   evcc --connect <host:port> --protocol 2|20 --mode ac|dc [tls/stage options]
 
-  TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)
-  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)
-  Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)
-  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-20: signed Plug & Charge auth)
-  SLAC:  --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)
+  TLS:    --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)
+  SDP:    --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)
+  Mode:   secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)
+  PnC:    evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-2/-20: signed Plug & Charge auth)
+  Tariff: secc --tariff-cert <pfx> [--tariff-cert-pass <pw>]  (signed SalesTariff/-20 AbsolutePriceSchedule offer)
+          evcc --tariff-cert <pfx>          (verify the tariff signature with the cert's public key)
+  Pause:  evcc --pause-resume | --pause | --resume <hex-session-id>   (pause + rejoin the old session)
+  Reneg:  secc --renegotiate | evcc --renegotiate   (mid-session renegotiation, SECC- or EV-triggered)
+  SLAC:   --slac  (secc: --slac-listen <port>; evcc: --slac-peer <host:port>)
   ```
   One-shot: the SECC accepts a single connection, runs one session, and exits. `--tls-backend bc`
   makes the SECC generate a strict-20 PKI into `--pki-dir` (shared with the EVCC) and run P-521
@@ -345,13 +349,16 @@ pairs + XMLDSig, `SignedInfo` fragment cross-validated against EXIficient), and 
 XMLDSig where cbV2G supports it, CommonMessages `SignedInfo` fragment cross-validated
 against EXIficient) are **done** — see `docs/roadmap.md` and `docs/prompts/phase4.md`.
 
-**Phase 5** has grown well past the original slice 1: the full in-repo stack now runs and is
-tested over loopback — **SLAC** pairing (real UDP match + PLC-chip programming), an **SDP**
+**Phase 5 is done too** — and grew well past the original slice 1: the full in-repo stack runs
+and is tested over loopback — **SLAC** pairing (real UDP match + PLC-chip programming), an **SDP**
 discovery seam, **mutual TLS 1.3** with two backends (.NET `SslStream` and a BouncyCastle
 backend running the -20-faithful secp521r1/Ed448 profile Schannel can't), the SAP handshake,
 the -2/-20 AC/DC state machines to `SessionStop`, a composed SLAC→SDP→TLS→session E2E, and a
-CLI with stage/backend flags. See the sections above, `docs/pki-model.md` (PKI + TLS design),
-and `docs/roadmap.md`.
+CLI with stage/backend flags — and the whole session layer is **feature-complete and
+live-validated against Josev**: PnC both directions in both protocols, contract provisioning,
+pause/resume, renegotiation, and signed tariffs (see **Interop status** below). Companion docs:
+`docs/pki-model.md` (PKI + TLS design), `docs/roadmap.md` (end-state overview), and
+`docs/phase5-report.md` (the closing scorecard + honest-gaps ledger).
 
 ## Interop status (Josev)
 
@@ -436,6 +443,23 @@ all of this out of the offline CI run.
   `EVSEProcessing=Finished` [V2G2-905], a SECC must not demand a receipt on *every* status response (a
   Josev EVCC then loops forever), and the -2 SAP offer must carry protocol version **2.0** (Josev matches
   major version, not just the namespace). CI: `Secc2PnCTests` + the `AcPncSession` loopback E2E.
+- **Live smart charging / signed tariffs:** the last declared non-goal, closed in both protocols
+  ([`2026-07-22-tariff`](docs/interop-runs/2026-07-22-tariff/)). **-2** (`--tariff-cert`): the SECC offers a
+  two-tuple `SAScheduleList` whose SalesTariffs are digitally signed into ONE header signature (one reference
+  per tariff, §7.9.2.5) and validates the EV's `PowerDeliveryReq(Start)` (`FAILED_TariffSelectionInvalid` /
+  `FAILED_ChargingProfileInvalid` [V2G2-761]); the EVCC verifies the signature, picks the cheapest tuple by
+  average `EPriceLevel`, and shapes its `ChargingProfile` to that tuple's `PMaxSchedule`. **-20**: the
+  Scheduled-mode `ScheduleExchangeRes` carries a rich **signed `AbsolutePriceSchedule`** (power-banded EUR/kWh
+  price rule stacks, ECDSA-P521/SHA-512) instead of the flat `PriceLevelSchedule`. Live, three runs: a Josev
+  EVCC consumed our signed two-tuple offer, **chose the cheap tuple** and sent a PMax-shaped profile our
+  validation accepted; a Josev AC EVCC consumed the signed -20 `AbsolutePriceSchedule`; and — the surprise —
+  Josev's SECC **MO-signs its own SalesTariff** (MO Sub-CA2, the actual spec role), which our EVCC
+  **live-verified** (`digests OK, ECDSA OK, grammar=xmldsig-standalone`) — a genuine external oracle for the
+  -2 tariff-verification path. Honest residue: our -2 combined-grammar signing form and the -20 price-schedule
+  signature have no external verifier (Josev's EVCC-side tariff check is a literal `# TODO`; nothing external
+  touches -20 price-schedule signatures) — CI-guarded by `Secc2TariffTests` + the tariff loopback E2Es. One
+  more Josev quirk: its pydantic `Reference` model requires the schema-optional `Transforms` on *receive* in
+  -2 too, so our tariff references include `Transforms`=[EXI C14N].
 - **Live -20 contract provisioning (CertificateInstallation):** our SECC announces the service, **verifies a
   real Josev EVCC's signed `CertificateInstallationReq` live** (OEM provisioning chain; digest + ECDSA over
   the standalone-xmldsig grammar) and issues a **signed, Josev-validated** `CertificateInstallationRes` —

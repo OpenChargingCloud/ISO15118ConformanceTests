@@ -198,11 +198,11 @@ Each was pinned to cbV2G's byte output, never to spec prose:
    the self-contained `X509IssuerSerialType` (needed by PaymentDetails) is modelled; the signature
    subtree is deferred to Phase 3.
 
-### Not yet asserted at byte level
+### Not yet asserted at byte level *(historical — resolved in Phase 3)*
 
-The generator handles all 17 message pairs, but only the four Phase 2 target messages have
-checked-in cbV2G vectors. Extending the vector set (and the `main_iso2.c` oracle) to the remaining
-messages, plus XMLDSig signatures over EXI fragments, is Phase 3.
+At the time of this inventory only the four Phase 2 target messages had checked-in cbV2G vectors.
+Phase 3 closed this: **all 17 message pairs are byte-exact against cbV2G** (extended `main_iso2.c`
+oracle), including XMLDSig signatures over EXI fragments — see the section below and `README.md`.
 
 ## The XMLDSig SignedInfo subtree — modelled (Phase 3, part B)
 
