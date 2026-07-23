@@ -200,15 +200,52 @@ Three classes of oracle, with independent sources of error:
    and signed tariffs (see `docs/interop-runs/`). ~12 Josev bugs/gaps documented en route (payload-type
    0x8001 framing, pydantic `Transforms`-required, empty -20 pause context, renegotiation drops, tariff
    verification TODO, …). The EVerest fork
-   [ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118) is more
-   actively maintained.
+   [ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118) is the more
+   actively maintained branch of this same codebase (Python, -2/-20/-8).
 
 Additional, bounded roles:
 - **[OpenV2G](https://github.com/Martin-P/OpenV2G)** (C, LGPL) — historical DIN/-2
   reference, a third byte-level vote in disputed cases; no -20, frozen.
 - **RISE-V2G** (Java, archived, -2 only) — PnC signature test data + a second full -2 stack.
-- **[EVerest/libiso15118](https://github.com/EVerest/libiso15118)** (C++, -20-focused) —
-  second -20 counterpart for the simulation.
+
+### EVerest higher-layer stacks (post-monorepo, checked 2026-07-23)
+
+EVerest consolidated its per-repo ISO 15118 modules into the **EVerest/EVerest** monorepo
+(`modules/EVSE/…`). The EXI **codec** (libcbv2g/cbexigen) stays a standalone library consumed
+as a dependency; the **session-level** state machines are now monorepo modules. This reshuffle
+is why the old repo names are confusing — the map as it actually stands:
+
+- **[EvseV2G](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/EvseV2G)** (C,
+  chargebyte, Apache-2.0) — DIN 70121 + **-2** SECC, built on libcbv2g. Full PnC + TLS, ships
+  its own `tests/`. Independence value: a live C -2 counterpart, but it *shares our primary
+  codec oracle* (libcbv2g), so it stresses session logic, not the codec.
+- **[Evse15118D20](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/Evse15118D20)**
+  (C++) — the **-20** SECC. **This is what "libiso15118" became**: the standalone
+  [EVerest/libiso15118](https://github.com/EVerest/libiso15118) repo is archived (read-only,
+  2026-02-26), but its library lives on as `iso15118::iso15118`, linked by this monorepo module
+  ("draft implementation of iso15118-20 for the EVSE side"). A *maintained, independent, non-Python*
+  -20 stack — a genuine second -20 opinion alongside Josev. **Draft scope (its own feature table):**
+  has DC/AC + BPT, MCS (megawatt), Scheduled + Dynamic, ExternalPayment, Pause/Resume (dynamic),
+  TLS 1.2/1.3; **lacks** Plug & Charge (WIP), CertificateInstallation, Schedule Renegotiation,
+  Smart Charging, WPT, ACDP. → useful for the core -20 charge loop / dynamic / **MCS** (which we
+  don't have yet); for PnC/cert-install/renegotiation/tariffs/WPT/ACDP, **Josev stays the only
+  -20 live oracle**.
+- **[IsoMux](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/IsoMux)** (C++) — a TCP
+  **multiplexer** that sniffs the `SupportedAppProtocolReq` (via libcbv2g's `appHand` decoder) and
+  routes the connection to a local `EvseV2G` (port 61341) or `Evse15118D20` (port 50000) instance;
+  presents one unified `ISO15118_charger` upward. SAE J2847/2 BiDi is a pass-through setup flag to
+  both backends, not a separate protocol. Mirrors our own Phase-0 sniff-and-dispatch design, and is
+  itself a nice cross-reference for the SAP handshake message specifically.
+- **VAS modules** —
+  [Iso15118InternetVas](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/Iso15118InternetVas)
+  + [StaticISO15118VASProvider](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/StaticISO15118VASProvider):
+  maintained Value-Added-Service references (the -20 Internet Service VAS). Closest testable lead for
+  the parked VDV 261 depot-VAS task — see the future-ideas section / task tracker.
+
+> **Maintenance note:** these are moving targets. Periodically (see the "pull EVerest, re-run,
+> reconcile" tracking task) `git pull` the monorepo, re-run our loopback + record-mode tests against
+> the current modules, and reconcile drift — new -20 features to match, our bugs to fix, or fresh
+> counterpart bugs to document.
 
 **Test strategy:** reference encoders wrapped as dev tools, generated vectors checked in as
 JSON with pinned commits (CI runs offline against the vectors; regeneration is a separate,
@@ -217,7 +254,9 @@ fuzzing (clean errors, not crashes) — which the reference oracles don't cover.
 
 Sources: [EVerest/libcbv2g](https://github.com/EVerest/libcbv2g),
 [EVerest/cbexigen](https://github.com/EVerest/cbexigen),
-[EVerest/libiso15118](https://github.com/EVerest/libiso15118),
+[EVerest monorepo modules/EVSE](https://github.com/EVerest/EVerest/tree/main/modules/EVSE)
+(EvseV2G, Evse15118D20, IsoMux, Iso15118InternetVas),
+[EVerest/libiso15118 (archived → Evse15118D20)](https://github.com/EVerest/libiso15118),
 [SwitchEV/iso15118](https://github.com/SwitchEV/iso15118),
 [EVerest/ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118),
 [chargebyte on cbexigen](https://chargebyte.com/artikel/bidirectional-charging-chargebyte-overcomes-exi-hurdle-with-release-of-own-open-source-software)
