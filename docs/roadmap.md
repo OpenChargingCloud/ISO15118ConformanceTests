@@ -119,6 +119,27 @@ Cleanups / smaller follow-ups (not blockers):
   parked): the `X25519MLKEM768` *hybrid* once BC ships it, PQC certificate chains (projected
   ~23 KB per 3-cert chain). Trigger for anything beyond the experiment: a 15118 draft/amendment
   (or CharIN profile) with actual PQC commitments; no 15118-external oracle exists either way.
+- ⬜ **MCS (Megawatt Charging System, -20 Amendment)** — the one feature where a *maintained*
+  counterpart is ahead of us: EVerest's `Evse15118D20` lists `MCS (Amd.)` as supported, so a live
+  C++ oracle for the session layer exists. **But the codec-level prerequisite is missing** (checked
+  2026-07-23): cbexigen fetches -20 schemas from `standards.iso.org/iso/15118/-20/**ed-1**/en/` and
+  its `iso20_schema_files_names` list is exactly `AC, ACDP, AppProtocol, CommonMessages, CommonTypes,
+  DC, WPT, xmldsig` — i.e. **our XSD set is already at full parity with the codec oracle, and neither
+  side has anything MCS-specific**. So MCS is *not* a straightforward next feature: it would be the
+  first wire work with **no byte-diff oracle**, which collides head-on with the ground rule ("never
+  change wire semantics speculatively — only against a concrete byte diff"). Open question to settle
+  first: does the amendment add its own message set/XSD (like DC/AC/WPT/ACDP) or only extend DC's
+  value ranges and limits? If the latter, much of it may be a profile/limits matter rather than codec
+  work. **Trigger:** an MCS schema reaching cbexigen/libcbv2g (giving us a byte oracle), or the
+  Amendment XSDs becoming obtainable — until then, at most a documented gap, not an implementation.
+- 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
+  targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
+  stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the
+  monorepo modules, re-run our vector + loopback + live-interop suites against the current versions,
+  and reconcile the drift — new counterpart features to match, our own bugs to fix, fresh counterpart
+  bugs to document (~12 Josev findings so far). Also the natural moment to revisit the pinned
+  `03350be` codec commit and to decide whether to stand up an EVerest node once, which would unlock
+  `EvseV2G` / `Evse15118D20` / `IsoMux` as live counterparts.
 
 **Resolved across Phase 5** (each was once an open gap):
 - ✅ **EVCC-side live SDP** (2026-07-23) — the CLI EVCC's `EVCC_SDPClient` timed out against a live
@@ -227,9 +248,10 @@ is why the old repo names are confusing — the map as it actually stands:
   -20 stack — a genuine second -20 opinion alongside Josev. **Draft scope (its own feature table):**
   has DC/AC + BPT, MCS (megawatt), Scheduled + Dynamic, ExternalPayment, Pause/Resume (dynamic),
   TLS 1.2/1.3; **lacks** Plug & Charge (WIP), CertificateInstallation, Schedule Renegotiation,
-  Smart Charging, WPT, ACDP. → useful for the core -20 charge loop / dynamic / **MCS** (which we
-  don't have yet); for PnC/cert-install/renegotiation/tariffs/WPT/ACDP, **Josev stays the only
-  -20 live oracle**.
+  Smart Charging, WPT, ACDP. → useful as a second opinion on the core -20 charge loop and dynamic
+  mode, and the only maintained counterpart that has **MCS** (which we don't — but note the codec
+  oracle doesn't either, see the MCS entry under "Future ideas"); for
+  PnC/cert-install/renegotiation/tariffs/WPT/ACDP, **Josev stays the only -20 live oracle**.
 - **[IsoMux](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/IsoMux)** (C++) — a TCP
   **multiplexer** that sniffs the `SupportedAppProtocolReq` (via libcbv2g's `appHand` decoder) and
   routes the connection to a local `EvseV2G` (port 61341) or `Evse15118D20` (port 50000) instance;
