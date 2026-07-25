@@ -29,9 +29,19 @@ namespace Vanaheimr.V2G.Simulation.Transport
                 EnabledSslProtocols = tls.EnabledSslProtocols,
             };
             if (tls.ClientCertificate is { } clientCert)
-                // Use a certificate context (not just ClientCertificates) so SslStream sends the intermediate
-                // chain, letting a root-only SECC build the path to its trust anchor for mutual TLS.
-                options.ClientCertificateContext = SslStreamCertificateContext.Create(clientCert, tls.ClientCertificateChain);
+            {
+                if (tls.ClientCertificateChain is { Count: > 0 } chain)
+                    // A chain was supplied: use a certificate context so SslStream actually transmits those
+                    // intermediates, letting a root-only SECC build the path to its trust anchor.
+                    options.ClientCertificateContext = SslStreamCertificateContext.Create(clientCert, chain);
+                else
+                    // No chain to send, so don't ask for a context. Create() builds a chain over the leaf
+                    // internally against the *platform* trust store (it has no custom-trust hook), which
+                    // fails for any certificate whose issuer the machine does not know — a self-signed test
+                    // CA, or an EV whose OEM root is not installed locally. ClientCertificates just presents
+                    // the leaf and leaves path building to the peer, which is what the -2/-20 model expects.
+                    options.ClientCertificates = [clientCert];
+            }
 
             await ssl.AuthenticateAsClientAsync(options, ct).ConfigureAwait(false);
             return ssl;

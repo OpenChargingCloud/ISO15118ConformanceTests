@@ -76,11 +76,20 @@ namespace Vanaheimr.V2G.Simulation.Tests.TestData
             => Create(V2GAlgorithm.EcdsaP521, V2GProfileFlavor.Strict15118_20);
 
         /// <summary>Builds a hierarchy with the given algorithm/profile (used to probe Schannel curve support).</summary>
+        /// <remarks>
+        /// Every hierarchy gets a <b>unique CN suffix</b>. Without it each run minted a fresh root carrying
+        /// the identical subject <c>CN=V2G Root CA, DC=Root, DC=V2G, O=V2G PKI, C=DE</c>, and Windows'
+        /// certificate cache — which indexes by name — would hand a *previous* run's root to a *later*
+        /// run's chain build. The keys don't match, so the build reported
+        /// <c>NotSignatureValid</c> on the Sub-CA, and the mutual-TLS tests drifted from green to red as
+        /// the cache filled up during a session. Distinct names make the runs independent.
+        /// </remarks>
         public static V2GTestPki Create(V2GAlgorithm algorithm, V2GProfileFlavor flavor)
             => new(V2GHierarchy.Build(
                        algorithm,
                        new SecureRandom(),
-                       V2GProfileOptions: new V2GProfileOptions(flavor, algorithm, V2GPolicySet.None)));
+                       CommonNameSuffix:   " " + Guid.NewGuid().ToString("N")[..12],
+                       V2GProfileOptions:  new V2GProfileOptions(flavor, algorithm, V2GPolicySet.None)));
 
         // BouncyCastle leaf + private key → a .NET X509Certificate2 with an exportable private key,
         // via an in-memory PKCS#12 (algorithm-agnostic; works for ECDSA P-521).
