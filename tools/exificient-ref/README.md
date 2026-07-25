@@ -65,6 +65,43 @@ matters for XMLDSig correctness (the verifier must recover the exact bytes that 
 hashed/signed), so this closes out the "external cross-validation" item for both
 Phase 3 (-2) and Phase 4 (-20 CommonMessages).
 
+### AC DER (-20 Amendment 1) — whole documents, `fragment=false` (2026-07-25)
+
+This is the **only** external oracle available for AC DER: cbexigen cannot generate the
+amendment schemas at all (it crashes on a substitution-group head fed by two schemas —
+see [`docs/ac-der.md`](../../docs/ac-der.md)), so there are no cbV2G reference bytes to
+diff against. EXIficient is schema-generic and has no such limitation.
+
+Because there is no cbV2G ground truth for AC DER, the run was **calibrated first** on a
+case where ground truth does exist — a plain, non-DER AC message, whose bytes our AC codec
+produces and whose grammar cbV2G does cover:
+
+| fixture | schema entry point | source of the bytes |
+|---|---|---|
+| [`fixtures/iso20-ac-cpdreq-plain-expected.hex`](fixtures/iso20-ac-cpdreq-plain-expected.hex) | `…Iso15118_20.AC/Schemas/V2G_CI_AC.xsd` | calibration: plain AC codec |
+| [`fixtures/iso20-ac-der-iec-cpdreq-expected.hex`](fixtures/iso20-ac-der-iec-cpdreq-expected.hex) | `…Iso15118_20.AC_DER_IEC/Schemas/V2G_CI_AC_DER_IEC.xsd` | `Iso15118_20AcDerTests.Iec_DerEnergyTransferMode_Roundtrips` |
+
+Both decoded correctly. The DER one is the interesting result — EXIficient recovers
+`DER_AC_CPDReqEnergyTransferMode` as the selected substitution member, and the
+**namespace split is the evidence that the extension was understood**: the inherited
+fields come back in `urn:iso:std:iso:15118:-20:AC` while the DER-only fields
+(`EVProcessing`, `EVMaximumDischargePower`, `EVMinimumDischargePower`,
+`EVSessionTotalDischargeEnergyAvailable`) come back in
+`urn:iso:std:iso:15118:-20:AC-DER-IEC`, with every value intact — see
+[`fixtures/iso20-ac-der-iec-cpdreq-expected-decoded.xml`](fixtures/iso20-ac-der-iec-cpdreq-expected-decoded.xml).
+
+Note the two bitstreams differ in exactly one selector byte plus the appended DER content
+(`…fa a0 62 …` plain vs `…fa a0 63 …` + DER fields), which is what a substitution-group
+choice should look like.
+
+**What this does and does not prove.** It proves our AC DER bytes are valid,
+standards-conformant, schema-informed EXI that an independent processor decodes to the
+intended values — a genuine external check, and the same property the SignedInfo
+cross-check establishes. It is **not** a byte-for-byte comparison against a second
+*encoder*: as the section below records, EXIficient's encoder uses a different profile
+and emits longer streams, so encode-side diffing is not apples-to-apples for any of our
+message sets. AC DER therefore has a real oracle in the decode direction only.
+
 ## Known open point: EXIficient's own *encoder* takes more bits
 
 Running `encode` on the equivalent XML input (`fixtures/iso2-signedinfo.xml`,

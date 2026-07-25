@@ -82,6 +82,10 @@ namespace Vanaheimr.V2G.Exi.Tests
             var buf1 = new byte[1024];
             Assert.That(IecNs.AcDerIecCodec.TryEncode(message, buf1, out int n1), Is.True, "encode failed");
 
+            // Printed so the exact bytes fed to the EXIficient cross-check can be regenerated from
+            // this test (see tools/exificient-ref/fixtures/iso20-ac-der-iec-cpdreq.hex).
+            TestContext.Out.WriteLine($"AC+DER CPDReq: {Convert.ToHexString(buf1.AsSpan(0, n1))}");
+
             var decoded = (IecNs.AC_ChargeParameterDiscoveryReq)IecNs.AcDerIecCodec.DecodeAny(buf1.AsSpan(0, n1), out int consumed);
             Assert.That(consumed, Is.EqualTo(n1), "decoder did not consume all encoded bytes");
 

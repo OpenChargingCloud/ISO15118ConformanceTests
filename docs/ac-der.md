@@ -1,7 +1,7 @@
 # ISO 15118-20 Amendment 1 — AC DER (distributed energy resources)
 
-Date: **2026-07-25**. Status: **codec implemented and self-consistent; not wired into the session
-layer, no external byte oracle yet.**
+Date: **2026-07-25**. Status: **codec implemented, externally cross-validated against EXIficient
+(decode direction); not wired into the session layer.**
 
 ## What AC DER actually is
 
@@ -72,13 +72,43 @@ Consequences:
   DER session live in the amendment *text*, which we do not have. Since the messages are AC messages,
   reusing AC's `0x8003` with a distinct negotiated namespace is plausible — but that is a guess, and
   the project ground rule forbids inventing wire semantics. `V2GTPDispatcher` is untouched.
-- **No external byte oracle.** The checked-in assertions are self-consistency (encode → decode →
-  re-encode) plus the cross-grammar comparison — never "these are the right bytes". See the section
-  below for why the obvious route to one is currently closed.
+- **No *encode-side* byte oracle.** The checked-in NUnit assertions remain self-consistency (encode →
+  decode → re-encode) plus the cross-grammar comparison. External validation exists but lives outside
+  `dotnet test` (it needs Java) — see "External cross-validation" below.
 - **SAE's `DER_*` members are not constructed in tests.** They require four mandatory limit
   structures (apparent power, reactive power, excitation, inverter details — 12–24 fields each) plus
   IEEE 1547 categories. Worth building once there is an oracle to check them against; until then the
   SAE assembly is covered only for the messages it shares with plain AC.
+
+## External cross-validation — EXIficient, decode direction (2026-07-25) ✅
+
+With cbexigen unusable (next section), the oracle is **EXIficient** — a generic W3C EXI 1.0
+processor with no shared lineage with cbV2G/cbexigen or our generator. Harness and full evidence:
+[`tools/exificient-ref/`](../tools/exificient-ref/README.md).
+
+**Calibrated first.** Since no cbV2G ground truth exists for AC DER, the setup was validated on a
+case where it does: a plain, non-DER `AC_ChargeParameterDiscoveryReq` produced by our AC codec.
+EXIficient decoded it to exactly the intended values, confirming the document-mode configuration
+before it was trusted on the amendment grammar.
+
+**The result.** Our AC+DER bytes, decoded by EXIficient against `V2G_CI_AC_DER_IEC.xsd`, come back
+as the intended message — and the **namespace split proves the extension was understood**:
+
+| field | namespace it decoded into |
+|---|---|
+| `EVMaximumChargePower`, `EVMinimumChargePower` (inherited from AC) | `urn:iso:std:iso:15118:-20:AC` |
+| `EVProcessing`, `EVMaximumDischargePower`, `EVMinimumDischargePower`, `EVSessionTotalDischargeEnergyAvailable` (DER-only) | `urn:iso:std:iso:15118:-20:AC-DER-IEC` |
+
+with `DER_AC_CPDReqEnergyTransferMode` recovered as the selected substitution member and every value
+intact. The two bitstreams also differ exactly as a substitution-group choice should — one selector
+byte (`…fa a0 62 …` → `…fa a0 63 …`) plus the appended DER content.
+
+**Scope of the claim.** This proves our AC DER bytes are valid, standards-conformant,
+schema-informed EXI that an independent processor decodes to the intended values — the same property
+the SignedInfo cross-check establishes, and the one that matters for interoperability. It is **not**
+a byte-for-byte comparison against a second *encoder*: EXIficient's encoder uses a different profile
+and emits longer streams for all of our message sets (a long-standing, documented, un-root-caused
+gap — see the harness README). So AC DER has a real external oracle in the **decode direction only**.
 
 ## Attempt at a cbexigen byte oracle — blocked upstream (2026-07-25)
 
@@ -122,12 +152,12 @@ an *independent* oracle; a codec we patched ourselves, for precisely the constru
 not be independent where it matters — and a subtly wrong patch would produce confidently wrong
 "reference" bytes, which is worse than having no oracle at all.
 
-Remaining options, in order of preference:
+Consequences:
 
-1. **EXIficient** — a generic W3C EXI processor that takes arbitrary XSDs and is already wired up
-   (`tools/exificient-ref/`) as this repo's spec oracle. Unpatched, and designed for exactly this.
-2. Report the limitation upstream and use cbexigen once fixed — also worth folding into the
-   counterpart-tracking routine (task #82), since a fix would show up on a cbexigen pull.
+1. **EXIficient took over as the oracle** — see the section above; that is what closed the gap.
+2. Worth reporting upstream. A fix would restore encode-side byte-diffing (and make SAE's `DER_*`
+   members worth constructing); the counterpart-tracking routine (task #82) re-tests this blocker on
+   every cbexigen pull.
 
 ## Where this lives
 

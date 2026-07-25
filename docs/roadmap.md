@@ -153,8 +153,12 @@ Cleanups / smaller follow-ups (not blockers):
   `SchemaAnalyzer.__replace_particle_list_in_parent`) because a substitution-group head — here
   `CLReqControlMode` — receiving members from *two* schemas is registered twice and de-duplicated
   never; reproduction and root cause in [`docs/ac-der.md`](ac-der.md). Not patched on purpose: a
-  self-patched oracle is not independent for the construct under test. **EXIficient** (schema-generic,
-  already wired up) is the remaining route to real reference bytes.
+  self-patched oracle is not independent for the construct under test. **Externally cross-validated
+  against EXIficient instead** ✅ — calibrated first on a plain AC message where cbV2G ground truth
+  exists, then our AC+DER bytes decoded correctly against the amendment grammar, the inherited fields
+  coming back in the `:-20:AC` namespace and the DER-only fields in `:-20:AC-DER-IEC`. Decode
+  direction only (EXIficient's encoder profile differs for all our message sets) and outside
+  `dotnet test` since it needs Java; fixtures in `tools/exificient-ref/fixtures/`.
 - 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
   targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
   stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the
