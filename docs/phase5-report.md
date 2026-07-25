@@ -1,6 +1,6 @@
 # Phase 5 closing report — EV↔EVSE simulation & interop
 
-Date: **2026-07-21**, updated through **2026-07-23** (the follow-up-work section at the end tracks
+Date: **2026-07-21**, updated through **2026-07-25** (the follow-up-work section at the end tracks
 everything after the original closing date — it has since closed the entire feature-gap list).
 Scope: `docs/prompts/phase5.md` (EV↔EVSE session simulation over real TCP/TLS, SLAC/SDP front
 stages, and interop against an independent stack). This report is the Definition-of-Done item 7:
@@ -19,14 +19,16 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state **at the close of Phase 5** (2026-07-23): **609 green** (`dotnet test -c Release`) —
-524 in `Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`; the live over-the-wire
-Josev tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain, JRE, or network
-beyond loopback.
+Test state at the close of Phase 5 (2026-07-23) was **609 green**; **current: 627 green**
+(`dotnet test -c Release`, 2026-07-25) — 534 in `Vanaheimr.V2G.Exi.Tests`, 85 in
+`Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`. The live
+over-the-wire Josev tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain,
+JRE, or network beyond loopback.
 
-*(This report is a dated snapshot of Phase 5 and is deliberately not updated as the repo grows —
-work landing afterwards, such as AC DER and the PQC experiments, is not counted here. For the
-current figure see [`roadmap.md`](roadmap.md).)*
+The growth since the closing date is **not** Phase 5 scope — it is the post-phase additions
+tracked under "Completed extras" in [`roadmap.md`](roadmap.md) (AC DER codec variants, the PQC
+experiments, and the EXIficient primitive/non-ASCII cross-checks). What *is* Phase 5 scope, and is
+recorded at the end of §5, is one genuine mutual-TLS defect found afterwards.
 
 ## 2. Definition-of-Done scorecard (honest)
 
@@ -240,6 +242,32 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   documented in the code.
 - **Hermod weight.** SLAC pulls the heavy `Hermod`/`Styx` chain into the core Simulation library (a
   deliberate Option-A tradeoff); a later pass should slim Hermod or split SLAC into its own project.
+
+### Closed after the closing date
+
+- ✅ **Mutual-TLS client-certificate context** (2026-07-25, commit `76bc251`). The mutual-TLS tests
+  drifted from green to consistently failing with
+  `CryptographicException: An unknown chain building error occurred` out of
+  `SslStreamCertificateContext.Create`. Two independent causes, both real:
+  1. **A production defect.** `TcpV2GClient` always wrapped the client certificate in an
+     `SslStreamCertificateContext`, even with no chain to send. `Create` builds a chain over the leaf
+     against the **platform** trust store — there is no custom-trust hook — so it fails for any
+     certificate whose issuer the machine does not know. That is not merely a test artefact: a real EV
+     whose OEM root is not installed locally hits exactly this. The context is now used only when the
+     caller actually has intermediates to transmit; otherwise the leaf goes out via
+     `ClientCertificates` and path building is left to the peer, which is what the -2/-20 trust model
+     expects anyway.
+  2. **A test-PKI defect.** Every run minted a fresh root with the *identical* subject
+     `CN=V2G Root CA, …`. Windows' certificate cache indexes by name, so a later run's chain build
+     picked up an earlier run's root — matching name, non-matching key — and reported
+     `NotSignatureValid`. Hence the drift: green while the cache was empty, red once it filled.
+     `V2GHierarchy.Build`'s `CommonNameSuffix` now makes every hierarchy uniquely named.
+
+  Method worth remembering: the answer only appeared after dumping `X509Chain.ChainStatus` with
+  `throwOnException: false` — against the PKI variant the tests actually use. Two plausible-sounding
+  hypotheses (a throwing validation callback; AIA/OCSP fetching, "fixed" with `offline: true`) were
+  both wrong and were reverted. Verified with eight consecutive full runs; the flake never reproduced
+  under `--filter`.
 
 ## 6. Security caveats
 
