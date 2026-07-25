@@ -19,14 +19,14 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state at the close of Phase 5 (2026-07-23) was **609 green**; **current: 627 green**
-(`dotnet test -c Release`, 2026-07-25) — 534 in `Vanaheimr.V2G.Exi.Tests`, 85 in
+Test state at the close of Phase 5 (2026-07-23) was **609 green**; **current: 629 green**
+(`dotnet test -c Release`, 2026-07-25) — 534 in `Vanaheimr.V2G.Exi.Tests`, 87 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`. The live
 over-the-wire Josev tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain,
 JRE, or network beyond loopback.
 
 The growth since the closing date is **not** Phase 5 scope — it is the post-phase additions
-tracked under "Completed extras" in [`roadmap.md`](roadmap.md) (AC DER codec variants, the PQC
+tracked under "Completed extras" in [`roadmap.md`](roadmap.md) (AC DER codec variants, MCS, the PQC
 experiments, and the EXIficient primitive/non-ASCII cross-checks). What *is* Phase 5 scope, and is
 recorded at the end of §5, is one genuine mutual-TLS defect found afterwards.
 

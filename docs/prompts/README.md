@@ -20,9 +20,11 @@ documented on its own:
 
 - **AC DER** (-20 Amendment 1): two AC grammar variants, cross-validated against EXIficient,
   no session wiring — [`../ac-der.md`](../ac-der.md).
+- **MCS** (Megawatt Charging System): `{Evcc,Secc}20Mcs` — the DC message set under service
+  ids 8/9 with a megawatt envelope, no codec work; ids from EVerest, no live counterpart.
 - **PQC experiments** (wire-non-conformant by design) — [`../experiments/pqc.md`](../experiments/pqc.md).
 
-Both are summarised under "Completed extras" in [`../roadmap.md`](../roadmap.md).
+All three are summarised under "Completed extras" in [`../roadmap.md`](../roadmap.md).
 
 After finishing a phase: update the status column here (e.g. "done @<commit/date>")
 and check whether the context sections of the following prompts still match the
