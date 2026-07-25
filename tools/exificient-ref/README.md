@@ -27,6 +27,14 @@ gradle compileJava
 ```
 gradle run --args="encode <xsd-entry-point> <fragment|document> <in.xml>  <out.hex>"
 gradle run --args="decode <xsd-entry-point> <fragment|document> <in.hex>  <out.xml>"
+gradle run --args="primitives <in.tsv> <out.tsv>"
+```
+
+The `primitives` mode is driven by [`primitives.py`](primitives.py) rather than by hand:
+
+```sh
+python tools/exificient-ref/primitives.py             # report
+python tools/exificient-ref/primitives.py --update    # + rewrite the vector file's provenance
 ```
 
 `<xsd-entry-point>` is the top-level schema file; EXIficient's `XSDGrammarsBuilder`
@@ -64,6 +72,26 @@ they carry the intended cryptographic values. That is the property that actually
 matters for XMLDSig correctness (the verifier must recover the exact bytes that were
 hashed/signed), so this closes out the "external cross-validation" item for both
 Phase 3 (-2) and Phase 4 (-20 CommonMessages).
+
+### Schema-less primitives — `BitEncoderChannel` (2026-07-25)
+
+`Primitives.vectors.json` was the **last self-referential vector file in the repo**: its
+`expectedHex` was produced by the very codec it tests, so it caught regressions but proved
+nothing about wire conformance. cbV2G is no help here — it is a schema-informed codec, and
+these are the raw EXI 1.0 §7.1 datatypes underneath any grammar.
+
+EXIficient exposes exactly that layer as
+`com.siemens.ct.exi.core.io.channel.BitEncoderChannel`, so the `primitives` mode encodes each
+vector through it and [`primitives.py`](primitives.py) diffs the result:
+
+**All 18 vectors match byte-for-byte** — 4 unsignedInteger, 6 signedInteger (incl. negatives),
+3 binary, 2 boolean, 3 string. The vector file's provenance block now records this.
+
+One honest detail: `encodeString` writes a bare length prefix, while ISO 15118's schema-less
+string *values* use the value-table **miss framing** (length + 2) that lives one layer above the
+channel. The harness applies that offset explicitly and lets EXIficient do the character
+encoding — so the string rows compare the character encoding independently, with the framing
+convention stated rather than assumed.
 
 ### AC DER (-20 Amendment 1) — whole documents, `fragment=false` (2026-07-25)
 

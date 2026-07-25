@@ -38,6 +38,10 @@ import java.nio.file.Paths;
 public class ExificientRef {
 
     public static void main(String[] args) throws Exception {
+        if (args.length >= 3 && "primitives".equals(args[0])) {
+            primitives(args[1], args[2]);
+            return;
+        }
         if (args.length < 5) {
             usage();
             System.exit(2);
@@ -60,6 +64,7 @@ public class ExificientRef {
     private static void usage() {
         System.err.println("usage: ExificientRef encode <xsd-entry-point> <fragment|document> <in.xml> <out.hex>");
         System.err.println("       ExificientRef decode <xsd-entry-point> <fragment|document> <in.hex> <out.xml>");
+        System.err.println("       ExificientRef primitives <in.tsv> <out.tsv>   (schema-less EXI §7.1 datatypes)");
     }
 
     private static EXIFactory buildFactory(String xsdPath, boolean fragment) throws EXIException {
@@ -74,6 +79,74 @@ public class ExificientRef {
             } catch (Exception e) { System.err.println("no canonical option: " + e); }
         }
         return ef;
+    }
+
+    /**
+     * Schema-less EXI primitive datatypes (EXI 1.0 §7.1), encoded through EXIficient's own
+     * {@link com.siemens.ct.exi.core.io.channel.BitEncoderChannel} — the layer beneath grammars and
+     * value tables. This is the oracle for {@code Primitives.vectors.json}, whose expected bytes were
+     * previously self-encoded by the codec under test.
+     *
+     * <p>Input/output are TSV rather than JSON so this tool needs no JSON dependency; the caller
+     * (see {@code tools/exificient-ref/primitives.py}) converts to and from the vector file.
+     * Input columns: {@code name <TAB> datatype <TAB> value}. Output: {@code name <TAB> hex}.
+     *
+     * <p><b>String note.</b> {@code encodeString} writes a bare length prefix. ISO 15118's
+     * schema-less string *values* use the value-table miss framing — length + 2 — which lives one
+     * layer above this channel, so it is expressed explicitly here as
+     * {@code encodeUnsignedInteger(len + 2)} followed by {@code encodeStringOnly}. The character
+     * encoding itself is still EXIficient's.
+     */
+    private static void primitives(String inTsv, String outTsv) throws Exception {
+        StringBuilder out = new StringBuilder();
+
+        for (String line : Files.readAllLines(Paths.get(inTsv), StandardCharsets.UTF_8)) {
+            if (line.isEmpty()) continue;
+            String[] parts = line.split("\t", 3);
+            String name = parts[0], datatype = parts[1], value = parts.length > 2 ? parts[2] : "";
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            com.siemens.ct.exi.core.io.channel.BitEncoderChannel ch =
+                    new com.siemens.ct.exi.core.io.channel.BitEncoderChannel(bos);
+
+            switch (datatype) {
+                case "unsignedInteger":
+                    ch.encodeUnsignedInteger(Integer.parseInt(value));
+                    break;
+                case "signedInteger":
+                    ch.encodeInteger(Integer.parseInt(value));
+                    break;
+                case "boolean":
+                    ch.encodeBoolean(Boolean.parseBoolean(value));
+                    break;
+                case "binary": {
+                    String hex = value.replaceAll("\\s+", "");
+                    byte[] raw = new byte[hex.length() / 2];
+                    for (int i = 0; i < raw.length; i++)
+                        raw[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+                    ch.encodeBinary(raw);
+                    break;
+                }
+                case "string":
+                    ch.encodeUnsignedInteger(value.codePointCount(0, value.length()) + 2);
+                    ch.encodeStringOnly(value);
+                    break;
+                default:
+                    throw new IllegalArgumentException("unknown datatype: " + datatype);
+            }
+
+            ch.flush();
+            byte[] bytes = bos.toByteArray();
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < bytes.length; i++) {
+                if (i > 0) hex.append(' ');
+                hex.append(String.format("%02x", bytes[i] & 0xFF));
+            }
+            out.append(name).append('\t').append(hex).append('\n');
+        }
+
+        Files.write(Paths.get(outTsv), out.toString().getBytes(StandardCharsets.UTF_8));
+        System.out.print(out);
     }
 
     private static void encode(String xsdPath, boolean fragment, String inXml, String outHex) throws Exception {

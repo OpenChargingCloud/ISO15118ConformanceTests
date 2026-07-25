@@ -9,9 +9,11 @@ namespace Vanaheimr.V2G.Exi.Tests
     /// Vector-driven tests for the schema-less EXI datatypes, loaded from
     /// <c>Vectors/Primitives.vectors.json</c>.
     /// <para>
-    /// <b>Provenance.</b> These <c>expectedHex</c> values are currently self-encoded by the
-    /// codec under test — they guard against accidental regressions but do not yet prove wire
-    /// conformance. The intended external oracle is EXIficient; see <c>PRIMITIVES_VECTORS.md</c>.
+    /// <b>Provenance.</b> These <c>expectedHex</c> values are produced by the codec under test
+    /// <i>and</i> independently reproduced, byte-for-byte, by EXIficient's
+    /// <c>BitEncoderChannel</c> (EXI 1.0 §7.1) — so they are no longer self-referential (18/18 as
+    /// of 2026-07-25). That cross-check needs a JRE and therefore lives outside <c>dotnet test</c>:
+    /// re-run <c>python tools/exificient-ref/primitives.py</c> after touching the primitive layer.
     /// </para>
     /// </summary>
     [TestFixture]

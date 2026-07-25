@@ -376,7 +376,11 @@ Plug & Charge — see **Interop status** below.
 
 - Non-ASCII string values on the wire against a reference oracle (our codec encodes them
   rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
-- EXIficient cross-check of the primitive vectors (staged, not yet wired up — needs a JRE).
+- ~~EXIficient cross-check of the primitive vectors~~ — **done 2026-07-25**: all 18 vectors in
+  `Primitives.vectors.json` are independently reproduced byte-for-byte by EXIficient's
+  `BitEncoderChannel` (EXI 1.0 §7.1), so they are no longer self-referential. Re-runnable via
+  `python tools/exificient-ref/primitives.py`; the check needs a JRE and therefore stays outside
+  `dotnet test`, like every other reference-encoder step.
 - Header options document (AppProtocol doesn't use it; ISO 15118-20 may).
 - Cross-validate our **DC/AC ECDSA-P521 / Ed448 signature** paths against a second toolchain — still
   self-checked only (the `SignedInfo` *fragment* is cross-checked vs EXIficient for -2 and -20 CommonMessages,
