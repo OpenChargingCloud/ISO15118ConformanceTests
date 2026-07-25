@@ -1,15 +1,15 @@
 # Roadmap & status
 
-Last updated: **2026-07-23**. Authoritative per-phase detail lives in
+Last updated: **2026-07-25**. Authoritative per-phase detail lives in
 [`docs/prompts/`](prompts/README.md) (the phase prompts + their status table) and the
 [`README.md`](../README.md); this file is the bird's-eye plan and the "why".
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 609 tests are green**
-(`dotnet test -c Release`: 524 in `Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`) —
-offline, with no C toolchain, JRE, or network beyond loopback; the live over-the-wire Josev tests stay
-`[Explicit]`/script-driven.
+**All phases (0–5) are complete.** The solution builds cleanly and **all 622 tests are green**
+(`dotnet test -c Release`: 529 in `Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`,
+8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C toolchain, JRE, or network beyond
+loopback; the live over-the-wire Josev tests stay `[Explicit]`/script-driven.
 
 ISO 15118-2 and -20 are **feature-complete at session level** and validated live against the independent
 Josev stack in every direction Josev supports — the feature-gap list is **empty**:
@@ -41,6 +41,13 @@ scorecard + honest-gaps ledger) and the per-run write-ups under [`docs/interop-r
 | 3 | All 17 -2 message pairs + XMLDSig over EXI fragments (ECDSA-P256/SHA-256) | ✅ **done** |
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
 | 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop, PnC/cert-install/pause/renegotiation/tariffs live) | ✅ **done** |
+
+**Beyond the phases** — two additions outside the original roadmap, each honest about its own limits:
+
+| Addition | Status |
+|---|---|
+| **AC DER** (-20 Amendment 1) — two AC grammar variants (`AC_DER_IEC`, `AC_DER_SAE`); cross-validated against EXIficient (decode direction). **No session wiring** (payload type / `ProtocolNamespace` live in the amendment text we don't have). [`docs/ac-der.md`](ac-der.md) | ◑ codec done |
+| **PQC experiments** — ML-KEM-1024 TLS session + ML-DSA-87 signatures, BC ↔ .NET cross-validated, with the EXI/CBOR/JSON size verdict. **Wire-non-conformant by design**, never a production default. [`docs/experiments/pqc.md`](experiments/pqc.md) | ◑ experiment |
 
 What exists today, at a glance:
 
@@ -87,7 +94,9 @@ Cleanups / smaller follow-ups (not blockers):
   other's multicast). A two-host or loopback-unicast test mode would close this. (Live it works —
   every `--sdp` interop run exercises it, both directions.)
 
-**Future ideas** (beyond the original roadmap, parked with a concrete trigger each):
+**Future ideas** (beyond the original roadmap). ⬜ = parked with a concrete trigger; ◑ = started or
+done, with the remainder parked — AC DER and the PQC experiments have both landed (see the
+"Beyond the phases" table above) and are kept here for their rationale and remaining gaps:
 - ⬜ **ISO 15118-8 wireless-link demo** — -8 profiles 802.11n as the wireless PHY/DLL (buses,
   pantograph, WPT); it carries **no EXI schemas or messages**, and from IP upward our stack runs
   unchanged — so the honest slice is a link-agnosticism demo, not codec work: virtual 802.11 radios

@@ -20,6 +20,8 @@ Vanaheimr.V2G.Exi.slnx
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.AC/              ISO 15118-20 AC codec
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.WPT/             ISO 15118-20 WPT codec
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.ACDP/            ISO 15118-20 ACDP codec
+├─ Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_IEC/      ISO 15118-20 Amd 1: AC + DER (IEC) grammar variant
+├─ Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_SAE/      ISO 15118-20 Amd 1: AC + DER (SAE) grammar variant
 ├─ Vanaheimr.V2G.Exi.Dispatch/           V2GTP payload-type → codec dispatcher
 ├─ Vanaheimr.V2G.Exi.Simulation/         console app: in-process -2 AC/DC session (no sockets)
 ├─ Vanaheimr.V2G.Simulation/             class library: real TCP/TLS EVCC↔SECC session (Phase 5)
@@ -169,6 +171,10 @@ build tooling uses). Unlike -2, there is no `V2G_Message` wrapper: every message
 own global element carrying the header (`SessionID`, `TimeStamp`, optional `Signature`)
 inline.
 
+Two further assemblies cover **Amendment 1 AC DER** (`.AC_DER_IEC`, `.AC_DER_SAE`) — see
+[AC DER](#ac-der-amendment-1) below. They are *grammar variants of AC*, not additional
+message sets.
+
 ### Message coverage (byte-verified vs cbV2G, encode + decode + roundtrip)
 
 All target messages from `phase4.md`'s coverage list are byte-exact against cbV2G on
@@ -265,6 +271,45 @@ no `exiFragment` struct, no `EncodeFragment`/`DecodeFragment` function, nothing.
 `MessageHeaderType.Signature` field exists (schema-consistent with every other set) but
 there is nothing to point it at, so there's no XMLDSig work for these two sets.
 
+## AC DER (Amendment 1)
+
+ISO 15118-20 **Amendment 1** adds distributed-energy-resource grid support (reactive power,
+cos-φ / DSO setpoints, inverter details). Its schemas are free from
+`https://standards.iso.org/iso/15118/-20/ed-1/en/Amd/1/AMD1_xsdSchema.zip`. Full write-up:
+[`docs/ac-der.md`](docs/ac-der.md).
+
+**It is not a new message set.** Both `V2G_CI_AC_DER_{IEC,SAE}.xsd` import the base AC
+schema, leave the message roots commented out, and contribute six `DER_*`
+**substitution-group members** extending AC's own types via `xs:extension` — structurally
+the same pattern AC already uses for its `BPT_*` variants, so **the source generator needed
+no changes**. The messages on the wire stay `AC_ChargeParameterDiscoveryReq/Res` and
+`AC_ChargeLoopReq/Res`.
+
+Shipped as two *grammar variants of AC* (`.AC_DER_IEC`, 166 elements; `.AC_DER_SAE`, 364),
+each compiling AC + DER + `CommonTypes` + `xmldsig` into its own assembly, because the added
+substitution members change the grammar of those AC messages.
+
+Measured, contradicting the initial expectation: a **plain, non-DER AC message encodes
+byte-identically under both grammars** — the added members don't push the event code over an
+n-bit boundary, so existing members keep their codes. Plain AC traffic therefore stays
+compatible; only DER-*carrying* messages are unreadable to a plain AC peer. Both boundaries
+are pinned by tests, since a further amendment adding members to the same group could
+silently change this.
+
+**Validation.** cbexigen cannot generate these schemas (it crashes on a substitution-group
+head fed by two schemas — reproduction and root cause in `docs/ac-der.md`), so there are no
+cbV2G reference bytes. Instead the bytes are cross-checked against **EXIficient**, calibrated
+first on a plain AC message where cbV2G ground truth does exist. EXIficient decodes our
+AC+DER bytes to the intended message, with inherited fields coming back in
+`urn:iso:std:iso:15118:-20:AC` and DER-only fields in `urn:iso:std:iso:15118:-20:AC-DER-IEC`.
+That is a **decode-direction** check (EXIficient's encoder profile differs for all our message
+sets) and lives outside `dotnet test` since it needs Java — fixtures in
+`tools/exificient-ref/fixtures/`.
+
+**Not wired into the session layer.** The V2GTP payload type and SAP `ProtocolNamespace` that
+select a DER session are defined in the amendment *text*, which we don't have; inventing them
+is exactly what the wire-semantics ground rule forbids. `V2GTPDispatcher` is untouched.
+
 ## EV↔EVSE simulation (Phase 5)
 
 `Vanaheimr.V2G.Simulation` is a real-networking EVCC↔SECC session — distinct from
@@ -341,6 +386,10 @@ Plug & Charge — see **Interop status** below.
   are self-consistency-tested only, not byte-diffed against cbV2G — the latter can't be:
   cbV2G's own generated encoder for `WPT_LF_TransmitterDataType` fails outright at its
   schema-required minimum (see above).
+- **AC DER** is not wired into `V2GTPDispatcher` or SAP negotiation (payload type /
+  `ProtocolNamespace` are in the amendment text we don't have), has no *encode-side* byte
+  oracle (cbexigen can't generate the amendment schemas), and its SAE `DER_*` members — which
+  need four mandatory limit structures — aren't exercised yet. See [AC DER](#ac-der-amendment-1).
 
 ## Next milestones
 
@@ -361,6 +410,13 @@ live-validated against Josev**: PnC both directions in both protocols, contract 
 pause/resume, renegotiation, and signed tariffs (see **Interop status** below). Companion docs:
 `docs/pki-model.md` (PKI + TLS design), `docs/roadmap.md` (end-state overview), and
 `docs/phase5-report.md` (the closing scorecard + honest-gaps ledger).
+
+**Beyond the phases**, two additions live outside the original roadmap: the
+[AC DER](#ac-der-amendment-1) codec variants (-20 Amendment 1, cross-validated against
+EXIficient — [`docs/ac-der.md`](docs/ac-der.md)) and the wire-non-conformant **post-quantum
+crypto experiments** ([`docs/experiments/pqc.md`](docs/experiments/pqc.md)). Both are flagged
+for what they are: AC DER is a real codec with no session wiring; PQC is an experiment, never
+a production default.
 
 ## Interop status (Josev)
 
