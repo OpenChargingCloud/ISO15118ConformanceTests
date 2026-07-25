@@ -42,12 +42,13 @@ scorecard + honest-gaps ledger) and the per-run write-ups under [`docs/interop-r
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
 | 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop, PnC/cert-install/pause/renegotiation/tariffs live) | ✅ **done** |
 
-**Beyond the phases** — two additions outside the original roadmap, each honest about its own limits:
+**Beyond the phases** — two additions outside the original roadmap, each honest about its own limits;
+detail and what stays parked in [Completed extras](#completed-extras):
 
 | Addition | Status |
 |---|---|
-| **AC DER** (-20 Amendment 1) — two AC grammar variants (`AC_DER_IEC`, `AC_DER_SAE`); cross-validated against EXIficient (decode direction). **No session wiring** (payload type / `ProtocolNamespace` live in the amendment text we don't have). [`docs/ac-der.md`](ac-der.md) | ◑ codec done |
-| **PQC experiments** — ML-KEM-1024 TLS session + ML-DSA-87 signatures, BC ↔ .NET cross-validated, with the EXI/CBOR/JSON size verdict. **Wire-non-conformant by design**, never a production default. [`docs/experiments/pqc.md`](experiments/pqc.md) | ◑ experiment |
+| **AC DER** (-20 Amendment 1) — two AC grammar variants (`AC_DER_IEC`, `AC_DER_SAE`); cross-validated against EXIficient (decode direction). **No session wiring** (payload type / `ProtocolNamespace` live in the amendment text we don't have). [`docs/ac-der.md`](ac-der.md) | ✅ codec done |
+| **PQC experiments** — ML-KEM-1024 TLS session + ML-DSA-87 signatures, BC ↔ .NET cross-validated, with the EXI/CBOR/JSON size verdict. **Wire-non-conformant by design**, never a production default. [`docs/experiments/pqc.md`](experiments/pqc.md) | ✅ experiment done |
 
 What exists today, at a glance:
 
@@ -94,9 +95,8 @@ Cleanups / smaller follow-ups (not blockers):
   other's multicast). A two-host or loopback-unicast test mode would close this. (Live it works —
   every `--sdp` interop run exercises it, both directions.)
 
-**Future ideas** (beyond the original roadmap). ⬜ = parked with a concrete trigger; ◑ = started or
-done, with the remainder parked — AC DER and the PQC experiments have both landed (see the
-"Beyond the phases" table above) and are kept here for their rationale and remaining gaps:
+**Future ideas** (beyond the original roadmap, parked with a concrete trigger each). Things that
+have already landed are in [Completed extras](#completed-extras) below:
 - ⬜ **ISO 15118-8 wireless-link demo** — -8 profiles 802.11n as the wireless PHY/DLL (buses,
   pantograph, WPT); it carries **no EXI schemas or messages**, and from IP upward our stack runs
   unchanged — so the honest slice is a link-agnosticism demo, not codec work: virtual 802.11 radios
@@ -111,23 +111,6 @@ done, with the remainder parked — AC DER and the PQC experiments have both lan
   the bus talks HTTPS/JSON to the dispositive backend; VDV 463 schemas are public
   (github.com/VDVde/VDV463), Siemens DepotFinity documents a VDV-261 REST API. Trigger: access to a
   testable counterpart (e.g. a DepotFinity sandbox).
-- ◑ **Post-quantum crypto experiments — STARTED** (2026-07-23, `Vanaheimr.V2G.Experiments.Pqc` +
-  tests; results in [`docs/experiments/pqc.md`](experiments/pqc.md)). Both experiments run in CI,
-  clearly flagged wire-non-conformant (both editions pin classical suites; Ed448 is EC, *not*
-  post-quantum): (1) a complete **-20 DC session over an ML-KEM-1024 (FIPS 203) TLS 1.3 key
-  exchange** via the BouncyCastle backend (`BcTlsOptions.ExperimentalNamedGroups`; BC 2.6.2 has the
-  pure-ML-KEM codepoints, not yet the browser hybrid), with a classical-vs-PQC negative control;
-  (2) an **ML-DSA-87 (FIPS 204) signature suite** behind an experimental URI — the generated EXI
-  codec carries the 4 627-byte signature unchanged, full sign→encode→decode→verify roundtrip,
-  **cross-validated between BouncyCastle and .NET 10's native `MLDsa`** (two independent FIPS 204
-  implementations, both directions, raw key interchange — an internal oracle for the primitive).
-  Headline measurement (EXI vs CBOR vs JSON): the PnC AuthorizationReq flips from ~10 % signature
-  (P-521) to **~80 % signature** (ML-DSA-87); EXI's saving over base64-JSON (2.3 KB) is smaller
-  than the signature it carries (4.6 KB), and against binary-clean **CBOR it collapses to ~330 B
-  = 5.4 %** — in a PQC 15118, the encoding choice becomes a rounding error. Remaining (kept
-  parked): the `X25519MLKEM768` *hybrid* once BC ships it, PQC certificate chains (projected
-  ~23 KB per 3-cert chain). Trigger for anything beyond the experiment: a 15118 draft/amendment
-  (or CharIN profile) with actual PQC commitments; no 15118-external oracle exists either way.
 - ⬜ **MCS (Megawatt Charging System)** — **no codec work, no new XSD** (settled 2026-07-25; an
   earlier note here wrongly called it blocked on a missing byte oracle). Three findings resolve it:
   (a) the -20 **Amendment 1 schemas are public and free** —
@@ -143,31 +126,6 @@ done, with the remainder parked — AC DER and the PQC experiments have both lan
   parameter sets in `ServiceDetail`, DC charge loop with MCS limits), comparable in size to the
   existing DC/AC energy-mode hooks, cross-checkable live against `Evse15118D20` — the only maintained
   counterpart that has MCS. Physical/limits detail still needs the Amendment text. Tracked as task #83.
-- ◑ **AC DER (-20 Amendment 1) — codec DONE** (2026-07-25; full write-up in
-  [`docs/ac-der.md`](ac-der.md)). It turned out **not** to be a new message set: both amendment
-  schemas import the base AC schema, leave the message roots commented out, and contribute six
-  `DER_*` **substitution-group members** extending AC's own types — structurally the same pattern
-  AC already uses for `BPT_*`, so **the source generator needed no changes**. Shipped as two grammar
-  variants of AC (`Iso15118_20.AC_DER_IEC`, `…_SAE`, each compiling AC + DER + CommonTypes +
-  xmldsig), 5 tests. Measured surprise, contradicting the initial expectation: a **plain, non-DER AC
-  message encodes byte-identically under both grammars** — the added members don't push the event
-  code over an n-bit boundary — so plain AC traffic stays compatible and only DER-carrying messages
-  are unreadable to a plain AC peer. A regression test pins that, since a further amendment adding
-  more members to the same group could silently change it. **Deliberately not done:** V2GTP dispatch
-  and SAP negotiation (the payload type / `ProtocolNamespace` are in the amendment *text*, which we
-  don't have — guessing is exactly what the ground rule forbids) and the SAE `DER_*` members (four
-  mandatory limit structures, worth building once there's an oracle). Note EVerest doesn't implement
-  AC DER either, so there is no live counterpart. **A cbexigen byte oracle was attempted and is
-  blocked upstream:** cbexigen crashes analysing the amendment schemas (`IndexError` in
-  `SchemaAnalyzer.__replace_particle_list_in_parent`) because a substitution-group head — here
-  `CLReqControlMode` — receiving members from *two* schemas is registered twice and de-duplicated
-  never; reproduction and root cause in [`docs/ac-der.md`](ac-der.md). Not patched on purpose: a
-  self-patched oracle is not independent for the construct under test. **Externally cross-validated
-  against EXIficient instead** ✅ — calibrated first on a plain AC message where cbV2G ground truth
-  exists, then our AC+DER bytes decoded correctly against the amendment grammar, the inherited fields
-  coming back in the `:-20:AC` namespace and the DER-only fields in `:-20:AC-DER-IEC`. Decode
-  direction only (EXIficient's encoder profile differs for all our message sets) and outside
-  `dotnet test` since it needs Java; fixtures in `tools/exificient-ref/fixtures/`.
 - 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
   targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
   stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the
@@ -176,6 +134,66 @@ done, with the remainder parked — AC DER and the PQC experiments have both lan
   bugs to document (~12 Josev findings so far). Also the natural moment to revisit the pinned
   `03350be` codec commit and to decide whether to stand up an EVerest node once, which would unlock
   `EvseV2G` / `Evse15118D20` / `IsoMux` as live counterparts.
+
+### Completed extras
+
+Work that landed **outside the original phase plan** — real, tested, and each honest about what it
+is not. Both started life as "future ideas"; what remains parked is listed with each.
+
+#### ✅ AC DER (-20 Amendment 1) — codec done (2026-07-25)
+
+Full write-up: [`docs/ac-der.md`](ac-der.md).
+
+It turned out **not** to be a new message set: both amendment schemas import the base AC schema,
+leave the message roots commented out, and contribute six `DER_*` **substitution-group members**
+extending AC's own types — structurally the same pattern AC already uses for `BPT_*`, so **the
+source generator needed no changes**. Shipped as two grammar variants of AC
+(`Iso15118_20.AC_DER_IEC`, `…_SAE`, each compiling AC + DER + CommonTypes + xmldsig), 5 tests.
+
+Measured surprise, contradicting the initial expectation: a **plain, non-DER AC message encodes
+byte-identically under both grammars** — the added members don't push the event code over an n-bit
+boundary — so plain AC traffic stays compatible and only DER-carrying messages are unreadable to a
+plain AC peer. A regression test pins that, since a further amendment adding more members to the
+same group could silently change it.
+
+**Validation.** A cbexigen byte oracle was attempted and is **blocked upstream**: cbexigen crashes
+analysing the amendment schemas (`IndexError` in `SchemaAnalyzer.__replace_particle_list_in_parent`)
+because a substitution-group head — here `CLReqControlMode` — receiving members from *two* schemas
+is registered twice and never de-duplicated. Not patched on purpose: a self-patched oracle is not
+independent for the construct under test. **Externally cross-validated against EXIficient instead** —
+calibrated first on a plain AC message where cbV2G ground truth exists, then our AC+DER bytes decoded
+correctly against the amendment grammar, the inherited fields coming back in the `:-20:AC` namespace
+and the DER-only fields in `:-20:AC-DER-IEC`. Decode direction only (EXIficient's encoder profile
+differs for all our message sets) and outside `dotnet test` since it needs Java; fixtures in
+`tools/exificient-ref/fixtures/`.
+
+**Parked:** V2GTP dispatch and SAP negotiation (the payload type / `ProtocolNamespace` are in the
+amendment *text*, which we don't have — guessing is exactly what the ground rule forbids); the SAE
+`DER_*` members (four mandatory limit structures, worth building once there's an encode-side oracle).
+EVerest doesn't implement AC DER either, so there is no live counterpart.
+
+#### ✅ Post-quantum crypto experiments (2026-07-23)
+
+`Vanaheimr.V2G.Experiments.Pqc` + tests; results in [`docs/experiments/pqc.md`](experiments/pqc.md).
+Both experiments run in CI, clearly flagged **wire-non-conformant** (both editions pin classical
+suites; Ed448 is EC, *not* post-quantum) — never a production default:
+
+1. A complete **-20 DC session over an ML-KEM-1024 (FIPS 203) TLS 1.3 key exchange** via the
+   BouncyCastle backend (`BcTlsOptions.ExperimentalNamedGroups`; BC 2.6.2 has the pure-ML-KEM
+   codepoints, not yet the browser hybrid), with a classical-vs-PQC negative control.
+2. An **ML-DSA-87 (FIPS 204) signature suite** behind an experimental URI — the generated EXI codec
+   carries the 4 627-byte signature unchanged, full sign→encode→decode→verify roundtrip,
+   **cross-validated between BouncyCastle and .NET 10's native `MLDsa`** (two independent FIPS 204
+   implementations, both directions, raw key interchange — an internal oracle for the primitive).
+
+Headline measurement (EXI vs CBOR vs JSON): the PnC `AuthorizationReq` flips from ~10 % signature
+(P-521) to **~80 % signature** (ML-DSA-87); EXI's saving over base64-JSON (2.3 KB) is smaller than
+the signature it carries (4.6 KB), and against binary-clean **CBOR it collapses to ~330 B = 5.4 %** —
+in a PQC 15118, the encoding choice becomes a rounding error.
+
+**Parked:** the `X25519MLKEM768` *hybrid* once BC ships it; PQC certificate chains (projected ~23 KB
+per 3-cert chain). Trigger for anything beyond the experiment: a 15118 draft/amendment (or CharIN
+profile) with actual PQC commitments; no 15118-external oracle exists either way.
 
 **Resolved across Phase 5** (each was once an open gap):
 - ✅ **EVCC-side live SDP** (2026-07-23) — the CLI EVCC's `EVCC_SDPClient` timed out against a live
