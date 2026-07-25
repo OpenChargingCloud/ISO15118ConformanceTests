@@ -134,16 +134,23 @@ Cleanups / smaller follow-ups (not blockers):
   parameter sets in `ServiceDetail`, DC charge loop with MCS limits), comparable in size to the
   existing DC/AC energy-mode hooks, cross-checkable live against `Evse15118D20` — the only maintained
   counterpart that has MCS. Physical/limits detail still needs the Amendment text. Tracked as task #83.
-- ⬜ **AC DER (-20 Amendment 1)** — the genuinely *new* message-set opportunity the MCS hunt turned
-  up: two new schemas with their own namespaces (`urn:iso:std:iso:15118:-20:AC-DER-IEC` / `-SAE`,
-  166 / 364 elements) for distributed-energy-resource grid support — reactive power, cos-φ and
-  DSO setpoints, inverter details. **Neither we nor EVerest implement it** (`Evse15118D20` lists
-  AC DER as unsupported), and cbexigen does not generate it either, so there is no byte oracle from
-  that direction — but **EXIficient is schema-generic** and can serve as the oracle for a brand-new
-  XSD, which is exactly the role it already plays for `SignedInfo` fragments. That makes AC DER
-  implementable within the ground rule, as a WPT/ACDP-style additional message-set project.
-  **Trigger:** appetite for a new message set — the prerequisites (free schemas + a viable oracle)
-  are already in place.
+- ◑ **AC DER (-20 Amendment 1) — codec DONE** (2026-07-25; full write-up in
+  [`docs/ac-der.md`](ac-der.md)). It turned out **not** to be a new message set: both amendment
+  schemas import the base AC schema, leave the message roots commented out, and contribute six
+  `DER_*` **substitution-group members** extending AC's own types — structurally the same pattern
+  AC already uses for `BPT_*`, so **the source generator needed no changes**. Shipped as two grammar
+  variants of AC (`Iso15118_20.AC_DER_IEC`, `…_SAE`, each compiling AC + DER + CommonTypes +
+  xmldsig), 5 tests. Measured surprise, contradicting the initial expectation: a **plain, non-DER AC
+  message encodes byte-identically under both grammars** — the added members don't push the event
+  code over an n-bit boundary — so plain AC traffic stays compatible and only DER-carrying messages
+  are unreadable to a plain AC peer. A regression test pins that, since a further amendment adding
+  more members to the same group could silently change it. **Deliberately not done:** V2GTP dispatch
+  and SAP negotiation (the payload type / `ProtocolNamespace` are in the amendment *text*, which we
+  don't have — guessing is exactly what the ground rule forbids), an external byte oracle (cbexigen
+  doesn't generate these schemas; EXIficient, being schema-generic, is the candidate — or feed the
+  schemas to cbexigen to regain the primary oracle), and the SAE `DER_*` members (four mandatory
+  limit structures, worth building once there's an oracle). Note EVerest doesn't implement AC DER
+  either, so there is no live counterpart.
 - 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
   targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
   stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the
