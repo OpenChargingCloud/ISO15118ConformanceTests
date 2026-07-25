@@ -7,7 +7,7 @@ using Dc20 = Vanaheimr.V2G.Iso15118_20.DC.Generated;
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
     /// <summary>EVCC-side DC hooks: charge-parameter discovery, CableCheck+PreCharge, one DC charge-loop iteration, WeldingDetection.</summary>
-    public sealed class Evcc20Dc(Stream stream, TimeProvider clock, IAsyncDelay pollDelay, TimeSpan perMessageTimeout)
+    public class Evcc20Dc(Stream stream, TimeProvider clock, IAsyncDelay pollDelay, TimeSpan perMessageTimeout)
         : Evcc20Base(stream, clock, pollDelay, perMessageTimeout)
     {
         // NOTE: uses the base class's PollDelay accessor, not the pollDelay parameter above directly,

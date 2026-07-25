@@ -6,8 +6,8 @@ Last updated: **2026-07-25**. Authoritative per-phase detail lives in
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 627 tests are green**
-(`dotnet test -c Release`: 534 in `Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`,
+**All phases (0–5) are complete.** The solution builds cleanly and **all 629 tests are green**
+(`dotnet test -c Release`: 534 in `Vanaheimr.V2G.Exi.Tests`, 87 in `Vanaheimr.V2G.Simulation.Tests`,
 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C toolchain, JRE, or network beyond
 loopback; the live over-the-wire Josev tests stay `[Explicit]`/script-driven.
 
@@ -42,12 +42,13 @@ scorecard + honest-gaps ledger) and the per-run write-ups under [`docs/interop-r
 | 4 | ISO 15118-20: five codec assemblies (CommonMessages/DC/AC/WPT/ACDP) + V2GTP dispatch + XMLDSig | ✅ **done** |
 | 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop, PnC/cert-install/pause/renegotiation/tariffs live) | ✅ **done** |
 
-**Beyond the phases** — two additions outside the original roadmap, each honest about its own limits;
+**Beyond the phases** — three additions outside the original roadmap, each honest about its own limits;
 detail and what stays parked in [Completed extras](#completed-extras):
 
 | Addition | Status |
 |---|---|
 | **AC DER** (-20 Amendment 1) — two AC grammar variants (`AC_DER_IEC`, `AC_DER_SAE`); cross-validated against EXIficient (decode direction). **No session wiring** (payload type / `ProtocolNamespace` live in the amendment text we don't have). [`docs/ac-der.md`](ac-der.md) | ✅ codec done |
+| **MCS** (Megawatt Charging System) — `Secc20Mcs`/`Evcc20Mcs`: the DC message set under service ids 8/9 with a megawatt envelope; no codec work needed. **Ids taken from EVerest, not validated against a live MCS counterpart.** | ✅ done |
 | **PQC experiments** — ML-KEM-1024 TLS session + ML-DSA-87 signatures, BC ↔ .NET cross-validated, with the EXI/CBOR/JSON size verdict. **Wire-non-conformant by design**, never a production default. [`docs/experiments/pqc.md`](experiments/pqc.md) | ✅ experiment done |
 
 What exists today, at a glance:
@@ -119,21 +120,6 @@ have already landed are in [Completed extras](#completed-extras) below:
   the bus talks HTTPS/JSON to the dispositive backend; VDV 463 schemas are public
   (github.com/VDVde/VDV463), Siemens DepotFinity documents a VDV-261 REST API. Trigger: access to a
   testable counterpart (e.g. a DepotFinity sandbox).
-- ⬜ **MCS (Megawatt Charging System)** — **no codec work, no new XSD** (settled 2026-07-25; an
-  earlier note here wrongly called it blocked on a missing byte oracle). Three findings resolve it:
-  (a) the -20 **Amendment 1 schemas are public and free** —
-  `standards.iso.org/iso/15118/-20/ed-1/en/Amd/1/AMD1_xsdSchema.zip` — and contain `V2G_CI_AC_DER_IEC`
-  + `V2G_CI_AC_DER_SAE`, i.e. **AC DER, not MCS**; (b) EVerest implements MCS *inside the DC message
-  set* (`ServiceCategory::MCS = 8` / `MCS_BPT = 9`, an `McsConnector` enum, `McsParameterList`,
-  handled in `dc_charge_parameter_discovery.cpp`; there are no `mcs_*` states); (c) our schema already
-  carries it generically — `serviceIDType` is a plain `xs:unsignedShort` (not an enum) and
-  `ParameterType` is a `Name` attribute plus a value choice, so MCS service IDs and parameter sets
-  need no schema change. Every byte MCS puts on the wire is therefore existing DC/CommonMessages
-  structure already covered by the cbV2G oracle — the ground rule is satisfied. What remains is
-  **state-machine and profile work** (offer service 8/9 in the -20 catalogue, MCS connector +
-  parameter sets in `ServiceDetail`, DC charge loop with MCS limits), comparable in size to the
-  existing DC/AC energy-mode hooks, cross-checkable live against `Evse15118D20` — the only maintained
-  counterpart that has MCS. Physical/limits detail still needs the Amendment text. Tracked as task #83.
 - 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
   targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
   stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the
@@ -179,6 +165,35 @@ differs for all our message sets) and outside `dotnet test` since it needs Java;
 amendment *text*, which we don't have — guessing is exactly what the ground rule forbids); the SAE
 `DER_*` members (four mandatory limit structures, worth building once there's an encode-side oracle).
 EVerest doesn't implement AC DER either, so there is no live counterpart.
+
+#### ✅ MCS — Megawatt Charging System (2026-07-25)
+
+`Secc20Mcs` / `Evcc20Mcs` + `Secc20McsTests` (2 tests).
+
+The earlier assessment held exactly: **no codec work, no new XSD**. MCS is the **DC message set**
+advertised under different service ids, so both classes are thin subclasses of the DC pair and the
+whole difference is three things:
+
+- **service ids 8 (MCS) / 9 (MCS_BPT)** instead of DC's 2 / 6 — `serviceIDType` is a plain
+  `xs:unsignedShort`, so no schema needed changing to carry them;
+- the **`Connector`** parameter naming the MCS connector family (1 = MCS, 4 = rMCS, 5 = xMCS); the
+  ServiceDetail parameter set is otherwise structurally identical to DC's
+  (Connector / ControlMode / MobilityNeedsMode / Pricing);
+- a **megawatt envelope** in the charge-parameter response (3.75 MW / 3000 A / 1250 V), which is why
+  `Secc20Dc`'s limits became `virtual`.
+
+`Evcc20Base.SelectedEnergyServiceId` is now exposed, because which service a session settled on is
+otherwise invisible from outside — and it is the *only* thing distinguishing an MCS session from a DC
+one on the wire. A megawatt vehicle at a plain DC charger falls back to service 2/6 rather than
+aborting; the second test pins that, so MCS support is strictly additive.
+
+**Not externally validated.** The service ids and connector values are taken from EVerest's
+`libiso15118`, whose neighbouring values (AC=1, DC=2, DC_BPT=6) match ours exactly — but nothing here
+has been byte-diffed or run against a live MCS counterpart, and the physical limits are plausible
+headline figures rather than values read out of the Amendment text.
+
+**Parked:** the limits and behavioural detail from the Amendment text, and a live run against
+`Evse15118D20` — the only maintained stack that implements MCS (see the counterpart-tracking task).
 
 #### ✅ Post-quantum crypto experiments (2026-07-23)
 

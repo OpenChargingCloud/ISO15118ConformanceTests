@@ -403,6 +403,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// hooks).</summary>
         protected abstract IReadOnlyList<ushort> EnergyServiceIds { get; }
 
+        /// <summary>The <c>Connector</c> value advertised in the ServiceDetail parameter sets. The enum is
+        /// per energy-transfer service: for AC/DC it is the connector type, for MCS it is the MCS connector
+        /// family (1 = MCS, 4 = rMCS, 5 = xMCS). Value 1 is the plain connector in every case, so the
+        /// default suits AC, DC and MCS alike; override for the reduced/extended MCS variants.</summary>
+        protected virtual int ConnectorParameter => 1;
+
         private ServiceDiscoveryRes SvcDiscovery(ServiceDiscoveryReq req) =>
             new(SessionCtx.ToCommonHeader(), ResponseCode.OK, ServiceRenegotiationSupported: true,
                 new ServiceListType(EnergyServiceIds.Select(id => new ServiceType(id, FreeService: true)).ToArray()), VASList: null);
@@ -415,9 +421,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             // PreferDynamicControlMode, since a Josev EVCC adopts the *first* offered set's ControlMode.
             // MobilityNeedsMode=1 (mobility needs provided by the EVCC) is legal for both modes
             // ([V2G20-2663] only restricts MobilityNeedsMode=2 to Dynamic).
-            static ParameterSetType ParamSet(ushort id, int controlMode) => new(id, new[]
+            ParameterSetType ParamSet(ushort id, int controlMode) => new(id, new[]
             {
-                new ParameterType("Connector", null, null, null, IntValue: 1, null, null),
+                new ParameterType("Connector", null, null, null, IntValue: ConnectorParameter, null, null),
                 new ParameterType("ControlMode", null, null, null, IntValue: controlMode, null, null),
                 new ParameterType("MobilityNeedsMode", null, null, null, IntValue: 1, null, null),
                 new ParameterType("Pricing", null, null, null, IntValue: 0, null, null),

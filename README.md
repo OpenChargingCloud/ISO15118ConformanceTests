@@ -342,7 +342,11 @@ skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired 
   `Vanaheimr.V2G.Exi.Simulation`'s shape but driven over real sockets with an injectable
   `TimeProvider`/`IAsyncDelay` instead of `DateTime.UtcNow`/`Thread.Sleep`); `Evcc20Base`/
   `Secc20Base` + `{Evcc,Secc}20{Dc,Ac}` for -20 (shared CommonMessages phases in the base class,
-  DC/AC-specific charge-parameter/pre-charge/charge-loop/welding-detection hooks in the subclasses).
+  DC/AC-specific charge-parameter/pre-charge/charge-loop/welding-detection hooks in the subclasses);
+  and `{Evcc,Secc}20Mcs` for the **Megawatt Charging System**, which needs no codec work at all —
+  MCS is the DC message set advertised under service ids 8 (MCS) / 9 (MCS_BPT) with a megawatt
+  envelope, so both are thin subclasses of the DC pair (ids from EVerest; not validated against a
+  live MCS counterpart — see `docs/roadmap.md`).
 - **CLI** (`Vanaheimr.V2G.Simulation.Cli`):
   ```
   secc --listen  <port>      --protocol 2|20 --mode ac|dc [tls/stage options]

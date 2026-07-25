@@ -35,6 +35,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         public int Exchanges { get; private set; }
         public long BytesOnWire { get; private set; }
 
+        /// <summary>The energy-transfer service id actually negotiated in ServiceDiscovery/ServiceSelection
+        /// (Table 204: AC=1, DC=2, AC_BPT=5, DC_BPT=6, MCS=8, MCS_BPT=9); 0 before that phase. Exposed
+        /// because which service a session settled on is otherwise invisible from the outside — it is what
+        /// distinguishes an MCS session from a DC one, the two being identical on the wire otherwise.</summary>
+        public ushort SelectedEnergyServiceId { get; private set; }
+
         /// <summary>Contract credentials enabling Plug &amp; Charge; <c>null</c> (default) authorizes via EIM.</summary>
         public PncEvccOptions? Pnc { get; set; }
 
@@ -124,6 +130,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             var discovery = await Exchange<ServiceDiscoveryRes>(MessageSet.Iso20CommonMessages,
                 dest => new ServiceDiscoveryReq(SessionCtx.ToCommonHeader(), null).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
             ushort serviceId = SelectEnergyTransferService(discovery);
+            SelectedEnergyServiceId = serviceId;
 
             var detail = await Exchange<ServiceDetailRes>(MessageSet.Iso20CommonMessages,
                 dest => new ServiceDetailReq(SessionCtx.ToCommonHeader(), serviceId).TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
@@ -290,6 +297,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         private static readonly ushort[] DcServiceIds = { 2, 6 };
         private static readonly ushort[] AcServiceIds = { 1, 5 };
 
+        /// <summary>Energy-transfer service ids this EVCC will accept from the SECC's catalogue, best first
+        /// (Table 204: AC=1, DC=2, AC_BPT=5, DC_BPT=6, MCS=8, MCS_BPT=9). Virtual so an MCS vehicle can ask
+        /// for the megawatt services instead — see <see cref="Evcc20Mcs"/>.</summary>
+        protected virtual IReadOnlyList<ushort> PreferredEnergyServiceIds
+            => EnergyMode == PowerMode.Dc ? DcServiceIds : AcServiceIds;
+
         /// <summary>Picks the energy-transfer service to select from the SECC's advertised list: the first one
         /// whose id matches this EVCC's mode (DC → 2/6, AC → 1/5), else the first offered (a simplified SECC
         /// may advertise a single generic id).</summary>
@@ -299,7 +312,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             if (offered.Count == 0)
                 throw new SessionAborted("ServiceDiscovery: the SECC advertised no energy-transfer service.");
 
-            var preferred = EnergyMode == PowerMode.Dc ? DcServiceIds : AcServiceIds;
+            var preferred = PreferredEnergyServiceIds;
             var match = offered.FirstOrDefault(s => preferred.Contains(s.ServiceID));
             return (match ?? offered[0]).ServiceID;
         }

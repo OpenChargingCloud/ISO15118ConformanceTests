@@ -12,7 +12,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     /// <c>Processing</c>/<c>RationalNumberType</c>/<c>MessageHeaderType</c>/<c>EVSEStatusType</c> as
     /// distinct CLR types from <c>CommonMessages.Generated</c> — both would otherwise be ambiguous.
     /// </summary>
-    public sealed class Secc20Dc(TimeSpan sequenceTimeout, TimeProvider clock) : Secc20Base(sequenceTimeout, clock)
+    public class Secc20Dc(TimeSpan sequenceTimeout, TimeProvider clock) : Secc20Base(sequenceTimeout, clock)
     {
         protected override bool HasPreChargeSequence => true;
         protected override bool HasPostChargeSequence => true;
@@ -28,21 +28,28 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             _                        => base.IsPollFor(phase, request),   // PowerOn (PowerDeliveryReq start) handled by the base
         };
 
+        /// <summary>EVSE charge/discharge power limit. Virtual so the MCS profile can raise it to
+        /// megawatt scale without duplicating the whole discovery handler (see <see cref="Secc20Mcs"/>).</summary>
+        protected virtual Dc20.RationalNumberType MaxPower   => Rat(5_000, exponent: 1);   //  50 kW
+        protected virtual Dc20.RationalNumberType MaxCurrent => Rat(200);                  // 200 A
+        protected virtual Dc20.RationalNumberType MaxVoltage => Rat(500);                  // 500 V
+        protected virtual Dc20.RationalNumberType MinVoltage => Rat(50);
+
         protected override (MessageSet Set, object Response) HandleChargeParameterDiscovery(object request)
         {
             var req = (Dc20.DC_ChargeParameterDiscoveryReq)request;
             // Bidirectional (BPT) EV → respond with discharge limits too; else the charge-only mode.
             Dc20.DC_CPDResEnergyTransferModeType mode = req.DC_CPDReqEnergyTransferMode is Dc20.BPT_DC_CPDReqEnergyTransferModeType
                 ? new Dc20.BPT_DC_CPDResEnergyTransferModeType(
-                    EVSEMaximumChargePower: Rat(5_000, exponent: 1), EVSEMinimumChargePower: Rat(0),
-                    EVSEMaximumChargeCurrent: Rat(200), EVSEMinimumChargeCurrent: Rat(0),
-                    EVSEMaximumVoltage: Rat(500), EVSEMinimumVoltage: Rat(50), EVSEPowerRampLimitation: null,
-                    EVSEMaximumDischargePower: Rat(5_000, exponent: 1), EVSEMinimumDischargePower: Rat(0),
-                    EVSEMaximumDischargeCurrent: Rat(200), EVSEMinimumDischargeCurrent: Rat(0))
+                    EVSEMaximumChargePower: MaxPower, EVSEMinimumChargePower: Rat(0),
+                    EVSEMaximumChargeCurrent: MaxCurrent, EVSEMinimumChargeCurrent: Rat(0),
+                    EVSEMaximumVoltage: MaxVoltage, EVSEMinimumVoltage: MinVoltage, EVSEPowerRampLimitation: null,
+                    EVSEMaximumDischargePower: MaxPower, EVSEMinimumDischargePower: Rat(0),
+                    EVSEMaximumDischargeCurrent: MaxCurrent, EVSEMinimumDischargeCurrent: Rat(0))
                 : new Dc20.DC_CPDResEnergyTransferModeType(
-                    EVSEMaximumChargePower: Rat(5_000, exponent: 1), EVSEMinimumChargePower: Rat(0),
-                    EVSEMaximumChargeCurrent: Rat(200), EVSEMinimumChargeCurrent: Rat(0),
-                    EVSEMaximumVoltage: Rat(500), EVSEMinimumVoltage: Rat(50), EVSEPowerRampLimitation: null);
+                    EVSEMaximumChargePower: MaxPower, EVSEMinimumChargePower: Rat(0),
+                    EVSEMaximumChargeCurrent: MaxCurrent, EVSEMinimumChargeCurrent: Rat(0),
+                    EVSEMaximumVoltage: MaxVoltage, EVSEMinimumVoltage: MinVoltage, EVSEPowerRampLimitation: null);
             return (MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK, mode));
         }
 
