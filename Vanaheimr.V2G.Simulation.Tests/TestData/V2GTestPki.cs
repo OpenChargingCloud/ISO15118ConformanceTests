@@ -1,4 +1,5 @@
 using System.Net.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 using Org.BouncyCastle.Pkcs;
@@ -102,23 +103,57 @@ namespace Vanaheimr.V2G.Simulation.Tests.TestData
 
         // Validate a presented leaf against our own V2G Root as a custom trust anchor, supplying the
         // branch intermediates out of band (they need not be sent over the wire for a loopback test).
+        //
+        // This callback must be TOTAL: it returns a verdict for every input and never throws. A
+        // RemoteCertificateValidationCallback that throws does not fail the handshake cleanly — the
+        // exception propagates out of SslStream.AuthenticateAs*, so the caller sees a
+        // CryptographicException instead of the AuthenticationException a rejected peer should produce.
+        // That is what made Secc_RejectsClientWithoutCertificate flaky: under TLS 1.3 a client that
+        // offers no certificate can still reach this callback with a non-null but degenerate
+        // X509Certificate (empty/unparseable raw data), and building a chain over that throws
+        // "An unknown chain building error occurred" instead of simply returning false.
         private static RemoteCertificateValidationCallback Make(X509Certificate2 root, X509Certificate2[] intermediates)
             => (_, presented, _, _) =>
             {
                 if (presented is null)
                     return false;
 
-                var leaf = presented as X509Certificate2
-                           ?? X509CertificateLoader.LoadCertificate(presented.GetRawCertData());
+                X509Certificate2 leaf;
+                try
+                {
+                    // An empty certificate message can surface as a non-null certificate with no raw
+                    // data; loading or chain-building that is an error, not a validation failure.
+                    var raw = presented.GetRawCertData();
+                    if (raw is null || raw.Length == 0)
+                        return false;
 
-                using var chain = new X509Chain();
-                chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-                chain.ChainPolicy.TrustMode      = X509ChainTrustMode.CustomRootTrust;
-                chain.ChainPolicy.CustomTrustStore.Add(root);
-                foreach (var i in intermediates)
-                    chain.ChainPolicy.ExtraStore.Add(i);
+                    leaf = presented as X509Certificate2 ?? X509CertificateLoader.LoadCertificate(raw);
+                }
+                catch (CryptographicException)
+                {
+                    return false;
+                }
 
-                return chain.Build(leaf);
+                try
+                {
+                    using var chain = new X509Chain();
+                    chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+                    chain.ChainPolicy.TrustMode      = X509ChainTrustMode.CustomRootTrust;
+                    // RevocationMode.NoCheck stops CRL/OCSP but NOT AIA fetching of missing issuers.
+                    // Every issuer we need is supplied via ExtraStore, so forbid downloads outright and
+                    // keep the check hermetic — no test should depend on network reachability.
+                    chain.ChainPolicy.DisableCertificateDownloads = true;
+                    chain.ChainPolicy.CustomTrustStore.Add(root);
+                    foreach (var i in intermediates)
+                        chain.ChainPolicy.ExtraStore.Add(i);
+
+                    return chain.Build(leaf);
+                }
+                catch (CryptographicException)
+                {
+                    // A chain engine failure is not a valid chain.
+                    return false;
+                }
             };
 
         public void Dispose()
