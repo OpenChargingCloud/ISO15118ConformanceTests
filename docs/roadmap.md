@@ -146,11 +146,15 @@ Cleanups / smaller follow-ups (not blockers):
   are unreadable to a plain AC peer. A regression test pins that, since a further amendment adding
   more members to the same group could silently change it. **Deliberately not done:** V2GTP dispatch
   and SAP negotiation (the payload type / `ProtocolNamespace` are in the amendment *text*, which we
-  don't have — guessing is exactly what the ground rule forbids), an external byte oracle (cbexigen
-  doesn't generate these schemas; EXIficient, being schema-generic, is the candidate — or feed the
-  schemas to cbexigen to regain the primary oracle), and the SAE `DER_*` members (four mandatory
-  limit structures, worth building once there's an oracle). Note EVerest doesn't implement AC DER
-  either, so there is no live counterpart.
+  don't have — guessing is exactly what the ground rule forbids) and the SAE `DER_*` members (four
+  mandatory limit structures, worth building once there's an oracle). Note EVerest doesn't implement
+  AC DER either, so there is no live counterpart. **A cbexigen byte oracle was attempted and is
+  blocked upstream:** cbexigen crashes analysing the amendment schemas (`IndexError` in
+  `SchemaAnalyzer.__replace_particle_list_in_parent`) because a substitution-group head — here
+  `CLReqControlMode` — receiving members from *two* schemas is registered twice and de-duplicated
+  never; reproduction and root cause in [`docs/ac-der.md`](ac-der.md). Not patched on purpose: a
+  self-patched oracle is not independent for the construct under test. **EXIficient** (schema-generic,
+  already wired up) is the remaining route to real reference bytes.
 - 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
   targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
   stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the

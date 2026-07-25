@@ -72,15 +72,62 @@ Consequences:
   DER session live in the amendment *text*, which we do not have. Since the messages are AC messages,
   reusing AC's `0x8003` with a distinct negotiated namespace is plausible — but that is a guess, and
   the project ground rule forbids inventing wire semantics. `V2GTPDispatcher` is untouched.
-- **No external byte oracle.** cbexigen does not generate the amendment schemas, so the checked-in
-  assertions are self-consistency (encode → decode → re-encode) plus the cross-grammar comparison —
-  never "these are the right bytes". EXIficient is schema-generic and remains the candidate spec
-  oracle; feeding the amendment schemas to cbexigen to generate a C reference codec is the other
-  option, and would restore the primary-oracle relationship.
+- **No external byte oracle.** The checked-in assertions are self-consistency (encode → decode →
+  re-encode) plus the cross-grammar comparison — never "these are the right bytes". See the section
+  below for why the obvious route to one is currently closed.
 - **SAE's `DER_*` members are not constructed in tests.** They require four mandatory limit
   structures (apparent power, reactive power, excitation, inverter details — 12–24 fields each) plus
   IEEE 1547 categories. Worth building once there is an oracle to check them against; until then the
   SAE assembly is covered only for the messages it shares with plain AC.
+
+## Attempt at a cbexigen byte oracle — blocked upstream (2026-07-25)
+
+The natural way to get a *real* byte oracle for AC DER is to feed the amendment schemas to
+**cbexigen**, the generator behind libcbv2g, and byte-diff against the C codec it emits. That was
+tried and **it does not work**: cbexigen crashes while analysing the schema.
+
+Reproduction (cbexigen `afd732d`, Python 3.14, `xmlschema` 4.1.0): place `V2G_CI_AC_DER_IEC.xsd`
+(plus AC/CommonTypes/xmldsig) under `src/input/schemas/ISO_15118-20/FDIS/`, add
+`Datatypes`/`Decoder`/`Encoder` blocks mirroring `iso20_AC_*` in a config passed via
+`--config_file`, then `python src/main.py`. Result:
+
+```
+GENERATING: iso20_AC_DER_IEC_Datatypes.h
+IndexError: list index out of range
+  SchemaAnalyzer.__scan_elements_for_empty_content
+    → __copy_particles_from_empty_content_elements
+      → __replace_particle_list_in_parent   (line ~1262)
+```
+
+Root cause, from instrumenting that function:
+
+```
+parent='CLReqControlMode' p_index=0 len(particles)=0 particle='CLReqControlMode'
+list=[(0, 'CLReqControlMode'), (0, 'CLReqControlMode'), (1, 'CLResControlMode')]
+```
+
+The particle list contains **the same particle twice at the same index**. `CLReqControlMode` is the
+substitution-group head in `CommonTypes`, and it now receives members from **two schemas at once** —
+AC's `Scheduled_/Dynamic_AC_CLReqControlMode` *and* the amendment's `DER_Scheduled_/DER_Dynamic_`
+ones. The empty-content scan registers the head once per contributing schema without deduplicating;
+the removal loop then deletes index 0 twice, emptying the list, and the next entry indexes past it.
+
+So this is a genuine upstream limitation: **cbexigen does not handle a substitution-group head whose
+members come from more than one schema** — exactly the construct Amendment 1 is built on. (It is not
+a configuration mistake on our side: it also happens with the message roots uncommented, which is
+the only other plausible reading of the schema.)
+
+**Deliberately not patched.** A dedup fix looked small, but the whole point of cbexigen here is to be
+an *independent* oracle; a codec we patched ourselves, for precisely the construct under test, would
+not be independent where it matters — and a subtly wrong patch would produce confidently wrong
+"reference" bytes, which is worse than having no oracle at all.
+
+Remaining options, in order of preference:
+
+1. **EXIficient** — a generic W3C EXI processor that takes arbitrary XSDs and is already wired up
+   (`tools/exificient-ref/`) as this repo's spec oracle. Unpatched, and designed for exactly this.
+2. Report the limitation upstream and use cbexigen once fixed — also worth folding into the
+   counterpart-tracking routine (task #82), since a fix would show up on a cbexigen pull.
 
 ## Where this lives
 
