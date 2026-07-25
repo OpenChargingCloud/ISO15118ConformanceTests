@@ -119,19 +119,31 @@ Cleanups / smaller follow-ups (not blockers):
   parked): the `X25519MLKEM768` *hybrid* once BC ships it, PQC certificate chains (projected
   ~23 KB per 3-cert chain). Trigger for anything beyond the experiment: a 15118 draft/amendment
   (or CharIN profile) with actual PQC commitments; no 15118-external oracle exists either way.
-- ⬜ **MCS (Megawatt Charging System, -20 Amendment)** — the one feature where a *maintained*
-  counterpart is ahead of us: EVerest's `Evse15118D20` lists `MCS (Amd.)` as supported, so a live
-  C++ oracle for the session layer exists. **But the codec-level prerequisite is missing** (checked
-  2026-07-23): cbexigen fetches -20 schemas from `standards.iso.org/iso/15118/-20/**ed-1**/en/` and
-  its `iso20_schema_files_names` list is exactly `AC, ACDP, AppProtocol, CommonMessages, CommonTypes,
-  DC, WPT, xmldsig` — i.e. **our XSD set is already at full parity with the codec oracle, and neither
-  side has anything MCS-specific**. So MCS is *not* a straightforward next feature: it would be the
-  first wire work with **no byte-diff oracle**, which collides head-on with the ground rule ("never
-  change wire semantics speculatively — only against a concrete byte diff"). Open question to settle
-  first: does the amendment add its own message set/XSD (like DC/AC/WPT/ACDP) or only extend DC's
-  value ranges and limits? If the latter, much of it may be a profile/limits matter rather than codec
-  work. **Trigger:** an MCS schema reaching cbexigen/libcbv2g (giving us a byte oracle), or the
-  Amendment XSDs becoming obtainable — until then, at most a documented gap, not an implementation.
+- ⬜ **MCS (Megawatt Charging System)** — **no codec work, no new XSD** (settled 2026-07-25; an
+  earlier note here wrongly called it blocked on a missing byte oracle). Three findings resolve it:
+  (a) the -20 **Amendment 1 schemas are public and free** —
+  `standards.iso.org/iso/15118/-20/ed-1/en/Amd/1/AMD1_xsdSchema.zip` — and contain `V2G_CI_AC_DER_IEC`
+  + `V2G_CI_AC_DER_SAE`, i.e. **AC DER, not MCS**; (b) EVerest implements MCS *inside the DC message
+  set* (`ServiceCategory::MCS = 8` / `MCS_BPT = 9`, an `McsConnector` enum, `McsParameterList`,
+  handled in `dc_charge_parameter_discovery.cpp`; there are no `mcs_*` states); (c) our schema already
+  carries it generically — `serviceIDType` is a plain `xs:unsignedShort` (not an enum) and
+  `ParameterType` is a `Name` attribute plus a value choice, so MCS service IDs and parameter sets
+  need no schema change. Every byte MCS puts on the wire is therefore existing DC/CommonMessages
+  structure already covered by the cbV2G oracle — the ground rule is satisfied. What remains is
+  **state-machine and profile work** (offer service 8/9 in the -20 catalogue, MCS connector +
+  parameter sets in `ServiceDetail`, DC charge loop with MCS limits), comparable in size to the
+  existing DC/AC energy-mode hooks, cross-checkable live against `Evse15118D20` — the only maintained
+  counterpart that has MCS. Physical/limits detail still needs the Amendment text. Tracked as task #83.
+- ⬜ **AC DER (-20 Amendment 1)** — the genuinely *new* message-set opportunity the MCS hunt turned
+  up: two new schemas with their own namespaces (`urn:iso:std:iso:15118:-20:AC-DER-IEC` / `-SAE`,
+  166 / 364 elements) for distributed-energy-resource grid support — reactive power, cos-φ and
+  DSO setpoints, inverter details. **Neither we nor EVerest implement it** (`Evse15118D20` lists
+  AC DER as unsupported), and cbexigen does not generate it either, so there is no byte oracle from
+  that direction — but **EXIficient is schema-generic** and can serve as the oracle for a brand-new
+  XSD, which is exactly the role it already plays for `SignedInfo` fragments. That makes AC DER
+  implementable within the ground rule, as a WPT/ACDP-style additional message-set project.
+  **Trigger:** appetite for a new message set — the prerequisites (free schemas + a viable oracle)
+  are already in place.
 - 🔁 **Standing: track the EVerest counterparts** (task #82) — the counterpart stacks are moving
   targets and were reshuffled into the EVerest monorepo in early 2026 (see "EVerest higher-layer
   stacks" under Reference libraries). Periodically pull libcbv2g/cbexigen, Josev/ext-switchev and the
@@ -228,6 +240,45 @@ Additional, bounded roles:
 - **[OpenV2G](https://github.com/Martin-P/OpenV2G)** (C, LGPL) — historical DIN/-2
   reference, a third byte-level vote in disputed cases; no -20, frozen.
 - **RISE-V2G** (Java, archived, -2 only) — PnC signature test data + a second full -2 stack.
+- **[ChargePoint/wireshark-v2g](https://github.com/ChargePoint/wireshark-v2g)** (C, active) — a
+  Wireshark dissector for DIN/-2/-20 built *on* libcbv2g. Useful for field-level inspection of live
+  captures, but its real value is `extern/*.patch`: a **third-party bug list against our own primary
+  oracle**, worth re-reading whenever the counterparts are pulled (see the tracking task).
+
+#### Pin audit vs the ChargePoint patches (2026-07-25)
+
+Both libcbv2g patches ChargePoint carries were checked against our pinned `03350be`; **neither
+required a change on our side**, and the audit incidentally re-validated the pin:
+
+- *`fix-iso20-loop-grammars`* — **does not apply to us.** At our pin the affected list decoders
+  already use correct per-type loop-continuation states (`PriceRuleStackList` 122,
+  `PriceLevelScheduleEntryList` 116, `PowerScheduleEntryList` 62, `EVPowerScheduleEntryList` 81,
+  `EVPriceRuleStackList` 87) plus explicit *"LOOP breakout code for schema given maximum"* — not the
+  patched-away `grammar_id = 3`. Their patch targets an older tree.
+- *Pin freshness* — `iso20_CommonMessages_Decoder.c` is **byte-identical** between `03350be` and
+  current `main` (md5 `ce76de568d17693b1116e86bd1e73da9`), so the pin is not stale for the file
+  these bugs live in and no vector regeneration is warranted.
+- *`fix-iso20-secp521-buffer-size`* (94 → 128 B) — **present at our pin, but schema-*correct* as-is.**
+  `secp521_EncryptedPrivateKeyType` is `xs:base64Binary` with `<xs:length value="94"/>` — an *exact*
+  length, so libcbv2g's 94-byte buffer is conformant. ChargePoint's widening is a real-world
+  **leniency** patch for peers that emit non-conformant longer keys, not a spec fix; it is
+  deliberately **not** adopted. Kept as an interop note for `CertificateInstallationRes` should a
+  live counterpart ever send >94 bytes — at which point the answer is an explicit, documented
+  tolerance decision rather than a silent buffer bump.
+
+The general lesson worth keeping: a patch against the oracle is not automatically a bug in the
+oracle — check it against the schema before treating it as one.
+
+#### Schema sources (incl. amendments)
+
+cbexigen fetches only the **base** editions, so amendments have to be watched separately:
+
+- Base -20: `https://standards.iso.org/iso/15118/-20/ed-1/en/` — the eight files both we and cbexigen
+  carry (`AC, ACDP, AppProtocol, CommonMessages, CommonTypes, DC, WPT, xmldsig`); our XSD set is at
+  full parity with the codec oracle.
+- **Amendments:** `https://standards.iso.org/iso/15118/-20/ed-1/en/Amd/` — currently `Amd/1/`
+  containing `AMD1_xsdSchema.zip` (25 KB, free, no paywall) = `V2G_CI_AC_DER_IEC.xsd` +
+  `V2G_CI_AC_DER_SAE.xsd`. Worth re-checking for `Amd/2+` whenever the counterparts are pulled.
 
 ### EVerest higher-layer stacks (post-monorepo, checked 2026-07-23)
 
@@ -248,10 +299,10 @@ is why the old repo names are confusing — the map as it actually stands:
   -20 stack — a genuine second -20 opinion alongside Josev. **Draft scope (its own feature table):**
   has DC/AC + BPT, MCS (megawatt), Scheduled + Dynamic, ExternalPayment, Pause/Resume (dynamic),
   TLS 1.2/1.3; **lacks** Plug & Charge (WIP), CertificateInstallation, Schedule Renegotiation,
-  Smart Charging, WPT, ACDP. → useful as a second opinion on the core -20 charge loop and dynamic
-  mode, and the only maintained counterpart that has **MCS** (which we don't — but note the codec
-  oracle doesn't either, see the MCS entry under "Future ideas"); for
-  PnC/cert-install/renegotiation/tariffs/WPT/ACDP, **Josev stays the only -20 live oracle**.
+  Smart Charging, WPT, ACDP, AC DER. → useful as a second opinion on the core -20 charge loop and
+  dynamic mode, and the only maintained counterpart that has **MCS** (see the MCS entry under
+  "Future ideas"); for PnC/cert-install/renegotiation/tariffs/WPT/ACDP, **Josev stays the only -20
+  live oracle**.
 - **[IsoMux](https://github.com/EVerest/EVerest/tree/main/modules/EVSE/IsoMux)** (C++) — a TCP
   **multiplexer** that sniffs the `SupportedAppProtocolReq` (via libcbv2g's `appHand` decoder) and
   routes the connection to a local `EvseV2G` (port 61341) or `Evse15118D20` (port 50000) instance;
