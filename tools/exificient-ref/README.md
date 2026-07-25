@@ -84,8 +84,29 @@ EXIficient exposes exactly that layer as
 `com.siemens.ct.exi.core.io.channel.BitEncoderChannel`, so the `primitives` mode encodes each
 vector through it and [`primitives.py`](primitives.py) diffs the result:
 
-**All 18 vectors match byte-for-byte** — 4 unsignedInteger, 6 signedInteger (incl. negatives),
-3 binary, 2 boolean, 3 string. The vector file's provenance block now records this.
+**All 18 baseline vectors match byte-for-byte** — 4 unsignedInteger, 6 signedInteger (incl.
+negatives), 3 binary, 2 boolean, 3 string. The vector file's provenance block now records this.
+
+**Plus five non-ASCII string vectors sourced *from* EXIficient** (23 total). These are the one
+place cbV2G structurally cannot help — it rejects code points > U+007F, so no cbV2G vector for
+them can ever exist. EXIficient has no such limit, so here it is the *primary* oracle rather than
+a counter-check, and our codec is verified against it:
+
+| vector | value | bytes |
+|---|---|---|
+| `string_nonascii_uuml` | `ü` (U+00FC) | `03 fc 01` |
+| `string_nonascii_euro` | `€` (U+20AC) | `03 ac 41` |
+| `string_nonascii_mixed` | `Grüße aus Jena` | `10 47 72 fc 01 …` |
+| `string_nonascii_astral` | `😀` (U+1F600) | `03 80 ec 07` |
+| `string_nonascii_astral_mixed` | `a😀b` | `05 61 80 ec 07 62` |
+
+The astral rows are the ones with teeth: U+1F600 is **one code point but two UTF-16 units**, and
+both encoders emit length `1 + 2` — so an encoder that counted UTF-16 units would diverge here and
+nowhere else. Our `EnumerateRunes`-based encoding agrees with EXIficient exactly.
+
+Note **Josev cannot substitute for EXIficient here**: it re-encodes with EXIficient itself, so it
+would be the same encoder behind a Python wrapper — realistic at session level, but not an
+independent oracle.
 
 One honest detail: `encodeString` writes a bare length prefix, while ISO 15118's schema-less
 string *values* use the value-table **miss framing** (length + 2) that lives one layer above the

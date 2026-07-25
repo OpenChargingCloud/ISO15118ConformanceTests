@@ -374,8 +374,13 @@ Plug & Charge — see **Interop status** below.
 
 ## What this prototype still does NOT do
 
-- Non-ASCII string values on the wire against a reference oracle (our codec encodes them
-  rune-wise; cbV2G rejects code points > U+007F, so there is no cbV2G vector for them).
+- ~~Non-ASCII string values on the wire against a reference oracle~~ — **done 2026-07-25**.
+  cbV2G still cannot serve here (it rejects code points > U+007F, so no cbV2G vector can exist),
+  but EXIficient can: five non-ASCII vectors are now sourced *from* it and matched by our codec,
+  covering U+00FC, U+20AC, a mixed string, and — the interesting case — **U+1F600 outside the
+  BMP**, alone and between ASCII. Both encoders count that as **one** code point, confirming our
+  rune-wise encoding against a code-unit-wise reading. (Josev is *not* usable as the oracle here:
+  it re-encodes with EXIficient, so it would be the same encoder, not an independent one.)
 - ~~EXIficient cross-check of the primitive vectors~~ — **done 2026-07-25**: all 18 vectors in
   `Primitives.vectors.json` are independently reproduced byte-for-byte by EXIficient's
   `BitEncoderChannel` (EXI 1.0 §7.1), so they are no longer self-referential. Re-runnable via
