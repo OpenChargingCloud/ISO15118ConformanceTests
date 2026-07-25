@@ -15,6 +15,28 @@ Reference encoder is still cbV2G@03350be048b3 (`lib/cbv2g/iso_20/*`, in the same
 already used for -2 — libcbv2g covers -20 completely: CommonMessages/AC/DC/WPT/ACDP each
 with its own `iso20_<Set>_{Datatypes,Encoder,Decoder}.c`).
 
+### Amendment 1 (added 2026-07-25)
+
+Two further schemas live one directory deeper, in
+`https://standards.iso.org/iso/15118/-20/ed-1/en/Amd/1/AMD1_xsdSchema.zip` (25 KB, free, no
+paywall — worth re-checking that `Amd/` directory for future amendments, since cbexigen's
+`--auto-download-public-xsd` only fetches the eight base files above):
+
+`V2G_CI_AC_DER_IEC.xsd` (namespace `urn:iso:std:iso:15118:-20:AC-DER-IEC`, 166 elements) and
+`V2G_CI_AC_DER_SAE.xsd` (`…:AC-DER-SAE`, 364) — **AC DER**, distributed-energy-resource grid
+support.
+
+They are **not a sixth and seventh message set**. Both import the base AC schema, leave their
+message roots commented out, and contribute six `DER_*` **substitution-group members** extending
+AC's own types via `xs:extension` — the same construct AC already uses for its `BPT_*` variants,
+so the generator needed no changes. They are consumed by
+`Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_{IEC,SAE}`, each compiling AC + DER + `CommonTypes` +
+`xmldsig` into a *grammar variant of AC*.
+
+**No cbV2G reference exists for these:** cbexigen crashes analysing them (a substitution-group
+head fed by two schemas), so they are cross-validated against EXIficient instead. Full write-up
+incl. reproduction: [`ac-der.md`](ac-der.md).
+
 ## Architectural difference from -2 (confirmed)
 
 - **No `V2G_Message` wrapper.** Every message (`SessionSetupReq`, `AuthorizationReq`, …) is
@@ -22,7 +44,8 @@ with its own `iso20_<Set>_{Datatypes,Encoder,Decoder}.c`).
   (abstract, in `CommonTypes`). The header (`SessionID`, `TimeStamp`, optional
   `Signature`) sits directly in `V2GMessageType` (the base of `V2GRequestType`) — no separate
   body-substitution-group construct like -2's `BodyElement`.
-- **Five independent schema sets**: CommonMessages, AC, DC, WPT, ACDP — each imports
+- **Five independent schema sets** in the base edition (Amendment 1 adds no sixth — see above):
+  CommonMessages, AC, DC, WPT, ACDP — each imports
   `CommonTypes` + `xmldsig-core-schema`. One generated assembly per set
   (`Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/.AC/.DC/.WPT/.ACDP`), `CommonTypes` is
   deliberately duplicated per assembly (as cbV2G/cbexigen itself does). WPT and ACDP were

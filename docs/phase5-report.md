@@ -19,10 +19,14 @@ all loopback-testable in `dotnet test`, plus byte-exact cross-validation of both
 against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes with EXIficient
 and shares no lineage with the cbV2G oracle our vectors come from.
 
-Test state (as of 2026-07-23): **609 green** (`dotnet test -c Release`) — 524 in
-`Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`; the live over-the-wire Josev
-tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain, JRE, or network
+Test state **at the close of Phase 5** (2026-07-23): **609 green** (`dotnet test -c Release`) —
+524 in `Vanaheimr.V2G.Exi.Tests`, 85 in `Vanaheimr.V2G.Simulation.Tests`; the live over-the-wire
+Josev tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain, JRE, or network
 beyond loopback.
+
+*(This report is a dated snapshot of Phase 5 and is deliberately not updated as the repo grows —
+work landing afterwards, such as AC DER and the PQC experiments, is not counted here. For the
+current figure see [`roadmap.md`](roadmap.md).)*
 
 ## 2. Definition-of-Done scorecard (honest)
 

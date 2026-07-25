@@ -15,6 +15,15 @@ them in order. Overall plan and current status: [../roadmap.md](../roadmap.md).
 since .NET has no built-in Ed448; per cbV2G source, WPT/ACDP have no signable elements at all. WPT surfaced two new EXI grammar constructs (generator extended, one of them with no working cbV2G reference — its own generated encoder fails outright at the schema minimum there), ACDP a document-index quirk for shared types (generator fix). CommonMessages' `SignedInfo` fragment externally decoded against EXIficient, see `tools/exificient-ref/README.md`; Josev interop stays in Phase 5) |
 | 5 | [phase5.md](phase5.md) | EV↔EVSE simulation: SDP, TCP/TLS, state machines, interop against Josev | **done @2026-07-23**. In-repo stack (@2026-07-21): `Vanaheimr.V2G.Simulation` (+`.Cli`/`.Tests`), `V2GTPStream` framing, SAP, `Evcc2`/`Secc2` + `{Evcc,Secc}20{Base,Dc,Ac}`, **SLAC** pairing, **SDP** seam, **mutual TLS 1.3** (two backends: .NET `SslStream` P-256 + BouncyCastle -20-faithful secp521r1/Ed448), Vehicle cert, composed SLAC→SDP→TLS→session E2E, CLI. **Josev interop far beyond the original scope** (@2026-07-21…23): record mode byte-exact (-2 AC/DC + -20 DC PnC, 30/30 frames) **plus complete live sessions in both directions** — plain TCP + TLS, EIM + Plug & Charge (both protocols, both directions, dual-grammar signatures), all four -20 energy modes (DC/AC/DC_BPT/AC_BPT), both control modes, -20 CertificateInstallation, Pause/Resume, Renegotiation, and signed tariffs (-2 SalesTariff §7.9.2.5 incl. live verification of a real MO-Sub-CA2-signed Josev tariff; -20 AbsolutePriceSchedule). ~15 own conformance bugs fixed, ~12 Josev gaps documented. Closing report: `docs/phase5-report.md`; runs: `docs/interop-runs/` |
 
+**Beyond the phases** — work that landed outside this plan has no prompt here; it is
+documented on its own:
+
+- **AC DER** (-20 Amendment 1): two AC grammar variants, cross-validated against EXIficient,
+  no session wiring — [`../ac-der.md`](../ac-der.md).
+- **PQC experiments** (wire-non-conformant by design) — [`../experiments/pqc.md`](../experiments/pqc.md).
+
+Both are summarised under "Completed extras" in [`../roadmap.md`](../roadmap.md).
+
 After finishing a phase: update the status column here (e.g. "done @<commit/date>")
 and check whether the context sections of the following prompts still match the
 actual repo state — they describe the expected state after the previous phase.
