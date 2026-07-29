@@ -41,6 +41,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private readonly StringBuilder _sb = new();
             private readonly HashSet<string> _emitted = new(StringComparer.Ordinal);
             private readonly HashSet<string> _codecs  = new(StringComparer.Ordinal);
+            private HashSet<string> _baseNames = new(StringComparer.Ordinal);
             private int _run;
 
             public string Run()
@@ -68,8 +69,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 if (p.Fragments.Count != 0)
                     throw new NotSupportedException("Kotlin back end: EXI fragment codecs (XMLDSig) are not implemented yet.");
-                if (p.OpaqueTypes.Count != 0)
-                    throw new NotSupportedException("Kotlin back end: opaque (un-modelled) elements are not implemented yet.");
 
                 foreach (var sp in p.ComplexTypes.Values)
                 {
@@ -79,18 +78,23 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         throw new NotSupportedException($"Kotlin back end: xs:choice content ('{sp.RecordName}') is not implemented yet.");
                     if (sp.SimpleContent is not null)
                         throw new NotSupportedException($"Kotlin back end: xs:simpleContent ('{sp.RecordName}') is not implemented yet.");
-                    if (sp.IsAbstract || sp.BaseRecordName is not null)
-                        throw new NotSupportedException($"Kotlin back end: type extension/abstraction ('{sp.RecordName}') is not implemented yet.");
 
                     foreach (var c in sp.Children)
                     {
                         if (c.IsWildcardAny)
                             throw new NotSupportedException($"Kotlin back end: xs:any wildcards ('{sp.RecordName}.{c.FieldName}') are not implemented yet.");
+                        // A substitution reference inside an optional run joins that run's shared
+                        // grammar state (its members become productions of the run, not a standalone
+                        // dispatch) — a different construct from the standalone case handled below.
+                        if (c.Value is ValueEncoding.SubstitutionChoice && c.Shape != ChildShape.RequiredSingle)
+                            throw new NotSupportedException(
+                                $"Kotlin back end: a non-required substitution reference ('{sp.RecordName}.{c.FieldName}') is not implemented yet.");
                         _ = c.Value switch
                         {
                             ValueEncoding.StringValue or ValueEncoding.UnsignedInt or ValueEncoding.SignedInt
                                 or ValueEncoding.Binary or ValueEncoding.NBitUnsigned or ValueEncoding.EnumIndex
-                                or ValueEncoding.ComplexRef => true,
+                                or ValueEncoding.ComplexRef or ValueEncoding.OpaqueElement
+                                or ValueEncoding.SubstitutionChoice => true,
                             _ => throw new NotSupportedException(
                                      $"Kotlin back end: value encoding {c.Value.GetType().Name} " +
                                      $"('{sp.RecordName}.{c.FieldName}') is not implemented yet."),
@@ -148,8 +152,26 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 }
             }
 
+            /// <summary>
+            /// Kotlin resolves top-level declarations regardless of order, so — unlike the C#
+            /// emitter — no dependency or base-before-derived sorting is needed here.
+            /// </summary>
             private void EmitRecords()
             {
+                foreach (var t in plan.OpaqueTypes)
+                {
+                    _sb.Append("/** Opaque placeholder for the un-modelled XMLDSig element `").Append(t)
+                       .AppendLine("`.");
+                    _sb.AppendLine(" *  Only ever encoded/decoded as absent; a present instance fails loud. */");
+                    _sb.Append("class ").AppendLine(t);
+                    _sb.AppendLine();
+                }
+
+                _baseNames = plan.ComplexTypes.Values
+                                 .Select(s => s.BaseRecordName)
+                                 .Where(n => n is not null)
+                                 .ToHashSet(StringComparer.Ordinal)!;
+
                 foreach (var ge in plan.GlobalElements)
                     EmitRecord(ge.Body, ge.TypeName);
                 foreach (var sp in plan.ComplexTypes.Values)
@@ -160,19 +182,48 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 if (!_emitted.Add(name)) return;
 
-                // Nested complex types first, so declarations read top-down.
-                foreach (var c in sp.Children)
-                    if (c.Value is ValueEncoding.ComplexRef cr && plan.ComplexTypes.TryGetValue(cr.TypeName, out var nested))
-                        EmitRecord(nested, nested.RecordName);
+                // A type others extend must be `open`; an abstract one `abstract`. Only leaves that
+                // take part in no hierarchy can be `data` classes.
+                var extended = _baseNames.Contains(name);
+                var keyword  = sp.IsAbstract ? "abstract class"
+                             : extended      ? "open class"
+                             : sp.BaseRecordName is not null ? "class"
+                             : "data class";
 
-                _sb.Append("data class ").Append(name).AppendLine("(");
+                // Inheritance: the first N flattened children belong to the base, are re-declared
+                // here as `override`, and are handed straight to the base constructor.
+                var baseChildren = sp.BaseRecordName is not null
+                                   && plan.ComplexTypes.TryGetValue(sp.BaseRecordName, out var basePlan)
+                                       ? basePlan.Children.Count
+                                       : 0;
+
+                _sb.Append(keyword).Append(' ').Append(name);
+
+                if (sp.Children.Count == 0)
+                {
+                    _sb.Append(sp.BaseRecordName is not null ? " : " + sp.BaseRecordName + "()" : "").AppendLine();
+                    _sb.AppendLine();
+                    return;
+                }
+
+                _sb.AppendLine("(");
                 for (var i = 0; i < sp.Children.Count; i++)
                 {
                     var c = sp.Children[i];
-                    _sb.Append("    val ").Append(Prop(c.FieldName)).Append(": ").Append(DeclType(c));
+                    var modifier = i < baseChildren ? "override val "
+                                 : (sp.IsAbstract || extended) ? "open val "
+                                 : "val ";
+                    _sb.Append("    ").Append(modifier).Append(Prop(c.FieldName)).Append(": ").Append(DeclType(c));
                     _sb.AppendLine(i == sp.Children.Count - 1 ? "" : ",");
                 }
-                _sb.AppendLine(")");
+                _sb.Append(")");
+
+                if (sp.BaseRecordName is not null)
+                {
+                    var args = string.Join(", ", sp.Children.Take(baseChildren).Select(c => Prop(c.FieldName)));
+                    _sb.Append(" : ").Append(sp.BaseRecordName).Append('(').Append(args).Append(')');
+                }
+                _sb.AppendLine();
                 _sb.AppendLine();
             }
 
@@ -260,8 +311,29 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             if (kids[j].Shape != ChildShape.OptionalSingle)
                                 throw new NotSupportedException(
                                     $"Kotlin back end: '{name}' mixes optional and non-optional children after index {i}.");
+
+                        // A run with several optionals needs an if/else-if chain over ALL remaining
+                        // particles per state (any of them may be the next one present), plus a
+                        // running event code. The state machine below only tests the particle at the
+                        // current state, which is correct for exactly one optional and would silently
+                        // drop a later present sibling for more. Refuse rather than mis-encode.
+                        if (kids.Count - i > 1)
+                            throw new NotSupportedException(
+                                $"Kotlin back end: an optional run of {kids.Count - i} particles ('{name}') " +
+                                "is not implemented yet — only a single trailing optional is.");
                         EmitEncodeOptionalRun(kids, i);
                         i = kids.Count;
+                        continue;
+                    }
+
+                    // A substitution reference is dispatched by its own event code; that code IS the
+                    // selector, so no SE precedes it.
+                    if (c.Value is ValueEncoding.SubstitutionChoice sub)
+                    {
+                        EmitEncodeSubstitution(c, sub);
+                        i++;
+                        if (i == kids.Count)
+                            _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
                         continue;
                     }
 
@@ -342,8 +414,57 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
             }
 
+            /// <summary>
+            /// Substitution dispatch. Branches are emitted most-derived-first because Kotlin's
+            /// `is` checks, like C#'s type patterns, also match subtypes — members can extend each
+            /// other, not just the common head. The wire code stays each member's own (alphabetical,
+            /// cbV2G-verified) position, independent of emission order.
+            /// </summary>
+            private void EmitEncodeSubstitution(ChildPlan c, ValueEncoding.SubstitutionChoice sc)
+            {
+                var prop = "msg." + Prop(c.FieldName);
+                var ordered = sc.Members
+                                .Select((m, i) => (Member: m, Code: i))
+                                .Where(x => !x.Member.IsAbstractHead)
+                                .OrderByDescending(x => InheritanceDepth(x.Member.TypeName))
+                                .ToList();
+
+                _sb.Append("        when (val v = ").Append(prop).AppendLine(") {");
+                foreach (var (m, code) in ordered)
+                {
+                    _sb.Append("            is ").Append(m.TypeName).AppendLine(" -> {");
+                    _sb.Append("                w.writeBits(").Append(code).Append("u, ").Append(sc.BitWidth)
+                       .Append(")   // ").AppendLine(m.ElementName);
+                    _sb.Append("                encode").Append(m.TypeName).AppendLine("(w, v)");
+                    _sb.AppendLine("            }");
+                }
+                _sb.Append("            else -> throw IllegalArgumentException(\"unsupported substitution member for ")
+                   .Append(c.FieldName).AppendLine("\")");
+                _sb.AppendLine("        }");
+            }
+
+            /// <summary>How many base links separate a type from its root; 0 for a type with no base.</summary>
+            private int InheritanceDepth(string typeName)
+            {
+                var depth = 0;
+                var current = typeName;
+                while (plan.ComplexTypes.TryGetValue(current, out var sp) && sp.BaseRecordName is not null)
+                {
+                    depth++;
+                    current = sp.BaseRecordName;
+                }
+                return depth;
+            }
+
             private void EmitEncodeValue(ChildPlan c, string accessor, string indent, bool inList = false)
             {
+                if (c.Value is ValueEncoding.OpaqueElement oe)
+                {
+                    // Only reached with a present instance; absence is handled by the optional run.
+                    _sb.Append(indent).Append("throw UnsupportedOperationException(\"Encoding a present ")
+                       .Append(oe.TypeName).AppendLine(" (XMLDSig) is not implemented in the Kotlin back end.\")");
+                    return;
+                }
                 if (c.Value is ValueEncoding.ComplexRef cr)
                 {
                     _sb.Append(indent).Append("encode").Append(cr.TypeName).Append("(w, ").Append(accessor).AppendLine(")");
@@ -416,8 +537,31 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         continue;
                     }
 
-                    _sb.AppendLine("        r.readBits(1)   // SE");
                     var v = "_" + Prop(c.FieldName);
+                    if (c.Value is ValueEncoding.SubstitutionChoice sub)
+                    {
+                        _sb.Append("        val ").Append(v).Append(": ").Append(Type(c.Type))
+                           .Append(" = when (r.readBits(").Append(sub.BitWidth).AppendLine(")) {");
+                        for (var k = 0; k < sub.Members.Count; k++)
+                        {
+                            var m = sub.Members[k];
+                            if (m.IsAbstractHead)
+                                _sb.Append("            ").Append(k)
+                                   .AppendLine("u -> throw IllegalArgumentException(\"abstract substitution head cannot be decoded\")");
+                            else
+                                _sb.Append("            ").Append(k).Append("u -> decode")
+                                   .Append(m.TypeName).AppendLine("(r)");
+                        }
+                        _sb.AppendLine("            else -> throw IllegalArgumentException(\"unknown substitution index\")");
+                        _sb.AppendLine("        }");
+                        ctor.Add(v);
+                        i++;
+                        if (i == kids.Count)
+                            _sb.AppendLine("        r.readBits(1)   // element EE");
+                        continue;
+                    }
+
+                    _sb.AppendLine("        r.readBits(1)   // SE");
                     if (c.Value is ValueEncoding.ComplexRef)
                     {
                         _sb.Append("        val ").Append(v).Append(" = ").AppendLine(DecodeValueExpr(c));
@@ -501,6 +645,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             private string DecodeValueExpr(ChildPlan c) => c.Value switch
             {
+                ValueEncoding.OpaqueElement oe =>
+                    $"throw UnsupportedOperationException(\"Decoding a present {oe.TypeName} " +
+                    "(XMLDSig) is not implemented in the Kotlin back end.\")",
                 ValueEncoding.ComplexRef cr  => $"decode{cr.TypeName}(r)",
                 ValueEncoding.StringValue    => "ExiPrimitives.readStringValue(r)",
                 ValueEncoding.UnsignedInt    => $"ExiPrimitives.readUnsignedInteger(r).{ToNarrow(c.Type)}",
