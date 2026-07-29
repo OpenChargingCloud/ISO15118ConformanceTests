@@ -1474,7 +1474,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _sb.Append(indent).AppendLine("    {");
             _sb.Append(indent).Append("        switch (rc)").AppendLine();
             _sb.Append(indent).AppendLine("        {");
-            EmitDecodeRunParticle(tail, 1, indent + "            ", doneVar + " = true;");
+            // A present optional tail is followed by the element's own EE — the encode side writes it
+            // as a separate 1-bit event (see EmitEncodeRequiredRepeatingWithTail), and this construct
+            // closes the element itself, so nothing further up consumes it. Without this read the
+            // decoder ends up one bit short of the encoder.
+            string tailAfter = tailRequired
+                ? doneVar + " = true;"
+                : "r.ReadBits(1);   // element EE\n" + indent + "                " + doneVar + " = true;";
+            EmitDecodeRunParticle(tail, 1, indent + "            ", tailAfter);
             if (!tailRequired)
                 _sb.Append(indent).Append("            case ").Append(1 + prod).Append("u: ").Append(doneVar).AppendLine(" = true; break;");
             _sb.Append(indent).AppendLine("            default: throw new InvalidDataException(\"invalid event code\");");

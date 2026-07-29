@@ -48,18 +48,36 @@ namespace Vanaheimr.V2G.Exi.Tests
                 "decode∘encode is not the identity on the wire");
         }
 
+        /// <summary>
+        /// The optional tail of the true-self-loop construct, present. <c>PulseSequenceOrder</c> is
+        /// itself a minOccurs=2 list, so it needs two entries to satisfy the encoder's bounds check.
+        /// </summary>
+        private static WPT_TxRxPackageSpecDataType PackageSpec() =>
+            new(PulseSequenceOrder: new[]
+                {
+                    new WPT_TxRxPulseOrderType(IndexNumber: 1, TxRxIdentifier: 1),
+                    new WPT_TxRxPulseOrderType(IndexNumber: 2, TxRxIdentifier: 2),
+                },
+                PulseSeparationTime: 10,
+                PulseDuration: 20,
+                PackageSeparationTime: 30);
+
         [Test]
         public void FinePositioningSetupReq_WithLFSystemSetupData_Transmitter_Roundtrips()
         {
             // Exercises the true-self-loop "required repeating + optional tail" construct at its schema
-            // minimum (2 TxSpecData items) plus the optional TxPackageSpecData tail present.
+            // minimum (2 TxSpecData items), tail ABSENT. The present-tail case is a separate test —
+            // it takes a different production and used to be decoded one bit short.
             var message = new WPT_FinePositioningSetupReq(
                 Header(), Processing.Finished,
                 new WPT_FinePositioningMethodListType(new[] { WPT_FinePositioningMethod.Manual }),
                 new WPT_PairingMethodListType(new[] { WPT_PairingMethod.LPE }),
                 new WPT_AlignmentCheckMethodListType(new[] { WPT_AlignmentCheckMethod.PowerCheck }),
                 NaturalOffset: 0,
-                VendorSpecificDataContainer: Array.Empty<byte[]>(),
+                // NOT empty: cbexigen's mid-run-list grammar leaves everything after the list
+                // unreachable until at least one item has been written, so an empty container here
+                // would silently drop LF_SystemSetupData and make this test vacuous.
+                VendorSpecificDataContainer: new[] { new byte[] { 0xAA } },
                 LF_SystemSetupData: new WPT_LF_SystemSetupDataType(
                     LF_TransmitterSetupData: new WPT_LF_TransmitterDataType(
                         NumberOfTransmitters: 2,
@@ -77,6 +95,58 @@ namespace Vanaheimr.V2G.Exi.Tests
 
             var decoded = (WPT_FinePositioningSetupReq)WptCodec.DecodeAny(buf1.AsSpan(0, n1), out int consumed);
             Assert.That(consumed, Is.EqualTo(n1), "decoder did not consume all encoded bytes");
+
+            var buf2 = new byte[512];
+            Assert.That(decoded.TryEncode(buf2, out int n2), Is.True, "re-encode failed");
+
+            Assert.That(buf2.AsSpan(0, n2).ToArray(), Is.EqualTo(buf1.AsSpan(0, n1).ToArray()),
+                "decode∘encode is not the identity on the wire");
+        }
+
+        /// <summary>
+        /// The same construct with the optional tail PRESENT — the case the sibling test's comment
+        /// once claimed to cover while actually passing <c>null</c>.
+        /// <para>
+        /// A present tail is followed by the element's own EE as a separate 1-bit event, and the
+        /// decoder used not to read it: everything after <c>LF_SystemSetupData</c> was then parsed one
+        /// bit out of step. Absent the tail the closing EE is folded into the loop's own event code, so
+        /// the null case never touched this.
+        /// </para>
+        /// </summary>
+        [Test]
+        public void FinePositioningSetupReq_WithLFSystemSetupData_TransmitterAndPackageSpec_Roundtrips()
+        {
+            var message = new WPT_FinePositioningSetupReq(
+                Header(), Processing.Finished,
+                new WPT_FinePositioningMethodListType(new[] { WPT_FinePositioningMethod.Manual }),
+                new WPT_PairingMethodListType(new[] { WPT_PairingMethod.LPE }),
+                new WPT_AlignmentCheckMethodListType(new[] { WPT_AlignmentCheckMethod.PowerCheck }),
+                NaturalOffset: 0,
+                // NOT empty: cbexigen's mid-run-list grammar leaves everything after the list
+                // unreachable until at least one item has been written, so an empty container here
+                // would silently drop LF_SystemSetupData and make this test vacuous.
+                VendorSpecificDataContainer: new[] { new byte[] { 0xAA } },
+                LF_SystemSetupData: new WPT_LF_SystemSetupDataType(
+                    LF_TransmitterSetupData: new WPT_LF_TransmitterDataType(
+                        NumberOfTransmitters: 2,
+                        SignalFrequency: new RationalNumberType(0, 100),
+                        TxSpecData: new[]
+                        {
+                            new WPT_TxRxSpecDataType(1, new WPT_CoordinateXYZType(0, 0, 0), new WPT_CoordinateXYZType(0, 0, 0)),
+                            new WPT_TxRxSpecDataType(2, new WPT_CoordinateXYZType(10, 0, 0), new WPT_CoordinateXYZType(0, 0, 0)),
+                        },
+                        TxPackageSpecData: PackageSpec()),
+                    LF_ReceiverSetupData: null));
+
+            var buf1 = new byte[512];
+            Assert.That(message.TryEncode(buf1, out int n1), Is.True, "encode failed");
+
+            var decoded = (WPT_FinePositioningSetupReq)WptCodec.DecodeAny(buf1.AsSpan(0, n1), out int consumed);
+            Assert.That(consumed, Is.EqualTo(n1), "decoder did not consume all encoded bytes");
+
+            var tx = decoded.LF_SystemSetupData!.LF_TransmitterSetupData!;
+            Assert.That(tx.TxSpecData.Count, Is.EqualTo(2), "list items lost");
+            Assert.That(tx.TxPackageSpecData, Is.Not.Null, "optional tail lost");
 
             var buf2 = new byte[512];
             Assert.That(decoded.TryEncode(buf2, out int n2), Is.True, "re-encode failed");
