@@ -179,10 +179,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             /// <summary>
             /// Whether a child's value is framed by a value-start bit and a child EE. An AT value is
-            /// not: the run's event code *was* the AT event. A complex child frames itself.
+            /// not: the run's event code *was* the AT event. A complex child frames itself. An opaque
+            /// (un-modelled XMLDSig) child is never really read — it throws — so framing it would
+            /// consume a bit before failing and leave the rest unreachable.
             /// </summary>
             private static bool WrapsValue(ChildPlan c) =>
-                c.Value is not ValueEncoding.ComplexRef and not ValueEncoding.AttributeValue;
+                c.Value is not ValueEncoding.ComplexRef
+                       and not ValueEncoding.AttributeValue
+                       and not ValueEncoding.OpaqueElement;
 
             // ---------------------------------------------------------------- naming
 
@@ -458,27 +462,30 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     var c = kids[i];
                     if (c.Shape == ChildShape.BoundedRepeating)
                     {
-                        if (kids.Count != 1)
+                        if (kids.Count == 1)
+                            EmitEncodeList(c, sp);
+                        else if (c.ListMin > 0 && i == kids.Count - 1)
+                            EmitEncodeRepeatingChild(c, "        ");
+                        else
                             throw new NotSupportedException(
-                                $"Kotlin back end: a repeating child among siblings ('{name}.{c.FieldName}') is not implemented yet.");
-                        EmitEncodeList(c, sp);
-                        i++;
+                                $"Kotlin back end: the repeating child '{name}.{c.FieldName}' is neither the " +
+                                "sequence's only child nor a required list closing it; not implemented yet.");
+                        i++;   // the list's own terminator doubles as the element EE
                         continue;
                     }
                     if (c.Shape == ChildShape.OptionalSingle)
                     {
                         // A run of optionals ends either at the element EE or at the first required
                         // child, which then carries the run's highest event code.
-                        var e = i;
-                        while (e < kids.Count && kids[e].Shape == ChildShape.OptionalSingle) e++;
-
+                        var e    = RunEnd(kids, i);
                         var term = e < kids.Count ? kids[e] : null;
                         RejectRunTerminator(term, name);
 
                         EmitEncodeOptionalRun(kids, i, e, term);
 
                         i = term is null ? kids.Count : e + 1;
-                        if (term is not null && i == kids.Count)
+                        // A repeating terminator closes the element with its own list-end EE.
+                        if (term is not null && term.Shape != ChildShape.BoundedRepeating && i == kids.Count)
                             _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
                         continue;
                     }
@@ -598,15 +605,135 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private void EmitEncodeList(ChildPlan c, SequencePlan sp)
             {
                 var (min, max) = ListBounds(c, sp);
-                var prop = "msg." + Prop(c.FieldName);
-                _sb.Append("        val list = ").AppendLine(prop);
-                _sb.Append("        require(list.size in ").Append(min).Append("..")
-                   .Append(max).AppendLine(") { \"list size out of schema range\" }");
-                _sb.AppendLine("        for (i in list.indices) {");
-                _sb.AppendLine("            w.writeBits(0u, if (i == 0) 1 else 2)   // SE(item)");
-                EmitEncodeValue(c, "list[i]", "            ", inList: true);
-                _sb.AppendLine("        }");
-                _sb.AppendLine("        w.writeBits(1u, 2)   // list terminator / element EE");
+                _sb.Append("        val list = msg.").AppendLine(Prop(c.FieldName));
+                EmitEncodeRepeating(c, "list", min, max, "        ");
+            }
+
+            /// <summary>
+            /// A required list closing a sequence that has other children too. Unlike the lone-child
+            /// case the bounds sit on the child, and the local is named after the field so it cannot
+            /// collide with a sibling's.
+            /// </summary>
+            private void EmitEncodeRepeatingChild(ChildPlan c, string indent)
+            {
+                var list = ListLocal(c);
+                _sb.Append(indent).Append("val ").Append(list).Append(" = msg.").AppendLine(Prop(c.FieldName));
+                EmitEncodeRepeating(c, list, Math.Max(1, c.ListMin), c.ListMax, indent);
+            }
+
+            private static string ListLocal(ChildPlan c) => Camel(c.FieldName) + "List";
+
+            /// <summary>
+            /// A repeating element inside an optional run. The first item takes the run state's event
+            /// code; every further item and the closing EE use the 2-bit loop code {item = 0, EE = 1}.
+            /// </summary>
+            private void EmitEncodeRepeatingItems(ChildPlan p, int firstCode, int width, string indent, string after)
+            {
+                var list = "msg." + Prop(p.FieldName);
+                _sb.Append(indent).Append("w.writeBits(").Append(firstCode).Append("u, ").Append(width)
+                   .Append(")   // ").AppendLine(p.FieldName);
+                EmitEncodeValue(p, list + "[0]", indent);
+                _sb.Append(indent).Append("for (ci in 1 until ").Append(list).AppendLine(".size) {");
+                _sb.Append(indent).Append("    w.writeBits(0u, 2)   // ").AppendLine(p.FieldName);
+                EmitEncodeValue(p, list + "[ci]", indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+                _sb.Append(indent).AppendLine("w.writeBits(1u, 2)   // element EE (list end)");
+                _sb.Append(indent).AppendLine(after);
+            }
+
+            /// <summary>
+            /// Declares a run particle's local in record order: a list gets an empty collection (an
+            /// empty one also encodes "absent"), everything else a nullable.
+            /// </summary>
+            private void DeclareRunLocal(ChildPlan c, List<string> ctor)
+            {
+                if (c.Shape == ChildShape.BoundedRepeating)
+                {
+                    _sb.Append("        val ").Append(ListLocal(c)).Append(" = ArrayList<")
+                       .Append(Type(c.Type)).AppendLine(">()");
+                    ctor.Add(ListLocal(c));
+                    return;
+                }
+                _sb.Append("        var ").Append(Local(c.FieldName)).Append(": ").Append(DeclType(c))
+                   .AppendLine(" = null");
+                ctor.Add(Local(c.FieldName));
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeRepeatingItems"/>.</summary>
+            private void EmitDecodeRepeatingItems(ChildPlan p, string list, string indent, string after)
+            {
+                EmitDecodeItem(p, list, list + "First", indent);   // the event code was its SE
+                _sb.Append(indent).AppendLine("while (true) {");
+                _sb.Append(indent).AppendLine("    val lc = r.readBits(2)");
+                _sb.Append(indent).AppendLine("    if (lc == 1u) break   // element EE (list end)");
+                _sb.Append(indent).Append("    require(lc == 0u && ").Append(list).Append(".size < ")
+                   .Append(p.ListMax).AppendLine(") { \"invalid repeating-element event code\" }");
+                EmitDecodeItem(p, list, list + "Next", indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+                _sb.Append(indent).AppendLine(after);
+            }
+
+            /// <summary>
+            /// The item loop of a bounded-repeating child: the first item takes a 1-bit SE, every
+            /// following item a 2-bit event code. Mirrors <c>CodecEmitter</c>.
+            /// </summary>
+            private void EmitEncodeRepeating(ChildPlan c, string list, int min, int max, string indent)
+            {
+                _sb.Append(indent).Append("require(").Append(list).Append(".size in ").Append(min)
+                   .Append("..").Append(max).AppendLine(") { \"list size out of schema range\" }");
+                _sb.Append(indent).Append("for (i in ").Append(list).AppendLine(".indices) {");
+                _sb.Append(indent).AppendLine("    w.writeBits(0u, if (i == 0) 1 else 2)   // SE(item)");
+                EmitEncodeValue(c, list + "[i]", indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+                EmitEncodeListTerminator(list, max, indent);
+            }
+
+            /// <summary>
+            /// At maxOccurs=2 a full list has no "another item" production left, so the grammar closes
+            /// it with the 1-bit element EE rather than the 2-bit terminator.
+            /// </summary>
+            private void EmitEncodeListTerminator(string list, int max, string indent)
+            {
+                if (max == 2)
+                {
+                    _sb.Append(indent).Append("if (").Append(list)
+                       .AppendLine(".size >= 2) w.writeBits(0u, 1)   // element EE (list at max)");
+                    _sb.Append(indent).AppendLine("else w.writeBits(1u, 2)   // element EE");
+                }
+                else
+                    _sb.Append(indent).AppendLine("w.writeBits(1u, 2)   // list terminator / element EE");
+            }
+
+            /// <summary>
+            /// The exclusive end of the optional run starting at <paramref name="i"/>: consecutive
+            /// optionals, and — as <c>CodecEmitter</c> does — at most one optional bounded-repeating
+            /// particle among them, since an empty list is itself the "absent" encoding.
+            /// </summary>
+            /// <summary>
+            /// An optional list inside a run must be its last particle. cbexigen encodes a mid-run
+            /// list with a different, narrower grammar (the particles after it become unreachable
+            /// until an item is written, and it is hard-capped at two items); that shape is modelled
+            /// in <c>CodecEmitter</c> but not here, and it must not silently take this path.
+            /// </summary>
+            private static void RejectMidRunList(IReadOnlyList<ChildPlan> kids, int start, int end)
+            {
+                for (var p = start; p < end - 1; p++)
+                    if (kids[p].Shape == ChildShape.BoundedRepeating)
+                        throw new NotSupportedException(
+                            $"Kotlin back end: the optional list '{kids[p].FieldName}' is not the last " +
+                            "particle of its run; that grammar is not implemented yet.");
+            }
+
+            private static int RunEnd(IReadOnlyList<ChildPlan> kids, int i)
+            {
+                var j = i;
+                while (j < kids.Count && kids[j].Shape == ChildShape.OptionalSingle) j++;
+                if (j < kids.Count && kids[j].Shape == ChildShape.BoundedRepeating && kids[j].ListMin == 0)
+                {
+                    j++;
+                    while (j < kids.Count && kids[j].Shape == ChildShape.OptionalSingle) j++;
+                }
+                return j;
             }
 
             /// <summary>
@@ -617,7 +744,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 if (term is null)
                     return;
-                if (term.Shape != ChildShape.RequiredSingle)
+                if (term.Shape == ChildShape.BoundedRepeating && term.ListMin == 0)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: '{owner}.{term.FieldName}' terminates an optional run but is an " +
+                        "optional list; only a required one is modelled here.");
+                if (term.Shape is not (ChildShape.RequiredSingle or ChildShape.BoundedRepeating))
                     throw new NotSupportedException(
                         $"Kotlin back end: '{owner}.{term.FieldName}' terminates an optional run but is {term.Shape}.");
             }
@@ -634,6 +765,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var m           = end - start;
                 var id          = _run++;
                 var trailingAny = TrailingAny(kids, start, end, term);
+                RejectMidRunList(kids, start, end);
                 const string ind = "                    ";
 
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
@@ -659,8 +791,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     EmitEncodeRunSubLocals(kids, start, k, optEnd, term, ind);
 
                     for (var i = k; i < optEnd; i++)
-                        code = EmitEncodeRunParticle(kids[start + i], code, width, ref first, ind,
-                                                     $"st{id} = {i + 1}");
+                    {
+                        // A list consumes the rest of the element: its own list-end EE closes it.
+                        var after = kids[start + i].Shape == ChildShape.BoundedRepeating
+                                        ? $"done{id} = true"
+                                        : $"st{id} = {i + 1}";
+                        code = EmitEncodeRunParticle(kids[start + i], code, width, ref first, ind, after);
+                    }
 
                     var eeCode = code;
                     if (trailingAny && k < m)
@@ -670,6 +807,23 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         // advances to the EE-only state.
                         EmitEncodeRunParticle(kids[end - 1], code + 2, width, ref first, ind, $"st{id} = {m}");
                         eeCode = code + 1;
+                    }
+
+                    // A required repeating terminator: its first item takes the run's tail code, and
+                    // its own list-end EE closes the element.
+                    if (term?.Shape == ChildShape.BoundedRepeating)
+                    {
+                        var repTail = first ? ind : ind + "    ";
+                        if (!first)
+                            _sb.Append(ind).AppendLine("} else {");
+                        _sb.Append(repTail).Append("require(msg.").Append(Prop(term.FieldName))
+                           .Append(".size in 1..").Append(term.ListMax)
+                           .AppendLine(") { \"list size out of schema range\" }");
+                        EmitEncodeRepeatingItems(term, eeCode, width, repTail, $"done{id} = true");
+                        if (!first)
+                            _sb.Append(ind).AppendLine("}");
+                        _sb.AppendLine("                }");
+                        continue;
                     }
 
                     // A substitution terminator has one production per member, so it extends the
@@ -722,6 +876,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                                               string indent, string after)
             {
                 var prop = "msg." + Prop(p.FieldName);
+
+                if (p.Shape == ChildShape.BoundedRepeating)
+                {
+                    // An empty list means this optional element is absent.
+                    _sb.Append(indent).Append(first ? "if (" : "} else if (").Append(prop).AppendLine(".isNotEmpty()) {");
+                    _sb.Append(indent).Append("    require(").Append(prop).Append(".size <= ").Append(p.ListMax)
+                       .AppendLine(") { \"list size out of schema range\" }");
+                    EmitEncodeRepeatingItems(p, code, width, indent + "    ", after);
+                    first = false;
+                    return code + 1;
+                }
 
                 if (p.Value is ValueEncoding.SubstitutionChoice sc)
                 {
@@ -903,6 +1068,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(indent).Append("w.writeBits(").Append(accessor).Append(".ordinal.toUInt(), ")
                            .Append(ei.BitWidth).AppendLine(")");
                         break;
+                    case ValueEncoding.NBitUnsigned nb when IsBool(c):
+                        // xs:boolean is a 1-bit n-bit unsigned, and Kotlin's Boolean has no numeric
+                        // conversion — same special case as in CodecEmitter.
+                        _sb.Append(indent).Append("w.writeBits(if (").Append(accessor).Append(") 1u else 0u, ")
+                           .Append(nb.BitWidth).AppendLine(")");
+                        break;
                     case ValueEncoding.NBitUnsigned nb:
                         var expr = nb.Bias == 0
                                        ? accessor + ".toLong()"
@@ -964,32 +1135,29 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     var c = kids[i];
                     if (c.Shape == ChildShape.BoundedRepeating)
                     {
-                        _sb.Append("        val list = ArrayList<").Append(Type(c.Type)).AppendLine(">()");
-                        _sb.AppendLine("        r.readBits(1)   // SE(item) first");
-                        _sb.Append("        list.add(").Append(DecodeValueExpr(c)).AppendLine(")");
-                        _sb.AppendLine("        while (true) {");
-                        _sb.AppendLine("            val ec = r.readBits(2)");
-                        _sb.AppendLine("            if (ec == 1u) break   // element EE");
-                        _sb.Append("            require(ec == 0u && list.size < ").Append(ListBounds(c, sp).Max)
-                           .AppendLine(") { \"invalid repeating-element event code\" }");
-                        _sb.Append("            list.add(").Append(DecodeValueExpr(c)).AppendLine(")");
-                        _sb.AppendLine("        }");
-                        ctor.Add("list");
+                        if (kids.Count == 1)
+                        {
+                            EmitDecodeRepeating(c, "list", ListBounds(c, sp).Max, "        ");
+                            ctor.Add("list");
+                        }
+                        else
+                        {
+                            EmitDecodeRepeating(c, ListLocal(c), c.ListMax, "        ");
+                            ctor.Add(ListLocal(c));
+                        }
                         i++;
                         continue;
                     }
                     if (c.Shape == ChildShape.OptionalSingle)
                     {
-                        var e = i;
-                        while (e < kids.Count && kids[e].Shape == ChildShape.OptionalSingle) e++;
-
+                        var e    = RunEnd(kids, i);
                         var term = e < kids.Count ? kids[e] : null;
                         RejectRunTerminator(term, name);
 
                         EmitDecodeOptionalRun(kids, i, e, term, ctor);
 
                         i = term is null ? kids.Count : e + 1;
-                        if (term is not null && i == kids.Count)
+                        if (term is not null && term.Shape != ChildShape.BoundedRepeating && i == kids.Count)
                             _sb.AppendLine("        r.readBits(1)   // element EE");
                         continue;
                     }
@@ -1041,6 +1209,43 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeRepeating"/>.</summary>
+            private void EmitDecodeRepeating(ChildPlan c, string list, int max, string indent)
+            {
+                _sb.Append(indent).Append("val ").Append(list).Append(" = ArrayList<")
+                   .Append(Type(c.Type)).AppendLine(">()");
+                _sb.Append(indent).AppendLine("r.readBits(1)   // SE(item) first");
+                EmitDecodeItem(c, list, list + "First", indent);
+
+                _sb.Append(indent).AppendLine("while (true) {");
+                if (max == 2)
+                    _sb.Append(indent).Append("    if (").Append(list)
+                       .AppendLine(".size >= 2) { r.readBits(1); break }   // element EE (list at max)");
+                _sb.Append(indent).AppendLine("    val ec = r.readBits(2)");
+                _sb.Append(indent).AppendLine("    if (ec == 1u) break   // element EE");
+                _sb.Append(indent).Append("    require(ec == 0u && ").Append(list).Append(".size < ")
+                   .Append(max).AppendLine(") { \"invalid repeating-element event code\" }");
+                EmitDecodeItem(c, list, list + "Next", indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+            }
+
+            /// <summary>
+            /// One list item. A value needing framing has to be read into a local so the value-start
+            /// and child EE can bracket it; a self-framing complex item is appended directly.
+            /// </summary>
+            private void EmitDecodeItem(ChildPlan c, string list, string local, string indent)
+            {
+                if (!WrapsValue(c))
+                {
+                    _sb.Append(indent).Append(list).Append(".add(").Append(DecodeValueExpr(c)).AppendLine(")");
+                    return;
+                }
+                _sb.Append(indent).AppendLine("r.readBits(1)   // value-start");
+                _sb.Append(indent).Append("val ").Append(local).Append(" = ").AppendLine(DecodeValueExpr(c));
+                _sb.Append(indent).AppendLine("r.readBits(1)   // child EE");
+                _sb.Append(indent).Append(list).Append(".add(").Append(local).AppendLine(")");
             }
 
             /// <summary>Decode mirror of <see cref="EmitEncodeSimpleContentOptionalAttrs"/>.</summary>
@@ -1131,22 +1336,23 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var id          = _run++;
                 var trailingAny = TrailingAny(kids, start, end, term);
+                RejectMidRunList(kids, start, end);
 
                 for (var s = start; s < end; s++)
-                {
-                    var c = kids[s];
-                    _sb.Append("        var ").Append(Local(c.FieldName)).Append(": ").Append(DeclType(c))
-                       .AppendLine(" = null");
-                    ctor.Add(Local(c.FieldName));
-                }
+                    DeclareRunLocal(kids[s], ctor);
 
-                // The terminator is required, but it is only assigned inside the state machine, so
-                // it has to be declared nullable and unwrapped at the constructor call.
+                // The terminator is required, but it is only assigned inside the state machine, so a
+                // non-list one has to be declared nullable and unwrapped at the constructor call.
                 if (term is not null)
                 {
-                    _sb.Append("        var ").Append(Local(term.FieldName)).Append(": ").Append(Type(term.Type))
-                       .AppendLine("? = null");
-                    ctor.Add(Local(term.FieldName) + "!!");
+                    if (term.Shape == ChildShape.BoundedRepeating)
+                        DeclareRunLocal(term, ctor);
+                    else
+                    {
+                        _sb.Append("        var ").Append(Local(term.FieldName)).Append(": ").Append(Type(term.Type))
+                           .AppendLine("? = null");
+                        ctor.Add(Local(term.FieldName) + "!!");
+                    }
                 }
 
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
@@ -1173,6 +1379,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         var c     = kids[start + i];
                         var field = Local(c.FieldName);
+
+                        if (c.Shape == ChildShape.BoundedRepeating)
+                        {
+                            // A list consumes the rest of the element; its list-end EE closes it.
+                            _sb.Append(ind).Append(code).Append("u -> {   // ").AppendLine(c.FieldName);
+                            EmitDecodeRepeatingItems(c, ListLocal(c), ind + "    ", $"done{id} = true");
+                            _sb.Append(ind).AppendLine("}");
+                            code++;
+                            continue;
+                        }
 
                         if (c.Value is ValueEncoding.SubstitutionChoice sc)
                         {
@@ -1225,6 +1441,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
                     else if (term is null)
                         _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                    else if (term.Shape == ChildShape.BoundedRepeating)
+                    {
+                        _sb.Append(ind).Append(code).Append("u -> {   // ").AppendLine(term.FieldName);
+                        EmitDecodeRepeatingItems(term, ListLocal(term), ind + "    ", $"done{id} = true");
+                        _sb.Append(ind).AppendLine("}");
+                    }
                     else if (term.Value is ValueEncoding.SubstitutionChoice tsc)
                     {
                         // One case per member, at the run's highest codes.
@@ -1286,6 +1508,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             };
 
             /// <summary>Kotlin has no implicit numeric conversions — every read needs an explicit narrowing.</summary>
+            private static bool IsBool(ChildPlan c) =>
+                c.Type is TypeRef.Primitive { Kind: PrimitiveKind.Bool };
+
             private static string ToNarrow(TypeRef t) => t switch
             {
                 TypeRef.Primitive p => p.Kind switch
