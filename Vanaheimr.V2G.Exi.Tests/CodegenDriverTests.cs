@@ -70,7 +70,7 @@ namespace Vanaheimr.V2G.Exi.Tests
 
         private string[] Emitted =>
             Directory.Exists(Out)
-                ? Directory.GetFiles(Out, "*.kt").Select(Path.GetFileName).OrderBy(n => n).ToArray()!
+                ? Directory.GetFiles(Out, "*.kt").Select(p => Path.GetFileName(p)!).Order().ToArray()
                 : [];
 
         // ---- directory output --------------------------------------------------------------

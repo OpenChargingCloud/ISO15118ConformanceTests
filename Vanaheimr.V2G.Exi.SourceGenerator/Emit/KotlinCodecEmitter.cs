@@ -1722,17 +1722,37 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                                 .OrderByDescending(x => InheritanceDepth(x.Member.TypeName))
                                 .ToList();
 
+                // When the head of the group is itself concrete it is a member, and being the least
+                // derived it sorts last — so the final branch tests the property against its own
+                // declared type. That `is` can never be false, which makes the `else -> throw`
+                // behind it unreachable: the two are one branch written twice. Emitting the last
+                // one as `else` is the same code with the dead arm dropped, and stops Kotlin
+                // reporting a check it can see through ("Check for instance is always 'true'").
+                //
+                // With an abstract head the head is not a member, the last branch is some derived
+                // type, and the throw is genuinely reachable — then nothing is collapsed.
+                var headIsLast = c.Shape == ChildShape.RequiredSingle
+                                 && ordered.Count > 1
+                                 && ordered[ordered.Count - 1].Member.TypeName == Type(c.Type);
+
                 _sb.Append("        when (val v = ").Append(prop).AppendLine(") {");
-                foreach (var (m, code) in ordered)
+                for (var i = 0; i < ordered.Count; i++)
                 {
-                    _sb.Append("            is ").Append(m.TypeName).AppendLine(" -> {");
+                    var (m, code) = ordered[i];
+
+                    if (headIsLast && i == ordered.Count - 1)
+                        _sb.AppendLine("            else -> {");
+                    else
+                        _sb.Append("            is ").Append(m.TypeName).AppendLine(" -> {");
+
                     _sb.Append("                w.writeBits(").Append(code).Append("u, ").Append(sc.BitWidth)
                        .Append(")   // ").AppendLine(m.ElementName);
                     _sb.Append("                encode").Append(m.TypeName).AppendLine("(w, v)");
                     _sb.AppendLine("            }");
                 }
-                _sb.Append("            else -> throw IllegalArgumentException(\"unsupported substitution member for ")
-                   .Append(KStr(c.FieldName)).AppendLine("\")");
+                if (!headIsLast)
+                    _sb.Append("            else -> throw IllegalArgumentException(\"unsupported substitution member for ")
+                       .Append(KStr(c.FieldName)).AppendLine("\")");
                 _sb.AppendLine("        }");
             }
 
