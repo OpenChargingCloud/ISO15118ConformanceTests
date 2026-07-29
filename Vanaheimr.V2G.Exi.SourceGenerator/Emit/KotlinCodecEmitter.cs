@@ -161,10 +161,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.AppendLine();
                 }
 
-                _baseNames = plan.ComplexTypes.Values
-                                 .Select(s => s.BaseRecordName)
-                                 .Where(n => n is not null)
-                                 .ToHashSet(StringComparer.Ordinal)!;
+                // Not .ToHashSet(): this file is also compiled into the netstandard2.0 analyzer
+                // project, whose LINQ has no such overload.
+                _baseNames = new HashSet<string>(plan.ComplexTypes.Values
+                                                     .Select(s => s.BaseRecordName)
+                                                     .Where(n => n is not null)!,
+                                                 StringComparer.Ordinal);
 
                 foreach (var ge in plan.GlobalElements)
                     EmitRecord(ge.Body, ge.TypeName);
@@ -299,14 +301,19 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
                     if (c.Shape == ChildShape.OptionalSingle)
                     {
-                        // The remainder of the sequence must be an optional run — that is the only
-                        // shape this back end models.
-                        for (var j = i; j < kids.Count; j++)
-                            if (kids[j].Shape != ChildShape.OptionalSingle)
-                                throw new NotSupportedException(
-                                    $"Kotlin back end: '{name}' mixes optional and non-optional children after index {i}.");
-                        EmitEncodeOptionalRun(kids, i);
-                        i = kids.Count;
+                        // A run of optionals ends either at the element EE or at the first required
+                        // child, which then carries the run's highest event code.
+                        var e = i;
+                        while (e < kids.Count && kids[e].Shape == ChildShape.OptionalSingle) e++;
+
+                        var term = e < kids.Count ? kids[e] : null;
+                        RejectRunTerminator(term, name);
+
+                        EmitEncodeOptionalRun(kids, i, e, term);
+
+                        i = term is null ? kids.Count : e + 1;
+                        if (term is not null && i == kids.Count)
+                            _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
                         continue;
                     }
 
@@ -354,13 +361,31 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             }
 
             /// <summary>
-            /// A trailing run of optional children. At each state the event-code width covers the
-            /// still-possible productions plus the non-strict phantom, exactly as
+            /// Only a plain required child may close an optional run so far; anything else would
+            /// need extra productions in the run's tail code.
+            /// </summary>
+            private static void RejectRunTerminator(ChildPlan? term, string owner)
+            {
+                if (term is null)
+                    return;
+                if (term.Shape != ChildShape.RequiredSingle)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: '{owner}.{term.FieldName}' terminates an optional run but is {term.Shape}.");
+                if (term.Value is ValueEncoding.SubstitutionChoice)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: substitution '{owner}.{term.FieldName}' terminating an optional run is not implemented yet.");
+            }
+
+            /// <summary>
+            /// A run of optional children spanning [start, end). It is closed either by the element
+            /// EE (<paramref name="term"/> is null) or by the required child at <paramref name="end"/>,
+            /// which then occupies the run's highest event code. At each state the code width covers
+            /// the still-possible productions plus the non-strict phantom, exactly as
             /// <c>CodecEmitter</c> computes it.
             /// </summary>
-            private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start)
+            private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end, ChildPlan? term)
             {
-                var m  = kids.Count - start;
+                var m  = end - start;
                 var id = _run++;
                 const string ind = "                    ";
 
@@ -373,7 +398,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // the next one present, so each state offers all of them.
                 for (var k = 0; k <= m; k++)
                 {
-                    var totalProd = 1;                                   // the element EE
+                    var totalProd = term is null ? 1                        // the element EE
+                                                 : ProductionCount(term);   // or the required child
                     for (var i = k; i < m; i++) totalProd += ProductionCount(kids[start + i]);
                     var width = BitsFor(totalProd + 1);                  // + the non-strict phantom
 
@@ -385,21 +411,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         code = EmitEncodeRunParticle(kids[start + i], code, width, ref first, ind,
                                                      $"st{id} = {i + 1}");
 
-                    // The element EE takes the highest remaining code.
-                    if (first)
-                    {
-                        _sb.Append(ind).Append("w.writeBits(").Append(code).Append("u, ").Append(width)
-                           .AppendLine(")   // element EE");
-                        _sb.Append(ind).Append("done").Append(id).AppendLine(" = true");
-                    }
+                    // The highest remaining code closes the run: the element EE, or the required
+                    // child — whose content then follows inline.
+                    var tail = first ? ind : ind + "    ";
+                    if (!first)
+                        _sb.Append(ind).AppendLine("} else {");
+
+                    _sb.Append(tail).Append("w.writeBits(").Append(code).Append("u, ").Append(width);
+                    if (term is null)
+                        _sb.AppendLine(")   // element EE");
                     else
                     {
-                        _sb.Append(ind).AppendLine("} else {");
-                        _sb.Append(ind).Append("    w.writeBits(").Append(code).Append("u, ").Append(width)
-                           .AppendLine(")   // element EE");
-                        _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
-                        _sb.Append(ind).AppendLine("}");
+                        _sb.Append(")   // SE(").Append(term.FieldName).AppendLine(")");
+                        EmitEncodeValue(term, "msg." + Prop(term.FieldName), tail);
                     }
+                    _sb.Append(tail).Append("done").Append(id).AppendLine(" = true");
+
+                    if (!first)
+                        _sb.Append(ind).AppendLine("}");
 
                     _sb.AppendLine("                }");
                 }
@@ -580,8 +609,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
                     if (c.Shape == ChildShape.OptionalSingle)
                     {
-                        EmitDecodeOptionalRun(kids, i, ctor);
-                        i = kids.Count;
+                        var e = i;
+                        while (e < kids.Count && kids[e].Shape == ChildShape.OptionalSingle) e++;
+
+                        var term = e < kids.Count ? kids[e] : null;
+                        RejectRunTerminator(term, name);
+
+                        EmitDecodeOptionalRun(kids, i, e, term, ctor);
+
+                        i = term is null ? kids.Count : e + 1;
+                        if (term is not null && i == kids.Count)
+                            _sb.AppendLine("        r.readBits(1)   // element EE");
                         continue;
                     }
 
@@ -634,10 +672,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine();
             }
 
-            private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, List<string> ctor)
+            private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end,
+                                               ChildPlan? term, List<string> ctor)
             {
                 var id = _run++;
-                for (var s = start; s < kids.Count; s++)
+                for (var s = start; s < end; s++)
                 {
                     var c = kids[s];
                     _sb.Append("        var _").Append(Prop(c.FieldName)).Append(": ").Append(DeclType(c))
@@ -645,15 +684,25 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     ctor.Add("_" + Prop(c.FieldName));
                 }
 
+                // The terminator is required, but it is only assigned inside the state machine, so
+                // it has to be declared nullable and unwrapped at the constructor call.
+                if (term is not null)
+                {
+                    _sb.Append("        var _").Append(Prop(term.FieldName)).Append(": ").Append(Type(term.Type))
+                       .AppendLine("? = null");
+                    ctor.Add("_" + Prop(term.FieldName) + "!!");
+                }
+
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
                 _sb.Append("        var done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
                 _sb.Append("            when (st").Append(id).AppendLine(") {");
 
-                var m = kids.Count - start;
+                var m = end - start;
                 for (var k = 0; k <= m; k++)
                 {
-                    var totalProd = 1;                                   // the element EE
+                    var totalProd = term is null ? 1                        // the element EE
+                                                 : ProductionCount(term);   // or the required child
                     for (var i = k; i < m; i++) totalProd += ProductionCount(kids[start + i]);
                     var width = BitsFor(totalProd + 1);                  // + the non-strict phantom
 
@@ -700,7 +749,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         code++;
                     }
 
-                    _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                    if (term is null)
+                        _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                    else
+                    {
+                        var field = "_" + Prop(term.FieldName);
+                        _sb.Append(ind).Append(code).Append("u -> {   // SE(").Append(term.FieldName).AppendLine(")");
+                        if (term.Value is not ValueEncoding.ComplexRef)
+                            _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
+                        _sb.Append(ind).Append("    ").Append(field).Append(" = ").AppendLine(DecodeValueExpr(term));
+                        if (term.Value is not ValueEncoding.ComplexRef)
+                            _sb.Append(ind).AppendLine("    r.readBits(1)   // child EE");
+                        _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
+                        _sb.Append(ind).AppendLine("}");
+                    }
                     _sb.Append(ind).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
                     _sb.AppendLine("                    }");
                     _sb.AppendLine("                }");
