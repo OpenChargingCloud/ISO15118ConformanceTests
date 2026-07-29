@@ -66,12 +66,16 @@ namespace Vanaheimr.V2G.Exi.Codegen
             var plan   = GrammarBuilder.Build(schema, opts.Fragments);
             var source = emitter.Emit(plan, opts.Namespace, opts.CodecClass);
 
-            // The schema set's first file names the output, matching the incremental generator's
-            // hint-name convention (`{label}.g.cs`).
+            // Whether --out names the file or the directory to put it in. This is decided by the
+            // path itself, never by whether the directory happens to exist yet: the old rule wrote
+            // a *file* named after the directory when that directory had not been created, which is
+            // silent and easy to miss. A path with an extension is a file, anything else a
+            // directory — into which the schema set's first file names the output, matching the
+            // incremental generator's hint-name convention (`{label}.g.cs`).
             var label      = Path.GetFileNameWithoutExtension(opts.XsdPaths[0]);
-            var outputPath = Directory.Exists(opts.Output) || opts.Output.EndsWith("/", StringComparison.Ordinal)
-                                 ? Path.Combine(opts.Output, label + emitter.FileExtension)
-                                 : opts.Output;
+            var namesFile  = !Directory.Exists(opts.Output) && Path.GetExtension(opts.Output).Length > 0;
+            var outputPath = namesFile ? opts.Output
+                                       : Path.Combine(opts.Output, label + emitter.FileExtension);
 
             var dir = Path.GetDirectoryName(Path.GetFullPath(outputPath));
             if (!string.IsNullOrEmpty(dir))
@@ -96,7 +100,8 @@ namespace Vanaheimr.V2G.Exi.Codegen
 
                   --xsd        One or more XSD files forming ONE schema set (types resolve across
                                the whole set). Repeatable, or ';'-separated.
-                  --out        Output file, or a directory (then named after the first XSD).
+                  --out        Output path. With an extension it is the file to write; otherwise a
+                               directory, created if needed, holding a file named after the first XSD.
                   --lang       Target language. Default: csharp.
                   --namespace  Generated namespace / package.
                   --codec      Generated codec class name.
