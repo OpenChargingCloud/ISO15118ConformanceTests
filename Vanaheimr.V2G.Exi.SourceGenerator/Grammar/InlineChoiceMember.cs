@@ -5,7 +5,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar
     internal sealed record InlineChoiceMember(
         string        ElementName,
         string        FieldName,
-        string        CSharpType,
+        TypeRef       Type,
         ValueEncoding Value,
-        bool          IsCSharpNullable);
+        bool          IsValueType);
 }

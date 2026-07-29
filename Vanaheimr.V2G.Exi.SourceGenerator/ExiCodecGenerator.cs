@@ -56,6 +56,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator
                 (spc, pair) => Generate(spc, pair.Left, pair.Right.Ns, pair.Right.Codec, pair.Right.Fragments));
         }
 
+        /// <summary>
+        /// The back end this generator drives. Roslyn contributes C# to the compilation it runs in,
+        /// so inside the generator this is fixed; other languages reuse the same front end
+        /// (<c>Xsd/</c> → <c>Grammar/</c>) through <see cref="ICodecEmitter"/> from a separate,
+        /// Roslyn-free driver.
+        /// </summary>
+        private static readonly ICodecEmitter Emitter = CSharpCodecEmitter.Instance;
+
         private static void Generate(SourceProductionContext spc, ImmutableArray<(string Path, string Content)> files,
                                      string generatedNamespace, string codecClass, string[] fragmentElements)
         {
@@ -102,7 +110,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator
             string source;
             try
             {
-                source = CodecEmitter.Emit(plan, generatedNamespace, codecClass);
+                source = Emitter.Emit(plan, generatedNamespace, codecClass);
             }
             catch (Exception ex)
             {
@@ -111,7 +119,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator
                 return;
             }
 
-            spc.AddSource($"{label}.g.cs", SourceText.From(source, System.Text.Encoding.UTF8));
+            spc.AddSource($"{label}{Emitter.FileExtension}", SourceText.From(source, System.Text.Encoding.UTF8));
         }
     }
 }

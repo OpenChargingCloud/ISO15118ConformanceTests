@@ -51,7 +51,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _codecClass = codecClass;
             foreach (var sp in plan.ComplexTypes.Values)
             {
-                _byRecordName[sp.CSharpRecordName] = sp;
+                _byRecordName[sp.RecordName] = sp;
                 if (sp.BaseRecordName is not null)
                     _baseRecordNames.Add(sp.BaseRecordName);
             }
@@ -183,12 +183,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
         private void EmitRecord(SequencePlan sp)
         {
-            if (!_emittedRecords.Add(sp.CSharpRecordName)) return;
+            if (!_emittedRecords.Add(sp.RecordName)) return;
 
             // A concrete type that other types extend (e.g. ServiceType, base of ChargeServiceType)
             // must not be sealed; only leaf concrete records are.
             string keyword = sp.IsAbstract ? "abstract "
-                           : _baseRecordNames.Contains(sp.CSharpRecordName) ? ""
+                           : _baseRecordNames.Contains(sp.RecordName) ? ""
                            : "sealed ";
 
             // Inheritance: the first N flattened children are the base type's, so they are passed
@@ -206,9 +206,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             var parameters = new List<string>();
             if (sp.Attributes is not null)
                 foreach (var a in sp.Attributes)
-                    parameters.Add(a.Required ? $"{a.CSharpType} {a.FieldName}" : $"{a.CSharpType}? {a.FieldName}");
+                    parameters.Add(a.Required ? $"{a.CsType()} {a.FieldName}" : $"{a.CsType()}? {a.FieldName}");
             if (sp.SimpleContent is not null)
-                parameters.Add($"{sp.SimpleContentType} Value");
+                parameters.Add($"{CSharpSyntax.Syntax(sp.SimpleContentType!)} Value");
             foreach (var c in sp.Children)
             {
                 if (c.Value is ValueEncoding.InlineChoice ic)
@@ -216,27 +216,27 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     // Each branch is its own independent (always-nullable) parameter — the wrapping
                     // ChildPlan itself is a bookkeeping marker only, never a real record field.
                     foreach (var m in ic.Members)
-                        parameters.Add($"{m.CSharpType}? {m.FieldName}");
+                        parameters.Add($"{m.CsType()}? {m.FieldName}");
                     continue;
                 }
                 string typeText = c.Shape switch
                 {
-                    ChildShape.BoundedRepeating => $"IReadOnlyList<{c.CSharpType}>",
-                    ChildShape.OptionalSingle   => c.CSharpType + "?",
-                    _                           => c.CSharpType,
+                    ChildShape.BoundedRepeating => $"IReadOnlyList<{c.CsType()}>",
+                    ChildShape.OptionalSingle   => c.CsType() + "?",
+                    _                           => c.CsType(),
                 };
                 parameters.Add($"{typeText} {c.FieldName}");
             }
 
             if (parameters.Count == 0)
             {
-                _sb.Append("public ").Append(keyword).Append("record ").Append(sp.CSharpRecordName)
+                _sb.Append("public ").Append(keyword).Append("record ").Append(sp.RecordName)
                    .Append("()").Append(baseClause).AppendLine(";");
                 _sb.AppendLine();
                 return;
             }
 
-            _sb.Append("public ").Append(keyword).Append("record ").Append(sp.CSharpRecordName).AppendLine("(");
+            _sb.Append("public ").Append(keyword).Append("record ").Append(sp.RecordName).AppendLine("(");
             for (int i = 0; i < parameters.Count; i++)
             {
                 _sb.Append("    ").Append(parameters[i]);
@@ -278,10 +278,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             // code (a `new AbstractType(...)`). Skip them.
             var seenComplex = new HashSet<string>(StringComparer.Ordinal);
             foreach (var sp in _plan.ComplexTypes.Values
-                                      .OrderBy(s => s.CSharpRecordName, StringComparer.Ordinal))
+                                      .OrderBy(s => s.RecordName, StringComparer.Ordinal))
             {
                 if (sp.IsAbstract) continue;
-                if (!seenComplex.Add(sp.CSharpRecordName)) continue;
+                if (!seenComplex.Add(sp.RecordName)) continue;
                 EmitEncodeMethod(sp);
                 EmitDecodeMethod(sp);
             }
@@ -302,7 +302,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 int bits = _plan.FragmentSelectorBits;
 
                 _sb.Append("    public static bool EncodeFragment_").Append(f.ElementName)
-                   .Append("(").Append(f.CSharpTypeName).AppendLine(" content, Span<byte> dest, out int bytesWritten)");
+                   .Append("(").Append(f.TypeName).AppendLine(" content, Span<byte> dest, out int bytesWritten)");
                 _sb.AppendLine("    {");
                 _sb.AppendLine("        bytesWritten = 0;");
                 _sb.AppendLine("        if (dest.Length < 1) return false;");
@@ -310,7 +310,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        var w = new BitWriter(dest[1..]);");
                 _sb.Append("        w.WriteBits(").Append(f.EventCode).Append(", ").Append(bits)
                    .Append(");   // fragment SE(").Append(f.ElementName).AppendLine(")");
-                _sb.Append("        Encode_").Append(f.CSharpTypeName).AppendLine("(ref w, content);");
+                _sb.Append("        Encode_").Append(f.TypeName).AppendLine("(ref w, content);");
                 _sb.Append("        w.WriteBits(").Append(_plan.FragmentEndCode).Append(", ").Append(bits)
                    .AppendLine(");   // End Fragment (ED)");
                 _sb.AppendLine("        w.AlignToByte();");
@@ -319,7 +319,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
 
-                _sb.Append("    public static ").Append(f.CSharpTypeName).Append(" DecodeFragment_")
+                _sb.Append("    public static ").Append(f.TypeName).Append(" DecodeFragment_")
                    .Append(f.ElementName).AppendLine("(ReadOnlySpan<byte> src, out int bytesConsumed)");
                 _sb.AppendLine("    {");
                 _sb.AppendLine("        if (src.Length < 1 || src[0] != ExiHeader)");
@@ -327,7 +327,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        var r = new BitReader(src[1..]);");
                 _sb.Append("        if (r.ReadBits(").Append(bits).Append(") != ").Append(f.EventCode).AppendLine("u)");
                 _sb.Append("            throw new InvalidDataException(\"Not a ").Append(f.ElementName).AppendLine(" fragment.\");");
-                _sb.Append("        var result = Decode_").Append(f.CSharpTypeName).AppendLine("(ref r);");
+                _sb.Append("        var result = Decode_").Append(f.TypeName).AppendLine("(ref r);");
                 _sb.Append("        if (r.ReadBits(").Append(bits).Append(") != ").Append(_plan.FragmentEndCode)
                    .AppendLine("u) throw new InvalidDataException(\"missing End Fragment.\");");
                 _sb.AppendLine("        bytesConsumed = 1 + r.BytesConsumed;");
@@ -340,7 +340,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         private void EmitEncodeEntryPoint(GlobalElementPlan g, int docBits)
         {
             _sb.Append("    public static bool TryEncode(this ")
-               .Append(g.CSharpTypeName)
+               .Append(g.TypeName)
                .AppendLine(" msg, Span<byte> dest, out int bytesWritten)");
             _sb.AppendLine("    {");
             _sb.AppendLine("        bytesWritten = 0;");
@@ -350,7 +350,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             if (docBits > 0)
                 _sb.Append("        w.WriteBits(").Append(g.DocumentIndex).Append(", ").Append(docBits)
                    .AppendLine(");   // document element selector");
-            _sb.Append("        Encode_").Append(g.Body.CSharpRecordName).AppendLine("(ref w, msg);");
+            _sb.Append("        Encode_").Append(g.Body.RecordName).AppendLine("(ref w, msg);");
             _sb.AppendLine("        w.AlignToByte();");
             _sb.AppendLine("        bytesWritten = 1 + w.BytesWritten;");
             _sb.AppendLine("        return true;");
@@ -374,7 +374,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 foreach (var g in globals)
                 {
                     _sb.Append("            ").Append(g.DocumentIndex).Append("u => Decode_")
-                       .Append(g.Body.CSharpRecordName).AppendLine("(ref r),");
+                       .Append(g.Body.RecordName).AppendLine("(ref r),");
                 }
                 _sb.AppendLine("            _ => throw new InvalidDataException($\"Unknown document index {sel}.\"),");
                 _sb.AppendLine("        };");
@@ -382,7 +382,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             else
             {
                 _sb.Append("        object result = Decode_")
-                   .Append(globals[0].Body.CSharpRecordName).AppendLine("(ref r);");
+                   .Append(globals[0].Body.RecordName).AppendLine("(ref r);");
             }
 
             _sb.AppendLine("        bytesConsumed = 1 + r.BytesConsumed;");
@@ -397,8 +397,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
         private void EmitEncodeMethod(SequencePlan sp)
         {
-            _sb.Append("    private static void Encode_").Append(sp.CSharpRecordName)
-               .Append("(ref BitWriter w, ").Append(sp.CSharpRecordName).AppendLine(" msg)");
+            _sb.Append("    private static void Encode_").Append(sp.RecordName)
+               .Append("(ref BitWriter w, ").Append(sp.RecordName).AppendLine(" msg)");
             _sb.AppendLine("    {");
 
             if (IsBoundedRepeating(sp, out var rep))
@@ -464,16 +464,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 if (a.Required)
                     throw new NotSupportedException(
-                        $"{sp.CSharpRecordName}: mixing required and optional attributes is not supported yet.");
+                        $"{sp.RecordName}: mixing required and optional attributes is not supported yet.");
                 if (a.Value is not ValueEncoding.StringValue)
                     throw new NotSupportedException(
-                        $"{sp.CSharpRecordName}: only string-typed optional attributes are supported yet.");
-                list.Add(new ChildPlan(a.FieldName, a.CSharpType, IsCSharpNullable: false,
+                        $"{sp.RecordName}: only string-typed optional attributes are supported yet.");
+                list.Add(new ChildPlan(a.FieldName, a.Type, IsValueType: false,
                                        ChildShape.OptionalSingle, new ValueEncoding.AttributeValue()));
             }
             if (sp.IsChoice)
                 throw new NotSupportedException(
-                    $"{sp.CSharpRecordName}: optional attributes with xs:choice content are not supported yet.");
+                    $"{sp.RecordName}: optional attributes with xs:choice content are not supported yet.");
             list.AddRange(sp.Children);
             return list;
         }
@@ -500,7 +500,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             foreach (var a in oa)
                 if (a.Required || a.Value is not ValueEncoding.StringValue)
                     throw new NotSupportedException(
-                        $"{sp.CSharpRecordName}: simpleContent supports only string-typed optional attributes.");
+                        $"{sp.RecordName}: simpleContent supports only string-typed optional attributes.");
             var valueChild = new ChildPlan("Value", sp.SimpleContentType!, false,
                                            ChildShape.RequiredSingle, sp.SimpleContent!);
             int n = oa.Count;
@@ -558,8 +558,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             string st = "_ist" + id, done = "_idone" + id, code = "_ic" + id;
 
             foreach (var a in oa)
-                _sb.Append("        ").Append(a.CSharpType).Append("? _").Append(a.FieldName).AppendLine(" = default;");
-            _sb.Append("        ").Append(sp.SimpleContentType).Append(" _Value = default!;");
+                _sb.Append("        ").Append(a.CsType()).Append("? _").Append(a.FieldName).AppendLine(" = default;");
+            _sb.Append("        ").Append(CSharpSyntax.Syntax(sp.SimpleContentType!)).Append(" _Value = default!;");
             _sb.AppendLine();
             _sb.Append("        int ").Append(st).AppendLine(" = 0;");
             _sb.Append("        bool ").Append(done).AppendLine(" = false;");
@@ -596,7 +596,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _sb.AppendLine("        }");
             _sb.AppendLine("        r.ReadBits(1);   // element EE");
             var locals = oa.Select(a => "_" + a.FieldName).Append("_Value");
-            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+            _sb.Append("        return new ").Append(sp.RecordName).Append('(')
                .Append(string.Join(", ", locals)).AppendLine(");");
         }
 
@@ -949,17 +949,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var ordered = sc.Members
                     .Select((m, k) => (Member: m, WireCode: baseCode + k))
                     .Where(x => !x.Member.IsAbstractHead)
-                    .OrderByDescending(x => InheritanceDepth(x.Member.CSharpTypeName));
+                    .OrderByDescending(x => InheritanceDepth(x.Member.TypeName));
                 foreach (var (mbr, wireCode) in ordered)
                 {
                     string v = "v" + wireCode;   // unique per branch (pattern variables share the case scope)
                     _sb.Append(indent).Append(first ? "if" : "else if")
-                       .Append(" (msg.").Append(p.FieldName).Append(" is ").Append(mbr.CSharpTypeName)
+                       .Append(" (msg.").Append(p.FieldName).Append(" is ").Append(mbr.TypeName)
                        .Append(' ').Append(v).AppendLine(")");
                     _sb.Append(indent).AppendLine("{");
                     _sb.Append(indent).Append("    w.WriteBits(").Append(wireCode).Append(", ").Append(width)
                        .Append(");   // ").AppendLine(mbr.ElementName);
-                    _sb.Append(indent).Append("    Encode_").Append(mbr.CSharpTypeName).Append("(ref w, ").Append(v).AppendLine(");");
+                    _sb.Append(indent).Append("    Encode_").Append(mbr.TypeName).Append("(ref w, ").Append(v).AppendLine(");");
                     _sb.Append(indent).Append("    ").AppendLine(after);
                     _sb.Append(indent).AppendLine("}");
                     first = false;
@@ -974,7 +974,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // for the presence-check style this mirrors.
                 foreach (var mbr in ic.Members)
                 {
-                    string maccessor = mbr.IsCSharpNullable ? $"msg.{mbr.FieldName}!.Value" : $"msg.{mbr.FieldName}!";
+                    string maccessor = mbr.IsCsNullable() ? $"msg.{mbr.FieldName}!.Value" : $"msg.{mbr.FieldName}!";
                     _sb.Append(indent).Append(first ? "if" : "else if")
                        .Append(" (msg.").Append(mbr.FieldName).AppendLine(" is not null)");
                     _sb.Append(indent).AppendLine("{");
@@ -988,8 +988,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 return code;
             }
 
-            string presence = p.IsCSharpNullable ? $"msg.{p.FieldName}.HasValue" : $"msg.{p.FieldName} is not null";
-            string accessor = p.IsCSharpNullable ? $"msg.{p.FieldName}!.Value" : $"msg.{p.FieldName}!";
+            string presence = p.IsCsNullable() ? $"msg.{p.FieldName}.HasValue" : $"msg.{p.FieldName} is not null";
+            string accessor = p.IsCsNullable() ? $"msg.{p.FieldName}!.Value" : $"msg.{p.FieldName}!";
             _sb.Append(indent).Append(first ? "if" : "else if").Append(" (").Append(presence).AppendLine(")");
             _sb.Append(indent).AppendLine("{");
             _sb.Append(indent).Append("    w.WriteBits(").Append(code).Append(", ").Append(width)
@@ -1011,7 +1011,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             for (int i = 0; i < ic.Members.Count; i++)
             {
                 var m = ic.Members[i];
-                string accessor = m.IsCSharpNullable ? $"msg.{m.FieldName}!.Value" : $"msg.{m.FieldName}!";
+                string accessor = m.IsCsNullable() ? $"msg.{m.FieldName}!.Value" : $"msg.{m.FieldName}!";
                 _sb.Append("        ").Append(i == 0 ? "if" : "else if")
                    .Append(" (msg.").Append(m.FieldName).AppendLine(" is not null)");
                 _sb.AppendLine("        {");
@@ -1109,7 +1109,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         /// can be fed through <see cref="EmitEncodeContent"/>/<see cref="EmitDecodeContent"/>, which only
         /// ever read <c>Value</c> from the plan they're given.</summary>
         private static ChildPlan AsChildPlan(InlineChoiceMember m) =>
-            new(m.FieldName, m.CSharpType, m.IsCSharpNullable, ChildShape.RequiredSingle, m.Value);
+            new(m.FieldName, m.Type, m.IsValueType, ChildShape.RequiredSingle, m.Value);
 
         /// <summary>
         /// The exclusive end of the optional run starting at <paramref name="i"/>: consecutive
@@ -1142,7 +1142,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             for (int i = 0; i < sp.Children.Count; i++)
             {
                 var c = sp.Children[i];
-                string accessor = c.IsCSharpNullable ? $"msg.{c.FieldName}!.Value" : $"msg.{c.FieldName}!";
+                string accessor = c.IsCsNullable() ? $"msg.{c.FieldName}!.Value" : $"msg.{c.FieldName}!";
                 _sb.Append("        ").Append(i == 0 ? "if" : "else if")
                    .Append(" (msg.").Append(c.FieldName).AppendLine(" is not null)");
                 _sb.AppendLine("        {");
@@ -1152,7 +1152,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
             }
             _sb.Append("        else throw new ArgumentException(\"no choice alternative set for ")
-               .Append(sp.CSharpRecordName).AppendLine("\");");
+               .Append(sp.RecordName).AppendLine("\");");
         }
 
         /// <summary>
@@ -1204,14 +1204,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             var ordered = sc.Members
                 .Select((m, i) => (Member: m, Code: i))
                 .Where(x => !x.Member.IsAbstractHead)
-                .OrderByDescending(x => InheritanceDepth(x.Member.CSharpTypeName));
+                .OrderByDescending(x => InheritanceDepth(x.Member.TypeName));
             foreach (var (m, code) in ordered)
             {
-                _sb.Append("            case ").Append(m.CSharpTypeName).Append(" v:");
+                _sb.Append("            case ").Append(m.TypeName).Append(" v:");
                 _sb.AppendLine();
                 _sb.Append("                w.WriteBits(").Append(code).Append(", ").Append(sc.BitWidth)
                    .Append(");   // ").Append(m.ElementName).AppendLine();
-                _sb.Append("                Encode_").Append(m.CSharpTypeName).AppendLine("(ref w, v);");
+                _sb.Append("                Encode_").Append(m.TypeName).AppendLine("(ref w, v);");
                 _sb.AppendLine("                break;");
             }
             _sb.Append("            default: throw new ArgumentException(\"Unsupported substitution member for ")
@@ -1342,8 +1342,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             // Optional tail: this is the sequence's last particle, so unlike the required-tail case, this
             // construct must close the element itself — the caller only adds the fallback EE when it
             // wasn't already written here (see the call site's `terminated` computation).
-            string presence = tail.IsCSharpNullable ? $"msg.{tail.FieldName}.HasValue" : $"msg.{tail.FieldName} is not null";
-            string accessor = tail.IsCSharpNullable ? $"msg.{tail.FieldName}!.Value" : $"msg.{tail.FieldName}!";
+            string presence = tail.IsCsNullable() ? $"msg.{tail.FieldName}.HasValue" : $"msg.{tail.FieldName} is not null";
+            string accessor = tail.IsCsNullable() ? $"msg.{tail.FieldName}!.Value" : $"msg.{tail.FieldName}!";
             _sb.Append(indent).Append("if (").Append(presence).AppendLine(")");
             _sb.Append(indent).AppendLine("{");
             _sb.Append(indent).Append("    w.WriteBits(1, ").Append(width).Append(");   // ").AppendLine(tail.FieldName);
@@ -1377,7 +1377,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
         private void EmitDecodeRepeatingChild(ChildPlan c, string local, string indent)
         {
-            _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(c.CSharpType).AppendLine(">();");
+            _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(c.CsType()).AppendLine(">();");
             _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE(item) first");
             EmitDecodeContent(c, local + "_first", indent, declare: true);
             _sb.Append(indent).Append(local).Append(".Add(").Append(local).AppendLine("_first);");
@@ -1404,7 +1404,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     $"required repeating '{list.FieldName}': an optional choice/substitution tail is not supported.");
 
             string local = "_" + list.FieldName;
-            _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(list.CSharpType).AppendLine(">();");
+            _sb.Append(indent).Append("var ").Append(local).Append(" = new List<").Append(list.CsType()).AppendLine(">();");
             locals.Add(local);
             _sb.Append(indent).AppendLine("r.ReadBits(1);   // SE(" + list.FieldName + ") first");
             EmitDecodeContent(list, local + "0", indent, declare: true);
@@ -1414,12 +1414,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 DeclareInlineChoiceLocals(ic, indent, locals);
             else if (tailRequired)
             {
-                _sb.Append(indent).Append(tail.CSharpType).Append(" _").Append(tail.FieldName).AppendLine(" = default!;");
+                _sb.Append(indent).Append(tail.CsType()).Append(" _").Append(tail.FieldName).AppendLine(" = default!;");
                 locals.Add("_" + tail.FieldName);
             }
             else
             {
-                _sb.Append(indent).Append(tail.CSharpType).Append("? _").Append(tail.FieldName).AppendLine(" = default;");
+                _sb.Append(indent).Append(tail.CsType()).Append("? _").Append(tail.FieldName).AppendLine(" = default;");
                 locals.Add("_" + tail.FieldName);
             }
 
@@ -1503,7 +1503,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append(indent).Append("ExiPrimitives.WriteStringValue(ref w, ")
                        .Append(accessor).AppendLine(");");
                     break;
-                case ValueEncoding.NBitUnsigned nb when c.CSharpType == "bool":
+                case ValueEncoding.NBitUnsigned nb when c.IsBool():
                     // xs:boolean is a 1-bit n-bit unsigned; bool has no numeric conversion in C#.
                     _sb.Append(indent).Append("w.WriteBits(").Append(accessor).Append(" ? 1u : 0u, ")
                        .Append(nb.BitWidth).AppendLine(");");
@@ -1531,13 +1531,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
         private void EmitDecodeMethod(SequencePlan sp)
         {
-            _sb.Append("    private static ").Append(sp.CSharpRecordName)
-               .Append(" Decode_").Append(sp.CSharpRecordName).AppendLine("(ref BitReader r)");
+            _sb.Append("    private static ").Append(sp.RecordName)
+               .Append(" Decode_").Append(sp.RecordName).AppendLine("(ref BitReader r)");
             _sb.AppendLine("    {");
 
             if (IsBoundedRepeating(sp, out var rep))
             {
-                _sb.Append("        var list = new List<").Append(rep.CSharpType).AppendLine(">();");
+                _sb.Append("        var list = new List<").Append(rep.CsType()).AppendLine(">();");
                 _sb.AppendLine("        r.ReadBits(1);   // SE(item) first");
                 EmitDecodeContent(rep, "first", "        ", declare: true);
                 _sb.AppendLine("        list.Add(first);");
@@ -1551,7 +1551,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 EmitDecodeContent(rep, "next", "            ", declare: true);
                 _sb.AppendLine("            list.Add(next);");
                 _sb.AppendLine("        }");
-                _sb.Append("        return new ").Append(sp.CSharpRecordName).AppendLine("(list);");
+                _sb.Append("        return new ").Append(sp.RecordName).AppendLine("(list);");
             }
             else if (sp.SimpleContent is not null && sp.Attributes is not null && sp.Attributes.Any(a => !a.Required))
             {
@@ -1575,7 +1575,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine(";");
                 locals.Add("_Value");
                 _sb.AppendLine("        r.ReadBits(1);   // element EE");
-                _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+                _sb.Append("        return new ").Append(sp.RecordName).Append('(')
                    .Append(string.Join(", ", locals)).AppendLine(");");
             }
             else if (sp.Attributes is { Count: 1 } && sp.Attributes[0].Required)
@@ -1593,7 +1593,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 bool terminated = EmitDecodeSequenceChildren(children, "        ", locals);
                 if (!terminated)
                     _sb.AppendLine("        r.ReadBits(1);   // element EE");
-                _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+                _sb.Append("        return new ").Append(sp.RecordName).Append('(')
                    .Append(string.Join(", ", locals)).AppendLine(");");
             }
             else
@@ -1615,7 +1615,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 int width = BitsForChoices(sp.Children.Count + 1);
                 foreach (var c in sp.Children)
                 {
-                    _sb.Append("        ").Append(c.CSharpType).Append("? _").Append(c.FieldName).AppendLine(" = default;");
+                    _sb.Append("        ").Append(c.CsType()).Append("? _").Append(c.FieldName).AppendLine(" = default;");
                     locals.Add("_" + c.FieldName);
                 }
                 _sb.Append("        switch (r.ReadBits(").Append(width).AppendLine("))");
@@ -1630,7 +1630,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("            default: throw new InvalidDataException(\"unknown choice event code\");");
                 _sb.AppendLine("        }");
                 _sb.AppendLine("        r.ReadBits(1);   // element EE");
-                _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+                _sb.Append("        return new ").Append(sp.RecordName).Append('(')
                    .Append(string.Join(", ", locals)).AppendLine(");");
                 return;
             }
@@ -1639,7 +1639,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             if (!terminated)
                 _sb.AppendLine("        r.ReadBits(1);   // element EE");
 
-            _sb.Append("        return new ").Append(sp.CSharpRecordName).Append('(')
+            _sb.Append("        return new ").Append(sp.RecordName).Append('(')
                .Append(string.Join(", ", locals)).AppendLine(");");
         }
 
@@ -1740,12 +1740,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 else if (o.Shape == ChildShape.BoundedRepeating)
                 {
                     _sb.Append(indent).Append("var _").Append(o.FieldName)
-                       .Append(" = new List<").Append(o.CSharpType).AppendLine(">();");
+                       .Append(" = new List<").Append(o.CsType()).AppendLine(">();");
                     locals.Add("_" + o.FieldName);
                 }
                 else
                 {
-                    _sb.Append(indent).Append(o.CSharpType).Append("? _").Append(o.FieldName).AppendLine(" = default;");
+                    _sb.Append(indent).Append(o.CsType()).Append("? _").Append(o.FieldName).AppendLine(" = default;");
                     locals.Add("_" + o.FieldName);
                 }
             }
@@ -1756,12 +1756,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 else if (term.Shape == ChildShape.BoundedRepeating)
                 {
                     _sb.Append(indent).Append("var _").Append(term.FieldName)
-                       .Append(" = new List<").Append(term.CSharpType).AppendLine(">();");
+                       .Append(" = new List<").Append(term.CsType()).AppendLine(">();");
                     locals.Add("_" + term.FieldName);
                 }
                 else
                 {
-                    _sb.Append(indent).Append(term.CSharpType).Append(" _").Append(term.FieldName).AppendLine(" = default!;");
+                    _sb.Append(indent).Append(term.CsType()).Append(" _").Append(term.FieldName).AppendLine(" = default!;");
                     locals.Add("_" + term.FieldName);
                 }
             }
@@ -1860,11 +1860,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             foreach (var sp in suffix) suffixTotal += ProductionCount(sp);
 
             _sb.Append(indent).Append("var _").Append(list.FieldName)
-               .Append(" = new List<").Append(list.CSharpType).AppendLine(">();");
+               .Append(" = new List<").Append(list.CsType()).AppendLine(">();");
             locals.Add("_" + list.FieldName);
             foreach (var sp in suffix)
             {
-                _sb.Append(indent).Append(sp.CSharpType).Append("? _").Append(sp.FieldName).AppendLine(" = default;");
+                _sb.Append(indent).Append(sp.CsType()).Append("? _").Append(sp.FieldName).AppendLine(" = default;");
                 locals.Add("_" + sp.FieldName);
             }
 
@@ -2002,7 +2002,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     else
                     {
                         _sb.Append(indent).Append("    ").Append(local).Append(" = Decode_")
-                           .Append(mbr.CSharpTypeName).AppendLine("(ref r);");
+                           .Append(mbr.TypeName).AppendLine("(ref r);");
                         _sb.Append(indent).Append("    ").AppendLine(after);
                         _sb.Append(indent).AppendLine("    break;");
                     }
@@ -2079,7 +2079,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         {
             foreach (var m in ic.Members)
             {
-                _sb.Append(indent).Append(m.CSharpType).Append("? _").Append(m.FieldName).AppendLine(" = default;");
+                _sb.Append(indent).Append(m.CsType()).Append("? _").Append(m.FieldName).AppendLine(" = default;");
                 locals.Add("_" + m.FieldName);
             }
         }
@@ -2106,7 +2106,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         /// dispatch to the selected member's decoder.</summary>
         private void EmitDecodeSubstitution(ChildPlan c, string local, ValueEncoding.SubstitutionChoice sc)
         {
-            _sb.Append("        ").Append(c.CSharpType).Append(' ').Append(local).AppendLine(";");
+            _sb.Append("        ").Append(c.CsType()).Append(' ').Append(local).AppendLine(";");
             _sb.Append("        switch (r.ReadBits(").Append(sc.BitWidth).AppendLine("))");
             _sb.AppendLine("        {");
             for (int i = 0; i < sc.Members.Count; i++)
@@ -2117,7 +2117,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                        .AppendLine("u: throw new InvalidDataException(\"abstract substitution head cannot be decoded\");");
                 else
                     _sb.Append("            case ").Append(i).Append("u: ").Append(local)
-                       .Append(" = Decode_").Append(m.CSharpTypeName).AppendLine("(ref r); break;");
+                       .Append(" = Decode_").Append(m.TypeName).AppendLine("(ref r); break;");
             }
             _sb.AppendLine("            default: throw new InvalidDataException(\"unknown substitution index\");");
             _sb.AppendLine("        }");
@@ -2128,11 +2128,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             switch (c.Value)
             {
                 case ValueEncoding.UnsignedInt:
-                    _sb.Append('(').Append(c.CSharpType)
+                    _sb.Append('(').Append(c.CsType())
                        .Append(")ExiPrimitives.ReadUnsignedInteger(ref r)");
                     break;
                 case ValueEncoding.SignedInt:
-                    _sb.Append('(').Append(c.CSharpType)
+                    _sb.Append('(').Append(c.CsType())
                        .Append(")ExiPrimitives.ReadSignedInteger(ref r)");
                     break;
                 case ValueEncoding.Binary:
@@ -2141,15 +2141,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 case ValueEncoding.StringValue:
                     _sb.Append("ExiPrimitives.ReadStringValue(ref r)");
                     break;
-                case ValueEncoding.NBitUnsigned nb when c.CSharpType == "bool":
+                case ValueEncoding.NBitUnsigned nb when c.IsBool():
                     _sb.Append("r.ReadBits(").Append(nb.BitWidth).Append(") != 0u");
                     break;
                 case ValueEncoding.NBitUnsigned nb when nb.Bias != 0:
-                    _sb.Append('(').Append(c.CSharpType).Append(")((long)r.ReadBits(")
+                    _sb.Append('(').Append(c.CsType()).Append(")((long)r.ReadBits(")
                        .Append(nb.BitWidth).Append(") + ").Append(nb.Bias).Append(')');
                     break;
                 case ValueEncoding.NBitUnsigned nb:
-                    _sb.Append('(').Append(c.CSharpType).Append(")r.ReadBits(").Append(nb.BitWidth).Append(')');
+                    _sb.Append('(').Append(c.CsType()).Append(")r.ReadBits(").Append(nb.BitWidth).Append(')');
                     break;
                 case ValueEncoding.EnumIndex ei:
                     _sb.Append('(').Append(ei.EnumName).Append(")r.ReadBits(").Append(ei.BitWidth).Append(')');

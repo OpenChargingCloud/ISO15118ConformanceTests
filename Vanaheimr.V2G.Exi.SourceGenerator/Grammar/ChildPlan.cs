@@ -6,8 +6,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar
     /// </summary>
     internal sealed record ChildPlan(
         string         FieldName,        // PascalCase as in the message record
-        string         CSharpType,       // "uint", "byte", "string", "AppProtocolEntry"
-        bool           IsCSharpNullable, // for optional value-types only
+        TypeRef        Type,             // built-in kind, or a named record/enum
+        bool           IsValueType,      // of the referent; emitters derive their own nullability
         ChildShape     Shape,
         ValueEncoding  Value,
         int            ListMin = 0,      // for BoundedRepeating children

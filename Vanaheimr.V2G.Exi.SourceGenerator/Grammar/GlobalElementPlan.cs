@@ -5,7 +5,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Grammar
     /// </summary>
     internal sealed record GlobalElementPlan(
         string        XsdName,            // e.g. "supportedAppProtocolReq"
-        string        CSharpTypeName,     // "SupportedAppProtocolReq"
+        string        TypeName,           // "SupportedAppProtocolReq"
         SequencePlan  Body,
         int           DocumentIndex);     // production index in the (full) document grammar
 }
