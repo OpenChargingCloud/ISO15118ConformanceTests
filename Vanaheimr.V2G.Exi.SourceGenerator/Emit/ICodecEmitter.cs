@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Vanaheimr.V2G.Exi.SourceGenerator.Grammar;
 
 namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
@@ -26,20 +27,25 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         string Language { get; }
 
         /// <summary>
-        /// Extension for the generated artefact, including the leading dot — e.g. <c>".g.cs"</c>.
-        /// Appended to the schema's base name to form the output file name.
+        /// Extension for the generated artefacts, including the leading dot — e.g. <c>".g.cs"</c>.
         /// </summary>
         string FileExtension { get; }
 
         /// <summary>
-        /// Emit the codec source for <paramref name="plan"/>.
+        /// Emit the codec source for <paramref name="plan"/>, as one or more files.
         /// </summary>
+        /// <remarks>
+        /// How many files, and what they are called, is the emitter's decision — a language's
+        /// conventions and its compiler's limits differ. C# puts everything in one file; Kotlin
+        /// emits one per type, because a single ~1 MB file exhausts the Kotlin compiler's heap
+        /// and lands every method of a message set in one class file.
+        /// </remarks>
         /// <param name="plan">The language-neutral grammar plan for one schema set.</param>
         /// <param name="targetNamespace">
         /// Namespace / package the generated types live in. Emitters map this onto their own
         /// notion of one (C# <c>namespace</c>, Kotlin <c>package</c>, a Swift enum, …).
         /// </param>
         /// <param name="codecClassName">Name of the generated codec type.</param>
-        string Emit(SchemaPlan plan, string targetNamespace, string codecClassName);
+        IReadOnlyList<GeneratedFile> Emit(SchemaPlan plan, string targetNamespace, string codecClassName);
     }
 }

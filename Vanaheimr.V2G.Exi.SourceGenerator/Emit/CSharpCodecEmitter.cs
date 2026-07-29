@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Vanaheimr.V2G.Exi.SourceGenerator.Grammar;
 
 namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
@@ -17,7 +18,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         public string Language      => "csharp";
         public string FileExtension => ".g.cs";
 
-        public string Emit(SchemaPlan plan, string targetNamespace, string codecClassName) =>
-            CodecEmitter.Emit(plan, targetNamespace, codecClassName);
+        /// <summary>
+        /// One file, named after the codec class. C# has no reason to split: partial classes make
+        /// the file boundary invisible to the compiler anyway, and a single compilation unit of
+        /// this size costs Roslyn nothing worth avoiding.
+        /// </summary>
+        public IReadOnlyList<GeneratedFile> Emit(SchemaPlan plan, string targetNamespace, string codecClassName) =>
+            new[]
+            {
+                new GeneratedFile(codecClassName + FileExtension,
+                                  CodecEmitter.Emit(plan, targetNamespace, codecClassName)),
+            };
     }
 }

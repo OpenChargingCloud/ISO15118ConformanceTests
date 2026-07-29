@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -107,10 +108,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator
                 return;
             }
 
-            string source;
+            IReadOnlyList<GeneratedFile> generated;
             try
             {
-                source = Emitter.Emit(plan, generatedNamespace, codecClass);
+                generated = Emitter.Emit(plan, generatedNamespace, codecClass);
             }
             catch (Exception ex)
             {
@@ -119,7 +120,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator
                 return;
             }
 
-            spc.AddSource($"{label}{Emitter.FileExtension}", SourceText.From(source, System.Text.Encoding.UTF8));
+            foreach (var file in generated)
+                spc.AddSource(file.FileName, SourceText.From(file.Source, System.Text.Encoding.UTF8));
         }
     }
 }
