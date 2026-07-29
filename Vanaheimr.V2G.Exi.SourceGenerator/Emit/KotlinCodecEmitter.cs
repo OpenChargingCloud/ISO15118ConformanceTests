@@ -1621,6 +1621,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         _sb.Append(indent).Append(first ? "if (" : "} else if (")
                            .Append(local).Append(" is ").Append(mbr.TypeName).AppendLine(") {");
+                        EmitSubstitutionMemberGuard(p, mbr.TypeName, local, indent + "    ");
                         _sb.Append(indent).Append("    w.writeBits(").Append(wire).Append("u, ").Append(width)
                            .Append(")   // ").AppendLine(mbr.ElementName);
                         _sb.Append(indent).Append("    encode").Append(mbr.TypeName).Append("(w, ")
@@ -1745,6 +1746,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     else
                         _sb.Append("            is ").Append(m.TypeName).AppendLine(" -> {");
 
+                    EmitSubstitutionMemberGuard(c, m.TypeName, "v", "                ");
                     _sb.Append("                w.writeBits(").Append(code).Append("u, ").Append(sc.BitWidth)
                        .Append(")   // ").AppendLine(m.ElementName);
                     _sb.Append("                encode").Append(m.TypeName).AppendLine("(w, v)");
@@ -1754,6 +1756,40 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("            else -> throw IllegalArgumentException(\"unsupported substitution member for ")
                        .Append(KStr(c.FieldName)).AppendLine("\")");
                 _sb.AppendLine("        }");
+            }
+
+            /// <summary>
+            /// Requires the value to be *exactly* the member type its branch selected, not merely
+            /// assignable to it.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// An `is` test matches subtypes, which is what makes the most-derived-first ordering
+            /// necessary in the first place. Every type the schema set derives from a member is
+            /// itself a member, so within the generated types the branches partition the space
+            /// exactly — but nothing stops application code subclassing a generated type, and the
+            /// generated types are `open` precisely because they get extended. Such a value would
+            /// take its nearest ancestor's branch and be written with that member's event code and
+            /// that member's encoder, quietly encoding something the caller did not ask for.
+            /// </para>
+            /// <para>
+            /// The equivalent shape in an optional run is worse still: it can match no branch at
+            /// all, and the field is then dropped from the message without a word.
+            /// </para>
+            /// </remarks>
+            private void EmitSubstitutionMemberGuard(ChildPlan c, string typeName, string value, string indent)
+            {
+                // A leaf class is final, so `is` on it already means "exactly this type" and the
+                // check would be dead code. Only the classes something extends — and abstract ones —
+                // are emitted `open`, and only those can be derived from by a consumer.
+                var extensible = _baseNames.Contains(typeName)
+                                 || (plan.ComplexTypes.TryGetValue(typeName, out var sp) && sp.IsAbstract);
+                if (!extensible)
+                    return;
+
+                _sb.Append(indent).Append("require(").Append(value).Append("::class == ").Append(typeName)
+                   .Append("::class) { \"").Append(KStr(c.FieldName)).Append(": ${").Append(value)
+                   .Append("::class.simpleName} is not a substitution member\" }").AppendLine();
             }
 
             /// <summary>How many base links separate a type from its root; 0 for a type with no base.</summary>

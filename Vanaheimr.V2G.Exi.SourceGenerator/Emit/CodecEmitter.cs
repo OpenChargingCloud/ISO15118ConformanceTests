@@ -978,6 +978,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                        .Append(" (msg.").Append(p.FieldName).Append(" is ").Append(mbr.TypeName)
                        .Append(' ').Append(v).AppendLine(")");
                     _sb.Append(indent).AppendLine("{");
+                    EmitSubstitutionMemberGuard(p, mbr.TypeName, v, indent + "    ");
                     _sb.Append(indent).Append("    w.WriteBits(").Append(wireCode).Append(", ").Append(width)
                        .Append(");   // ").AppendLine(mbr.ElementName);
                     _sb.Append(indent).Append("    Encode_").Append(mbr.TypeName).Append("(ref w, ").Append(v).AppendLine(");");
@@ -1230,6 +1231,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 _sb.Append("            case ").Append(m.TypeName).Append(" v:");
                 _sb.AppendLine();
+                EmitSubstitutionMemberGuard(c, m.TypeName, "v", "                ");
                 _sb.Append("                w.WriteBits(").Append(code).Append(", ").Append(sc.BitWidth)
                    .Append(");   // ").Append(m.ElementName).AppendLine();
                 _sb.Append("                Encode_").Append(m.TypeName).AppendLine("(ref w, v);");
@@ -1238,6 +1240,36 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _sb.Append("            default: throw new ArgumentException(\"Unsupported substitution member for ")
                .Append(c.FieldName).AppendLine("\");");
             _sb.AppendLine("        }");
+        }
+
+        /// <summary>
+        /// Requires the value to be *exactly* the member type its branch selected, not merely
+        /// assignable to it.
+        /// </summary>
+        /// <remarks>
+        /// A type pattern matches derived instances too — that is why these branches are ordered
+        /// most-derived-first. Every type the schema set derives from a member is itself a member,
+        /// so the branches partition the generated types exactly; but the generated records are
+        /// public and nothing stops application code deriving from one. Such a value would take its
+        /// nearest ancestor's branch and be written with that member's event code and encoder,
+        /// silently encoding something the caller never asked for — and in an optional run it can
+        /// match no branch at all and vanish from the message. The Kotlin back end carries the same
+        /// guard.
+        /// </remarks>
+        private void EmitSubstitutionMemberGuard(ChildPlan c, string typeName, string value, string indent)
+        {
+            // A leaf record is sealed, so its type pattern already means "exactly this type" and the
+            // check would be dead code. Only the records something extends — and abstract ones — can
+            // be derived from, here or by a consumer.
+            var extensible = _baseRecordNames.Contains(typeName)
+                             || (_byRecordName.TryGetValue(typeName, out var sp) && sp.IsAbstract);
+            if (!extensible)
+                return;
+
+            _sb.Append(indent).Append("if (").Append(value).Append(".GetType() != typeof(")
+               .Append(typeName).AppendLine("))");
+            _sb.Append(indent).Append("    throw new ArgumentException($\"").Append(c.FieldName)
+               .Append(": {").Append(value).AppendLine(".GetType().Name} is not a substitution member\");");
         }
 
         /// <summary>How many <c>BaseRecordName</c> links separate <paramref name="typeName"/> from its
