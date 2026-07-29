@@ -73,8 +73,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 foreach (var sp in p.ComplexTypes.Values)
                 {
                     ValidateAttributes(p, sp);
-                    if (sp.SimpleContent is not null)
-                        throw new NotSupportedException($"Kotlin back end: xs:simpleContent ('{sp.RecordName}') is not implemented yet.");
 
                     foreach (var c in sp.Children)
                     {
@@ -134,9 +132,27 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 }
             }
 
+            /// <summary>
+            /// The record field carrying an xs:simpleContent value. Matches the C# emitter's name, so
+            /// both back ends expose the same shape.
+            /// </summary>
+            private const string SimpleContentField = "Value";
+
+            /// <summary>A synthetic child standing in for the simpleContent value.</summary>
+            private static ChildPlan SimpleContentChild(SequencePlan sp) =>
+                new(SimpleContentField, sp.SimpleContentType!, IsValueType: false,
+                    ChildShape.RequiredSingle, sp.SimpleContent!);
+
             /// <summary>The lone required attribute of a type, or null.</summary>
             private static AttrPlan? RequiredAttr(SequencePlan sp) =>
                 sp.Attributes is { Count: 1 } && sp.Attributes[0].Required ? sp.Attributes[0] : null;
+
+            /// <summary>
+            /// Whether a type carries optional attributes. ValidateAttributes has already ruled out
+            /// mixtures, so "has attributes and none is the lone required one" means all are optional.
+            /// </summary>
+            private static bool HasOptionalAttributes(SequencePlan sp) =>
+                sp.Attributes is { Count: > 0 } && RequiredAttr(sp) is null;
 
             /// <summary>
             /// Optional attributes are the leading optionals of the content run: the AT event is the
@@ -290,7 +306,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 _sb.Append(keyword).Append(' ').Append(name);
 
-                if (sp.Children.Count == 0 && sp.Attributes is null or { Count: 0 })
+                if (sp.Children.Count == 0 && sp.Attributes is null or { Count: 0 } && sp.SimpleContent is null)
                 {
                     _sb.Append(sp.BaseRecordName is not null ? " : " + sp.BaseRecordName + "()" : "").AppendLine();
                     _sb.AppendLine();
@@ -305,6 +321,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     foreach (var a in sp.Attributes)
                         parms.Add(((sp.IsAbstract || extended) ? "open val " : "val ")
                                   + Prop(a.FieldName) + ": " + Type(a.Type) + (a.Required ? "" : "?"));
+
+                // xs:simpleContent contributes a single value parameter and has no children.
+                if (sp.SimpleContent is not null)
+                    parms.Add(((sp.IsAbstract || extended) ? "open val " : "val ")
+                              + Prop(SimpleContentField) + ": " + Type(sp.SimpleContentType!));
 
                 for (var i = 0; i < sp.Children.Count; i++)
                 {
@@ -399,6 +420,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        ExiPrimitives.writeStringValue(w, msg.").Append(Prop(req.FieldName)).AppendLine(")");
                 }
 
+                if (sp.SimpleContent is not null)
+                {
+                    if (HasOptionalAttributes(sp))
+                        EmitEncodeSimpleContentOptionalAttrs(sp);
+                    else
+                    {
+                        _sb.AppendLine("        w.writeBits(0u, 1)   // CONTENT event");
+                        EmitEncodeBareValue(SimpleContentChild(sp), "msg." + Prop(SimpleContentField), "        ");
+                    }
+                    _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
+                    _sb.AppendLine("    }");
+                    _sb.AppendLine();
+                    return;
+                }
+
                 if (sp.IsChoice)
                 {
                     EmitEncodeChoice(sp);
@@ -462,6 +498,63 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
+            }
+
+            /// <summary>
+            /// xs:simpleContent with optional attributes: a bare value (CONTENT) preceded by an
+            /// optional run of AT productions. State k offers <c>{attr_k … attr_{n-1}, CONTENT}</c>
+            /// over ceil(log2(count+1)) bits — the same grammar <c>CodecEmitter</c> emits, verified
+            /// there against SignatureValueType. The element EE is a separate 1-bit production the
+            /// caller writes.
+            /// </summary>
+            private void EmitEncodeSimpleContentOptionalAttrs(SequencePlan sp)
+            {
+                var oa    = sp.Attributes!;
+                var n     = oa.Count;
+                var id    = _run++;
+                var value = SimpleContentChild(sp);
+                const string ind = "                    ";
+
+                _sb.Append("        var st").Append(id).AppendLine(" = 0");
+                _sb.Append("        var done").Append(id).AppendLine(" = false");
+                _sb.Append("        while (!done").Append(id).AppendLine(") {");
+                _sb.Append("            when (st").Append(id).AppendLine(") {");
+
+                for (var k = 0; k <= n; k++)
+                {
+                    // remaining optional attributes + CONTENT, plus the non-strict phantom
+                    var width = BitsFor((n - k + 1) + 1);
+                    _sb.Append("                ").Append(k).AppendLine(" -> {");
+
+                    var code  = 0;
+                    var first = true;
+                    for (var i = k; i < n; i++, code++, first = false)
+                    {
+                        var prop = "msg." + Prop(oa[i].FieldName);
+                        _sb.Append(ind).Append(first ? "if (" : "} else if (").Append(prop).AppendLine(" != null) {");
+                        _sb.Append(ind).Append("    w.writeBits(").Append(code).Append("u, ").Append(width)
+                           .Append(")   // AT(").Append(oa[i].FieldName).AppendLine(")");
+                        _sb.Append(ind).Append("    ExiPrimitives.writeStringValue(w, ").Append(prop).AppendLine("!!)");
+                        _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                    }
+
+                    var tail = first ? ind : ind + "    ";
+                    if (!first)
+                        _sb.Append(ind).AppendLine("} else {");
+
+                    _sb.Append(tail).Append("w.writeBits(").Append(code).Append("u, ").Append(width)
+                       .AppendLine(")   // CONTENT");
+                    EmitEncodeBareValue(value, "msg." + Prop(SimpleContentField), tail);
+                    _sb.Append(tail).Append("done").Append(id).AppendLine(" = true");
+
+                    if (!first)
+                        _sb.Append(ind).AppendLine("}");
+
+                    _sb.AppendLine("                }");
+                }
+
+                _sb.AppendLine("            }");
+                _sb.AppendLine("        }");
             }
 
             /// <summary>
@@ -703,6 +796,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 }
 
                 _sb.Append(indent).AppendLine("w.writeBits(0u, 1)   // value-start");
+                EmitEncodeBareValue(c, accessor, indent);
+                _sb.Append(indent).AppendLine("w.writeBits(0u, 1)   // child EE");
+            }
+
+            /// <summary>
+            /// A value with no framing around it. Used on its own for an AT value and for
+            /// xs:simpleContent, where the preceding event code already selected the production.
+            /// </summary>
+            private void EmitEncodeBareValue(ChildPlan c, string accessor, string indent)
+            {
                 switch (c.Value)
                 {
                     case ValueEncoding.StringValue:
@@ -731,7 +834,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     default:
                         throw new NotSupportedException($"Kotlin back end: value encoding {c.Value.GetType().Name}.");
                 }
-                _sb.Append(indent).AppendLine("w.writeBits(0u, 1)   // child EE");
             }
 
             private void EmitDecode(SequencePlan sp, string name)
@@ -747,6 +849,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        val ").Append(Local(req.FieldName))
                        .AppendLine(" = ExiPrimitives.readStringValue(r)");
                     ctor.Add(Local(req.FieldName));
+                }
+
+                if (sp.SimpleContent is not null)
+                {
+                    if (HasOptionalAttributes(sp))
+                        EmitDecodeSimpleContentOptionalAttrs(sp, ctor);
+                    else
+                    {
+                        _sb.AppendLine("        r.readBits(1)   // CONTENT event");
+                        _sb.Append("        val ").Append(Local(SimpleContentField)).Append(" = ")
+                           .AppendLine(DecodeValueExpr(SimpleContentChild(sp)));
+                        ctor.Add(Local(SimpleContentField));
+                    }
+                    _sb.AppendLine("        r.readBits(1)   // element EE");
+                    _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
+                    _sb.AppendLine("    }");
+                    _sb.AppendLine();
+                    return;
                 }
 
                 if (sp.IsChoice)
@@ -842,6 +962,59 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeSimpleContentOptionalAttrs"/>.</summary>
+            private void EmitDecodeSimpleContentOptionalAttrs(SequencePlan sp, List<string> ctor)
+            {
+                var oa    = sp.Attributes!;
+                var n     = oa.Count;
+                var id    = _run++;
+                var value = SimpleContentChild(sp);
+                const string ind = "                        ";
+
+                foreach (var a in oa)
+                {
+                    _sb.Append("        var ").Append(Local(a.FieldName)).Append(": ").Append(Type(a.Type))
+                       .AppendLine("? = null");
+                    ctor.Add(Local(a.FieldName));
+                }
+                _sb.Append("        var ").Append(Local(SimpleContentField)).Append(": ")
+                   .Append(Type(sp.SimpleContentType!)).AppendLine("? = null");
+                ctor.Add(Local(SimpleContentField) + "!!");
+
+                _sb.Append("        var st").Append(id).AppendLine(" = 0");
+                _sb.Append("        var done").Append(id).AppendLine(" = false");
+                _sb.Append("        while (!done").Append(id).AppendLine(") {");
+                _sb.Append("            when (st").Append(id).AppendLine(") {");
+
+                for (var k = 0; k <= n; k++)
+                {
+                    var width = BitsFor((n - k + 1) + 1);
+                    _sb.Append("                ").Append(k).AppendLine(" -> {");
+                    _sb.Append("                    when (r.readBits(").Append(width).AppendLine(")) {");
+
+                    for (var i = k; i < n; i++)
+                    {
+                        _sb.Append(ind).Append(i - k).Append("u -> {   // AT(").Append(oa[i].FieldName).AppendLine(")");
+                        _sb.Append(ind).Append("    ").Append(Local(oa[i].FieldName))
+                           .AppendLine(" = ExiPrimitives.readStringValue(r)");
+                        _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                        _sb.Append(ind).AppendLine("}");
+                    }
+
+                    _sb.Append(ind).Append(n - k).AppendLine("u -> {   // CONTENT");
+                    _sb.Append(ind).Append("    ").Append(Local(SimpleContentField)).Append(" = ")
+                       .AppendLine(DecodeValueExpr(value));
+                    _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
+                    _sb.Append(ind).AppendLine("}");
+                    _sb.Append(ind).AppendLine("else -> throw IllegalArgumentException(\"invalid simpleContent event code\")");
+                    _sb.AppendLine("                    }");
+                    _sb.AppendLine("                }");
+                }
+
+                _sb.AppendLine("            }");
+                _sb.AppendLine("        }");
             }
 
             /// <summary>Decode mirror of <see cref="EmitEncodeChoice"/>.</summary>
