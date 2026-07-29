@@ -76,8 +76,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                     foreach (var c in sp.Children)
                     {
-                        if (c.IsWildcardAny)
-                            throw new NotSupportedException($"Kotlin back end: xs:any wildcards ('{sp.RecordName}.{c.FieldName}') are not implemented yet.");
+                        // Only an optional wildcard is modelled — it then rides in an optional run,
+                        // where TrailingAny() checks the position cbexigen's code layout requires.
+                        if (c.IsWildcardAny && c.Shape != ChildShape.OptionalSingle)
+                            throw new NotSupportedException(
+                                $"Kotlin back end: the xs:any wildcard '{sp.RecordName}.{c.FieldName}' is " +
+                                $"{c.Shape}; only an optional wildcard is implemented.");
                         _ = c.Value switch
                         {
                             ValueEncoding.StringValue or ValueEncoding.UnsignedInt or ValueEncoding.SignedInt
@@ -626,8 +630,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end, ChildPlan? term)
             {
-                var m  = end - start;
-                var id = _run++;
+                var m           = end - start;
+                var id          = _run++;
+                var trailingAny = TrailingAny(kids, start, end, term);
                 const string ind = "                    ";
 
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
@@ -646,11 +651,22 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                     _sb.Append("                ").Append(k).AppendLine(" -> {");
 
-                    var code  = 0;
-                    var first = true;
-                    for (var i = k; i < m; i++)
+                    var code   = 0;
+                    var first  = true;
+                    var optEnd = trailingAny ? m - 1 : m;   // the ANY is handled with the tail
+                    for (var i = k; i < optEnd; i++)
                         code = EmitEncodeRunParticle(kids[start + i], code, width, ref first, ind,
                                                      $"st{id} = {i + 1}");
+
+                    var eeCode = code;
+                    if (trailingAny && k < m)
+                    {
+                        // cbexigen ordering: [normal optionals], the generic-wildcard slot (reserved,
+                        // never emitted), the element EE, then the typed ANY element. Selecting ANY
+                        // advances to the EE-only state.
+                        EmitEncodeRunParticle(kids[end - 1], code + 2, width, ref first, ind, $"st{id} = {m}");
+                        eeCode = code + 1;
+                    }
 
                     // The highest remaining code closes the run: the element EE, or the required
                     // child — whose content then follows inline.
@@ -658,7 +674,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     if (!first)
                         _sb.Append(ind).AppendLine("} else {");
 
-                    _sb.Append(tail).Append("w.writeBits(").Append(code).Append("u, ").Append(width);
+                    _sb.Append(tail).Append("w.writeBits(").Append(eeCode).Append("u, ").Append(width);
                     if (term is null)
                         _sb.AppendLine(")   // element EE");
                     else
@@ -727,10 +743,30 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             /// <summary>
             /// How many grammar productions a run particle occupies: a substitution reference
-            /// contributes one per member (the abstract head included), everything else one.
+            /// contributes one per member (the abstract head included), an xs:any wildcard two (the
+            /// generic wildcard event and the typed element), everything else one.
             /// </summary>
             private static int ProductionCount(ChildPlan c) =>
-                c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count : 1;
+                c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count
+                : c.IsWildcardAny ? 2
+                : 1;
+
+            /// <summary>
+            /// Whether the run ends in an xs:any wildcard, and a guard that it appears nowhere else.
+            /// cbexigen only splits a wildcard into its two productions as the last particle of an
+            /// EE-terminated run (verified there against SignatureMethodType / DigestMethodType);
+            /// anywhere else the code layout would differ and this back end does not model it.
+            /// </summary>
+            private static bool TrailingAny(IReadOnlyList<ChildPlan> kids, int start, int end, ChildPlan? term)
+            {
+                for (var p = start; p < end; p++)
+                    if (kids[p].IsWildcardAny && (p != end - 1 || term is not null))
+                        throw new NotSupportedException(
+                            $"Kotlin back end: xs:any wildcard '{kids[p].FieldName}' must be the last child " +
+                            "of an EE-terminated sequence.");
+
+                return term is null && end > start && kids[end - 1].IsWildcardAny;
+            }
 
             /// <summary>
             /// Substitution dispatch. Branches are emitted most-derived-first because Kotlin's
@@ -1050,7 +1086,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end,
                                                ChildPlan? term, List<string> ctor)
             {
-                var id = _run++;
+                var id          = _run++;
+                var trailingAny = TrailingAny(kids, start, end, term);
+
                 for (var s = start; s < end; s++)
                 {
                     var c = kids[s];
@@ -1085,9 +1123,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("                    when (r.readBits(").Append(width).AppendLine(")) {");
 
                     const string ind = "                        ";
-                    var code = 0;
+                    var code   = 0;
+                    var optEnd = trailingAny ? m - 1 : m;   // the ANY is handled with the tail
 
-                    for (var i = k; i < m; i++)
+                    for (var i = k; i < optEnd; i++)
                     {
                         var c     = kids[start + i];
                         var field = Local(c.FieldName);
@@ -1124,7 +1163,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         code++;
                     }
 
-                    if (term is null)
+                    if (trailingAny && k < m)
+                    {
+                        // `code` is the generic-wildcard slot: no branch, so it falls through to the
+                        // error case — a generic wildcard event is not modelled. The element EE takes
+                        // code+1, the typed ANY element code+2.
+                        var any = kids[end - 1];
+                        _sb.Append(ind).Append(code + 1).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                        _sb.Append(ind).Append(code + 2).Append("u -> {   // ").AppendLine(any.FieldName);
+                        if (WrapsValue(any))
+                            _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
+                        _sb.Append(ind).Append("    ").Append(Local(any.FieldName)).Append(" = ")
+                           .AppendLine(DecodeValueExpr(any));
+                        if (WrapsValue(any))
+                            _sb.Append(ind).AppendLine("    r.readBits(1)   // child EE");
+                        _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(m).AppendLine();
+                        _sb.Append(ind).AppendLine("}");
+                    }
+                    else if (term is null)
                         _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
                     else
                     {
