@@ -73,8 +73,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 foreach (var sp in p.ComplexTypes.Values)
                 {
                     ValidateAttributes(p, sp);
-                    if (sp.IsChoice)
-                        throw new NotSupportedException($"Kotlin back end: xs:choice content ('{sp.RecordName}') is not implemented yet.");
                     if (sp.SimpleContent is not null)
                         throw new NotSupportedException($"Kotlin back end: xs:simpleContent ('{sp.RecordName}') is not implemented yet.");
 
@@ -114,6 +112,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     throw new NotSupportedException(
                         $"Kotlin back end: attributes on '{sp.RecordName}', whose base type " +
                         $"'{sp.BaseRecordName}' contributes constructor parameters, are not implemented yet.");
+
+                // Optional attributes ride along as leading optionals of the *content run*, which an
+                // xs:choice does not have — they would be dropped silently. (A required attribute is
+                // written before the content and is unaffected.)
+                if (sp.IsChoice && RequiredAttr(sp) is null)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: optional attributes on the xs:choice type '{sp.RecordName}' " +
+                        "are not implemented yet.");
 
                 foreach (var a in sp.Attributes)
                 {
@@ -160,9 +166,37 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             // ---------------------------------------------------------------- naming
 
+            /// <summary>
+            /// Kotlin's hard keywords. Lower-casing a PascalCase schema name can land on one — the
+            /// C# emitter never hits this because it keeps the name PascalCase. XMLDSig's
+            /// <c>Object</c> element is the real-world case.
+            /// </summary>
+            private static readonly HashSet<string> KotlinKeywords = new(StringComparer.Ordinal)
+            {
+                "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in",
+                "interface", "is", "null", "object", "package", "return", "super", "this", "throw",
+                "true", "try", "typealias", "typeof", "val", "var", "when", "while",
+            };
+
             /// <summary>Kotlin properties are camelCase; the plan's field names are PascalCase.</summary>
-            private static string Prop(string pascal) =>
+            private static string Camel(string pascal) =>
                 pascal.Length == 0 ? pascal : char.ToLowerInvariant(pascal[0]) + pascal.Substring(1);
+
+            /// <summary>
+            /// A property name as written in declarations and accessors — back-quoted when the
+            /// camelCase form collides with a keyword.
+            /// </summary>
+            private static string Prop(string pascal)
+            {
+                var name = Camel(pascal);
+                return KotlinKeywords.Contains(name) ? "`" + name + "`" : name;
+            }
+
+            /// <summary>
+            /// The decoder's local for a field. Built from the unescaped name: the leading underscore
+            /// already makes it a legal identifier, and back-quotes would not survive concatenation.
+            /// </summary>
+            private static string Local(string pascal) => "_" + Camel(pascal);
 
             private static string Type(TypeRef t) => t switch
             {
@@ -365,6 +399,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        ExiPrimitives.writeStringValue(w, msg.").Append(Prop(req.FieldName)).AppendLine(")");
                 }
 
+                if (sp.IsChoice)
+                {
+                    EmitEncodeChoice(sp);
+                    _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
+                    _sb.AppendLine("    }");
+                    _sb.AppendLine();
+                    return;
+                }
+
                 var kids = WithOptionalAttributes(sp);
                 for (var i = 0; i < kids.Count;)
                 {
@@ -419,6 +462,32 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
+            }
+
+            /// <summary>
+            /// xs:choice content: exactly one alternative is present, and its index — not an SE — is
+            /// the event code, over a width covering the alternatives plus the non-strict phantom.
+            /// The caller writes the element EE afterwards.
+            /// </summary>
+            private void EmitEncodeChoice(SequencePlan sp)
+            {
+                if (sp.Children.Count == 0)
+                    throw new NotSupportedException($"Kotlin back end: '{sp.RecordName}' is an empty xs:choice.");
+
+                var width = BitsFor(sp.Children.Count + 1);
+                for (var i = 0; i < sp.Children.Count; i++)
+                {
+                    var c    = sp.Children[i];
+                    var prop = "msg." + Prop(c.FieldName);
+                    _sb.Append("        ").Append(i == 0 ? "if (" : "} else if (").Append(prop).AppendLine(" != null) {");
+                    _sb.Append("            w.writeBits(").Append(i).Append("u, ").Append(width)
+                       .Append(")   // ").AppendLine(c.FieldName);
+                    EmitEncodeValue(c, prop + "!!", "            ");
+                }
+                _sb.AppendLine("        } else {");
+                _sb.Append("            throw IllegalArgumentException(\"no choice alternative set for ")
+                   .Append(sp.RecordName).AppendLine("\")");
+                _sb.AppendLine("        }");
             }
 
             /// <summary>
@@ -675,9 +744,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (RequiredAttr(sp) is { } req)
                 {
                     _sb.AppendLine("        r.readBits(1)   // AT(required attribute)");
-                    _sb.Append("        val _").Append(Prop(req.FieldName))
+                    _sb.Append("        val ").Append(Local(req.FieldName))
                        .AppendLine(" = ExiPrimitives.readStringValue(r)");
-                    ctor.Add("_" + Prop(req.FieldName));
+                    ctor.Add(Local(req.FieldName));
+                }
+
+                if (sp.IsChoice)
+                {
+                    EmitDecodeChoice(sp, ctor);
+                    _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
+                    _sb.AppendLine("    }");
+                    _sb.AppendLine();
+                    return;
                 }
 
                 var kids = WithOptionalAttributes(sp);
@@ -717,7 +795,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         continue;
                     }
 
-                    var v = "_" + Prop(c.FieldName);
+                    var v = Local(c.FieldName);
                     if (c.Value is ValueEncoding.SubstitutionChoice sub)
                     {
                         _sb.Append("        val ").Append(v).Append(": ").Append(Type(c.Type))
@@ -766,6 +844,36 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine();
             }
 
+            /// <summary>Decode mirror of <see cref="EmitEncodeChoice"/>.</summary>
+            private void EmitDecodeChoice(SequencePlan sp, List<string> ctor)
+            {
+                var width = BitsFor(sp.Children.Count + 1);
+
+                foreach (var c in sp.Children)
+                {
+                    _sb.Append("        var ").Append(Local(c.FieldName)).Append(": ").Append(DeclType(c))
+                       .AppendLine(" = null");
+                    ctor.Add(Local(c.FieldName));
+                }
+
+                _sb.Append("        when (r.readBits(").Append(width).AppendLine(")) {");
+                for (var i = 0; i < sp.Children.Count; i++)
+                {
+                    var c = sp.Children[i];
+                    _sb.Append("            ").Append(i).Append("u -> {   // ").AppendLine(c.FieldName);
+                    if (WrapsValue(c))
+                        _sb.AppendLine("                r.readBits(1)   // value-start");
+                    _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
+                       .AppendLine(DecodeValueExpr(c));
+                    if (WrapsValue(c))
+                        _sb.AppendLine("                r.readBits(1)   // child EE");
+                    _sb.AppendLine("            }");
+                }
+                _sb.AppendLine("            else -> throw IllegalArgumentException(\"unknown choice event code\")");
+                _sb.AppendLine("        }");
+                _sb.AppendLine("        r.readBits(1)   // element EE");
+            }
+
             private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end,
                                                ChildPlan? term, List<string> ctor)
             {
@@ -773,18 +881,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 for (var s = start; s < end; s++)
                 {
                     var c = kids[s];
-                    _sb.Append("        var _").Append(Prop(c.FieldName)).Append(": ").Append(DeclType(c))
+                    _sb.Append("        var ").Append(Local(c.FieldName)).Append(": ").Append(DeclType(c))
                        .AppendLine(" = null");
-                    ctor.Add("_" + Prop(c.FieldName));
+                    ctor.Add(Local(c.FieldName));
                 }
 
                 // The terminator is required, but it is only assigned inside the state machine, so
                 // it has to be declared nullable and unwrapped at the constructor call.
                 if (term is not null)
                 {
-                    _sb.Append("        var _").Append(Prop(term.FieldName)).Append(": ").Append(Type(term.Type))
+                    _sb.Append("        var ").Append(Local(term.FieldName)).Append(": ").Append(Type(term.Type))
                        .AppendLine("? = null");
-                    ctor.Add("_" + Prop(term.FieldName) + "!!");
+                    ctor.Add(Local(term.FieldName) + "!!");
                 }
 
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
@@ -809,7 +917,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     for (var i = k; i < m; i++)
                     {
                         var c     = kids[start + i];
-                        var field = "_" + Prop(c.FieldName);
+                        var field = Local(c.FieldName);
 
                         if (c.Value is ValueEncoding.SubstitutionChoice sc)
                         {
@@ -847,7 +955,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
                     else
                     {
-                        var field = "_" + Prop(term.FieldName);
+                        var field = Local(term.FieldName);
                         _sb.Append(ind).Append(code).Append("u -> {   // SE(").Append(term.FieldName).AppendLine(")");
                         if (WrapsValue(term))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
