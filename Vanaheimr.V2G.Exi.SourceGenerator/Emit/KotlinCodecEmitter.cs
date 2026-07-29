@@ -83,12 +83,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         if (c.IsWildcardAny)
                             throw new NotSupportedException($"Kotlin back end: xs:any wildcards ('{sp.RecordName}.{c.FieldName}') are not implemented yet.");
-                        // A substitution reference inside an optional run joins that run's shared
-                        // grammar state (its members become productions of the run, not a standalone
-                        // dispatch) — a different construct from the standalone case handled below.
-                        if (c.Value is ValueEncoding.SubstitutionChoice && c.Shape != ChildShape.RequiredSingle)
-                            throw new NotSupportedException(
-                                $"Kotlin back end: a non-required substitution reference ('{sp.RecordName}.{c.FieldName}') is not implemented yet.");
                         _ = c.Value switch
                         {
                             ValueEncoding.StringValue or ValueEncoding.UnsignedInt or ValueEncoding.SignedInt
@@ -311,16 +305,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             if (kids[j].Shape != ChildShape.OptionalSingle)
                                 throw new NotSupportedException(
                                     $"Kotlin back end: '{name}' mixes optional and non-optional children after index {i}.");
-
-                        // A run with several optionals needs an if/else-if chain over ALL remaining
-                        // particles per state (any of them may be the next one present), plus a
-                        // running event code. The state machine below only tests the particle at the
-                        // current state, which is correct for exactly one optional and would silently
-                        // drop a later present sibling for more. Refuse rather than mis-encode.
-                        if (kids.Count - i > 1)
-                            throw new NotSupportedException(
-                                $"Kotlin back end: an optional run of {kids.Count - i} particles ('{name}') " +
-                                "is not implemented yet — only a single trailing optional is.");
                         EmitEncodeOptionalRun(kids, i);
                         i = kids.Count;
                         continue;
@@ -376,35 +360,45 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start)
             {
+                var m  = kids.Count - start;
                 var id = _run++;
+                const string ind = "                    ";
+
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
                 _sb.Append("        var done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
                 _sb.Append("            when (st").Append(id).AppendLine(") {");
 
-                for (var s = start; s <= kids.Count; s++)
+                // State k: the cursor sits at particle start+k; any particle from there on may be
+                // the next one present, so each state offers all of them.
+                for (var k = 0; k <= m; k++)
                 {
-                    var remaining = kids.Count - s;          // optionals still available
-                    var width     = BitsFor(remaining + 1 + 1); // + EE + phantom
-                    _sb.Append("                ").Append(s - start).AppendLine(" -> {");
+                    var totalProd = 1;                                   // the element EE
+                    for (var i = k; i < m; i++) totalProd += ProductionCount(kids[start + i]);
+                    var width = BitsFor(totalProd + 1);                  // + the non-strict phantom
 
-                    if (s < kids.Count)
+                    _sb.Append("                ").Append(k).AppendLine(" -> {");
+
+                    var code  = 0;
+                    var first = true;
+                    for (var i = k; i < m; i++)
+                        code = EmitEncodeRunParticle(kids[start + i], code, width, ref first, ind,
+                                                     $"st{id} = {i + 1}");
+
+                    // The element EE takes the highest remaining code.
+                    if (first)
                     {
-                        var c = kids[s];
-                        _sb.Append("                    if (msg.").Append(Prop(c.FieldName)).AppendLine(" != null) {");
-                        _sb.Append("                        w.writeBits(0u, ").Append(width).Append(")   // ")
-                           .AppendLine(c.FieldName);
-                        EmitEncodeValue(c, "msg." + Prop(c.FieldName) + "!!", "                        ");
-                        _sb.Append("                        st").Append(id).Append(" = ").Append(s - start + 1).AppendLine();
-                        _sb.AppendLine("                    } else {");
-                        _sb.Append("                        w.writeBits(1u, ").Append(width).AppendLine(")   // element EE");
-                        _sb.Append("                        done").Append(id).AppendLine(" = true");
-                        _sb.AppendLine("                    }");
+                        _sb.Append(ind).Append("w.writeBits(").Append(code).Append("u, ").Append(width)
+                           .AppendLine(")   // element EE");
+                        _sb.Append(ind).Append("done").Append(id).AppendLine(" = true");
                     }
                     else
                     {
-                        _sb.Append("                    w.writeBits(0u, ").Append(width).AppendLine(")   // element EE");
-                        _sb.Append("                    done").Append(id).AppendLine(" = true");
+                        _sb.Append(ind).AppendLine("} else {");
+                        _sb.Append(ind).Append("    w.writeBits(").Append(code).Append("u, ").Append(width)
+                           .AppendLine(")   // element EE");
+                        _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
+                        _sb.Append(ind).AppendLine("}");
                     }
 
                     _sb.AppendLine("                }");
@@ -413,6 +407,60 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("            }");
                 _sb.AppendLine("        }");
             }
+
+            /// <summary>
+            /// One particle of an optional run: an optional element (one production) or an optional
+            /// substitution reference (one production per member, the abstract head reserving a code
+            /// slot without a branch). Emits an <c>if</c> / <c>} else if</c> link of the state's
+            /// chain and returns the next free event code.
+            /// </summary>
+            private int EmitEncodeRunParticle(ChildPlan p, int code, int width, ref bool first,
+                                              string indent, string after)
+            {
+                var prop = "msg." + Prop(p.FieldName);
+
+                if (p.Value is ValueEncoding.SubstitutionChoice sc)
+                {
+                    // Hoisted into a local because `is` cannot smart-cast an `open`/`override` property,
+                    // which generated base types declare.
+                    var local = "sub" + code;
+                    if (first) _sb.Append(indent).Append("val ").Append(local).Append(" = ").AppendLine(prop);
+
+                    var baseCode = code;
+                    var ordered  = sc.Members
+                                     .Select((mm, i) => (Member: mm, Wire: baseCode + i))
+                                     .Where(x => !x.Member.IsAbstractHead)
+                                     .OrderByDescending(x => InheritanceDepth(x.Member.TypeName));
+
+                    foreach (var (mbr, wire) in ordered)
+                    {
+                        _sb.Append(indent).Append(first ? "if (" : "} else if (")
+                           .Append(first ? local : prop).Append(" is ").Append(mbr.TypeName).AppendLine(") {");
+                        _sb.Append(indent).Append("    w.writeBits(").Append(wire).Append("u, ").Append(width)
+                           .Append(")   // ").AppendLine(mbr.ElementName);
+                        _sb.Append(indent).Append("    encode").Append(mbr.TypeName).Append("(w, ")
+                           .Append(first ? local : prop).AppendLine(")");
+                        _sb.Append(indent).Append("    ").AppendLine(after);
+                        first = false;
+                    }
+                    return code + sc.Members.Count;
+                }
+
+                _sb.Append(indent).Append(first ? "if (" : "} else if (").Append(prop).AppendLine(" != null) {");
+                _sb.Append(indent).Append("    w.writeBits(").Append(code).Append("u, ").Append(width)
+                   .Append(")   // ").AppendLine(p.FieldName);
+                EmitEncodeValue(p, prop + "!!", indent + "    ");
+                _sb.Append(indent).Append("    ").AppendLine(after);
+                first = false;
+                return code + 1;
+            }
+
+            /// <summary>
+            /// How many grammar productions a run particle occupies: a substitution reference
+            /// contributes one per member (the abstract head included), everything else one.
+            /// </summary>
+            private static int ProductionCount(ChildPlan c) =>
+                c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count : 1;
 
             /// <summary>
             /// Substitution dispatch. Branches are emitted most-derived-first because Kotlin's
@@ -602,39 +650,58 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
                 _sb.Append("            when (st").Append(id).AppendLine(") {");
 
-                for (var s = start; s <= kids.Count; s++)
+                var m = kids.Count - start;
+                for (var k = 0; k <= m; k++)
                 {
-                    var remaining = kids.Count - s;
-                    var width     = BitsFor(remaining + 1 + 1);
-                    _sb.Append("                ").Append(s - start).AppendLine(" -> {");
+                    var totalProd = 1;                                   // the element EE
+                    for (var i = k; i < m; i++) totalProd += ProductionCount(kids[start + i]);
+                    var width = BitsFor(totalProd + 1);                  // + the non-strict phantom
+
+                    _sb.Append("                ").Append(k).AppendLine(" -> {");
                     _sb.Append("                    when (r.readBits(").Append(width).AppendLine(")) {");
 
-                    if (s < kids.Count)
+                    const string ind = "                        ";
+                    var code = 0;
+
+                    for (var i = k; i < m; i++)
                     {
-                        var c = kids[s];
-                        _sb.AppendLine("                        0u -> {");
-                        if (c.Value is ValueEncoding.ComplexRef)
+                        var c     = kids[start + i];
+                        var field = "_" + Prop(c.FieldName);
+
+                        if (c.Value is ValueEncoding.SubstitutionChoice sc)
                         {
-                            _sb.Append("                            _").Append(Prop(c.FieldName)).Append(" = ")
-                               .AppendLine(DecodeValueExpr(c));
+                            for (var j = 0; j < sc.Members.Count; j++)
+                            {
+                                var mbr = sc.Members[j];
+                                if (mbr.IsAbstractHead)
+                                {
+                                    _sb.Append(ind).Append(code + j)
+                                       .AppendLine("u -> throw IllegalArgumentException(\"abstract substitution head cannot be decoded\")");
+                                    continue;
+                                }
+                                _sb.Append(ind).Append(code + j).AppendLine("u -> {");
+                                _sb.Append(ind).Append("    ").Append(field).Append(" = decode")
+                                   .Append(mbr.TypeName).AppendLine("(r)");
+                                _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                                _sb.Append(ind).AppendLine("}");
+                            }
+                            code += sc.Members.Count;
+                            continue;
                         }
-                        else
-                        {
-                            _sb.AppendLine("                            r.readBits(1)   // value-start");
-                            _sb.Append("                            _").Append(Prop(c.FieldName)).Append(" = ")
-                               .AppendLine(DecodeValueExpr(c));
-                            _sb.AppendLine("                            r.readBits(1)   // child EE");
-                        }
-                        _sb.Append("                            st").Append(id).Append(" = ").Append(s - start + 1).AppendLine();
-                        _sb.AppendLine("                        }");
-                        _sb.Append("                        1u -> done").Append(id).AppendLine(" = true");
-                    }
-                    else
-                    {
-                        _sb.Append("                        0u -> done").Append(id).AppendLine(" = true");
+
+                        _sb.Append(ind).Append(code).AppendLine("u -> {");
+                        if (c.Value is not ValueEncoding.ComplexRef)
+                            _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
+                        _sb.Append(ind).Append("    ").Append(field).Append(" = ").AppendLine(DecodeValueExpr(c));
+                        if (c.Value is not ValueEncoding.ComplexRef)
+                            _sb.Append(ind).AppendLine("    r.readBits(1)   // child EE");
+                        _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                        _sb.Append(ind).AppendLine("}");
+                        code++;
                     }
 
-                    _sb.AppendLine("                        else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
+                    _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                    _sb.Append(ind).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
                     _sb.AppendLine("                    }");
                     _sb.AppendLine("                }");
                 }
