@@ -407,6 +407,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private void EmitSequenceCodec(SequencePlan sp, string name)
             {
+                // An abstract type is never encoded or decoded through its own name — substitution
+                // dispatch always names a concrete member — and a decoder for one would have to
+                // instantiate it. The C# emitter skips them for the same reason.
+                if (sp.IsAbstract) return;
                 if (!_codecs.Add(name)) return;
                 EmitEncode(sp, name);
                 EmitDecode(sp, name);
@@ -616,9 +620,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (term.Shape != ChildShape.RequiredSingle)
                     throw new NotSupportedException(
                         $"Kotlin back end: '{owner}.{term.FieldName}' terminates an optional run but is {term.Shape}.");
-                if (term.Value is ValueEncoding.SubstitutionChoice)
-                    throw new NotSupportedException(
-                        $"Kotlin back end: substitution '{owner}.{term.FieldName}' terminating an optional run is not implemented yet.");
             }
 
             /// <summary>
@@ -654,6 +655,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     var code   = 0;
                     var first  = true;
                     var optEnd = trailingAny ? m - 1 : m;   // the ANY is handled with the tail
+
+                    EmitEncodeRunSubLocals(kids, start, k, optEnd, term, ind);
+
                     for (var i = k; i < optEnd; i++)
                         code = EmitEncodeRunParticle(kids[start + i], code, width, ref first, ind,
                                                      $"st{id} = {i + 1}");
@@ -666,6 +670,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         // advances to the EE-only state.
                         EmitEncodeRunParticle(kids[end - 1], code + 2, width, ref first, ind, $"st{id} = {m}");
                         eeCode = code + 1;
+                    }
+
+                    // A substitution terminator has one production per member, so it extends the
+                    // chain rather than closing it; the chain then ends in a throw, because a
+                    // required child must be set.
+                    if (term?.Value is ValueEncoding.SubstitutionChoice)
+                    {
+                        EmitEncodeRunParticle(term, eeCode, width, ref first, ind, $"done{id} = true");
+                        _sb.Append(ind).AppendLine("} else {");
+                        _sb.Append(ind).Append("    throw IllegalArgumentException(\"no value set for ")
+                           .Append(term.FieldName).AppendLine("\")");
+                        _sb.Append(ind).AppendLine("}");
+                        _sb.AppendLine("                }");
+                        continue;
                     }
 
                     // The highest remaining code closes the run: the element EE, or the required
@@ -709,9 +727,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     // Hoisted into a local because `is` cannot smart-cast an `open`/`override` property,
                     // which generated base types declare.
-                    var local = "sub" + code;
-                    if (first) _sb.Append(indent).Append("val ").Append(local).Append(" = ").AppendLine(prop);
-
+                    // The local is declared by EmitEncodeRunSubLocals before the chain opens; every
+                    // branch must use it, because a `val` cannot be introduced mid-chain and `is`
+                    // cannot smart-cast the `open`/`override` property a generated base type declares.
+                    var local    = SubLocal(p);
                     var baseCode = code;
                     var ordered  = sc.Members
                                      .Select((mm, i) => (Member: mm, Wire: baseCode + i))
@@ -721,11 +740,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     foreach (var (mbr, wire) in ordered)
                     {
                         _sb.Append(indent).Append(first ? "if (" : "} else if (")
-                           .Append(first ? local : prop).Append(" is ").Append(mbr.TypeName).AppendLine(") {");
+                           .Append(local).Append(" is ").Append(mbr.TypeName).AppendLine(") {");
                         _sb.Append(indent).Append("    w.writeBits(").Append(wire).Append("u, ").Append(width)
                            .Append(")   // ").AppendLine(mbr.ElementName);
                         _sb.Append(indent).Append("    encode").Append(mbr.TypeName).Append("(w, ")
-                           .Append(first ? local : prop).AppendLine(")");
+                           .Append(local).AppendLine(")");
                         _sb.Append(indent).Append("    ").AppendLine(after);
                         first = false;
                     }
@@ -739,6 +758,30 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(indent).Append("    ").AppendLine(after);
                 first = false;
                 return code + 1;
+            }
+
+            /// <summary>The read-once local a substitution particle dispatches on.</summary>
+            private static string SubLocal(ChildPlan p) => "sub_" + Camel(p.FieldName);
+
+            /// <summary>
+            /// Declares the dispatch local of every substitution particle a state's if/else-if chain
+            /// will touch. They have to exist before the chain opens — Kotlin has no way to introduce
+            /// a `val` between two `else if` links.
+            /// </summary>
+            private void EmitEncodeRunSubLocals(IReadOnlyList<ChildPlan> kids, int start, int from,
+                                                int optEnd, ChildPlan? term, string indent)
+            {
+                for (var i = from; i < optEnd; i++)
+                    DeclareSubLocal(kids[start + i], indent);
+                DeclareSubLocal(term, indent);
+            }
+
+            private void DeclareSubLocal(ChildPlan? p, string indent)
+            {
+                if (p?.Value is not ValueEncoding.SubstitutionChoice)
+                    return;
+                _sb.Append(indent).Append("val ").Append(SubLocal(p)).Append(" = msg.")
+                   .AppendLine(Prop(p.FieldName));
             }
 
             /// <summary>
@@ -1182,6 +1225,26 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
                     else if (term is null)
                         _sb.Append(ind).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                    else if (term.Value is ValueEncoding.SubstitutionChoice tsc)
+                    {
+                        // One case per member, at the run's highest codes.
+                        var field = Local(term.FieldName);
+                        for (var j = 0; j < tsc.Members.Count; j++)
+                        {
+                            var mbr = tsc.Members[j];
+                            if (mbr.IsAbstractHead)
+                            {
+                                _sb.Append(ind).Append(code + j)
+                                   .AppendLine("u -> throw IllegalArgumentException(\"abstract substitution head cannot be decoded\")");
+                                continue;
+                            }
+                            _sb.Append(ind).Append(code + j).Append("u -> {   // ").AppendLine(mbr.ElementName);
+                            _sb.Append(ind).Append("    ").Append(field).Append(" = decode")
+                               .Append(mbr.TypeName).AppendLine("(r)");
+                            _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
+                            _sb.Append(ind).AppendLine("}");
+                        }
+                    }
                     else
                     {
                         var field = Local(term.FieldName);
