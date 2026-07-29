@@ -72,8 +72,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 foreach (var sp in p.ComplexTypes.Values)
                 {
-                    if (sp.Attributes is { Count: > 0 })
-                        throw new NotSupportedException($"Kotlin back end: attributes ('{sp.RecordName}') are not implemented yet.");
+                    ValidateAttributes(p, sp);
                     if (sp.IsChoice)
                         throw new NotSupportedException($"Kotlin back end: xs:choice content ('{sp.RecordName}') is not implemented yet.");
                     if (sp.SimpleContent is not null)
@@ -96,6 +95,68 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
                 }
             }
+
+            /// <summary>
+            /// Attribute shapes this back end models: either a single required attribute, or any
+            /// number of optional ones, all string-typed. On a derived type they are only safe while
+            /// the base contributes no constructor parameters of its own — attributes go first, so
+            /// otherwise they would have to interleave with the base's. (The common -2 case, a body
+            /// type extending the empty <c>BodyBaseType</c>, is fine.)
+            /// </summary>
+            private static void ValidateAttributes(SchemaPlan plan, SequencePlan sp)
+            {
+                if (sp.Attributes is null or { Count: 0 })
+                    return;
+
+                if (sp.BaseRecordName is not null
+                    && plan.ComplexTypes.TryGetValue(sp.BaseRecordName, out var basePlan)
+                    && (basePlan.Children.Count > 0 || basePlan.Attributes is { Count: > 0 }))
+                    throw new NotSupportedException(
+                        $"Kotlin back end: attributes on '{sp.RecordName}', whose base type " +
+                        $"'{sp.BaseRecordName}' contributes constructor parameters, are not implemented yet.");
+
+                foreach (var a in sp.Attributes)
+                {
+                    if (a.Value is not ValueEncoding.StringValue)
+                        throw new NotSupportedException(
+                            $"Kotlin back end: only string-typed attributes are supported " +
+                            $"('{sp.RecordName}.{a.FieldName}' is {a.Value.GetType().Name}).");
+                    if (a.Required && sp.Attributes.Count != 1)
+                        throw new NotSupportedException(
+                            $"Kotlin back end: '{sp.RecordName}' combines a required attribute with others; " +
+                            "only a lone required attribute, or an all-optional set, is modelled.");
+                }
+            }
+
+            /// <summary>The lone required attribute of a type, or null.</summary>
+            private static AttrPlan? RequiredAttr(SequencePlan sp) =>
+                sp.Attributes is { Count: 1 } && sp.Attributes[0].Required ? sp.Attributes[0] : null;
+
+            /// <summary>
+            /// Optional attributes are the leading optionals of the content run: the AT event is the
+            /// first production of the content's initial grammar state, and when the attribute is
+            /// absent the same code doubles as the first SE (cbexigen model, as in
+            /// <see cref="CodecEmitter"/>). Prepending them lets the general run machine handle them.
+            /// </summary>
+            private static IReadOnlyList<ChildPlan> WithOptionalAttributes(SequencePlan sp)
+            {
+                if (sp.Attributes is null or { Count: 0 } || RequiredAttr(sp) is not null)
+                    return sp.Children;
+
+                var list = new List<ChildPlan>(sp.Attributes.Count + sp.Children.Count);
+                foreach (var a in sp.Attributes)
+                    list.Add(new ChildPlan(a.FieldName, a.Type, IsValueType: false,
+                                           ChildShape.OptionalSingle, new ValueEncoding.AttributeValue()));
+                list.AddRange(sp.Children);
+                return list;
+            }
+
+            /// <summary>
+            /// Whether a child's value is framed by a value-start bit and a child EE. An AT value is
+            /// not: the run's event code *was* the AT event. A complex child frames itself.
+            /// </summary>
+            private static bool WrapsValue(ChildPlan c) =>
+                c.Value is not ValueEncoding.ComplexRef and not ValueEncoding.AttributeValue;
 
             // ---------------------------------------------------------------- naming
 
@@ -195,23 +256,34 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 _sb.Append(keyword).Append(' ').Append(name);
 
-                if (sp.Children.Count == 0)
+                if (sp.Children.Count == 0 && sp.Attributes is null or { Count: 0 })
                 {
                     _sb.Append(sp.BaseRecordName is not null ? " : " + sp.BaseRecordName + "()" : "").AppendLine();
                     _sb.AppendLine();
                     return;
                 }
 
-                _sb.AppendLine("(");
+                // Attributes come first, matching the AT-before-content order of the grammar (and the
+                // C# emitter's parameter order). They never belong to a base type — Reject() bars
+                // attributes on a derived type — so the base-child indices below are unaffected.
+                var parms = new List<string>();
+                if (sp.Attributes is not null)
+                    foreach (var a in sp.Attributes)
+                        parms.Add(((sp.IsAbstract || extended) ? "open val " : "val ")
+                                  + Prop(a.FieldName) + ": " + Type(a.Type) + (a.Required ? "" : "?"));
+
                 for (var i = 0; i < sp.Children.Count; i++)
                 {
                     var c = sp.Children[i];
                     var modifier = i < baseChildren ? "override val "
                                  : (sp.IsAbstract || extended) ? "open val "
                                  : "val ";
-                    _sb.Append("    ").Append(modifier).Append(Prop(c.FieldName)).Append(": ").Append(DeclType(c));
-                    _sb.AppendLine(i == sp.Children.Count - 1 ? "" : ",");
+                    parms.Add(modifier + Prop(c.FieldName) + ": " + DeclType(c));
                 }
+
+                _sb.AppendLine("(");
+                for (var i = 0; i < parms.Count; i++)
+                    _sb.Append("    ").Append(parms[i]).AppendLine(i == parms.Count - 1 ? "" : ",");
                 _sb.Append(")");
 
                 if (sp.BaseRecordName is not null)
@@ -286,7 +358,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("    private fun encode").Append(name).Append("(w: BitWriter, msg: ")
                    .Append(name).AppendLine(") {");
 
-                var kids = sp.Children;
+                // A required attribute is unconditional: a 1-bit AT event, then a bare value.
+                if (RequiredAttr(sp) is { } req)
+                {
+                    _sb.AppendLine("        w.writeBits(0u, 1)   // AT(required attribute)");
+                    _sb.Append("        ExiPrimitives.writeStringValue(w, msg.").Append(Prop(req.FieldName)).AppendLine(")");
+                }
+
+                var kids = WithOptionalAttributes(sp);
                 for (var i = 0; i < kids.Count;)
                 {
                     var c = kids[i];
@@ -547,6 +626,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append(indent).Append("encode").Append(cr.TypeName).Append("(w, ").Append(accessor).AppendLine(")");
                     return;
                 }
+                if (c.Value is ValueEncoding.AttributeValue)
+                {
+                    // Bare string — the run's event code was the AT event itself.
+                    _sb.Append(indent).Append("ExiPrimitives.writeStringValue(w, ").Append(accessor).AppendLine(")");
+                    return;
+                }
 
                 _sb.Append(indent).AppendLine("w.writeBits(0u, 1)   // value-start");
                 switch (c.Value)
@@ -585,8 +670,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("    private fun decode").Append(name).Append("(r: BitReader): ")
                    .Append(name).AppendLine(" {");
 
-                var kids = sp.Children;
                 var ctor = new List<string>();
+
+                if (RequiredAttr(sp) is { } req)
+                {
+                    _sb.AppendLine("        r.readBits(1)   // AT(required attribute)");
+                    _sb.Append("        val _").Append(Prop(req.FieldName))
+                       .AppendLine(" = ExiPrimitives.readStringValue(r)");
+                    ctor.Add("_" + Prop(req.FieldName));
+                }
+
+                var kids = WithOptionalAttributes(sp);
 
                 for (var i = 0; i < kids.Count;)
                 {
@@ -648,7 +742,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
 
                     _sb.AppendLine("        r.readBits(1)   // SE");
-                    if (c.Value is ValueEncoding.ComplexRef)
+                    if (!WrapsValue(c))
                     {
                         _sb.Append("        val ").Append(v).Append(" = ").AppendLine(DecodeValueExpr(c));
                     }
@@ -739,10 +833,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         }
 
                         _sb.Append(ind).Append(code).AppendLine("u -> {");
-                        if (c.Value is not ValueEncoding.ComplexRef)
+                        if (WrapsValue(c))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
                         _sb.Append(ind).Append("    ").Append(field).Append(" = ").AppendLine(DecodeValueExpr(c));
-                        if (c.Value is not ValueEncoding.ComplexRef)
+                        if (WrapsValue(c))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // child EE");
                         _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
                         _sb.Append(ind).AppendLine("}");
@@ -755,10 +849,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         var field = "_" + Prop(term.FieldName);
                         _sb.Append(ind).Append(code).Append("u -> {   // SE(").Append(term.FieldName).AppendLine(")");
-                        if (term.Value is not ValueEncoding.ComplexRef)
+                        if (WrapsValue(term))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
                         _sb.Append(ind).Append("    ").Append(field).Append(" = ").AppendLine(DecodeValueExpr(term));
-                        if (term.Value is not ValueEncoding.ComplexRef)
+                        if (WrapsValue(term))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // child EE");
                         _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
                         _sb.Append(ind).AppendLine("}");
@@ -778,6 +872,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     $"throw UnsupportedOperationException(\"Decoding a present {oe.TypeName} " +
                     "(XMLDSig) is not implemented in the Kotlin back end.\")",
                 ValueEncoding.ComplexRef cr  => $"decode{cr.TypeName}(r)",
+                // An AT value is a bare string, like StringValue but without the value framing.
+                ValueEncoding.AttributeValue => "ExiPrimitives.readStringValue(r)",
                 ValueEncoding.StringValue    => "ExiPrimitives.readStringValue(r)",
                 ValueEncoding.UnsignedInt    => $"ExiPrimitives.readUnsignedInteger(r).{ToNarrow(c.Type)}",
                 ValueEncoding.SignedInt      => $"ExiPrimitives.readSignedInteger(r).{ToNarrow(c.Type)}",
