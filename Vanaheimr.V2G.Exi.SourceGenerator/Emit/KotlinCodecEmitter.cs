@@ -67,9 +67,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// <summary>Fail loud on anything this back end does not model yet.</summary>
             private static void Reject(SchemaPlan p)
             {
-                if (p.Fragments.Count != 0)
-                    throw new NotSupportedException("Kotlin back end: EXI fragment codecs (XMLDSig) are not implemented yet.");
-
                 foreach (var sp in p.ComplexTypes.Values)
                 {
                     ValidateAttributes(p, sp);
@@ -436,12 +433,56 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
 
+                EmitFragmentCodecs();
+
                 foreach (var sp in plan.ComplexTypes.Values)
                     EmitSequenceCodec(sp, sp.RecordName);
                 foreach (var ge in plan.GlobalElements)
                     EmitSequenceCodec(ge.Body, ge.TypeName);
 
                 _sb.AppendLine("}");
+            }
+
+            /// <summary>
+            /// One EXI fragment encoder/decoder per signable element: the EXI header, the element's
+            /// fragment-grammar event code (a selector over every element declaration of the set),
+            /// its content, then End Fragment. No document or body wrapper — this is what XMLDSig
+            /// digests. Mirrors <c>CodecEmitter</c>, which is diffed against cbV2G's exiFragment.
+            /// </summary>
+            private void EmitFragmentCodecs()
+            {
+                var bits = plan.FragmentSelectorBits;
+
+                foreach (var f in plan.Fragments)
+                {
+                    _sb.Append("    fun encodeFragment_").Append(f.ElementName).Append("(content: ")
+                       .Append(f.TypeName).AppendLine("): ByteArray {");
+                    _sb.AppendLine("        val buf = ByteArray(MAX_MESSAGE_BYTES)");
+                    _sb.AppendLine("        buf[0] = EXI_HEADER");
+                    _sb.AppendLine("        val w = BitWriter(buf, 1)");
+                    _sb.Append("        w.writeBits(").Append(f.EventCode).Append("u, ").Append(bits)
+                       .Append(")   // fragment SE(").Append(f.ElementName).AppendLine(")");
+                    _sb.Append("        encode").Append(f.TypeName).AppendLine("(w, content)");
+                    _sb.Append("        w.writeBits(").Append(plan.FragmentEndCode).Append("u, ").Append(bits)
+                       .AppendLine(")   // End Fragment (ED)");
+                    _sb.AppendLine("        w.alignToByte()");
+                    _sb.AppendLine("        return buf.copyOf(1 + w.bytesWritten)");
+                    _sb.AppendLine("    }");
+                    _sb.AppendLine();
+
+                    _sb.Append("    fun decodeFragment_").Append(f.ElementName).Append("(src: ByteArray): ")
+                       .Append(f.TypeName).AppendLine(" {");
+                    _sb.AppendLine("        require(src.isNotEmpty() && src[0] == EXI_HEADER) { \"Invalid EXI header.\" }");
+                    _sb.AppendLine("        val r = BitReader(src, 1)");
+                    _sb.Append("        require(r.readBits(").Append(bits).Append(") == ").Append(f.EventCode)
+                       .Append("u) { \"Not a ").Append(KStr(f.ElementName)).AppendLine(" fragment.\" }");
+                    _sb.Append("        val result = decode").Append(f.TypeName).AppendLine("(r)");
+                    _sb.Append("        require(r.readBits(").Append(bits).Append(") == ").Append(plan.FragmentEndCode)
+                       .AppendLine("u) { \"missing End Fragment.\" }");
+                    _sb.AppendLine("        return result");
+                    _sb.AppendLine("    }");
+                    _sb.AppendLine();
+                }
             }
 
             /// <summary>
