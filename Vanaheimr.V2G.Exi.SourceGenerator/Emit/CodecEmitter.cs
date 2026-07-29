@@ -837,6 +837,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         "must be a plain optional element (choice/substitution suffixes are not supported).");
                 suffix.Add(children[p]);
             }
+            // Selecting a suffix particle writes the element EE and ends the run, so exactly one of
+            // them can ever be encoded. With two, the second would be dropped silently — fail at
+            // generation time rather than emit a codec that loses data.
+            if (suffix.Count > 1)
+                throw new NotSupportedException(
+                    $"repeating element '{list.FieldName}' mid-run: {suffix.Count} following particles " +
+                    "(only one is representable — choosing one ends the run).");
+
             int suffixTotal = 0;
             foreach (var sp in suffix) suffixTotal += ProductionCount(sp);
 
@@ -869,6 +877,19 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _sb.Append(br).AppendLine("}");
             _sb.Append(br).AppendLine("else");
             _sb.Append(br).AppendLine("{");
+            // The suffix has no event code in this state, so a caller that set one would otherwise
+            // have it dropped without a word. Refuse instead: silently losing a field the caller
+            // asked for is worse than an exception naming exactly what cannot be represented.
+            foreach (var sfx in suffix)
+            {
+                string presence = sfx.IsCsNullable() ? $"msg.{sfx.FieldName}.HasValue"
+                                                     : $"msg.{sfx.FieldName} is not null";
+                _sb.Append(br).Append("    if (").Append(presence).AppendLine(")");
+                _sb.Append(br).Append("        throw new ArgumentException(\"").Append(sfx.FieldName)
+                   .Append(" cannot be encoded while ").Append(list.FieldName)
+                   .AppendLine(" is empty: cbV2G's grammar for this position only reaches it after at " +
+                               "least one list item.\", nameof(msg));");
+            }
             _sb.Append(br).Append("    w.WriteBits(1, ").Append(w0).AppendLine(");   // element EE");
             _sb.Append(br).Append("    ").Append(done).AppendLine(" = true;");
             _sb.Append(br).AppendLine("}");

@@ -1160,6 +1160,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             $"'{kids[listIdx].FieldName}' must be a plain optional element.");
                     suffix.Add(kids[p]);
                 }
+
+                // Selecting a suffix particle writes the element EE and ends the run, so exactly one
+                // of them can ever be encoded. With two, the second would be dropped silently.
+                if (suffix.Count > 1)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: the mid-run list '{kids[listIdx].FieldName}' is followed by " +
+                        $"{suffix.Count} particles; only one is representable, since choosing one ends the run.");
+
                 return suffix;
             }
 
@@ -1204,6 +1212,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 EmitEncodeValue(list, prop + "[0]", br + "    ");
                 _sb.Append(br).Append("    st").Append(id).AppendLine(" = 1");
                 _sb.Append(br).AppendLine("} else {");
+                // The suffix has no event code in this state, so a caller that set one would
+                // otherwise have it dropped without a word. Refuse instead.
+                foreach (var s in suffix)
+                {
+                    _sb.Append(br).Append("    require(msg.").Append(Prop(s.FieldName)).Append(" == null) { \"")
+                       .Append(KStr(s.FieldName)).Append(" cannot be encoded while ")
+                       .Append(KStr(list.FieldName))
+                       .AppendLine(" is empty: cbV2G's grammar for this position only reaches it after at " +
+                                   "least one list item.\" }");
+                }
                 _sb.Append(br).Append("    w.writeBits(1u, ").Append(w0).AppendLine(")   // element EE");
                 _sb.Append(br).Append("    done").Append(id).AppendLine(" = true");
                 _sb.Append(br).AppendLine("}");

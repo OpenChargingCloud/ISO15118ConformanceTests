@@ -49,6 +49,40 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         /// <summary>
+        /// The counterpart to the "NOT empty" comments above: with the mid-run list empty, cbV2G's
+        /// grammar gives the following particle no event code at all. The encoder used to write the
+        /// message anyway, quietly leaving <c>LF_SystemSetupData</c> out — which is how two tests in
+        /// this very fixture managed to pass while exercising nothing. It now refuses.
+        /// </summary>
+        [Test]
+        public void FinePositioningSetupReq_LFSystemSetupData_WithEmptyVendorContainer_Throws()
+        {
+            var message = new WPT_FinePositioningSetupReq(
+                Header(), Processing.Finished,
+                new WPT_FinePositioningMethodListType(new[] { WPT_FinePositioningMethod.Manual }),
+                new WPT_PairingMethodListType(new[] { WPT_PairingMethod.LPE }),
+                new WPT_AlignmentCheckMethodListType(new[] { WPT_AlignmentCheckMethod.PowerCheck }),
+                NaturalOffset: 0,
+                VendorSpecificDataContainer: Array.Empty<byte[]>(),
+                LF_SystemSetupData: new WPT_LF_SystemSetupDataType(
+                    LF_TransmitterSetupData: new WPT_LF_TransmitterDataType(
+                        NumberOfTransmitters: 2,
+                        SignalFrequency: new RationalNumberType(0, 100),
+                        TxSpecData: new[]
+                        {
+                            new WPT_TxRxSpecDataType(1, new WPT_CoordinateXYZType(0, 0, 0), new WPT_CoordinateXYZType(0, 0, 0)),
+                            new WPT_TxRxSpecDataType(2, new WPT_CoordinateXYZType(10, 0, 0), new WPT_CoordinateXYZType(0, 0, 0)),
+                        },
+                        TxPackageSpecData: null),
+                    LF_ReceiverSetupData: null));
+
+            var buf = new byte[512];
+            var ex = Assert.Throws<ArgumentException>(() => message.TryEncode(buf, out _));
+            Assert.That(ex!.Message, Does.Contain("LF_SystemSetupData"),
+                "the exception should name the field that cannot be encoded");
+        }
+
+        /// <summary>
         /// The optional tail of the true-self-loop construct, present. <c>PulseSequenceOrder</c> is
         /// itself a minOccurs=2 list, so it needs two entries to satisfy the encoder's bounds check.
         /// </summary>
