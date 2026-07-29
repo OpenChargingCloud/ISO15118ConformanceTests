@@ -87,7 +87,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             ValueEncoding.StringValue or ValueEncoding.UnsignedInt or ValueEncoding.SignedInt
                                 or ValueEncoding.Binary or ValueEncoding.NBitUnsigned or ValueEncoding.EnumIndex
                                 or ValueEncoding.ComplexRef or ValueEncoding.OpaqueElement
-                                or ValueEncoding.SubstitutionChoice => true,
+                                or ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice => true,
                             _ => throw new NotSupportedException(
                                      $"Kotlin back end: value encoding {c.Value.GetType().Name} " +
                                      $"('{sp.RecordName}.{c.FieldName}') is not implemented yet."),
@@ -98,10 +98,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             /// <summary>
             /// Attribute shapes this back end models: either a single required attribute, or any
-            /// number of optional ones, all string-typed. On a derived type they are only safe while
-            /// the base contributes no constructor parameters of its own — attributes go first, so
-            /// otherwise they would have to interleave with the base's. (The common -2 case, a body
-            /// type extending the empty <c>BodyBaseType</c>, is fine.)
+            /// number of optional ones, all string-typed. A base type's own attributes are the one
+            /// real obstacle: only its *children* are flattened into the derived type, so there
+            /// would be nothing to pass for them at the base constructor call.
             /// </summary>
             private static void ValidateAttributes(SchemaPlan plan, SequencePlan sp)
             {
@@ -110,10 +109,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 if (sp.BaseRecordName is not null
                     && plan.ComplexTypes.TryGetValue(sp.BaseRecordName, out var basePlan)
-                    && (basePlan.Children.Count > 0 || basePlan.Attributes is { Count: > 0 }))
+                    && basePlan.Attributes is { Count: > 0 })
                     throw new NotSupportedException(
-                        $"Kotlin back end: attributes on '{sp.RecordName}', whose base type " +
-                        $"'{sp.BaseRecordName}' contributes constructor parameters, are not implemented yet.");
+                        $"Kotlin back end: '{sp.RecordName}' and its base type '{sp.BaseRecordName}' " +
+                        "both carry attributes; the base's are not flattened, so they cannot be passed on.");
 
                 // Optional attributes ride along as leading optionals of the *content run*, which an
                 // xs:choice does not have — they would be dropped silently. (A required attribute is
@@ -201,6 +200,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 "interface", "is", "null", "object", "package", "return", "super", "this", "throw",
                 "true", "try", "typealias", "typeof", "val", "var", "when", "while",
             };
+
+            /// <summary>
+            /// Escapes a schema-derived name for use inside a generated Kotlin string literal. `$`
+            /// matters here: the grammar's synthetic inline-choice child is literally named
+            /// `$InlineChoice`, and unescaped it would be read as a string template.
+            /// </summary>
+            private static string KStr(string s) =>
+                s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("$", "\\$");
 
             /// <summary>Kotlin properties are camelCase; the plan's field names are PascalCase.</summary>
             private static string Camel(string pascal) =>
@@ -298,11 +305,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (!_emitted.Add(name)) return;
 
                 // A type others extend must be `open`; an abstract one `abstract`. Only leaves that
-                // take part in no hierarchy can be `data` classes.
+                // take part in no hierarchy can be `data` classes — and only if they carry at least
+                // one parameter, which Kotlin requires of a data class (an empty complexType such as
+                // EIM_AReqAuthorizationModeType is a plain class).
                 var extended = _baseNames.Contains(name);
+                var hasParams = sp.Children.Count > 0
+                                || sp.Attributes is { Count: > 0 }
+                                || sp.SimpleContent is not null;
                 var keyword  = sp.IsAbstract ? "abstract class"
                              : extended      ? "open class"
-                             : sp.BaseRecordName is not null ? "class"
+                             : sp.BaseRecordName is not null || !hasParams ? "class"
                              : "data class";
 
                 // Inheritance: the first N flattened children belong to the base, are re-declared
@@ -335,13 +347,22 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     parms.Add(((sp.IsAbstract || extended) ? "open val " : "val ")
                               + Prop(SimpleContentField) + ": " + Type(sp.SimpleContentType!));
 
+                // Which parameters come from the base is a question of identity, not position: they
+                // are handed to the base constructor by name, so attributes and simpleContent may sit
+                // in front of them without disturbing anything.
+                var baseArgs = new List<string>();
+
                 for (var i = 0; i < sp.Children.Count; i++)
                 {
-                    var c = sp.Children[i];
-                    var modifier = i < baseChildren ? "override val "
-                                 : (sp.IsAbstract || extended) ? "open val "
-                                 : "val ";
-                    parms.Add(modifier + Prop(c.FieldName) + ": " + DeclType(c));
+                    var fromBase = i < baseChildren;
+                    foreach (var (nm, ty) in ChildParams(sp.Children[i]))
+                    {
+                        var modifier = fromBase ? "override val "
+                                     : (sp.IsAbstract || extended) ? "open val "
+                                     : "val ";
+                        parms.Add(modifier + nm + ": " + ty);
+                        if (fromBase) baseArgs.Add(nm);
+                    }
                 }
 
                 _sb.AppendLine("(");
@@ -350,10 +371,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(")");
 
                 if (sp.BaseRecordName is not null)
-                {
-                    var args = string.Join(", ", sp.Children.Take(baseChildren).Select(c => Prop(c.FieldName)));
-                    _sb.Append(" : ").Append(sp.BaseRecordName).Append('(').Append(args).Append(')');
-                }
+                    _sb.Append(" : ").Append(sp.BaseRecordName).Append('(')
+                       .Append(string.Join(", ", baseArgs)).Append(')');
                 _sb.AppendLine();
                 _sb.AppendLine();
             }
@@ -463,14 +482,28 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     if (c.Shape == ChildShape.BoundedRepeating)
                     {
                         if (kids.Count == 1)
+                        {
                             EmitEncodeList(c, sp);
+                            i++;   // the list's own terminator doubles as the element EE
+                        }
                         else if (c.ListMin > 0 && i == kids.Count - 1)
+                        {
                             EmitEncodeRepeatingChild(c, "        ");
+                            i++;   // ditto
+                        }
+                        else if (c.ListMin > 0 && i + 1 < kids.Count)
+                        {
+                            // The list's "another item vs move on" code doubles as the next particle's
+                            // event code, so the two are emitted together.
+                            EmitEncodeRepeatingWithTail(c, kids[i + 1], "        ");
+                            i += 2;
+                            if (i == kids.Count)
+                                _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
+                        }
                         else
                             throw new NotSupportedException(
-                                $"Kotlin back end: the repeating child '{name}.{c.FieldName}' is neither the " +
-                                "sequence's only child nor a required list closing it; not implemented yet.");
-                        i++;   // the list's own terminator doubles as the element EE
+                                $"Kotlin back end: the repeating child '{name}.{c.FieldName}' has a shape " +
+                                "this back end does not model yet.");
                         continue;
                     }
                     if (c.Shape == ChildShape.OptionalSingle)
@@ -495,6 +528,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     if (c.Value is ValueEncoding.SubstitutionChoice sub)
                     {
                         EmitEncodeSubstitution(c, sub);
+                        i++;
+                        if (i == kids.Count)
+                            _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
+                        continue;
+                    }
+
+                    // Likewise an inline choice with no optional siblings to flatten into.
+                    if (c.Value is ValueEncoding.InlineChoice inl)
+                    {
+                        EmitEncodeInlineChoiceStandalone(inl);
                         i++;
                         if (i == kids.Count)
                             _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
@@ -573,6 +616,27 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             }
 
             /// <summary>
+            /// An inline xs:choice with no adjacent optionals to flatten into: N sibling nullable
+            /// fields, exactly one set. An n-bit code selects it and the content follows directly —
+            /// the code IS the selector, so there is no SE wrapper.
+            /// </summary>
+            private void EmitEncodeInlineChoiceStandalone(ValueEncoding.InlineChoice ic)
+            {
+                for (var i = 0; i < ic.Members.Count; i++)
+                {
+                    var m = ic.Members[i];
+                    var f = "msg." + Prop(m.FieldName);
+                    _sb.Append("        ").Append(i == 0 ? "if (" : "} else if (").Append(f).AppendLine(" != null) {");
+                    _sb.Append("            w.writeBits(").Append(i).Append("u, ").Append(ic.BitWidth)
+                       .Append(")   // ").AppendLine(m.ElementName);
+                    EmitEncodeValue(AsChildPlan(m), f + "!!", "            ");
+                }
+                _sb.AppendLine("        } else {");
+                _sb.AppendLine("            throw IllegalArgumentException(\"no choice alternative set\")");
+                _sb.AppendLine("        }");
+            }
+
+            /// <summary>
             /// xs:choice content: exactly one alternative is present, and its index — not an SE — is
             /// the event code, over a width covering the alternatives plus the non-strict phantom.
             /// The caller writes the element EE afterwards.
@@ -594,7 +658,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 }
                 _sb.AppendLine("        } else {");
                 _sb.Append("            throw IllegalArgumentException(\"no choice alternative set for ")
-                   .Append(sp.RecordName).AppendLine("\")");
+                   .Append(KStr(sp.RecordName)).AppendLine("\")");
                 _sb.AppendLine("        }");
             }
 
@@ -624,6 +688,52 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private static string ListLocal(ChildPlan c) => Camel(c.FieldName) + "List";
 
             /// <summary>
+            /// A required list followed by exactly one more particle. cbexigen unrolls the two
+            /// positions rather than looping: after the first item the code says either "another item"
+            /// or "start the tail", and once the list is full only the tail remains — so the tail is
+            /// reachable at two different codes and widths. Verified in <c>CodecEmitter</c> against
+            /// cbV2G for AuthorizationSetupResType, the only place -20 CommonMessages needs it.
+            /// </summary>
+            private void EmitEncodeRepeatingWithTail(ChildPlan list, ChildPlan tail, string indent)
+            {
+                if (list.ListMax != 2)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: repeating '{list.FieldName}' with a following particle is only " +
+                        $"modelled for maxOccurs=2 (this one is {list.ListMax}); cbexigen uses a different " +
+                        "grammar above that and there is no reference to match here.");
+                if (tail.Shape != ChildShape.RequiredSingle
+                    || tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: repeating '{list.FieldName}' is only modelled with a plain " +
+                        $"required tail ('{tail.FieldName}' is {tail.Shape}).");
+
+                var prop     = "msg." + Prop(list.FieldName);
+                var tailProd = ProductionCount(tail);
+                var widthMid = BitsFor((1 + tailProd) + 1);   // another item, the tail, + the phantom
+                var widthMax = BitsFor(tailProd + 1);         // list full: only the tail remains
+
+                _sb.Append(indent).Append("require(").Append(prop).AppendLine(".size in 1..2) { \"list size out of schema range\" }");
+                _sb.Append(indent).Append("w.writeBits(0u, 1)   // SE(").Append(list.FieldName).AppendLine(")");
+                EmitEncodeValue(list, prop + "[0]", indent);
+
+                _sb.Append(indent).Append("if (").Append(prop).AppendLine(".size > 1) {");
+                _sb.Append(indent).Append("    w.writeBits(0u, ").Append(widthMid).Append(")   // ")
+                   .Append(list.FieldName).AppendLine(" (loop)");
+                EmitEncodeValue(list, prop + "[1]", indent + "    ");
+                EmitEncodeTailDispatch(tail, 0, widthMax, indent + "    ");
+                _sb.Append(indent).AppendLine("} else {");
+                EmitEncodeTailDispatch(tail, 1, widthMid, indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+            }
+
+            private void EmitEncodeTailDispatch(ChildPlan tail, int code, int width, string indent)
+            {
+                _sb.Append(indent).Append("w.writeBits(").Append(code).Append("u, ").Append(width)
+                   .Append(")   // ").AppendLine(tail.FieldName);
+                EmitEncodeValue(tail, "msg." + Prop(tail.FieldName), indent);
+            }
+
+            /// <summary>
             /// A repeating element inside an optional run. The first item takes the run state's event
             /// code; every further item and the closing EE use the 2-bit loop code {item = 0, EE = 1}.
             /// </summary>
@@ -647,6 +757,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private void DeclareRunLocal(ChildPlan c, List<string> ctor)
             {
+                if (c.Value is ValueEncoding.InlineChoice ic)
+                {
+                    DeclareInlineChoiceLocals(ic, ctor);
+                    return;
+                }
                 if (c.Shape == ChildShape.BoundedRepeating)
                 {
                     _sb.Append("        val ").Append(ListLocal(c)).Append(" = ArrayList<")
@@ -657,6 +772,87 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        var ").Append(Local(c.FieldName)).Append(": ").Append(DeclType(c))
                    .AppendLine(" = null");
                 ctor.Add(Local(c.FieldName));
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeRepeatingWithTail"/>.</summary>
+            private void EmitDecodeRepeatingWithTail(ChildPlan list, ChildPlan tail, List<string> ctor, string indent)
+            {
+                var lst      = ListLocal(list);
+                var tailProd = ProductionCount(tail);
+                var widthMid = BitsFor((1 + tailProd) + 1);
+                var widthMax = BitsFor(tailProd + 1);
+
+                _sb.Append(indent).Append("val ").Append(lst).Append(" = ArrayList<")
+                   .Append(Type(list.Type)).AppendLine(">()");
+                _sb.Append(indent).Append("r.readBits(1)   // SE(").Append(list.FieldName).AppendLine(") first");
+                EmitDecodeItem(list, lst, lst + "First", indent);
+                ctor.Add(lst);
+
+                _sb.Append(indent).Append("var ").Append(Local(tail.FieldName)).Append(": ")
+                   .Append(Type(tail.Type)).AppendLine("? = null");
+                ctor.Add(Local(tail.FieldName) + "!!");
+
+                _sb.Append(indent).Append("when (r.readBits(").Append(widthMid).AppendLine(")) {");
+                _sb.Append(indent).Append("    0u -> {   // ").Append(list.FieldName).AppendLine(" (loop)");
+                EmitDecodeItem(list, lst, lst + "Next", indent + "        ");
+                _sb.Append(indent).Append("        when (r.readBits(").Append(widthMax).AppendLine(")) {");
+                EmitDecodeTailCase(tail, 0, indent + "            ");
+                _sb.Append(indent).AppendLine("            else -> throw IllegalArgumentException(\"invalid event code\")");
+                _sb.Append(indent).AppendLine("        }");
+                _sb.Append(indent).AppendLine("    }");
+                EmitDecodeTailCase(tail, 1, indent + "    ");
+                _sb.Append(indent).AppendLine("    else -> throw IllegalArgumentException(\"invalid event code\")");
+                _sb.Append(indent).AppendLine("}");
+            }
+
+            private void EmitDecodeTailCase(ChildPlan tail, int code, string indent)
+            {
+                _sb.Append(indent).Append(code).Append("u -> {   // ").AppendLine(tail.FieldName);
+                if (WrapsValue(tail))
+                    _sb.Append(indent).AppendLine("    r.readBits(1)   // value-start");
+                _sb.Append(indent).Append("    ").Append(Local(tail.FieldName)).Append(" = ")
+                   .AppendLine(DecodeValueExpr(tail));
+                if (WrapsValue(tail))
+                    _sb.Append(indent).AppendLine("    r.readBits(1)   // child EE");
+                _sb.Append(indent).AppendLine("}");
+            }
+
+            /// <summary>One nullable local per inline-choice branch, in record-parameter order.</summary>
+            private void DeclareInlineChoiceLocals(ValueEncoding.InlineChoice ic, List<string> ctor)
+            {
+                foreach (var m in ic.Members)
+                {
+                    _sb.Append("        var ").Append(Local(m.FieldName)).Append(": ").Append(Type(m.Type))
+                       .AppendLine("? = null");
+                    ctor.Add(Local(m.FieldName));
+                }
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeInlineChoiceStandalone"/>.</summary>
+            private void EmitDecodeInlineChoiceStandalone(ValueEncoding.InlineChoice ic, List<string> ctor)
+            {
+                DeclareInlineChoiceLocals(ic, ctor);
+                _sb.Append("        when (r.readBits(").Append(ic.BitWidth).AppendLine(")) {");
+                for (var i = 0; i < ic.Members.Count; i++)
+                {
+                    var m = ic.Members[i];
+                    _sb.Append("            ").Append(i).Append("u -> {   // ").AppendLine(m.ElementName);
+                    EmitDecodeInlineMember(m, "                ");
+                    _sb.AppendLine("            }");
+                }
+                _sb.AppendLine("            else -> throw IllegalArgumentException(\"unknown choice event code\")");
+                _sb.AppendLine("        }");
+            }
+
+            /// <summary>Reads one inline-choice branch into its local, framing the value if it needs it.</summary>
+            private void EmitDecodeInlineMember(InlineChoiceMember m, string indent)
+            {
+                var child = AsChildPlan(m);
+                if (WrapsValue(child))
+                    _sb.Append(indent).AppendLine("r.readBits(1)   // value-start");
+                _sb.Append(indent).Append(Local(m.FieldName)).Append(" = ").AppendLine(DecodeValueExpr(child));
+                if (WrapsValue(child))
+                    _sb.Append(indent).AppendLine("r.readBits(1)   // child EE");
             }
 
             /// <summary>Decode mirror of <see cref="EmitEncodeRepeatingItems"/>.</summary>
@@ -826,15 +1022,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         continue;
                     }
 
-                    // A substitution terminator has one production per member, so it extends the
-                    // chain rather than closing it; the chain then ends in a throw, because a
-                    // required child must be set.
-                    if (term?.Value is ValueEncoding.SubstitutionChoice)
+                    // A substitution or inline-choice terminator has one production per member, so it
+                    // extends the chain rather than closing it; the chain then ends in a throw,
+                    // because a required child must be set.
+                    if (term?.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
                     {
                         EmitEncodeRunParticle(term, eeCode, width, ref first, ind, $"done{id} = true");
                         _sb.Append(ind).AppendLine("} else {");
                         _sb.Append(ind).Append("    throw IllegalArgumentException(\"no value set for ")
-                           .Append(term.FieldName).AppendLine("\")");
+                           .Append(KStr(term.FieldName)).AppendLine("\")");
                         _sb.Append(ind).AppendLine("}");
                         _sb.AppendLine("                }");
                         continue;
@@ -888,6 +1084,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     return code + 1;
                 }
 
+                if (p.Value is ValueEncoding.InlineChoice ic)
+                {
+                    // Each branch is its own nullable field, so each takes its own event code and
+                    // extends the chain — there is nothing to smart-cast.
+                    foreach (var m in ic.Members)
+                    {
+                        var f = "msg." + Prop(m.FieldName);
+                        _sb.Append(indent).Append(first ? "if (" : "} else if (").Append(f).AppendLine(" != null) {");
+                        _sb.Append(indent).Append("    w.writeBits(").Append(code).Append("u, ").Append(width)
+                           .Append(")   // ").AppendLine(m.ElementName);
+                        EmitEncodeValue(AsChildPlan(m), f + "!!", indent + "    ");
+                        _sb.Append(indent).Append("    ").AppendLine(after);
+                        first = false;
+                        code++;
+                    }
+                    return code;
+                }
+
                 if (p.Value is ValueEncoding.SubstitutionChoice sc)
                 {
                     // Hoisted into a local because `is` cannot smart-cast an `open`/`override` property,
@@ -925,6 +1139,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 return code + 1;
             }
 
+            /// <summary>
+            /// A child's flattened constructor parameters. An inline xs:choice contributes one
+            /// nullable parameter per branch — cbexigen models it as N sibling fields with only one
+            /// set, not as a single polymorphic field the way a substitution group is modelled.
+            /// </summary>
+            private static List<(string Name, string Type)> ChildParams(ChildPlan c) =>
+                c.Value is ValueEncoding.InlineChoice ic
+                    ? ic.Members.Select(m => (Prop(m.FieldName), Type(m.Type) + "?")).ToList()
+                    : [(Prop(c.FieldName), DeclType(c))];
+
+            /// <summary>An inline-choice branch as a throwaway child, so it can go through the
+            /// ordinary value emitters — which only ever read <c>Value</c> and <c>Type</c>.</summary>
+            private static ChildPlan AsChildPlan(InlineChoiceMember m) =>
+                new(m.FieldName, m.Type, m.IsValueType, ChildShape.RequiredSingle, m.Value);
+
             /// <summary>The read-once local a substitution particle dispatches on.</summary>
             private static string SubLocal(ChildPlan p) => "sub_" + Camel(p.FieldName);
 
@@ -956,6 +1185,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private static int ProductionCount(ChildPlan c) =>
                 c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count
+                : c.Value is ValueEncoding.InlineChoice ic ? ic.Members.Count
                 : c.IsWildcardAny ? 2
                 : 1;
 
@@ -1001,7 +1231,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.AppendLine("            }");
                 }
                 _sb.Append("            else -> throw IllegalArgumentException(\"unsupported substitution member for ")
-                   .Append(c.FieldName).AppendLine("\")");
+                   .Append(KStr(c.FieldName)).AppendLine("\")");
                 _sb.AppendLine("        }");
             }
 
@@ -1024,7 +1254,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     // Only reached with a present instance; absence is handled by the optional run.
                     _sb.Append(indent).Append("throw UnsupportedOperationException(\"Encoding a present ")
-                       .Append(oe.TypeName).AppendLine(" (XMLDSig) is not implemented in the Kotlin back end.\")");
+                       .Append(KStr(oe.TypeName)).AppendLine(" (XMLDSig) is not implemented in the Kotlin back end.\")");
                     return;
                 }
                 if (c.Value is ValueEncoding.ComplexRef cr)
@@ -1139,13 +1369,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         {
                             EmitDecodeRepeating(c, "list", ListBounds(c, sp).Max, "        ");
                             ctor.Add("list");
+                            i++;
                         }
-                        else
+                        else if (c.ListMin > 0 && i == kids.Count - 1)
                         {
                             EmitDecodeRepeating(c, ListLocal(c), c.ListMax, "        ");
                             ctor.Add(ListLocal(c));
+                            i++;
                         }
-                        i++;
+                        else
+                        {
+                            EmitDecodeRepeatingWithTail(c, kids[i + 1], ctor, "        ");
+                            i += 2;
+                            if (i == kids.Count)
+                                _sb.AppendLine("        r.readBits(1)   // element EE");
+                        }
                         continue;
                     }
                     if (c.Shape == ChildShape.OptionalSingle)
@@ -1158,6 +1396,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                         i = term is null ? kids.Count : e + 1;
                         if (term is not null && term.Shape != ChildShape.BoundedRepeating && i == kids.Count)
+                            _sb.AppendLine("        r.readBits(1)   // element EE");
+                        continue;
+                    }
+
+                    // An inline choice declares one local per branch and returns them all.
+                    if (c.Value is ValueEncoding.InlineChoice inl)
+                    {
+                        EmitDecodeInlineChoiceStandalone(inl, ctor);
+                        i++;
+                        if (i == kids.Count)
                             _sb.AppendLine("        r.readBits(1)   // element EE");
                         continue;
                     }
@@ -1345,7 +1593,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // non-list one has to be declared nullable and unwrapped at the constructor call.
                 if (term is not null)
                 {
-                    if (term.Shape == ChildShape.BoundedRepeating)
+                    if (term.Shape == ChildShape.BoundedRepeating
+                        || term.Value is ValueEncoding.InlineChoice)
                         DeclareRunLocal(term, ctor);
                     else
                     {
@@ -1387,6 +1636,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             EmitDecodeRepeatingItems(c, ListLocal(c), ind + "    ", $"done{id} = true");
                             _sb.Append(ind).AppendLine("}");
                             code++;
+                            continue;
+                        }
+
+                        if (c.Value is ValueEncoding.InlineChoice cic)
+                        {
+                            for (var j = 0; j < cic.Members.Count; j++)
+                            {
+                                var mbr = cic.Members[j];
+                                _sb.Append(ind).Append(code + j).Append("u -> {   // ").AppendLine(mbr.ElementName);
+                                EmitDecodeInlineMember(mbr, ind + "    ");
+                                _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                                _sb.Append(ind).AppendLine("}");
+                            }
+                            code += cic.Members.Count;
                             continue;
                         }
 
@@ -1447,6 +1710,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         EmitDecodeRepeatingItems(term, ListLocal(term), ind + "    ", $"done{id} = true");
                         _sb.Append(ind).AppendLine("}");
                     }
+                    else if (term.Value is ValueEncoding.InlineChoice tic)
+                    {
+                        for (var j = 0; j < tic.Members.Count; j++)
+                        {
+                            var mbr = tic.Members[j];
+                            _sb.Append(ind).Append(code + j).Append("u -> {   // ").AppendLine(mbr.ElementName);
+                            EmitDecodeInlineMember(mbr, ind + "    ");
+                            _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
+                            _sb.Append(ind).AppendLine("}");
+                        }
+                    }
                     else if (term.Value is ValueEncoding.SubstitutionChoice tsc)
                     {
                         // One case per member, at the run's highest codes.
@@ -1491,7 +1765,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private string DecodeValueExpr(ChildPlan c) => c.Value switch
             {
                 ValueEncoding.OpaqueElement oe =>
-                    $"throw UnsupportedOperationException(\"Decoding a present {oe.TypeName} " +
+                    $"throw UnsupportedOperationException(\"Decoding a present {KStr(oe.TypeName)} " +
                     "(XMLDSig) is not implemented in the Kotlin back end.\")",
                 ValueEncoding.ComplexRef cr  => $"decode{cr.TypeName}(r)",
                 // An AT value is a bare string, like StringValue but without the value framing.
