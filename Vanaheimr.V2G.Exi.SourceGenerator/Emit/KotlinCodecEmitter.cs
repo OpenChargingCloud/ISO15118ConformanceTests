@@ -217,10 +217,29 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// A property name as written in declarations and accessors — back-quoted when the
             /// camelCase form collides with a keyword.
             /// </summary>
-            private static string Prop(string pascal)
+            private static string Prop(string pascal) => Ident(Camel(pascal));
+
+            /// <summary>
+            /// A schema name as a Kotlin identifier, case unchanged. Characters illegal in an
+            /// identifier become <c>_</c>, mirroring what <c>CodecEmitter</c> does for C# so both
+            /// back ends expose the same names — WPT's power classes are spelled <c>MF-WPT1</c> in
+            /// the schema. A name that then collides with a keyword is back-quoted, which C# does
+            /// not need: the -20 DER schemas have a unit literally called <c>var</c>, a hard keyword
+            /// in Kotlin but only a contextual one in C#.
+            /// </summary>
+            private static string Ident(string name)
             {
-                var name = Camel(pascal);
-                return KotlinKeywords.Contains(name) ? "`" + name + "`" : name;
+                if (string.IsNullOrEmpty(name)) return "_";
+
+                var chars = name.ToCharArray();
+                for (var i = 0; i < chars.Length; i++)
+                    if (!(char.IsLetterOrDigit(chars[i]) || chars[i] == '_'))
+                        chars[i] = '_';
+
+                var result = new string(chars);
+                if (char.IsDigit(result[0])) result = "_" + result;
+
+                return KotlinKeywords.Contains(result) ? "`" + result + "`" : result;
             }
 
             /// <summary>
@@ -266,7 +285,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     _sb.Append("enum class ").Append(e.Name).AppendLine(" {");
                     for (var i = 0; i < e.Members.Count; i++)
-                        _sb.Append("    ").Append(e.Members[i]).AppendLine(i == e.Members.Count - 1 ? "" : ",");
+                        _sb.Append("    ").Append(Ident(e.Members[i]))
+                           .AppendLine(i == e.Members.Count - 1 ? "" : ",");
                     _sb.AppendLine("}");
                     _sb.AppendLine();
                 }
@@ -479,7 +499,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 for (var i = 0; i < kids.Count;)
                 {
                     var c = kids[i];
-                    if (c.Shape == ChildShape.BoundedRepeating)
+                    if (c.Shape == ChildShape.BoundedRepeating && (kids.Count == 1 || c.ListMin > 0))
                     {
                         if (kids.Count == 1)
                         {
@@ -495,9 +515,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         {
                             // The list's "another item vs move on" code doubles as the next particle's
                             // event code, so the two are emitted together.
-                            EmitEncodeRepeatingWithTail(c, kids[i + 1], "        ");
+                            var tailC = kids[i + 1];
+                            EmitEncodeRepeatingWithTail(c, tailC, "        ");
                             i += 2;
-                            if (i == kids.Count)
+                            // An optional tail ends the sequence and closes the element itself.
+                            if (i == kids.Count && tailC.Shape == ChildShape.RequiredSingle)
                                 _sb.AppendLine("        w.writeBits(0u, 1)   // element EE");
                         }
                         else
@@ -506,13 +528,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                                 "this back end does not model yet.");
                         continue;
                     }
-                    if (c.Shape == ChildShape.OptionalSingle)
+                    if (StartsRun(c))
                     {
                         // A run of optionals ends either at the element EE or at the first required
                         // child, which then carries the run's highest event code.
                         var e    = RunEnd(kids, i);
                         var term = e < kids.Count ? kids[e] : null;
                         RejectRunTerminator(term, name);
+
+                        var midE = MidRunListIndex(kids, i, e);
+                        if (midE >= 0)
+                        {
+                            EmitEncodeMidRunList(kids, i, midE, e, kids.Count);
+                            i = kids.Count;   // this grammar closes the element itself
+                            continue;
+                        }
 
                         EmitEncodeOptionalRun(kids, i, e, term);
 
@@ -696,16 +726,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private void EmitEncodeRepeatingWithTail(ChildPlan list, ChildPlan tail, string indent)
             {
+                if (tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: repeating '{list.FieldName}' with a choice/substitution tail " +
+                        $"('{tail.FieldName}') is not implemented.");
+
                 if (list.ListMax != 2)
-                    throw new NotSupportedException(
-                        $"Kotlin back end: repeating '{list.FieldName}' with a following particle is only " +
-                        $"modelled for maxOccurs=2 (this one is {list.ListMax}); cbexigen uses a different " +
-                        "grammar above that and there is no reference to match here.");
-                if (tail.Shape != ChildShape.RequiredSingle
-                    || tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
-                    throw new NotSupportedException(
-                        $"Kotlin back end: repeating '{list.FieldName}' is only modelled with a plain " +
-                        $"required tail ('{tail.FieldName}' is {tail.Shape}).");
+                {
+                    EmitEncodeRepeatingSelfLoop(list, tail, indent);
+                    return;
+                }
 
                 var prop     = "msg." + Prop(list.FieldName);
                 var tailProd = ProductionCount(tail);
@@ -723,6 +753,51 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 EmitEncodeTailDispatch(tail, 0, widthMax, indent + "    ");
                 _sb.Append(indent).AppendLine("} else {");
                 EmitEncodeTailDispatch(tail, 1, widthMid, indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+            }
+
+            /// <summary>
+            /// The self-loop variant of <see cref="EmitEncodeRepeatingWithTail"/>, for a list too long
+            /// to unroll. <b>This shape has no working reference encoder</b>: cbexigen's own output for
+            /// it (WPT_LF_TransmitterDataType) is documented in <c>CodecEmitter</c> as unable to encode
+            /// even the schema's required minimum. Both back ends therefore emit a plain
+            /// schema-informed non-strict reading — first item unconditional, then a loop offering
+            /// [another item, the tail, (element EE)] — which is a design decision, not a diff against
+            /// a reference. Treat bytes from this construct as unvalidated.
+            /// </summary>
+            private void EmitEncodeRepeatingSelfLoop(ChildPlan list, ChildPlan tail, string indent)
+            {
+                var required = tail.Shape == ChildShape.RequiredSingle;
+                var prop     = "msg." + Prop(list.FieldName);
+                var tailProp = "msg." + Prop(tail.FieldName);
+                var width    = BitsFor(1 + ProductionCount(tail) + (required ? 0 : 1) + 1);
+
+                _sb.Append(indent).Append("require(").Append(prop).Append(".size in ")
+                   .Append(Math.Max(1, list.ListMin)).Append("..").Append(list.ListMax)
+                   .AppendLine(") { \"list size out of schema range\" }");
+                _sb.Append(indent).Append("w.writeBits(0u, 1)   // SE(").Append(list.FieldName).AppendLine(") first");
+                EmitEncodeValue(list, prop + "[0]", indent);
+
+                _sb.Append(indent).Append("for (ci in 1 until ").Append(prop).AppendLine(".size) {");
+                _sb.Append(indent).Append("    w.writeBits(0u, ").Append(width).Append(")   // ")
+                   .Append(list.FieldName).AppendLine(" (loop)");
+                EmitEncodeValue(list, prop + "[ci]", indent + "    ");
+                _sb.Append(indent).AppendLine("}");
+
+                if (required)
+                {
+                    EmitEncodeTailDispatch(tail, 1, width, indent);
+                    return;
+                }
+
+                // An optional tail ends the sequence, so this construct closes the element itself.
+                _sb.Append(indent).Append("if (").Append(tailProp).AppendLine(" != null) {");
+                _sb.Append(indent).Append("    w.writeBits(1u, ").Append(width).Append(")   // ")
+                   .AppendLine(tail.FieldName);
+                EmitEncodeValue(tail, tailProp + "!!", indent + "    ");
+                _sb.Append(indent).AppendLine("    w.writeBits(0u, 1)   // element EE");
+                _sb.Append(indent).AppendLine("} else {");
+                _sb.Append(indent).Append("    w.writeBits(2u, ").Append(width).AppendLine(")   // element EE");
                 _sb.Append(indent).AppendLine("}");
             }
 
@@ -779,6 +854,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var lst      = ListLocal(list);
                 var tailProd = ProductionCount(tail);
+                var required = tail.Shape == ChildShape.RequiredSingle;
                 var widthMid = BitsFor((1 + tailProd) + 1);
                 var widthMax = BitsFor(tailProd + 1);
 
@@ -790,7 +866,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 _sb.Append(indent).Append("var ").Append(Local(tail.FieldName)).Append(": ")
                    .Append(Type(tail.Type)).AppendLine("? = null");
-                ctor.Add(Local(tail.FieldName) + "!!");
+                ctor.Add(Local(tail.FieldName) + (required ? "!!" : ""));
+
+                if (list.ListMax != 2)
+                {
+                    EmitDecodeRepeatingSelfLoop(list, tail, lst, required, indent);
+                    return;
+                }
 
                 _sb.Append(indent).Append("when (r.readBits(").Append(widthMid).AppendLine(")) {");
                 _sb.Append(indent).Append("    0u -> {   // ").Append(list.FieldName).AppendLine(" (loop)");
@@ -805,6 +887,45 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(indent).AppendLine("}");
             }
 
+            /// <summary>
+            /// Decode mirror of <see cref="EmitEncodeRepeatingSelfLoop"/>. Note the present-tail branch
+            /// consumes the element EE the encoder writes after the tail's content; without it the two
+            /// sides would disagree by exactly one bit.
+            /// </summary>
+            private void EmitDecodeRepeatingSelfLoop(ChildPlan list, ChildPlan tail, string lst,
+                                                     bool required, string indent)
+            {
+                var id    = _run++;
+                var width = BitsFor(1 + ProductionCount(tail) + (required ? 0 : 1) + 1);
+
+                _sb.Append(indent).Append("var done").Append(id).AppendLine(" = false");
+                _sb.Append(indent).Append("while (!done").Append(id).AppendLine(") {");
+                _sb.Append(indent).Append("    val rc = r.readBits(").Append(width).AppendLine(")");
+                _sb.Append(indent).AppendLine("    if (rc == 0u) {");
+                _sb.Append(indent).Append("        require(").Append(lst).Append(".size < ").Append(list.ListMax)
+                   .AppendLine(") { \"invalid repeating-element event code\" }");
+                EmitDecodeItem(list, lst, lst + "Next", indent + "        ");
+                _sb.Append(indent).AppendLine("    } else if (rc == 1u) {");
+                if (WrapsValue(tail))
+                    _sb.Append(indent).AppendLine("        r.readBits(1)   // value-start");
+                _sb.Append(indent).Append("        ").Append(Local(tail.FieldName)).Append(" = ")
+                   .AppendLine(DecodeValueExpr(tail));
+                if (WrapsValue(tail))
+                    _sb.Append(indent).AppendLine("        r.readBits(1)   // child EE");
+                if (!required)
+                    _sb.Append(indent).AppendLine("        r.readBits(1)   // element EE");
+                _sb.Append(indent).Append("        done").Append(id).AppendLine(" = true");
+                if (!required)
+                {
+                    _sb.Append(indent).AppendLine("    } else if (rc == 2u) {");
+                    _sb.Append(indent).Append("        done").Append(id).AppendLine(" = true   // element EE");
+                }
+                _sb.Append(indent).AppendLine("    } else {");
+                _sb.Append(indent).AppendLine("        throw IllegalArgumentException(\"invalid event code\")");
+                _sb.Append(indent).AppendLine("    }");
+                _sb.Append(indent).AppendLine("}");
+            }
+
             private void EmitDecodeTailCase(ChildPlan tail, int code, string indent)
             {
                 _sb.Append(indent).Append(code).Append("u -> {   // ").AppendLine(tail.FieldName);
@@ -815,6 +936,94 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (WrapsValue(tail))
                     _sb.Append(indent).AppendLine("    r.readBits(1)   // child EE");
                 _sb.Append(indent).AppendLine("}");
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeMidRunList"/>.</summary>
+            private void EmitDecodeMidRunList(IReadOnlyList<ChildPlan> kids, int start, int listIdx,
+                                              int end, int childCount, List<string> ctor)
+            {
+                var suffix      = MidRunSuffix(kids, start, listIdx, end, childCount);
+                var list        = kids[listIdx];
+                var suffixTotal = suffix.Sum(ProductionCount);
+                var lst         = ListLocal(list);
+                var id          = _run++;
+                const string ca = "                        ";
+
+                var w0 = BitsFor(1 + 1 + 1);
+                var w1 = BitsFor(1 + suffixTotal + 1 + 1);
+                var w2 = BitsFor(suffixTotal + 1 + 1);
+
+                _sb.Append("        val ").Append(lst).Append(" = ArrayList<").Append(Type(list.Type)).AppendLine(">()");
+                ctor.Add(lst);
+                foreach (var s in suffix)
+                {
+                    _sb.Append("        var ").Append(Local(s.FieldName)).Append(": ").Append(DeclType(s))
+                       .AppendLine(" = null");
+                    ctor.Add(Local(s.FieldName));
+                }
+
+                _sb.Append("        var st").Append(id).AppendLine(" = 0");
+                _sb.Append("        var done").Append(id).AppendLine(" = false");
+                _sb.Append("        while (!done").Append(id).AppendLine(") {");
+                _sb.Append("            when (st").Append(id).AppendLine(") {");
+
+                _sb.AppendLine("                0 -> {");
+                _sb.Append("                    when (r.readBits(").Append(w0).AppendLine(")) {");
+                _sb.Append(ca).Append("0u -> {   // ").AppendLine(list.FieldName);
+                EmitDecodeItem(list, lst, lst + "First", ca + "    ");
+                _sb.Append(ca).Append("    st").Append(id).AppendLine(" = 1");
+                _sb.Append(ca).AppendLine("}");
+                _sb.Append(ca).Append("1u -> done").Append(id).AppendLine(" = true   // element EE");
+                _sb.Append(ca).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
+                _sb.AppendLine("                    }");
+                _sb.AppendLine("                }");
+
+                _sb.AppendLine("                1 -> {");
+                _sb.Append("                    when (r.readBits(").Append(w1).AppendLine(")) {");
+                _sb.Append(ca).Append("0u -> {   // ").AppendLine(list.FieldName);
+                EmitDecodeItem(list, lst, lst + "Next", ca + "    ");
+                _sb.Append(ca).Append("    st").Append(id).AppendLine(" = 2");
+                _sb.Append(ca).AppendLine("}");
+                EmitDecodeMidRunTail(suffix, 1, id, ca);
+                _sb.AppendLine("                    }");
+                _sb.AppendLine("                }");
+
+                _sb.AppendLine("                2 -> {");
+                _sb.Append("                    when (r.readBits(").Append(w2).AppendLine(")) {");
+                EmitDecodeMidRunTail(suffix, 0, id, ca);
+                _sb.AppendLine("                    }");
+                _sb.AppendLine("                }");
+
+                if (suffix.Count > 0)
+                {
+                    // A suffix particle was decoded; only the element EE is left.
+                    _sb.AppendLine("                3 -> {");
+                    _sb.AppendLine("                    r.readBits(1)   // element EE");
+                    _sb.Append("                    done").Append(id).AppendLine(" = true");
+                    _sb.AppendLine("                }");
+                }
+
+                _sb.AppendLine("            }");
+                _sb.AppendLine("        }");
+            }
+
+            private void EmitDecodeMidRunTail(List<ChildPlan> suffix, int code, int id, string ca)
+            {
+                foreach (var s in suffix)
+                {
+                    _sb.Append(ca).Append(code).Append("u -> {   // ").AppendLine(s.FieldName);
+                    if (WrapsValue(s))
+                        _sb.Append(ca).AppendLine("    r.readBits(1)   // value-start");
+                    _sb.Append(ca).Append("    ").Append(Local(s.FieldName)).Append(" = ")
+                       .AppendLine(DecodeValueExpr(s));
+                    if (WrapsValue(s))
+                        _sb.Append(ca).AppendLine("    r.readBits(1)   // child EE");
+                    _sb.Append(ca).Append("    st").Append(id).AppendLine(" = 3");
+                    _sb.Append(ca).AppendLine("}");
+                    code++;
+                }
+                _sb.Append(ca).Append(code).Append("u -> done").Append(id).AppendLine(" = true   // element EE");
+                _sb.Append(ca).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
             }
 
             /// <summary>One nullable local per inline-choice branch, in record-parameter order.</summary>
@@ -906,18 +1115,133 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// particle among them, since an empty list is itself the "absent" encoding.
             /// </summary>
             /// <summary>
-            /// An optional list inside a run must be its last particle. cbexigen encodes a mid-run
-            /// list with a different, narrower grammar (the particles after it become unreachable
-            /// until an item is written, and it is hard-capped at two items); that shape is modelled
-            /// in <c>CodecEmitter</c> but not here, and it must not silently take this path.
+            /// Whether a particle opens an optional run. An optional bounded-repeating list does too —
+            /// an empty list is itself the "absent" encoding — so it must not be claimed by the
+            /// standalone-repeating path first.
             /// </summary>
-            private static void RejectMidRunList(IReadOnlyList<ChildPlan> kids, int start, int end)
+            private static bool StartsRun(ChildPlan c) =>
+                c.Shape == ChildShape.OptionalSingle
+                || (c.Shape == ChildShape.BoundedRepeating && c.ListMin == 0);
+
+            /// <summary>The index of an optional list sitting before the end of its run, or -1.</summary>
+            private static int MidRunListIndex(IReadOnlyList<ChildPlan> kids, int start, int end)
             {
                 for (var p = start; p < end - 1; p++)
                     if (kids[p].Shape == ChildShape.BoundedRepeating)
+                        return p;
+                return -1;
+            }
+
+            /// <summary>
+            /// The particles following a mid-run list, checked against what this shape's grammar can
+            /// express. Mirrors the constraints <c>CodecEmitter</c> enforces.
+            /// </summary>
+            private static List<ChildPlan> MidRunSuffix(IReadOnlyList<ChildPlan> kids, int start, int listIdx,
+                                                        int end, int childCount)
+            {
+                if (listIdx != start)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: particles before the mid-run list '{kids[listIdx].FieldName}' " +
+                        "are not supported.");
+                if (kids[listIdx].ListMin != 0)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: the mid-run list '{kids[listIdx].FieldName}' must be optional.");
+                if (end != childCount)
+                    throw new NotSupportedException(
+                        $"Kotlin back end: the mid-run list '{kids[listIdx].FieldName}' must be followed only " +
+                        "by particles ending the sequence.");
+
+                var suffix = new List<ChildPlan>();
+                for (var p = listIdx + 1; p < end; p++)
+                {
+                    if (kids[p].Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
                         throw new NotSupportedException(
-                            $"Kotlin back end: the optional list '{kids[p].FieldName}' is not the last " +
-                            "particle of its run; that grammar is not implemented yet.");
+                            $"Kotlin back end: suffix particle '{kids[p].FieldName}' after the mid-run list " +
+                            $"'{kids[listIdx].FieldName}' must be a plain optional element.");
+                    suffix.Add(kids[p]);
+                }
+                return suffix;
+            }
+
+            /// <summary>
+            /// A run whose optional list is *not* its last particle. cbexigen's grammar for this is
+            /// narrower than a normal run and surprising twice over, and <c>CodecEmitter</c> documents
+            /// why it is matched rather than corrected: the particles after the list are unreachable
+            /// until at least one item has been written, and the list is hard-capped at two items
+            /// regardless of its schema maxOccurs. Being byte-exact with the reference encoder is the
+            /// point, so this reproduces it.
+            /// </summary>
+            private void EmitEncodeMidRunList(IReadOnlyList<ChildPlan> kids, int start, int listIdx,
+                                              int end, int childCount)
+            {
+                var suffix      = MidRunSuffix(kids, start, listIdx, end, childCount);
+                var list        = kids[listIdx];
+                var suffixTotal = suffix.Sum(ProductionCount);
+                var prop        = "msg." + Prop(list.FieldName);
+                var id          = _run++;
+                const string br = "                    ";
+
+                var w0 = BitsFor(1 + 1 + 1);
+                var w1 = BitsFor(1 + suffixTotal + 1 + 1);
+                var w2 = BitsFor(suffixTotal + 1 + 1);
+
+                // Choosing a suffix particle still needs the element's own closing EE — cbexigen puts a
+                // dedicated one-bit-EE state after it, unlike a normal run where the caller appends it.
+                var afterSuffix = $"w.writeBits(0u, 1)   // element EE\n{br}    done{id} = true";
+
+                _sb.Append("        require(").Append(prop).Append(".size <= 2) { \"")
+                   .Append(KStr(list.FieldName))
+                   .AppendLine(": cbV2G's grammar for this position caps this list at 2 items.\" }");
+                _sb.Append("        var st").Append(id).AppendLine(" = 0");
+                _sb.Append("        var done").Append(id).AppendLine(" = false");
+                _sb.Append("        while (!done").Append(id).AppendLine(") {");
+                _sb.Append("            when (st").Append(id).AppendLine(") {");
+
+                // State 0: nothing written yet — start the first item, or close the element.
+                _sb.AppendLine("                0 -> {");
+                _sb.Append(br).Append("if (").Append(prop).AppendLine(".isNotEmpty()) {");
+                _sb.Append(br).Append("    w.writeBits(0u, ").Append(w0).Append(")   // ").AppendLine(list.FieldName);
+                EmitEncodeValue(list, prop + "[0]", br + "    ");
+                _sb.Append(br).Append("    st").Append(id).AppendLine(" = 1");
+                _sb.Append(br).AppendLine("} else {");
+                _sb.Append(br).Append("    w.writeBits(1u, ").Append(w0).AppendLine(")   // element EE");
+                _sb.Append(br).Append("    done").Append(id).AppendLine(" = true");
+                _sb.Append(br).AppendLine("}");
+                _sb.AppendLine("                }");
+
+                // State 1: one item written — a second item, a suffix particle, or the element EE.
+                _sb.AppendLine("                1 -> {");
+                _sb.Append(br).Append("if (").Append(prop).AppendLine(".size > 1) {");
+                _sb.Append(br).Append("    w.writeBits(0u, ").Append(w1).Append(")   // ").AppendLine(list.FieldName);
+                EmitEncodeValue(list, prop + "[1]", br + "    ");
+                _sb.Append(br).Append("    st").Append(id).AppendLine(" = 2");
+                EmitEncodeMidRunTail(suffix, 1, w1, id, br, afterSuffix, first: false);
+                _sb.AppendLine("                }");
+
+                // State 2: the list is capped — only a suffix particle or the element EE remain.
+                _sb.AppendLine("                2 -> {");
+                EmitEncodeMidRunTail(suffix, 0, w2, id, br, afterSuffix, first: true);
+                _sb.AppendLine("                }");
+
+                _sb.AppendLine("            }");
+                _sb.AppendLine("        }");
+            }
+
+            /// <summary>The suffix branches plus the closing element EE of one mid-run-list state.</summary>
+            private void EmitEncodeMidRunTail(List<ChildPlan> suffix, int code, int width, int id,
+                                              string br, string afterSuffix, bool first)
+            {
+                foreach (var s in suffix)
+                    code = EmitEncodeRunParticle(s, code, width, ref first, br, afterSuffix);
+
+                var tail = first ? br : br + "    ";
+                if (!first)
+                    _sb.Append(br).AppendLine("} else {");
+                _sb.Append(tail).Append("w.writeBits(").Append(code).Append("u, ").Append(width)
+                   .AppendLine(")   // element EE");
+                _sb.Append(tail).Append("done").Append(id).AppendLine(" = true");
+                if (!first)
+                    _sb.Append(br).AppendLine("}");
             }
 
             private static int RunEnd(IReadOnlyList<ChildPlan> kids, int i)
@@ -961,7 +1285,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var m           = end - start;
                 var id          = _run++;
                 var trailingAny = TrailingAny(kids, start, end, term);
-                RejectMidRunList(kids, start, end);
                 const string ind = "                    ";
 
                 _sb.Append("        var st").Append(id).AppendLine(" = 0");
@@ -1363,7 +1686,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 for (var i = 0; i < kids.Count;)
                 {
                     var c = kids[i];
-                    if (c.Shape == ChildShape.BoundedRepeating)
+                    if (c.Shape == ChildShape.BoundedRepeating && (kids.Count == 1 || c.ListMin > 0))
                     {
                         if (kids.Count == 1)
                         {
@@ -1379,18 +1702,27 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         }
                         else
                         {
-                            EmitDecodeRepeatingWithTail(c, kids[i + 1], ctor, "        ");
+                            var tailD = kids[i + 1];
+                            EmitDecodeRepeatingWithTail(c, tailD, ctor, "        ");
                             i += 2;
-                            if (i == kids.Count)
+                            if (i == kids.Count && tailD.Shape == ChildShape.RequiredSingle)
                                 _sb.AppendLine("        r.readBits(1)   // element EE");
                         }
                         continue;
                     }
-                    if (c.Shape == ChildShape.OptionalSingle)
+                    if (StartsRun(c))
                     {
                         var e    = RunEnd(kids, i);
                         var term = e < kids.Count ? kids[e] : null;
                         RejectRunTerminator(term, name);
+
+                        var midD = MidRunListIndex(kids, i, e);
+                        if (midD >= 0)
+                        {
+                            EmitDecodeMidRunList(kids, i, midD, e, kids.Count, ctor);
+                            i = kids.Count;
+                            continue;
+                        }
 
                         EmitDecodeOptionalRun(kids, i, e, term, ctor);
 
@@ -1584,7 +1916,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var id          = _run++;
                 var trailingAny = TrailingAny(kids, start, end, term);
-                RejectMidRunList(kids, start, end);
 
                 for (var s = start; s < end; s++)
                     DeclareRunLocal(kids[s], ctor);
