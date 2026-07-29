@@ -35,6 +35,11 @@
     <!-- Referenced as a plain library (not an analyzer) so grammar tests can drive the
          generator directly on synthetic mini-XSDs. -->
     <ProjectReference Include="..\Vanaheimr.V2G.Exi.SourceGenerator\Vanaheimr.V2G.Exi.SourceGenerator.csproj" />
+    <!-- The out-of-Roslyn driver, so its file handling can be tested end to end. It deletes
+         generated output it no longer produces, which wants a test with real files.
+         It compiles the front end and emitters in rather than referencing them; those types stay
+         internal there, so only Program is visible here and nothing collides. -->
+    <ProjectReference Include="..\Vanaheimr.V2G.Exi.Codegen\Vanaheimr.V2G.Exi.Codegen.csproj" />
   </ItemGroup>
 
   <ItemGroup>

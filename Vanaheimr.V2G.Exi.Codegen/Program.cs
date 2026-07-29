@@ -70,10 +70,19 @@ namespace Vanaheimr.V2G.Exi.Codegen
             // path itself, never by whether the directory happens to exist yet: the old rule wrote
             // a *file* named after the directory when that directory had not been created, which is
             // silent and easy to miss. A path with an extension is a file, anything else a
-            // directory. An emitter that splits its output always needs the directory.
-            var namesFile = files.Count == 1
-                            && !Directory.Exists(opts.Output)
-                            && Path.GetExtension(opts.Output).Length > 0;
+            // directory.
+            var looksLikeFile = !Directory.Exists(opts.Output)
+                                && Path.GetExtension(opts.Output).Length > 0;
+
+            // A back end that splits its output needs the directory. Quietly treating the path as
+            // one would produce a *directory* called `Iso15118_2Codec.kt` — the shape of the old
+            // single-file invocation, now holding a hundred files. Say so instead.
+            if (looksLikeFile && files.Count > 1)
+                throw new UsageException(
+                    $"--out '{opts.Output}' names a file, but the {emitter.Language} back end emits " +
+                    $"{files.Count} files. Pass the directory they belong in.");
+
+            var namesFile = looksLikeFile && files.Count == 1;
 
             if (namesFile)
             {
