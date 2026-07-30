@@ -53,9 +53,35 @@ namespace Vanaheimr.V2G.Simulation.Transport
         public IPEndPoint LocalEndpoint => (IPEndPoint)_listener.LocalEndpoint;
 
         /// <summary>Accepts the next incoming connection and returns its stream (plain, or TLS-authenticated if configured).</summary>
+        /// <summary>
+        /// An optional admission gate, consulted with the peer's address <b>before</b> anything else
+        /// happens on the connection. Returning false closes it immediately.
+        /// </summary>
+        /// <remarks>
+        /// Null by default, so nothing changes for existing callers. It exists for the pairing
+        /// check (EVSimulatorApp <c>docs/CONCEPT.md</c> §4.6 Tier 1), which gates the accept rather
+        /// than the session: that slot is where SLAC sits in a real deployment, it works identically
+        /// for -2 and -20, and it needs no schema deviation. Checking here rather than after the
+        /// handshake also means an unadmitted peer cannot make the station do public-key work — the
+        /// cheapest denial of service a gated port otherwise offers.
+        /// <para>
+        /// The policy itself deliberately lives with the caller. This class knows about sockets; who
+        /// is allowed to open one is not its business.
+        /// </para>
+        /// </remarks>
+        public Func<IPEndPoint, bool>? Admit { get; init; }
+
         public async Task<Stream> AcceptAsync(CancellationToken ct = default)
         {
-            var client = await _listener.AcceptTcpClientAsync(ct).ConfigureAwait(false);
+            TcpClient client;
+            while (true)
+            {
+                client = await _listener.AcceptTcpClientAsync(ct).ConfigureAwait(false);
+                if (Admit is null || client.Client.RemoteEndPoint is not IPEndPoint peer || Admit(peer))
+                    break;
+                client.Dispose();   // refused: no handshake, no session, no reply
+            }
+
             Stream stream = client.GetStream(); // owns the underlying socket; disposing the stream closes it
 
             if (_bcTls is not null)
