@@ -30,6 +30,7 @@ namespace Vanaheimr.V2G.Exi.Codegen
         [
             CSharpCodecEmitter.Instance,
             KotlinCodecEmitter.Instance,
+            SwiftCodecEmitter.Instance,
         ];
 
         public static int Main(string[] args)
@@ -137,7 +138,7 @@ namespace Vanaheimr.V2G.Exi.Codegen
             Console.Error.WriteLine("""
                 Usage:
                   Vanaheimr.V2G.Exi.Codegen --xsd <file>[;<file>...] --out <path>
-                                            [--lang csharp|kotlin]
+                                            [--lang csharp|kotlin|swift]
                                             [--namespace <ns>] [--codec <class>]
                                             [--fragments <Elem>[,<Elem>...]]
 
