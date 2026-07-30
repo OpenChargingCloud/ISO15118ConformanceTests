@@ -188,15 +188,57 @@ backends, both exposing a plain `Stream`:
 So the Schannel P-521 limitation is a property of one backend, not a project gap: pick the
 BouncyCastle backend for the secp521r1/Ed448 -20 TLS profile, the .NET backend otherwise.
 
+## Suite pinning: what each platform allows
+
+`TlsOptions.EnabledSslProtocols` + `TlsOptions.CipherSuites` state a profile; `TlsProfiles` holds
+the two suite lists and `E2E/TlsAssert.cs` verifies at runtime what a session *actually* negotiated.
+How much of that can be enforced differs per platform — all of the following is measured, on
+Windows 10.0.26200 / .NET 10.0.10 and macOS 26.5.2 / .NET 10.0.301:
+
+| | TLS 1.3 on `SslStream` | Per-connection suite pinning |
+|---|---|---|
+| Windows (Schannel) | yes | **no** — `new CipherSuitesPolicy(…)` throws `PlatformNotSupportedException` in the *constructor*, so the capability check must precede it |
+| macOS (SecureTransport) | **no** — `PlatformNotSupportedException`; `Tls12\|Tls13` completes on **1.2** | yes |
+| Linux (OpenSSL) | yes | yes |
+
+Consequences the code encodes:
+
+- macOS routes TLS-1.3-only sessions to the BouncyCastle backend (`Transport/TlsPlatform.cs`)
+  rather than letting them downgrade — a TLS-1.2 "-20 session" would be silently non-conformant.
+- Where suites cannot be pinned, `TlsAssert` records what was negotiated instead of failing.
+  Measured unpinned: -2 gets `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384` on **both** platforms — a
+  real profile deviation (the profile wants AES-128-CBC) — while -20 gets
+  `TLS_AES_256_GCM_SHA384`, which is conformant only because the platform's own preference happens
+  to agree, not because anything enforced it.
+
+**Two profile suites do not exist on Schannel at all** (`Get-TlsCipherSuite`, 28 suites listed):
+
+- `TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256` — static ECDH is absent, so the -2 profile's *first*
+  alternative is unreachable on Windows in principle; only the ECDHE variant is available.
+- `TLS_CHACHA20_POLY1305_SHA256` — of the two -20 suites only `TLS_AES_256_GCM_SHA384` exists.
+
+Enforcing the -2 profile on Windows would therefore mean machine-wide configuration (group policy
+"SSL Cipher Suite Order", `Disable-TlsCipherSuite`, or the `…\Cryptography\Configuration\Local\SSL\
+00010002` key). That is deliberately **not** done: it changes every process on the host, outlives
+the test run, and would make a green suite mean "this machine is reconfigured" rather than "the
+simulator is profile-faithful". Where profile fidelity has to be *demonstrated*, use the
+BouncyCastle backend, which pins TLS 1.3 and the -20 suites by construction; on the .NET path the
+deviation is documented and reported per test.
+
+**P-521 on Schannel is still broken** (re-verified on .NET 10.0.10, both TLS 1.2 and 1.3): the
+server fails with `AuthenticationException` → `Win32Exception: Die lokale Sicherheitsautorität
+(LSA) ist nicht erreichbar`, the client sees only `IOException: Received an unexpected EOF`.
+Controls: P-384 works on both versions, and a P-521 *client* certificate against a P-256 server
+fails the same way — so it is specific to secp521r1 and affects both directions. The P-256 test
+certificates in `MutualTlsLoopbackTests` therefore stay.
+
 ## Open items still to verify
 
 - **eMAID ↔ Contract certificate mapping** and the exact `AuthorizationSetupRes` provider-list
   field driving contract-cert selection — confirm against the -20 CommonMessages schema
   already in the repo.
-- **Exact cipher-suite/curve pinning on the .NET backend** — the BouncyCastle backend already pins
-  the -20 profile exactly (TLS 1.3, the two -20 suites, secp521r1/Ed448); on the .NET path,
-  confirm what `SslServerAuthenticationOptions` / `CipherSuitesPolicy` let us pin on Windows (the
-  current `TlsOptions.cs` uses defaults) and record whatever can't be pinned as a Schannel deviation.
+- ~~**Exact cipher-suite/curve pinning on the .NET backend**~~ — **answered, see
+  [Suite pinning: what each platform allows](#suite-pinning-what-each-platform-allows).**
 - **SDP discovery stage** is wired via the `ISeccDiscovery` seam (`Discovery/`): `FixedSeccDiscovery`
   (explicit host:port) and `SdpSeccDiscovery` (real `EVCC_SDPClient`). CI covers the SDP message
   round-trips and the discovery-result → `SeccEndpoint` mapping deterministically; the real UDP/IPv6

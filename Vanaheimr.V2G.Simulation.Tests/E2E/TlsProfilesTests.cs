@@ -42,12 +42,12 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             Assert.That(TlsProfiles.Iso2CipherSuites.Intersect(TlsProfiles.Iso20CipherSuites), Is.Empty);
         }
 
+        // These two exercise TlsPlatform's TlsOptions -> BcTlsOptions translation, which is ordinary
+        // platform-independent code: it is only *reached* through the macOS fallback, but it is callable
+        // anywhere. Gating them on the platform would have left the guard covered on one machine of two.
         [Test]
         public void BouncyCastleFallback_RefusesASuitePinItCannotHonour()
         {
-            if (TlsPlatform.SslStreamSupportsTls13)
-                Assert.Ignore("The fallback only engages where SslStream has no TLS 1.3 (see TlsPlatform).");
-
             using var cert = TestCertificate.CreateSelfSigned();
             var tls = new TlsOptions
             {
@@ -64,9 +64,8 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         [Test]
         public void BouncyCastleFallback_AcceptsTheIso20Pin()
         {
-            if (TlsPlatform.SslStreamSupportsTls13)
-                Assert.Ignore("The fallback only engages where SslStream has no TLS 1.3 (see TlsPlatform).");
-
+            // Also covers BcCredentialBridge end-to-end: TestCertificate imports with
+            // X509KeyStorageFlags.Exportable, so the PKCS#8 export the bridge needs succeeds on Windows too.
             using var cert = TestCertificate.CreateSelfSigned();
             var tls = new TlsOptions
             {
