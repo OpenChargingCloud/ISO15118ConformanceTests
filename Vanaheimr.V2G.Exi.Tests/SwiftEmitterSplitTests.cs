@@ -108,21 +108,24 @@ namespace Vanaheimr.V2G.Exi.Tests
         [Test]
         public void RefusesConstructsItDoesNotModel()
         {
-            // ISO 15118-2 passes Reject() as of the repeating-children work, so the set that still
-            // exercises this is -20 CommonMessages: it carries inline choices, which are not
-            // modelled. When that changes too, move this to whatever is still refused — the point
-            // is that an unmodelled construct never gets emitted as something plausible.
-            var set = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages")
+            // -2, and -20's CommonMessages, DC, AC and ACDP all pass Reject() now. WPT is the one
+            // that does not, and unlike the others its refusal is not a gap waiting to be closed:
+            // WPT_LF_TransmitterDataType is the self-loop list shape for which cbexigen's own
+            // generated encoder cannot represent even the schema's required minimum, so there is no
+            // reference to check an implementation against. Guessing here would produce bytes no
+            // oracle has ever seen — see CodecEmitter's note and kotlin/README's "Unvalidated
+            // construct".
+            var set = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_20.WPT")
                                     .Select(f => (f.Name, f.Xsd))
                                     .ToArray();
 
             var ex = Assert.Throws<NotSupportedException>(
-                         () => EmitterHarness.EmitSwift("iso20", "CommonMessagesCodec", set));
+                         () => EmitterHarness.EmitSwift("wpt", "WPTCodec", set));
 
-            // Which construct stops it moves as the back end grows, so the assertion is on the
-            // refusal being attributable and specific, not on today's wording.
+            // Which construct stops it moves as the back end grows, and so does the wording — the
+            // refusals are not one formula any more, because their reasons differ. What has to hold
+            // is that a refusal is attributable and names what it refused, so it can be acted on.
             Assert.That(ex!.Message, Does.Contain("Swift back end"));
-            Assert.That(ex.Message, Does.Match(@"model(led)? yet"));
             Assert.That(ex.Message, Does.Match(@"'[^']+'"), "the refusal must name what it refused");
         }
     }

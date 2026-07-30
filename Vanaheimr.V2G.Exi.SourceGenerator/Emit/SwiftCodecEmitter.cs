@@ -146,7 +146,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         // the run machinery still sees one production per particle.
                         if (c.Value is ValueEncoding.SubstitutionChoice && c.Shape == ChildShape.BoundedRepeating)
                             No($"a repeating substitution group ('{name}.{c.FieldName}')");
-                        if (c.Value is ValueEncoding.InlineChoice)       No($"inline choice '{name}.{c.FieldName}'");
                         // An opaque child is modelled as absent-only, so it must be optional:
                         // a required one could never be encoded at all.
                         if (c.Value is ValueEncoding.OpaqueElement && c.Shape != ChildShape.OptionalSingle)
@@ -302,6 +301,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                        and not ValueEncoding.AttributeValue
                        and not ValueEncoding.OpaqueElement;
 
+            /// <summary>
+            /// The fields a child declares. An inline choice contributes one nullable per member —
+            /// N sibling optionals of which exactly one is set — rather than a single field.
+            /// </summary>
+            private static List<(string Name, string Type)> ChildParams(ChildPlan c) =>
+                c.Value is ValueEncoding.InlineChoice ic
+                    ? ic.Members.Select(m => (Prop(m.FieldName), Type(m.Type) + "?")).ToList()
+                    : [(Prop(c.FieldName), DeclType(c))];
+
+            /// <summary>An inline-choice branch as a throwaway child, so it can go through the
+            /// ordinary value emitters — which only ever read Value and Type.</summary>
+            private static ChildPlan AsChildPlan(InlineChoiceMember m) =>
+                new(m.FieldName, m.Type, m.IsValueType, ChildShape.RequiredSingle, m.Value);
+
             /// <summary>Declared fields in wire order: attributes precede content.</summary>
             private static IReadOnlyList<(string Name, string Type)> Fields(SequencePlan sp)
             {
@@ -312,7 +325,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (sp.SimpleContent is not null)
                     fields.Add((SimpleContentField, Type(sp.SimpleContentType!)));
                 foreach (var c in sp.Children)
-                    fields.Add((Prop(c.FieldName), DeclType(c)));
+                    fields.AddRange(ChildParams(c));
                 return fields;
             }
 
@@ -402,7 +415,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (sp.SimpleContent is not null)
                     ownFields.Add((SimpleContentField, Type(sp.SimpleContentType!), false));
                 foreach (var c in own)
-                    ownFields.Add((Prop(c.FieldName), DeclType(c), c.Shape == ChildShape.OptionalSingle));
+                    foreach (var (nm, ty) in ChildParams(c))
+                        ownFields.Add((nm, ty, ty.EndsWith("?")));
 
                 foreach (var f in ownFields)
                     _sb.Append("    public var ").Append(f.Name).Append(": ").AppendLine(f.Type);
@@ -493,6 +507,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         // the start event, so writing one first would insert a bit nothing reads.
                         if (c.Value is ValueEncoding.SubstitutionChoice sub)
                             EmitEncodeSubstitution(c, sub, "    ");
+                        else if (c.Value is ValueEncoding.InlineChoice inl)
+                            EmitEncodeInlineChoice(inl, "    ");
                         else
                         {
                             _sb.AppendLine("    w.writeBits(0, 1)   // SE");
@@ -529,6 +545,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         EmitEncodeRepeatingChild(c, "    ");
                         closed = true;
                         i++;
+                        continue;
+                    }
+
+                    if (c.Shape == ChildShape.BoundedRepeating && c.ListMin > 0 && i + 1 < kids.Count)
+                    {
+                        // The list's "another item vs move on" code doubles as the next particle's
+                        // event code, so the two have to be emitted together.
+                        var tailC = kids[i + 1];
+                        EmitEncodeRepeatingWithTail(c, tailC, name, "    ");
+                        i += 2;
+                        if (i == kids.Count && tailC.Shape == ChildShape.RequiredSingle)
+                        {
+                            _sb.AppendLine("    w.writeBits(0, 1)   // element EE");
+                            closed = true;
+                        }
                         continue;
                     }
 
@@ -608,6 +639,53 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(ind).AppendLine("}");
                 _sb.Append(ind).AppendLine("w.writeBits(1, 2)   // element EE (list end)");
                 _sb.Append(ind).AppendLine(after);
+            }
+
+            /// <summary>
+            /// A required list followed by exactly one more particle. cbexigen unrolls the two
+            /// positions rather than looping: after the first item the code says either "another
+            /// item" or "start the tail", and once the list is full only the tail remains — so the
+            /// tail is reachable at two different codes *and* two different widths.
+            /// </summary>
+            private void EmitEncodeRepeatingWithTail(ChildPlan list, ChildPlan tail, string owner, string ind)
+            {
+                if (tail.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
+                    throw new NotSupportedException(
+                        $"Swift back end: the repeating '{owner}.{list.FieldName}' with a choice or " +
+                        $"substitution tail ('{tail.FieldName}') is not modelled yet.");
+
+                if (list.ListMax != 2)
+                    throw new NotSupportedException(
+                        $"Swift back end: the repeating '{owner}.{list.FieldName}' has maxOccurs=" +
+                        $"{list.ListMax} with a following particle. Only the unrolled maxOccurs=2 shape " +
+                        "is modelled; the self-loop variant has no working reference encoder " +
+                        "(see CodecEmitter on WPT_LF_TransmitterDataType) and must not be guessed at.");
+
+                var prop     = "msg." + Prop(list.FieldName);
+                var tailProd = ProductionCount(tail);
+                var widthMid = BitsFor((1 + tailProd) + 1);   // another item, the tail, + the phantom
+                var widthMax = BitsFor(tailProd + 1);         // list full: only the tail remains
+
+                _sb.Append(ind).Append("precondition((1...2).contains(").Append(prop)
+                   .AppendLine(".count), \"list size out of schema range\")");
+                _sb.Append(ind).Append("w.writeBits(0, 1)   // SE(").Append(list.FieldName).AppendLine(")");
+                EmitWriteFramedValue(list, prop + "[0]", ind);
+
+                _sb.Append(ind).Append("if ").Append(prop).AppendLine(".count > 1 {");
+                _sb.Append(ind).Append("    w.writeBits(0, ").Append(widthMid).Append(")   // ")
+                   .Append(list.FieldName).AppendLine(" (loop)");
+                EmitWriteFramedValue(list, prop + "[1]", ind + "    ");
+                EmitEncodeTailDispatch(tail, 0, widthMax, ind + "    ");
+                _sb.Append(ind).AppendLine("} else {");
+                EmitEncodeTailDispatch(tail, 1, widthMid, ind + "    ");
+                _sb.Append(ind).AppendLine("}");
+            }
+
+            private void EmitEncodeTailDispatch(ChildPlan tail, int code, int width, string ind)
+            {
+                _sb.Append(ind).Append("w.writeBits(").Append(code).Append(", ").Append(width)
+                   .Append(")   // ").AppendLine(tail.FieldName);
+                EmitWriteFramedValue(tail, "msg." + Prop(tail.FieldName), ind);
             }
 
             /// <summary>A lone repeating child: the bounds sit on the sequence.</summary>
@@ -701,7 +779,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     // A substitution terminator has one production per member, so it extends the
                     // chain rather than closing it — and the chain then ends in a failure, because
                     // a required child must be set.
-                    if (term?.Value is ValueEncoding.SubstitutionChoice)
+                    if (term?.Value is ValueEncoding.SubstitutionChoice or ValueEncoding.InlineChoice)
                     {
                         EmitEncodeRunParticle(term, eeCode, width, ref first, ind, $"done{id} = true");
                         _sb.Append(ind).AppendLine("} else {");
@@ -754,6 +832,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     EmitEncodeRepeatingItems(p, code, width, ind + "    ", after);
                     first = false;
                     return code + 1;
+                }
+
+                if (p.Value is ValueEncoding.InlineChoice ic)
+                {
+                    // Each alternative is its own nullable field, so each takes its own event code
+                    // and extends the chain — there is no single value to test.
+                    foreach (var m in ic.Members)
+                    {
+                        _sb.Append(ind).Append(first ? "if" : "} else if").Append(" let v = msg.")
+                           .Append(Prop(m.FieldName)).AppendLine(" {");
+                        _sb.Append(ind).Append("    w.writeBits(").Append(code).Append(", ").Append(width)
+                           .Append(")   // ").AppendLine(m.ElementName);
+                        EmitWriteFramedValue(AsChildPlan(m), "v", ind + "    ");
+                        _sb.Append(ind).Append("    ").AppendLine(after);
+                        first = false;
+                        code++;
+                    }
+                    return code;
                 }
 
                 if (p.Value is ValueEncoding.SubstitutionChoice sc)
@@ -900,6 +996,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         if (c.Value is ValueEncoding.SubstitutionChoice sub)
                             EmitDecodeSubstitution(c, sub, "    ");
+                        else if (c.Value is ValueEncoding.InlineChoice inl)
+                            EmitDecodeInlineChoice(inl, "    ");
                         else
                         {
                             _sb.AppendLine("    _ = try r.readBits(1)   // SE");
@@ -914,6 +1012,19 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         EmitDecodeRepeating(c, Camel(c.FieldName) + "List", c.ListMax, "    ");
                         closed = true;
                         i++;
+                        continue;
+                    }
+
+                    if (c.Shape == ChildShape.BoundedRepeating && c.ListMin > 0 && i + 1 < kids.Count)
+                    {
+                        var tailC = kids[i + 1];
+                        EmitDecodeRepeatingWithTail(c, tailC, "    ");
+                        i += 2;
+                        if (i == kids.Count && tailC.Shape == ChildShape.RequiredSingle)
+                        {
+                            _sb.AppendLine("    _ = try r.readBits(1)   // element EE");
+                            closed = true;
+                        }
                         continue;
                     }
 
@@ -944,9 +1055,61 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var args = new List<string>();
                 if (RequiredAttr(sp) is { } req)
                     args.Add(Prop(req.FieldName) + ": " + Local(req.FieldName));
-                args.AddRange(kids.Select(c => Prop(c.FieldName) + ": " +
-                    (c.Shape == ChildShape.BoundedRepeating ? Camel(c.FieldName) + "List" : Local(c.FieldName))));
+                foreach (var c in kids)
+                {
+                    if (c.Value is ValueEncoding.InlineChoice ic)
+                    {
+                        foreach (var m in ic.Members)
+                            args.Add(Prop(m.FieldName) + ": " + Local(m.FieldName));
+                        continue;
+                    }
+                    args.Add(Prop(c.FieldName) + ": " +
+                             (c.Shape == ChildShape.BoundedRepeating ? Camel(c.FieldName) + "List" : Local(c.FieldName)));
+                }
                 return string.Join(", ", args);
+            }
+
+            /// <summary>Decode mirror of <see cref="EmitEncodeRepeatingWithTail"/>.</summary>
+            private void EmitDecodeRepeatingWithTail(ChildPlan list, ChildPlan tail, string ind)
+            {
+                var name     = Camel(list.FieldName) + "List";
+                var tailProd = ProductionCount(tail);
+                var widthMid = BitsFor((1 + tailProd) + 1);
+                var widthMax = BitsFor(tailProd + 1);
+
+                _sb.Append(ind).Append("var ").Append(name).Append(" = [").Append(Type(list.Type)).AppendLine("]()");
+                _sb.Append(ind).AppendLine("_ = try r.readBits(1)   // SE(list)");
+                EmitDecodeItem(list, name, ind);
+
+                // The two positions are unrolled, so the tail is reached at two different codes and
+                // widths — and its value is read inside each arm rather than after, because the
+                // arms differ in what they consumed.
+                _sb.Append(ind).Append("var ").Append(Local(tail.FieldName)).Append(": ")
+                   .Append(Type(tail.Type)).AppendLine("? = nil");
+                _sb.Append(ind).Append("switch try r.readBits(").Append(widthMid).AppendLine(") {");
+                _sb.Append(ind).AppendLine("case 0:   // another item");
+                EmitDecodeItem(list, name, ind + "    ");
+                _sb.Append(ind).Append("    switch try r.readBits(").Append(widthMax).AppendLine(") {");
+                _sb.Append(ind).Append("    case 0:   // ").AppendLine(tail.FieldName);
+                EmitReadFramedValue(tail, Local(tail.FieldName), ind + "        ");
+                _sb.Append(ind).AppendLine("    default:");
+                _sb.Append(ind).AppendLine("        throw ExiError.invalidEventCode(\"list tail\")");
+                _sb.Append(ind).AppendLine("    }");
+                _sb.Append(ind).Append("case 1:   // ").AppendLine(tail.FieldName);
+                EmitReadFramedValue(tail, Local(tail.FieldName), ind + "    ");
+                _sb.Append(ind).AppendLine("default:");
+                _sb.Append(ind).AppendLine("    throw ExiError.invalidEventCode(\"repeating element with tail\")");
+                _sb.Append(ind).AppendLine("}");
+
+                // Both arms set it, but the compiler cannot see that across a switch, and a stream
+                // that reached neither is malformed rather than a programming error.
+                if (tail.Shape == ChildShape.RequiredSingle)
+                {
+                    _sb.Append(ind).Append("guard let ").Append(Local(tail.FieldName)).AppendLine(" else {");
+                    _sb.Append(ind).Append("    throw ExiError.invalidEventCode(\"").Append(tail.FieldName)
+                       .AppendLine(" is required but the list ended without it\")");
+                    _sb.Append(ind).AppendLine("}");
+                }
             }
 
             /// <summary>
@@ -998,6 +1161,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 for (var j = start; j < end; j++)
                 {
+                    if (kids[j].Value is ValueEncoding.InlineChoice ric)
+                    {
+                        foreach (var rm in ric.Members)
+                            _sb.Append("    var ").Append(Local(rm.FieldName)).Append(": ")
+                               .Append(Type(rm.Type)).AppendLine("? = nil");
+                        continue;
+                    }
+
                     // An empty list encodes "absent", so a repeating particle needs no nil state.
                     if (kids[j].Shape == ChildShape.BoundedRepeating)
                         _sb.Append("    var ").Append(Camel(kids[j].FieldName)).Append("List = [")
@@ -1010,7 +1181,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // A required terminator is assigned inside the state machine, so it starts as an
                 // optional and is unwrapped once the run is over: a stream that closes the element
                 // without it is malformed, not a programming error.
-                if (term?.Shape == ChildShape.BoundedRepeating)
+                if (term?.Value is ValueEncoding.InlineChoice termIc)
+                    foreach (var tm in termIc.Members)
+                        _sb.Append("    var ").Append(Local(tm.FieldName)).Append(": ")
+                           .Append(Type(tm.Type)).AppendLine("? = nil");
+                else if (term?.Shape == ChildShape.BoundedRepeating)
                     _sb.Append("    var ").Append(Camel(term.FieldName)).Append("List = [")
                        .Append(Type(term.Type)).AppendLine("]()");
                 else if (term is not null)
@@ -1038,6 +1213,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     for (var j = k; j < optEnd; j++)
                     {
                         var c = kids[start + j];
+
+                        if (c.Value is ValueEncoding.InlineChoice ic)
+                        {
+                            for (var mi = 0; mi < ic.Members.Count; mi++)
+                            {
+                                _sb.Append("            case ").Append(code + mi).Append(":   // ")
+                                   .AppendLine(ic.Members[mi].ElementName);
+                                EmitReadFramedValue(AsChildPlan(ic.Members[mi]),
+                                                    Local(ic.Members[mi].FieldName), "                ");
+                                _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
+                            }
+                            code += ic.Members.Count;
+                            continue;
+                        }
 
                         if (c.Value is ValueEncoding.SubstitutionChoice sc)
                         {
@@ -1110,6 +1299,22 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         continue;
                     }
 
+                    if (term?.Value is ValueEncoding.InlineChoice tic)
+                    {
+                        for (var mi = 0; mi < tic.Members.Count; mi++)
+                        {
+                            _sb.Append("            case ").Append(eeCode + mi).Append(":   // ")
+                               .AppendLine(tic.Members[mi].ElementName);
+                            EmitReadFramedValue(AsChildPlan(tic.Members[mi]),
+                                                Local(tic.Members[mi].FieldName), "                ");
+                            _sb.Append("                done").Append(id).AppendLine(" = true");
+                        }
+                        _sb.AppendLine("            default:");
+                        _sb.AppendLine("                throw ExiError.invalidEventCode(\"optional run\")");
+                        _sb.AppendLine("            }");
+                        continue;
+                    }
+
                     if (term?.Value is ValueEncoding.SubstitutionChoice tsc)
                     {
                         for (var mi = 0; mi < tsc.Members.Count; mi++)
@@ -1147,7 +1352,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
 
-                if (term is not null && term.Shape != ChildShape.BoundedRepeating)
+                // A substitution terminator is still one required child, so its local is unwrapped
+                // like any other. An inline choice is not: its members are separate optional fields.
+                if (term is not null && term.Shape != ChildShape.BoundedRepeating &&
+                    term.Value is not ValueEncoding.InlineChoice)
                 {
                     _sb.Append("    guard let ").Append(Local(term.FieldName)).Append(" else {").AppendLine();
                     _sb.Append("        throw ExiError.invalidEventCode(\"").Append(term.FieldName)
@@ -1229,7 +1437,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        let r = BitReader(src, offset: 1)");
                 _sb.Append("        let sel = try r.readBits(").Append(plan.DocumentSelectorBits).AppendLine(")");
                 _sb.AppendLine("        switch sel {");
-                foreach (var ge in plan.GlobalElements)
+                // Sorted by document index rather than plan order: the mapping is the same either
+                // way, but a switch that counts upwards reads as one, and it matches the C# back end.
+                foreach (var ge in plan.GlobalElements.OrderBy(g => g.DocumentIndex))
                 {
                     _sb.Append("        case ").Append(ge.DocumentIndex).Append(": return try decode")
                        .Append(ge.TypeName).AppendLine("(r)");
@@ -1395,6 +1605,46 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (RequiredAttr(sp) is { } ra) args.Add(Prop(ra.FieldName) + ": " + Local(ra.FieldName));
                 args.AddRange(sp.Children.Select(c => Prop(c.FieldName) + ": " + Local(c.FieldName)));
                 _sb.Append("    return ").Append(name).Append("(").Append(string.Join(", ", args)).AppendLine(")");
+            }
+
+            // ── inline choices ───────────────────────────────────────────────────────────────────
+
+            /// <summary>
+            /// An inline xs:choice with no optional siblings to flatten into: N sibling nullables,
+            /// exactly one set. The member's index is the event code and the content follows
+            /// directly — the code *is* the start event, so there is no SE.
+            /// </summary>
+            private void EmitEncodeInlineChoice(ValueEncoding.InlineChoice ic, string ind)
+            {
+                for (var i = 0; i < ic.Members.Count; i++)
+                {
+                    var m = ic.Members[i];
+                    _sb.Append(ind).Append(i == 0 ? "if" : "} else if").Append(" let v = msg.")
+                       .Append(Prop(m.FieldName)).AppendLine(" {");
+                    _sb.Append(ind).Append("    w.writeBits(").Append(i).Append(", ").Append(ic.BitWidth)
+                       .Append(")   // ").AppendLine(m.ElementName);
+                    EmitWriteFramedValue(AsChildPlan(m), "v", ind + "    ");
+                }
+                _sb.Append(ind).AppendLine("} else {");
+                _sb.Append(ind).AppendLine("    preconditionFailure(\"no choice alternative set\")");
+                _sb.Append(ind).AppendLine("}");
+            }
+
+            private void EmitDecodeInlineChoice(ValueEncoding.InlineChoice ic, string ind)
+            {
+                foreach (var m in ic.Members)
+                    _sb.Append(ind).Append("var ").Append(Local(m.FieldName)).Append(": ")
+                       .Append(Type(m.Type)).AppendLine("? = nil");
+
+                _sb.Append(ind).Append("switch try r.readBits(").Append(ic.BitWidth).AppendLine(") {");
+                for (var i = 0; i < ic.Members.Count; i++)
+                {
+                    _sb.Append(ind).Append("case ").Append(i).Append(":   // ").AppendLine(ic.Members[i].ElementName);
+                    EmitReadFramedValue(AsChildPlan(ic.Members[i]), Local(ic.Members[i].FieldName), ind + "    ");
+                }
+                _sb.Append(ind).AppendLine("default:");
+                _sb.Append(ind).AppendLine("    throw ExiError.invalidEventCode(\"inline choice\")");
+                _sb.Append(ind).AppendLine("}");
             }
 
             // ── substitution groups ──────────────────────────────────────────────────────────────

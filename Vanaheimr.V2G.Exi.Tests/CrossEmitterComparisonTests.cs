@@ -81,6 +81,30 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         /// <summary>
+        /// ISO 15118-20 CommonMessages — 144 types, and the set that brings inline choices, which
+        /// -2 has none of. Larger than -2 in every dimension, so it is the harder gate of the two.
+        /// </summary>
+        [Test]
+        public void SwiftAndCSharpAgreeAcrossTheIso20CommonMessagesSet()
+        {
+            var schema = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages")
+                                       .Select(f => (f.Name, f.Xsd))
+                                       .ToArray();
+
+            var swift  = CrossEmitterComparison.Operations(
+                             EmitterHarness.EmitSwift("c20", "CommonMessagesCodec", schema));
+            var csharp = CrossEmitterComparison.Operations(
+                             EmitterHarness.EmitCSharp("C20", "CommonMessagesCodec", schema));
+
+            Assert.That(swift.Count, Is.GreaterThan(200), "far fewer functions than the set has types");
+
+            var problems = CrossEmitterComparison.Diff(swift, "swift", csharp, "csharp");
+            Assert.That(problems, Is.Empty,
+                        $"{problems.Count} of {csharp.Count} functions differ:\n" +
+                        string.Join("\n", problems.Take(15)));
+        }
+
+        /// <summary>
         /// The comparison is only worth anything if it can fail. A back end whose output is parsed
         /// into an empty operation list would make every assertion above vacuously true.
         /// </summary>
