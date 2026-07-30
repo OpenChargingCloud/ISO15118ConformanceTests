@@ -136,7 +136,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     foreach (var c in sp.Children)
                     {
                         if (c.IsWildcardAny)                             No($"xs:any wildcard '{name}.{c.FieldName}'");
-                        if (c.Value is ValueEncoding.SubstitutionChoice) No($"substitution group '{name}.{c.FieldName}'");
+                        // A substitution group contributes one production per member, which widens
+                        // every enclosing run. Only the required-single shape is modelled so far, so
+                        // the run machinery still sees one production per particle.
+                        if (c.Value is ValueEncoding.SubstitutionChoice && c.Shape != ChildShape.RequiredSingle)
+                            No($"a {c.Shape} substitution group ('{name}.{c.FieldName}')");
                         if (c.Value is ValueEncoding.InlineChoice)       No($"inline choice '{name}.{c.FieldName}'");
                         if (c.Value is ValueEncoding.OpaqueElement)      No($"opaque element '{name}.{c.FieldName}'");
                     }
@@ -409,8 +413,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                     if (c.Shape == ChildShape.RequiredSingle)
                     {
-                        _sb.AppendLine("    w.writeBits(0, 1)   // SE");
-                        EmitWriteFramedValue(c, "msg." + Prop(c.FieldName), "    ");
+                        // A substitution reference has no SE of its own: the member's event code is
+                        // the start event, so writing one first would insert a bit nothing reads.
+                        if (c.Value is ValueEncoding.SubstitutionChoice sub)
+                            EmitEncodeSubstitution(c, sub, "    ");
+                        else
+                        {
+                            _sb.AppendLine("    w.writeBits(0, 1)   // SE");
+                            EmitWriteFramedValue(c, "msg." + Prop(c.FieldName), "    ");
+                        }
                         i++;
                         continue;
                     }
@@ -632,8 +643,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                     if (c.Shape == ChildShape.RequiredSingle)
                     {
-                        _sb.AppendLine("    _ = try r.readBits(1)   // SE");
-                        EmitReadFramedValue(c, "let " + Local(c.FieldName), "    ");
+                        if (c.Value is ValueEncoding.SubstitutionChoice sub)
+                            EmitDecodeSubstitution(c, sub, "    ");
+                        else
+                        {
+                            _sb.AppendLine("    _ = try r.readBits(1)   // SE");
+                            EmitReadFramedValue(c, "let " + Local(c.FieldName), "    ");
+                        }
                         i++;
                         continue;
                     }
@@ -814,6 +830,121 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
                 _sb.AppendLine("}");
+            }
+
+            // ── substitution groups ──────────────────────────────────────────────────────────────
+
+            /// <summary>
+            /// Dispatches on the runtime type of a substitution reference. Branches go
+            /// most-derived-first, because Swift's `as` pattern matches subclasses too, while each
+            /// member keeps the event code of its own position in the group.
+            /// </summary>
+            private void EmitEncodeSubstitution(ChildPlan c, ValueEncoding.SubstitutionChoice sc, string ind)
+            {
+                var ordered = sc.Members
+                                .Select((m, i) => (Member: m, Code: i))
+                                .Where(x => !x.Member.IsAbstractHead)
+                                .OrderByDescending(x => InheritanceDepth(x.Member.TypeName))
+                                .ToList();
+
+                // A concrete head is itself a member and, being the least derived, sorts last — so
+                // its branch would test the value against its own declared type, which always
+                // succeeds and makes the default behind it unreachable. Emitting it as the default
+                // is the same code with the dead arm dropped.
+                var headIsLast = ordered.Count > 1 &&
+                                 ordered[ordered.Count - 1].Member.TypeName == Type(c.Type);
+
+                _sb.Append(ind).Append("switch msg.").Append(Prop(c.FieldName)).AppendLine(" {");
+
+                for (var i = 0; i < ordered.Count; i++)
+                {
+                    var (m, code) = ordered[i];
+                    var last = i == ordered.Count - 1;
+
+                    if (headIsLast && last)
+                    {
+                        _sb.Append(ind).AppendLine("default:");
+                        _sb.Append(ind).Append("    let v = msg.").AppendLine(Prop(c.FieldName));
+                    }
+                    else
+                    {
+                        _sb.Append(ind).Append("case let v as ").Append(m.TypeName).AppendLine(":");
+                    }
+
+                    EmitSubstitutionGuard(c, m.TypeName, ind + "    ");
+                    _sb.Append(ind).Append("    w.writeBits(").Append(code).Append(", ").Append(sc.BitWidth)
+                       .Append(")   // ").AppendLine(m.ElementName);
+                    _sb.Append(ind).Append("    encode").Append(m.TypeName).AppendLine("(w, v)");
+                }
+
+                if (!headIsLast)
+                {
+                    _sb.Append(ind).AppendLine("default:");
+                    _sb.Append(ind).Append("    preconditionFailure(\"unsupported substitution member for ")
+                       .Append(c.FieldName).AppendLine("\")");
+                }
+
+                _sb.Append(ind).AppendLine("}");
+            }
+
+            /// <summary>
+            /// Requires the value to be *exactly* the member type its branch selected, not merely a
+            /// subclass of it.
+            /// </summary>
+            /// <remarks>
+            /// The `as` pattern matches subclasses, which is why the branches are ordered
+            /// most-derived-first at all. Within the generated types that ordering partitions the
+            /// space exactly, since every derived type is itself a member — but nothing stops
+            /// application code subclassing one, and the types something extends are deliberately
+            /// left subclassable. Such a value would take its nearest ancestor's branch and go out
+            /// with that member's event code and encoder, quietly encoding something else.
+            /// A leaf is `final`, so there `as` already means "exactly this" and the check is dead.
+            /// </remarks>
+            private void EmitSubstitutionGuard(ChildPlan c, string typeName, string ind)
+            {
+                var extensible = _baseNames.Contains(typeName) ||
+                                 (plan.ComplexTypes.TryGetValue(typeName, out var sp) && sp.IsAbstract);
+                if (!extensible) return;
+
+                _sb.Append(ind).Append("precondition(type(of: v) == ").Append(typeName)
+                   .Append(".self, \"").Append(c.FieldName)
+                   .AppendLine(": a subclass of a substitution member is not itself one\")");
+            }
+
+            private void EmitDecodeSubstitution(ChildPlan c, ValueEncoding.SubstitutionChoice sc, string ind)
+            {
+                _sb.Append(ind).Append("let ").Append(Local(c.FieldName)).Append(": ").AppendLine(Type(c.Type));
+                _sb.Append(ind).Append("switch try r.readBits(").Append(sc.BitWidth).AppendLine(") {");
+
+                for (var i = 0; i < sc.Members.Count; i++)
+                {
+                    // An abstract head reserves a code slot without being encodable, so it has no
+                    // branch here either and falls through to the throw.
+                    if (sc.Members[i].IsAbstractHead) continue;
+
+                    _sb.Append(ind).Append("case ").Append(i).Append(":   // ").AppendLine(sc.Members[i].ElementName);
+                    _sb.Append(ind).Append("    ").Append(Local(c.FieldName)).Append(" = try decode")
+                       .Append(sc.Members[i].TypeName).AppendLine("(r)");
+                }
+
+                _sb.Append(ind).AppendLine("default:");
+                _sb.Append(ind).Append("    throw ExiError.invalidEventCode(\"").Append(c.FieldName)
+                   .AppendLine(" substitution\")");
+                _sb.Append(ind).AppendLine("}");
+            }
+
+            /// <summary>How many base links separate a type from its root; 0 for a type with no base.</summary>
+            private int InheritanceDepth(string typeName)
+            {
+                var depth = 0;
+                var name  = typeName;
+                while (plan.ComplexTypes.TryGetValue(name, out var sp) && sp.BaseRecordName is not null)
+                {
+                    depth++;
+                    name = sp.BaseRecordName;
+                    if (depth > 32) break;   // a cycle cannot happen in a valid schema; do not hang on one
+                }
+                return depth;
             }
 
             private static int BitsFor(int n)
