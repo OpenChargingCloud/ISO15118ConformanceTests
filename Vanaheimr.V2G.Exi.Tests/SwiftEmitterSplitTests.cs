@@ -108,18 +108,22 @@ namespace Vanaheimr.V2G.Exi.Tests
         [Test]
         public void RefusesConstructsItDoesNotModel()
         {
-            var iso2 = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_2")
-                                     .Select(f => (f.Name, f.Xsd))
-                                     .ToArray();
+            // ISO 15118-2 passes Reject() as of the repeating-children work, so the set that still
+            // exercises this is -20 CommonMessages: it carries inline choices, which are not
+            // modelled. When that changes too, move this to whatever is still refused — the point
+            // is that an unmodelled construct never gets emitted as something plausible.
+            var set = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages")
+                                    .Select(f => (f.Name, f.Xsd))
+                                    .ToArray();
 
             var ex = Assert.Throws<NotSupportedException>(
-                         () => EmitterHarness.EmitSwift("iso2", "Iso15118_2Codec", iso2));
+                         () => EmitterHarness.EmitSwift("iso20", "CommonMessagesCodec", set));
 
             // Which construct stops it moves as the back end grows, so the assertion is on the
             // refusal being attributable and specific, not on today's wording.
             Assert.That(ex!.Message, Does.Contain("Swift back end"));
             Assert.That(ex.Message, Does.Match(@"model(led)? yet"));
-            Assert.That(ex.Message, Does.Match(@"'[A-Za-z0-9_.]+'"), "the refusal must name what it refused");
+            Assert.That(ex.Message, Does.Match(@"'[^']+'"), "the refusal must name what it refused");
         }
     }
 }
