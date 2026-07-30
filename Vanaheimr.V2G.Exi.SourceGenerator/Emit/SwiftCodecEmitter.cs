@@ -57,11 +57,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private readonly HashSet<string> _emitted = new(StringComparer.Ordinal);
 
+            /// <summary>Types some other type extends — they must stay subclassable.</summary>
+            private HashSet<string> _baseNames = new(StringComparer.Ordinal);
+
             private int _run;
 
             public IReadOnlyList<GeneratedFile> Run()
             {
                 Reject(plan);
+
+                _baseNames = new HashSet<string>(
+                    plan.ComplexTypes.Values.Select(s => s.BaseRecordName).Where(n => n is not null)!,
+                    StringComparer.Ordinal);
 
                 var files = new List<GeneratedFile>();
 
@@ -103,8 +110,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 foreach (var (name, sp) in p.ComplexTypes.Select(kv => (kv.Key, kv.Value))
                                             .Concat(p.GlobalElements.Select(g => (g.TypeName, g.Body))))
                 {
-                    if (sp.IsAbstract)                    No($"abstract type '{name}'");
-                    if (sp.BaseRecordName is not null)    No($"type extension ('{name}' extends '{sp.BaseRecordName}')");
                     if (sp.IsChoice)                      No($"xs:choice type '{name}'");
                     if (sp.SimpleContent is not null)     No($"xs:simpleContent type '{name}'");
                     if (sp.Attributes is { Count: > 0 })  No($"attributes on '{name}'");
@@ -226,23 +231,73 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 Target(_decl, name);
                 EmitStruct(sp, name);
+
+                // An abstract type is never on the wire itself — only its members are, each through
+                // its own codec — so emitting one for it would be dead code that still has to be
+                // kept correct.
+                if (sp.IsAbstract) return;
+
                 Target(_code, name);
                 EmitEncode(sp, name);
                 EmitDecode(sp, name);
             }
 
+            /// <summary>
+            /// A type outside any hierarchy is a <c>struct</c> — value semantics, synthesised
+            /// <c>Equatable</c>. One that takes part in a hierarchy is a <c>class</c>, because Swift
+            /// structs cannot inherit. That split mirrors Kotlin's own (<c>data class</c> for
+            /// standalone types, plain <c>class</c> for hierarchy members), and it means a schema
+            /// that adds a base to a type also changes that type's Swift kind — unavoidable, and
+            /// visible rather than silent.
+            /// </summary>
+            /// <remarks>
+            /// Inheritance carries no wire meaning of its own: <c>SequencePlan.Children</c> of a
+            /// derived type already begins with the base's children, flattened, and the encoder
+            /// walks all of them. The base relationship survives only so a field typed as the base
+            /// can hold any member — the substitution case.
+            /// </remarks>
             private void EmitStruct(SequencePlan sp, string name)
             {
-                _sb.Append("public struct ").Append(name).AppendLine(": Equatable, Sendable {");
-                foreach (var c in sp.Children)
+                var isBase   = _baseNames.Contains(name);
+                var isMember = sp.IsAbstract || isBase || sp.BaseRecordName is not null;
+
+                var baseChildren = sp.BaseRecordName is not null &&
+                                   plan.ComplexTypes.TryGetValue(sp.BaseRecordName, out var basePlan)
+                                       ? basePlan.Children.Count
+                                       : 0;
+
+                var own = sp.Children.Skip(baseChildren).ToList();
+
+                if (!isMember)
+                {
+                    _sb.Append("public struct ").Append(name).AppendLine(": Equatable, Sendable {");
+                }
+                else
+                {
+                    // No `final` on a base: Swift needs it open to be subclassed. Everything else is
+                    // final, which is both faster and a statement that the set of members is closed
+                    // to this file — the closest this shape gets to the guard Kotlin had to add.
+                    _sb.Append(sp.IsAbstract || isBase ? "public class " : "public final class ").Append(name);
+                    _sb.Append(sp.BaseRecordName is not null ? ": " + sp.BaseRecordName : "").AppendLine(" {");
+                }
+
+                foreach (var c in own)
                     _sb.Append("    public var ").Append(Prop(c.FieldName)).Append(": ").AppendLine(DeclType(c));
-                _sb.AppendLine();
+                if (own.Count > 0) _sb.AppendLine();
+
+                // The initialiser always takes every child, inherited ones included, so callers and
+                // the generated decoders see one flat parameter list whatever the hierarchy does.
                 _sb.Append("    public init(");
                 _sb.Append(string.Join(", ", sp.Children.Select(c =>
                     Prop(c.FieldName) + ": " + DeclType(c) + (c.Shape == ChildShape.OptionalSingle ? " = nil" : ""))));
                 _sb.AppendLine(") {");
-                foreach (var c in sp.Children)
+                foreach (var c in own)
                     _sb.Append("        self.").Append(Prop(c.FieldName)).Append(" = ").AppendLine(Prop(c.FieldName));
+                if (sp.BaseRecordName is not null)
+                    _sb.Append("        super.init(")
+                       .Append(string.Join(", ", sp.Children.Take(baseChildren)
+                                                   .Select(c => Prop(c.FieldName) + ": " + Prop(c.FieldName))))
+                       .AppendLine(")");
                 _sb.AppendLine("    }");
                 _sb.AppendLine("}");
                 _sb.AppendLine();
@@ -270,9 +325,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 for (; i < kids.Count && kids[i].Shape == ChildShape.RequiredSingle; i++)
                 {
                     _sb.AppendLine("    w.writeBits(0, 1)   // SE");
-                    _sb.AppendLine("    w.writeBits(0, 1)   // value-start");
-                    EmitWriteValue(kids[i], "msg." + Prop(kids[i].FieldName), "    ");
-                    _sb.AppendLine("    w.writeBits(0, 1)   // child EE");
+                    // A nested complex type writes its own element EE, and has no value event to
+                    // start — only a simple value sits between a value-start and a child EE.
+                    if (kids[i].Value is ValueEncoding.ComplexRef)
+                    {
+                        EmitWriteValue(kids[i], "msg." + Prop(kids[i].FieldName), "    ");
+                    }
+                    else
+                    {
+                        _sb.AppendLine("    w.writeBits(0, 1)   // value-start");
+                        EmitWriteValue(kids[i], "msg." + Prop(kids[i].FieldName), "    ");
+                        _sb.AppendLine("    w.writeBits(0, 1)   // child EE");
+                    }
                 }
 
                 if (i < kids.Count)
@@ -343,9 +407,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append("            if let v = ").Append(prop).AppendLine(" {");
                         _sb.Append("                w.writeBits(").Append(code).Append(", ").Append(width)
                            .Append(")   // ").AppendLine(c.FieldName);
-                        _sb.AppendLine("                w.writeBits(0, 1)   // value-start");
-                        EmitWriteValue(c, "v", "                ");
-                        _sb.AppendLine("                w.writeBits(0, 1)   // child EE");
+                        if (c.Value is ValueEncoding.ComplexRef)
+                        {
+                            EmitWriteValue(c, "v", "                ");
+                        }
+                        else
+                        {
+                            _sb.AppendLine("                w.writeBits(0, 1)   // value-start");
+                            EmitWriteValue(c, "v", "                ");
+                            _sb.AppendLine("                w.writeBits(0, 1)   // child EE");
+                        }
                         _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
                         _sb.AppendLine("            } else {");
                     }
@@ -432,10 +503,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 for (; i < kids.Count && kids[i].Shape == ChildShape.RequiredSingle; i++)
                 {
                     _sb.AppendLine("    _ = try r.readBits(1)   // SE");
-                    _sb.AppendLine("    _ = try r.readBits(1)   // value-start");
-                    _sb.Append("    let ").Append(Local(kids[i].FieldName)).Append(" = ")
-                       .AppendLine(ReadValueExpr(kids[i]));
-                    _sb.AppendLine("    _ = try r.readBits(1)   // child EE");
+                    if (kids[i].Value is ValueEncoding.ComplexRef)
+                    {
+                        _sb.Append("    let ").Append(Local(kids[i].FieldName)).Append(" = ")
+                           .AppendLine(ReadValueExpr(kids[i]));
+                    }
+                    else
+                    {
+                        _sb.AppendLine("    _ = try r.readBits(1)   // value-start");
+                        _sb.Append("    let ").Append(Local(kids[i].FieldName)).Append(" = ")
+                           .AppendLine(ReadValueExpr(kids[i]));
+                        _sb.AppendLine("    _ = try r.readBits(1)   // child EE");
+                    }
                 }
 
                 if (i < kids.Count)
@@ -477,10 +556,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         var c = kids[start + j];
                         _sb.Append("            case ").Append(code).Append(":   // ").AppendLine(c.FieldName);
-                        _sb.AppendLine("                _ = try r.readBits(1)   // value-start");
-                        _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
-                           .AppendLine(ReadValueExpr(c));
-                        _sb.AppendLine("                _ = try r.readBits(1)   // child EE");
+                        if (c.Value is ValueEncoding.ComplexRef)
+                        {
+                            _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
+                               .AppendLine(ReadValueExpr(c));
+                        }
+                        else
+                        {
+                            _sb.AppendLine("                _ = try r.readBits(1)   // value-start");
+                            _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
+                               .AppendLine(ReadValueExpr(c));
+                            _sb.AppendLine("                _ = try r.readBits(1)   // child EE");
+                        }
                         _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
                     }
 
