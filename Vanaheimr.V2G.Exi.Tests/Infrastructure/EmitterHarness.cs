@@ -32,6 +32,11 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
             string targetNamespace, string codecClass, params (string Name, string Xsd)[] files) =>
             Emit(CSharpCodecEmitter.Instance, targetNamespace, codecClass, [], files);
 
+        /// <summary>The same, through the Swift back end.</summary>
+        public static IReadOnlyList<GeneratedFile> EmitSwift(
+            string targetModule, string codecEnum, params (string Name, string Xsd)[] files) =>
+            Emit(SwiftCodecEmitter.Instance, targetModule, codecEnum, [], files);
+
         private static IReadOnlyList<GeneratedFile> Emit(
             ICodecEmitter emitter, string target, string codec, string[] fragments,
             (string Name, string Xsd)[] files)

@@ -506,7 +506,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 ValueEncoding.NBitUnsigned nb => nb.Bias == 0
                                                     ? Convert(c, $"try r.readBits({nb.BitWidth})")
                                                     : Convert(c, $"Int64(try r.readBits({nb.BitWidth})) + {nb.Bias}"),
-                ValueEncoding.EnumIndex ei => $"try decode{ei.EnumName}(r, {ei.BitWidth})",
+                // The index read stays inline — see ExiRuntime.exiEnum. A generated wrapper would
+                // put a call where the other back ends have the read itself, which the
+                // cross-emitter comparison reads as a divergence, correctly.
+                ValueEncoding.EnumIndex ei => $"try exiEnum({ei.EnumName}.self, try r.readBits({ei.BitWidth}))",
                 ValueEncoding.ComplexRef cr => $"try decode{cr.TypeName}(r)",
                 _ => throw new NotSupportedException(
                          $"Swift back end: value encoding {c.Value.GetType().Name} is not modelled yet."),
@@ -556,20 +559,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
                 _sb.AppendLine("}");
-
-                // Enumerations decode through a helper so the out-of-range case is one place.
-                foreach (var e in plan.Enums)
-                {
-                    _sb.AppendLine();
-                    _sb.Append("internal func decode").Append(e.Name)
-                       .Append("(_ r: BitReader, _ bits: Int) throws -> ").Append(e.Name).AppendLine(" {");
-                    _sb.AppendLine("    let raw = try r.readBits(bits)");
-                    _sb.Append("    guard let v = ").Append(e.Name).AppendLine("(rawValue: Int(raw)) else {");
-                    _sb.Append("        throw ExiError.unknownEnumValue(type: \"").Append(e.Name).AppendLine("\", index: raw)");
-                    _sb.AppendLine("    }");
-                    _sb.AppendLine("    return v");
-                    _sb.AppendLine("}");
-                }
             }
 
             private static int BitsFor(int n)
