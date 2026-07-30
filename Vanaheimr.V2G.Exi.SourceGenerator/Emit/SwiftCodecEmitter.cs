@@ -112,7 +112,26 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     if (sp.IsChoice)                      No($"xs:choice type '{name}'");
                     if (sp.SimpleContent is not null)     No($"xs:simpleContent type '{name}'");
-                    if (sp.Attributes is { Count: > 0 })  No($"attributes on '{name}'");
+
+                    if (sp.Attributes is { Count: > 0 })
+                    {
+                        // A base type's attributes are not flattened into the derived plan, so a
+                        // derived type could not pass them on.
+                        if (sp.BaseRecordName is not null &&
+                            p.ComplexTypes.TryGetValue(sp.BaseRecordName, out var basePlan) &&
+                            basePlan.Attributes is { Count: > 0 })
+                            No($"attributes on both '{name}' and its base '{sp.BaseRecordName}'");
+
+                        foreach (var a in sp.Attributes)
+                        {
+                            if (a.Value is not ValueEncoding.StringValue)
+                                No($"non-string attribute '{name}.{a.FieldName}' ({a.Value.GetType().Name})");
+                            // A required attribute is written before the content; an optional one
+                            // rides in the content run. Mixing the two shapes is not modelled.
+                            if (a.Required && sp.Attributes.Count != 1)
+                                No($"a required attribute alongside others on '{name}'");
+                        }
+                    }
 
                     foreach (var c in sp.Children)
                     {
@@ -212,6 +231,51 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _ => throw new NotSupportedException($"Swift back end: shape {c.Shape}."),
             };
 
+            // ── attributes ───────────────────────────────────────────────────────────────────────
+
+            /// <summary>The lone required attribute of a type, or null.</summary>
+            private static AttrPlan? RequiredAttr(SequencePlan sp) =>
+                sp.Attributes is { Count: 1 } && sp.Attributes[0].Required ? sp.Attributes[0] : null;
+
+            /// <summary>
+            /// Optional attributes are the leading optionals of the content run: the AT event is the
+            /// first production of the content's initial grammar state, and when the attribute is
+            /// absent that same code doubles as the first SE. Prepending them lets the ordinary run
+            /// machinery handle them, exactly as the other two back ends do.
+            /// </summary>
+            private static IReadOnlyList<ChildPlan> WithOptionalAttributes(SequencePlan sp)
+            {
+                if (sp.Attributes is null or { Count: 0 } || RequiredAttr(sp) is not null)
+                    return sp.Children;
+
+                var list = new List<ChildPlan>(sp.Attributes.Count + sp.Children.Count);
+                foreach (var a in sp.Attributes)
+                    list.Add(new ChildPlan(a.FieldName, a.Type, IsValueType: false,
+                                           ChildShape.OptionalSingle, new ValueEncoding.AttributeValue()));
+                list.AddRange(sp.Children);
+                return list;
+            }
+
+            /// <summary>
+            /// Whether a child's value is framed by a value-start bit and a child EE. An AT value is
+            /// not — the run's event code *was* the AT event — and a complex child frames itself,
+            /// writing its own element EE.
+            /// </summary>
+            private static bool WrapsValue(ChildPlan c) =>
+                c.Value is not ValueEncoding.ComplexRef and not ValueEncoding.AttributeValue;
+
+            /// <summary>Declared fields in wire order: attributes precede content.</summary>
+            private static IReadOnlyList<(string Name, string Type)> Fields(SequencePlan sp)
+            {
+                var fields = new List<(string, string)>();
+                if (sp.Attributes is not null)
+                    foreach (var a in sp.Attributes)
+                        fields.Add((Prop(a.FieldName), Type(a.Type) + (a.Required ? "" : "?")));
+                foreach (var c in sp.Children)
+                    fields.Add((Prop(c.FieldName), DeclType(c)));
+                return fields;
+            }
+
             // ── declarations ─────────────────────────────────────────────────────────────────────
 
             private void EmitEnum(EnumPlan e)
@@ -281,18 +345,28 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append(sp.BaseRecordName is not null ? ": " + sp.BaseRecordName : "").AppendLine(" {");
                 }
 
+                // Attributes are declared before content, matching the AT-before-content order of the
+                // grammar and the other two back ends' parameter lists. They never come from a base:
+                // Reject() bars a derived type and its base from both carrying them.
+                var ownFields = new List<(string Name, string Type, bool Optional)>();
+                if (sp.Attributes is not null)
+                    foreach (var a in sp.Attributes)
+                        ownFields.Add((Prop(a.FieldName), Type(a.Type) + (a.Required ? "" : "?"), !a.Required));
                 foreach (var c in own)
-                    _sb.Append("    public var ").Append(Prop(c.FieldName)).Append(": ").AppendLine(DeclType(c));
-                if (own.Count > 0) _sb.AppendLine();
+                    ownFields.Add((Prop(c.FieldName), DeclType(c), c.Shape == ChildShape.OptionalSingle));
 
-                // The initialiser always takes every child, inherited ones included, so callers and
-                // the generated decoders see one flat parameter list whatever the hierarchy does.
+                foreach (var f in ownFields)
+                    _sb.Append("    public var ").Append(f.Name).Append(": ").AppendLine(f.Type);
+                if (ownFields.Count > 0) _sb.AppendLine();
+
+                // The initialiser always takes every field, inherited children included, so callers
+                // and the generated decoders see one flat parameter list whatever the hierarchy does.
                 _sb.Append("    public init(");
-                _sb.Append(string.Join(", ", sp.Children.Select(c =>
-                    Prop(c.FieldName) + ": " + DeclType(c) + (c.Shape == ChildShape.OptionalSingle ? " = nil" : ""))));
+                _sb.Append(string.Join(", ", Fields(sp).Select((f, i) =>
+                    f.Name + ": " + f.Type + (f.Type.EndsWith("?") ? " = nil" : ""))));
                 _sb.AppendLine(") {");
-                foreach (var c in own)
-                    _sb.Append("        self.").Append(Prop(c.FieldName)).Append(" = ").AppendLine(Prop(c.FieldName));
+                foreach (var f in ownFields)
+                    _sb.Append("        self.").Append(f.Name).Append(" = ").AppendLine(f.Name);
                 if (sp.BaseRecordName is not null)
                     _sb.Append("        super.init(")
                        .Append(string.Join(", ", sp.Children.Take(baseChildren)
@@ -310,7 +384,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("internal func encode").Append(name).Append("(_ w: BitWriter, _ msg: ")
                    .Append(name).AppendLine(") {");
 
-                var kids = sp.Children;
+                // A lone required attribute is unconditional: a 1-bit AT event, then a bare value.
+                if (RequiredAttr(sp) is { } req)
+                {
+                    _sb.AppendLine("    w.writeBits(0, 1)   // AT(required attribute)");
+                    _sb.Append("    ExiPrimitives.writeStringValue(w, msg.").Append(Prop(req.FieldName)).AppendLine(")");
+                }
+
+                var kids = WithOptionalAttributes(sp);
 
                 // A lone repeating child owns the whole element: its terminator doubles as the EE.
                 if (kids.Count == 1 && kids[0].Shape == ChildShape.BoundedRepeating)
@@ -321,39 +402,65 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     return;
                 }
 
-                var i = 0;
-                for (; i < kids.Count && kids[i].Shape == ChildShape.RequiredSingle; i++)
+                var closed = false;   // whether a run has already written the element EE
+                for (var i = 0; i < kids.Count;)
                 {
-                    _sb.AppendLine("    w.writeBits(0, 1)   // SE");
-                    // A nested complex type writes its own element EE, and has no value event to
-                    // start — only a simple value sits between a value-start and a child EE.
-                    if (kids[i].Value is ValueEncoding.ComplexRef)
+                    var c = kids[i];
+
+                    if (c.Shape == ChildShape.RequiredSingle)
                     {
-                        EmitWriteValue(kids[i], "msg." + Prop(kids[i].FieldName), "    ");
+                        _sb.AppendLine("    w.writeBits(0, 1)   // SE");
+                        EmitWriteFramedValue(c, "msg." + Prop(c.FieldName), "    ");
+                        i++;
+                        continue;
                     }
-                    else
+
+                    if (c.Shape == ChildShape.OptionalSingle)
                     {
-                        _sb.AppendLine("    w.writeBits(0, 1)   // value-start");
-                        EmitWriteValue(kids[i], "msg." + Prop(kids[i].FieldName), "    ");
-                        _sb.AppendLine("    w.writeBits(0, 1)   // child EE");
+                        var end = i;
+                        while (end < kids.Count && kids[end].Shape == ChildShape.OptionalSingle) end++;
+
+                        // A run ends either at the element EE or at the next required particle,
+                        // whose start event shares the run's highest code.
+                        var term = end < kids.Count ? kids[end] : null;
+                        if (term is not null && term.Shape != ChildShape.RequiredSingle)
+                            throw new NotSupportedException(
+                                $"Swift back end: the optional run in '{name}' is terminated by " +
+                                $"'{term.FieldName}', whose shape {term.Shape} this back end does not model yet.");
+
+                        EmitEncodeOptionalRun(kids, i, end, term);
+                        closed = term is null;
+                        i = end + (term is null ? 0 : 1);
+                        continue;
                     }
+
+                    throw new NotSupportedException(
+                        $"Swift back end: '{name}.{c.FieldName}' has shape {c.Shape} in a mixed sequence, " +
+                        "which this back end does not model yet.");
                 }
 
-                if (i < kids.Count)
-                {
-                    if (kids.Skip(i).Any(c => c.Shape != ChildShape.OptionalSingle))
-                        throw new NotSupportedException(
-                            $"Swift back end: '{name}' mixes shapes in a way this back end does not model yet " +
-                            "(only leading required singles followed by an optional run).");
-                    EmitEncodeOptionalRun(kids, i);
-                }
-                else
-                {
+                if (!closed)
                     _sb.AppendLine("    w.writeBits(0, 1)   // element EE");
-                }
 
                 _sb.AppendLine("}");
                 _sb.AppendLine();
+            }
+
+            /// <summary>
+            /// A child's value with its framing: a simple value sits between a value-start bit and a
+            /// child EE, while an AT value and a nested complex type have neither — see
+            /// <see cref="WrapsValue"/>.
+            /// </summary>
+            private void EmitWriteFramedValue(ChildPlan c, string expr, string ind)
+            {
+                if (!WrapsValue(c))
+                {
+                    EmitWriteValue(c, expr, ind);
+                    return;
+                }
+                _sb.Append(ind).AppendLine("w.writeBits(0, 1)   // value-start");
+                EmitWriteValue(c, expr, ind);
+                _sb.Append(ind).AppendLine("w.writeBits(0, 1)   // child EE");
             }
 
             /// <summary>
@@ -382,9 +489,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// one for the non-strict phantom. Getting that <c>+1</c> wrong is invisible in a round
             /// trip and shifts every following bit.
             /// </summary>
-            private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start)
+            private void EmitEncodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end, ChildPlan? term)
             {
-                var m  = kids.Count - start;
+                var m  = end - start;
                 var id = _run++;
 
                 _sb.Append("    var st").Append(id).AppendLine(" = 0");
@@ -407,7 +514,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append("            if let v = ").Append(prop).AppendLine(" {");
                         _sb.Append("                w.writeBits(").Append(code).Append(", ").Append(width)
                            .Append(")   // ").AppendLine(c.FieldName);
-                        if (c.Value is ValueEncoding.ComplexRef)
+                        if (!WrapsValue(c))
                         {
                             EmitWriteValue(c, "v", "                ");
                         }
@@ -421,9 +528,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.AppendLine("            } else {");
                     }
 
-                    _sb.Append(new string(' ', 12 + 4 * (m - k))).Append("w.writeBits(").Append(code)
-                       .Append(", ").Append(width).AppendLine(")   // element EE");
-                    _sb.Append(new string(' ', 12 + 4 * (m - k))).Append("done").Append(id).AppendLine(" = true");
+                    // The highest remaining code closes the run: the element EE, or the required
+                    // particle that follows it — whose content then goes out inline.
+                    var tail = new string(' ', 12 + 4 * (m - k));
+                    _sb.Append(tail).Append("w.writeBits(").Append(code).Append(", ").Append(width);
+                    if (term is null)
+                    {
+                        _sb.AppendLine(")   // element EE");
+                    }
+                    else
+                    {
+                        _sb.Append(")   // SE(").Append(term.FieldName).AppendLine(")");
+                        EmitWriteFramedValue(term, "msg." + Prop(term.FieldName), tail);
+                    }
+                    _sb.Append(tail).Append("done").Append(id).AppendLine(" = true");
 
                     for (var j = m - 1; j >= k; j--)
                         _sb.Append(new string(' ', 12 + 4 * (j - k))).AppendLine("}");
@@ -446,6 +564,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).Append("ExiPrimitives.writeSignedInteger(w, Int64(").Append(expr).AppendLine("))");
                         break;
                     case ValueEncoding.StringValue:
+                    case ValueEncoding.AttributeValue:
                         _sb.Append(ind).Append("ExiPrimitives.writeStringValue(w, ").Append(expr).AppendLine(")");
                         break;
                     case ValueEncoding.Binary:
@@ -476,7 +595,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("internal func decode").Append(name).Append("(_ r: BitReader) throws -> ")
                    .Append(name).AppendLine(" {");
 
-                var kids = sp.Children;
+                if (RequiredAttr(sp) is { } req)
+                {
+                    _sb.AppendLine("    _ = try r.readBits(1)   // AT(required attribute)");
+                    _sb.Append("    let ").Append(Local(req.FieldName))
+                       .Append(" = try ExiPrimitives.readStringValue(r, slot: \"").Append(req.FieldName).AppendLine("\")");
+                }
+
+                var kids = WithOptionalAttributes(sp);
 
                 if (kids.Count == 1 && kids[0].Shape == ChildShape.BoundedRepeating)
                 {
@@ -499,44 +625,65 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     return;
                 }
 
-                var i = 0;
-                for (; i < kids.Count && kids[i].Shape == ChildShape.RequiredSingle; i++)
+                var closed = false;
+                for (var i = 0; i < kids.Count;)
                 {
-                    _sb.AppendLine("    _ = try r.readBits(1)   // SE");
-                    if (kids[i].Value is ValueEncoding.ComplexRef)
+                    var c = kids[i];
+
+                    if (c.Shape == ChildShape.RequiredSingle)
                     {
-                        _sb.Append("    let ").Append(Local(kids[i].FieldName)).Append(" = ")
-                           .AppendLine(ReadValueExpr(kids[i]));
+                        _sb.AppendLine("    _ = try r.readBits(1)   // SE");
+                        EmitReadFramedValue(c, "let " + Local(c.FieldName), "    ");
+                        i++;
+                        continue;
                     }
-                    else
-                    {
-                        _sb.AppendLine("    _ = try r.readBits(1)   // value-start");
-                        _sb.Append("    let ").Append(Local(kids[i].FieldName)).Append(" = ")
-                           .AppendLine(ReadValueExpr(kids[i]));
-                        _sb.AppendLine("    _ = try r.readBits(1)   // child EE");
-                    }
+
+                    var end = i;
+                    while (end < kids.Count && kids[end].Shape == ChildShape.OptionalSingle) end++;
+                    var term = end < kids.Count ? kids[end] : null;
+
+                    EmitDecodeOptionalRun(kids, i, end, term);
+                    closed = term is null;
+                    i = end + (term is null ? 0 : 1);
                 }
 
-                if (i < kids.Count)
-                    EmitDecodeOptionalRun(kids, i);
-                else
+                if (!closed)
                     _sb.AppendLine("    _ = try r.readBits(1)   // element EE");
 
-                _sb.Append("    return ").Append(name).Append("(")
-                   .Append(string.Join(", ", kids.Select(c => Prop(c.FieldName) + ": " + Local(c.FieldName))))
-                   .AppendLine(")");
+                _sb.Append("    return ").Append(name).Append("(").Append(CtorArgs(sp, kids)).AppendLine(")");
                 _sb.AppendLine("}");
                 _sb.AppendLine();
             }
 
-            private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start)
+            /// <summary>
+            /// The decoder's constructor call, in declaration order. Optional attributes are already
+            /// at the head of <paramref name="kids"/>; a required one is written before the content
+            /// and so has to be put back in front here.
+            /// </summary>
+            private static string CtorArgs(SequencePlan sp, IReadOnlyList<ChildPlan> kids)
             {
-                var m  = kids.Count - start;
+                var args = new List<string>();
+                if (RequiredAttr(sp) is { } req)
+                    args.Add(Prop(req.FieldName) + ": " + Local(req.FieldName));
+                args.AddRange(kids.Select(c => Prop(c.FieldName) + ": " + Local(c.FieldName)));
+                return string.Join(", ", args);
+            }
+
+            private void EmitDecodeOptionalRun(IReadOnlyList<ChildPlan> kids, int start, int end, ChildPlan? term)
+            {
+                var m  = end - start;
                 var id = _run++;
 
-                for (var j = start; j < kids.Count; j++)
+                for (var j = start; j < end; j++)
                     _sb.Append("    var ").Append(Local(kids[j].FieldName)).Append(": ")
                        .Append(DeclType(kids[j])).AppendLine(" = nil");
+
+                // A required terminator is assigned inside the state machine, so it starts as an
+                // optional and is unwrapped once the run is over: a stream that closes the element
+                // without it is malformed, not a programming error.
+                if (term is not null)
+                    _sb.Append("    var ").Append(Local(term.FieldName)).Append(": ")
+                       .Append(Type(term.Type)).AppendLine("? = nil");
 
                 _sb.Append("    var st").Append(id).AppendLine(" = 0");
                 _sb.Append("    var done").Append(id).AppendLine(" = false");
@@ -556,22 +703,19 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         var c = kids[start + j];
                         _sb.Append("            case ").Append(code).Append(":   // ").AppendLine(c.FieldName);
-                        if (c.Value is ValueEncoding.ComplexRef)
-                        {
-                            _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
-                               .AppendLine(ReadValueExpr(c));
-                        }
-                        else
-                        {
-                            _sb.AppendLine("                _ = try r.readBits(1)   // value-start");
-                            _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
-                               .AppendLine(ReadValueExpr(c));
-                            _sb.AppendLine("                _ = try r.readBits(1)   // child EE");
-                        }
+                        EmitReadFramedValue(c, Local(c.FieldName), "                ");
                         _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
                     }
 
-                    _sb.Append("            case ").Append(code).AppendLine(":   // element EE");
+                    if (term is null)
+                    {
+                        _sb.Append("            case ").Append(code).AppendLine(":   // element EE");
+                    }
+                    else
+                    {
+                        _sb.Append("            case ").Append(code).Append(":   // SE(").Append(term.FieldName).AppendLine(")");
+                        EmitReadFramedValue(term, Local(term.FieldName), "                ");
+                    }
                     _sb.Append("                done").Append(id).AppendLine(" = true");
                     _sb.AppendLine("            default:");
                     _sb.AppendLine("                throw ExiError.invalidEventCode(\"optional run\")");
@@ -582,13 +726,37 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("            done").Append(id).AppendLine(" = true");
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
+
+                if (term is not null)
+                {
+                    _sb.Append("    guard let ").Append(Local(term.FieldName)).Append(" else {").AppendLine();
+                    _sb.Append("        throw ExiError.invalidEventCode(\"").Append(term.FieldName)
+                       .AppendLine(" is required but the element ended\")");
+                    _sb.AppendLine("    }");
+                }
+            }
+
+            /// <summary>
+            /// Reads a child's value into <paramref name="target"/> (`let _x` or a plain `_x`),
+            /// surrounded by the framing bits its encoding calls for — see <see cref="WrapsValue"/>.
+            /// </summary>
+            private void EmitReadFramedValue(ChildPlan c, string target, string ind)
+            {
+                if (WrapsValue(c))
+                    _sb.Append(ind).AppendLine("_ = try r.readBits(1)   // value-start");
+
+                _sb.Append(ind).Append(target).Append(" = ").AppendLine(ReadValueExpr(c));
+
+                if (WrapsValue(c))
+                    _sb.Append(ind).AppendLine("_ = try r.readBits(1)   // child EE");
             }
 
             private static string ReadValueExpr(ChildPlan c) => c.Value switch
             {
                 ValueEncoding.UnsignedInt  => Convert(c, "try ExiPrimitives.readUnsignedInteger(r)"),
                 ValueEncoding.SignedInt    => Convert(c, "try ExiPrimitives.readSignedInteger(r)"),
-                ValueEncoding.StringValue  => $"try ExiPrimitives.readStringValue(r, slot: \"{c.FieldName}\")",
+                ValueEncoding.StringValue or ValueEncoding.AttributeValue
+                                           => $"try ExiPrimitives.readStringValue(r, slot: \"{c.FieldName}\")",
                 ValueEncoding.Binary       => "try ExiPrimitives.readBinary(r)",
                 ValueEncoding.NBitUnsigned nb => nb.Bias == 0
                                                     ? Convert(c, $"try r.readBits({nb.BitWidth})")
