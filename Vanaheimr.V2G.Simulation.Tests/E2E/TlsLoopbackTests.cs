@@ -54,7 +54,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
                 "localhost", listener.LocalEndpoint.Port, ClientTls(cert), cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
 
-            var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+            var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
             var evccTask = evcc.RunAsync(cts.Token);
             await Task.WhenAll(evccTask, seccTask);
 
@@ -83,7 +83,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
                 "localhost", listener.LocalEndpoint.Port, ClientTls(cert), cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
             var evccTask = evcc.RunAsync(cts.Token);
             await Task.WhenAll(evccTask, seccTask);
 

@@ -37,7 +37,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
             var evccTask = evcc.RunAsync(cts.Token);
             await Task.WhenAll(evccTask, seccTask);
 
@@ -78,7 +78,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
             {
                 TariffVerifyKey = tariffPublic,
             };
@@ -126,7 +126,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
             {
                 Pnc = new PncEvccOptions(contract.RawData, new[] { contract.RawData }, contractKey),
             };
@@ -179,7 +179,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
             {
                 CertInstallRequest = new CertInstallEvccOptions(oemCert.RawData, new[] { oemCert.RawData }, oemSignKey, oemEcdh),
             };
@@ -234,7 +234,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             using (var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
-                var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+                var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                 {
                     StopMode = Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Pause,
                 };
@@ -256,7 +256,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
 
             using var evccStream2 = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream2, ProtocolVariant.Iso15118_20, cts.Token);
-            var evcc2 = new Evcc20Dc(evccStream2, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2))
+            var evcc2 = new Evcc20Dc(evccStream2, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
             {
                 ResumeSessionId = sessionId,
             };
@@ -292,7 +292,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             using var evccStream = await TcpV2GClient.ConnectAsync(IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            var evcc = new Evcc20Ac(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+            var evcc = new Evcc20Ac(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
             var evccTask = evcc.RunAsync(cts.Token);
             await Task.WhenAll(evccTask, seccTask);
 

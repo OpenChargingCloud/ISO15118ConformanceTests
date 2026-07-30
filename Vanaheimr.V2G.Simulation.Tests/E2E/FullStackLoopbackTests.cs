@@ -108,7 +108,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
 
                 using var stream = await TcpV2GClient.ConnectAsync(endpoint.Host, endpoint.Port, evccBcTls, cts.Token);
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, cts.Token);
-                var evcc = new Evcc20Dc(stream, TimeProvider.System, new ImmediateAsyncDelay(), TimeSpan.FromSeconds(2));
+                var evcc = new Evcc20Dc(stream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
                 await evcc.RunAsync(cts.Token);
                 return (slac, evcc);
             }, cts.Token);
