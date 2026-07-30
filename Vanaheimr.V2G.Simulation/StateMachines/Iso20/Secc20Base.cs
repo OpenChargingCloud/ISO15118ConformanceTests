@@ -91,7 +91,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// Returns the <em>values</em> rather than a <c>MeterInfoType</c> because each -20 message
         /// set generates its own — the same independence that forces a separate <c>V2GSignature</c>
         /// per set. The signing is shared here; the construction belongs to whichever set is
-        /// answering.
+        /// answering, which means AC and DC are two call sites that can drift apart. Both are driven
+        /// to the charge loop and verified in <c>Secc20SignedMeterTests</c>.
         /// </remarks>
         protected (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? MeterReading()
         {
