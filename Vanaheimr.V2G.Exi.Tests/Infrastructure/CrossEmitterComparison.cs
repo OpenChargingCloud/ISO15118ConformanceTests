@@ -42,6 +42,18 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
             new(@"(?<![A-Za-z0-9_.])(?<name>(?:[Ee]ncode|[Dd]ecode)_?[A-Z][A-Za-z0-9_]*)\s*\(",
                 RegexOptions.Compiled);
 
+        /// <summary>
+        /// The head of a keyed dispatch arm: <c>0u =&gt;</c> (C#), <c>0u -&gt;</c> (Kotlin),
+        /// <c>case 0:</c> (Swift). The document-index switch in every <c>DecodeAny</c> is built of
+        /// these, and so is nothing else the back ends emit.
+        /// </summary>
+        private static readonly Regex DispatchArm =
+            new(@"^(?<indent>\s*)(?:case\s+)?(?<key>\d+)[uU]?\s*(?:=>|->|:)(?!:)", RegexOptions.Compiled);
+
+        /// <summary>The catch-all arm — <c>default:</c>, <c>else -&gt;</c>, <c>_ =&gt;</c>.</summary>
+        private static readonly Regex DefaultArm =
+            new(@"^\s*(?:default\s*:|else\s*->|_\s*=>)", RegexOptions.Compiled);
+
         /// <summary>The head of a generated encoder/decoder, in any of the three languages.</summary>
         private static readonly Regex FunctionHead =
             new(@"^\s*(?:(?:private|internal|public)\s+)?(?:static\s+)?(?:fun|func|void|[A-Za-z_][A-Za-z0-9_<>\[\]?]*)\s+"
@@ -52,11 +64,12 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
         public static IReadOnlyDictionary<string, IReadOnlyList<string>> Operations(
             IReadOnlyList<GeneratedFile> files)
         {
-            var result = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            var result = new Dictionary<string, List<(int? Arm, string Op)>>(StringComparer.Ordinal);
 
             foreach (var file in files)
             {
                 string? current = null;
+                var     arm     = Arm.None;
 
                 foreach (var line in EmitterHarness.Lines(file))
                 {
@@ -64,19 +77,106 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
                     if (head.Success)
                     {
                         current = Key(head.Groups["name"].Value);
-                        if (!result.ContainsKey(current)) result[current] = new List<string>();
+                        arm     = Arm.None;
+                        if (!result.ContainsKey(current)) result[current] = [];
                         continue;
                     }
 
                     if (current is null) continue;
 
+                    arm = arm.Advance(line);
+
                     foreach (var op in OperationsIn(line))
-                        result[current].Add(op);
+                        result[current].Add((arm.Key, op));
                 }
             }
 
-            return result.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>) kv.Value,
+            return result.ToDictionary(kv => kv.Key,
+                                       kv => (IReadOnlyList<string>) NormaliseDispatchArms(kv.Value),
                                        StringComparer.Ordinal);
+        }
+
+        /// <summary>
+        /// The document-index switch of a set's <c>DecodeAny</c>: event code → the message decoder
+        /// it dispatches to.
+        /// </summary>
+        /// <remarks>
+        /// Checked separately from the operation sequences, because it is a different kind of claim.
+        /// The sequences say each codec performs the same reads and writes in the same order; this
+        /// says the dispatcher routes each document index to the same message. Nothing in the
+        /// sequence comparison covers it — the arm keys are deliberately not part of an operation's
+        /// identity (they are spelled too differently: <c>case 1u:</c> against <c>else if (rc ==
+        /// 1u)</c>), so without this a back end could route index 4 to the wrong message and agree
+        /// with everyone. The vectors would not catch it either: they exercise the per-message
+        /// codecs, and the sets whose messages they cover would still round-trip.
+        /// </remarks>
+        public static IReadOnlyDictionary<int, string> DocumentIndexMap(IReadOnlyList<GeneratedFile> files)
+        {
+            var map     = new Dictionary<int, string>();
+            var inside  = false;
+            var arm     = Arm.None;
+
+            foreach (var file in files)
+                foreach (var line in EmitterHarness.Lines(file))
+                {
+                    if (DecodeAnyHead.IsMatch(line)) { inside = true; arm = Arm.None; continue; }
+                    if (!inside) continue;
+
+                    // Any other function head ends it — DecodeAny is emitted as one contiguous body.
+                    if (FunctionHead.IsMatch(line)) { inside = false; continue; }
+
+                    arm = arm.Advance(line);
+                    if (arm.Key is not { } key) continue;
+
+                    var call = Codec.Match(StripComment(line));
+                    if (call.Success && !map.ContainsKey(key))
+                        map[key] = Key(call.Groups["name"].Value);
+                }
+
+            return map;
+        }
+
+        private static readonly Regex DecodeAnyHead =
+            new(@"\b[Dd]ecodeAny\s*\(", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Sorts each run of keyed dispatch arms by its key, so a switch's textual arm order stops
+        /// counting as wire structure.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A straight-line sequence of operations is the right model for a codec body, and the wrong
+        /// one for a <c>switch</c> whose arms carry explicit literal keys: there, <c>4 → Foo</c>
+        /// before <c>0 → Bar</c> decodes exactly as <c>0 → Bar</c> before <c>4 → Foo</c>. The C# and
+        /// Swift back ends happen to emit the document-index switch sorted by index; Kotlin emits it
+        /// in plan order. Reading that as a divergence would have meant "fixing" a back end that is
+        /// correct.
+        /// </para>
+        /// <para>
+        /// The key sorts the operations and then goes no further — it is deliberately not part of an
+        /// operation's identity. The back ends spell the same keyed branch too differently for that
+        /// (<c>case 1u:</c> in C# against Kotlin's <c>else if (rc == 1u)</c>), so folding the key in
+        /// would compare languages rather than grammars. What the keys *do* have to agree on is
+        /// checked directly, by <see cref="DocumentIndexMap"/>.
+        /// </para>
+        /// </remarks>
+        private static List<string> NormaliseDispatchArms(List<(int? Arm, string Op)> ops)
+        {
+            var result = new List<string>(ops.Count);
+
+            for (var i = 0; i < ops.Count;)
+            {
+                if (ops[i].Arm is null) { result.Add(ops[i++].Op); continue; }
+
+                var end = i;
+                while (end < ops.Count && ops[end].Arm is not null) end++;
+
+                // OrderBy is stable, so several operations sharing one arm keep their source order.
+                result.AddRange(ops.GetRange(i, end - i).OrderBy(o => o.Arm).Select(o => o.Op));
+                i = end;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -107,6 +207,40 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
                 ops.Add((m.Index, "codec:" + Key(m.Groups["name"].Value)));
 
             return ops.OrderBy(o => o.Pos).Select(o => o.Op);
+        }
+
+        /// <summary>
+        /// Which keyed dispatch arm the walker is currently inside, if any.
+        /// </summary>
+        /// <remarks>
+        /// It has to be carried as state rather than read off each line, because the back ends do
+        /// not agree on where an arm's key and its body sit. C# writes <c>0u =&gt; Decode_Foo(ref
+        /// r),</c> on one line; Swift writes <c>case 0:</c> and puts the call on the next. Prefixing
+        /// per line would have tagged the C# operation and not the Swift one, and invented a
+        /// divergence where the two are identical.
+        /// </remarks>
+        private readonly record struct Arm(int? Key, int Indent)
+        {
+            public static readonly Arm None = new(null, 0);
+
+            /// <summary>
+            /// An arm head opens a region; the catch-all closes it; and so does any line that
+            /// dedents past the arm's own indentation — which is what ends the switch, in all three
+            /// languages. Dedent rather than a closing brace, so that a brace *inside* an arm body
+            /// does not end the arm early and strip the tag off half its operations.
+            /// </summary>
+            public Arm Advance(string line)
+            {
+                var head = DispatchArm.Match(line);
+                if (head.Success)
+                    return new Arm(int.Parse(head.Groups["key"].Value),
+                                   head.Groups["indent"].Value.Length);
+
+                if (DefaultArm.IsMatch(line)) return None;
+                if (Key is null || line.Trim().Length == 0) return this;
+
+                return line.Length - line.TrimStart().Length < Indent ? None : this;
+            }
         }
 
         /// <summary>Drops a trailing `//` comment — all three back ends annotate their event codes.</summary>
