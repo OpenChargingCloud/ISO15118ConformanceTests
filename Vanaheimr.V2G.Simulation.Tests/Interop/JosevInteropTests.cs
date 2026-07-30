@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Authentication;
 
 using NUnit.Framework;
 
@@ -128,7 +129,15 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop
 
         private static TlsOptions? DevTlsOrNull()
             => Environment.GetEnvironmentVariable("V2G_INTEROP_TLS") == "1"
-                   ? new TlsOptions { ServerCertificateValidation = (_, _, _, _) => true } // dev only: accept any Josev server cert
+                   ? new TlsOptions
+                     {
+                         ServerCertificateValidation = (_, _, _, _) => true, // dev only: accept any Josev server cert
+                         // The one place a permissive set is right: this probes a third-party SECC whose version
+                         // we do not control (Josev serves TLS 1.2 unilateral by default, 1.3 mutual only with
+                         // ENABLE_TLS_1_3=True), and V2G_INTEROP_PROTOCOL picks -2 or -20 at runtime. Matches the
+                         // dev CLI (Simulation.Cli/Program.cs). This is an interop probe, not a conformance path.
+                         EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
+                     }
                    : null;
 
         private static TlsOptions? DevServerTlsOrNull()

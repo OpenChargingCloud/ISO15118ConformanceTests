@@ -43,7 +43,18 @@ namespace Vanaheimr.V2G.Simulation.Transport
         /// <summary>SECC side: how to validate the EVCC's client certificate. Defaults to the platform's normal chain validation if not set.</summary>
         public RemoteCertificateValidationCallback? ClientCertificateValidation { get; init; }
 
-        public SslProtocols EnabledSslProtocols { get; init; } = SslProtocols.Tls13;
+        /// <summary>The TLS version(s) this session may negotiate. <b>Required, deliberately without a default:</b>
+        /// the version belongs to the protocol's profile — <c>docs/pki-model.md</c> pins the mapping strictly to
+        /// -2 ↔ TLS 1.2 and -20 ↔ TLS 1.3 — so no single value can be right for both, and a library default is
+        /// exactly what the guide warns against. This used to default to <see cref="SslProtocols.Tls13"/>, which
+        /// silently ran ISO 15118-2 sessions over TLS 1.3, the one combination the document rules out.
+        /// <para>
+        /// A permissive set (e.g. <c>Tls12 | Tls13</c>) is a deliberate interop choice, not a fallback: on a
+        /// platform whose <c>SslStream</c> caps out below the top of the range it simply negotiates the lower
+        /// version, which for -20 means a non-conformant session. Verify what was negotiated rather than
+        /// assuming (<c>E2E/TlsAssert.cs</c>).
+        /// </para></summary>
+        public required SslProtocols EnabledSslProtocols { get; init; }
 
         /// <summary>The cipher suites this session may negotiate — the other half of the protocol's TLS profile
         /// (<c>docs/pki-model.md</c>: version, suites, signature algorithms and curve are one coupled unit, and
