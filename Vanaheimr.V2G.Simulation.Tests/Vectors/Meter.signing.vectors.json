@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "generator": "Vanaheimr.V2G.Simulation.Tests.Metering.MeterVectorTests.RegenerateTheCorpus",
+  "generatorNote": "One implementation\u0027s output, NOT a reference encoder\u0027s: ISO 15118 defines the SigMeterReading/MeterSignature field and not its content, so no reference exists. Its value is cross-language agreement between the C#, Swift and Kotlin verifiers, plus a pin against drift \u2014 it is not evidence of wire conformance. The key is fixed so the corpus is reproducible; it is test material and never a real meter key.",
+  "publicKeyX": "60fed4ba255a9d31c961eb74c6356d68c049b8923b61fa6ce669622e60f29fb6",
+  "publicKeyY": "7903fe1008b8bc99a41ae9e95628bc64f2f1b20c2d7e9f5177a3c294d4462299",
+  "privateKeyD": "c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721",
+  "vectors": [
+    {
+      "meterId": "VAN*M1",
+      "protocol": 2,
+      "sessionId": "0102030405060708",
+      "reading": "4200",
+      "timestamp": "1700000000",
+      "payload": "5632472d4d455445522d31000201020304050607080656414e2a4d310000000000001068000000006553f100",
+      "signature": "9f6eeb794eb83554ef261392c144f4eb2aaf62192da9b09587aa876400e504264e840c8c8643a610ccf4a2acb92600655d376f89adfd2ad921bf5dec6dafe2e5"
+    },
+    {
+      "meterId": "VAN*M1",
+      "protocol": 20,
+      "sessionId": "0102030405060708",
+      "reading": "4200",
+      "timestamp": "1700000000",
+      "payload": "5632472d4d455445522d31001401020304050607080656414e2a4d310000000000001068000000006553f100",
+      "signature": "23eb39748b0ca6df312d150d6756050e858475733d1433b6b4e6ba29e17cfa76c91c85738f3162d9319ee33ecd7d8a49b577809898c00faa6af54bf146140d3b"
+    },
+    {
+      "meterId": "VAN*M1",
+      "protocol": 2,
+      "sessionId": "0102030405060709",
+      "reading": "4200",
+      "timestamp": "1700000000",
+      "payload": "5632472d4d455445522d31000201020304050607090656414e2a4d310000000000001068000000006553f100",
+      "signature": "62868503eea6fdb78396316c788d6832e3151ee92e70507931bc4f3cd19577c17c177b22c68137d5dd6456b0e4f5930041469fdb313997b8b4b5c4097c2b62e3"
+    },
+    {
+      "meterId": "A1",
+      "protocol": 2,
+      "sessionId": "0000000000000000",
+      "reading": "23",
+      "timestamp": "0",
+      "payload": "5632472d4d455445522d310002000000000000000002413100000000000000170000000000000000",
+      "signature": "5903495ed7fa7f8738d06a46258dd8f975835e9c7eb9a78d13b6fe387a5beacf699f07d6905e34a4c9fde3fceedd72683cc50d325e78f18befe15459efbedebd"
+    },
+    {
+      "meterId": "A",
+      "protocol": 2,
+      "sessionId": "0000000000000000",
+      "reading": "123",
+      "timestamp": "0",
+      "payload": "5632472d4d455445522d31000200000000000000000141000000000000007b0000000000000000",
+      "signature": "11e2da1929267ff4b3d741bc16ec6fa87dd15f3e8dd3ba8b9fa207c03b6cb4718df6e5b496c71ba18b3af7b81ccef25f2954018fced2e87b08bcfc966dd843f7"
+    },
+    {
+      "meterId": "",
+      "protocol": 2,
+      "sessionId": "0000000000000000",
+      "reading": "0",
+      "timestamp": null,
+      "payload": "5632472d4d455445522d31000200000000000000000000000000000000000000000000000000",
+      "signature": "d6b6a998e38de4d9a18190b47ecc3d411a4654685afeefdda8aca8421663af90e9b555f1ff309cf0b305d850c48edf73ab21bc2e89b361275920b7be6c81dd97"
+    },
+    {
+      "meterId": "VAN*M1",
+      "protocol": 2,
+      "sessionId": "ffffffffffffffff",
+      "reading": "18446744073709551615",
+      "timestamp": "9223372036854775807",
+      "payload": "5632472d4d455445522d310002ffffffffffffffff0656414e2a4d31ffffffffffffffff7fffffffffffffff",
+      "signature": "cab8e72ada05e079e7e7cf42e61a07124adcef523bcb89d48daabe30040dad4c313e9a86901d6b2bc524edd2d21ee2e89fed6fc66e1ede836d64af195aa4a0b8"
+    },
+    {
+      "meterId": "Z\u00E4hler-\u00DC",
+      "protocol": 2,
+      "sessionId": "0102030405060708",
+      "reading": "999",
+      "timestamp": "1",
+      "payload": "5632472d4d455445522d31000201020304050607080a5ac3a4686c65722dc39c00000000000003e70000000000000001",
+      "signature": "b9fa89aca7533e7bd3f52b1f179b96f24b8467a7d42f32818d81f698894236e4e3a0d6cbf2254f5c51b37778e8087d0538f7d07c673c84d7df25175acbd97961"
+    }
+  ]
+}

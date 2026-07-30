@@ -25,4 +25,12 @@
          hierarchy for the mutual-TLS E2E tests. Shipping code stays certificate-agnostic. -->
     <ProjectReference Include="..\libs\WWCP_ISO15118\WWCP_ISO15118_PKI\WWCP_ISO15118_PKIBuilder\WWCP_ISO15118_PKIBuilder.csproj" />
   </ItemGroup>
+
+  <!-- The meter-signing corpus, consumed by the Swift and Kotlin verifiers too. -->
+  <ItemGroup>
+    <None Include="Vectors\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
