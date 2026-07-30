@@ -56,6 +56,31 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         /// <summary>
+        /// The whole ISO 15118-2 set — 94 types, 111 generated files. This is the first schema set
+        /// large enough for the comparison to be a real gate rather than a demonstration: every
+        /// construct the back end models appears here, in combinations no mini-XSD covers.
+        /// </summary>
+        [Test]
+        public void SwiftAndCSharpAgreeAcrossTheWholeIso2Set()
+        {
+            var schema = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_2")
+                                       .Select(f => (f.Name, f.Xsd))
+                                       .ToArray();
+
+            var swift  = CrossEmitterComparison.Operations(
+                             EmitterHarness.EmitSwift("iso2", "Iso15118_2Codec", schema));
+            var csharp = CrossEmitterComparison.Operations(
+                             EmitterHarness.EmitCSharp("Iso2", "Iso15118_2Codec", schema));
+
+            Assert.That(swift.Count, Is.GreaterThan(150), "far fewer functions than the set has types");
+
+            var problems = CrossEmitterComparison.Diff(swift, "swift", csharp, "csharp");
+            Assert.That(problems, Is.Empty,
+                        $"{problems.Count} of {csharp.Count} functions differ:\n" +
+                        string.Join("\n", problems.Take(15)));
+        }
+
+        /// <summary>
         /// The comparison is only worth anything if it can fail. A back end whose output is parsed
         /// into an empty operation list would make every assertion above vacuously true.
         /// </summary>

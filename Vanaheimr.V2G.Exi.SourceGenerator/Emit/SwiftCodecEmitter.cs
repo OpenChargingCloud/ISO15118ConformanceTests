@@ -284,6 +284,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             }
 
             /// <summary>
+            /// Whether a particle belongs to an optional run. An unbounded-from-zero list does: an
+            /// empty list *is* the element being absent, so it takes an event code in the run like
+            /// any other optional. Only a particle that must be present terminates one.
+            /// </summary>
+            private static bool InRun(ChildPlan c) =>
+                c.Shape == ChildShape.OptionalSingle ||
+                (c.Shape == ChildShape.BoundedRepeating && c.ListMin == 0);
+
+            /// <summary>
             /// Whether a child's value is framed by a value-start bit and a child EE. An AT value is
             /// not — the run's event code *was* the AT event — and a complex child frames itself,
             /// writing its own element EE.
@@ -368,8 +377,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </remarks>
             private void EmitStruct(SequencePlan sp, string name)
             {
-                var isBase   = _baseNames.Contains(name);
-                var isMember = sp.IsAbstract || isBase || sp.BaseRecordName is not null;
+                var isBase = _baseNames.Contains(name);
 
                 var baseChildren = sp.BaseRecordName is not null &&
                                    plan.ComplexTypes.TryGetValue(sp.BaseRecordName, out var basePlan)
@@ -378,18 +386,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 var own = sp.Children.Skip(baseChildren).ToList();
 
-                if (!isMember)
-                {
-                    _sb.Append("public struct ").Append(name).AppendLine(": Equatable, Sendable {");
-                }
-                else
-                {
-                    // No `final` on a base: Swift needs it open to be subclassed. Everything else is
-                    // final, which is both faster and a statement that the set of members is closed
-                    // to this file — the closest this shape gets to the guard Kotlin had to add.
-                    _sb.Append(sp.IsAbstract || isBase ? "public class " : "public final class ").Append(name);
-                    _sb.Append(sp.BaseRecordName is not null ? ": " + sp.BaseRecordName : "").AppendLine(" {");
-                }
+                // No `final` on a base: Swift needs it open to be subclassed. Everything else is
+                // final, which is both faster and a statement that the set of members is closed to
+                // this file — the closest this shape gets to the guard Kotlin had to add.
+                _sb.Append(sp.IsAbstract || isBase ? "public class " : "public final class ").Append(name);
+                _sb.Append(sp.BaseRecordName is not null ? ": " + sp.BaseRecordName : "").AppendLine(" {");
 
                 // Attributes are declared before content, matching the AT-before-content order of the
                 // grammar and the other two back ends' parameter lists. They never come from a base:
@@ -409,7 +410,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 // The initialiser always takes every field, inherited children included, so callers
                 // and the generated decoders see one flat parameter list whatever the hierarchy does.
-                _sb.Append("    public init(");
+                // A derived type that adds no fields of its own has the same initialiser signature
+                // as its base, which Swift treats as an override rather than an overload.
+                var overrides = sp.BaseRecordName is not null && ownFields.Count == 0;
+                _sb.Append(overrides ? "    public override init(" : "    public init(");
                 _sb.Append(string.Join(", ", Fields(sp).Select((f, i) =>
                     f.Name + ": " + f.Type + (f.Type.EndsWith("?") ? " = nil" : ""))));
                 _sb.AppendLine(") {");
@@ -498,10 +502,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         continue;
                     }
 
-                    if (c.Shape == ChildShape.OptionalSingle)
+                    if (InRun(c))
                     {
                         var end = i;
-                        while (end < kids.Count && kids[end].Shape == ChildShape.OptionalSingle) end++;
+                        while (end < kids.Count && InRun(kids[end])) end++;
 
                         // A run ends either at the element EE or at the next required particle,
                         // whose start event shares the run's highest code.
@@ -662,8 +666,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     var optEnd = trailingAny ? m - 1 : m;   // the wildcard is placed after the EE
 
                     for (var j = k; j < optEnd; j++)
-                        code = EmitEncodeRunParticle(kids[start + j], code, width, ref first, ind,
-                                                     $"st{id} = {j + 1}");
+                    {
+                        // A list consumes the rest of the element: its own list-end EE closes it.
+                        var after = kids[start + j].Shape == ChildShape.BoundedRepeating
+                                        ? $"done{id} = true"
+                                        : $"st{id} = {j + 1}";
+                        code = EmitEncodeRunParticle(kids[start + j], code, width, ref first, ind, after);
+                    }
 
                     // cbexigen's ordering for a trailing wildcard: the normal optionals, then a
                     // generic-wildcard slot that is reserved and never emitted, then the element EE,
@@ -735,6 +744,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var prop = "msg." + Prop(p.FieldName);
 
+                if (p.Shape == ChildShape.BoundedRepeating)
+                {
+                    // An empty list *is* this optional element being absent — there is no separate
+                    // nil to test, so the run's condition is emptiness rather than an unwrap.
+                    _sb.Append(ind).Append(first ? "if" : "} else if").Append(" !").Append(prop).AppendLine(".isEmpty {");
+                    _sb.Append(ind).Append("    precondition(").Append(prop).Append(".count <= ").Append(p.ListMax)
+                       .AppendLine(", \"list size out of schema range\")");
+                    EmitEncodeRepeatingItems(p, code, width, ind + "    ", after);
+                    first = false;
+                    return code + 1;
+                }
+
                 if (p.Value is ValueEncoding.SubstitutionChoice sc)
                 {
                     var baseCode = code;
@@ -786,9 +807,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).Append("ExiPrimitives.writeBinary(w, ").Append(expr).AppendLine(")");
                         break;
                     case ValueEncoding.NBitUnsigned nb:
-                        _sb.Append(ind).Append("w.writeBits(UInt32(")
-                           .Append(nb.Bias == 0 ? expr : "Int64(" + expr + ") - " + nb.Bias)
-                           .Append("), ").Append(nb.BitWidth).AppendLine(")");
+                        // A boolean has no numeric conversion in Swift, so the branch is written out.
+                        if (c.Type is TypeRef.Primitive { Kind: PrimitiveKind.Bool })
+                            _sb.Append(ind).Append("w.writeBits(").Append(expr).Append(" ? 1 : 0, ")
+                               .Append(nb.BitWidth).AppendLine(")");
+                        else
+                            _sb.Append(ind).Append("w.writeBits(UInt32(")
+                               .Append(nb.Bias == 0 ? expr : "Int64(" + expr + ") - " + nb.Bias)
+                               .Append("), ").Append(nb.BitWidth).AppendLine(")");
                         break;
                     case ValueEncoding.EnumIndex ei:
                         _sb.Append(ind).Append("w.writeBits(UInt32(").Append(expr).Append(".rawValue), ")
@@ -892,7 +918,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
 
                     var end = i;
-                    while (end < kids.Count && kids[end].Shape == ChildShape.OptionalSingle) end++;
+                    while (end < kids.Count && InRun(kids[end])) end++;
                     var term = end < kids.Count ? kids[end] : null;
 
                     EmitDecodeOptionalRun(kids, i, end, term);
@@ -971,8 +997,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var trailingAny = TrailingAny(kids, start, end, term);
 
                 for (var j = start; j < end; j++)
-                    _sb.Append("    var ").Append(Local(kids[j].FieldName)).Append(": ")
-                       .Append(DeclType(kids[j])).AppendLine(" = nil");
+                {
+                    // An empty list encodes "absent", so a repeating particle needs no nil state.
+                    if (kids[j].Shape == ChildShape.BoundedRepeating)
+                        _sb.Append("    var ").Append(Camel(kids[j].FieldName)).Append("List = [")
+                           .Append(Type(kids[j].Type)).AppendLine("]()");
+                    else
+                        _sb.Append("    var ").Append(Local(kids[j].FieldName)).Append(": ")
+                           .Append(DeclType(kids[j])).AppendLine(" = nil");
+                }
 
                 // A required terminator is assigned inside the state machine, so it starts as an
                 // optional and is unwrapped once the run is over: a stream that closes the element
@@ -1020,6 +1053,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                                 _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
                             }
                             code += sc.Members.Count;
+                            continue;
+                        }
+
+                        if (c.Shape == ChildShape.BoundedRepeating)
+                        {
+                            _sb.Append("            case ").Append(code).Append(":   // ").AppendLine(c.FieldName);
+                            EmitDecodeItem(c, Camel(c.FieldName) + "List", "                ");
+                            _sb.AppendLine("                while true {");
+                            _sb.AppendLine("                    let ec = try r.readBits(2)");
+                            _sb.AppendLine("                    if ec == 1 { break }   // element EE (list end)");
+                            _sb.Append("                    guard ec == 0, ").Append(Camel(c.FieldName))
+                               .Append("List.count < ").Append(c.ListMax).AppendLine(" else {");
+                            _sb.AppendLine("                        throw ExiError.invalidEventCode(\"repeating element\")");
+                            _sb.AppendLine("                    }");
+                            EmitDecodeItem(c, Camel(c.FieldName) + "List", "                    ");
+                            _sb.AppendLine("                }");
+                            _sb.Append("                done").Append(id).AppendLine(" = true");
+                            code++;
                             continue;
                         }
 
@@ -1127,16 +1178,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 ValueEncoding.StringValue or ValueEncoding.AttributeValue
                                            => $"try ExiPrimitives.readStringValue(r, slot: \"{c.FieldName}\")",
                 ValueEncoding.Binary       => "try ExiPrimitives.readBinary(r)",
-                ValueEncoding.NBitUnsigned nb => nb.Bias == 0
-                                                    ? Convert(c, $"try r.readBits({nb.BitWidth})")
-                                                    : Convert(c, $"Int64(try r.readBits({nb.BitWidth})) + {nb.Bias}"),
+                ValueEncoding.NBitUnsigned nb =>
+                    c.Type is TypeRef.Primitive { Kind: PrimitiveKind.Bool }
+                        ? $"try r.readBits({nb.BitWidth}) != 0"
+                        : nb.Bias == 0
+                            ? Convert(c, $"try r.readBits({nb.BitWidth})")
+                            : Convert(c, $"Int64(try r.readBits({nb.BitWidth})) + {nb.Bias}"),
                 // The index read stays inline — see ExiRuntime.exiEnum. A generated wrapper would
                 // put a call where the other back ends have the read itself, which the
                 // cross-emitter comparison reads as a divergence, correctly.
                 ValueEncoding.EnumIndex ei => $"try exiEnum({ei.EnumName}.self, try r.readBits({ei.BitWidth}))",
                 ValueEncoding.ComplexRef cr  => $"try decode{cr.TypeName}(r)",
-                ValueEncoding.OpaqueElement oe =>
-                    $"{{ throw ExiError.unsupportedConstruct(\"{oe.TypeName} (XMLDSig)\") }}()",
+                ValueEncoding.OpaqueElement oe => $"try exiUnsupported(\"{oe.TypeName} (XMLDSig)\")",
                 _ => throw new NotSupportedException(
                          $"Swift back end: value encoding {c.Value.GetType().Name} is not modelled yet."),
             };
@@ -1145,7 +1198,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private static string Convert(ChildPlan c, string expr)
             {
                 var t = Type(c.Type);
-                return t is "String" or "[UInt8]" ? expr : $"{t}({expr})";
+                return t is "String" or "[UInt8]" or "Bool" ? expr : $"{t}({expr})";
             }
 
             // ── facade ───────────────────────────────────────────────────────────────────────────

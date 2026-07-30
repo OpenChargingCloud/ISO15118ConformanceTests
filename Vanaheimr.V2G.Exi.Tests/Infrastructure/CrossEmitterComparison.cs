@@ -94,9 +94,9 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
                 var args = SplitArgs(Inside(line, open));
                 var write = m.Groups["op"].Value.StartsWith("w", StringComparison.OrdinalIgnoreCase);
                 // Reads carry only the width; writes carry the event code first.
-                var code  = write && args.Count > 0 ? Operand(args[0]) : null;
+                var code  = write && args.Count > 0 ? Operand(args[0], isWidth: false) : null;
                 var idx   = write ? 1 : 0;
-                var width = Operand(args.Count > idx ? args[idx] : "");
+                var width = Operand(args.Count > idx ? args[idx] : "", isWidth: true);
                 ops.Add((m.Index, code is null ? $"bits(w={width})" : $"bits({code},w={width})"));
             }
 
@@ -137,7 +137,13 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
         /// A literal stays itself; anything else collapses to <c>value</c>. Conditional widths such
         /// as <c>i == 0 ? 1 : 2</c> are kept, with whitespace removed — they *are* wire structure.
         /// </summary>
-        private static string Operand(string raw)
+        /// <param name="isWidth">
+        /// A conditional *width* is wire structure and is kept, with its identifiers masked; a
+        /// conditional *value* is just an operand written differently in each language — Swift
+        /// unwraps into a local where C# reaches through the optional — and collapses like any
+        /// other value.
+        /// </param>
+        private static string Operand(string raw, bool isWidth)
         {
             var s = raw.Trim().TrimEnd('u', 'U', 'L');
 
@@ -148,10 +154,14 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
                 s = $"{kotlinIf.Groups["c"].Value}?{kotlinIf.Groups["a"].Value}:{kotlinIf.Groups["b"].Value}";
 
             s = Regex.Replace(s, @"\s+", "");
+
+            // C# writes its literals as `1u`; Swift and Kotlin do not. Stripping the suffix has to
+            // happen before identifiers are masked, or the `u` becomes part of the mask and two
+            // spellings of the same constant read as a divergence.
+            s = Regex.Replace(s, @"(\d)[uUlL]+", "$1");
             if (Regex.IsMatch(s, @"^\(?[a-zA-Z]+\)?\d+$")) s = Regex.Replace(s, @"^\(?[a-zA-Z]+\)?", "");
             if (Regex.IsMatch(s, @"^\d+$")) return s;
-            // A conditional width is wire structure: keep its shape, mask the identifiers.
-            if (s.Contains('?')) return Regex.Replace(s, @"[a-zA-Z_][a-zA-Z0-9_]*", "x");
+            if (s.Contains('?') && isWidth) return Regex.Replace(s, @"[a-zA-Z_][a-zA-Z0-9_]*", "x");
             return "value";
         }
 
