@@ -140,6 +140,13 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         // ── Ed448 (RFC 8032) — the -20 signature suite's other option, via BouncyCastle ──────────
+        //
+        // The three below are self-referential by construction: sign-then-verify, tampered
+        // signature, wrong key. They say the implementation agrees with itself and nothing more.
+        // Ed448RfcVectorTests is what holds it to the standard — RFC 8032 §7.4's published
+        // signatures, byte for byte, which is possible here and not for P-521 because Ed448 is
+        // deterministic. Keep both: these cover the failure paths, those cover the happy path
+        // against an oracle.
 
         [Test]
         public void Ed448_SignThenVerify_RoundTrips()
