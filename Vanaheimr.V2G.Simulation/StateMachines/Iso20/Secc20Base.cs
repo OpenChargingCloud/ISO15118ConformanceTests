@@ -70,6 +70,39 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts fresh.</summary>
         public byte[]? ResumeSessionId { get; set; }
 
+        /// <summary>
+        /// A signing meter, if one is installed. Without it the charge-loop readings stay absent,
+        /// which is what every station in the field does and is therefore the honest default.
+        /// </summary>
+        /// <remarks>
+        /// <c>MeterSignature</c> is <c>maxLength 64</c> here exactly as <c>SigMeterReading</c> is in
+        /// -2 — one raw ECDSA P-256 <c>r‖s</c> pair — so -20's stronger signature suite does not
+        /// apply: that governs XMLDSig over message fragments, not a fixed-width slot in a data type.
+        /// The payload signed is the same layout as -2's with the protocol byte set to 20, so a
+        /// reading cannot be presented as belonging to the other protocol
+        /// (<see cref="Metering.MeterSigningPayload"/>).
+        /// </remarks>
+        public Metering.SigningMeter? InstalledMeter { get; init; }
+
+        /// <summary>
+        /// This station's meter reading for the charge loop, signed when a meter is fitted, or null.
+        /// </summary>
+        /// <remarks>
+        /// Returns the <em>values</em> rather than a <c>MeterInfoType</c> because each -20 message
+        /// set generates its own — the same independence that forces a separate <c>V2GSignature</c>
+        /// per set. The signing is shared here; the construction belongs to whichever set is
+        /// answering.
+        /// </remarks>
+        protected (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? MeterReading()
+        {
+            if (InstalledMeter is null)
+                return null;
+
+            var (wh, timestamp) = InstalledMeter.Read();
+            return (InstalledMeter.MeterId, wh, (ulong) timestamp,
+                    InstalledMeter.Sign(20, SessionId, wh, timestamp));
+        }
+
         /// <summary>When set, the SECC requests a <b>service renegotiation</b> once: the first charge-loop
         /// response carries <c>EvseNotification.ServiceRenegotiation</c> in its EVSEStatus; the EV then stops
         /// power delivery, sends <c>SessionStopReq(ServiceRenegotiation)</c>, and the session re-enters

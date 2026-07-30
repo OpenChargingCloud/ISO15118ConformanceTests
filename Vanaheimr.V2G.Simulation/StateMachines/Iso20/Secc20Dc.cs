@@ -93,7 +93,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 EVSEStatus: SignalRenegotiationOnce()
                     ? new Dc20.EVSEStatusType(NotificationMaxDelay: 0, Dc20.EvseNotification.ServiceRenegotiation)
                     : null,
-                MeterInfo: null, Receipt: null,
+                MeterInfo: MeterReading() is { } m
+                    ? new Dc20.MeterInfoType(m.Id, m.Wh, null, null, null, m.Signature, null, m.Timestamp)
+                    : null, Receipt: null,
                 EVSEPresentCurrent: Rat(120), EVSEPresentVoltage: Rat(400),
                 EVSEPowerLimitAchieved: false, EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false,
                 CLResControlMode: clRes);

@@ -64,7 +64,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 EVSEStatus: SignalRenegotiationOnce()
                     ? new Ac20.EVSEStatusType(NotificationMaxDelay: 0, Ac20.EvseNotification.ServiceRenegotiation)
                     : null,
-                MeterInfo: null, Receipt: null, EVSETargetFrequency: null,
+                MeterInfo: MeterReading() is { } m
+                    ? new Ac20.MeterInfoType(m.Id, m.Wh, null, null, null, m.Signature, null, m.Timestamp)
+                    : null, Receipt: null, EVSETargetFrequency: null,
                 CLResControlMode: clRes);
             return (MessageSet.Iso20AC, res);
         }
