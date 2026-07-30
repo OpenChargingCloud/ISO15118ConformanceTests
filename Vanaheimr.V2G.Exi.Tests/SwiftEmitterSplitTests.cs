@@ -115,8 +115,11 @@ namespace Vanaheimr.V2G.Exi.Tests
             var ex = Assert.Throws<NotSupportedException>(
                          () => EmitterHarness.EmitSwift("iso2", "Iso15118_2Codec", iso2));
 
+            // Which construct stops it moves as the back end grows, so the assertion is on the
+            // refusal being attributable and specific, not on today's wording.
             Assert.That(ex!.Message, Does.Contain("Swift back end"));
-            Assert.That(ex.Message, Does.Contain("not modelled yet"));
+            Assert.That(ex.Message, Does.Match(@"model(led)? yet"));
+            Assert.That(ex.Message, Does.Match(@"'[A-Za-z0-9_.]+'"), "the refusal must name what it refused");
         }
     }
 }

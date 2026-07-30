@@ -118,10 +118,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     // optional one would have to ride a content run, which a choice does not have.
                     if (sp.IsChoice && sp.Attributes is { Count: > 0 } && RequiredAttr(sp) is null)
                         No($"optional attributes on the xs:choice type '{name}'");
-                    // As above: a required attribute precedes the content, an optional one would
-                    // need a run over the attributes that this back end does not build yet.
-                    if (sp.SimpleContent is not null && sp.Attributes is { Count: > 0 } && RequiredAttr(sp) is null)
-                        No($"optional attributes on the xs:simpleContent type '{name}'");
 
                     if (sp.Attributes is { Count: > 0 })
                     {
@@ -145,7 +141,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                     foreach (var c in sp.Children)
                     {
-                        if (c.IsWildcardAny)                             No($"xs:any wildcard '{name}.{c.FieldName}'");
                         // A substitution group contributes one production per member, which widens
                         // every enclosing run. Only the required-single shape is modelled so far, so
                         // the run machinery still sees one production per particle.
@@ -264,6 +259,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// <summary>The lone required attribute of a type, or null.</summary>
             private static AttrPlan? RequiredAttr(SequencePlan sp) =>
                 sp.Attributes is { Count: 1 } && sp.Attributes[0].Required ? sp.Attributes[0] : null;
+
+            /// <summary>Whether a type carries optional attributes (Reject has ruled out mixtures).</summary>
+            private static bool HasOptionalAttributes(SequencePlan sp) =>
+                sp.Attributes is { Count: > 0 } && RequiredAttr(sp) is null;
 
             /// <summary>
             /// Optional attributes are the leading optionals of the content run: the AT event is the
@@ -454,9 +453,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (sp.SimpleContent is not null)
                 {
                     // A simple-content element has no child elements: one CONTENT event, the value
-                    // bare, then the element's own end.
-                    _sb.AppendLine("    w.writeBits(0, 1)   // CONTENT event");
-                    EmitWriteValue(SimpleContentChild(sp), "msg." + SimpleContentField, "    ");
+                    // bare, then the element's own end. Optional attributes come first and form a
+                    // run of their own, the CONTENT event closing it the way an element EE closes
+                    // an ordinary one.
+                    if (HasOptionalAttributes(sp))
+                        EmitEncodeSimpleContentAttrRun(sp);
+                    else
+                    {
+                        _sb.AppendLine("    w.writeBits(0, 1)   // CONTENT event");
+                        EmitWriteValue(SimpleContentChild(sp), "msg." + SimpleContentField, "    ");
+                    }
                     _sb.AppendLine("    w.writeBits(0, 1)   // element EE");
                     _sb.AppendLine("}");
                     _sb.AppendLine();
@@ -570,6 +576,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var m  = end - start;
                 var id = _run++;
+                var trailingAny = TrailingAny(kids, start, end, term);
                 const string ind = "            ";
 
                 _sb.Append("    var st").Append(id).AppendLine(" = 0");
@@ -588,16 +595,41 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                     _sb.Append("        case ").Append(k).AppendLine(":");
 
-                    var code  = 0;
-                    var first = true;
-                    for (var j = k; j < m; j++)
+                    var code   = 0;
+                    var first  = true;
+                    var optEnd = trailingAny ? m - 1 : m;   // the wildcard is placed after the EE
+
+                    for (var j = k; j < optEnd; j++)
                         code = EmitEncodeRunParticle(kids[start + j], code, width, ref first, ind,
                                                      $"st{id} = {j + 1}");
+
+                    // cbexigen's ordering for a trailing wildcard: the normal optionals, then a
+                    // generic-wildcard slot that is reserved and never emitted, then the element EE,
+                    // and only then the typed ANY element. Selecting it advances to the EE-only state.
+                    var eeCode = code;
+                    if (trailingAny && k < m)
+                    {
+                        EmitEncodeRunParticle(kids[end - 1], code + 2, width, ref first, ind, $"st{id} = {m}");
+                        eeCode = code + 1;
+                    }
+
+                    // A substitution terminator has one production per member, so it extends the
+                    // chain rather than closing it — and the chain then ends in a failure, because
+                    // a required child must be set.
+                    if (term?.Value is ValueEncoding.SubstitutionChoice)
+                    {
+                        EmitEncodeRunParticle(term, eeCode, width, ref first, ind, $"done{id} = true");
+                        _sb.Append(ind).AppendLine("} else {");
+                        _sb.Append(ind).Append("    preconditionFailure(\"no value set for ")
+                           .Append(term.FieldName).AppendLine("\")");
+                        _sb.Append(ind).AppendLine("}");
+                        continue;
+                    }
 
                     var tail = first ? ind : ind + "    ";
                     if (!first) _sb.Append(ind).AppendLine("} else {");
 
-                    _sb.Append(tail).Append("w.writeBits(").Append(code).Append(", ").Append(width);
+                    _sb.Append(tail).Append("w.writeBits(").Append(eeCode).Append(", ").Append(width);
                     if (term is null)
                     {
                         _sb.AppendLine(")   // element EE");
@@ -739,12 +771,19 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 if (sp.SimpleContent is not null)
                 {
-                    _sb.AppendLine("    _ = try r.readBits(1)   // CONTENT event");
-                    _sb.Append("    let ").Append(SimpleContentField).Append(" = ")
-                       .AppendLine(ReadValueExpr(SimpleContentChild(sp)));
+                    if (HasOptionalAttributes(sp))
+                        EmitDecodeSimpleContentAttrRun(sp);
+                    else
+                    {
+                        _sb.AppendLine("    _ = try r.readBits(1)   // CONTENT event");
+                        _sb.Append("    let ").Append(SimpleContentField).Append(" = ")
+                           .AppendLine(ReadValueExpr(SimpleContentChild(sp)));
+                    }
                     _sb.AppendLine("    _ = try r.readBits(1)   // element EE");
                     var scArgs = new List<string>();
                     if (RequiredAttr(sp) is { } sra) scArgs.Add(Prop(sra.FieldName) + ": " + Local(sra.FieldName));
+                    if (HasOptionalAttributes(sp))
+                        foreach (var oa in sp.Attributes!) scArgs.Add(Prop(oa.FieldName) + ": " + Local(oa.FieldName));
                     scArgs.Add(SimpleContentField + ": " + SimpleContentField);
                     _sb.Append("    return ").Append(name).Append("(").Append(string.Join(", ", scArgs)).AppendLine(")");
                     _sb.AppendLine("}");
@@ -813,6 +852,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var m  = end - start;
                 var id = _run++;
+                var trailingAny = TrailingAny(kids, start, end, term);
 
                 for (var j = start; j < end; j++)
                     _sb.Append("    var ").Append(Local(kids[j].FieldName)).Append(": ")
@@ -824,6 +864,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (term is not null)
                     _sb.Append("    var ").Append(Local(term.FieldName)).Append(": ")
                        .Append(Type(term.Type)).AppendLine("? = nil");
+
 
                 _sb.Append("    var st").Append(id).AppendLine(" = 0");
                 _sb.Append("    var done").Append(id).AppendLine(" = false");
@@ -839,8 +880,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        case ").Append(k).AppendLine(":");
                     _sb.Append("            switch try r.readBits(").Append(width).AppendLine(") {");
 
-                    var code = 0;
-                    for (var j = k; j < m; j++)
+                    var code   = 0;
+                    var optEnd = trailingAny ? m - 1 : m;
+
+                    for (var j = k; j < optEnd; j++)
                     {
                         var c = kids[start + j];
 
@@ -867,13 +910,40 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         code++;
                     }
 
+                    var eeCode = code;
+                    if (trailingAny && k < m)
+                    {
+                        var any = kids[end - 1];
+                        _sb.Append("            case ").Append(code + 2).Append(":   // ").AppendLine(any.FieldName);
+                        EmitReadFramedValue(any, Local(any.FieldName), "                ");
+                        _sb.Append("                st").Append(id).Append(" = ").Append(m).AppendLine();
+                        eeCode = code + 1;
+                    }
+
+                    if (term?.Value is ValueEncoding.SubstitutionChoice tsc)
+                    {
+                        for (var mi = 0; mi < tsc.Members.Count; mi++)
+                        {
+                            if (tsc.Members[mi].IsAbstractHead) continue;
+                            _sb.Append("            case ").Append(eeCode + mi).Append(":   // ")
+                               .AppendLine(tsc.Members[mi].ElementName);
+                            _sb.Append("                ").Append(Local(term.FieldName)).Append(" = try decode")
+                               .Append(tsc.Members[mi].TypeName).AppendLine("(r)");
+                            _sb.Append("                done").Append(id).AppendLine(" = true");
+                        }
+                        _sb.AppendLine("            default:");
+                        _sb.AppendLine("                throw ExiError.invalidEventCode(\"optional run\")");
+                        _sb.AppendLine("            }");
+                        continue;
+                    }
+
                     if (term is null)
                     {
-                        _sb.Append("            case ").Append(code).AppendLine(":   // element EE");
+                        _sb.Append("            case ").Append(eeCode).AppendLine(":   // element EE");
                     }
                     else
                     {
-                        _sb.Append("            case ").Append(code).Append(":   // SE(").Append(term.FieldName).AppendLine(")");
+                        _sb.Append("            case ").Append(eeCode).Append(":   // SE(").Append(term.FieldName).AppendLine(")");
                         EmitReadFramedValue(term, Local(term.FieldName), "                ");
                     }
                     _sb.Append("                done").Append(id).AppendLine(" = true");
@@ -976,6 +1046,108 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
                 _sb.AppendLine("}");
+            }
+
+            // ── simpleContent with optional attributes ───────────────────────────────────────────
+
+            /// <summary>
+            /// A run over the optional attributes, closed by the CONTENT event instead of an element
+            /// EE. The width shrinks as attributes are passed, exactly as in an ordinary run.
+            /// </summary>
+            private void EmitEncodeSimpleContentAttrRun(SequencePlan sp)
+            {
+                var oa = sp.Attributes!;
+                var n  = oa.Count;
+                var id = _run++;
+                const string ind = "            ";
+
+                _sb.Append("    var st").Append(id).AppendLine(" = 0");
+                _sb.Append("    var done").Append(id).AppendLine(" = false");
+                _sb.Append("    while !done").Append(id).AppendLine(" {");
+                _sb.Append("        switch st").Append(id).AppendLine(" {");
+
+                for (var k = 0; k <= n; k++)
+                {
+                    // remaining optional attributes + CONTENT, plus the non-strict phantom
+                    var width = BitsFor((n - k + 1) + 1);
+                    _sb.Append("        case ").Append(k).AppendLine(":");
+
+                    var code  = 0;
+                    var first = true;
+                    for (var i = k; i < n; i++, code++, first = false)
+                    {
+                        _sb.Append(ind).Append(first ? "if" : "} else if").Append(" let v = msg.")
+                           .Append(Prop(oa[i].FieldName)).AppendLine(" {");
+                        _sb.Append(ind).Append("    w.writeBits(").Append(code).Append(", ").Append(width)
+                           .Append(")   // AT(").Append(oa[i].FieldName).AppendLine(")");
+                        _sb.Append(ind).AppendLine("    ExiPrimitives.writeStringValue(w, v)");
+                        _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                    }
+
+                    var tail = first ? ind : ind + "    ";
+                    if (!first) _sb.Append(ind).AppendLine("} else {");
+
+                    _sb.Append(tail).Append("w.writeBits(").Append(code).Append(", ").Append(width).AppendLine(")   // CONTENT");
+                    EmitWriteValue(SimpleContentChild(sp), "msg." + SimpleContentField, tail);
+                    _sb.Append(tail).Append("done").Append(id).AppendLine(" = true");
+
+                    if (!first) _sb.Append(ind).AppendLine("}");
+                }
+
+                _sb.AppendLine("        default:");
+                _sb.Append("            done").Append(id).AppendLine(" = true");
+                _sb.AppendLine("        }");
+                _sb.AppendLine("    }");
+            }
+
+            private void EmitDecodeSimpleContentAttrRun(SequencePlan sp)
+            {
+                var oa = sp.Attributes!;
+                var n  = oa.Count;
+                var id = _run++;
+
+                foreach (var a in oa)
+                    _sb.Append("    var ").Append(Local(a.FieldName)).Append(": ")
+                       .Append(Type(a.Type)).AppendLine("? = nil");
+                _sb.Append("    var ").Append(SimpleContentField).Append(": ")
+                   .Append(Type(sp.SimpleContentType!)).AppendLine("? = nil");
+
+                _sb.Append("    var st").Append(id).AppendLine(" = 0");
+                _sb.Append("    var done").Append(id).AppendLine(" = false");
+                _sb.Append("    while !done").Append(id).AppendLine(" {");
+                _sb.Append("        switch st").Append(id).AppendLine(" {");
+
+                for (var k = 0; k <= n; k++)
+                {
+                    var width = BitsFor((n - k + 1) + 1);
+                    _sb.Append("        case ").Append(k).AppendLine(":");
+                    _sb.Append("            switch try r.readBits(").Append(width).AppendLine(") {");
+
+                    var code = 0;
+                    for (var i = k; i < n; i++, code++)
+                    {
+                        _sb.Append("            case ").Append(code).Append(":   // AT(").Append(oa[i].FieldName).AppendLine(")");
+                        _sb.Append("                ").Append(Local(oa[i].FieldName))
+                           .Append(" = try ExiPrimitives.readStringValue(r, slot: \"").Append(oa[i].FieldName).AppendLine("\")");
+                        _sb.Append("                st").Append(id).Append(" = ").Append(i + 1).AppendLine();
+                    }
+
+                    _sb.Append("            case ").Append(code).AppendLine(":   // CONTENT");
+                    _sb.Append("                ").Append(SimpleContentField).Append(" = ")
+                       .AppendLine(ReadValueExpr(SimpleContentChild(sp)));
+                    _sb.Append("                done").Append(id).AppendLine(" = true");
+                    _sb.AppendLine("            default:");
+                    _sb.AppendLine("                throw ExiError.invalidEventCode(\"simpleContent attribute run\")");
+                    _sb.AppendLine("            }");
+                }
+
+                _sb.AppendLine("        default:");
+                _sb.Append("            done").Append(id).AppendLine(" = true");
+                _sb.AppendLine("        }");
+                _sb.AppendLine("    }");
+                _sb.Append("    guard let ").Append(SimpleContentField).AppendLine(" else {");
+                _sb.AppendLine("        throw ExiError.invalidEventCode(\"simpleContent value missing\")");
+                _sb.AppendLine("    }");
             }
 
             // ── xs:choice ────────────────────────────────────────────────────────────────────────
@@ -1146,6 +1318,23 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     if (depth > 32) break;   // a cycle cannot happen in a valid schema; do not hang on one
                 }
                 return depth;
+            }
+
+            /// <summary>
+            /// Whether a run ends in an xs:any wildcard, and a guard that one appears nowhere else.
+            /// cbexigen only splits a wildcard into its two productions as the last particle of an
+            /// EE-terminated run; anywhere else the code layout would differ and this back end does
+            /// not model it.
+            /// </summary>
+            private static bool TrailingAny(IReadOnlyList<ChildPlan> kids, int start, int end, ChildPlan? term)
+            {
+                for (var p = start; p < end; p++)
+                    if (kids[p].IsWildcardAny && (p != end - 1 || term is not null))
+                        throw new NotSupportedException(
+                            $"Swift back end: the xs:any wildcard '{kids[p].FieldName}' must be the last " +
+                            "child of an EE-terminated sequence; this back end models no other position.");
+
+                return term is null && end > start && kids[end - 1].IsWildcardAny;
             }
 
             /// <summary>
