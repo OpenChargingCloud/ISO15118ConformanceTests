@@ -53,8 +53,12 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
             public void NotifyServerCertificate(TlsServerCertificate serverCertificate)
                 => BcV2GTls.ValidatePeer(serverCertificate?.Certificate, _options.ValidatePeerLeaf, AlertDescription.bad_certificate);
 
+            // Null credentials decline client authentication — the unilateral-TLS case. BouncyCastle then
+            // sends an empty Certificate message, which a SECC requiring one rejects.
             public TlsCredentials GetClientCredentials(CertificateRequest certificateRequest)
-                => BcV2GTls.BuildSigner(_crypto, _options.OwnCredentials, _context());
+                => _options.OwnCredentials is { } own
+                       ? BcV2GTls.BuildSigner(_crypto, own, _context())
+                       : null!;
         }
     }
 }

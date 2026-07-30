@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Security;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
 using NUnit.Framework;
@@ -25,12 +26,22 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
     [TestFixture]
     public class TlsLoopbackTests
     {
-        private static TlsOptions ServerTls(X509Certificate2 cert) => new() { ServerCertificate = cert };
+        // The TLS version is part of the protocol's profile, not a free choice: docs/pki-model.md pins the
+        // mapping to -2 <-> TLS 1.2 and -20 <-> TLS 1.3 and explicitly rules out "-2 over TLS 1.3", so each
+        // test states its version rather than inheriting a library default that would suit only one of them.
+        private static TlsOptions ServerTls(X509Certificate2 cert, SslProtocols protocols, IReadOnlyList<TlsCipherSuite>? suites = null) => new()
+        {
+            ServerCertificate   = cert,
+            EnabledSslProtocols = protocols,
+            CipherSuites        = suites,
+        };
 
-        private static TlsOptions ClientTls(X509Certificate2 serverCert) => new()
+        private static TlsOptions ClientTls(X509Certificate2 serverCert, SslProtocols protocols, IReadOnlyList<TlsCipherSuite>? suites = null) => new()
         {
             ServerCertificateValidation = (_, presented, _, _) =>
                 presented is X509Certificate2 p && p.Thumbprint == serverCert.Thumbprint,
+            EnabledSslProtocols = protocols,
+            CipherSuites        = suites,
         };
 
         [Test]
@@ -38,11 +49,14 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         {
             using var cert = TestCertificate.CreateSelfSigned();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), ServerTls(cert));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0),
+                                                    ServerTls(cert, SslProtocols.Tls12, TlsProfiles.Iso2CipherSuites));
 
             var seccTask = Task.Run(async () =>
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
+                TlsAssert.NegotiatedVersion(seccStream, SslProtocols.Tls12);
+                TlsAssert.NegotiatedCipherSuite(seccStream, TlsProfiles.Iso2CipherSuites);
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_2, cts.Token);
 
                 var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);
@@ -51,7 +65,10 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port, ClientTls(cert), cts.Token);
+                "localhost", listener.LocalEndpoint.Port,
+                ClientTls(cert, SslProtocols.Tls12, TlsProfiles.Iso2CipherSuites), cts.Token);
+            TlsAssert.NegotiatedVersion(evccStream, SslProtocols.Tls12);
+            TlsAssert.NegotiatedCipherSuite(evccStream, TlsProfiles.Iso2CipherSuites);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
 
             var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
@@ -67,11 +84,14 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         {
             using var cert = TestCertificate.CreateSelfSigned();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), ServerTls(cert));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0),
+                                                    ServerTls(cert, SslProtocols.Tls13, TlsProfiles.Iso20CipherSuites));
 
             var seccTask = Task.Run(async () =>
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
+                TlsAssert.NegotiatedVersion(seccStream, SslProtocols.Tls13);
+                TlsAssert.NegotiatedCipherSuite(seccStream, TlsProfiles.Iso20CipherSuites);
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
                 var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
@@ -80,7 +100,10 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port, ClientTls(cert), cts.Token);
+                "localhost", listener.LocalEndpoint.Port,
+                ClientTls(cert, SslProtocols.Tls13, TlsProfiles.Iso20CipherSuites), cts.Token);
+            TlsAssert.NegotiatedVersion(evccStream, SslProtocols.Tls13);
+            TlsAssert.NegotiatedCipherSuite(evccStream, TlsProfiles.Iso20CipherSuites);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);

@@ -18,14 +18,25 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
                 SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ed448),
             };
 
-        /// <summary>The -20 TLS 1.3 cipher suites.</summary>
+        /// <summary>
+        /// The -20 TLS 1.3 cipher suites — derived from <see cref="TlsProfiles.Iso20CipherSuites"/> rather than
+        /// listed again, so the .NET and BouncyCastle backends cannot drift apart. Both enumerations carry the
+        /// IANA code points, so the cast is exact (asserted by <c>TlsProfilesTests</c>).
+        /// </summary>
         internal static readonly int[] CipherSuites =
-        {
-            CipherSuite.TLS_AES_256_GCM_SHA384,
-            CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
-        };
+            TlsProfiles.Iso20CipherSuites.Select(suite => (int) suite).ToArray();
 
         internal static readonly ProtocolVersion[] Tls13Only = { ProtocolVersion.TLSv13 };
+
+        /// <summary>
+        /// The signature algorithms to put in the <c>CertificateRequest</c>: the -20 pair by default, or the
+        /// caller's explicit list (<see cref="BcTlsOptions.AcceptedClientSignatureSchemes"/>) — a documented
+        /// deviation used by the macOS TLS 1.3 fallback for its P-256 certificates.
+        /// </summary>
+        internal static IList<SignatureAndHashAlgorithm> AcceptedClientSignatureAlgorithms(BcTlsOptions options)
+            => options.AcceptedClientSignatureSchemes is { Length: > 0 } schemes
+                   ? schemes.Select(SignatureScheme.GetSignatureAndHashAlgorithm).ToList()
+                   : AcceptedSignatureAlgorithms;
 
         internal static TlsCredentials BuildSigner(BcTlsCrypto crypto, BcTlsCredentials creds, TlsContext context)
         {

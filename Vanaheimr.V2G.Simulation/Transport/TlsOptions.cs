@@ -44,5 +44,18 @@ namespace Vanaheimr.V2G.Simulation.Transport
         public RemoteCertificateValidationCallback? ClientCertificateValidation { get; init; }
 
         public SslProtocols EnabledSslProtocols { get; init; } = SslProtocols.Tls13;
+
+        /// <summary>The cipher suites this session may negotiate — the other half of the protocol's TLS profile
+        /// (<c>docs/pki-model.md</c>: version, suites, signature algorithms and curve are one coupled unit, and
+        /// letting the stack auto-select is the documented failure mode). Null: whatever the platform prefers,
+        /// which is <i>not</i> profile-conformant — measured on macOS, an unpinned ISO 15118-2 session at
+        /// TLS 1.2 negotiates <c>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</c> instead of the profile's AES-128-CBC.
+        /// <para>
+        /// Applied via <see cref="CipherSuitesPolicy"/>, which .NET supports on macOS/Linux but <b>not</b> on
+        /// Windows/Schannel (suites are configured system-wide there). Where it cannot be applied the transport
+        /// leaves the suites unpinned rather than throwing — see
+        /// <see cref="TlsPlatform.SupportsCipherSuitePinning"/>.
+        /// </para></summary>
+        public IReadOnlyList<TlsCipherSuite>? CipherSuites { get; init; }
     }
 }

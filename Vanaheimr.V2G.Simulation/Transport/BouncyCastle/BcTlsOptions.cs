@@ -7,14 +7,27 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
     /// </summary>
     public sealed record BcTlsOptions
     {
-        /// <summary>The certificate + key this side presents (SECC server cert, or EVCC Vehicle client cert).</summary>
-        public required BcTlsCredentials OwnCredentials { get; init; }
+        /// <summary>The certificate + key this side presents (SECC server cert, or EVCC Vehicle client cert).
+        /// <b>Required on the SECC/server side.</b> May be null on the EVCC/client side for unilateral TLS —
+        /// the ISO 15118-2 shape, where only the SECC authenticates; the client then declines the
+        /// <c>CertificateRequest</c> (and a SECC with <see cref="RequireClientCertificate"/> rejects it).</summary>
+        public BcTlsCredentials? OwnCredentials { get; init; }
 
         /// <summary>Validate the peer's leaf certificate (DER). Return false to abort the handshake. Null = accept any.</summary>
         public Func<byte[], bool>? ValidatePeerLeaf { get; init; }
 
         /// <summary>SECC side only: require a client certificate from the EVCC (mutual TLS). Ignored on the client.</summary>
         public bool RequireClientCertificate { get; init; }
+
+        /// <summary>SECC side only: the signature schemes the server will accept for the EVCC's <i>client</i>
+        /// certificate, i.e. what goes into the TLS 1.3 <c>CertificateRequest</c>. Null (default): ISO 15118-20's
+        /// strict pair (<c>ecdsa_secp521r1_sha512</c>, <c>ed448</c>).
+        /// <para>
+        /// Setting this <b>deviates from the -20 TLS profile</b> and exists for the macOS TLS 1.3 fallback
+        /// (<see cref="TlsPlatform"/>), which carries the .NET backend's deliberately off-profile P-256 test
+        /// certificates (see <c>docs/pki-model.md</c>). Never set it on a -20 conformance path.
+        /// </para></summary>
+        public int[]? AcceptedClientSignatureSchemes { get; init; }
 
         /// <summary><b>EXPERIMENTAL</b> (see <c>Vanaheimr.V2G.Experiments.Pqc</c>): override the TLS
         /// named groups this side offers/accepts for the key exchange — e.g.

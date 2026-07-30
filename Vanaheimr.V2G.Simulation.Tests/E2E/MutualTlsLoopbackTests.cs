@@ -4,6 +4,8 @@ using System.Security.Authentication;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Tls;
+
 using cloud.charging.open.protocols.ISO15118.PKI;
 
 using Vanaheimr.V2G.Simulation.Sap;
@@ -35,17 +37,23 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         // BouncyCastle, independent of the TLS layer. See docs/pki-model.md.
         private static V2GTestPki NewPki() => V2GTestPki.Create(V2GAlgorithm.EcdsaP256, V2GProfileFlavor.Lab);
 
+        // TLS 1.3 stated explicitly rather than inherited: it is what -20 mandates (docs/pki-model.md), and
+        // TlsAssert below verifies the session really runs it instead of a silently downgraded version.
         private static TlsOptions SeccTls(V2GTestPki pki) => new()
         {
             ServerCertificate           = pki.SeccServerCert,
             RequireClientCertificate    = true,
             ClientCertificateValidation = pki.ValidateVehicleClient,
+            EnabledSslProtocols         = SslProtocols.Tls13,
+            CipherSuites                = TlsProfiles.Iso20CipherSuites,
         };
 
         private static TlsOptions EvccTls(V2GTestPki pki) => new()
         {
             ClientCertificate           = pki.VehicleClientCert,
             ServerCertificateValidation = pki.ValidateSeccServer,
+            EnabledSslProtocols         = SslProtocols.Tls13,
+            CipherSuites                = TlsProfiles.Iso20CipherSuites,
         };
 
         [Test]
@@ -58,7 +66,9 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             var seccTask = Task.Run(async () =>
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
-                Assert.That(((SslStream) seccStream).IsMutuallyAuthenticated, Is.True,
+                TlsAssert.NegotiatedVersion(seccStream, SslProtocols.Tls13);
+                TlsAssert.NegotiatedCipherSuite(seccStream, TlsProfiles.Iso20CipherSuites);
+                TlsAssert.MutuallyAuthenticated(seccStream,
                     "the EVCC must have presented and passed client-certificate authentication");
 
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
@@ -115,6 +125,17 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             // because the EVCC presents ClientCertificate + ClientCertificateChain, so SslStream transmits the
             // Vehicle Sub-CAs. Without the chain (leaf only) the root-only SECC can't build the path — the very
             // failure the live run first hit.
+
+            // Unlike the other tests here, this one cannot borrow the macOS TLS 1.3 fallback: what it asserts is
+            // a property of SslStream itself — that a certificate context puts the intermediates on the wire —
+            // and BouncyCastle's peer validation is leaf-only (BcTlsOptions.ValidatePeerLeaf), so
+            // ValidateVehicleClientWireChainOnly would receive no wire chain to build a path from. Substituting
+            // the backend would leave the test green while testing something else, so it is skipped instead.
+            if (!TlsPlatform.SslStreamSupportsTls13)
+                Assert.Ignore("Needs a TLS 1.3 SslStream session; this platform has none (see TlsPlatform). " +
+                              "Covered on Windows/Linux, and the -20-faithful chain handling is covered on the " +
+                              "BouncyCastle path by BcMutualTlsLoopbackTests.");
+
             using var pki = NewPki();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
@@ -123,13 +144,17 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
                 ServerCertificate           = pki.SeccServerCert,
                 RequireClientCertificate    = true,
                 ClientCertificateValidation = pki.ValidateVehicleClientWireChainOnly,
+                EnabledSslProtocols         = SslProtocols.Tls13,
+                CipherSuites                = TlsProfiles.Iso20CipherSuites,
             };
             using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), seccTls);
 
             var seccTask = Task.Run(async () =>
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
-                Assert.That(((SslStream) seccStream).IsMutuallyAuthenticated, Is.True);
+                TlsAssert.NegotiatedVersion(seccStream, SslProtocols.Tls13);
+                TlsAssert.NegotiatedCipherSuite(seccStream, TlsProfiles.Iso20CipherSuites);
+                TlsAssert.MutuallyAuthenticated(seccStream, "the EVCC must have passed client-certificate authentication");
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
                 var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
                 await secc.RunAsync(seccStream, cts.Token);
@@ -141,6 +166,8 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
                 ClientCertificate           = pki.VehicleClientCert,
                 ClientCertificateChain      = pki.VehicleIntermediates,
                 ServerCertificateValidation = pki.ValidateSeccServer,
+                EnabledSslProtocols         = SslProtocols.Tls13,
+                CipherSuites                = TlsProfiles.Iso20CipherSuites,
             };
             using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evccTls, cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
@@ -164,7 +191,12 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             // EVCC offers no client certificate. Fire the connect so the server processes the (empty) cert;
             // under TLS 1.3 the *client* may finish its side before the server rejects, so we don't assert on
             // it — the reliable signal is the SECC side failing to authenticate.
-            var evccTls = new TlsOptions { ServerCertificateValidation = pki.ValidateSeccServer };
+            var evccTls = new TlsOptions
+            {
+                ServerCertificateValidation = pki.ValidateSeccServer,
+                EnabledSslProtocols         = SslProtocols.Tls13,
+                CipherSuites                = TlsProfiles.Iso20CipherSuites,
+            };
             _ = Task.Run(async () =>
             {
                 try
@@ -175,8 +207,12 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
                 catch { /* client-side outcome is timing-dependent under TLS 1.3 */ }
             }, cts.Token);
 
+            // How the rejection surfaces depends on the backend: SslStream raises AuthenticationException /
+            // IOException, the BouncyCastle fallback a TlsFatalAlert(certificate_required) from ValidatePeer.
             Assert.That(async () => await seccTask,
-                Throws.InstanceOf<AuthenticationException>().Or.InstanceOf<IOException>());
+                Throws.InstanceOf<AuthenticationException>()
+                      .Or.InstanceOf<IOException>()
+                      .Or.InstanceOf<TlsFatalAlert>());
         }
     }
 }

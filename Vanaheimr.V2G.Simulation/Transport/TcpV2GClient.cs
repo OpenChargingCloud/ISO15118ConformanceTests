@@ -22,11 +22,17 @@ namespace Vanaheimr.V2G.Simulation.Transport
 
             if (tls is null) return stream;
 
+            // macOS: SslStream cannot do TLS 1.3 at all, so a TLS-1.3-only session goes to the managed
+            // BouncyCastle stack rather than being silently downgraded to 1.2 (see TlsPlatform).
+            if (TlsPlatform.NeedsBouncyCastleFallback(tls))
+                return await BcTlsTransport.AuthenticateClientAsync(stream, TlsPlatform.ToBcClientOptions(tls), ct).ConfigureAwait(false);
+
             var ssl = new SslStream(stream, leaveInnerStreamOpen: false, tls.ServerCertificateValidation);
             var options = new SslClientAuthenticationOptions
             {
                 TargetHost = host,
                 EnabledSslProtocols = tls.EnabledSslProtocols,
+                CipherSuitesPolicy  = TlsPlatform.CipherSuitesPolicyFor(tls),
             };
             if (tls.ClientCertificate is { } clientCert)
             {

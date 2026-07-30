@@ -28,11 +28,16 @@ namespace Vanaheimr.V2G.Simulation.Transport.BouncyCastle
             => _options.ExperimentalNamedGroups ?? base.GetSupportedGroups();
 
         public override TlsCredentials GetCredentials()
-            => BcV2GTls.BuildSigner(_crypto, _options.OwnCredentials, m_context);
+            => BcV2GTls.BuildSigner(_crypto,
+                                    _options.OwnCredentials
+                                        ?? throw new InvalidOperationException(
+                                               "BcTlsOptions.OwnCredentials is required on the SECC/server side — " +
+                                               "the server must present a certificate."),
+                                    m_context);
 
         public override CertificateRequest GetCertificateRequest()
             => _options.RequireClientCertificate
-                   ? new CertificateRequest(TlsUtilities.EmptyBytes, BcV2GTls.AcceptedSignatureAlgorithms, null, null)
+                   ? new CertificateRequest(TlsUtilities.EmptyBytes, BcV2GTls.AcceptedClientSignatureAlgorithms(_options), null, null)
                    : null!;
 
         public override void NotifyClientCertificate(Certificate clientCertificate)
