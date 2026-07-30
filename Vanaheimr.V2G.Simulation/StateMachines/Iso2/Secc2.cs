@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using Vanaheimr.V2G.Iso15118_2;
 using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
+using Vanaheimr.V2G.Simulation.Metering;
 using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Tp;
 
@@ -373,12 +374,16 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         private BodyBaseType CurrentDemand()
         {
             bool receipt = DemandReceipt();
+            // A station with a real meter reports it every cycle, not only when it wants a receipt
+            // signed back: the signed reading is the point on its own (docs/CONCEPT.md §4.3), and
+            // MeterInfo is optional here. Without a meter installed, nothing changes.
+            bool reading = receipt || InstalledMeter is not null;
             return new CurrentDemandResType(ResponseCode.OK, DcEvseStatus(Notification()),
                 EVSEPresentVoltage: Volt(400), EVSEPresentCurrent: Amp(120),
                 EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false, EVSEPowerLimitAchieved: false,
                 EVSEMaximumVoltageLimit: null, EVSEMaximumCurrentLimit: null, EVSEMaximumPowerLimit: null,
                 EVSEID: "DE*ABC*E1", SAScheduleTupleID: _chosenTupleId,
-                MeterInfo: receipt ? Meter() : null, ReceiptRequired: receipt ? true : null);
+                MeterInfo: reading ? Meter() : null, ReceiptRequired: receipt ? true : null);
         }
 
         private BodyBaseType ChargingStatus()
@@ -386,9 +391,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             // A Contract session gets ReceiptRequired + the MeterInfo the EV echoes back inside its
             // signed MeteringReceiptReq (a Josev EVCC only honours this over TLS).
             bool receipt = DemandReceipt();
+            bool reading = receipt || InstalledMeter is not null;   // see CurrentDemand()
             return new ChargingStatusResType(ResponseCode.OK, "DE*ABC*E1", SAScheduleTupleID: _chosenTupleId,
                 EVSEMaxCurrent: null,
-                MeterInfo: receipt ? Meter() : null, ReceiptRequired: receipt ? true : null,
+                MeterInfo: reading ? Meter() : null, ReceiptRequired: receipt ? true : null,
                 AcEvseStatus(Notification()));
         }
 
@@ -487,9 +493,33 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             return (digestOk, false, "none");
         }
 
-        private MeterInfoType Meter() =>
-            new("VAN*M1", MeterReading: 42, SigMeterReading: null, MeterStatus: null,
-                TMeter: clock.GetUtcNow().ToUnixTimeSeconds());
+        /// <summary>
+        /// A signing meter, if one was installed. Without it the readings stay unsigned — which is
+        /// what every station in the field does, and is therefore the honest default.
+        /// </summary>
+        public SigningMeter? InstalledMeter { get; init; }
+
+        /// <summary>
+        /// The station's meter reading, signed into <c>SigMeterReading</c> when a meter is installed.
+        /// </summary>
+        /// <remarks>
+        /// The field is a standard one, <c>maxLength 64</c> — exactly one raw ECDSA P-256 <c>r‖s</c>
+        /// pair — and it exists so the <em>meter</em> can sign what it measured rather than the SECC
+        /// asserting it. It is almost never populated in practice, which is precisely why a simulator
+        /// should populate it (<c>docs/CONCEPT.md</c> §4.3). What is signed is our own layout, since
+        /// the standard defines the field and not its content: see <see cref="MeterSigningPayload"/>.
+        /// </remarks>
+        private MeterInfoType Meter()
+        {
+            if (InstalledMeter is null)
+                return new("VAN*M1", MeterReading: 42, SigMeterReading: null, MeterStatus: null,
+                           TMeter: clock.GetUtcNow().ToUnixTimeSeconds());
+
+            var (wh, timestamp) = InstalledMeter.Read();
+            return new(InstalledMeter.MeterId, MeterReading: wh,
+                       SigMeterReading: InstalledMeter.Sign(2, _sessionId, wh, timestamp),
+                       MeterStatus: null, TMeter: timestamp);
+        }
 
         private static DC_EVSEStatusType DcEvseStatus(EVSENotification notification = EVSENotification.None) =>
             new(NotificationMaxDelay: 0, notification, EVSEIsolationStatus: null, DC_EVSEStatusCode.EVSE_Ready);
