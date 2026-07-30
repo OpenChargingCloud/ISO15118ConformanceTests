@@ -72,7 +72,8 @@ namespace Vanaheimr.V2G.Exi.Tests
             var csharp = CrossEmitterComparison.Operations(
                              EmitterHarness.EmitCSharp("Iso2", "Iso15118_2Codec", schema));
 
-            Assert.That(swift.Count, Is.GreaterThan(150), "far fewer functions than the set has types");
+            Assert.That(csharp.Count, Is.GreaterThan(20), "the reference parse produced almost nothing");
+            Assert.That(swift.Count, Is.GreaterThanOrEqualTo(csharp.Count));
 
             var problems = CrossEmitterComparison.Diff(swift, "swift", csharp, "csharp");
             Assert.That(problems, Is.Empty,
@@ -81,22 +82,29 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         /// <summary>
-        /// ISO 15118-20 CommonMessages — 144 types, and the set that brings inline choices, which
-        /// -2 has none of. Larger than -2 in every dimension, so it is the harder gate of the two.
+        /// Every ISO 15118-20 set the back end generates. CommonMessages brings inline choices,
+        /// which -2 has none of; the others are separate grammars that happen to share CommonTypes.
+        /// WPT is absent on purpose — it is refused, and for a reason that is not going away
+        /// (see <c>SwiftEmitterSplitTests.RefusesConstructsItDoesNotModel</c>).
         /// </summary>
-        [Test]
-        public void SwiftAndCSharpAgreeAcrossTheIso20CommonMessagesSet()
+        [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages", "CommonMessagesCodec")]
+        [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.DC",             "DCCodec")]
+        [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.AC",             "ACCodec")]
+        [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.ACDP",           "ACDPCodec")]
+        public void SwiftAndCSharpAgreeAcrossAnIso20Set(string project, string codec)
         {
-            var schema = EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages")
+            var schema = EmitterHarness.RealSchemaSet(project)
                                        .Select(f => (f.Name, f.Xsd))
                                        .ToArray();
 
-            var swift  = CrossEmitterComparison.Operations(
-                             EmitterHarness.EmitSwift("c20", "CommonMessagesCodec", schema));
-            var csharp = CrossEmitterComparison.Operations(
-                             EmitterHarness.EmitCSharp("C20", "CommonMessagesCodec", schema));
+            var swift  = CrossEmitterComparison.Operations(EmitterHarness.EmitSwift("c20", codec, schema));
+            var csharp = CrossEmitterComparison.Operations(EmitterHarness.EmitCSharp("C20", codec, schema));
 
-            Assert.That(swift.Count, Is.GreaterThan(200), "far fewer functions than the set has types");
+            // Relative to the reference rather than a guessed constant: Swift may emit a helper the
+            // C# back end has no counterpart for, but never fewer codecs — and a parse that silently
+            // produced nothing would make the diff below vacuously empty.
+            Assert.That(csharp.Count, Is.GreaterThan(20), "the reference parse produced almost nothing");
+            Assert.That(swift.Count, Is.GreaterThanOrEqualTo(csharp.Count));
 
             var problems = CrossEmitterComparison.Diff(swift, "swift", csharp, "csharp");
             Assert.That(problems, Is.Empty,
