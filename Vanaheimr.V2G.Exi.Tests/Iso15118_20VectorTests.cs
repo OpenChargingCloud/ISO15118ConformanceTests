@@ -32,6 +32,8 @@ namespace Vanaheimr.V2G.Exi.Tests
         private static IEnumerable<TestCaseData> AcVectors() => Vectors("Iso15118_20.AC.vectors.json");
         private static IEnumerable<TestCaseData> WptVectors() => Vectors("Iso15118_20.WPT.vectors.json");
         private static IEnumerable<TestCaseData> AcdpVectors() => Vectors("Iso15118_20.ACDP.vectors.json");
+        private static IEnumerable<TestCaseData> AcDerIecVectors() => Vectors("Iso15118_20.AC_DER_IEC.vectors.json");
+        private static IEnumerable<TestCaseData> AcDerSaeVectors() => Vectors("Iso15118_20.AC_DER_SAE.vectors.json");
 
         [TestCaseSource(nameof(CommonVectors))]
         public void CommonMessages_Matches_CbV2G(Vec vector) =>
@@ -53,6 +55,20 @@ namespace Vanaheimr.V2G.Exi.Tests
         public void ACDP_Matches_CbV2G(Vec vector) =>
             AssertMatches(vector, Iso15118_20AcdpFixtures.TryEncode);
 
+        // AC DER: a mixed corpus. Six of the ten plain-AC vectors carry cbV2G bytes, because the DER
+        // grammar was measured to encode those messages identically; the rest — the four whose
+        // members shift event code, and every message using a DER member — are this project's own
+        // output, since cbexigen does not generate the amendment schemas. Which is which is in each
+        // vector's `source`, and AcDerCorpusTests asserts the split has not quietly moved.
+
+        [TestCaseSource(nameof(AcDerIecVectors))]
+        public void AcDerIec_Matches_Corpus(Vec vector) =>
+            AssertMatches(vector, Iso15118_20AcDerIecFixtures.TryEncode);
+
+        [TestCaseSource(nameof(AcDerSaeVectors))]
+        public void AcDerSae_Matches_Corpus(Vec vector) =>
+            AssertMatches(vector, Iso15118_20AcDerSaeFixtures.TryEncode);
+
         [TestCaseSource(nameof(CommonVectors))]
         public void CommonMessages_RoundtripsThroughDecode(Vec vector) =>
             AssertRoundtrip(vector, Iso15118_20CommonFixtures.TryEncode, Iso15118_20CommonFixtures.DecodeReEncode);
@@ -72,6 +88,14 @@ namespace Vanaheimr.V2G.Exi.Tests
         [TestCaseSource(nameof(AcdpVectors))]
         public void ACDP_RoundtripsThroughDecode(Vec vector) =>
             AssertRoundtrip(vector, Iso15118_20AcdpFixtures.TryEncode, Iso15118_20AcdpFixtures.DecodeReEncode);
+
+        [TestCaseSource(nameof(AcDerIecVectors))]
+        public void AcDerIec_RoundtripsThroughDecode(Vec vector) =>
+            AssertRoundtrip(vector, Iso15118_20AcDerIecFixtures.TryEncode, Iso15118_20AcDerIecFixtures.DecodeReEncode);
+
+        [TestCaseSource(nameof(AcDerSaeVectors))]
+        public void AcDerSae_RoundtripsThroughDecode(Vec vector) =>
+            AssertRoundtrip(vector, Iso15118_20AcDerSaeFixtures.TryEncode, Iso15118_20AcDerSaeFixtures.DecodeReEncode);
 
         private delegate bool TryEncodeFn(string vectorName, byte[] dest, out int bytesWritten);
         private delegate byte[] DecodeReEncodeFn(byte[] wireBytes);

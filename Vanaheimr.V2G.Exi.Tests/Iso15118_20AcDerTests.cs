@@ -23,10 +23,14 @@ namespace Vanaheimr.V2G.Exi.Tests
     /// pins that consequence explicitly rather than leaving it as an assumption.
     /// </para>
     /// <para>
-    /// <b>No external byte oracle is wired up yet:</b> cbexigen does not generate the amendment
-    /// schemas, so everything asserted here is self-consistency (encode → decode) plus the
-    /// cross-grammar comparison — never "these are the right bytes". EXIficient is schema-generic and
-    /// remains the candidate spec oracle; see <c>docs/roadmap.md</c>.
+    /// <b>The byte oracle is partial.</b> cbexigen does not generate the amendment schemas, so
+    /// nothing that uses a DER member can be checked against a reference encoder. What can be, and
+    /// now is, are the plain-AC messages the DER grammar happens to encode identically: six of the
+    /// ten AC vectors, carried into <c>Vectors/Iso15118_20.AC_DER_{IEC,SAE}.vectors.json</c> with
+    /// cbV2G's own bytes. The other four shift (see
+    /// <see cref="PlainAcMessage_IsByteIdenticalUnderBothGrammars"/>), and everything DER is this
+    /// project's own output. EXIficient is schema-generic and remains the candidate spec oracle for
+    /// the rest; see <c>docs/roadmap.md</c>.
     /// </para>
     /// </summary>
     [TestFixture]
@@ -165,10 +169,16 @@ namespace Vanaheimr.V2G.Exi.Tests
             // appended after the existing members, and the production count at that choice point stays
             // within the same n-bit code width, so the existing members keep their codes.
             //
-            // Consequence: the two grammars are backward-compatible for messages that do not use a DER
-            // member — a DER-capable receiver reads plain AC traffic unchanged. Compatibility ends as
-            // soon as a DER member is actually used; that boundary is pinned by
-            // DerMessage_IsNotDecodableByThePlainAcCodec.
+            // Do NOT generalise this to "plain AC traffic is unchanged under the DER grammar". It is
+            // not: running all ten AC vectors through both DER codecs shows four of them shifting —
+            // the ones that select Scheduled_ or Dynamic_ control modes. Those members sort AFTER
+            // "DER_" alphabetically, so inserting the DER members pushes their event codes along,
+            // while this message's group takes its DER member at the end and keeps every existing
+            // code. The full picture is in Vectors/Iso15118_20.AC_DER_{IEC,SAE}.vectors.json, and
+            // AcDerCorpusTests pins which vectors fall on which side.
+            //
+            // Compatibility also ends as soon as a DER member is actually used; that boundary is
+            // pinned by DerMessage_IsNotDecodableByThePlainAcCodec.
             //
             // This is fragile in principle: a future amendment adding more members to the same group
             // could push the width over a power-of-two boundary and silently change these bytes. That
