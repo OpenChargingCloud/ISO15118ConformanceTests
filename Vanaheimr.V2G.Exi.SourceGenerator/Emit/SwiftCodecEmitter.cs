@@ -75,6 +75,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 foreach (var e in plan.Enums)
                     files.Add(Standalone(e.Name, () => EmitEnum(e)));
 
+                foreach (var t in plan.OpaqueTypes)
+                    files.Add(Standalone(t, () => EmitOpaque(t)));
+
                 foreach (var name in plan.ComplexTypes.Keys)
                     EmitType(plan.ComplexTypes[name], name);
 
@@ -104,14 +107,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     "Swift back end: " + what + " is not modelled yet. The back end covers the " +
                     "AppProtocol slice; extend it deliberately, against that construct's vectors.");
 
-                if (p.Fragments.Count   > 0) No("EXI fragment codecs (--fragments)");
-                if (p.OpaqueTypes.Count > 0) No("opaque element types");
+                if (p.Fragments.Count > 0) No("EXI fragment codecs (--fragments)");
 
                 foreach (var (name, sp) in p.ComplexTypes.Select(kv => (kv.Key, kv.Value))
                                             .Concat(p.GlobalElements.Select(g => (g.TypeName, g.Body))))
                 {
-                    if (sp.IsChoice)                      No($"xs:choice type '{name}'");
-                    if (sp.SimpleContent is not null)     No($"xs:simpleContent type '{name}'");
+                    // Optional attributes ride the content run, which an xs:choice does not have,
+                    // and a simpleContent type's run is over its attributes rather than its children.
+                    // A required attribute is written before the content and is unaffected; an
+                    // optional one would have to ride a content run, which a choice does not have.
+                    if (sp.IsChoice && sp.Attributes is { Count: > 0 } && RequiredAttr(sp) is null)
+                        No($"optional attributes on the xs:choice type '{name}'");
+                    // As above: a required attribute precedes the content, an optional one would
+                    // need a run over the attributes that this back end does not build yet.
+                    if (sp.SimpleContent is not null && sp.Attributes is { Count: > 0 } && RequiredAttr(sp) is null)
+                        No($"optional attributes on the xs:simpleContent type '{name}'");
 
                     if (sp.Attributes is { Count: > 0 })
                     {
@@ -139,10 +149,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         // A substitution group contributes one production per member, which widens
                         // every enclosing run. Only the required-single shape is modelled so far, so
                         // the run machinery still sees one production per particle.
-                        if (c.Value is ValueEncoding.SubstitutionChoice && c.Shape != ChildShape.RequiredSingle)
-                            No($"a {c.Shape} substitution group ('{name}.{c.FieldName}')");
+                        if (c.Value is ValueEncoding.SubstitutionChoice && c.Shape == ChildShape.BoundedRepeating)
+                            No($"a repeating substitution group ('{name}.{c.FieldName}')");
                         if (c.Value is ValueEncoding.InlineChoice)       No($"inline choice '{name}.{c.FieldName}'");
-                        if (c.Value is ValueEncoding.OpaqueElement)      No($"opaque element '{name}.{c.FieldName}'");
+                        // An opaque child is modelled as absent-only, so it must be optional:
+                        // a required one could never be encoded at all.
+                        if (c.Value is ValueEncoding.OpaqueElement && c.Shape != ChildShape.OptionalSingle)
+                            No($"a {c.Shape} opaque element ('{name}.{c.FieldName}')");
                     }
                 }
             }
@@ -237,6 +250,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             // ── attributes ───────────────────────────────────────────────────────────────────────
 
+            /// <summary>
+            /// The field carrying an xs:simpleContent value. Matches the other back ends' name, so
+            /// all three expose the same shape.
+            /// </summary>
+            private const string SimpleContentField = "value";
+
+            /// <summary>A synthetic child standing in for the simpleContent value.</summary>
+            private static ChildPlan SimpleContentChild(SequencePlan sp) =>
+                new(SimpleContentField, sp.SimpleContentType!, IsValueType: false,
+                    ChildShape.RequiredSingle, sp.SimpleContent!);
+
             /// <summary>The lone required attribute of a type, or null.</summary>
             private static AttrPlan? RequiredAttr(SequencePlan sp) =>
                 sp.Attributes is { Count: 1 } && sp.Attributes[0].Required ? sp.Attributes[0] : null;
@@ -266,7 +290,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// writing its own element EE.
             /// </summary>
             private static bool WrapsValue(ChildPlan c) =>
-                c.Value is not ValueEncoding.ComplexRef and not ValueEncoding.AttributeValue;
+                c.Value is not ValueEncoding.ComplexRef
+                       and not ValueEncoding.AttributeValue
+                       and not ValueEncoding.OpaqueElement;
 
             /// <summary>Declared fields in wire order: attributes precede content.</summary>
             private static IReadOnlyList<(string Name, string Type)> Fields(SequencePlan sp)
@@ -275,6 +301,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (sp.Attributes is not null)
                     foreach (var a in sp.Attributes)
                         fields.Add((Prop(a.FieldName), Type(a.Type) + (a.Required ? "" : "?")));
+                if (sp.SimpleContent is not null)
+                    fields.Add((SimpleContentField, Type(sp.SimpleContentType!)));
                 foreach (var c in sp.Children)
                     fields.Add((Prop(c.FieldName), DeclType(c)));
                 return fields;
@@ -290,6 +318,21 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("public enum ").Append(e.Name).AppendLine(": Int, CaseIterable, Sendable {");
                 foreach (var m in e.Members)
                     _sb.Append("    case ").AppendLine(Ident(m));
+                _sb.AppendLine("}");
+            }
+
+            /// <summary>
+            /// A stand-in for an XMLDSig element the generator does not model. It exists so the
+            /// surrounding type can name it and leave it absent; a present one fails loud on both
+            /// sides rather than being written as something plausible.
+            /// </summary>
+            private void EmitOpaque(string t)
+            {
+                _sb.Append("/// Opaque placeholder for the un-modelled XMLDSig element `").Append(t).AppendLine("`.");
+                _sb.AppendLine("///");
+                _sb.AppendLine("/// Only ever encoded or decoded as absent; a present instance fails loud.");
+                _sb.Append("public struct ").Append(t).AppendLine(": Equatable, Sendable {");
+                _sb.AppendLine("    public init() {}");
                 _sb.AppendLine("}");
             }
 
@@ -356,6 +399,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (sp.Attributes is not null)
                     foreach (var a in sp.Attributes)
                         ownFields.Add((Prop(a.FieldName), Type(a.Type) + (a.Required ? "" : "?"), !a.Required));
+                if (sp.SimpleContent is not null)
+                    ownFields.Add((SimpleContentField, Type(sp.SimpleContentType!), false));
                 foreach (var c in own)
                     ownFields.Add((Prop(c.FieldName), DeclType(c), c.Shape == ChildShape.OptionalSingle));
 
@@ -401,6 +446,27 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (kids.Count == 1 && kids[0].Shape == ChildShape.BoundedRepeating)
                 {
                     EmitEncodeList(kids[0], sp);
+                    _sb.AppendLine("}");
+                    _sb.AppendLine();
+                    return;
+                }
+
+                if (sp.SimpleContent is not null)
+                {
+                    // A simple-content element has no child elements: one CONTENT event, the value
+                    // bare, then the element's own end.
+                    _sb.AppendLine("    w.writeBits(0, 1)   // CONTENT event");
+                    EmitWriteValue(SimpleContentChild(sp), "msg." + SimpleContentField, "    ");
+                    _sb.AppendLine("    w.writeBits(0, 1)   // element EE");
+                    _sb.AppendLine("}");
+                    _sb.AppendLine();
+                    return;
+                }
+
+                if (sp.IsChoice)
+                {
+                    EmitEncodeChoice(sp, name);
+                    _sb.AppendLine("    w.writeBits(0, 1)   // element EE");
                     _sb.AppendLine("}");
                     _sb.AppendLine();
                     return;
@@ -504,6 +570,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var m  = end - start;
                 var id = _run++;
+                const string ind = "            ";
 
                 _sb.Append("    var st").Append(id).AppendLine(" = 0");
                 _sb.Append("    var done").Append(id).AppendLine(" = false");
@@ -512,36 +579,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 for (var k = 0; k <= m; k++)
                 {
-                    var totalProd = 1 + (m - k);                 // element EE + remaining optionals
-                    var width     = BitsFor(totalProd + 1);      // + the non-strict phantom
+                    // State k: the cursor sits at particle start+k, so every particle from there on
+                    // is still possible and each contributes its own productions — plus the element
+                    // EE (or the terminator), plus the non-strict phantom.
+                    var totalProd = term is null ? 1 : ProductionCount(term);
+                    for (var j = k; j < m; j++) totalProd += ProductionCount(kids[start + j]);
+                    var width = BitsFor(totalProd + 1);
 
                     _sb.Append("        case ").Append(k).AppendLine(":");
 
-                    var code = 0;
-                    for (var j = k; j < m; j++, code++)
-                    {
-                        var c    = kids[start + j];
-                        var prop = "msg." + Prop(c.FieldName);
-                        _sb.Append("            if let v = ").Append(prop).AppendLine(" {");
-                        _sb.Append("                w.writeBits(").Append(code).Append(", ").Append(width)
-                           .Append(")   // ").AppendLine(c.FieldName);
-                        if (!WrapsValue(c))
-                        {
-                            EmitWriteValue(c, "v", "                ");
-                        }
-                        else
-                        {
-                            _sb.AppendLine("                w.writeBits(0, 1)   // value-start");
-                            EmitWriteValue(c, "v", "                ");
-                            _sb.AppendLine("                w.writeBits(0, 1)   // child EE");
-                        }
-                        _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
-                        _sb.AppendLine("            } else {");
-                    }
+                    var code  = 0;
+                    var first = true;
+                    for (var j = k; j < m; j++)
+                        code = EmitEncodeRunParticle(kids[start + j], code, width, ref first, ind,
+                                                     $"st{id} = {j + 1}");
 
-                    // The highest remaining code closes the run: the element EE, or the required
-                    // particle that follows it — whose content then goes out inline.
-                    var tail = new string(' ', 12 + 4 * (m - k));
+                    var tail = first ? ind : ind + "    ";
+                    if (!first) _sb.Append(ind).AppendLine("} else {");
+
                     _sb.Append(tail).Append("w.writeBits(").Append(code).Append(", ").Append(width);
                     if (term is null)
                     {
@@ -554,14 +609,55 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     }
                     _sb.Append(tail).Append("done").Append(id).AppendLine(" = true");
 
-                    for (var j = m - 1; j >= k; j--)
-                        _sb.Append(new string(' ', 12 + 4 * (j - k))).AppendLine("}");
+                    if (!first) _sb.Append(ind).AppendLine("}");
                 }
 
                 _sb.AppendLine("        default:");
                 _sb.Append("            done").Append(id).AppendLine(" = true");
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
+            }
+
+            /// <summary>
+            /// One particle of an optional run, as a link in the state's if / else-if chain. Returns
+            /// the next free event code — a substitution reference consumes one per member.
+            /// </summary>
+            private int EmitEncodeRunParticle(ChildPlan p, int code, int width, ref bool first,
+                                              string ind, string after)
+            {
+                var prop = "msg." + Prop(p.FieldName);
+
+                if (p.Value is ValueEncoding.SubstitutionChoice sc)
+                {
+                    var baseCode = code;
+                    var ordered  = sc.Members
+                                     .Select((mm, i) => (Member: mm, Wire: baseCode + i))
+                                     .Where(x => !x.Member.IsAbstractHead)
+                                     .OrderByDescending(x => InheritanceDepth(x.Member.TypeName));
+
+                    foreach (var (mbr, wire) in ordered)
+                    {
+                        // `as?` unwraps the optional and downcasts in one step; it matches subclasses
+                        // too, which is why the branches are ordered most-derived-first.
+                        _sb.Append(ind).Append(first ? "if" : "} else if").Append(" let v = ").Append(prop)
+                           .Append(" as? ").Append(mbr.TypeName).AppendLine(" {");
+                        EmitSubstitutionGuard(p, mbr.TypeName, ind + "    ");
+                        _sb.Append(ind).Append("    w.writeBits(").Append(wire).Append(", ").Append(width)
+                           .Append(")   // ").AppendLine(mbr.ElementName);
+                        _sb.Append(ind).Append("    encode").Append(mbr.TypeName).AppendLine("(w, v)");
+                        _sb.Append(ind).Append("    ").AppendLine(after);
+                        first = false;
+                    }
+                    return code + sc.Members.Count;
+                }
+
+                _sb.Append(ind).Append(first ? "if" : "} else if").Append(" let v = ").Append(prop).AppendLine(" {");
+                _sb.Append(ind).Append("    w.writeBits(").Append(code).Append(", ").Append(width)
+                   .Append(")   // ").AppendLine(p.FieldName);
+                EmitWriteFramedValue(p, "v", ind + "    ");
+                _sb.Append(ind).Append("    ").AppendLine(after);
+                first = false;
+                return code + 1;
             }
 
             private void EmitWriteValue(ChildPlan c, string expr, string ind)
@@ -592,6 +688,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         break;
                     case ValueEncoding.ComplexRef cr:
                         _sb.Append(ind).Append("encode").Append(cr.TypeName).Append("(w, ").Append(expr).AppendLine(")");
+                        break;
+                    case ValueEncoding.OpaqueElement oe:
+                        // Only reached with a present instance; absence is handled by the run.
+                        _sb.Append(ind).Append("preconditionFailure(\"encoding a present ").Append(oe.TypeName)
+                           .AppendLine(" (XMLDSig) is not implemented in the Swift back end\")");
                         break;
                     default:
                         throw new NotSupportedException(
@@ -631,6 +732,29 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        list.append(").Append(ReadValueExpr(c)).AppendLine(")");
                     _sb.AppendLine("    }");
                     _sb.Append("    return ").Append(name).Append("(").Append(Prop(c.FieldName)).AppendLine(": list)");
+                    _sb.AppendLine("}");
+                    _sb.AppendLine();
+                    return;
+                }
+
+                if (sp.SimpleContent is not null)
+                {
+                    _sb.AppendLine("    _ = try r.readBits(1)   // CONTENT event");
+                    _sb.Append("    let ").Append(SimpleContentField).Append(" = ")
+                       .AppendLine(ReadValueExpr(SimpleContentChild(sp)));
+                    _sb.AppendLine("    _ = try r.readBits(1)   // element EE");
+                    var scArgs = new List<string>();
+                    if (RequiredAttr(sp) is { } sra) scArgs.Add(Prop(sra.FieldName) + ": " + Local(sra.FieldName));
+                    scArgs.Add(SimpleContentField + ": " + SimpleContentField);
+                    _sb.Append("    return ").Append(name).Append("(").Append(string.Join(", ", scArgs)).AppendLine(")");
+                    _sb.AppendLine("}");
+                    _sb.AppendLine();
+                    return;
+                }
+
+                if (sp.IsChoice)
+                {
+                    EmitDecodeChoice(sp, name);
                     _sb.AppendLine("}");
                     _sb.AppendLine();
                     return;
@@ -708,19 +832,39 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
                 for (var k = 0; k <= m; k++)
                 {
-                    var totalProd = 1 + (m - k);
-                    var width     = BitsFor(totalProd + 1);
+                    var totalProd = term is null ? 1 : ProductionCount(term);
+                    for (var j = k; j < m; j++) totalProd += ProductionCount(kids[start + j]);
+                    var width = BitsFor(totalProd + 1);
 
                     _sb.Append("        case ").Append(k).AppendLine(":");
                     _sb.Append("            switch try r.readBits(").Append(width).AppendLine(") {");
 
                     var code = 0;
-                    for (var j = k; j < m; j++, code++)
+                    for (var j = k; j < m; j++)
                     {
                         var c = kids[start + j];
+
+                        if (c.Value is ValueEncoding.SubstitutionChoice sc)
+                        {
+                            // One case per member, at consecutive codes; an abstract head reserves
+                            // its slot without a branch and so falls through to the throw.
+                            for (var mi = 0; mi < sc.Members.Count; mi++)
+                            {
+                                if (sc.Members[mi].IsAbstractHead) continue;
+                                _sb.Append("            case ").Append(code + mi).Append(":   // ")
+                                   .AppendLine(sc.Members[mi].ElementName);
+                                _sb.Append("                ").Append(Local(c.FieldName)).Append(" = try decode")
+                                   .Append(sc.Members[mi].TypeName).AppendLine("(r)");
+                                _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
+                            }
+                            code += sc.Members.Count;
+                            continue;
+                        }
+
                         _sb.Append("            case ").Append(code).Append(":   // ").AppendLine(c.FieldName);
                         EmitReadFramedValue(c, Local(c.FieldName), "                ");
                         _sb.Append("                st").Append(id).Append(" = ").Append(j + 1).AppendLine();
+                        code++;
                     }
 
                     if (term is null)
@@ -781,7 +925,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // put a call where the other back ends have the read itself, which the
                 // cross-emitter comparison reads as a divergence, correctly.
                 ValueEncoding.EnumIndex ei => $"try exiEnum({ei.EnumName}.self, try r.readBits({ei.BitWidth}))",
-                ValueEncoding.ComplexRef cr => $"try decode{cr.TypeName}(r)",
+                ValueEncoding.ComplexRef cr  => $"try decode{cr.TypeName}(r)",
+                ValueEncoding.OpaqueElement oe =>
+                    $"{{ throw ExiError.unsupportedConstruct(\"{oe.TypeName} (XMLDSig)\") }}()",
                 _ => throw new NotSupportedException(
                          $"Swift back end: value encoding {c.Value.GetType().Name} is not modelled yet."),
             };
@@ -830,6 +976,61 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
                 _sb.AppendLine("}");
+            }
+
+            // ── xs:choice ────────────────────────────────────────────────────────────────────────
+
+            /// <summary>
+            /// Mutually exclusive alternatives, selected by one event code over all of them plus the
+            /// non-strict phantom. Exactly one must be set — an empty choice has nothing to write.
+            /// </summary>
+            private void EmitEncodeChoice(SequencePlan sp, string name)
+            {
+                if (sp.Children.Count == 0)
+                    throw new NotSupportedException($"Swift back end: '{name}' is an empty xs:choice.");
+
+                var width = BitsFor(sp.Children.Count + 1);
+
+                for (var i = 0; i < sp.Children.Count; i++)
+                {
+                    var c = sp.Children[i];
+                    _sb.Append("    ").Append(i == 0 ? "if" : "} else if").Append(" let v = msg.")
+                       .Append(Prop(c.FieldName)).AppendLine(" {");
+                    _sb.Append("        w.writeBits(").Append(i).Append(", ").Append(width)
+                       .Append(")   // ").AppendLine(c.FieldName);
+                    EmitWriteFramedValue(c, "v", "        ");
+                }
+
+                _sb.AppendLine("    } else {");
+                _sb.Append("        preconditionFailure(\"no choice alternative set for ").Append(name).AppendLine("\")");
+                _sb.AppendLine("    }");
+            }
+
+            private void EmitDecodeChoice(SequencePlan sp, string name)
+            {
+                var width = BitsFor(sp.Children.Count + 1);
+
+                foreach (var c in sp.Children)
+                    _sb.Append("    var ").Append(Local(c.FieldName)).Append(": ")
+                       .Append(DeclType(c)).AppendLine(" = nil");
+
+                _sb.Append("    switch try r.readBits(").Append(width).AppendLine(") {");
+                for (var i = 0; i < sp.Children.Count; i++)
+                {
+                    _sb.Append("    case ").Append(i).Append(":   // ").AppendLine(sp.Children[i].FieldName);
+                    EmitReadFramedValue(sp.Children[i], Local(sp.Children[i].FieldName), "        ");
+                }
+                _sb.AppendLine("    default:");
+                _sb.Append("        throw ExiError.invalidEventCode(\"").Append(name).AppendLine(" choice\")");
+                _sb.AppendLine("    }");
+
+                // The encoder closes the element after the alternative; the decoder must consume it.
+                _sb.AppendLine("    _ = try r.readBits(1)   // element EE");
+
+                var args = new List<string>();
+                if (RequiredAttr(sp) is { } ra) args.Add(Prop(ra.FieldName) + ": " + Local(ra.FieldName));
+                args.AddRange(sp.Children.Select(c => Prop(c.FieldName) + ": " + Local(c.FieldName)));
+                _sb.Append("    return ").Append(name).Append("(").Append(string.Join(", ", args)).AppendLine(")");
             }
 
             // ── substitution groups ──────────────────────────────────────────────────────────────
@@ -946,6 +1147,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 }
                 return depth;
             }
+
+            /// <summary>
+            /// How many event codes a particle occupies. A substitution group takes one per member,
+            /// so it widens every run it sits in — getting this wrong shifts every following bit
+            /// while leaving the shape of the generated code entirely plausible.
+            /// </summary>
+            private static int ProductionCount(ChildPlan c) =>
+                c.Value is ValueEncoding.SubstitutionChoice sc ? sc.Members.Count
+                : c.Value is ValueEncoding.InlineChoice ic     ? ic.Members.Count
+                : c.IsWildcardAny                              ? 2
+                : 1;
 
             private static int BitsFor(int n)
             {
