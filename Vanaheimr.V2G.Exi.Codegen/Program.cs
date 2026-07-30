@@ -66,34 +66,18 @@ namespace Vanaheimr.V2G.Exi.Codegen
             var plan   = GrammarBuilder.Build(schema, opts.Fragments);
             var files  = emitter.Emit(plan, opts.Namespace, opts.CodecClass);
 
-            // Whether --out names the file or the directory to put it in. This is decided by the
-            // path itself, never by whether the directory happens to exist yet: the old rule wrote
-            // a *file* named after the directory when that directory had not been created, which is
-            // silent and easy to miss. A path with an extension is a file, anything else a
-            // directory.
-            var looksLikeFile = !Directory.Exists(opts.Output)
-                                && Path.GetExtension(opts.Output).Length > 0;
-
-            // A back end that splits its output needs the directory. Quietly treating the path as
-            // one would produce a *directory* called `Iso15118_2Codec.kt` — the shape of the old
-            // single-file invocation, now holding a hundred files. Say so instead.
-            if (looksLikeFile && files.Count > 1)
+            // --out is the directory the files go in. Every back end emits one file per type, so a
+            // path that looks like a file is a leftover from the single-file era; quietly treating
+            // it as a directory would create one called `Iso15118_2Codec.kt` holding a hundred
+            // files — the shape of the old invocation with none of its meaning. Say so instead.
+            //
+            // "Looks like a file" is decided by the path itself, never by whether the directory
+            // happens to exist yet: the old rule wrote a *file* named after the directory when that
+            // directory had not been created, which is silent and easy to miss.
+            if (!Directory.Exists(opts.Output) && Path.GetExtension(opts.Output).Length > 0)
                 throw new UsageException(
                     $"--out '{opts.Output}' names a file, but the {emitter.Language} back end emits " +
                     $"{files.Count} files. Pass the directory they belong in.");
-
-            var namesFile = looksLikeFile && files.Count == 1;
-
-            if (namesFile)
-            {
-                var dir = Path.GetDirectoryName(Path.GetFullPath(opts.Output));
-                if (!string.IsNullOrEmpty(dir))
-                    Directory.CreateDirectory(dir);
-
-                Write(opts.Output, files[0].Source);
-                Console.WriteLine($"{emitter.Language}: {opts.Output} ({files[0].Source.Length:N0} chars)");
-                return 0;
-            }
 
             Directory.CreateDirectory(opts.Output);
 
@@ -159,10 +143,9 @@ namespace Vanaheimr.V2G.Exi.Codegen
 
                   --xsd        One or more XSD files forming ONE schema set (types resolve across
                                the whole set). Repeatable, or ';'-separated.
-                  --out        Output path. A directory, created if needed, holding one file per
-                               generated type; stale files from earlier runs are removed. A path
-                               with an extension names a single output file instead, which only
-                               works for a back end that does not split (--lang csharp).
+                  --out        Output DIRECTORY, created if needed, holding one file per generated
+                               type; stale files from earlier runs are removed. A path with an
+                               extension is rejected — every back end splits its output.
                   --lang       Target language. Default: csharp.
                   --namespace  Generated namespace / package.
                   --codec      Generated codec class name.

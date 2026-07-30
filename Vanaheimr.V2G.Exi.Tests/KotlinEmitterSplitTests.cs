@@ -49,7 +49,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         """;
 
         private static IReadOnlyList<GeneratedFile> Split() =>
-            KotlinEmitterHarness.Emit("test.split", "SplitCodec", ("split.xsd", SplitSchema));
+            EmitterHarness.Emit("test.split", "SplitCodec", ("split.xsd", SplitSchema));
 
         private static GeneratedFile File(IReadOnlyList<GeneratedFile> files, string name) =>
             files.SingleOrDefault(f => f.FileName == name)
@@ -108,7 +108,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         [Test]
         public void FragmentCodecsStayWithTheCodecObject()
         {
-            var files = KotlinEmitterHarness.Emit(
+            var files = EmitterHarness.Emit(
                 "test.split", "SplitCodec", ["Root"], ("split.xsd", SplitSchema));
             var codec = File(files, "SplitCodec.kt").Source;
 
@@ -124,7 +124,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             // A top-level `private fun` is file-private in Kotlin: the split would compile each file
             // and then fail to link the object to any of them.
             foreach (var f in Split())
-                foreach (var line in KotlinEmitterHarness.Lines(f))
+                foreach (var line in EmitterHarness.Lines(f))
                     Assert.That(line, Does.Not.StartWith("private fun"),
                                 $"{f.FileName} declares a top-level private function");
         }
@@ -158,10 +158,10 @@ namespace Vanaheimr.V2G.Exi.Tests
         [Test]
         public void FullIso2SchemaSet_SplitsIntoManyFilesAndStillResolves()
         {
-            var files = KotlinEmitterHarness.Emit(
+            var files = EmitterHarness.Emit(
                 "cloud.charging.v2g.iso2", "Iso15118_2Codec",
                 ["AuthorizationReq", "MeteringReceiptReq", "SalesTariff", "SignedInfo"],
-                KotlinEmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_2"));
+                EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_2"));
 
             // The size that motivated the split: one file per type over a real set is ~100 files.
             Assert.That(files.Count, Is.GreaterThan(50));
@@ -174,20 +174,6 @@ namespace Vanaheimr.V2G.Exi.Tests
             AssertWellFormed(files, "cloud.charging.v2g.iso2");
         }
 
-        // ---- the other back end is unaffected ---------------------------------------------------
-
-        [Test]
-        public void CSharpEmitterStillProducesOneFile()
-        {
-            var schema = SourceGenerator.Xsd.XsdReader.ParseSet([SplitSchema]);
-            var plan   = SourceGenerator.Grammar.GrammarBuilder.Build(schema, []);
-            var files  = CSharpCodecEmitter.Instance.Emit(plan, "Test.Split", "SplitCodec");
-
-            Assert.That(files, Has.Count.EqualTo(1),
-                        "C# has no reason to split — partial classes make the file boundary invisible");
-            Assert.That(files[0].FileName, Is.EqualTo("SplitCodec.g.cs"));
-        }
-
         // ---- shared assertions ------------------------------------------------------------------
 
         /// <summary>
@@ -198,22 +184,22 @@ namespace Vanaheimr.V2G.Exi.Tests
         private static void AssertCallsResolve(IReadOnlyList<GeneratedFile> files)
         {
             var declared = new HashSet<string>(
-                files.SelectMany(KotlinEmitterHarness.TopLevelDeclarations)
+                files.SelectMany(EmitterHarness.TopLevelDeclarations)
                      .Where(m => m.Groups["keyword"].Value == "fun")
                      .Select(m => m.Groups["name"].Value));
 
             // Members of the codec object are indented, so they are not top-level matches.
             foreach (var f in files)
-                foreach (var line in KotlinEmitterHarness.Lines(f))
+                foreach (var line in EmitterHarness.Lines(f))
                     if (line.TrimStart().StartsWith("fun ") || line.TrimStart().StartsWith("internal fun "))
                         declared.Add(line.TrimStart().Split("fun ")[^1].Split('(')[0].Trim());
 
             var calls = 0;
             foreach (var f in files)
-                foreach (var line in KotlinEmitterHarness.Lines(f))
+                foreach (var line in EmitterHarness.Lines(f))
                 {
                     if (line.Contains("fun ")) continue;   // a declaration, not a call
-                    foreach (System.Text.RegularExpressions.Match m in KotlinEmitterHarness.CodecCall.Matches(line))
+                    foreach (System.Text.RegularExpressions.Match m in EmitterHarness.CodecCall.Matches(line))
                     {
                         var name = m.Groups["name"].Value;
                         calls++;
@@ -230,7 +216,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             var seen = new Dictionary<string, string>();
 
             foreach (var f in files)
-                foreach (var m in KotlinEmitterHarness.TopLevelDeclarations(f))
+                foreach (var m in EmitterHarness.TopLevelDeclarations(f))
                 {
                     var key = m.Groups["keyword"].Value + " " + m.Groups["name"].Value;
                     Assert.That(seen.ContainsKey(key), Is.False,
@@ -247,7 +233,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         {
             foreach (var f in files)
             {
-                var lines = KotlinEmitterHarness.Lines(f).ToList();
+                var lines = EmitterHarness.Lines(f).ToList();
                 var body  = string.Join("\n", lines.Where(l => !l.StartsWith("import ")));
 
                 foreach (var type in new[] { "BitReader", "BitWriter", "ExiPrimitives" })
@@ -264,7 +250,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         {
             foreach (var f in files)
             {
-                var lines = KotlinEmitterHarness.Lines(f).ToList();
+                var lines = EmitterHarness.Lines(f).ToList();
 
                 Assert.That(lines[0], Is.EqualTo("// <auto-generated/>"),
                             $"{f.FileName} must carry the banner — the driver deletes stale output by it");
@@ -272,7 +258,7 @@ namespace Vanaheimr.V2G.Exi.Tests
                 Assert.That(lines.First(l => l.StartsWith("package ")),
                             Is.EqualTo("package " + expectedPackage), f.FileName);
 
-                var firstDeclaration = lines.FindIndex(l => KotlinEmitterHarness.TopLevelDeclaration.IsMatch(l));
+                var firstDeclaration = lines.FindIndex(l => EmitterHarness.TopLevelDeclaration.IsMatch(l));
                 Assert.That(firstDeclaration, Is.GreaterThan(0), $"{f.FileName} declares nothing");
                 Assert.That(lines.FindLastIndex(l => l.StartsWith("import ")), Is.LessThan(firstDeclaration),
                             $"{f.FileName} has an import after its first declaration");

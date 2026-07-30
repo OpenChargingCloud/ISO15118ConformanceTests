@@ -72,7 +72,7 @@ namespace Vanaheimr.V2G.Exi.Tests
 
         private static string Encoder(string schema, string typeName)
         {
-            var files = KotlinEmitterHarness.Emit("test.sub", "SubCodec", ("sub.xsd", schema));
+            var files = EmitterHarness.Emit("test.sub", "SubCodec", ("sub.xsd", schema));
             return files.Single(f => f.FileName == typeName + ".kt").Source;
         }
 

@@ -11,7 +11,7 @@ namespace Vanaheimr.V2G.Exi.Tests
     [TestFixture]
     public class SchemaSetIntegrationTests
     {
-        private static (string GeneratedSource, Microsoft.CodeAnalysis.Diagnostic[] Diagnostics) GenerateFullSet()
+        private static GeneratorHarness.Result GenerateFullSet()
         {
             var root = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
             while (root is not null && !Directory.Exists(Path.Combine(root.FullName, "Vanaheimr.V2G.Exi.Iso15118_2")))
@@ -23,14 +23,13 @@ namespace Vanaheimr.V2G.Exi.Tests
             foreach (var f in Directory.GetFiles(schemaDir, "*.xsd"))
                 files.Add((Path.GetFileName(f), File.ReadAllText(f)));
 
-            var r = GeneratorHarness.Run(files.ToArray());
-            return (r.GeneratedSource, r.Diagnostics.ToArray());
+            return GeneratorHarness.Run(files.ToArray());
         }
 
         [Test]
         public void FullIso2SchemaSet_GeneratesWithoutDiagnostics()
         {
-            var (_, diagnostics) = GenerateFullSet();
+            var diagnostics = GenerateFullSet().Diagnostics;
 
             var msg = $"{diagnostics.Length} diagnostics:\n";
             foreach (var d in diagnostics)
@@ -41,10 +40,11 @@ namespace Vanaheimr.V2G.Exi.Tests
         [Test]
         public void FullIso2SchemaSet_GeneratedCodecCompiles()
         {
-            var (source, diagnostics) = GenerateFullSet();
+            var r = GenerateFullSet();
+            var diagnostics = r.Diagnostics;
             Assert.That(diagnostics.Length, Is.Zero, "generation must be diagnostic-free first");
 
-            var errors = GeneratorHarness.CompileErrors(source, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty,
                 string.Join("\n", errors.Select(e => e.ToString())));
         }
@@ -52,8 +52,9 @@ namespace Vanaheimr.V2G.Exi.Tests
         [Test]
         public void FullIso2SchemaSet_DocumentSelectorMatchesCbV2G()
         {
-            var (source, diagnostics) = GenerateFullSet();
-            Assert.That(diagnostics.Length, Is.Zero);
+            var r = GenerateFullSet();
+            Assert.That(r.Diagnostics.Length, Is.Zero);
+            var source = r.GeneratedSource;
 
             // The document grammar enumerates all 80 global elements of the set; V2G_Message is index 76
             // at a 7-bit selector (cbV2G iso2_exiDocument: nbit(7, 76)).

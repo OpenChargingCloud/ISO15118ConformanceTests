@@ -104,17 +104,34 @@ namespace Vanaheimr.V2G.Exi.Tests
         }
 
         [Test]
-        public void CSharp_StillHonoursAnExplicitFilePath()
+        public void CSharp_AlsoWritesOneFilePerTypeIntoTheDirectory()
         {
             File.WriteAllText(_xsd, Schema);
-            var target = Path.Combine(_dir, "Codec.g.cs");
+            var target = Path.Combine(_dir, "cs");
 
             var exit = Codegen.Program.Main(
                 ["--xsd", _xsd, "--out", target,
                  "--lang", "csharp", "--namespace", "Test.Drv", "--codec", "DrvCodec"]);
 
             Assert.That(exit, Is.Zero);
-            Assert.That(File.ReadAllText(target), Does.Contain("namespace Test.Drv"));
+            Assert.That(Directory.GetFiles(target, "*.g.cs").Select(Path.GetFileName),
+                        Is.EquivalentTo(new[] { "DrvCodec.g.cs", "Root.g.cs", "RootType.g.cs" }));
+            Assert.That(File.ReadAllText(Path.Combine(target, "RootType.g.cs")),
+                        Does.Contain("namespace Test.Drv"));
+        }
+
+        [Test]
+        public void CSharp_RefusesAFilePathToo()
+        {
+            File.WriteAllText(_xsd, Schema);
+            var asFile = Path.Combine(_dir, "Codec.g.cs");
+
+            var exit = Codegen.Program.Main(
+                ["--xsd", _xsd, "--out", asFile,
+                 "--lang", "csharp", "--namespace", "Test.Drv", "--codec", "DrvCodec"]);
+
+            Assert.That(exit, Is.EqualTo(2), "usage errors exit 2");
+            Assert.That(File.Exists(asFile), Is.False);
         }
 
         // ---- stale-output removal ------------------------------------------------------------

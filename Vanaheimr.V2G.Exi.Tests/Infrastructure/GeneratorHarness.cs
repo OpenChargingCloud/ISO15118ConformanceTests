@@ -13,7 +13,15 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
     /// </summary>
     public static class GeneratorHarness
     {
-        public sealed record Result(ImmutableArray<Diagnostic> Diagnostics, string GeneratedSource)
+        /// <param name="GeneratedSource">
+        /// Every generated file, concatenated — for text assertions only. The generator emits one
+        /// file per type, so this is not a compilation unit: each part carries its own using
+        /// directives and namespace block. Compile <see cref="Sources"/>, not this.
+        /// </param>
+        /// <param name="Sources">The generated files, one entry per compilation unit.</param>
+        public sealed record Result(ImmutableArray<Diagnostic> Diagnostics,
+                                    string GeneratedSource,
+                                    ImmutableArray<string> Sources)
         {
             public bool HasErrors => Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error ||
                                                           d.Severity == DiagnosticSeverity.Warning);
@@ -40,8 +48,8 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
             var runResult = driver.GetRunResult();
 
             var perGenerator = runResult.Results.Single();
-            var source = string.Concat(runResult.GeneratedTrees.Select(t => t.ToString()));
-            return new Result(perGenerator.Diagnostics, source);
+            var sources = runResult.GeneratedTrees.Select(t => t.ToString()).ToImmutableArray();
+            return new Result(perGenerator.Diagnostics, string.Concat(sources), sources);
         }
 
         /// <summary>
@@ -50,7 +58,10 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
         /// Lets grammar tests assert that generated C# for a construct actually builds, not just that
         /// its text matches — important for paths the checked-in vector projects don't yet exercise.
         /// </summary>
-        public static ImmutableArray<Diagnostic> CompileErrors(string generatedSource, params Type[] extraReferenceTypes)
+        public static ImmutableArray<Diagnostic> CompileErrors(Result result, params Type[] extraReferenceTypes) =>
+            CompileErrors(result.Sources, extraReferenceTypes);
+
+        public static ImmutableArray<Diagnostic> CompileErrors(IEnumerable<string> sources, params Type[] extraReferenceTypes)
         {
             var tpa = ((string)System.AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
                 .Split(System.IO.Path.PathSeparator);
@@ -60,9 +71,9 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
             foreach (var t in extraReferenceTypes)
                 refs.Add(MetadataReference.CreateFromFile(t.Assembly.Location));
 
-            var tree = CSharpSyntaxTree.ParseText(generatedSource,
-                new CSharpParseOptions(LanguageVersion.Preview));
-            var comp = CSharpCompilation.Create("GenCompileAsm", new[] { tree }, refs,
+            var trees = sources.Select(s => CSharpSyntaxTree.ParseText(
+                                            s, new CSharpParseOptions(LanguageVersion.Preview)));
+            var comp = CSharpCompilation.Create("GenCompileAsm", trees, refs,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return comp.GetDiagnostics()

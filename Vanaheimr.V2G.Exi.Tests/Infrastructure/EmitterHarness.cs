@@ -7,14 +7,15 @@ using Vanaheimr.V2G.Exi.SourceGenerator.Xsd;
 namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
 {
     /// <summary>
-    /// Drives the Kotlin back end over synthetic or real XSDs.
+    /// Drives a back end over synthetic or real XSDs, and returns the files it produces.
     /// </summary>
     /// <remarks>
-    /// The C# back end can be reached through <see cref="GeneratorHarness"/>, because Roslyn runs
-    /// it; the Kotlin one has no such route — the only production caller is the Codegen driver.
-    /// This harness is the seam that lets it be unit-tested at all.
+    /// <see cref="GeneratorHarness"/> reaches the C# back end the way production does, through
+    /// Roslyn, but it sees only source text. This one goes at the emitters directly, so a test can
+    /// ask what the *files* are — and it is the only route to the Kotlin back end at all, whose
+    /// sole production caller is the Codegen driver.
     /// </remarks>
-    internal static class KotlinEmitterHarness
+    internal static class EmitterHarness
     {
         /// <param name="files">(file name, xsd content) pairs forming ONE schema set.</param>
         public static IReadOnlyList<GeneratedFile> Emit(
@@ -23,11 +24,21 @@ namespace Vanaheimr.V2G.Exi.Tests.Infrastructure
 
         public static IReadOnlyList<GeneratedFile> Emit(
             string targetPackage, string codecObject, string[] fragments,
-            params (string Name, string Xsd)[] files)
+            params (string Name, string Xsd)[] files) =>
+            Emit(KotlinCodecEmitter.Instance, targetPackage, codecObject, fragments, files);
+
+        /// <summary>The same, through the C# back end.</summary>
+        public static IReadOnlyList<GeneratedFile> EmitCSharp(
+            string targetNamespace, string codecClass, params (string Name, string Xsd)[] files) =>
+            Emit(CSharpCodecEmitter.Instance, targetNamespace, codecClass, [], files);
+
+        private static IReadOnlyList<GeneratedFile> Emit(
+            ICodecEmitter emitter, string target, string codec, string[] fragments,
+            (string Name, string Xsd)[] files)
         {
             var schema = XsdReader.ParseSet(files.Select(f => f.Xsd));
             var plan   = GrammarBuilder.Build(schema, fragments);
-            return KotlinCodecEmitter.Instance.Emit(plan, targetPackage, codecObject);
+            return emitter.Emit(plan, target, codec);
         }
 
         /// <summary>Every <c>.xsd</c> of a schema set that ships with one of the sibling projects.</summary>

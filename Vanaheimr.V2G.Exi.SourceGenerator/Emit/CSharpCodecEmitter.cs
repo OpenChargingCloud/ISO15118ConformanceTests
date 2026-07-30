@@ -19,15 +19,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         public string FileExtension => ".g.cs";
 
         /// <summary>
-        /// One file, named after the codec class. C# has no reason to split: partial classes make
-        /// the file boundary invisible to the compiler anyway, and a single compilation unit of
-        /// this size costs Roslyn nothing worth avoiding.
+        /// One file per type, plus one for the codec class — the same layout as the Kotlin back
+        /// end, reached by making the codec class <c>partial</c> rather than by moving anything out
+        /// of it.
         /// </summary>
         public IReadOnlyList<GeneratedFile> Emit(SchemaPlan plan, string targetNamespace, string codecClassName) =>
-            new[]
-            {
-                new GeneratedFile(codecClassName + FileExtension,
-                                  CodecEmitter.Emit(plan, targetNamespace, codecClassName)),
-            };
+            CodecEmitter.Emit(plan, targetNamespace, codecClassName);
     }
 }

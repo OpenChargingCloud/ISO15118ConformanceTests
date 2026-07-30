@@ -461,7 +461,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             var r = GeneratorHarness.Run(("h.xsd", HeaderSchema), ("dsig.xsd", DsigSchema));
             Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
 
-            var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty,
                 r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
@@ -543,7 +543,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         {
             var r = GeneratorHarness.Run(("auth.xsd", AuthReqSchema));
             Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
-            var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty,
                 r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
@@ -648,7 +648,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             {
                 var r = GeneratorHarness.Run((name, xsd));
                 Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
-                var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+                var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
                 Assert.That(errors, Is.Empty,
                     r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
             }
@@ -701,7 +701,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         {
             var r = GeneratorHarness.Run(("st.xsd", OptionalRepeatingSchema));
             Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
-            var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty,
                 r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
@@ -753,7 +753,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         {
             var r = GeneratorHarness.Run(("tar.xsd", RequiredRepeatingTerminatorSchema));
             Assert.That(r.Diagnostics, Is.Empty, r.GeneratedSource);
-            var errors = GeneratorHarness.CompileErrors(r.GeneratedSource, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty,
                 r.GeneratedSource + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
@@ -783,7 +783,7 @@ namespace Vanaheimr.V2G.Exi.Tests
 
             Assert.That(src, Does.Contain("string Algorithm"));
             Assert.That(src, Does.Contain("byte[]? ANY"));
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -838,7 +838,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // PnC_Mode"));
             Assert.That(src, Does.Contain("else throw new ArgumentException(\"no choice alternative set\");"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -884,7 +884,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(src, Does.Contain("w.WriteBits(1, 3);   // Charlie"));
             Assert.That(src, Does.Contain("w.WriteBits(2, 3);   // Bravo"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -946,7 +946,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(iChoice, Is.GreaterThan(iTime));
             Assert.That(iEntries, Is.GreaterThan(iChoice));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -994,7 +994,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             // The choice after Flag is dispatched independently (its own 2-bit width), not folded in.
             Assert.That(src, Does.Contain("if (msg.A is not null)"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -1028,7 +1028,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(src, Does.Contain("for (int ci = 1; ci <"));
             Assert.That(src, Does.Contain("w.WriteBits(0, 2);   // Services (loop)"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -1065,7 +1065,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             // Choosing the tail still needs the outer element's own closing EE afterwards.
             Assert.That(src, Does.Contain("w.WriteBits(0, 1);   // element EE"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -1102,7 +1102,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             // State 1 (1 item written): {loop=0, Tail=1, EE=2}.
             Assert.That(src, Does.Contain("w.WriteBits(1, 2);   // Tail"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -1145,7 +1145,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(src, Does.Contain("2u => Decode_ARes(ref r),"));
             Assert.That(src, Does.Contain("3u => Decode_BRes(ref r),"));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
@@ -1209,7 +1209,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(iBeta, Is.GreaterThan(-1));
             Assert.That(iGamma, Is.LessThan(iBeta));
 
-            var errors = GeneratorHarness.CompileErrors(src, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
+            var errors = GeneratorHarness.CompileErrors(r, typeof(Vanaheimr.V2G.Exi.ExiPrimitives));
             Assert.That(errors, Is.Empty, src + "\n\n" + string.Join("\n", errors.Select(e => e.ToString())));
         }
 
