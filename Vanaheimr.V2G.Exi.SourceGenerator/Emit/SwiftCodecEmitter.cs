@@ -107,7 +107,6 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     "Swift back end: " + what + " is not modelled yet. The back end covers the " +
                     "AppProtocol slice; extend it deliberately, against that construct's vectors.");
 
-                if (p.Fragments.Count > 0) No("EXI fragment codecs (--fragments)");
 
                 foreach (var (name, sp) in p.ComplexTypes.Select(kv => (kv.Key, kv.Value))
                                             .Concat(p.GlobalElements.Select(g => (g.TypeName, g.Body))))
@@ -1447,7 +1446,62 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("        default: throw ExiError.unknownDocumentIndex(sel)");
                 _sb.AppendLine("        }");
                 _sb.AppendLine("    }");
+
+                EmitFragmentCodecs();
+
                 _sb.AppendLine("}");
+            }
+
+            /// <summary>
+            /// The EXI *fragment* codecs XMLDSig digests are taken over: the EXI header, the
+            /// element's fragment-grammar event code, its content, End Fragment — and no document
+            /// or body wrapper.
+            /// </summary>
+            /// <remarks>
+            /// The selector is sized by the whole schema set, so the same element lands on a
+            /// different event code in each: SignedInfo is 135/8 bits under AC and 230/9 under
+            /// CommonMessages. Different octets, therefore different signed bytes — which is why
+            /// each set carries its own fragment codec and a shared helper would sign the wrong
+            /// ones, verifying locally and nowhere else.
+            /// </remarks>
+            private void EmitFragmentCodecs()
+            {
+                var bits = plan.FragmentSelectorBits;
+
+                foreach (var f in plan.Fragments)
+                {
+                    _sb.AppendLine();
+                    _sb.Append("    public static func encodeFragment_").Append(f.ElementName)
+                       .Append("(_ content: ").Append(f.TypeName).AppendLine(") -> [UInt8] {");
+                    _sb.AppendLine("        let w = BitWriter(capacity: 512)");
+                    _sb.AppendLine("        w.writeBits(UInt32(exiHeader), 8)");
+                    _sb.Append("        w.writeBits(").Append(f.EventCode).Append(", ").Append(bits)
+                       .Append(")   // fragment SE(").Append(f.ElementName).AppendLine(")");
+                    _sb.Append("        encode").Append(f.TypeName).AppendLine("(w, content)");
+                    _sb.Append("        w.writeBits(").Append(plan.FragmentEndCode).Append(", ").Append(bits)
+                       .AppendLine(")   // End Fragment (ED)");
+                    _sb.AppendLine("        w.alignToByte()");
+                    _sb.AppendLine("        return w.bytes");
+                    _sb.AppendLine("    }");
+
+                    _sb.AppendLine();
+                    _sb.Append("    public static func decodeFragment_").Append(f.ElementName)
+                       .Append("(_ src: [UInt8]) throws -> ").Append(f.TypeName).AppendLine(" {");
+                    _sb.AppendLine("        guard src.first == exiHeader else { throw ExiError.invalidHeader }");
+                    _sb.AppendLine("        let r = BitReader(src, offset: 1)");
+                    _sb.Append("        guard try r.readBits(").Append(bits).Append(") == ").Append(f.EventCode)
+                       .AppendLine(" else {");
+                    _sb.Append("            throw ExiError.invalidEventCode(\"not a ").Append(f.ElementName)
+                       .AppendLine(" fragment\")");
+                    _sb.AppendLine("        }");
+                    _sb.Append("        let result = try decode").Append(f.TypeName).AppendLine("(r)");
+                    _sb.Append("        guard try r.readBits(").Append(bits).Append(") == ")
+                       .Append(plan.FragmentEndCode).AppendLine(" else {");
+                    _sb.AppendLine("            throw ExiError.invalidEventCode(\"missing End Fragment\")");
+                    _sb.AppendLine("        }");
+                    _sb.AppendLine("        return result");
+                    _sb.AppendLine("    }");
+                }
             }
 
             // ── simpleContent with optional attributes ───────────────────────────────────────────
