@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
 
 using NUnit.Framework;
 
@@ -42,12 +41,6 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
     [TestFixture]
     public class FullStackLoopbackTests
     {
-        private static int FreeUdpPort()
-        {
-            using var probe = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
-            return ((IPEndPoint) probe.Client.LocalEndPoint!).Port;
-        }
-
         private static MACAddress Mac(params byte[] bytes) => MACAddress.FromPhysicalAddress(new PhysicalAddress(bytes));
 
         [Test]
@@ -59,11 +52,13 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             var (seccBcTls, evccBcTls) = V2GBcTlsFixture.MutualTls(V2GAlgorithm.EcdsaP521, SignatureScheme.ecdsa_secp521r1_sha512);
 
             // ── SLAC transports (loopback UDP) + PLC chips ─────────────────────────────────────────
-            var slacEvseEp = new IPEndPoint(IPAddress.Loopback, FreeUdpPort());
-            await using var slacEvseTransport = new UdpSlacTransport(Mac(0x00, 0x11, 0x22, 0x33, 0x44, 0x55), slacEvseEp);
+            // Bind port 0 and read the assigned port back off the live socket; see
+            // SlacUdpLoopbackTests for why probing for a free port first is a race.
+            await using var slacEvseTransport = new UdpSlacTransport(Mac(0x00, 0x11, 0x22, 0x33, 0x44, 0x55),
+                                                                     new IPEndPoint(IPAddress.Loopback, 0));
             await using var slacEvTransport   = new UdpSlacTransport(Mac(0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF),
                                                                      new IPEndPoint(IPAddress.Loopback, 0),
-                                                                     bootstrapPeers: [slacEvseEp]);
+                                                                     bootstrapPeers: [slacEvseTransport.LocalEndpoint]);
             var nid = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
             var nmk = Enumerable.Range(0, 16).Select(i => (byte) i).ToArray();
             var evChip   = new SimulatedChipController();

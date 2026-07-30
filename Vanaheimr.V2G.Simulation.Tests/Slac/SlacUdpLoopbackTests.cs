@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
 
 using NUnit.Framework;
 
@@ -23,12 +22,6 @@ namespace Vanaheimr.V2G.Simulation.Tests.Slac
     [TestFixture]
     public class SlacUdpLoopbackTests
     {
-        private static int FreeUdpPort()
-        {
-            using var probe = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
-            return ((IPEndPoint) probe.Client.LocalEndPoint!).Port;
-        }
-
         private static MACAddress Mac(params byte[] bytes) => MACAddress.FromPhysicalAddress(new PhysicalAddress(bytes));
 
         [Test]
@@ -36,12 +29,15 @@ namespace Vanaheimr.V2G.Simulation.Tests.Slac
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
-            var evseEndpoint = new IPEndPoint(IPAddress.Loopback, FreeUdpPort());
-
-            await using var evseTransport = new UdpSlacTransport(Mac(0x00, 0x11, 0x22, 0x33, 0x44, 0x55), evseEndpoint);
+            // Both sides bind port 0 and the EVSE's assigned port is read back off the live
+            // socket. Probing for a "free" port first and binding it a moment later is a race:
+            // the probe has to be closed to release the port, and anything on the machine can
+            // take it in that window.
+            await using var evseTransport = new UdpSlacTransport(Mac(0x00, 0x11, 0x22, 0x33, 0x44, 0x55),
+                                                                 new IPEndPoint(IPAddress.Loopback, 0));
             await using var evTransport   = new UdpSlacTransport(Mac(0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF),
                                                                  new IPEndPoint(IPAddress.Loopback, 0),
-                                                                 bootstrapPeers: [evseEndpoint]);
+                                                                 bootstrapPeers: [evseTransport.LocalEndpoint]);
 
             var nid = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
             var nmk = Enumerable.Range(0, 16).Select(i => (byte) i).ToArray();
@@ -79,12 +75,15 @@ namespace Vanaheimr.V2G.Simulation.Tests.Slac
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
-            var evseEndpoint = new IPEndPoint(IPAddress.Loopback, FreeUdpPort());
-
-            await using var evseTransport = new UdpSlacTransport(Mac(0x00, 0x11, 0x22, 0x33, 0x44, 0x66), evseEndpoint);
+            // Both sides bind port 0 and the EVSE's assigned port is read back off the live
+            // socket. Probing for a "free" port first and binding it a moment later is a race:
+            // the probe has to be closed to release the port, and anything on the machine can
+            // take it in that window.
+            await using var evseTransport = new UdpSlacTransport(Mac(0x00, 0x11, 0x22, 0x33, 0x44, 0x66),
+                                                                 new IPEndPoint(IPAddress.Loopback, 0));
             await using var evTransport   = new UdpSlacTransport(Mac(0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x00),
                                                                  new IPEndPoint(IPAddress.Loopback, 0),
-                                                                 bootstrapPeers: [evseEndpoint]);
+                                                                 bootstrapPeers: [evseTransport.LocalEndpoint]);
 
             var nid = new byte[] { 7, 6, 5, 4, 3, 2, 1 };
             var nmk = Enumerable.Range(16, 16).Select(i => (byte) i).ToArray();
