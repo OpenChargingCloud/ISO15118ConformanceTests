@@ -67,23 +67,24 @@ namespace Vanaheimr.V2G.Exi
                 WriteUnsignedInteger(ref w, (ulong)rune.Value);
         }
 
-        public static string ReadStringValue(ref BitReader r)
-        {
-            ulong lenPlus2 = ReadUnsignedInteger(ref r);
-            if (lenPlus2 < 2)
-                throw new InvalidDataException(
-                    "String value-table hit encountered, but this codec is miss-only " +
-                    "(cbV2G-conformant). Use ExiStringTable to decode streams that emit hits.");
-
-            int len = checked((int)(lenPlus2 - 2));
-            var sb = new StringBuilder(len);
-            for (int i = 0; i < len; i++)
-            {
-                int cp = checked((int)ReadUnsignedInteger(ref r));
-                sb.Append(char.ConvertFromUtf32(cp));
-            }
-            return sb.ToString();
-        }
+        /// <summary>
+        /// Reads a string value at the given slot, resolving value-table hits against the reader's
+        /// own <see cref="BitReader.StringTable"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The slot is the QName local part of the element or attribute whose value this is; EXI
+        /// keeps one local value partition per slot, plus one global partition per stream.
+        /// </para>
+        /// <para>
+        /// There is deliberately no encoding counterpart here. cbV2G never emits hits, every
+        /// checked-in vector is its output, and an encoder that started emitting them would
+        /// invalidate all of them — so <see cref="WriteStringValue"/> stays miss-only while the
+        /// decoder accepts what a conforming peer is allowed to send.
+        /// </para>
+        /// </remarks>
+        public static string ReadStringValue(ref BitReader r, string slot) =>
+            r.StringTable.ReadStringValue(ref r, slot);
 
         // -----------------------------------------------------------------------
         //  Signed Integer (EXI §7.1.5)

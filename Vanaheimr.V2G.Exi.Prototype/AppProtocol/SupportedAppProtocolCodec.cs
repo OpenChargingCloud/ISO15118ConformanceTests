@@ -203,7 +203,7 @@ namespace Vanaheimr.V2G.AppProtocol
         private static AppProtocolEntry DecodeAppProtocol(ref BitReader r)
         {
             r.ReadBits(1); r.ReadBits(1);                             // SE, value-start
-            var ns = ExiPrimitives.ReadStringValue(ref r);
+            var ns = ExiPrimitives.ReadStringValue(ref r, "ProtocolNamespace");
             r.ReadBits(1);                                            // EE
 
             r.ReadBits(1); r.ReadBits(1);

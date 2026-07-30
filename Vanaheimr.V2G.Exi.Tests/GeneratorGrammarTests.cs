@@ -535,7 +535,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             Assert.That(src, Does.Contain("w.WriteBits(2, 2);   // element EE"));
             // The AT value is a bare string — no value-start bit, unlike an element value.
             Assert.That(src, Does.Contain("ExiPrimitives.WriteStringValue(ref w, msg.Id!);"));
-            Assert.That(src, Does.Contain("_Id = ExiPrimitives.ReadStringValue(ref r);"));
+            Assert.That(src, Does.Contain("_Id = ExiPrimitives.ReadStringValue(ref r, \"Id\");"));
         }
 
         [Test]

@@ -174,6 +174,33 @@ namespace Vanaheimr.V2G.Exi.Tests
             AssertWellFormed(files, "cloud.charging.v2g.iso2");
         }
 
+        /// <summary>
+        /// Every string value read has to name its own EXI value-slot, or the decoder resolves
+        /// value-table hits against the wrong partition. The vectors cannot catch this — cbV2G is
+        /// miss-only, so no checked-in stream ever exercises a hit — which is why it is asserted on
+        /// the emitted text instead. The C# side is pinned the same way in GeneratorGrammarTests.
+        /// </summary>
+        [Test]
+        public void EveryStringReadNamesItsValueSlot()
+        {
+            var files = EmitterHarness.Emit(
+                "cloud.charging.v2g.iso2", "Iso15118_2Codec", [],
+                EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_2"));
+
+            var reads = 0;
+            foreach (var f in files)
+                foreach (var line in EmitterHarness.Lines(f))
+                {
+                    var at = line.IndexOf("readStringValue(", StringComparison.Ordinal);
+                    if (at < 0) continue;
+                    reads++;
+                    Assert.That(line[at..], Does.Match(@"readStringValue\(r, ""[^""]+""\)"),
+                                $"{f.FileName}: a string read without a slot name — {line.Trim()}");
+                }
+
+            Assert.That(reads, Is.GreaterThan(0), "the check found nothing to verify");
+        }
+
         // ---- shared assertions ------------------------------------------------------------------
 
         /// <summary>

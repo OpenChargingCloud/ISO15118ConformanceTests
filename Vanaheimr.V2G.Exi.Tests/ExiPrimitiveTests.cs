@@ -146,7 +146,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         private static string DecodeString(byte[] bytes)
         {
             var r = new BitReader(bytes);
-            return ExiPrimitives.ReadStringValue(ref r);
+            return ExiPrimitives.ReadStringValue(ref r, "value");
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Vanaheimr.V2G.Exi
     {
         private readonly List<string> _global = new();
         private readonly Dictionary<string, int> _globalIndex = new(StringComparer.Ordinal);
-        private readonly Dictionary<int, Partition> _locals = new();
+        private readonly Dictionary<string, Partition> _locals = new(StringComparer.Ordinal);
 
         private sealed class Partition
         {
@@ -39,7 +39,7 @@ namespace Vanaheimr.V2G.Exi
             public readonly Dictionary<string, int> Index = new(StringComparer.Ordinal);
         }
 
-        private Partition Local(int key)
+        private Partition Local(string key)
         {
             if (!_locals.TryGetValue(key, out var p))
             {
@@ -50,7 +50,7 @@ namespace Vanaheimr.V2G.Exi
         }
 
         /// <summary>Encode a string value at <paramref name="localKey"/>, emitting a hit when possible.</summary>
-        public void WriteStringValue(ref BitWriter w, int localKey, string value)
+        public void WriteStringValue(ref BitWriter w, string localKey, string value)
         {
             var local = Local(localKey);
 
@@ -79,7 +79,7 @@ namespace Vanaheimr.V2G.Exi
         }
 
         /// <summary>Decode a string value at <paramref name="localKey"/>, resolving hits against the partitions.</summary>
-        public string ReadStringValue(ref BitReader r, int localKey)
+        public string ReadStringValue(ref BitReader r, string localKey)
         {
             var local = Local(localKey);
             ulong head = ExiPrimitives.ReadUnsignedInteger(ref r);

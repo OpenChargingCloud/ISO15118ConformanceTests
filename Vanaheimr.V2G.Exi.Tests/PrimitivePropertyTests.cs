@@ -71,7 +71,7 @@ namespace Vanaheimr.V2G.Exi.Tests
                 ExiPrimitives.WriteStringValue(ref w, s);
                 w.AlignToByte();
                 var r = new BitReader(buf.AsSpan(0, w.BytesWritten));
-                return ExiPrimitives.ReadStringValue(ref r) == s;
+                return ExiPrimitives.ReadStringValue(ref r, "value") == s;
             });
         }
 
@@ -80,7 +80,7 @@ namespace Vanaheimr.V2G.Exi.Tests
         {
             // Small key- and value-pools so hits (local and global) occur frequently.
             var genValue = Gen.OneOfConst("a", "bb", "ccc", "urn:x", "urn:y", "urn:z");
-            var genPair  = Gen.Select(Gen.Int[0, 3], genValue, (k, v) => (k, v));
+            var genPair  = Gen.Select(Gen.Int[0, 3], genValue, (k, v) => (k.ToString(), v));
 
             genPair.List[0, 50].Sample(seq =>
             {

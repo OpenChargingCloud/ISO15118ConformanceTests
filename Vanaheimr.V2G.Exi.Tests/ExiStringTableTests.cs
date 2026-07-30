@@ -13,17 +13,34 @@ namespace Vanaheimr.V2G.Exi.Tests
     [TestFixture]
     public class ExiStringTableTests
     {
+        /// <summary>
+        /// The cross-language contract. The Kotlin port of this class asserts the SAME hex for the
+        /// SAME sequence, so the two implementations are pinned to each other rather than each to
+        /// its own idea of the format. A round trip inside one language cannot catch a shared
+        /// misreading of the spec; this can.
+        /// </summary>
+        [Test]
+        public void MixedHitsAndMisses_MatchTheCrossLanguageVector()
+        {
+            var bytes = Encode(new ExiStringTable(),
+                ("1", "alpha"), ("2", "beta"), ("1", "alpha"), ("2", "alpha"),
+                ("1", "gamma"), ("1", "gamma"), ("2", "beta"));
+
+            Assert.That(Convert.ToHexString(bytes), Is.EqualTo("07616C7068610662657461000103B3B0B6B6B0804000"),
+                        "the Kotlin ExiStringTable pins this same value — if one moves, both must");
+        }
+
         [Test]
         public void LocalHit_Roundtrip_And_IsShorterThanTwoMisses()
         {
             var enc = new ExiStringTable();
-            var twoMisses = Encode(new ExiStringTable(), (1, "urn:a"), (1, "urn:b"));
-            var missThenHit = Encode(enc, (1, "urn:a"), (1, "urn:a"));
+            var twoMisses = Encode(new ExiStringTable(), ("1", "urn:a"), ("1", "urn:b"));
+            var missThenHit = Encode(enc, ("1", "urn:a"), ("1", "urn:a"));
 
             // The second "urn:a" is a local hit: far shorter than encoding a second distinct value.
             Assert.That(missThenHit.Length, Is.LessThan(twoMisses.Length));
 
-            var got = Decode(new ExiStringTable(), missThenHit, 1, 1);
+            var got = Decode(new ExiStringTable(), missThenHit, "1", "1");
             Assert.That(got, Is.EqualTo(new[] { "urn:a", "urn:a" }));
         }
 
@@ -33,24 +50,24 @@ namespace Vanaheimr.V2G.Exi.Tests
             // "urn:x" first seen at key 1 (miss), then at key 2 → not in key-2's local partition
             // but present globally → a global hit.
             var enc = new ExiStringTable();
-            var bytes = Encode(enc, (1, "urn:x"), (2, "urn:x"));
+            var bytes = Encode(enc, ("1", "urn:x"), ("2", "urn:x"));
 
-            var got = Decode(new ExiStringTable(), bytes, 1, 2);
+            var got = Decode(new ExiStringTable(), bytes, "1", "2");
             Assert.That(got, Is.EqualTo(new[] { "urn:x", "urn:x" }));
         }
 
         [Test]
         public void Interleaved_HitsAndMisses_Roundtrip()
         {
-            var items = new (int, string)[]
+            var items = new (string, string)[]
             {
-                (1, "alpha"),   // miss (local1=[alpha], global=[alpha])
-                (2, "beta"),    // miss (local2=[beta],  global=[alpha,beta])
-                (1, "alpha"),   // local hit
-                (2, "alpha"),   // global hit (not in local2)
-                (1, "gamma"),   // miss
-                (1, "gamma"),   // local hit
-                (2, "beta"),    // local hit
+                ("1", "alpha"),   // miss (local1=[alpha], global=[alpha])
+                ("2", "beta"),    // miss (local2=[beta],  global=[alpha,beta])
+                ("1", "alpha"),   // local hit
+                ("2", "alpha"),   // global hit (not in local2)
+                ("1", "gamma"),   // miss
+                ("1", "gamma"),   // local hit
+                ("2", "beta"),    // local hit
             };
 
             var bytes = Encode(new ExiStringTable(), items);
@@ -73,10 +90,10 @@ namespace Vanaheimr.V2G.Exi.Tests
 
             // Prime the local partition of key 7 with `partitionSize` distinct misses.
             for (int i = 0; i < partitionSize; i++)
-                table.WriteStringValue(ref w, 7, "v" + i);
+                table.WriteStringValue(ref w, "7", "v" + i);
 
             int bitsBefore = w.BitsWritten;
-            table.WriteStringValue(ref w, 7, "v0");   // local hit on the first entry
+            table.WriteStringValue(ref w, "7", "v0");   // local hit on the first entry
             int hitBits = w.BitsWritten - bitsBefore;
 
             // A hit is UnsignedInteger(0) — one octet — followed by the compact id.
@@ -93,7 +110,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             {
                 var table = new ExiStringTable();
                 var r = new BitReader(new byte[] { 0x00 });
-                table.ReadStringValue(ref r, 0);
+                table.ReadStringValue(ref r, "0");
             });
         }
 
@@ -105,7 +122,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             {
                 var table = new ExiStringTable();
                 var r = new BitReader(new byte[] { 0x01 });
-                table.ReadStringValue(ref r, 0);
+                table.ReadStringValue(ref r, "0");
             });
         }
 
@@ -119,7 +136,7 @@ namespace Vanaheimr.V2G.Exi.Tests
 
             Span<byte> a = stackalloc byte[128];
             var wa = new BitWriter(a);
-            new ExiStringTable().WriteStringValue(ref wa, 0, s);
+            new ExiStringTable().WriteStringValue(ref wa, "0", s);
             wa.AlignToByte();
 
             Span<byte> b = stackalloc byte[128];
@@ -132,7 +149,7 @@ namespace Vanaheimr.V2G.Exi.Tests
 
         // ---- helpers -----------------------------------------------------------
 
-        private static byte[] Encode(ExiStringTable table, params (int key, string val)[] items)
+        private static byte[] Encode(ExiStringTable table, params (string key, string val)[] items)
         {
             Span<byte> buf = stackalloc byte[8192];
             var w = new BitWriter(buf);
@@ -142,7 +159,7 @@ namespace Vanaheimr.V2G.Exi.Tests
             return buf[..w.BytesWritten].ToArray();
         }
 
-        private static List<string> Decode(ExiStringTable table, byte[] bytes, params int[] keys)
+        private static List<string> Decode(ExiStringTable table, byte[] bytes, params string[] keys)
         {
             var r = new BitReader(bytes);
             var result = new List<string>(keys.Length);

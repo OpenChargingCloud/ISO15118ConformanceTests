@@ -664,7 +664,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 for (int i = k; i < n; i++)
                 {
                     _sb.Append("                        case ").Append(i - k).AppendLine("u:");
-                    _sb.Append("                            _").Append(oa[i].FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+                    _sb.Append("                            _").Append(oa[i].FieldName)
+                       .Append(" = ExiPrimitives.ReadStringValue(ref r, \"").Append(oa[i].FieldName).AppendLine("\");");
                     _sb.Append("                            ").Append(st).Append(" = ").Append(i + 1).AppendLine(";");
                     _sb.AppendLine("                            break;");
                 }
@@ -1710,7 +1711,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     var attr = sp.Attributes[0];
                     _sb.AppendLine("        r.ReadBits(1);   // AT(required attribute)");
-                    _sb.Append("        var _").Append(attr.FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+                    _sb.Append("        var _").Append(attr.FieldName)
+                   .Append(" = ExiPrimitives.ReadStringValue(ref r, \"").Append(attr.FieldName).AppendLine("\");");
                     locals.Add("_" + attr.FieldName);
                 }
                 _sb.AppendLine("        r.ReadBits(1);   // CONTENT event");
@@ -1728,7 +1730,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 var attr = sp.Attributes[0];
                 _sb.AppendLine("        r.ReadBits(1);   // AT(required attribute)");
-                _sb.Append("        var _").Append(attr.FieldName).AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+                _sb.Append("        var _").Append(attr.FieldName)
+                   .Append(" = ExiPrimitives.ReadStringValue(ref r, \"").Append(attr.FieldName).AppendLine("\");");
                 EmitDecodeContentBody(sp, new List<string> { "_" + attr.FieldName });
             }
             else if (sp.Attributes is not null)
@@ -2190,7 +2193,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 // AT value: a bare string, no value-start / child-EE.
                 _sb.Append(indent).Append(declare ? "var " : "").Append(local)
-                   .AppendLine(" = ExiPrimitives.ReadStringValue(ref r);");
+                   .Append(" = ExiPrimitives.ReadStringValue(ref r, \"").Append(c.FieldName).AppendLine("\");");
                 return;
             }
             if (c.Value is ValueEncoding.OpaqueElement oe)
@@ -2285,7 +2288,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("ExiPrimitives.ReadBinary(ref r)");
                     break;
                 case ValueEncoding.StringValue:
-                    _sb.Append("ExiPrimitives.ReadStringValue(ref r)");
+                    // The slot is the element's own QName local part: EXI keeps one local value
+                    // partition per slot (§7.3.3), and the decoder needs to name the right one.
+                    _sb.Append("ExiPrimitives.ReadStringValue(ref r, \"").Append(c.FieldName).Append("\")");
                     break;
                 case ValueEncoding.NBitUnsigned nb when c.IsBool():
                     _sb.Append("r.ReadBits(").Append(nb.BitWidth).Append(") != 0u");

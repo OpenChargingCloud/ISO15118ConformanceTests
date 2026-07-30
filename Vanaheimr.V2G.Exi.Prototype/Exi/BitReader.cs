@@ -8,10 +8,23 @@ namespace Vanaheimr.V2G.Exi
         private readonly ReadOnlySpan<byte> _buffer;
         private int _bitPos;
 
+        /// <summary>
+        /// The EXI string value-table partitions for this stream, created on first use.
+        /// </summary>
+        /// <remarks>
+        /// It hangs off the reader so the generated decoders need no extra parameter threaded
+        /// through every call — a value read only has to name its own slot. The encode path has no
+        /// counterpart on purpose: cbV2G is miss-only, every checked-in vector is its output, and
+        /// an encoder that started emitting hits would invalidate all of them.
+        /// </remarks>
+        public ExiStringTable StringTable => _stringTable ??= new ExiStringTable();
+        private ExiStringTable? _stringTable;
+
         public BitReader(ReadOnlySpan<byte> buffer)
         {
             _buffer = buffer;
             _bitPos = 0;
+            _stringTable = null;
         }
 
         public readonly int BitsRead => _bitPos;

@@ -1884,7 +1884,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     _sb.AppendLine("        r.readBits(1)   // AT(required attribute)");
                     _sb.Append("        val ").Append(Local(req.FieldName))
-                       .AppendLine(" = ExiPrimitives.readStringValue(r)");
+                       .Append(" = ExiPrimitives.readStringValue(r, \"").Append(KStr(req.FieldName))
+                       .AppendLine("\")");
                     ctor.Add(Local(req.FieldName));
                 }
 
@@ -2096,7 +2097,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         _sb.Append(ind).Append(i - k).Append("u -> {   // AT(").Append(oa[i].FieldName).AppendLine(")");
                         _sb.Append(ind).Append("    ").Append(Local(oa[i].FieldName))
-                           .AppendLine(" = ExiPrimitives.readStringValue(r)");
+                           .Append(" = ExiPrimitives.readStringValue(r, \"").Append(KStr(oa[i].FieldName))
+                           .AppendLine("\")");
                         _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
                         _sb.Append(ind).AppendLine("}");
                     }
@@ -2334,8 +2336,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     "(XMLDSig) is not implemented in the Kotlin back end.\")",
                 ValueEncoding.ComplexRef cr  => $"decode{cr.TypeName}(r)",
                 // An AT value is a bare string, like StringValue but without the value framing.
-                ValueEncoding.AttributeValue => "ExiPrimitives.readStringValue(r)",
-                ValueEncoding.StringValue    => "ExiPrimitives.readStringValue(r)",
+                // The slot is the element's or attribute's own QName local part: EXI keeps one
+                // local value partition per slot (§7.3.3), and the decoder must name the right one.
+                ValueEncoding.AttributeValue => $"ExiPrimitives.readStringValue(r, \"{KStr(c.FieldName)}\")",
+                ValueEncoding.StringValue    => $"ExiPrimitives.readStringValue(r, \"{KStr(c.FieldName)}\")",
                 ValueEncoding.UnsignedInt    => $"ExiPrimitives.readUnsignedInteger(r).{ToNarrow(c.Type)}",
                 ValueEncoding.SignedInt      => $"ExiPrimitives.readSignedInteger(r).{ToNarrow(c.Type)}",
                 ValueEncoding.Binary         => "ExiPrimitives.readBinary(r)",
