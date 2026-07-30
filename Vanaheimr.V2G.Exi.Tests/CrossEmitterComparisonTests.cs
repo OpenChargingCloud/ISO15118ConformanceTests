@@ -86,11 +86,19 @@ namespace Vanaheimr.V2G.Exi.Tests
         /// which -2 has none of; the others are separate grammars that happen to share CommonTypes.
         /// WPT is absent on purpose — it is refused, and for a reason that is not going away
         /// (see <c>SwiftEmitterSplitTests.RefusesConstructsItDoesNotModel</c>).
+        /// <para>
+        /// This gate matters most for the two AC DER sets. Ten of their sixteen vectors have no
+        /// reference encoder behind them at all — cbexigen does not generate the Amendment 1 DER
+        /// schemas — so for those messages the only thing standing between the Swift codec and a
+        /// silent misreading of the grammar is two independent emitters agreeing.
+        /// </para>
         /// </summary>
         [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages", "CommonMessagesCodec")]
         [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.DC",             "DCCodec")]
         [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.AC",             "ACCodec")]
         [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.ACDP",           "ACDPCodec")]
+        [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_IEC",      "AcDerIecCodec")]
+        [TestCase("Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_SAE",      "AcDerSaeCodec")]
         public void SwiftAndCSharpAgreeAcrossAnIso20Set(string project, string codec)
         {
             var schema = EmitterHarness.RealSchemaSet(project)
