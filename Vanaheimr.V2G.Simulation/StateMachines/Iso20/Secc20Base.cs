@@ -70,6 +70,19 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts fresh.</summary>
         public byte[]? ResumeSessionId { get; set; }
 
+        /// <summary>When set, a new session is given this id instead of a fresh random one — the seam that
+        /// makes a <b>recorded</b> session reproducible (<c>Tests/Traces</c>). The session id travels in every
+        /// message header, so a re-recorded trace would otherwise differ in every single frame, and a corpus
+        /// whose diff is total is a corpus nobody can review. Null by default and meant to stay null outside
+        /// a recording: a predictable session id is a real weakness, not a convenience.</summary>
+        public byte[]? FixedSessionId { get; set; }
+
+        /// <summary>Likewise for the PnC challenge, and for the same reason: it is 16 random bytes in an
+        /// <c>AuthorizationSetupRes</c> that every session sends, EIM ones included, so without pinning it
+        /// no recorded -20 session can be regenerated and diffed. Null by default — a predictable challenge
+        /// defeats what the challenge is for.</summary>
+        public byte[]? FixedGenChallenge { get; set; }
+
         /// <summary>
         /// A signing meter, if one is installed. Without it the charge-loop readings stay absent,
         /// which is what every station in the field does and is therefore the honest default.
@@ -340,7 +353,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_OldSessionJoined, "DE*ABC*E1");
             }
 
-            SessionCtx.SessionId = System.Security.Cryptography.RandomNumberGenerator.GetBytes(8);
+            SessionCtx.SessionId = FixedSessionId ?? System.Security.Cryptography.RandomNumberGenerator.GetBytes(8);
             return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1");
         }
 
@@ -349,7 +362,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             // Offer both EIM and Plug & Charge. A PnC-capable EV (e.g. a Josev EVCC with a contract cert) will
             // pick PnC and sign its AuthorizationReq over this GenChallenge; our own loopback EVCC uses EIM. The
             // challenge is a fresh 16 bytes the EV must echo back (ISO 15118-20 Table 62).
-            _genChallenge = RandomNumberGenerator.GetBytes(16);
+            _genChallenge = FixedGenChallenge ?? RandomNumberGenerator.GetBytes(16);
             // The response's authorization-mode params are a *choice* (exactly one of EIM/PnC), so to enable
             // PnC we send the PnC mode (with the challenge) and leave EIM null — while still advertising both
             // in AuthorizationServices. An EIM-only EV (our loopback EVCC) ignores the mode block and sends

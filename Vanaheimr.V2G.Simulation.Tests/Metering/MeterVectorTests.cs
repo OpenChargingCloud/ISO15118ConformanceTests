@@ -29,8 +29,13 @@ namespace Vanaheimr.V2G.Simulation.Tests.Metering;
 /// because "there is a vector file" reads like conformance to anyone who does not check.
 /// </para>
 /// <para>
-/// The key is fixed rather than generated, so the corpus is reproducible: anyone can regenerate it
-/// and get identical bytes.
+/// The key is fixed rather than generated, so the <b>payloads</b> are reproducible: anyone can
+/// regenerate them and get identical bytes. The <b>signatures</b> are not, and cannot be — ECDSA
+/// picks its nonce at random, so every regeneration writes 64 fresh bytes per vector. That is why
+/// <see cref="EveryVectorMatchesThisImplementation"/> compares payloads byte for byte but *verifies*
+/// signatures against the public key instead of comparing them. Worth stating, because a
+/// regeneration's diff is mostly noise and someone reviewing one needs to know which half is which.
+/// (Corrected 2026-07-31; this paragraph previously claimed the whole file was reproducible.)
 /// </para>
 /// </remarks>
 [TestFixture]

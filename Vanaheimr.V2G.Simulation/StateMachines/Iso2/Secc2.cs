@@ -81,6 +81,20 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// (<c>ResponseCode.OK_OldSessionJoined</c>); anything else starts a fresh one.</summary>
         public byte[]? ResumeSessionId { get; set; }
 
+        /// <summary>When set, a new session is given this id instead of a fresh random one — the seam that
+        /// makes a <b>recorded</b> session reproducible (<c>Tests/Traces</c>). The session id travels in every
+        /// message header, so a re-recorded trace would otherwise differ in every single frame, and a corpus
+        /// whose diff is total is a corpus nobody can review. Null by default and meant to stay null outside
+        /// a recording: a predictable session id is a real weakness, not a convenience.</summary>
+        public byte[]? FixedSessionId { get; set; }
+
+        /// <summary>Likewise for the Plug &amp; Charge challenge in <c>PaymentDetailsRes</c>, so a recorded
+        /// PnC session can be regenerated and diffed. Unlike -20 this never appears in an EIM session, so
+        /// today it only matters to a trace that does not exist yet — it is here because the recording seam
+        /// belongs next to the thing it pins, not because something needs it now. Null by default: a
+        /// predictable challenge defeats what the challenge is for.</summary>
+        public byte[]? FixedGenChallenge { get; set; }
+
         /// <summary>When set, the SECC requests a <b>renegotiation</b> once: the first charging-status
         /// response carries <c>EVSENotification.ReNegotiation</c>, the EV answers
         /// <c>PowerDeliveryReq(Renegotiate)</c> and re-runs ChargeParameterDiscovery ([V2G2-841]).</summary>
@@ -218,7 +232,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 return new SessionSetupResType(ResponseCode.OK_OldSessionJoined, "DE*ABC*E1", 1_600_000_000L);
             }
 
-            _sessionId = RandomNumberGenerator.GetBytes(8);
+            _sessionId = FixedSessionId ?? RandomNumberGenerator.GetBytes(8);
             return new SessionSetupResType(ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1", 1_600_000_000L);
         }
 
@@ -432,7 +446,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// hands out the 16-byte GenChallenge the signed AuthorizationReq must echo ([V2G2-825]).</summary>
         private BodyBaseType PaymentDetails(PaymentDetailsReqType req)
         {
-            _genChallenge = RandomNumberGenerator.GetBytes(16);
+            _genChallenge = FixedGenChallenge ?? RandomNumberGenerator.GetBytes(16);
             try
             {
                 using var contract = X509CertificateLoader.LoadCertificate(req.ContractSignatureCertChain.Certificate);
