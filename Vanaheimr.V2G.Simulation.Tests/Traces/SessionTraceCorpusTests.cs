@@ -232,16 +232,15 @@ public class SessionTraceCorpusTests
     /// effect of a test run.
     /// </summary>
     /// <summary>
-    /// Creates the fixed contract certificate the signed scenarios use. Separate from the corpus
+    /// Creates the fixed contract identity the signed scenarios use. Separate from the corpus
     /// regenerator and even more deliberate: its bytes are an *input* to every recorded PnC session,
     /// so running this invalidates those traces and every port checked against them. Run it, then run
     /// <see cref="RegenerateTheCorpus"/>.
     /// </summary>
-    [Test, Explicit("Regenerates Vectors/Session.pnc-contract.der — invalidates the signed traces")]
-    public void RegenerateThePncCertificate()
+    [Test, Explicit("Regenerates Vectors/Session.pnc-material.json — invalidates every signed trace")]
+    public void RegenerateThePncMaterial()
     {
-        PncMaterial.Regenerate();
-        TestContext.Out.WriteLine($"wrote {PncMaterial.SourceCertificatePath()}");
+        TestContext.Out.WriteLine($"wrote {PncMaterial.Regenerate()}");
     }
 
 
