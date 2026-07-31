@@ -49,8 +49,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         public string Language      => "typescript";
         public string FileExtension => ".ts";
 
+        /// <remarks>
+        /// The JSON-LD pass runs here rather than as an emitter of its own, for the reason
+        /// docs/CONCEPT.md §4.4 gives: wire codec and JSON-LD codec come from the same type graph in
+        /// the same pass, so there is no seam at which one could be regenerated and the other not.
+        /// </remarks>
         public IReadOnlyList<GeneratedFile> Emit(SchemaPlan plan, string targetNamespace, string codecClassName) =>
-            new Writer(plan, targetNamespace, codecClassName).Run();
+        [
+            .. new Writer(plan, targetNamespace, codecClassName).Run(),
+            .. TypeScriptJsonEmitter.Emit(plan, targetNamespace, codecClassName),
+        ];
 
         private sealed class Writer(SchemaPlan plan, string module, string codecObject)
         {
@@ -446,11 +454,25 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// C# emitter never hits this because it keeps the name PascalCase. XMLDSig's
             /// <c>Object</c> element is the real-world case.
             /// </summary>
+            /// <summary>
+            /// JavaScript's reserved words — the list the JSON-LD emitter beside this one also uses,
+            /// and they have to be the same list.
+            /// </summary>
+            /// <remarks>
+            /// This started as Kotlin's, and the difference is not academic: Kotlin reserves
+            /// <c>object</c> and JavaScript does not, so the codec named XMLDSig's <c>Object</c>
+            /// field <c>object_</c> while the JSON pass read <c>value.object</c>. It loaded, ran, and
+            /// failed at the first signed message with "undefined is not a type of this message set"
+            /// — a whole file away from the cause. The comment on the copied helpers claims a
+            /// disagreement produces TypeScript that does not load; this one did load, which is
+            /// exactly why the two lists are now the same list rather than two that happen to match.
+            /// </remarks>
             private static readonly HashSet<string> TypeScriptKeywords = new(StringComparer.Ordinal)
             {
-                "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in",
-                "interface", "is", "null", "object", "package", "return", "super", "this", "throw",
-                "true", "try", "typealias", "typeof", "val", "var", "when", "while",
+                "break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete",
+                "do", "else", "enum", "export", "extends", "false", "finally", "for", "function", "if",
+                "import", "in", "instanceof", "new", "null", "return", "super", "switch", "this",
+                "throw", "true", "try", "typeof", "var", "void", "while", "with",
             };
 
             /// <summary>
@@ -2566,6 +2588,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // the index is one the type has, which a decoder must do with network input.
                 ValueEncoding.EnumIndex ei   => $"exiEnum(\"{KStr(ei.EnumName)}\", {ei.EnumName}Names, "
                                               + $"r.readBits({ei.BitWidth})) as {ei.EnumName}",
+                // xs:boolean is a 1-bit n-bit unsigned, and the field it lands in is a `boolean`.
+                // Without this the decoder assigns the raw 1 or 0 — which TypeScript would reject and
+                // type stripping does not, so the value is a number wearing a boolean's type. The
+                // bytes never notice: `1 ? 1 : 0` and `true ? 1 : 0` are the same bit. The JSON-LD
+                // corpus is what caught it, as `"freeService":1` against `"freeService":true`.
+                ValueEncoding.NBitUnsigned when IsBool(c) => $"r.readBits(1) !== 0",
                 ValueEncoding.NBitUnsigned nb => nb.Bias == 0
                                                     ? FromNumber(c.Type, $"r.readBits({nb.BitWidth})")
                                                     : FromNumber(c.Type, $"(r.readBits({nb.BitWidth}) + {nb.Bias})"),
