@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Traces;
@@ -37,6 +39,28 @@ public sealed class TraceReplayStream(SessionTrace trace) : Stream
     /// <summary>True once every recorded exchange has been replayed.</summary>
     public bool Complete => Replayed == trace.Exchanges.Count;
 
+    private ECDsa? signingKey;
+
+    /// <summary>The corpus public key, built once. Verification needs a key from outside the frame —
+    /// taking one from the message itself would accept anything a port cared to sign with.</summary>
+    private ECDsa SigningKey()
+    {
+        if (signingKey is not null)
+            return signingKey;
+
+        var key = trace.SigningKey
+            ?? throw new TraceMismatch(
+                $"trace '{trace.Name}' carries a signed exchange but no signing key. " +
+                 "SessionTrace.Build refuses to produce that, so this file was hand-edited.");
+
+        signingKey = ECDsa.Create(new ECParameters
+        {
+            Curve = ECCurve.NamedCurves.nistP256,
+            Q = new ECPoint { X = Convert.FromHexString(key.X), Y = Convert.FromHexString(key.Y) },
+        });
+        return signingKey;
+    }
+
 
     private void Accept(ReadOnlySpan<byte> written)
     {
@@ -69,10 +93,26 @@ public sealed class TraceReplayStream(SessionTrace trace) : Stream
             var exchange = trace.Exchanges[Replayed];
             var expected = exchange.Request.Bytes;
 
-            if (!frame.AsSpan().SequenceEqual(expected))
+            // A signed frame cannot be compared as bytes — ECDSA's nonce is random, so the same
+            // message signed twice differs. SignedFrame explains the substitution; the short of it is
+            // that the signature value is the only random part, so putting the recorded one back
+            // makes everything else comparable exactly, and the produced one is checked on its own.
+            var comparable = exchange.Request.SignatureBytes is { } recordedSignature
+                                 ? SignedFrame.WithSignatureValue(frame, recordedSignature)
+                                 : frame;
+
+            if (!comparable.AsSpan().SequenceEqual(expected))
                 throw new TraceMismatch(
-                    $"exchange {Replayed} ({exchange.Request.Message}) differs from the trace '{trace.Name}':\n" +
-                    Diff(expected, frame));
+                    $"exchange {Replayed} ({exchange.Request.Message}) differs from the trace '{trace.Name}'" +
+                    (exchange.Request.IsSigned ? " (compared with the recorded signature substituted)" : "") +
+                    ":\n" + Diff(expected, comparable));
+
+            if (exchange.Request.IsSigned && !SignedFrame.VerifiesWith(frame, SigningKey()))
+                throw new TraceMismatch(
+                    $"exchange {Replayed} ({exchange.Request.Message}) matches the trace once its signature " +
+                     "is substituted, but the signature it actually produced does not verify against the " +
+                     "corpus key. The message is right and the signing is not — a wrong key, wrong octets, " +
+                     "or a wrong signature encoding.");
 
             foreach (var b in exchange.Response.Bytes)
                 readable.Enqueue(b);

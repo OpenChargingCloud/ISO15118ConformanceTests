@@ -23,7 +23,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     /// </para>
     /// See <c>docs/interop-runs/2026-07-21-iso20-dc-pnc-tls/notes.md</c>.
     /// </summary>
-    internal static class XmlDsigInteropVerify
+    // Public to match XmlDsigInteropSign and the -2 XmlDsigInterop2, both of which already are. The
+    // asymmetry was accidental: verifying is exactly as much a caller's business as signing, and the
+    // trace corpus needs it to check what a replayed session actually signed. EncodeStandalone below
+    // stays internal — that one really is a detail of this pair.
+    public static class XmlDsigInteropVerify
     {
         /// <summary>
         /// Re-encodes <paramref name="signedInfo"/> under the standalone xmldsig grammar and ECDSA-verifies

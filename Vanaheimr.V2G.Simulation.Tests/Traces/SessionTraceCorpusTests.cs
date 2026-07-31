@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography;
 
 using NUnit.Framework;
 
@@ -67,7 +68,8 @@ public class SessionTraceCorpusTests
         string                                            Mode,
         string                                            Note,
         Func<Stream, TimeProvider, CancellationToken, Task> RunEvcc,
-        Func<Stream, TimeProvider, CancellationToken, Task> RunSecc);
+        Func<Stream, TimeProvider, CancellationToken, Task> RunSecc,
+        bool                                              Signed = false);
 
 
     private static readonly Scenario[] Scenarios =
@@ -140,6 +142,59 @@ public class SessionTraceCorpusTests
                           { FixedSessionId    = RecordedSessionId,
                             FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
             }),
+
+        // ── signed sessions ───────────────────────────────────────────────
+        //
+        // The reason schema 2 exists. Both of these carry a signed AuthorizationReq, which is not
+        // byte-reproducible: ECDSA picks its nonce at random. SignedFrame is what makes them
+        // comparable anyway — see it for the argument, and TheSignatureAwareComparisonActuallyBites
+        // below for the evidence that it is a check rather than a hole.
+
+        new("iso2-ac-pnc", "iso15118-2", "ac",
+            "AC, Plug & Charge: PaymentDetails carries the contract chain, the AuthorizationReq is " +
+            "signed over its own EXI fragment in the Josev interop form. The only session in the " +
+            "corpus whose requests are not a pure function of the responses.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var contractKey = PncMaterial.Key();
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          {
+                              Pnc = new PncEvccOptions(PncMaterial.Certificate(),
+                                                       [PncMaterial.Certificate()], contractKey),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+            },
+            Signed: true),
+
+        new("iso20-dc-pnc", "iso15118-20", "dc",
+            "-20 DC, Plug & Charge: the AuthorizationReq echoes the station's GenChallenge and " +
+            "carries the contract chain, signed over the PnC_AReqAuthorizationMode fragment.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                using var contractKey = PncMaterial.Key();
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+                          {
+                              Pnc = new PncEvccOptions(PncMaterial.Certificate(),
+                                                       [PncMaterial.Certificate()], contractKey),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+            },
+            Signed: true),
     ];
 
 
@@ -176,6 +231,20 @@ public class SessionTraceCorpusTests
     /// for two other languages, so they must change when somebody means them to and never as a side
     /// effect of a test run.
     /// </summary>
+    /// <summary>
+    /// Creates the fixed contract certificate the signed scenarios use. Separate from the corpus
+    /// regenerator and even more deliberate: its bytes are an *input* to every recorded PnC session,
+    /// so running this invalidates those traces and every port checked against them. Run it, then run
+    /// <see cref="RegenerateTheCorpus"/>.
+    /// </summary>
+    [Test, Explicit("Regenerates Vectors/Session.pnc-contract.der — invalidates the signed traces")]
+    public void RegenerateThePncCertificate()
+    {
+        PncMaterial.Regenerate();
+        TestContext.Out.WriteLine($"wrote {PncMaterial.SourceCertificatePath()}");
+    }
+
+
     [Test, Explicit("Regenerates Vectors/Session.*.trace.json — run deliberately")]
     public async Task RegenerateTheCorpus()
     {
@@ -209,8 +278,17 @@ public class SessionTraceCorpusTests
         var recorder = new RecordingStream(socket);
         await Task.WhenAll(scenario.RunEvcc(recorder, clock, cts.Token), seccTask);
 
+        TraceSigningKey? signingKey = null;
+        if (scenario.Signed)
+        {
+            using var publicKey = PncMaterial.PublicKey();
+            var q = publicKey.ExportParameters(includePrivateParameters: false).Q;
+            signingKey = new TraceSigningKey(Convert.ToHexString(q.X!).ToLowerInvariant(),
+                                             Convert.ToHexString(q.Y!).ToLowerInvariant());
+        }
+
         return SessionTrace.Build(scenario.Name, scenario.Protocol, scenario.Mode, scenario.Note,
-                                  recorder.Sent, recorder.Received);
+                                  recorder.Sent, recorder.Received, signingKey);
 
     }
 
@@ -261,11 +339,47 @@ public class SessionTraceCorpusTests
 
         var scenario = Scenarios.Single(s => s.Name == name);
         var recorded = await RecordAsync(scenario);
+        var onDisk   = SessionTrace.ReadFrom(TracePath(name));
 
-        Assert.That(recorded.ToJson(),
-                    Is.EqualTo(SessionTrace.ReadFrom(TracePath(name)).ToJson()),
-                    "a fresh recording differs from the checked-in one — either something is no longer " +
-                    "pinned, or the session really changed and the corpus needs regenerating on purpose");
+        if (!scenario.Signed)
+        {
+            Assert.That(recorded.ToJson(), Is.EqualTo(onDisk.ToJson()),
+                        "a fresh recording differs from the checked-in one — either something is no " +
+                        "longer pinned, or the session really changed and the corpus needs " +
+                        "regenerating on purpose");
+            return;
+        }
+
+        // A signed session is reproducible *except* for its signature values, and saying so precisely
+        // is better than exempting it. Compare under exactly the rule the replay uses: substitute the
+        // checked-in signature, then require the bytes to be identical.
+        Assert.That(recorded.Exchanges, Has.Count.EqualTo(onDisk.Exchanges.Count));
+
+        for (var i = 0; i < onDisk.Exchanges.Count; i++)
+        {
+            var (fresh, old) = (recorded.Exchanges[i].Request, onDisk.Exchanges[i].Request);
+
+            Assert.That(fresh.IsSigned, Is.EqualTo(old.IsSigned),
+                        $"exchange {i}: one recording thinks this frame is signed and the other does not");
+
+            var comparable = old.SignatureBytes is { } signature
+                                 ? Convert.ToHexString(SignedFrame.WithSignatureValue(fresh.Bytes, signature))
+                                          .ToLowerInvariant()
+                                 : fresh.Frame;
+
+            Assert.That(comparable, Is.EqualTo(old.Frame), $"exchange {i} ({old.Message}) differs");
+        }
+
+        // And the part the substitution discards: two runs must produce *different* signatures, or the
+        // signing is not randomised and this whole mechanism was unnecessary.
+        var signedPairs = recorded.Exchanges.Zip(onDisk.Exchanges)
+                                  .Where(p => p.First.Request.IsSigned)
+                                  .ToList();
+
+        Assert.That(signedPairs, Is.Not.Empty, "a scenario marked Signed recorded no signed request");
+        Assert.That(signedPairs.Any(p => p.First.Request.Signature != p.Second.Request.Signature),
+                    "two recordings produced identical signatures — if ECDSA here were deterministic, " +
+                    "the signature-aware comparison would be solving a problem that does not exist");
 
     }
 
@@ -313,6 +427,15 @@ public class SessionTraceCorpusTests
             if (trace.Protocol is "iso15118-20")
                 Assert.That(payloadTypes, Has.Count.GreaterThan(1),
                             "a -20 trace whose frames all carry one payload type never left CommonMessages");
+
+            // A trace named for Plug & Charge that recorded no signature would be an EIM session with
+            // a misleading name — and the signature-aware comparison would never run on it.
+            var isPnc = name.EndsWith("-pnc");
+            Assert.That(trace.Exchanges.Any(e => e.Request.IsSigned), Is.EqualTo(isPnc),
+                        isPnc ? "a PnC trace with no signed request is an EIM session under another name"
+                              : "an EIM trace should carry no signatures");
+            Assert.That(trace.SigningKey is not null, Is.EqualTo(isPnc),
+                        "the signing key and the signatures must appear together, or verification is skipped");
         });
 
     }
@@ -344,6 +467,67 @@ public class SessionTraceCorpusTests
             Assert.That(mismatch!.Message, Does.Contain("exchange 1"));
             Assert.That(mismatch.Message, Does.Contain("first difference at"));
         });
+
+    }
+
+
+    /// <summary>
+    /// The signature-aware comparison is a check and not a hole.
+    /// </summary>
+    /// <remarks>
+    /// The mechanism substitutes the recorded signature before comparing, which is exactly the shape
+    /// of a comparison that accidentally accepts everything. So both halves are exercised against a
+    /// real recorded frame: a body altered under a valid signature must fail the byte comparison, and
+    /// a signature altered under a valid body must fail verification. If either passed, signed
+    /// exchanges would be riding along unchecked while the suite stayed green.
+    /// </remarks>
+    [Test]
+    public void TheSignatureAwareComparisonActuallyBites(
+        [Values("iso2-ac-pnc", "iso20-dc-pnc")] string name)
+    {
+
+        var trace  = SessionTrace.ReadFrom(TracePath(name));
+        var signed = trace.Exchanges.First(e => e.Request.IsSigned);
+
+        var key = ECDsa.Create(new ECParameters
+        {
+            Curve = ECCurve.NamedCurves.nistP256,
+            Q = new ECPoint
+            {
+                X = Convert.FromHexString(trace.SigningKey!.X),
+                Y = Convert.FromHexString(trace.SigningKey.Y),
+            },
+        });
+
+        using (key)
+        {
+            Assert.Multiple(() =>
+            {
+                // The recorded frame itself: matches, and its signature verifies.
+                Assert.That(SignedFrame.WithSignatureValue(signed.Request.Bytes, signed.Request.SignatureBytes!),
+                            Is.EqualTo(signed.Request.Bytes),
+                            "substituting a frame's own signature must be a no-op");
+                Assert.That(SignedFrame.VerifiesWith(signed.Request.Bytes, key), Is.True,
+                            "the recorded signature must verify against the recorded key");
+
+                // A different key does not.
+                using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+                Assert.That(SignedFrame.VerifiesWith(signed.Request.Bytes, otherKey), Is.False,
+                            "any key must not do — that would make the verification decorative");
+
+                // A tampered signature survives the byte comparison (it is substituted away) and must
+                // be caught by the verification. This is the case the whole design turns on.
+                var tamperedSignature = signed.Request.SignatureBytes!;
+                tamperedSignature[^1] ^= 0x01;
+                var reSigned = SignedFrame.WithSignatureValue(signed.Request.Bytes, tamperedSignature);
+
+                Assert.That(SignedFrame.WithSignatureValue(reSigned, signed.Request.SignatureBytes!),
+                            Is.EqualTo(signed.Request.Bytes),
+                            "the byte comparison cannot see a changed signature — that is the point");
+                Assert.That(SignedFrame.VerifiesWith(reSigned, key), Is.False,
+                            "…so the verification has to, or a wrong signature would pass both checks");
+            });
+        }
 
     }
 

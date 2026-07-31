@@ -31,6 +31,12 @@
     <None Include="Vectors\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- The fixed contract certificate a recorded Plug &amp; Charge session signs with. A file rather
+         than a constant because it cannot be regenerated from the fixed key: a self-signed
+         certificate is itself ECDSA-signed, so its bytes differ on every creation. -->
+    <None Include="Vectors\*.der">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

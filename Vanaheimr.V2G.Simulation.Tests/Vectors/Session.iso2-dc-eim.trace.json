@@ -1,22 +1,25 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
   "name": "iso2-dc-eim",
   "protocol": "iso15118-2",
   "mode": "dc",
   "note": "DC, external payment: as the AC session, plus cable check, pre-charge, current demand and welding detection \u2014 the phases AC does not have.",
+  "signingKey": null,
   "exchanges": [
     {
       "index": 0,
       "request": {
         "payloadType": "0x8001",
         "message": "SupportedAppProtocolReq",
-        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040"
+        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "SupportedAppProtocolRes",
-        "frame": "01fe80010000000480400040"
+        "frame": "01fe80010000000480400040",
+        "signature": null
       }
     },
     {
@@ -24,12 +27,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "SessionSetupReqType",
-        "frame": "01fe800100000015809802000000000000000011d01aaf37bc04080c00"
+        "frame": "01fe800100000015809802000000000000000011d01aaf37bc04080c00",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "SessionSetupResType",
-        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c410141f1f40a0"
+        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c410141f1f40a0",
+        "signature": null
       }
     },
     {
@@ -37,12 +42,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ServiceDiscoveryReqType",
-        "frame": "01fe80010000000d8098020282c3034383c40451b8"
+        "frame": "01fe80010000000d8098020282c3034383c40451b8",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ServiceDiscoveryResType",
-        "frame": "01fe8001000000178098020282c3034383c40451c00008004011110c050648"
+        "frame": "01fe8001000000178098020282c3034383c40451c00008004011110c050648",
+        "signature": null
       }
     },
     {
@@ -50,12 +57,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PaymentServiceSelectionReqType",
-        "frame": "01fe8001000000108098020282c3034383c4045132001280"
+        "frame": "01fe8001000000108098020282c3034383c4045132001280",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PaymentServiceSelectionResType",
-        "frame": "01fe80010000000e8098020282c3034383c404514000"
+        "frame": "01fe80010000000e8098020282c3034383c404514000",
+        "signature": null
       }
     },
     {
@@ -63,12 +72,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "AuthorizationReqType",
-        "frame": "01fe80010000000d8098020282c3034383c4045008"
+        "frame": "01fe80010000000d8098020282c3034383c4045008",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "AuthorizationResType",
-        "frame": "01fe80010000000f8098020282c3034383c40450100000"
+        "frame": "01fe80010000000f8098020282c3034383c40450100000",
+        "signature": null
       }
     },
     {
@@ -76,12 +87,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ChargeParameterDiscoveryReqType",
-        "frame": "01fe80010000001d8098020282c3034383c4045094ca400640618640088c40f40313205000"
+        "frame": "01fe80010000001d8098020282c3034383c4045094ca400640618640088c40f40313205000",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ChargeParameterDiscoveryResType",
-        "frame": "01fe8001000000368098020282c3034383c40450a00000000000240700c50f8550aa00004206186400820a130ea06207a0181860000620640088c3001100"
+        "frame": "01fe8001000000368098020282c3034383c40450a00000000000240700c50f8550aa00004206186400820a130ea06207a0181860000620640088c3001100",
+        "signature": null
       }
     },
     {
@@ -89,12 +102,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "CableCheckReqType",
-        "frame": "01fe8001000000108098020282c3034383c4045031001900"
+        "frame": "01fe8001000000108098020282c3034383c4045031001900",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "CableCheckResType",
-        "frame": "01fe8001000000128098020282c3034383c40450400000021000"
+        "frame": "01fe8001000000128098020282c3034383c40450400000021000",
+        "signature": null
       }
     },
     {
@@ -102,12 +117,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PreChargeReqType",
-        "frame": "01fe8001000000188098020282c3034383c40451710019018812006061801000"
+        "frame": "01fe8001000000188098020282c3034383c40451710019018812006061801000",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PreChargeResType",
-        "frame": "01fe8001000000168098020282c3034383c4045180000002103102180c00"
+        "frame": "01fe8001000000168098020282c3034383c4045180000002103102180c00",
+        "signature": null
       }
     },
     {
@@ -115,12 +132,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryReqType",
-        "frame": "01fe8001000000168098020282c3034383c4045150000000018a1f0aa2c0"
+        "frame": "01fe8001000000168098020282c3034383c4045150000000018a1f0aa2c0",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryResType",
-        "frame": "01fe8001000000128098020282c3034383c40451600400010800"
+        "frame": "01fe8001000000128098020282c3034383c40451600400010800",
+        "signature": null
       }
     },
     {
@@ -128,12 +147,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "CurrentDemandReqType",
-        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000"
+        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "CurrentDemandResType",
-        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200"
+        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200",
+        "signature": null
       }
     },
     {
@@ -141,12 +162,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "CurrentDemandReqType",
-        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000"
+        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "CurrentDemandResType",
-        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200"
+        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200",
+        "signature": null
       }
     },
     {
@@ -154,12 +177,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "CurrentDemandReqType",
-        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000"
+        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "CurrentDemandResType",
-        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200"
+        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200",
+        "signature": null
       }
     },
     {
@@ -167,12 +192,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryReqType",
-        "frame": "01fe8001000000108098020282c3034383c4045151000600"
+        "frame": "01fe8001000000108098020282c3034383c4045151000600",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryResType",
-        "frame": "01fe8001000000128098020282c3034383c40451600400010800"
+        "frame": "01fe8001000000128098020282c3034383c40451600400010800",
+        "signature": null
       }
     },
     {
@@ -180,12 +207,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "WeldingDetectionReqType",
-        "frame": "01fe8001000000108098020282c3034383c4045211001900"
+        "frame": "01fe8001000000108098020282c3034383c4045211001900",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "WeldingDetectionResType",
-        "frame": "01fe8001000000158098020282c3034383c40452200000021031001400"
+        "frame": "01fe8001000000158098020282c3034383c40452200000021031001400",
+        "signature": null
       }
     },
     {
@@ -193,12 +222,14 @@
       "request": {
         "payloadType": "0x8001",
         "message": "SessionStopReqType",
-        "frame": "01fe80010000000e8098020282c3034383c40451f000"
+        "frame": "01fe80010000000e8098020282c3034383c40451f000",
+        "signature": null
       },
       "response": {
         "payloadType": "0x8001",
         "message": "SessionStopResType",
-        "frame": "01fe80010000000e8098020282c3034383c404520000"
+        "frame": "01fe80010000000e8098020282c3034383c404520000",
+        "signature": null
       }
     }
   ]

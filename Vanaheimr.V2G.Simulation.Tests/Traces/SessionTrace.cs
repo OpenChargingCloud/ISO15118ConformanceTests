@@ -14,10 +14,25 @@ namespace Vanaheimr.V2G.Simulation.Tests.Traces;
 /// two-byte difference in the middle of a hex blob.</param>
 /// <param name="Message">The decoded message name (<c>SessionSetupReq</c>, …). A label for failure
 /// messages only — nothing is checked against it. The frame bytes are the oracle.</param>
-public sealed record TraceFrame(string PayloadType, string Message, string Frame)
+/// <summary>A P-256 public key, as the two field elements. Enough to verify a raw <c>r‖s</c>
+/// signature, and deliberately not a certificate: what is being checked is that the port signed the
+/// right octets with the right key, not that a chain validates.</summary>
+public sealed record TraceSigningKey(string X, string Y);
+
+
+/// <param name="Signature">The raw <c>r‖s</c> signature value this frame carried, when it carried one.
+/// Its presence is what switches the comparison to the signature-aware path — see
+/// <see cref="SignedFrame"/> for why a signed frame cannot simply be compared byte for byte.</param>
+public sealed record TraceFrame(string PayloadType, string Message, string Frame, string? Signature = null)
 {
     [JsonIgnore]
     public byte[] Bytes => Convert.FromHexString(Frame);
+
+    [JsonIgnore]
+    public byte[]? SignatureBytes => Signature is null ? null : Convert.FromHexString(Signature);
+
+    [JsonIgnore]
+    public bool IsSigned => Signature is not null;
 }
 
 
@@ -50,19 +65,30 @@ public sealed record TraceExchange(int Index, TraceFrame Request, TraceFrame Res
 /// <para>
 /// <b>Determinism.</b> Byte-exactness across a replay requires the requests to be a pure function of the
 /// responses. That holds for EIM sessions with a pinned clock, and not otherwise: ECDSA signing is
-/// randomised, so any PnC-signed request differs on every run and cannot be compared as bytes. The
-/// corpus is therefore EIM, and a signature-aware comparison is owed before PnC can join it.
+/// randomised, so any PnC-signed request differs on every run and cannot be compared as bytes.
+/// <b>Schema 2 (2026-07-31) lifts that</b>: a frame carrying a signature records its signature value
+/// separately and is compared through <see cref="SignedFrame"/>, which substitutes the recorded value
+/// before comparing and verifies the produced one on its own. Everything but those 64 bytes is still
+/// compared exactly.
 /// </para>
 /// </remarks>
+/// <param name="SigningKey">The public half of the identity a signed session signs with — present
+/// exactly when some exchange is signed. Verification needs a key from outside the frame, or a port
+/// could sign with anything at all and still compare equal.</param>
 public sealed record SessionTrace(
     string                       Name,
     string                       Protocol,
     string                       Mode,
     string                       Note,
-    IReadOnlyList<TraceExchange> Exchanges)
+    IReadOnlyList<TraceExchange> Exchanges,
+    TraceSigningKey?             SigningKey = null)
 {
 
-    public const int SchemaVersion = 1;
+    /// <summary>2 since 2026-07-31: frames gained an optional <c>signature</c>, traces an optional
+    /// <c>signingKey</c>. A reader that does not understand signed frames must refuse the file rather
+    /// than compare it as though the bytes were deterministic — hence a version bump for what is
+    /// otherwise an additive change.</summary>
+    public const int SchemaVersion = 2;
 
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -75,7 +101,7 @@ public sealed record SessionTrace(
     /// Splits both recorded directions into V2GTP frames and pairs them up.
     /// </summary>
     public static SessionTrace Build(string name, string protocol, string mode, string note,
-                                     byte[] sent, byte[] received)
+                                     byte[] sent, byte[] received, TraceSigningKey? signingKey = null)
     {
 
         var requests  = SplitFrames(sent,     "EV→station");
@@ -96,7 +122,14 @@ public sealed record SessionTrace(
                 Describe(responses[i], isSap: i == 0)))
             .ToList();
 
-        return new SessionTrace(name, protocol, mode, note, exchanges);
+        // A signed session with no key would record signatures nobody can check, which is worse than
+        // not recording them: the byte comparison would pass and the verification would be skipped.
+        if (exchanges.Any(e => e.Request.IsSigned) && signingKey is null)
+            throw new InvalidDataException(
+                $"trace '{name}' has signed requests but no signing key — the signature-aware " +
+                 "comparison would substitute the recorded value and verify nothing.");
+
+        return new SessionTrace(name, protocol, mode, note, exchanges, signingKey);
 
     }
 
@@ -133,8 +166,14 @@ public sealed record SessionTrace(
     private static TraceFrame Describe(byte[] frame, bool isSap)
     {
         V2GTP.TryReadHeader(frame, out var payloadType, out _);
+
+        // The SAP frames are not V2G messages and have no header to carry a signature; asking would
+        // mean decoding them with the wrong codec.
+        var signature = isSap ? null : SignedFrame.SignatureValueOf(frame);
+
         return new TraceFrame($"0x{payloadType:X4}", Label(frame, isSap),
-                              Convert.ToHexString(frame).ToLowerInvariant());
+                              Convert.ToHexString(frame).ToLowerInvariant(),
+                              signature is null ? null : Convert.ToHexString(signature).ToLowerInvariant());
     }
 
 
@@ -178,6 +217,7 @@ public sealed record SessionTrace(
             protocol      = Protocol,
             mode          = Mode,
             note          = Note,
+            signingKey    = SigningKey,
             exchanges     = Exchanges,
         }, Json);
 
@@ -198,7 +238,10 @@ public sealed record SessionTrace(
             root.GetProperty("protocol").GetString()!,
             root.GetProperty("mode").GetString()!,
             root.GetProperty("note").GetString()!,
-            root.GetProperty("exchanges").Deserialize<List<TraceExchange>>(Json)!);
+            root.GetProperty("exchanges").Deserialize<List<TraceExchange>>(Json)!,
+            root.TryGetProperty("signingKey", out var key) && key.ValueKind is not JsonValueKind.Null
+                ? key.Deserialize<TraceSigningKey>(Json)
+                : null);
 
     }
 
