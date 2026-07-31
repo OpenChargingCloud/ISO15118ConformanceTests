@@ -79,7 +79,9 @@ namespace Vanaheimr.V2G.Exi.Tests
         public void Kotlin_WritesOneFilePerType_IntoTheDirectory()
         {
             Assert.That(RunKotlin(Schema, Out), Is.Zero);
-            Assert.That(Emitted, Is.EquivalentTo(new[] { "DrvCodec.kt", "Root.kt", "RootType.kt" }));
+            Assert.That(Emitted, Is.EquivalentTo(new[] { "DrvCodec.kt", "Root.kt", "RootType.kt",
+                                                "DrvCodecJson.Json.kt", "Root.Json.kt",
+                                                "RootType.Json.kt" }));
         }
 
         [Test]

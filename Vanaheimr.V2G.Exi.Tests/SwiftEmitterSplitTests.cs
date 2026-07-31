@@ -32,6 +32,13 @@ namespace Vanaheimr.V2G.Exi.Tests
                 "SupportedAppProtocolReq.swift",
                 "SupportedAppProtocolRes.swift",
                 "SupportedAppProtocolCodec.swift",
+
+                // The JSON-LD pass, split the same way: one part per type, one for the dispatchers.
+                // An enum has no JSON part of its own — it is a string wherever it appears.
+                "AppProtocolType.Json.swift",
+                "SupportedAppProtocolReq.Json.swift",
+                "SupportedAppProtocolRes.Json.swift",
+                "SupportedAppProtocolCodecJson.Json.swift",
             }));
         }
 
@@ -72,7 +79,11 @@ namespace Vanaheimr.V2G.Exi.Tests
             var called = files
                 .SelectMany(f => EmitterHarness.Lines(f))
                 .SelectMany(l => EmitterHarness.CodecCall.Matches(l).Select(m => m.Groups["name"].Value))
-                .Where(n => n is not ("decodeAny"))
+                // The facade's two entry points are `public static func` members of the codec enum
+                // rather than top-level `internal func`s, so they are not in `declared` by
+                // construction. encodeAny joined decodeAny when the JSON-LD pass needed a way to
+                // re-encode a message it had not constructed.
+                .Where(n => n is not ("decodeAny" or "encodeAny"))
                 .ToHashSet(StringComparer.Ordinal);
 
             Assert.That(called, Is.Not.Empty);
@@ -92,7 +103,11 @@ namespace Vanaheimr.V2G.Exi.Tests
             {
                 var usesRuntime = file.Source.Contains("BitReader") || file.Source.Contains("BitWriter") ||
                                   file.Source.Contains("ExiPrimitives") || file.Source.Contains("ExiError") ||
-                                  file.Source.Contains("exiEnum");
+                                  file.Source.Contains("exiEnum") ||
+                                  // The JSON-LD parts use the runtime too: the ordered JSON tree and
+                                  // JsonPrimitives live beside ExiPrimitives, for the same reason.
+                                  file.Source.Contains("JsonObject") || file.Source.Contains("JsonValue") ||
+                                  file.Source.Contains("JsonPrimitives") || file.Source.Contains("JsonLdError");
                 var imports = file.Source.Contains("import ExiRuntime");
 
                 Assert.That(imports, Is.EqualTo(usesRuntime),

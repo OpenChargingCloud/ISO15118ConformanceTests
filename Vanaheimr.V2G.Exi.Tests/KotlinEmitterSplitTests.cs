@@ -67,6 +67,11 @@ namespace Vanaheimr.V2G.Exi.Tests
                         Is.EquivalentTo(new[]
                         {
                             "Mode.kt", "Root.kt", "RootType.kt", "DetailType.kt", "SplitCodec.kt",
+
+                            // The JSON-LD pass, split the same way: one part per type, one for the
+                            // dispatchers. An enum has no JSON part of its own.
+                            "Root.Json.kt", "RootType.Json.kt", "DetailType.Json.kt",
+                            "SplitCodecJson.Json.kt",
                         }));
         }
 

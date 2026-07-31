@@ -38,8 +38,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         public string Language      => "swift";
         public string FileExtension => ".swift";
 
+        /// <remarks>
+        /// The JSON-LD pass runs here rather than as an emitter of its own, for the reason
+        /// docs/CONCEPT.md §4.4 gives: wire codec and JSON-LD codec come from the same type graph in
+        /// the same pass, so there is no seam at which one could be regenerated and the other not.
+        /// </remarks>
         public IReadOnlyList<GeneratedFile> Emit(SchemaPlan plan, string targetNamespace, string codecClassName) =>
-            new Writer(plan, targetNamespace, codecClassName).Run();
+        [
+            .. new Writer(plan, targetNamespace, codecClassName).Run(),
+            .. SwiftJsonEmitter.Emit(plan, targetNamespace, codecClassName),
+        ];
 
         private sealed class Writer(SchemaPlan plan, string moduleName, string codecEnum)
         {
@@ -1410,6 +1418,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             // ── facade ───────────────────────────────────────────────────────────────────────────
 
+            /// <summary>How many types deep a base chain runs — the sort key for a type dispatch.</summary>
+            private int BaseDepth(SequencePlan sp)
+            {
+                var depth   = 0;
+                var current = sp;
+                while (current.BaseRecordName is not null
+                       && plan.ComplexTypes.TryGetValue(current.BaseRecordName, out var next))
+                {
+                    depth++;
+                    current = next;
+                }
+                return depth;
+            }
+
             private void EmitFacade()
             {
                 _sb.Append("public enum ").Append(codecEnum).AppendLine(" {");
@@ -1430,6 +1452,22 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.AppendLine("    }");
                     _sb.AppendLine();
                 }
+
+                // The mirror of decodeAny. Without it, `encode` is a set of static overloads and a
+                // caller holding a message it did not construct itself has to write the type switch
+                // by hand. Branches are ordered most-derived-first: Swift's `as` matches
+                // superclasses, so a base-first order would encode a derived message with its base's
+                // document index.
+                _sb.AppendLine("    /// Encodes any document element of this message set, dispatching on its runtime type.");
+                _sb.AppendLine("    public static func encodeAny(_ msg: Any) throws -> [UInt8] {");
+                _sb.AppendLine("        switch msg {");
+                foreach (var ge in plan.GlobalElements.OrderByDescending(g => BaseDepth(g.Body))
+                                                      .ThenBy(g => g.DocumentIndex))
+                    _sb.Append("        case let m as ").Append(ge.TypeName).AppendLine(": return encode(m)");
+                _sb.AppendLine("        default: throw ExiError.invalidHeader");
+                _sb.AppendLine("        }");
+                _sb.AppendLine("    }");
+                _sb.AppendLine();
 
                 _sb.AppendLine("    public static func decodeAny(_ src: [UInt8]) throws -> Any {");
                 _sb.AppendLine("        guard src.first == exiHeader else { throw ExiError.invalidHeader }");

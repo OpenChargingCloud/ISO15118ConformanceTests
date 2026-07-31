@@ -138,6 +138,34 @@ discriminator a reader has, and stripping the suffix would map `AuthorizationReq
 `AuthorizationRes` onto one name — a request that parses as a response is exactly what the tag
 exists to prevent.
 
+### All three back ends
+
+Kotlin and Swift run the same pass, from the same plan, and are held to `JsonLd.documents.json`
+character for character — `jsonld-agreement` in `kotlin/`, `JsonLdAgreementTests` in `swift/`. Both
+directions: this back end must *write* what C# writes, and must *read* what C# writes back to the
+original bytes. A serializer and a parser can fail apart.
+
+The JSON tree is hand-written in each language rather than delegated to kotlinx.serialization,
+Gson, `JSONSerialization` or `Codable`. Comparing documents as text makes member order, escaping and
+number formatting part of the format, and three libraries have three sets of conventions about
+exactly those — `JSONSerialization` gives up the first immediately, since it reads an object into an
+unordered `Dictionary`. Two hundred lines per language buys an agreement that does not rest on
+library versions.
+
+Two things the ports turned up, neither of them in the emitter:
+
+* **Kotlin's codec modules now export `exi-runtime` as `api`.** The wire codec never leaked a runtime
+  type — `encode` returns a `ByteArray`, `decodeAny` an `Any` — so `implementation` was right until
+  the JSON pass returned a `JsonObject`.
+* **`" \t\r\n".contains(c)` is wrong in Swift.** A `Character` is a grapheme cluster, so CR+LF in
+  that literal combine into one: the string holds three characters and a lone newline is not among
+  them. Every pretty-printed document failed at offset 1 with "an object key must be a string",
+  which is a long way from the cause. The whitespace set is a `Set<Character>` now.
+
+WPT has no Swift JSON-LD form, for the same reason it has no Swift codec: the back end refuses
+`WPT_LF_TransmitterDataType`, whose `maxOccurs=255`-with-a-follower shape has no working reference
+encoder. C# and Kotlin cover it.
+
 ### `TryEncodeAny`
 
 Added to the generated codec while building this: `DecodeAny` always produced an `object` and

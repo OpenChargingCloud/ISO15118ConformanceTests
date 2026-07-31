@@ -33,8 +33,16 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
         public string Language      => "kotlin";
         public string FileExtension => ".kt";
 
+        /// <remarks>
+        /// The JSON-LD pass runs here rather than as an emitter of its own, for the reason
+        /// docs/CONCEPT.md §4.4 gives: wire codec and JSON-LD codec come from the same type graph in
+        /// the same pass, so there is no seam at which one could be regenerated and the other not.
+        /// </remarks>
         public IReadOnlyList<GeneratedFile> Emit(SchemaPlan plan, string targetNamespace, string codecClassName) =>
-            new Writer(plan, targetNamespace, codecClassName).Run();
+        [
+            .. new Writer(plan, targetNamespace, codecClassName).Run(),
+            .. KotlinJsonEmitter.Emit(plan, targetNamespace, codecClassName),
+        ];
 
         private sealed class Writer(SchemaPlan plan, string package, string codecObject)
         {
@@ -511,6 +519,20 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// The codec object: the public entry points, and nothing else. Every per-type
             /// encoder/decoder it used to hold now lives beside its own type.
             /// </summary>
+            /// <summary>How many types deep a base chain runs — the sort key for a type dispatch.</summary>
+            private int BaseDepth(SequencePlan sp)
+            {
+                var depth   = 0;
+                var current = sp;
+                while (current.BaseRecordName is not null
+                       && plan.ComplexTypes.TryGetValue(current.BaseRecordName, out var next))
+                {
+                    depth++;
+                    current = next;
+                }
+                return depth;
+            }
+
             private void EmitFacade()
             {
                 _sb.Append("object ").Append(codecObject).AppendLine(" {");
@@ -535,6 +557,24 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.AppendLine("    }");
                     _sb.AppendLine();
                 }
+
+                // The mirror of decodeAny. Without it, `encode` is a set of static overloads and a
+                // caller holding a message it did not construct itself has to write the type switch
+                // by hand — which is what Secc20Ac and Secc20Dc do on the C# side, the usual sign
+                // that the generator was missing a method. Branches are ordered most-derived-first:
+                // Kotlin's `is` matches subtypes, so a base-first order would encode a derived
+                // message with its base's document index.
+                _sb.AppendLine("    /** Encodes any document element of this message set, dispatching on its runtime type. */");
+                _sb.AppendLine("    fun encodeAny(msg: Any): ByteArray =");
+                _sb.AppendLine("        when (msg) {");
+                foreach (var ge in plan.GlobalElements.OrderByDescending(g => BaseDepth(g.Body))
+                                                      .ThenBy(g => g.DocumentIndex))
+                    _sb.Append("            is ").Append(ge.TypeName).AppendLine(" -> encode(msg)");
+                _sb.AppendLine();
+                _sb.AppendLine("            else -> throw IllegalArgumentException(");
+                _sb.AppendLine("                \"${msg::class.simpleName} is not a document element of this message set.\")");
+                _sb.AppendLine("        }");
+                _sb.AppendLine();
 
                 _sb.AppendLine("    fun decodeAny(src: ByteArray): Any {");
                 _sb.AppendLine("        require(src.isNotEmpty() && src[0] == EXI_HEADER) { \"Invalid EXI header.\" }");
