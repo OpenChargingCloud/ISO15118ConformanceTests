@@ -20,7 +20,9 @@ namespace Vanaheimr.V2G.Exi
         {
             _buffer = buffer;
             _bitPos = 0;
-            // Caller is responsible for the buffer being zero-initialised; stackalloc is.
+            // The destination need NOT be zero-initialised: every byte is cleared as it is first
+            // reached (see WriteBit). It used to be the caller's job, and the trailing partial byte
+            // was the one nobody could do it for — see the note there.
         }
 
         public readonly int BitsWritten => _bitPos;
@@ -41,17 +43,33 @@ namespace Vanaheimr.V2G.Exi
         public void WriteBit(bool b)
         {
             int byteIdx = _bitPos >> 3;
-            int mask = 1 << (7 - (_bitPos & 7));
-            // Overwrite the target bit (set for 1, clear for 0) rather than only OR-ing 1s — otherwise a
-            // reused (non-zeroed) destination buffer keeps stale 1-bits and corrupts the output.
+            int bit     = _bitPos & 7;
+
+            // Clear each byte as it is first reached, rather than only overwriting the bits actually
+            // written. Both matter for a reused (non-zeroed) destination, but for different reasons:
+            // stale 1-bits inside the message would corrupt it, and stale bits in the trailing
+            // PARTIAL byte — the padding no one ever writes — travel silently. That last case is real
+            // and was found by re-recording a session trace: two runs of the identical -20
+            // ServiceDiscoveryRes differed in the low six bits of their final byte, which held
+            // leftovers of the AuthorizationSetupRes encoded into the same buffer one message earlier
+            // (its random GenChallenge is what made the difference visible at all). Up to seven bits of
+            // the previous message go on the wire that way; with a PnC session in that buffer they are
+            // bits of a contract certificate or a signature.
+            //
+            // Neither existing gate could see it. A round trip never reads padding, and the vector
+            // corpus always encodes into a fresh — therefore zeroed — buffer, so the recorded bytes
+            // are the ones this now always produces.
+            if (bit == 0)
+                _buffer[byteIdx] = 0;
+
             if (b)
-                _buffer[byteIdx] |= (byte)mask;
-            else
-                _buffer[byteIdx] &= (byte)~mask;
+                _buffer[byteIdx] |= (byte)(1 << (7 - bit));
+
             _bitPos++;
         }
 
-        /// <summary>Pad to the next byte boundary by writing zero bits.</summary>
+        /// <summary>Pad to the next byte boundary. The skipped bits are already zero: the byte was
+        /// cleared when <see cref="WriteBit"/> first reached it.</summary>
         public void AlignToByte()
         {
             int rem = _bitPos & 7;
