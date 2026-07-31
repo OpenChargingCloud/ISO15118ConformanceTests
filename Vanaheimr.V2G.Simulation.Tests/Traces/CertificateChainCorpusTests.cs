@@ -162,6 +162,7 @@ public class CertificateChainCorpusTests
             root  = Hex(good.Root.Certificate),
             cases,
             rootRotation = rotation,
+            revocation   = RevocationMaterial(good),
         }, new JsonSerializerOptions { WriteIndented = true });
 
         File.WriteAllText(SourcePath(), json, new UTF8Encoding(false));
@@ -235,6 +236,71 @@ public class CertificateChainCorpusTests
             renewal   = H(renewed),
             stranger  = H(stranger),
             vouched   = H(successor),
+        };
+    }
+
+
+    /// <summary>
+    /// A CRL and two leaves under it: one revoked, one not.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Revocation has <b>three</b> answers, not two, and that is the whole reason this material
+    /// exists. "Not on the list" and "no usable list" look identical to a naive check and are not the
+    /// same thing at all — the second is the classic soft-fail hole, where an attacker who wants a
+    /// revoked credential accepted simply arranges for the list to be unavailable, or supplies an
+    /// empty one.
+    /// </para>
+    /// <para>
+    /// So the corpus carries a real CRL, signed by the issuing CA, plus a leaf it revokes and a leaf
+    /// it does not — and a second CRL from an <i>unrelated</i> CA, which a validator must refuse to
+    /// believe rather than read as "nothing revoked here".
+    /// </para>
+    /// </remarks>
+    private static object RevocationMaterial(V2GHierarchy hierarchy)
+    {
+
+        var issuer  = hierarchy.MoSubCa2;               // the CA that signs contract leaves
+        var revoked = hierarchy.ContractLeaf;
+
+        static byte[] Crl(V2GIssued signingCa, Org.BouncyCastle.Math.BigInteger[] revokedSerials,
+                          DateTime thisUpdate, DateTime nextUpdate)
+        {
+            var generator = new Org.BouncyCastle.X509.X509V2CrlGenerator();
+            generator.SetIssuerDN(signingCa.Certificate.SubjectDN);
+            generator.SetThisUpdate(thisUpdate);
+            generator.SetNextUpdate(nextUpdate);
+
+            foreach (var serial in revokedSerials)
+                generator.AddCrlEntry(serial, thisUpdate,
+                                      Org.BouncyCastle.Asn1.X509.CrlReason.KeyCompromise);
+
+            var factory = new Org.BouncyCastle.Crypto.Operators.Asn1SignatureFactory(
+                              V2GCertificateBuilder.SignatureAlgorithmName(signingCa.Algorithm),
+                              signingCa.KeyPair.Private);
+
+            return generator.Generate(factory).GetEncoded();
+        }
+
+        var now = DateTime.UtcNow.AddMinutes(-5);
+
+        return new
+        {
+            what = "A CRL from the MO Sub-CA 2 revoking the contract leaf, the leaf it revokes, a "
+                 + "sibling leaf it does not, an expired CRL, and a CRL from an unrelated CA. The "
+                 + "last two must both come back as UNKNOWN rather than as 'not revoked' — that "
+                 + "distinction is the whole point.",
+            issuer          = Hex(issuer.Certificate),
+            revokedLeaf     = Hex(revoked.Certificate),
+            unrevokedLeaf   = Hex(hierarchy.VehicleLeaf.Certificate),
+            crl             = Convert.ToHexString(
+                                  Crl(issuer, [revoked.Certificate.SerialNumber],
+                                      now, now.AddDays(7))).ToLowerInvariant(),
+            expiredCrl      = Convert.ToHexString(
+                                  Crl(issuer, [revoked.Certificate.SerialNumber],
+                                      now.AddDays(-30), now.AddDays(-23))).ToLowerInvariant(),
+            crlFromStranger = Convert.ToHexString(
+                                  Crl(hierarchy.CpoSubCa2, [], now, now.AddDays(7))).ToLowerInvariant(),
         };
     }
 
