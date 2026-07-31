@@ -31,6 +31,7 @@ namespace Vanaheimr.V2G.Exi.Codegen
             CSharpCodecEmitter.Instance,
             KotlinCodecEmitter.Instance,
             SwiftCodecEmitter.Instance,
+            TypeScriptCodecEmitter.Instance,
         ];
 
         public static int Main(string[] args)

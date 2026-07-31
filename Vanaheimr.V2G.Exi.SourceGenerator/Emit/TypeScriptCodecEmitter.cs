@@ -12,54 +12,34 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>UNFINISHED, and not wired into anything.</b> It is absent from
-    /// <c>Vanaheimr.V2G.Exi.Codegen</c>'s emitter list, so <c>--lang typescript</c> is not offered
-    /// and nothing can accidentally generate from it. What is done is the part that needed
-    /// decisions rather than transcription — the file/import model, the type mapping, class and
-    /// enumeration shape, the codec facade and the fragment codecs. What is left is the encoder and
-    /// decoder <em>bodies</em>, and it is one specific job:
-    /// </para>
-    /// <para>
-    /// Every <c>when (subject) { N -&gt; { … } else -&gt; throw }</c> this file still emits is
-    /// Kotlin. TypeScript wants either a <c>switch</c> with <c>break</c> in every arm or — simpler,
-    /// because it needs no change to how arms are closed — an if/else-if chain inside a bare block:
-    /// <c>{ const _c = subject; if (_c === 0) { … } else if (_c === 1) { … } else throw … }</c>.
-    /// That works because <c>}</c> followed by <c>else</c> on the next line is valid JavaScript, so
-    /// only the arm-<em>opening</em> literal changes; the closing braces stay as they are. There are
-    /// about a dozen such sites, plus <c>require(x) { "…" }</c>, <c>for (i in 1 until n)</c>,
-    /// <c>x.length in a..b</c> and <c>IllegalArgumentException</c>.
-    /// </para>
-    /// <para>
-    /// The oracle for the finished emitter is the one every other back end uses: generate
-    /// AppProtocol first (nine files, and it exercises enums, records, required/optional/repeating
-    /// children and every value encoding), run it against <c>AppProtocol.vectors.json</c>, then
-    /// ISO 15118-2 for substitution, attributes, simple content and fragments.
-    /// </para>
-    /// </remarks>
-    /// <remarks>
-    /// <para>
     /// <b>A port of <see cref="KotlinCodecEmitter"/>, deliberately.</b> The grammar decisions —
     /// which event code, how wide, in what order — are identical, because both are driven by the
     /// same <see cref="SchemaPlan"/>, and re-deriving them would be re-deriving the chance to get
-    /// them subtly wrong. What differs is spelling, and three things that are not spelling:
+    /// them subtly wrong. What differs is spelling, and four things that are not spelling:
     /// </para>
     /// <list type="bullet">
-    ///   <item><b>Only erasable syntax.</b> Node runs TypeScript by <em>stripping</em> types, so
-    ///         the generated codec needs no compiler, no bundler and no <c>node_modules</c> — and
-    ///         may use no <c>enum</c>, no parameter properties and no <c>namespace</c>, since each
-    ///         of those emits code. Enumerations become frozen const objects with a name table,
-    ///         which is what the JSON-LD form wanted anyway.</item>
+    ///   <item><b>Only erasable syntax.</b> Node runs TypeScript by <em>stripping</em> types, so the
+    ///         generated codec needs no compiler, no bundler and no <c>node_modules</c> — and may
+    ///         use no <c>enum</c>, no parameter properties and no <c>namespace</c>, since each of
+    ///         those emits code. Enumerations become frozen const objects with a name table, which
+    ///         is what the JSON-LD form wanted anyway.</item>
     ///   <item><b><c>bigint</c> for 64-bit values, and nothing else.</b> <c>number</c> is a double
-    ///         and rounds silently above 2^53. An n-bit field is at most 32 bits and stays a
-    ///         number.</item>
-    ///   <item><b>Every cross-type reference needs an import.</b> Kotlin sees its whole package;
-    ///         ES modules see nothing they did not ask for. The imports are derived from the
-    ///         emitted body, so a type that stops being referenced stops being imported.</item>
+    ///         and rounds silently above 2^53. An n-bit field is at most 32 bits and stays a number.
+    ///         The two do not mix in arithmetic, so a conversion that is merely noisy in Kotlin is a
+    ///         <c>TypeError</c> here if it is missing, and a silent rounding if it goes the wrong
+    ///         way.</item>
+    ///   <item><b>Every cross-type reference needs an import.</b> Kotlin sees its whole package; ES
+    ///         modules see nothing they did not ask for. The imports are derived from the emitted
+    ///         body, so a type that stops being referenced stops being imported.</item>
+    ///   <item><b>Kotlin's <c>when</c> has no counterpart</b>, and translating it is what
+    ///         <see cref="OpenDispatch"/> is for.</item>
     /// </list>
     /// <para>
-    /// Bit-level behaviour mirrors <see cref="CodecEmitter"/> exactly — same event codes, same
-    /// widths, same order — because both are driven by the same <see cref="SchemaPlan"/>. The
-    /// vectors under <c>Vanaheimr.V2G.Exi.Tests/Vectors/</c> are the shared oracle.
+    /// Held to the same corpora as the other three: <c>AppProtocol.vectors.json</c> for encode and
+    /// decode, and <c>Iso15118_2.vectors.json</c> decoded and re-encoded — which reaches the
+    /// <c>V2G_Message</c> wrapper, the <c>BodyType</c> substitution group, attributes, simple
+    /// content, optional runs and bounded lists. The corpus discriminates: three separate mistakes
+    /// during the port showed up as changed bytes rather than as anything the compiler could see.
     /// </para>
     /// </remarks>
     internal sealed class TypeScriptCodecEmitter : ICodecEmitter
@@ -103,6 +83,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private readonly List<string> _declaredTypes = new();
 
+            private void AddDeclared(string name)
+            {
+                if (!_declaredTypes.Contains(name)) _declaredTypes.Add(name);
+            }
+
             /// <summary>
             /// One file per type, plus one for the codec object.
             /// </summary>
@@ -125,10 +110,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 Reject(plan);
 
-                foreach (var e in plan.Enums)      { _declaredTypes.Add(e.Name); _declaredTypes.Add(e.Name + "Names"); }
-                foreach (var t in plan.OpaqueTypes)  _declaredTypes.Add(t);
-                foreach (var g in plan.GlobalElements) _declaredTypes.Add(g.TypeName);
-                foreach (var sp in plan.ComplexTypes.Values) _declaredTypes.Add(sp.RecordName);
+                // Deduplicated: a global element's body is also registered in ComplexTypes under
+                // the same name, and importing it twice is a redeclaration error.
+                foreach (var e in plan.Enums)                 AddDeclared(e.Name);
+                foreach (var t in plan.OpaqueTypes)           AddDeclared(t);
+                foreach (var g in plan.GlobalElements)        AddDeclared(g.TypeName);
+                foreach (var sp in plan.ComplexTypes.Values)  AddDeclared(sp.RecordName);
 
                 var files = new List<GeneratedFile>();
 
@@ -186,12 +173,23 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 // Type imports. ES modules see nothing they were not handed, so every generated
                 // type this file names has to be asked for by name — the one place the TypeScript
                 // back end needs bookkeeping Kotlin gets from its package.
-                foreach (var other in _declaredTypes.Where(t => t != name && Mentions(body, t))
-                                                    .OrderBy(t => t, StringComparer.Ordinal))
-                    sb.Append("import { ").Append(other).Append(" } from \"./").Append(other)
-                      .AppendLine(".ts\";");
+                var typeImports = 0;
+                foreach (var other in _declaredTypes.Where(t => t != name).OrderBy(t => t, StringComparer.Ordinal))
+                {
+                    // The type and its two codec functions live in one module, so one import line
+                    // asks for whichever of the three this body actually uses.
+                    // An enumeration's module also holds its name table, which is why it is not a
+                    // declared type of its own — it has no module to be imported from.
+                    var wanted = new[] { other, other + "Names", "encode" + other, "decode" + other }
+                                 .Where(w => Mentions(body, w)).ToList();
+                    if (wanted.Count == 0) continue;
 
-                if (runtime.Count > 0 || _declaredTypes.Any(t => t != name && Mentions(body, t)))
+                    sb.Append("import { ").Append(string.Join(", ", wanted)).Append(" } from \"./")
+                      .Append(other).AppendLine(".ts\";");
+                    typeImports++;
+                }
+
+                if (runtime.Count > 0 || typeImports > 0)
                     sb.AppendLine();
 
                 // A declaration ends with a blank separator line that only made sense when the
@@ -257,6 +255,69 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     which[name] = sb = new StringBuilder();
                 _sb = sb;
             }
+
+            /// <summary>
+            /// The current dispatch's subject local — what an arm compares against.
+            /// </summary>
+            /// <remarks>
+            /// A field rather than a parameter threaded through a dozen emit methods, because the
+            /// arms of one dispatch are written by several of them. Dispatches nest (a repeating
+            /// child's loop code sits inside its run's state machine), so a method that opens an
+            /// inner one saves and restores this around it.
+            /// </remarks>
+            private string _dispatch = "";
+
+            /// <summary>
+            /// Opens the TypeScript form of Kotlin's <c>when (subject) { … }</c>: a bare block, the
+            /// subject read once into a local, and the seed of an if/else-if chain.
+            /// </summary>
+            /// <remarks>
+            /// <para>
+            /// The chain rather than a <c>switch</c> because a <c>switch</c> needs <c>break</c> in
+            /// every arm, and the arms here are closed by brace-emitting code shared with other
+            /// constructs — the translation would stop being local and start being a rewrite.
+            /// <c>}</c> followed by <c>else</c> on the next line is valid JavaScript, so an arm's
+            /// closing brace needs no change at all.
+            /// </para>
+            /// <para>
+            /// <b>And that is what the <c>if (false) {}</c> buys.</b> With it, <em>every</em> arm is
+            /// spelled <c>else if</c> — including the first — so no emit method has to know whether
+            /// it is writing the first arm, which several of them could not answer without being
+            /// told. One dead line per dispatch is the price, and it is the difference between a
+            /// mechanical port and a re-derivation of the grammar logic.
+            /// </para>
+            /// </remarks>
+            private string OpenDispatch(string indent, string subject)
+            {
+                var local = "_c" + _run++;
+                _sb.Append(indent).Append("{ const ").Append(local).Append(" = ").Append(subject)
+                   .AppendLine("; if (false) {}   // dispatch");
+                _dispatch = local;
+                return local;
+            }
+
+            /// <summary>
+            /// The schema's occurrence bounds, as a runtime check on the way out.
+            /// </summary>
+            /// <remarks>
+            /// A <c>RangeError</c> rather than the decoder's <c>ExiError</c>: this fires on the
+            /// <em>encode</em> path, where the input is the caller's own value type and a violation
+            /// is a programmer error, not a malformed stream. The Swift back end draws the same line
+            /// with <c>precondition</c> versus <c>throws</c>.
+            /// </remarks>
+            private void EmitListSizeGuard(string indent, string list, int min, int max)
+            {
+                _sb.Append(indent).Append("if (").Append(list).Append(".length < ").Append(min)
+                   .Append(" || ").Append(list).Append(".length > ").Append(max)
+                   .Append(") throw new RangeError(\"").Append(list)
+                   .AppendLine(": list size out of schema range\");");
+            }
+
+            /// <summary>One arm of the chain <see cref="OpenDispatch"/> opened.</summary>
+            private string Arm(int code) => Arm(_dispatch, code);
+
+            /// <summary>An arm of a named dispatch — for the outer arms of a nested one.</summary>
+            private static string Arm(string subject, int code) => "else if (" + subject + " === " + code + ") ";
 
             /// <summary>Fail loud on anything this back end does not model yet.</summary>
             private static void Reject(SchemaPlan p)
@@ -768,8 +829,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             private void EmitEncode(SequencePlan sp, string name)
             {
-                _sb.Append("    internal fun encode").Append(name).Append("(w: BitWriter, msg: ")
-                   .Append(name).AppendLine(") {");
+                _sb.Append("    export function encode").Append(name).Append("(w: BitWriter, msg: ")
+                   .Append(name).AppendLine("): void {");
 
                 // A required attribute is unconditional: a 1-bit AT event, then a bare value.
                 if (RequiredAttr(sp) is { } req)
@@ -913,13 +974,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        let st").Append(id).AppendLine(" = 0");
                 _sb.Append("        let done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
-                _sb.Append("            when (st").Append(id).AppendLine(") {");
+                OpenDispatch("            ", "st" + id);
 
                 for (var k = 0; k <= n; k++)
                 {
                     // remaining optional attributes + CONTENT, plus the non-strict phantom
                     var width = BitsFor((n - k + 1) + 1);
-                    _sb.Append("                ").Append(k).AppendLine(" -> {");
+                    _sb.Append("                ").Append(Arm(k)).AppendLine("{");
 
                     var code  = 0;
                     var first = true;
@@ -929,7 +990,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).Append(first ? "if (" : "} else if (").Append(prop).AppendLine(" != null) {");
                         _sb.Append(ind).Append("    w.writeBits(").Append(code).Append(", ").Append(width)
                            .Append(")   // AT(").Append(oa[i].FieldName).AppendLine(")");
-                        _sb.Append(ind).Append("    ExiPrimitives.writeStringValue(w, ").Append(prop).AppendLine("!!)");
+                        _sb.Append(ind).Append("    ExiPrimitives.writeStringValue(w, ").Append(prop).AppendLine("!)");
                         _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
                     }
 
@@ -966,10 +1027,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        ").Append(i == 0 ? "if (" : "} else if (").Append(f).AppendLine(" != null) {");
                     _sb.Append("            w.writeBits(").Append(i).Append(", ").Append(ic.BitWidth)
                        .Append(")   // ").AppendLine(m.ElementName);
-                    EmitEncodeValue(AsChildPlan(m), f + "!!", "            ");
+                    EmitEncodeValue(AsChildPlan(m), f + "!", "            ");
                 }
                 _sb.AppendLine("        } else {");
-                _sb.AppendLine("            throw IllegalArgumentException(\"no choice alternative set\")");
+                _sb.AppendLine("            throw new TypeError(\"no choice alternative set\");");
                 _sb.AppendLine("        }");
             }
 
@@ -991,10 +1052,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append("        ").Append(i == 0 ? "if (" : "} else if (").Append(prop).AppendLine(" != null) {");
                     _sb.Append("            w.writeBits(").Append(i).Append(", ").Append(width)
                        .Append(")   // ").AppendLine(c.FieldName);
-                    EmitEncodeValue(c, prop + "!!", "            ");
+                    EmitEncodeValue(c, prop + "!", "            ");
                 }
                 _sb.AppendLine("        } else {");
-                _sb.Append("            throw IllegalArgumentException(\"no choice alternative set for ")
+                _sb.Append("            throw new TypeError(\"no choice alternative set for ")
                    .Append(KStr(sp.RecordName)).AppendLine("\")");
                 _sb.AppendLine("        }");
             }
@@ -1049,7 +1110,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var widthMid = BitsFor((1 + tailProd) + 1);   // another item, the tail, + the phantom
                 var widthMax = BitsFor(tailProd + 1);         // list full: only the tail remains
 
-                _sb.Append(indent).Append("require(").Append(prop).AppendLine(".length in 1..2) { \"list size out of schema range\" }");
+                EmitListSizeGuard(indent, prop, 1, 2);
                 _sb.Append(indent).Append("w.writeBits(0, 1)   // SE(").Append(list.FieldName).AppendLine(")");
                 EmitEncodeValue(list, prop + "[0]", indent);
 
@@ -1079,13 +1140,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 var tailProp = "msg." + Prop(tail.FieldName);
                 var width    = BitsFor(1 + ProductionCount(tail) + (required ? 0 : 1) + 1);
 
-                _sb.Append(indent).Append("require(").Append(prop).Append(".length in ")
-                   .Append(Math.Max(1, list.ListMin)).Append("..").Append(list.ListMax)
-                   .AppendLine(") { \"list size out of schema range\" }");
+                EmitListSizeGuard(indent, prop, Math.Max(1, list.ListMin), list.ListMax);
                 _sb.Append(indent).Append("w.writeBits(0, 1)   // SE(").Append(list.FieldName).AppendLine(") first");
                 EmitEncodeValue(list, prop + "[0]", indent);
 
-                _sb.Append(indent).Append("for (ci in 1 until ").Append(prop).AppendLine(".length) {");
+                _sb.Append(indent).Append("for (let ci = 1; ci < ").Append(prop).AppendLine(".length; ci++) {");
                 _sb.Append(indent).Append("    w.writeBits(0, ").Append(width).Append(")   // ")
                    .Append(list.FieldName).AppendLine(" (loop)");
                 EmitEncodeValue(list, prop + "[ci]", indent + "    ");
@@ -1101,7 +1160,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(indent).Append("if (").Append(tailProp).AppendLine(" != null) {");
                 _sb.Append(indent).Append("    w.writeBits(1, ").Append(width).Append(")   // ")
                    .AppendLine(tail.FieldName);
-                EmitEncodeValue(tail, tailProp + "!!", indent + "    ");
+                EmitEncodeValue(tail, tailProp + "!", indent + "    ");
                 _sb.Append(indent).AppendLine("    w.writeBits(0, 1)   // element EE");
                 _sb.Append(indent).AppendLine("} else {");
                 _sb.Append(indent).Append("    w.writeBits(2, ").Append(width).AppendLine(")   // element EE");
@@ -1125,7 +1184,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(indent).Append("w.writeBits(").Append(firstCode).Append(", ").Append(width)
                    .Append(")   // ").AppendLine(p.FieldName);
                 EmitEncodeValue(p, list + "[0]", indent);
-                _sb.Append(indent).Append("for (ci in 1 until ").Append(list).AppendLine(".length) {");
+                _sb.Append(indent).Append("for (let ci = 1; ci < ").Append(list).AppendLine(".length; ci++) {");
                 _sb.Append(indent).Append("    w.writeBits(0, 2)   // ").AppendLine(p.FieldName);
                 EmitEncodeValue(p, list + "[ci]", indent + "    ");
                 _sb.Append(indent).AppendLine("}");
@@ -1181,16 +1240,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     return;
                 }
 
-                _sb.Append(indent).Append("when (r.readBits(").Append(widthMid).AppendLine(")) {");
-                _sb.Append(indent).Append("    0 -> {   // ").Append(list.FieldName).AppendLine(" (loop)");
+                var outer = OpenDispatch(indent, "r.readBits(" + widthMid + ")");
+                _sb.Append(indent).Append("    ").Append(Arm(0)).Append("{   // ")
+                   .Append(list.FieldName).AppendLine(" (loop)");
                 EmitDecodeItem(list, lst, lst + "Next", indent + "        ");
-                _sb.Append(indent).Append("        when (r.readBits(").Append(widthMax).AppendLine(")) {");
+                OpenDispatch(indent + "        ", "r.readBits(" + widthMax + ")");
                 EmitDecodeTailCase(tail, 0, indent + "            ");
-                _sb.Append(indent).AppendLine("            else -> throw IllegalArgumentException(\"invalid event code\")");
+                _sb.Append(indent).AppendLine("            else throw ExiError.invalidEventCode(\"repeating element\");");
                 _sb.Append(indent).AppendLine("        }");
                 _sb.Append(indent).AppendLine("    }");
+                _dispatch = outer;
                 EmitDecodeTailCase(tail, 1, indent + "    ");
-                _sb.Append(indent).AppendLine("    else -> throw IllegalArgumentException(\"invalid event code\")");
+                _sb.Append(indent).AppendLine("    else throw ExiError.invalidEventCode(\"repeating element\");");
                 _sb.Append(indent).AppendLine("}");
             }
 
@@ -1209,8 +1270,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(indent).Append("while (!done").Append(id).AppendLine(") {");
                 _sb.Append(indent).Append("    const rc = r.readBits(").Append(width).AppendLine(")");
                 _sb.Append(indent).AppendLine("    if (rc == 0) {");
-                _sb.Append(indent).Append("        require(").Append(lst).Append(".length < ").Append(list.ListMax)
-                   .AppendLine(") { \"invalid repeating-element event code\" }");
+                _sb.Append(indent).Append("        if (!(").Append(lst).Append(".length < ").Append(list.ListMax)
+                   .AppendLine(")) throw ExiError.invalidEventCode(\"repeating element\");");
                 EmitDecodeItem(list, lst, lst + "Next", indent + "        ");
                 _sb.Append(indent).AppendLine("    } else if (rc == 1) {");
                 if (WrapsValue(tail))
@@ -1228,14 +1289,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append(indent).Append("        done").Append(id).AppendLine(" = true   // element EE");
                 }
                 _sb.Append(indent).AppendLine("    } else {");
-                _sb.Append(indent).AppendLine("        throw IllegalArgumentException(\"invalid event code\")");
+                _sb.Append(indent).AppendLine("        throw ExiError.invalidEventCode(\"repeating element\");");
                 _sb.Append(indent).AppendLine("    }");
                 _sb.Append(indent).AppendLine("}");
             }
 
             private void EmitDecodeTailCase(ChildPlan tail, int code, string indent)
             {
-                _sb.Append(indent).Append(code).Append(" -> {   // ").AppendLine(tail.FieldName);
+                _sb.Append(indent).Append(Arm(code)).Append("{   // ").AppendLine(tail.FieldName);
                 if (WrapsValue(tail))
                     _sb.Append(indent).AppendLine("    r.readBits(1)   // value-start");
                 _sb.Append(indent).Append("    ").Append(Local(tail.FieldName)).Append(" = ")
@@ -1272,22 +1333,22 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        let st").Append(id).AppendLine(" = 0");
                 _sb.Append("        let done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
-                _sb.Append("            when (st").Append(id).AppendLine(") {");
+                var outer = OpenDispatch("            ", "st" + id);
 
-                _sb.AppendLine("                0 -> {");
-                _sb.Append("                    when (r.readBits(").Append(w0).AppendLine(")) {");
-                _sb.Append(ca).Append("0 -> {   // ").AppendLine(list.FieldName);
+                _sb.Append("                ").Append(Arm(outer, 0)).AppendLine("{");
+                OpenDispatch("                    ", "r.readBits(" + w0 + ")");
+                _sb.Append(ca).Append(Arm(0)).Append("{   // ").AppendLine(list.FieldName);
                 EmitDecodeItem(list, lst, lst + "First", ca + "    ");
                 _sb.Append(ca).Append("    st").Append(id).AppendLine(" = 1");
                 _sb.Append(ca).AppendLine("}");
-                _sb.Append(ca).Append("1 -> done").Append(id).AppendLine(" = true   // element EE");
-                _sb.Append(ca).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
+                _sb.Append(ca).Append(Arm(1)).Append("done").Append(id).AppendLine(" = true;   // element EE");
+                _sb.Append(ca).AppendLine("else throw ExiError.invalidEventCode(\"optional run\");");
                 _sb.AppendLine("                    }");
                 _sb.AppendLine("                }");
 
-                _sb.AppendLine("                1 -> {");
-                _sb.Append("                    when (r.readBits(").Append(w1).AppendLine(")) {");
-                _sb.Append(ca).Append("0 -> {   // ").AppendLine(list.FieldName);
+                _sb.Append("                ").Append(Arm(outer, 1)).AppendLine("{");
+                OpenDispatch("                    ", "r.readBits(" + w1 + ")");
+                _sb.Append(ca).Append(Arm(0)).Append("{   // ").AppendLine(list.FieldName);
                 EmitDecodeItem(list, lst, lst + "Next", ca + "    ");
                 _sb.Append(ca).Append("    st").Append(id).AppendLine(" = 2");
                 _sb.Append(ca).AppendLine("}");
@@ -1295,8 +1356,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("                    }");
                 _sb.AppendLine("                }");
 
-                _sb.AppendLine("                2 -> {");
-                _sb.Append("                    when (r.readBits(").Append(w2).AppendLine(")) {");
+                _sb.Append("                ").Append(Arm(outer, 2)).AppendLine("{");
+                OpenDispatch("                    ", "r.readBits(" + w2 + ")");
                 EmitDecodeMidRunTail(suffix, 0, id, ca);
                 _sb.AppendLine("                    }");
                 _sb.AppendLine("                }");
@@ -1304,7 +1365,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (suffix.Count > 0)
                 {
                     // A suffix particle was decoded; only the element EE is left.
-                    _sb.AppendLine("                3 -> {");
+                    _sb.Append("                ").Append(Arm(outer, 3)).AppendLine("{");
                     _sb.AppendLine("                    r.readBits(1)   // element EE");
                     _sb.Append("                    done").Append(id).AppendLine(" = true");
                     _sb.AppendLine("                }");
@@ -1318,7 +1379,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 foreach (var s in suffix)
                 {
-                    _sb.Append(ca).Append(code).Append(" -> {   // ").AppendLine(s.FieldName);
+                    _sb.Append(ca).Append(Arm(code)).Append("{   // ").AppendLine(s.FieldName);
                     if (WrapsValue(s))
                         _sb.Append(ca).AppendLine("    r.readBits(1)   // value-start");
                     _sb.Append(ca).Append("    ").Append(Local(s.FieldName)).Append(" = ")
@@ -1329,8 +1390,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append(ca).AppendLine("}");
                     code++;
                 }
-                _sb.Append(ca).Append(code).Append(" -> done").Append(id).AppendLine(" = true   // element EE");
-                _sb.Append(ca).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
+                _sb.Append(ca).Append(Arm(code)).Append("done").Append(id).AppendLine(" = true;   // element EE");
+                _sb.Append(ca).AppendLine("else throw ExiError.invalidEventCode(\"optional run\");");
             }
 
             /// <summary>One nullable local per inline-choice branch, in record-parameter order.</summary>
@@ -1348,15 +1409,15 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             private void EmitDecodeInlineChoiceStandalone(ValueEncoding.InlineChoice ic, List<string> ctor)
             {
                 DeclareInlineChoiceLocals(ic, ctor);
-                _sb.Append("        when (r.readBits(").Append(ic.BitWidth).AppendLine(")) {");
+                OpenDispatch("        ", "r.readBits(" + ic.BitWidth + ")");
                 for (var i = 0; i < ic.Members.Count; i++)
                 {
                     var m = ic.Members[i];
-                    _sb.Append("            ").Append(i).Append(" -> {   // ").AppendLine(m.ElementName);
+                    _sb.Append("            ").Append(Arm(i)).Append("{   // ").AppendLine(m.ElementName);
                     EmitDecodeInlineMember(m, "                ");
                     _sb.AppendLine("            }");
                 }
-                _sb.AppendLine("            else -> throw IllegalArgumentException(\"unknown choice event code\")");
+                _sb.AppendLine("            else throw ExiError.invalidEventCode(\"choice\");");
                 _sb.AppendLine("        }");
             }
 
@@ -1377,9 +1438,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 EmitDecodeItem(p, list, list + "First", indent);   // the event code was its SE
                 _sb.Append(indent).AppendLine("while (true) {");
                 _sb.Append(indent).AppendLine("    const lc = r.readBits(2)");
-                _sb.Append(indent).AppendLine("    if (lc == 1) break   // element EE (list end)");
-                _sb.Append(indent).Append("    require(lc == 0 && ").Append(list).Append(".length < ")
-                   .Append(p.ListMax).AppendLine(") { \"invalid repeating-element event code\" }");
+                _sb.Append(indent).AppendLine("    if (lc === 1) break;   // element EE (list end)");
+                _sb.Append(indent).Append("    if (!(lc === 0 && ").Append(list).Append(".length < ")
+                   .Append(p.ListMax).AppendLine(")) throw ExiError.invalidEventCode(\"repeating element\");");
                 EmitDecodeItem(p, list, list + "Next", indent + "    ");
                 _sb.Append(indent).AppendLine("}");
                 _sb.Append(indent).AppendLine(after);
@@ -1391,10 +1452,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// </summary>
             private void EmitEncodeRepeating(ChildPlan c, string list, int min, int max, string indent)
             {
-                _sb.Append(indent).Append("require(").Append(list).Append(".length in ").Append(min)
-                   .Append("..").Append(max).AppendLine(") { \"list size out of schema range\" }");
-                _sb.Append(indent).Append("for (i in ").Append(list).AppendLine(".indices) {");
-                _sb.Append(indent).AppendLine("    w.writeBits(0, if (i == 0) 1 else 2)   // SE(item)");
+                EmitListSizeGuard(indent, list, min, max);
+                _sb.Append(indent).Append("for (let i = 0; i < ").Append(list).AppendLine(".length; i++) {");
+                _sb.Append(indent).AppendLine("    w.writeBits(0, i === 0 ? 1 : 2);   // SE(item)");
                 EmitEncodeValue(c, list + "[i]", indent + "    ");
                 _sb.Append(indent).AppendLine("}");
                 EmitEncodeListTerminator(list, max, indent);
@@ -1510,10 +1570,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        let st").Append(id).AppendLine(" = 0");
                 _sb.Append("        let done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
-                _sb.Append("            when (st").Append(id).AppendLine(") {");
+                var outer = OpenDispatch("            ", "st" + id);
 
                 // State 0: nothing written yet — start the first item, or close the element.
-                _sb.AppendLine("                0 -> {");
+                _sb.Append("                ").Append(Arm(outer, 0)).AppendLine("{");
                 _sb.Append(br).Append("if (").Append(prop).AppendLine(".length > 0) {");
                 _sb.Append(br).Append("    w.writeBits(0, ").Append(w0).Append(")   // ").AppendLine(list.FieldName);
                 EmitEncodeValue(list, prop + "[0]", br + "    ");
@@ -1535,7 +1595,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("                }");
 
                 // State 1: one item written — a second item, a suffix particle, or the element EE.
-                _sb.AppendLine("                1 -> {");
+                _sb.Append("                ").Append(Arm(outer, 1)).AppendLine("{");
                 _sb.Append(br).Append("if (").Append(prop).AppendLine(".length > 1) {");
                 _sb.Append(br).Append("    w.writeBits(0, ").Append(w1).Append(")   // ").AppendLine(list.FieldName);
                 EmitEncodeValue(list, prop + "[1]", br + "    ");
@@ -1544,7 +1604,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.AppendLine("                }");
 
                 // State 2: the list is capped — only a suffix particle or the element EE remain.
-                _sb.AppendLine("                2 -> {");
+                _sb.Append("                ").Append(Arm(outer, 2)).AppendLine("{");
                 EmitEncodeMidRunTail(suffix, 0, w2, id, br, afterSuffix, first: true);
                 _sb.AppendLine("                }");
 
@@ -1615,7 +1675,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append("        let st").Append(id).AppendLine(" = 0");
                 _sb.Append("        let done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
-                _sb.Append("            when (st").Append(id).AppendLine(") {");
+                OpenDispatch("            ", "st" + id);
 
                 // State k: the cursor sits at particle start+k; any particle from there on may be
                 // the next one present, so each state offers all of them.
@@ -1626,7 +1686,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     for (var i = k; i < m; i++) totalProd += ProductionCount(kids[start + i]);
                     var width = BitsFor(totalProd + 1);                  // + the non-strict phantom
 
-                    _sb.Append("                ").Append(k).AppendLine(" -> {");
+                    _sb.Append("                ").Append(Arm(k)).AppendLine("{");
 
                     var code   = 0;
                     var first  = true;
@@ -1660,9 +1720,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         var repTail = first ? ind : ind + "    ";
                         if (!first)
                             _sb.Append(ind).AppendLine("} else {");
-                        _sb.Append(repTail).Append("require(msg.").Append(Prop(term.FieldName))
-                           .Append(".length in 1..").Append(term.ListMax)
-                           .AppendLine(") { \"list size out of schema range\" }");
+                        EmitListSizeGuard(repTail, "msg." + Prop(term.FieldName), 1, term.ListMax);
                         EmitEncodeRepeatingItems(term, eeCode, width, repTail, $"done{id} = true");
                         if (!first)
                             _sb.Append(ind).AppendLine("}");
@@ -1677,7 +1735,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         EmitEncodeRunParticle(term, eeCode, width, ref first, ind, $"done{id} = true");
                         _sb.Append(ind).AppendLine("} else {");
-                        _sb.Append(ind).Append("    throw IllegalArgumentException(\"no value set for ")
+                        _sb.Append(ind).Append("    throw new TypeError(\"no value set for ")
                            .Append(KStr(term.FieldName)).AppendLine("\")");
                         _sb.Append(ind).AppendLine("}");
                         _sb.AppendLine("                }");
@@ -1725,8 +1783,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 {
                     // An empty list means this optional element is absent.
                     _sb.Append(indent).Append(first ? "if (" : "} else if (").Append(prop).AppendLine(".length > 0) {");
-                    _sb.Append(indent).Append("    require(").Append(prop).Append(".length <= ").Append(p.ListMax)
-                       .AppendLine(") { \"list size out of schema range\" }");
+                    EmitListSizeGuard(indent + "    ", prop, 0, p.ListMax);
                     EmitEncodeRepeatingItems(p, code, width, indent + "    ", after);
                     first = false;
                     return code + 1;
@@ -1742,7 +1799,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(indent).Append(first ? "if (" : "} else if (").Append(f).AppendLine(" != null) {");
                         _sb.Append(indent).Append("    w.writeBits(").Append(code).Append(", ").Append(width)
                            .Append(")   // ").AppendLine(m.ElementName);
-                        EmitEncodeValue(AsChildPlan(m), f + "!!", indent + "    ");
+                        EmitEncodeValue(AsChildPlan(m), f + "!", indent + "    ");
                         _sb.Append(indent).Append("    ").AppendLine(after);
                         first = false;
                         code++;
@@ -1767,7 +1824,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     foreach (var (mbr, wire) in ordered)
                     {
                         _sb.Append(indent).Append(first ? "if (" : "} else if (")
-                           .Append(local).Append(" is ").Append(mbr.TypeName).AppendLine(") {");
+                           .Append(local).Append(" instanceof ").Append(mbr.TypeName).AppendLine(") {");
                         EmitSubstitutionMemberGuard(p, mbr.TypeName, local, indent + "    ");
                         _sb.Append(indent).Append("    w.writeBits(").Append(wire).Append(", ").Append(width)
                            .Append(")   // ").AppendLine(mbr.ElementName);
@@ -1782,7 +1839,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 _sb.Append(indent).Append(first ? "if (" : "} else if (").Append(prop).AppendLine(" != null) {");
                 _sb.Append(indent).Append("    w.writeBits(").Append(code).Append(", ").Append(width)
                    .Append(")   // ").AppendLine(p.FieldName);
-                EmitEncodeValue(p, prop + "!!", indent + "    ");
+                EmitEncodeValue(p, prop + "!", indent + "    ");
                 _sb.Append(indent).Append("    ").AppendLine(after);
                 first = false;
                 return code + 1;
@@ -1883,15 +1940,18 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                                  && ordered.Count > 1
                                  && ordered[ordered.Count - 1].Member.TypeName == Type(c.Type);
 
-                _sb.Append("        when (const v = ").Append(prop).AppendLine(") {");
+                _sb.Append("        { const v = ").Append(prop).AppendLine("; if (false) {}   // dispatch");
                 for (var i = 0; i < ordered.Count; i++)
                 {
                     var (m, code) = ordered[i];
 
                     if (headIsLast && i == ordered.Count - 1)
-                        _sb.AppendLine("            else -> {");
+                        _sb.AppendLine("            else {");
                     else
-                        _sb.Append("            is ").Append(m.TypeName).AppendLine(" -> {");
+                        // `instanceof` is true for a subclass too, which is why the members are
+                        // ordered most-derived-first upstream — the same reason Kotlin's `is` and
+                        // C#'s type pattern need it.
+                        _sb.Append("            else if (v instanceof ").Append(m.TypeName).AppendLine(") {");
 
                     EmitSubstitutionMemberGuard(c, m.TypeName, "v", "                ");
                     _sb.Append("                w.writeBits(").Append(code).Append(", ").Append(sc.BitWidth)
@@ -1900,8 +1960,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.AppendLine("            }");
                 }
                 if (!headIsLast)
-                    _sb.Append("            else -> throw IllegalArgumentException(\"unsupported substitution member for ")
-                       .Append(KStr(c.FieldName)).AppendLine("\")");
+                    _sb.Append("            else throw new TypeError(\"unsupported substitution member for ")
+                       .Append(KStr(c.FieldName)).AppendLine("\");");
                 _sb.AppendLine("        }");
             }
 
@@ -1934,9 +1994,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (!extensible)
                     return;
 
-                _sb.Append(indent).Append("require(").Append(value).Append("::class == ").Append(typeName)
-                   .Append("::class) { \"").Append(KStr(c.FieldName)).Append(": ${").Append(value)
-                   .Append("::class.simpleName} is not a substitution member\" }").AppendLine();
+                // `constructor ===`, not `instanceof`: the point of this guard is that the value is
+                // EXACTLY the member type its branch selected. A consumer can extend a generated
+                // class, and such a value used to take its nearest ancestor's branch and go out with
+                // that member's event code — silently, which is the whole reason the guard exists.
+                _sb.Append(indent).Append("if (").Append(value).Append(".constructor !== ").Append(typeName)
+                   .Append(") throw new TypeError(`").Append(KStr(c.FieldName)).Append(": ${")
+                   .Append(value).Append(".constructor.name} is not a substitution member`);").AppendLine();
             }
 
             /// <summary>How many base links separate a type from its root; 0 for a type with no base.</summary>
@@ -1957,8 +2021,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (c.Value is ValueEncoding.OpaqueElement oe)
                 {
                     // Only reached with a present instance; absence is handled by the optional run.
-                    _sb.Append(indent).Append("throw UnsupportedOperationException(\"Encoding a present ")
-                       .Append(KStr(oe.TypeName)).AppendLine(" (XMLDSig) is not implemented in the Kotlin back end.\")");
+                    _sb.Append(indent).Append("exiUnsupported(\"encoding a present ")
+                       .Append(KStr(oe.TypeName)).AppendLine(" (XMLDSig)\");");
                     return;
                 }
                 if (c.Value is ValueEncoding.ComplexRef cr)
@@ -1990,29 +2054,31 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(indent).Append("ExiPrimitives.writeStringValue(w, ").Append(accessor).AppendLine(")");
                         break;
                     case ValueEncoding.UnsignedInt:
-                        _sb.Append(indent).Append("ExiPrimitives.writeUnsignedInteger(w, ").Append(accessor).AppendLine(".toULong())");
+                        _sb.Append(indent).Append("ExiPrimitives.writeUnsignedInteger(w, ")
+                           .Append(ToBig(c.Type, accessor)).AppendLine(");");
                         break;
                     case ValueEncoding.SignedInt:
-                        _sb.Append(indent).Append("ExiPrimitives.writeSignedInteger(w, ").Append(accessor).AppendLine(".toLong())");
+                        _sb.Append(indent).Append("ExiPrimitives.writeSignedInteger(w, ")
+                           .Append(ToBig(c.Type, accessor)).AppendLine(");");
                         break;
                     case ValueEncoding.Binary:
                         _sb.Append(indent).Append("ExiPrimitives.writeBinary(w, ").Append(accessor).AppendLine(")");
                         break;
                     case ValueEncoding.EnumIndex ei:
-                        _sb.Append(indent).Append("w.writeBits(").Append(accessor).Append(".ordinal.toUInt(), ")
+                        _sb.Append(indent).Append("w.writeBits(").Append(accessor).Append(", ")
                            .Append(ei.BitWidth).AppendLine(")");
                         break;
                     case ValueEncoding.NBitUnsigned nb when IsBool(c):
                         // xs:boolean is a 1-bit n-bit unsigned, and Kotlin's Boolean has no numeric
                         // conversion — same special case as in CodecEmitter.
-                        _sb.Append(indent).Append("w.writeBits(if (").Append(accessor).Append(") 1 else 0, ")
+                        _sb.Append(indent).Append("w.writeBits(").Append(accessor).Append(" ? 1 : 0, ")
                            .Append(nb.BitWidth).AppendLine(")");
                         break;
                     case ValueEncoding.NBitUnsigned nb:
                         var expr = nb.Bias == 0
-                                       ? accessor + ".toLong()"
-                                       : "(" + accessor + ".toLong() - " + nb.Bias + "L)";
-                        _sb.Append(indent).Append("w.writeBits(").Append(expr).Append(".toUInt(), ")
+                                       ? ToNumber(c.Type, accessor)
+                                       : "(" + ToNumber(c.Type, accessor) + " - " + nb.Bias + ")";
+                        _sb.Append(indent).Append("w.writeBits(").Append(expr).Append(", ")
                            .Append(nb.BitWidth).AppendLine(")");
                         break;
                     default:
@@ -2022,7 +2088,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             private void EmitDecode(SequencePlan sp, string name)
             {
-                _sb.Append("    internal fun decode").Append(name).Append("(r: BitReader): ")
+                _sb.Append("    export function decode").Append(name).Append("(r: BitReader): ")
                    .Append(name).AppendLine(" {");
 
                 var ctor = new List<string>();
@@ -2048,7 +2114,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         ctor.Add(Local(SimpleContentField));
                     }
                     _sb.AppendLine("        r.readBits(1)   // element EE");
-                    _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
+                    _sb.Append("        return new ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(");");
                     _sb.AppendLine("    }");
                     _sb.AppendLine();
                     return;
@@ -2057,7 +2123,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (sp.IsChoice)
                 {
                     EmitDecodeChoice(sp, ctor);
-                    _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
+                    _sb.Append("        return new ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(");");
                     _sb.AppendLine("    }");
                     _sb.AppendLine();
                     return;
@@ -2127,19 +2193,23 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     var v = Local(c.FieldName);
                     if (c.Value is ValueEncoding.SubstitutionChoice sub)
                     {
-                        _sb.Append("        const ").Append(v).Append(": ").Append(Type(c.Type))
-                           .Append(" = when (r.readBits(").Append(sub.BitWidth).AppendLine(")) {");
+                        // Kotlin's `when` is an expression and TypeScript's dispatch is not, so
+                        // the local is declared first and assigned in the arms. `let v!: T` is a
+                        // definite-assignment assertion — a type-level annotation, and therefore
+                        // still erasable.
+                        _sb.Append("        let ").Append(v).Append("!: ").Append(Type(c.Type)).AppendLine(";");
+                        OpenDispatch("        ", "r.readBits(" + sub.BitWidth + ")");
                         for (var k = 0; k < sub.Members.Count; k++)
                         {
                             var m = sub.Members[k];
                             if (m.IsAbstractHead)
-                                _sb.Append("            ").Append(k)
-                                   .AppendLine(" -> throw IllegalArgumentException(\"abstract substitution head cannot be decoded\")");
+                                _sb.Append("            ").Append(Arm(k))
+                                   .AppendLine("throw ExiError.invalidEventCode(\"abstract substitution head\");");
                             else
-                                _sb.Append("            ").Append(k).Append(" -> decode")
-                                   .Append(m.TypeName).AppendLine("(r)");
+                                _sb.Append("            ").Append(Arm(k)).Append(v).Append(" = decode")
+                                   .Append(m.TypeName).AppendLine("(r);");
                         }
-                        _sb.AppendLine("            else -> throw IllegalArgumentException(\"unknown substitution index\")");
+                        _sb.AppendLine("            else throw ExiError.invalidEventCode(\"substitution index\");");
                         _sb.AppendLine("        }");
                         ctor.Add(v);
                         i++;
@@ -2168,7 +2238,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 if (kids.Count == 0)
                     _sb.AppendLine("        r.readBits(1)   // element EE");
 
-                _sb.Append("        return ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(")");
+                _sb.Append("        return new ").Append(name).Append("(").Append(string.Join(", ", ctor)).AppendLine(");");
                 _sb.AppendLine("    }");
                 _sb.AppendLine();
             }
@@ -2186,9 +2256,9 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     _sb.Append(indent).Append("    if (").Append(list)
                        .AppendLine(".length >= 2) { r.readBits(1); break }   // element EE (list at max)");
                 _sb.Append(indent).AppendLine("    const ec = r.readBits(2)");
-                _sb.Append(indent).AppendLine("    if (ec == 1) break   // element EE");
-                _sb.Append(indent).Append("    require(ec == 0 && ").Append(list).Append(".length < ")
-                   .Append(max).AppendLine(") { \"invalid repeating-element event code\" }");
+                _sb.Append(indent).AppendLine("    if (ec === 1) break;   // element EE");
+                _sb.Append(indent).Append("    if (!(ec === 0 && ").Append(list).Append(".length < ")
+                   .Append(max).AppendLine(")) throw ExiError.invalidEventCode(\"repeating element\");");
                 EmitDecodeItem(c, list, list + "Next", indent + "    ");
                 _sb.Append(indent).AppendLine("}");
             }
@@ -2201,13 +2271,13 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             {
                 if (!WrapsValue(c))
                 {
-                    _sb.Append(indent).Append(list).Append(".add(").Append(DecodeValueExpr(c)).AppendLine(")");
+                    _sb.Append(indent).Append(list).Append(".push(").Append(DecodeValueExpr(c)).AppendLine(");");
                     return;
                 }
                 _sb.Append(indent).AppendLine("r.readBits(1)   // value-start");
                 _sb.Append(indent).Append("const ").Append(local).Append(" = ").AppendLine(DecodeValueExpr(c));
                 _sb.Append(indent).AppendLine("r.readBits(1)   // child EE");
-                _sb.Append(indent).Append(list).Append(".add(").Append(local).AppendLine(")");
+                _sb.Append(indent).Append(list).Append(".push(").Append(local).AppendLine(");");
             }
 
             /// <summary>Decode mirror of <see cref="EmitEncodeSimpleContentOptionalAttrs"/>.</summary>
@@ -2227,22 +2297,22 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                 }
                 _sb.Append("        let ").Append(Local(SimpleContentField)).Append(": ")
                    .Append(Type(sp.SimpleContentType!)).AppendLine(" = null");
-                ctor.Add(Local(SimpleContentField) + "!!");
+                ctor.Add(Local(SimpleContentField) + "!");
 
                 _sb.Append("        let st").Append(id).AppendLine(" = 0");
                 _sb.Append("        let done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
-                _sb.Append("            when (st").Append(id).AppendLine(") {");
+                var outer = OpenDispatch("            ", "st" + id);
 
                 for (var k = 0; k <= n; k++)
                 {
                     var width = BitsFor((n - k + 1) + 1);
-                    _sb.Append("                ").Append(k).AppendLine(" -> {");
-                    _sb.Append("                    when (r.readBits(").Append(width).AppendLine(")) {");
+                    _sb.Append("                ").Append(Arm(outer, k)).AppendLine("{");
+                    OpenDispatch("                    ", "r.readBits(" + width + ")");
 
                     for (var i = k; i < n; i++)
                     {
-                        _sb.Append(ind).Append(i - k).Append(" -> {   // AT(").Append(oa[i].FieldName).AppendLine(")");
+                        _sb.Append(ind).Append(Arm(i - k)).Append("{   // AT(").Append(oa[i].FieldName).AppendLine(")");
                         _sb.Append(ind).Append("    ").Append(Local(oa[i].FieldName))
                            .Append(" = ExiPrimitives.readStringValue(r, \"").Append(KStr(oa[i].FieldName))
                            .AppendLine("\")");
@@ -2250,12 +2320,12 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).AppendLine("}");
                     }
 
-                    _sb.Append(ind).Append(n - k).AppendLine(" -> {   // CONTENT");
+                    _sb.Append(ind).Append(Arm(n - k)).AppendLine("{   // CONTENT");
                     _sb.Append(ind).Append("    ").Append(Local(SimpleContentField)).Append(" = ")
                        .AppendLine(DecodeValueExpr(value));
                     _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
                     _sb.Append(ind).AppendLine("}");
-                    _sb.Append(ind).AppendLine("else -> throw IllegalArgumentException(\"invalid simpleContent event code\")");
+                    _sb.Append(ind).AppendLine("else throw ExiError.invalidEventCode(\"simpleContent\");");
                     _sb.AppendLine("                    }");
                     _sb.AppendLine("                }");
                 }
@@ -2276,11 +2346,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     ctor.Add(Local(c.FieldName));
                 }
 
-                _sb.Append("        when (r.readBits(").Append(width).AppendLine(")) {");
+                OpenDispatch("        ", "r.readBits(" + width + ")");
                 for (var i = 0; i < sp.Children.Count; i++)
                 {
                     var c = sp.Children[i];
-                    _sb.Append("            ").Append(i).Append(" -> {   // ").AppendLine(c.FieldName);
+                    _sb.Append("            ").Append(Arm(i)).Append("{   // ").AppendLine(c.FieldName);
                     if (WrapsValue(c))
                         _sb.AppendLine("                r.readBits(1)   // value-start");
                     _sb.Append("                ").Append(Local(c.FieldName)).Append(" = ")
@@ -2289,7 +2359,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.AppendLine("                r.readBits(1)   // child EE");
                     _sb.AppendLine("            }");
                 }
-                _sb.AppendLine("            else -> throw IllegalArgumentException(\"unknown choice event code\")");
+                _sb.AppendLine("            else throw ExiError.invalidEventCode(\"choice\");");
                 _sb.AppendLine("        }");
                 _sb.AppendLine("        r.readBits(1)   // element EE");
             }
@@ -2314,14 +2384,14 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     {
                         _sb.Append("        let ").Append(Local(term.FieldName)).Append(": ").Append(Type(term.Type))
                            .AppendLine(" = null");
-                        ctor.Add(Local(term.FieldName) + "!!");
+                        ctor.Add(Local(term.FieldName) + "!");
                     }
                 }
 
                 _sb.Append("        let st").Append(id).AppendLine(" = 0");
                 _sb.Append("        let done").Append(id).AppendLine(" = false");
                 _sb.Append("        while (!done").Append(id).AppendLine(") {");
-                _sb.Append("            when (st").Append(id).AppendLine(") {");
+                var outer = OpenDispatch("            ", "st" + id);
 
                 var m = end - start;
                 for (var k = 0; k <= m; k++)
@@ -2331,8 +2401,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     for (var i = k; i < m; i++) totalProd += ProductionCount(kids[start + i]);
                     var width = BitsFor(totalProd + 1);                  // + the non-strict phantom
 
-                    _sb.Append("                ").Append(k).AppendLine(" -> {");
-                    _sb.Append("                    when (r.readBits(").Append(width).AppendLine(")) {");
+                    _sb.Append("                ").Append(Arm(outer, k)).AppendLine("{");
+                    OpenDispatch("                    ", "r.readBits(" + width + ")");
 
                     const string ind = "                        ";
                     var code   = 0;
@@ -2346,7 +2416,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         if (c.Shape == ChildShape.BoundedRepeating)
                         {
                             // A list consumes the rest of the element; its list-end EE closes it.
-                            _sb.Append(ind).Append(code).Append(" -> {   // ").AppendLine(c.FieldName);
+                            _sb.Append(ind).Append(Arm(code)).Append("{   // ").AppendLine(c.FieldName);
                             EmitDecodeRepeatingItems(c, ListLocal(c), ind + "    ", $"done{id} = true");
                             _sb.Append(ind).AppendLine("}");
                             code++;
@@ -2358,7 +2428,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             for (var j = 0; j < cic.Members.Count; j++)
                             {
                                 var mbr = cic.Members[j];
-                                _sb.Append(ind).Append(code + j).Append(" -> {   // ").AppendLine(mbr.ElementName);
+                                _sb.Append(ind).Append(Arm(code + j)).Append("{   // ").AppendLine(mbr.ElementName);
                                 EmitDecodeInlineMember(mbr, ind + "    ");
                                 _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
                                 _sb.Append(ind).AppendLine("}");
@@ -2374,11 +2444,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                                 var mbr = sc.Members[j];
                                 if (mbr.IsAbstractHead)
                                 {
-                                    _sb.Append(ind).Append(code + j)
-                                       .AppendLine(" -> throw IllegalArgumentException(\"abstract substitution head cannot be decoded\")");
+                                    _sb.Append(ind).Append(Arm(code + j))
+                                       .AppendLine("throw ExiError.invalidEventCode(\"abstract substitution head\");");
                                     continue;
                                 }
-                                _sb.Append(ind).Append(code + j).AppendLine(" -> {");
+                                _sb.Append(ind).Append(Arm(code + j)).AppendLine("{");
                                 _sb.Append(ind).Append("    ").Append(field).Append(" = decode")
                                    .Append(mbr.TypeName).AppendLine("(r)");
                                 _sb.Append(ind).Append("    st").Append(id).Append(" = ").Append(i + 1).AppendLine();
@@ -2388,7 +2458,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             continue;
                         }
 
-                        _sb.Append(ind).Append(code).AppendLine(" -> {");
+                        _sb.Append(ind).Append(Arm(code)).AppendLine("{");
                         if (WrapsValue(c))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
                         _sb.Append(ind).Append("    ").Append(field).Append(" = ").AppendLine(DecodeValueExpr(c));
@@ -2405,8 +2475,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         // error case — a generic wildcard event is not modelled. The element EE takes
                         // code+1, the typed ANY element code+2.
                         var any = kids[end - 1];
-                        _sb.Append(ind).Append(code + 1).Append(" -> done").Append(id).AppendLine(" = true   // element EE");
-                        _sb.Append(ind).Append(code + 2).Append(" -> {   // ").AppendLine(any.FieldName);
+                        _sb.Append(ind).Append(Arm(code + 1)).Append("done").Append(id).AppendLine(" = true;   // element EE");
+                        _sb.Append(ind).Append(Arm(code + 2)).Append("{   // ").AppendLine(any.FieldName);
                         if (WrapsValue(any))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
                         _sb.Append(ind).Append("    ").Append(Local(any.FieldName)).Append(" = ")
@@ -2417,10 +2487,10 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).AppendLine("}");
                     }
                     else if (term is null)
-                        _sb.Append(ind).Append(code).Append(" -> done").Append(id).AppendLine(" = true   // element EE");
+                        _sb.Append(ind).Append(Arm(code)).Append("done").Append(id).AppendLine(" = true;   // element EE");
                     else if (term.Shape == ChildShape.BoundedRepeating)
                     {
-                        _sb.Append(ind).Append(code).Append(" -> {   // ").AppendLine(term.FieldName);
+                        _sb.Append(ind).Append(Arm(code)).Append("{   // ").AppendLine(term.FieldName);
                         EmitDecodeRepeatingItems(term, ListLocal(term), ind + "    ", $"done{id} = true");
                         _sb.Append(ind).AppendLine("}");
                     }
@@ -2429,7 +2499,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         for (var j = 0; j < tic.Members.Count; j++)
                         {
                             var mbr = tic.Members[j];
-                            _sb.Append(ind).Append(code + j).Append(" -> {   // ").AppendLine(mbr.ElementName);
+                            _sb.Append(ind).Append(Arm(code + j)).Append("{   // ").AppendLine(mbr.ElementName);
                             EmitDecodeInlineMember(mbr, ind + "    ");
                             _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
                             _sb.Append(ind).AppendLine("}");
@@ -2444,11 +2514,11 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                             var mbr = tsc.Members[j];
                             if (mbr.IsAbstractHead)
                             {
-                                _sb.Append(ind).Append(code + j)
-                                   .AppendLine(" -> throw IllegalArgumentException(\"abstract substitution head cannot be decoded\")");
+                                _sb.Append(ind).Append(Arm(code + j))
+                                   .AppendLine("throw ExiError.invalidEventCode(\"abstract substitution head\");");
                                 continue;
                             }
-                            _sb.Append(ind).Append(code + j).Append(" -> {   // ").AppendLine(mbr.ElementName);
+                            _sb.Append(ind).Append(Arm(code + j)).Append("{   // ").AppendLine(mbr.ElementName);
                             _sb.Append(ind).Append("    ").Append(field).Append(" = decode")
                                .Append(mbr.TypeName).AppendLine("(r)");
                             _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
@@ -2458,7 +2528,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                     else
                     {
                         var field = Local(term.FieldName);
-                        _sb.Append(ind).Append(code).Append(" -> {   // SE(").Append(term.FieldName).AppendLine(")");
+                        _sb.Append(ind).Append(Arm(code)).Append("{   // SE(").Append(term.FieldName).AppendLine(")");
                         if (WrapsValue(term))
                             _sb.Append(ind).AppendLine("    r.readBits(1)   // value-start");
                         _sb.Append(ind).Append("    ").Append(field).Append(" = ").AppendLine(DecodeValueExpr(term));
@@ -2467,7 +2537,7 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
                         _sb.Append(ind).Append("    done").Append(id).AppendLine(" = true");
                         _sb.Append(ind).AppendLine("}");
                     }
-                    _sb.Append(ind).AppendLine("else -> throw IllegalArgumentException(\"invalid optional-run event code\")");
+                    _sb.Append(ind).AppendLine("else throw ExiError.invalidEventCode(\"optional run\");");
                     _sb.AppendLine("                    }");
                     _sb.AppendLine("                }");
                 }
@@ -2478,46 +2548,58 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
 
             private string DecodeValueExpr(ChildPlan c) => c.Value switch
             {
+                // `exiUnsupported` rather than a bare `throw`: this sits where a value is expected,
+                // and TypeScript has no throw-expression. Its `never` return type makes the
+                // assignment type-check anyway.
                 ValueEncoding.OpaqueElement oe =>
-                    $"throw UnsupportedOperationException(\"Decoding a present {KStr(oe.TypeName)} " +
-                    "(XMLDSig) is not implemented in the Kotlin back end.\")",
+                    $"exiUnsupported(\"decoding a present {KStr(oe.TypeName)} (XMLDSig)\")",
                 ValueEncoding.ComplexRef cr  => $"decode{cr.TypeName}(r)",
                 // An AT value is a bare string, like StringValue but without the value framing.
                 // The slot is the element's or attribute's own QName local part: EXI keeps one
                 // local value partition per slot (§7.3.3), and the decoder must name the right one.
                 ValueEncoding.AttributeValue => $"ExiPrimitives.readStringValue(r, \"{KStr(c.FieldName)}\")",
                 ValueEncoding.StringValue    => $"ExiPrimitives.readStringValue(r, \"{KStr(c.FieldName)}\")",
-                ValueEncoding.UnsignedInt    => $"ExiPrimitives.readUnsignedInteger(r).{ToNarrow(c.Type)}",
-                ValueEncoding.SignedInt      => $"ExiPrimitives.readSignedInteger(r).{ToNarrow(c.Type)}",
+                ValueEncoding.UnsignedInt    => FromBig(c.Type, "ExiPrimitives.readUnsignedInteger(r)"),
+                ValueEncoding.SignedInt      => FromBig(c.Type, "ExiPrimitives.readSignedInteger(r)"),
                 ValueEncoding.Binary         => "ExiPrimitives.readBinary(r)",
-                ValueEncoding.EnumIndex ei   => $"{ei.EnumName}.entries[r.readBits({ei.BitWidth}).toInt()]",
+                // The wire value IS the index, so nothing is looked up — exiEnum only checks that
+                // the index is one the type has, which a decoder must do with network input.
+                ValueEncoding.EnumIndex ei   => $"exiEnum(\"{KStr(ei.EnumName)}\", {ei.EnumName}Names, "
+                                              + $"r.readBits({ei.BitWidth})) as {ei.EnumName}",
                 ValueEncoding.NBitUnsigned nb => nb.Bias == 0
-                                                    ? $"r.readBits({nb.BitWidth}).{ToNarrow(c.Type)}"
-                                                    : $"(r.readBits({nb.BitWidth}).toLong() + {nb.Bias}L).{ToNarrow(c.Type)}",
+                                                    ? FromNumber(c.Type, $"r.readBits({nb.BitWidth})")
+                                                    : FromNumber(c.Type, $"(r.readBits({nb.BitWidth}) + {nb.Bias})"),
                 _ => throw new NotSupportedException($"TypeScript back end: value encoding {c.Value.GetType().Name}."),
             };
 
-            /// <summary>Kotlin has no implicit numeric conversions — every read needs an explicit narrowing.</summary>
             private static bool IsBool(ChildPlan c) =>
                 c.Type is TypeRef.Primitive { Kind: PrimitiveKind.Bool };
 
-            private static string ToNarrow(TypeRef t) => t switch
-            {
-                TypeRef.Primitive p => p.Kind switch
-                {
-                    PrimitiveKind.Int8   => "toByte()",
-                    PrimitiveKind.Int16  => "toShort()",
-                    PrimitiveKind.Int32  => "toInt()",
-                    PrimitiveKind.Int64  => "toLong()",
-                    PrimitiveKind.UInt8  => "toUByte()",
-                    PrimitiveKind.UInt16 => "toUShort()",
-                    PrimitiveKind.UInt32 => "toUInt()",
-                    PrimitiveKind.UInt64 => "toULong()",
-                    PrimitiveKind.Bool   => "toInt() != 0",
-                    _ => throw new NotSupportedException($"TypeScript back end: narrowing for {p.Kind}."),
-                },
-                _ => throw new NotSupportedException("TypeScript back end: narrowing for a named type."),
-            };
+            /// <summary>Whether a field's declared type is one of the two `bigint` widths.</summary>
+            /// <remarks>
+            /// This is the whole of TypeScript's numeric bookkeeping, and it is not a spelling
+            /// difference: `number` and `bigint` do not mix in arithmetic, so a conversion that is
+            /// merely noisy in Kotlin is a `TypeError` here if it is missing and a silent rounding
+            /// if it goes the wrong way.
+            /// </remarks>
+            private static bool IsBig(TypeRef t) =>
+                t is TypeRef.Primitive { Kind: PrimitiveKind.Int64 or PrimitiveKind.UInt64 };
+
+            /// <summary>A value on its way into a `bigint` parameter.</summary>
+            private static string ToBig(TypeRef t, string accessor) =>
+                IsBig(t) ? accessor : "BigInt(" + accessor + ")";
+
+            /// <summary>A value on its way into a `number` parameter — `w.writeBits`, always.</summary>
+            private static string ToNumber(TypeRef t, string accessor) =>
+                IsBig(t) ? "Number(" + accessor + ")" : accessor;
+
+            /// <summary>A `bigint` read on its way into a field.</summary>
+            private static string FromBig(TypeRef t, string expr) =>
+                IsBig(t) ? expr : "Number(" + expr + ")";
+
+            /// <summary>A `number` read on its way into a field.</summary>
+            private static string FromNumber(TypeRef t, string expr) =>
+                IsBig(t) ? "BigInt(" + expr + ")" : expr;
 
             /// <summary>
             /// Occurrence bounds of a repeating child. For the "single repeating element" shape the
