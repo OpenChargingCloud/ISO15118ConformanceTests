@@ -92,6 +92,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         public async Task RunAsync(CancellationToken ct = default)
         {
             // ── SETUP ──────────────────────────────────────────────────────────
+            // Check the credential before opening the session, not four exchanges in: a station that
+            // has already assigned a session id and been asked for its payment options should not
+            // then be abandoned over something knowable before the first byte.
+            if (Pnc is not null)
+                ContractEmaid();
+
             if (ResumeSessionId is not null)
                 _sid = ResumeSessionId;   // rejoin: the SessionSetupReq header carries the paused session's id
             var setup = await Send<SessionSetupResType>(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }), ct);
@@ -279,11 +285,40 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             MeteringReceiptsSent++;
         }
 
-        /// <summary>The eMAID for PaymentDetails — the contract certificate's CN (e.g. <c>UKSWI123456791A</c>).</summary>
+        /// <summary>
+        /// The eMAID for PaymentDetails — the contract certificate's CN (e.g. <c>UKSWI123456791A</c>),
+        /// checked against the one rule the schema states.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// ISO 15118-2 constrains <c>eMAIDType</c> to <b>14 or 15 characters</b>
+        /// (<c>V2G_CI_MsgDataTypes.xsd</c>: country code, provider id, instance, optional check
+        /// digit). A CN outside that range cannot be sent as an eMAID at all.
+        /// </para>
+        /// <para>
+        /// This check is here because it was missing: a corpus certificate with a 19-character CN
+        /// travelled in a recorded PnC session and nothing objected, in any of the three back ends.
+        /// The generated codec does not enforce string-length facets — reasonably, since an EXI
+        /// encoder assumes schema-valid input — which means nothing else will catch this either.
+        /// </para>
+        /// <para>
+        /// It is a <b>-2</b> rule, not a certificate-profile rule: ISO 15118-20 never sends the eMAID
+        /// from the certificate, so the same credential can be perfectly usable there. Hence the
+        /// check lives on this path and not on <see cref="PncEvccOptions"/>.
+        /// </para>
+        /// </remarks>
         private string ContractEmaid()
         {
             using var contract = X509CertificateLoader.LoadCertificate(Pnc!.ContractCertificate);
-            return contract.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
+            var commonName = contract.GetNameInfo(X509NameType.SimpleName, forIssuer: false);
+
+            if (commonName.Length is < 14 or > 15)
+                throw new SessionAborted(
+                    $"the contract certificate's Common Name \"{commonName}\" is {commonName.Length} " +
+                     "characters; ISO 15118-2 allows an eMAID of 14 or 15, so this credential cannot " +
+                     "authorize a -2 Plug & Charge session.");
+
+            return commonName;
         }
 
         private async Task<T> Send<T>(BodyBaseType requestBody, CancellationToken ct, SignatureType? signature = null) where T : BodyBaseType

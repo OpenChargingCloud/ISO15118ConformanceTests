@@ -62,6 +62,12 @@ internal static class PncMaterial
     public static byte[] Certificate() =>
         Convert.FromHexString(Material.GetProperty("certificate").GetString()!);
 
+    /// <summary>A certificate whose Common Name is 19 characters and therefore cannot be an eMAID —
+    /// the value this corpus actually shipped with until 2026-07-31, kept as the negative case that
+    /// every back end's check is held to.</summary>
+    public static byte[] CertificateWithUnusableEmaid() =>
+        Convert.FromHexString(Material.GetProperty("certificateWithUnusableEmaid").GetString()!);
+
 
     private static string SourcePath()
     {
@@ -79,17 +85,53 @@ internal static class PncMaterial
     /// Creates the identity. Run once, deliberately: it is an <i>input</i> to every recorded PnC
     /// session, so regenerating it invalidates those traces and every port checked against them.
     /// </summary>
+    /// <remarks>
+    /// <b>Idempotent by design.</b> An existing key and certificate are reused; only fields that are
+    /// missing get created. A regenerator that minted a fresh key on every run would re-record every
+    /// PnC trace as a side effect of adding one field — which is exactly what happened once, and is
+    /// the sort of churn that makes a checked-in corpus unreviewable.
+    /// </remarks>
     public static string Regenerate()
     {
+        var existing = File.Exists(Path_) ? Material : default;
+
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        if (existing.ValueKind is JsonValueKind.Object &&
+            existing.TryGetProperty("privateKeyD", out var kept))
+            key.ImportParameters(new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                D     = Convert.FromHexString(kept.GetString()!),
+            });
+
         var d = key.ExportParameters(includePrivateParameters: true).D!;
 
-        var request = new CertificateRequest("CN=TraceCorpusContract", key, HashAlgorithmName.SHA256);
+        // The Common Name IS the eMAID, and ISO 15118-2 constrains eMAIDType to 14-15 characters
+        // (V2G_CI_MsgDataTypes.xsd). The first version of this corpus used "TraceCorpusContract" —
+        // 19 characters — and every layer accepted it: the generated codec does not enforce string
+        // length facets, so a non-conformant eMAID went on the wire and nothing said so. Found while
+        // giving Swift an X.509 reader, because that reader checks the length the schema states.
+        // DE + provider (3) + instance (9) = 14, the form without a check digit.
+        var request = new CertificateRequest("CN=DE8AA1A2B3C4D5", key, HashAlgorithmName.SHA256);
         // Fixed validity, so only the ECDSA self-signature varies between runs — one fewer reason for
         // the file to differ if somebody regenerates it and diffs out of curiosity.
-        using var certificate = request.CreateSelfSigned(
-            DateTimeOffset.FromUnixTimeSeconds(1_767_225_600).AddYears(-1),
-            DateTimeOffset.FromUnixTimeSeconds(1_767_225_600).AddYears(10));
+        var notBefore = DateTimeOffset.FromUnixTimeSeconds(1_767_225_600).AddYears(-1);
+        var notAfter  = DateTimeOffset.FromUnixTimeSeconds(1_767_225_600).AddYears(10);
+
+        using var created = request.CreateSelfSigned(notBefore, notAfter);
+        var certificate = existing.ValueKind is JsonValueKind.Object &&
+                          existing.TryGetProperty("certificate", out var keptCert)
+                              ? Convert.FromHexString(keptCert.GetString()!)
+                              : created.RawData;
+
+        // The negative case, generated once and kept: 19 characters, which is what this corpus
+        // shipped with until the length rule was checked anywhere at all.
+        using var unusable = new CertificateRequest("CN=TraceCorpusContract", key, HashAlgorithmName.SHA256)
+                                 .CreateSelfSigned(notBefore, notAfter);
+        var unusableDer = existing.ValueKind is JsonValueKind.Object &&
+                          existing.TryGetProperty("certificateWithUnusableEmaid", out var keptBad)
+                              ? Convert.FromHexString(keptBad.GetString()!)
+                              : unusable.RawData;
 
         var json = JsonSerializer.Serialize(new
         {
@@ -99,7 +141,8 @@ internal static class PncMaterial
                  + "Regenerating invalidates every Session.*-pnc trace.",
             curve       = "P-256",
             privateKeyD = Convert.ToHexString(d).ToLowerInvariant(),
-            certificate = Convert.ToHexString(certificate.RawData).ToLowerInvariant(),
+            certificate = Convert.ToHexString(certificate).ToLowerInvariant(),
+            certificateWithUnusableEmaid = Convert.ToHexString(unusableDer).ToLowerInvariant(),
         }, new JsonSerializerOptions { WriteIndented = true });
 
         var path = SourcePath();

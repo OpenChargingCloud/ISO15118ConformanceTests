@@ -103,7 +103,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
         {
             using var contractKey = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
             using var contract = new System.Security.Cryptography.X509Certificates.CertificateRequest(
-                    "CN=UKTEST000000001A", contractKey, System.Security.Cryptography.HashAlgorithmName.SHA256)
+                    "CN=UKSWI123456791A", contractKey, System.Security.Cryptography.HashAlgorithmName.SHA256)
                 .CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
