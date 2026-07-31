@@ -62,6 +62,12 @@ namespace Vanaheimr.V2G.Exi.Tests
                         Is.EquivalentTo(new[]
                         {
                             "Mode.g.cs", "Root.g.cs", "RootType.g.cs", "DetailType.g.cs", "SplitCodec.g.cs",
+
+                            // The JSON-LD pass, split the same way: one part per type, one for the
+                            // dispatchers. Enums and opaque placeholders have no JSON part of their
+                            // own — an enum is a string wherever it appears.
+                            "Root.Json.g.cs", "RootType.Json.g.cs", "DetailType.Json.g.cs",
+                            "SplitCodecJson.Json.g.cs",
                         }));
         }
 

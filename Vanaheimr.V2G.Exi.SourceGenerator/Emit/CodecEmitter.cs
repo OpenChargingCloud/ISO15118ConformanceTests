@@ -346,7 +346,8 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             foreach (var g in globals)
                 EmitEncodeEntryPoint(g, docBits);
 
-            // DecodeAny dispatcher.
+            // The two dispatchers, in both directions.
+            EmitEncodeDispatcher(globals);
             EmitDecodeDispatcher(globals, docBits);
 
             // EXI fragment codecs for the signable elements (XMLDSig).
@@ -442,6 +443,56 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             _sb.AppendLine("        return true;");
             _sb.AppendLine("    }");
             _sb.AppendLine();
+        }
+
+        /// <summary>
+        /// <c>TryEncodeAny(object, …)</c> — the mirror of <see cref="EmitDecodeDispatcher"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Decoding always produced an <c>object</c> and encoding never accepted one, so anything
+        /// holding a message it did not construct itself — a proxy, a recorder, a re-encoder — had to
+        /// write the type switch out by hand. Two copies of exactly that live in
+        /// <c>Secc20Ac</c>/<c>Secc20Dc</c>, which is the usual sign that the generator was missing a
+        /// method rather than that the callers were unusual.
+        /// </para>
+        /// <para>
+        /// Branches are ordered most-derived-first for the reason every other type dispatch here is:
+        /// a type pattern matches subtypes too, so a base-first order would silently encode a derived
+        /// message with its base's document index.
+        /// </para>
+        /// </remarks>
+        private void EmitEncodeDispatcher(List<GlobalElementPlan> globals)
+        {
+            _sb.AppendLine("    /// <summary>Encodes any document element of this message set, dispatching on its runtime type.</summary>");
+            _sb.AppendLine("    public static bool TryEncodeAny(object msg, Span<byte> dest, out int bytesWritten)");
+            _sb.AppendLine("    {");
+            _sb.AppendLine("        switch (msg)");
+            _sb.AppendLine("        {");
+
+            foreach (var g in globals.OrderByDescending(g => BaseDepth(g.Body))
+                                     .ThenBy(g => g.DocumentIndex))
+                _sb.Append("            case ").Append(g.Body.RecordName)
+                   .AppendLine(" m: return m.TryEncode(dest, out bytesWritten);");
+
+            _sb.AppendLine("            default: throw new InvalidDataException(");
+            _sb.AppendLine("                         $\"{msg.GetType().Name} is not a document element of this message set.\");");
+            _sb.AppendLine("        }");
+            _sb.AppendLine("    }");
+            _sb.AppendLine();
+        }
+
+        /// <summary>How many records deep a type's base chain runs.</summary>
+        private int BaseDepth(SequencePlan sp)
+        {
+            var depth   = 0;
+            var current = sp;
+            while (current.BaseRecordName is not null && _byRecordName.TryGetValue(current.BaseRecordName, out var next))
+            {
+                depth++;
+                current = next;
+            }
+            return depth;
         }
 
         private void EmitDecodeDispatcher(List<GlobalElementPlan> globals, int docBits)

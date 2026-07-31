@@ -74,6 +74,77 @@ codes). The earlier prototype assumed an over-optimised *strict* grammar with 0-
 event codes — internally consistent, but wire-incompatible. Both the hand-written
 codec and the source generator were corrected to the non-strict model.
 
+## The JSON-LD form (§4.4)
+
+Every message set gets a **second generated (de)serializer** alongside its wire codec:
+`<Set>CodecJson.ToJSON(object)` and `.ParseJSON(JsonNode)`. It is emitted from the same
+`SchemaPlan`, in the same pass, deliberately — a JSON mapper maintained beside a generated codec
+drifts from it, and the way to make drift impossible is to leave no seam where it could happen.
+
+```json
+{
+  "@context": "urn:iso:15118:2:2013:MsgDef",
+  "@type": "V2G_Message",
+  "header": { "@type": "MessageHeaderType", "sessionID": "0000000000000000" },
+  "body":   { "@type": "BodyType",
+              "bodyElement": { "@type": "SessionSetupReqType", "evccid": "abcdef010203" } }
+}
+```
+
+`@type` is on every object rather than only on documents, because it is what makes a polymorphic
+field readable at all: a substitution-group member is chosen on the wire by an event code, and JSON
+has no equivalent — the concrete type has to be written down. An inline choice needs nothing extra,
+since it is already N sibling nullable fields and the branch falls out of which property is present.
+
+`@context` is the XSD target namespace, unchanged. A URN rather than an invented `https://` URL: it
+is the identifier ISO already assigns to this vocabulary, and an invented URL is a second name for
+the same thing that someone would eventually have to serve.
+
+### Three checks, because one of them is blind
+
+**The round trip.** `EXI → JSON → EXI` must reproduce the original bytes, for every vector in the
+corpus — 163 of them across nine message sets. Stronger than "every field survives": a mapping can
+carry every value and still lose which substitution member a field held, and that comes back as
+different bytes rather than as a missing field. This is what §4.4 promised as compensation for the
+oracle the generated approach gives up.
+
+**The document corpus** (`Vectors/JsonLd.documents.json`). Every vector's JSON form, checked in as
+text. It exists because the round trip is *blind to what the mapping is called*: renaming every
+property leaves it green, since serializer and parser rename together. That was measured, not
+assumed — replacing the naming rule with a naïve lower-the-first-character one turned `evseStatus`
+into `eVSEStatus` in every message of every set, and all 163 round-trip tests still passed. Property
+names are a wire format the moment anything outside this repository reads one. The corpus is also
+what the Kotlin and Swift JSON-LD emitters will be held to, rather than to a second reading of the
+naming rules.
+
+**The bridge tests.** The round trip runs entirely in C#, and this format exists to cross into
+JavaScript. Anything decided for the far side round-trips perfectly here whether it is right or
+wrong. Chief among them: **64-bit integers are JSON strings**. JSON has no integers, only doubles,
+and every JavaScript consumer rounds silently above 2^53 — which ISO 15118 reaches, since
+`X509SerialNumber` is an `xs:long` and real certificate serials use the range. Written as a number
+it would round-trip perfectly in every test here and fail only on a phone, as a certificate that
+does not verify.
+
+### Naming
+
+Mechanical, from the PascalCase field name: the leading run of capitals is lowered, except that its
+last letter is kept when a lower-case letter follows. `Header` → `header`, `EVCCID` → `evccid`,
+`EVSEStatus` → `evseStatus`. A collision would be silent in the worst way — one property written
+twice, the round trip returning whichever won — so `JsonNaming.RequireDistinct` fails the build
+instead. Nothing collides today; that is the point of checking.
+
+WWCP's convention of dropping `Req`/`Res` suffixes is **not** adopted. Here `@type` is the only
+discriminator a reader has, and stripping the suffix would map `AuthorizationReq` and
+`AuthorizationRes` onto one name — a request that parses as a response is exactly what the tag
+exists to prevent.
+
+### `TryEncodeAny`
+
+Added to the generated codec while building this: `DecodeAny` always produced an `object` and
+encoding never accepted one, so anything holding a message it did not construct itself had to write
+the type switch by hand. Two copies of exactly that live in `Secc20Ac`/`Secc20Dc`, which is the usual
+sign that the generator was missing a method rather than that the callers were unusual.
+
 ## Failure output
 
 When `expected != actual` the test names the vector, prints both byte

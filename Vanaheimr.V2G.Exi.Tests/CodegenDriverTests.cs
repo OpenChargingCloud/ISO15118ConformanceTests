@@ -115,7 +115,9 @@ namespace Vanaheimr.V2G.Exi.Tests
 
             Assert.That(exit, Is.Zero);
             Assert.That(Directory.GetFiles(target, "*.g.cs").Select(Path.GetFileName),
-                        Is.EquivalentTo(new[] { "DrvCodec.g.cs", "Root.g.cs", "RootType.g.cs" }));
+                        Is.EquivalentTo(new[] { "DrvCodec.g.cs", "Root.g.cs", "RootType.g.cs",
+                                                "DrvCodecJson.Json.g.cs", "Root.Json.g.cs",
+                                                "RootType.Json.g.cs" }));
             Assert.That(File.ReadAllText(Path.Combine(target, "RootType.g.cs")),
                         Does.Contain("namespace Test.Drv"));
         }
