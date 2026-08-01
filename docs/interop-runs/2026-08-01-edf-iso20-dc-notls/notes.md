@@ -123,9 +123,19 @@ response is a failure. Two of them are the behaviour; the third pins the enum's 
 the check is a range test (`>= FAILED`) and a regenerated enum that interleaved the families would
 quietly turn failures back into successes.
 
-**Still open: the -2 EVCC has the same hole.** `Evcc2` records `SessionSetupCode` and checks no other
-response code. Out of scope for this fix, which was asked for and made for -20, and named here so it
-is not mistaken for done.
+**The -2 EVCC had the same hole, and it is closed too** (2026-08-01, same three languages). `Evcc2`
+only ever recorded `SessionSetupCode`; nothing else was checked.
+
+-2 needed a different shape: it has no common response base, so every `*ResType` declares its own
+`ResponseCode` and there is nothing to pattern-match on. A hand-written switch over the response types
+would have been **fail-open** — the one forgotten, or the one added later, goes unchecked, which is the
+failure being fixed. So the code is read by property name, and
+`Evcc2FailureHandlingTests.EveryResponseTypeIsCheckable` enumerates the generated assembly to prove
+that every response type carries one. That test is what makes the reflective read trustworthy rather
+than hopeful; the Kotlin and Swift ports use the same read, and all three back ends are emitted from
+the same schema plan.
+
+-2 also has only two families: four `OK*` values, then `FAILED` onwards. No `WARNING`.
 
 ## How to reproduce
 

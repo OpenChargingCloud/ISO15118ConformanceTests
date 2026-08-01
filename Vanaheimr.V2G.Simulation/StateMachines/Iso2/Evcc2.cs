@@ -7,6 +7,9 @@ using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Timing;
+using System.Collections.Concurrent;
+using System.Reflection;
+
 using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
@@ -340,6 +343,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             if (set != MessageSet.Iso15118_2 || message is not V2G_Message reply)
                 throw new SessionAborted($"expected an ISO 15118-2 reply, got {set}.");
 
+            RefuseOnFailure(reply.Body.BodyElement!);
+
             Exchanges++;
             BytesOnWire += V2GTP.HeaderSize + reqLen; // request side; response side is the peer's own accounting
 
@@ -347,6 +352,57 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             _lastHeader = reply.Header;                // tariff verification reads the response signature
             return (T)reply.Body.BodyElement!;
         }
+
+
+        /// <summary>
+        /// Ends the session when the station answers with a code from the <c>FAILED</c> family.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The -2 half of the gap a live peer found in the -20 EVCC on 2026-08-01: nothing here read a
+        /// response code either, beyond recording <see cref="SessionSetupCode"/> for the caller's
+        /// information. A station could answer <c>FAILED</c> to every message and this car would charge
+        /// through it (<c>docs/interop-runs/2026-08-01-edf-iso20-dc-notls/</c>, finding 3).
+        /// </para>
+        /// <para>
+        /// <b>Why reflection rather than a switch.</b> ISO 15118-2 has no common response base — every
+        /// <c>*ResType</c> declares its own <c>ResponseCode</c> field, so there is nothing to pattern-match
+        /// on. A hand-written switch over the response types would work and would be *fail-open*: the one
+        /// forgotten in the list, or the one added later, is silently unchecked, which is precisely the
+        /// failure this method exists to end. Reading the property by name covers every response type
+        /// there is and every one there will be, and
+        /// <c>Evcc2FailureHandlingTests.EveryResponseTypeIsCheckable</c> enumerates the generated assembly
+        /// to prove that "every" is not an assumption.
+        /// </para>
+        /// <para>
+        /// <b>Only two families here.</b> Unlike -20, -2 has no <c>WARNING</c> codes: the enumeration is
+        /// four <c>OK*</c> values and then <c>FAILED</c> onwards. Same range test, same reason, and the
+        /// same test pins the ordering.
+        /// </para>
+        /// </remarks>
+        private static void RefuseOnFailure(BodyBaseType body)
+        {
+
+            var code = ResponseCodeOf(body);
+
+            if (code >= ResponseCode.FAILED)
+                throw new SessionAborted(
+                    $"the station answered {body.GetType().Name} with {code}; the session ends here.");
+
+        }
+
+
+        /// <summary>The response code of a -2 body element, or <c>null</c> for a request (which is what an
+        /// EVCC never receives) or for the handful of bodies that carry none.</summary>
+        internal static ResponseCode? ResponseCodeOf(BodyBaseType body)
+            => ResponseCodeReaders.GetOrAdd(body.GetType(),
+                   static type => type.GetProperty(nameof(ResponseCode)) is { } property &&
+                                  property.PropertyType == typeof(ResponseCode)
+                                      ? property
+                                      : null)
+                                  ?.GetValue(body) as ResponseCode?;
+
+        private static readonly ConcurrentDictionary<Type, PropertyInfo?> ResponseCodeReaders = new();
 
         // ── request builders ──────────────────────────────────────────────────
         /// <summary>Start carries the smart-charging outcome: the chosen tuple id and the PMax-shaped
