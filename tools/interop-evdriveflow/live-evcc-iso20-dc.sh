@@ -8,6 +8,9 @@
 # Usage: live-evcc-iso20-dc.sh [iface=enp0s3] [endpoint]
 #   with an endpoint   connect straight to it, e.g. '[fe80::1%enp0s3]:49152'  (evse_config.ini tcp_port)
 #   without one        SDP-discover their station on <iface>
+#
+# With an endpoint the <iface> argument is ignored — pass '' for it. That is the relay path in
+# README.md, and it runs from any machine, this Mac included: no interface, no ip(8), no multicast.
 set -uo pipefail
 
 iface="${1:-enp0s3}"
@@ -16,8 +19,12 @@ endpoint="${2:-}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cli="$here/../../Vanaheimr.V2G.Simulation.Cli"
 
-if ! ip link show "$iface" >/dev/null 2>&1; then
-    echo "no interface '$iface' — it must be the one named in their secc/evse_config.ini." >&2
+# Only when we have to discover. With an endpoint in hand the interface is irrelevant — that is the
+# whole point of the relay path in README.md, and it is what lets this run from a machine that has no
+# such interface and no `ip` at all.
+if [ -z "$endpoint" ] && ! ip link show "$iface" >/dev/null 2>&1; then
+    echo "no interface '$iface' — it must be the one named in their secc/evse_config.ini," >&2
+    echo "or pass an endpoint as the second argument (see 'The short path' in README.md)." >&2
     ip -br link show 2>/dev/null | awk '{print "  have: " $1}' >&2
     exit 1
 fi

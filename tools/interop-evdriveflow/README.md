@@ -38,6 +38,43 @@ session stops at the SupportedAppProtocol handshake. The -2 counterparties are J
 
 ---
 
+## The short path: a TCP relay, no discovery
+
+**Read this before the setup below — for a forward run you may need much less of it.**
+
+After the SupportedAppProtocol handshake an ISO 15118 session is a plain TCP stream. The only part that
+needs interfaces, zones and multicast is **SDP**, the discovery step. Everything after it does not care
+how it was reached, and the Josev harness has always skipped it, connecting to `host:port` directly.
+
+This counterparty makes the shortcut easier than the others, because **their station's port is
+configured rather than ephemeral**: `evse_config.ini` sets `tcp_port = 49152`.
+
+```bash
+# on the machine running their SECC
+socat TCP6-LISTEN:49152,fork,reuseaddr 'TCP6:[fe80::…%enp0s3]:49152'
+```
+
+```bash
+# from anywhere that can reach it, including a Mac
+./live-evcc-iso20-dc.sh '' vm.local:49152
+```
+
+No zone, no multicast, no interface names on our side; `--connect` and `V2G_INTEROP_SECC` take an
+ordinary `host:port`, so the whole harness works unchanged.
+
+**What this does not do.**
+
+- **Only the forward direction.** In a reverse run *their* EV is the one discovering, and a relay
+  cannot tell it where to look. That direction needs SDP answered on a shared link.
+- **SDP is not exercised.** A covered loss: every recorded Josev run drives `--sdp` both ways.
+- **TLS is the one place to be careful here** — and it matters more for this counterparty than for the
+  others, because mutual TLS 1.3 is its headline feature. A TCP relay is transparent to TLS unless a
+  certificate is bound to the address it was reached at; -20 binds identities rather than addresses, so
+  it *should* pass, but this is untested and the honest order is: plain TCP through the relay first,
+  then TLS on the real topology.
+
+Their station still has to run, so the setup below still applies to *their* side.
+
 ## Setup
 
 Nothing here is installed for you. Their stack is Python + a JDK, brought up with conda.

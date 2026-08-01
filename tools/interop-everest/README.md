@@ -46,6 +46,47 @@ are `config/config-sil-dc-d20.yaml` and `config/config-sil-ac-d20.yaml`.
 
 ---
 
+## The short path: a TCP relay, no discovery
+
+**Read this before the setup below, and note that it lines up with where this counterparty's value is
+anyway** — the forward direction, against their charger.
+
+After the SupportedAppProtocol handshake an ISO 15118 session is a plain TCP stream. The only part that
+needs interfaces, zones and multicast is **SDP**, and the Josev harness has always skipped it,
+connecting to `host:port` directly.
+
+```bash
+# on the machine running EVerest — their SECC's TCP port is assigned, not configured, so read it off
+ss -6 -tlnp | grep -i v2g          # or take it from the SDP response / EvseV2G's log
+socat TCP6-LISTEN:15118,fork,reuseaddr 'TCP6:[fe80::…%eth0]:<their-port>'
+```
+
+```bash
+# from anywhere that can reach it, including a Mac
+./live-evcc-iso2-dc.sh '' vm.local:15118            # -2
+./live-evcc-iso2-dc.sh '' vm.local:15118 20         # -20, against Evse15118D20
+```
+
+No zone, no multicast, no interface names on our side; `--connect` and `V2G_INTEROP_SECC` take an
+ordinary `host:port`.
+
+**Why this fits EVerest particularly well.** The half of it that is new to us is the station, and the
+station is exactly what a relay can put in front of you. The reverse direction — `PyEvJosev` against
+our SECC — is the half that is Josev in a wrapper, so the direction the relay *cannot* cover is also
+the one worth doing last.
+
+**What this does not do.**
+
+- **Only the forward direction**, for the reason above: in a reverse run their EV is the one
+  discovering, and a relay cannot tell it where to look. That needs SDP on a shared link.
+- **SDP is not exercised** — a covered loss; every recorded Josev run drives `--sdp` both ways.
+- **`IsoMux` is worth doing on the real topology eventually**, since a single endpoint answering both
+  -2 and -20 is a discovery-adjacent behaviour and the relay flattens it to one port.
+- **TLS through a relay is untested here.** Transparent unless a certificate is bound to the address it
+  was reached at; do the `tls_security: prohibit` runs through the relay first.
+
+Their charger still has to run, so the setup below still applies to *their* side.
+
 ## Setup
 
 Nothing here is installed for you; `everest-core` is a large CMake project with its own dependency

@@ -97,6 +97,47 @@ legitimately different field.
 
 ---
 
+## The short path: a TCP relay, no discovery
+
+**Read this before the setup below — for a forward run you may need much less of it.**
+
+After the SupportedAppProtocol handshake an ISO 15118 session is a plain TCP stream. The only part
+that needs interfaces, zones and multicast is **SDP**, the discovery step: UDP multicast to
+`ff02::1:15118`, answered with the station's link-local address and TCP port. Everything after that
+does not care how it was reached — and the Josev harness has always skipped it, connecting to
+`host:port` directly.
+
+So for **our EVCC → their responder**, put a relay in front of their station and connect to it like
+any other server:
+
+```bash
+# in the VM/host running their responder — find the port first, it is not fixed
+ss -6 -tlnp | grep afb            # e.g. [fe80::ac52:27ff:fef3:d0d7%evse-veth]:64109
+socat TCP6-LISTEN:15118,fork,reuseaddr 'TCP6:[fe80::ac52:27ff:fef3:d0d7%evse-veth]:64109'
+```
+
+```bash
+# from anywhere that can reach it, including a Mac
+./live-evcc-iso2-dc.sh '' vm.local:15118
+```
+
+No zone, no multicast, no interface names on our side — and the whole harness works unchanged, because
+`--connect` and `V2G_INTEROP_SECC` take an ordinary `host:port`.
+
+**What this does not do.**
+
+- **Only the forward direction.** In a reverse run *their* injector is the one discovering, and a relay
+  cannot tell it where to look. That direction needs SDP answered on a shared link — our SECC's
+  `--sdp --interface`, or [`../interop-josev/sdp-responder.py`](../interop-josev/sdp-responder.py) as
+  a shim.
+- **SDP is not exercised.** A real loss, but a covered one: every recorded Josev run drives `--sdp` in
+  both directions. Discovery is not what this counterparty is here to test.
+- **TLS through a relay is untested here.** A TCP relay is transparent to TLS unless a certificate is
+  bound to the address it was reached at; for the plain-TCP runs below the question does not arise.
+
+You still need their responder running, so the setup below still applies to *their* side — but only to
+their side, and only inside one Linux box.
+
 ## Setup
 
 Nothing here is installed for you, and nothing is vendored. Their stack is ~40k lines of Rust with C
