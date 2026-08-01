@@ -1,4 +1,5 @@
 using Vanaheimr.V2G.Simulation.StateMachines;
+using Vanaheimr.V2G.Simulation.Transport;
 
 namespace Vanaheimr.V2G.Simulation.Cli
 {
@@ -180,24 +181,24 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 throw new ArgumentException("secc --slac requires --slac-listen <port>.");
         }
 
+        /// <summary>
+        /// An IPv6 literal must be bracketed — <c>[fe80::1%eth0]:9000</c>, the form an SDP-less connect
+        /// to a station uses, and the form every recorded interop run wrote.
+        /// </summary>
+        /// <remarks>
+        /// This used to split an unbracketed value at its last colon and hand the zone on "to the socket
+        /// layer". Both halves of that were wrong, and <see cref="V2GEndpoint"/> now owns the details:
+        /// <c>::1:8080</c> is an address in its own right (<c>::0.1.128.128</c>), so splitting it at the
+        /// last colon silently connects somewhere else; and a zone whose interface name this machine does
+        /// not have is discarded by the platform's parsers without a word.
+        /// </remarks>
         private static (string Host, int Port) SplitHostPort(string value, string flag)
         {
-            // IPv6 literal must be bracketed so its own colons don't confuse host:port parsing,
-            // e.g. [fe80::1%eth0]:9000 (link-local with a zone id — the form an SDP-less connect to a
-            // Josev SECC uses). The zone id (%…) is preserved and handled by the socket layer.
-            if (value.StartsWith('['))
-            {
-                var close = value.IndexOf(']');
-                if (close > 1 && close + 2 < value.Length && value[close + 1] == ':'
-                    && int.TryParse(value[(close + 2)..], out var p6))
-                    return (value[1..close], p6);
-                throw new ArgumentException($"{flag} expects [ipv6]:port, got '{value}'.");
-            }
+            var endpoint = V2GEndpoint.Parse(value, flag);
 
-            var idx = value.LastIndexOf(':');
-            if (idx <= 0 || !int.TryParse(value[(idx + 1)..], out var port))
-                throw new ArgumentException($"{flag} expects host:port, got '{value}'.");
-            return (value[..idx], port);
+            // ConnectHost, not Host: for a literal it carries the zone as a *number*, which is the one
+            // form nothing downstream can lose.
+            return (endpoint.ConnectHost, endpoint.Port);
         }
 
         private static int ParsePort(string value, string flag)

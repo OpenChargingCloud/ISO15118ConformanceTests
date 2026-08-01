@@ -1,13 +1,8 @@
 using System.Net;
-using System.Security.Authentication;
 
 using NUnit.Framework;
 
 using Vanaheimr.V2G.Simulation.Sap;
-using Vanaheimr.V2G.Simulation.StateMachines;
-using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
-using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
-using Vanaheimr.V2G.Simulation.Timing;
 using Vanaheimr.V2G.Simulation.Transport;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Interop
@@ -18,129 +13,109 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop
     /// <c>dotnet test</c> suite (which must stay green offline). Bring a Josev endpoint up per
     /// <c>tools/interop-josev/README.md</c>, then run this fixture by category:
     /// <code>dotnet test --filter TestCategory=Interop</code>
-    /// <para>Env vars: <c>V2G_INTEROP_SECC=host:port</c> (our EVCC → Josev SECC),
-    /// <c>V2G_INTEROP_LISTEN=port</c> (Josev EVCC → our SECC), <c>V2G_INTEROP_PROTOCOL=2|20</c> (default 2),
-    /// <c>V2G_INTEROP_MODE=ac|dc</c> (default ac), <c>V2G_INTEROP_TLS=1</c> (accept any server cert, dev only).</para>
+    /// <para>The environment variables are the shared ones — see <see cref="InteropEnvironment"/>.</para>
+    /// <para>
+    /// Josev's value among the counterparties is that its EXI comes from EXIficient, which shares no
+    /// lineage with our cbV2G-generated corpus. A byte disagreement here is a genuinely independent
+    /// finding, which is not true of the cbexigen-based stacks (see <see cref="TuxEvseInteropTests"/>).
+    /// </para>
     /// </summary>
     [TestFixture]
     [Category("Interop")]
     [Explicit("Requires a running Josev endpoint (see tools/interop-josev/README.md); never part of the offline CI run.")]
     public class JosevInteropTests
     {
-        private static readonly TimeSpan PerMessageTimeout = TimeSpan.FromSeconds(5);
 
         [Test]
         public async Task OurEvcc_AgainstJosevSecc_RunsToCompletion()
         {
-            var (host, port) = SeccEndpointOrIgnore();
-            var (protocol, mode) = ProtocolAndMode();
+
+            var endpoint         = InteropEnvironment.SeccEndpointOrIgnore("a running Josev SECC");
+            var (protocol, mode) = InteropEnvironment.ProtocolAndMode();
+            var (protocolName, modeName) = InteropEnvironment.ProtocolAndModeNames();
+
+            var recording = InteropRecording.FromEnvironment($"josev-{modeName}-forward");
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-            using var stream = await TcpV2GClient.ConnectAsync(host, port, DevTlsOrNull(), cts.Token);
-            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
 
-            var exchanges = await RunEvccAsync(stream, protocol, mode, cts.Token);
-            Assert.That(exchanges, Is.GreaterThan(0), "our EVCC exchanged at least one message with Josev's SECC");
+            using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
+                                                               InteropEnvironment.DevTlsOrNull(), cts.Token);
+
+            var stream = recording?.Tap(socket) ?? socket;
+
+            try
+            {
+                await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
+
+                var exchanges = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token);
+
+                Assert.That(exchanges, Is.GreaterThan(0),
+                            "our EVCC exchanged at least one message with Josev's SECC");
+            }
+            finally
+            {
+                Report(recording?.Save(protocolName, modeName,
+                                       "live interop: our EVCC against Josev's SECC", weAreTheEvcc: true));
+            }
+
         }
 
+
+        /// <remarks>
+        /// The listener binds <see cref="IPAddress.IPv6Any"/>. It used to bind <see cref="IPAddress.Any"/>,
+        /// which is IPv4-only and cannot accept the link-local IPv6 connection a real EVCC makes — the
+        /// recorded reverse runs under <c>docs/interop-runs/</c> all went through the CLI, which binds
+        /// IPv6, so this path was never the one that worked.
+        /// </remarks>
         [Test]
         public async Task JosevEvcc_AgainstOurSecc_RunsToCompletion()
         {
-            var listenPort = ListenPortOrIgnore();
-            var (protocol, mode) = ProtocolAndMode();
+
+            var listenPort       = InteropEnvironment.ListenPortOrIgnore("point a Josev EVCC at it");
+            var (protocol, mode) = InteropEnvironment.ProtocolAndMode();
+            var (protocolName, modeName) = InteropEnvironment.ProtocolAndModeNames();
+
+            var recording = InteropRecording.FromEnvironment($"josev-{modeName}-reverse");
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Any, listenPort), DevServerTlsOrNull());
-            TestContext.Out.WriteLine($"Waiting for a Josev EVCC to connect on :{listenPort} ...");
 
-            using var stream = await listener.AcceptAsync(cts.Token);
-            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
 
-            var isDone = await RunSeccAsync(stream, protocol, mode, cts.Token);
-            Assert.That(isDone, Is.True, "our SECC drove Josev's EVCC to the terminal session state");
-        }
+            TestContext.Out.WriteLine($"Waiting for a Josev EVCC to connect on [::]:{listenPort} ...");
 
-        // ── run helpers ────────────────────────────────────────────────────────────────────────────
+            using var socket = await listener.AcceptAsync(cts.Token);
 
-        private static async Task<int> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode, CancellationToken ct)
-        {
-            if (protocol == ProtocolVariant.Iso15118_2)
+            var stream = recording?.Tap(socket) ?? socket;
+
+            try
             {
-                var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout);
-                await evcc.RunAsync(ct);
-                return evcc.Exchanges;
+                await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
+
+                var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token);
+
+                Assert.That(isDone, Is.True, "our SECC drove Josev's EVCC to the terminal session state");
+            }
+            finally
+            {
+                Report(recording?.Save(protocolName, modeName,
+                                       "live interop: Josev's EVCC against our SECC", weAreTheEvcc: false));
             }
 
-            Evcc20Base evcc20 = mode == PowerMode.Dc
-                ? new Evcc20Dc(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
-                : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout);
-            await evcc20.RunAsync(ct);
-            return evcc20.Exchanges;
         }
 
-        private static async Task<bool> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode, CancellationToken ct)
+
+        private static void Report(IReadOnlyList<String>? written)
         {
-            if (protocol == ProtocolVariant.Iso15118_2)
+            if (written is null)
             {
-                var secc = new Secc2(mode, TimeSpan.FromSeconds(60), TimeProvider.System);
-                await secc.RunAsync(stream, ct);
-                return secc.IsDone;
+                TestContext.Out.WriteLine("Nothing was recorded — set V2G_INTEROP_RECORD=<dir> to keep the session.");
+                return;
             }
 
-            Secc20Base secc20 = mode == PowerMode.Dc
-                ? new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System)
-                : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
-            await secc20.RunAsync(stream, ct);
-            return secc20.IsDone;
+            TestContext.Out.WriteLine("Recorded:");
+            foreach (var path in written)
+                TestContext.Out.WriteLine($"  {path}");
         }
 
-        // ── env plumbing ───────────────────────────────────────────────────────────────────────────
-
-        private static (string Host, int Port) SeccEndpointOrIgnore()
-        {
-            var value = Environment.GetEnvironmentVariable("V2G_INTEROP_SECC");
-            if (string.IsNullOrWhiteSpace(value))
-                Assert.Ignore("set V2G_INTEROP_SECC=host:port (a running Josev SECC) to run this interop test.");
-
-            var idx = value!.LastIndexOf(':');
-            if (idx <= 0 || !int.TryParse(value[(idx + 1)..], out var port))
-                throw new ArgumentException($"V2G_INTEROP_SECC must be host:port, got '{value}'.");
-            return (value[..idx], port);
-        }
-
-        private static int ListenPortOrIgnore()
-        {
-            var value = Environment.GetEnvironmentVariable("V2G_INTEROP_LISTEN");
-            if (string.IsNullOrWhiteSpace(value))
-                Assert.Ignore("set V2G_INTEROP_LISTEN=port and point a Josev EVCC at it to run this interop test.");
-            return int.TryParse(value, out var port) ? port : throw new ArgumentException($"V2G_INTEROP_LISTEN must be a port, got '{value}'.");
-        }
-
-        private static (ProtocolVariant, PowerMode) ProtocolAndMode()
-        {
-            var protocol = Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") switch
-            {
-                "20" => ProtocolVariant.Iso15118_20,
-                _ => ProtocolVariant.Iso15118_2,
-            };
-            var mode = Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "dc" ? PowerMode.Dc : PowerMode.Ac;
-            return (protocol, mode);
-        }
-
-        private static TlsOptions? DevTlsOrNull()
-            => Environment.GetEnvironmentVariable("V2G_INTEROP_TLS") == "1"
-                   ? new TlsOptions
-                     {
-                         ServerCertificateValidation = (_, _, _, _) => true, // dev only: accept any Josev server cert
-                         // The one place a permissive set is right: this probes a third-party SECC whose version
-                         // we do not control (Josev serves TLS 1.2 unilateral by default, 1.3 mutual only with
-                         // ENABLE_TLS_1_3=True), and V2G_INTEROP_PROTOCOL picks -2 or -20 at runtime. Matches the
-                         // dev CLI (Simulation.Cli/Program.cs). This is an interop probe, not a conformance path.
-                         EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
-                     }
-                   : null;
-
-        private static TlsOptions? DevServerTlsOrNull()
-            => null; // our SECC serving Josev over TLS would need a checked-in test cert; start with plain TCP (-2 EIM).
     }
 }

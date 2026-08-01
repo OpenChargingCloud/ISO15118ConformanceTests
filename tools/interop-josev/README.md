@@ -11,6 +11,14 @@ gated on env vars — `dotnet test -c Release` skips it entirely.
 
 Josev is **not vendored** here (Python + a JRE, big); you bring it up per the steps below.
 
+> **Josev's particular value among the counterparties:** its EXI comes from EXIficient, which shares no
+> lineage with our cbV2G-generated corpus, so a byte disagreement here is a genuinely independent
+> finding. That is not true of the cbexigen-based stacks — see
+> [`../interop-tux-evse/README.md`](../interop-tux-evse/README.md) and `docs/counterparties.md`.
+
+> Set `V2G_INTEROP_RECORD=<dir>` on any of these runs and the fixture writes the session out — raw
+> octets, a frame log, and a replayable `SessionTrace`. See `docs/interop-runs/README.md`.
+
 ## What Josev is
 
 - **SwitchEV/iso15118** — <https://github.com/SwitchEV/iso15118> (Apache-2.0, -2 and -20).

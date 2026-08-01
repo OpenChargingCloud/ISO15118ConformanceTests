@@ -98,14 +98,26 @@ namespace Vanaheimr.V2G.Simulation.Tests.Cli
                            Throws.ArgumentException.With.Message.Contains("unknown argument"));
 
         [Test]
-        public void IPv6ConnectHost_SplitsOnLastColon()
+        public void IPv6ConnectHost_KeepsItsZone()
         {
-            var a = CliArgs.Parse(["evcc", "--connect", "fe80::1%12:5555"]);
+            var a = CliArgs.Parse(["evcc", "--connect", "[fe80::1%12]:5555"]);
             Assert.Multiple(() =>
             {
+                // The zone survives as a number all the way to the socket, which is the whole point:
+                // fe80::1 without it does not say which wire to put the packet on.
                 Assert.That(a.ConnectHost, Is.EqualTo("fe80::1%12"));
                 Assert.That(a.ConnectPort, Is.EqualTo(5555));
             });
         }
+
+        /// <summary>
+        /// This used to be accepted and split at the last colon. It cannot be, safely: <c>::1:8080</c> is
+        /// itself a valid address (<c>::0.1.128.128</c>), so the split is a guess that is sometimes wrong
+        /// and never says so. Every recorded interop run already writes the bracketed form.
+        /// </summary>
+        [Test]
+        public void UnbracketedIPv6ConnectHost_IsRefusedWithTheFormThatWorks()
+            => Assert.That(() => CliArgs.Parse(["evcc", "--connect", "fe80::1%12:5555"]),
+                           Throws.ArgumentException.With.Message.Contains("[fe80::1%12]:5555"));
     }
 }
