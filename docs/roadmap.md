@@ -6,10 +6,12 @@ Last updated: **2026-07-25**. Authoritative per-phase detail lives in
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 629 tests are green**
-(`dotnet test -c Release`: 534 in `Vanaheimr.V2G.Exi.Tests`, 87 in `Vanaheimr.V2G.Simulation.Tests`,
-8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C toolchain, JRE, or network beyond
-loopback; the live over-the-wire Josev tests stay `[Explicit]`/script-driven.
+**All phases (0–5) are complete.** The solution builds cleanly and **all 1116 tests are green**
+(`dotnet test -c Release`, measured 2026-08-01: 911 in `Vanaheimr.V2G.Exi.Tests`, 197 in
+`Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
+toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
+`[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
+directions, and they are *not* in that count.
 
 ISO 15118-2 and -20 are **feature-complete at session level** and validated live against the independent
 Josev stack in every direction Josev supports — the feature-gap list is **empty**:
@@ -32,6 +34,12 @@ Josev stack in every direction Josev supports — the feature-gap list is **empt
 En route, the live runs caught and fixed **~15 real conformance bugs** invisible to loopback on our side
 and documented **~12 Josev bugs/gaps**. The full story: [Phase 5 closing report](phase5-report.md) (DoD
 scorecard + honest-gaps ledger) and the per-run write-ups under [`docs/interop-runs/`](interop-runs/).
+
+The scope of that claim is worth stating precisely: **validated against Josev**, which is one live peer.
+Two peers of the same lineage cannot show what they have agreed to be wrong about, and ~15 fixes from
+the first one is a reason to expect more from the second. Harnesses for three further counterparties are
+written and **have not been run** — see [Live counterparties beyond Josev](#live-counterparties-beyond-josev)
+for what each would prove, and [What remains](#what-remains) for what is blocking them.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -82,7 +90,21 @@ against a code-unit-wise reading. **No vector file in the repo now proves only i
 
 Everything the roadmap targeted is done — see [`phase5-report.md`](phase5-report.md) for the full
 scorecard. What is left over is either a **structural non-goal** (no independent counterpart exists to
-validate against) or a small cleanup:
+validate against), a small cleanup, or — since 2026-08-01 — a run that has not happened yet:
+
+**⬜ Run the three new counterparties.** Harnesses exist for
+[tux-evse](../tools/interop-tux-evse/README.md), [eVDriveFlow](../tools/interop-evdriveflow/README.md)
+and [EVerest](../tools/interop-everest/README.md), with `[Explicit]` fixtures, a recorder and a flow
+report — and **not one byte has crossed between our stack and any of the three**. Josev is still the only
+counterparty with recorded sessions. Everything checked so far is what was checkable without a peer, so
+nothing here should be read as an interop result. What each run would prove, and what it cannot, is in
+[Live counterparties beyond Josev](#live-counterparties-beyond-josev).
+
+The blocker is a machine, not code: tux-evse needs Linux veth pairs and podman, EVerest a full
+`everest-core` build. eVDriveFlow is the likeliest to run on a developer box (Python + conda), and
+whether SDP over link-local IPv6 works there is itself the first question. Each harness carries its own
+*confirm on first contact* list — those are questions, not statements, and the first run is what turns
+them into either.
 
 **Remaining non-goals** (would need something that doesn't exist yet):
 - ⬜ **WPT / ACDP session state machines** — codecs are byte-exact vs cbV2G, but no independent stack
@@ -90,6 +112,10 @@ validate against) or a small cleanup:
   machines on *both* sides with no oracle for the behaviour.
 - ⬜ **-2 `CertificateInstallation`/`CertificateUpdate` live** — the messages are codec-tested; a live
   run would need Josev's -2 CERTIFICATE VAS wiring on both sides (its service path is unimplemented).
+  *Possibly no longer structural:* EVerest carries `Iso15118InternetVas` and
+  `StaticISO15118VASProvider` modules, and `EvseV2G` declares an `ISO15118_vas` requirement. Whether
+  either covers the -2 certificate service is unchecked — worth asking on first contact rather than
+  assuming this stays a non-goal.
 - ⬜ **Self-consistent-only crypto/grammar spots** — the -20 contract-provisioning crypto octets
   (ECDH/ConcatKDF/AES-GCM), our -2 combined-grammar *tariff-signing* form, -20 price-schedule
   signatures, and two WPT grammar shapes: schema-valid and CI-guarded, but nothing external produces
@@ -126,8 +152,9 @@ have already landed are in [Completed extras](#completed-extras) below:
   monorepo modules, re-run our vector + loopback + live-interop suites against the current versions,
   and reconcile the drift — new counterpart features to match, our own bugs to fix, fresh counterpart
   bugs to document (~12 Josev findings so far). Also the natural moment to revisit the pinned
-  `03350be` codec commit and to decide whether to stand up an EVerest node once, which would unlock
-  `EvseV2G` / `Evse15118D20` / `IsoMux` as live counterparts.
+  `03350be` codec commit. Standing up an EVerest node once — which unlocks `EvseV2G` /
+  `Evse15118D20` / `IsoMux` as live counterparts — is no longer a design question but a scheduling
+  one: the harness is written and waiting ([`tools/interop-everest/`](../tools/interop-everest/README.md)).
 
 ### Completed extras
 
@@ -194,6 +221,13 @@ headline figures rather than values read out of the Amendment text.
 
 **Parked:** the limits and behavioural detail from the Amendment text, and a live run against
 `Evse15118D20` — the only maintained stack that implements MCS (see the counterpart-tracking task).
+
+*Concrete since 2026-08-01:* EVerest ships **`config/config-sil-mcs.yaml`**, so the live counterpart
+for MCS is a named configuration rather than a hope, and the harness to drive it exists
+([`tools/interop-everest/`](../tools/interop-everest/README.md)). It is deliberately last in that
+harness's scenario order — the plain -2 and -20 sessions have to be clean before a service-id question
+is worth asking — but it is the first thing that could turn "not externally validated" above into
+either a confirmation or a finding.
 
 #### ✅ Post-quantum crypto experiments (2026-07-23)
 
@@ -287,7 +321,8 @@ it explains *why* the generator and codec look the way they do.
 
 ## Reference libraries for automated testing
 
-Three classes of oracle, with independent sources of error:
+Three classes of oracle, with independent sources of error (a fourth class — further **live**
+counterparties — is [below](#live-counterparties-beyond-josev)):
 
 1. **[EVerest/libcbv2g](https://github.com/EVerest/libcbv2g)** + generator
    **[cbexigen](https://github.com/EVerest/cbexigen)** (C, Apache-2.0) — *primary diff
@@ -309,6 +344,49 @@ Three classes of oracle, with independent sources of error:
    verification TODO, …). The EVerest fork
    [ext-switchev-iso15118](https://github.com/EVerest/ext-switchev-iso15118) is the more
    actively maintained branch of this same codebase (Python, -2/-20/-8).
+
+### Live counterparties beyond Josev
+
+*(harnesses built 2026-08-01; **none of the three has been run against yet** — Josev remains the only
+counterparty with recorded sessions under `docs/interop-runs/`)*
+
+Josev was one live peer, and one live peer cannot show what two implementations of the *same* lineage
+have agreed to be wrong about. These three extend that, and they do not extend it equally — the useful
+question for each is **what a disagreement with it would prove**:
+
+| Counterparty | Harness | EXI lineage | What a disagreement means |
+|---|---|---|---|
+| [tux-evse/iso15118-simulator-rs](https://github.com/tux-evse/iso15118-simulator-rs) (Rust, -2) | [`tools/interop-tux-evse/`](../tools/interop-tux-evse/README.md) | cbexigen — **ours** | never EXI, by construction: sequencing, framing or timing |
+| [EDF-Lab/eVDriveFlow](https://github.com/EDF-Lab/eVDriveFlow) (Python, **-20 Ed. 1**) | [`tools/interop-evdriveflow/`](../tools/interop-evdriveflow/README.md) | **OpenEXI — independent** | either layer: the only counterparty that is an oracle for both |
+| [EVerest](https://github.com/EVerest/everest-core) (C/C++/Python, DIN/-2/-20) | [`tools/interop-everest/`](../tools/interop-everest/README.md) | cbV2G — **ours** (car side: Josev) | station side: sequencing/timing. Car side: little — `PyEvJosev` is Josev in a wrapper |
+
+What each is actually *for*, beyond the byte question:
+
+- **tux-evse** — its side is a **replayer of packet captures**, not a state machine. A reverse run puts
+  a real car's route (an Audi against an ABB charger, in the file they ship) in front of our SECC. Their
+  scenario file is therefore a *declared flow*, and the harness reads it as one and diffs it against what
+  crossed the wire.
+- **eVDriveFlow** — **-20 + DC BPT + Dynamic control mode + mutual TLS 1.3**, the combination we have the
+  least outside evidence for. `docs/pki-model.md` pins -20 to a mutual TLS 1.3 handshake and our own
+  tests have been the only thing that ever checked it. Dynamic mode also drives schedule renegotiation
+  beyond the points our corpus happens to record.
+- **EVerest** — the implementation most likely to be on the other end of a real charger, so "works
+  against EVerest" is closer to a market claim than a test result. `modules/EVSE/Evse15118D20` is where
+  -20 lives now (`libiso15118` was archived 2026-02-26 and folded in); `IsoMux` answers -2 and -20 behind
+  one endpoint. `config/config-sil-mcs.yaml` would be **the first live counterpart our MCS support has
+  ever had** — see the MCS line in Phase 5.
+
+**Shared machinery, so a fourth harness is mostly a README.** One vocabulary of environment variables
+(`V2G_INTEROP_SECC`, `_LISTEN`, `_PROTOCOL`, `_MODE`, `_TLS`, `_DYNAMIC`, `_RECORD`, `_SCENARIO`), one
+set of `[Explicit] [Category("Interop")]` fixtures — eight now, four counterparties × two directions —
+and one recorder. Every run can leave the raw octets of both directions, a named frame log, a `flow.md`,
+and a replayable `SessionTrace`; the bytes are written before the trace is attempted, because the run
+that *fails* is the interesting one and it is exactly the run a strict corpus builder refuses.
+
+`flow.md` is the part aimed at what these runs are for. It compares the message sequence in **both**
+directions against a reference — a counterparty's scenario where one exists, otherwise one of our own
+recorded traces — with consecutive repeats collapsed, so a poll loop does not bury the finding. For a
+station-side counterparty the *station → EV* half is the one that carries the news.
 
 Additional, bounded roles:
 - **[OpenV2G](https://github.com/Martin-P/OpenV2G)** (C, LGPL) — historical DIN/-2
