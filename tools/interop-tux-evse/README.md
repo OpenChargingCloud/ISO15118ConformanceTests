@@ -19,8 +19,8 @@ be checked from their documentation and is a question for the first run, not a s
 **It is not a second EXI oracle.** Their encoders crate says it "relies on cbexigen iso15118-encoder
 library for low level EXI binary encoding" — cbexigen is the generator behind libcbv2g, which is where
 *our own* byte-exact vector corpus comes from. Two implementations of the same generated codec agreeing
-about bytes is close to a tautology. If you want an independent codec oracle, that is Josev (EXIficient),
-and it already exists.
+about bytes is close to a tautology. The counterparties whose bytes are independent are Josev
+(EXIficient) and eVDriveFlow (OpenEXI), and both already have a harness.
 
 **What it is worth is the layer our corpora cannot see.** `docs/CONCEPT.md` §1.3 puts the number on it:
 the ~15 real conformance fixes came from live interop and from nothing else, and they lived in the state

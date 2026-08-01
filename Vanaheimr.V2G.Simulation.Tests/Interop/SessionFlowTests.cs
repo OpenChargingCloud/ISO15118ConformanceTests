@@ -161,6 +161,90 @@ public class SessionFlowTests
         => Assert.Throws<InvalidDataException>(() => TuxEvseScenario.Parse("""{"binding":[{"uid":"x"}]}"""));
 
 
+    // ── where a reference flow comes from ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// One environment variable, two kinds of file, told apart by structure.
+    /// </summary>
+    /// <remarks>
+    /// tux-evse publishes scenarios; eVDriveFlow is a state machine and publishes nothing, so there the
+    /// only available reference is one of our own recorded sessions. Sniffing beats a second variable:
+    /// a trace has <c>exchanges</c> and a scenario has <c>scenarios</c>, and the two cannot be confused.
+    /// </remarks>
+    [Test]
+    public void AReferenceFlowIsReadFromEitherKindOfFile()
+    {
+
+        var directory = Path.Combine(Path.GetTempPath(), $"v2g-declared-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+
+        try
+        {
+
+            var scenarioPath = Path.Combine(directory, "scenario.json");
+            File.WriteAllText(scenarioPath, ShippedShape);
+
+            var tracePath = Path.Combine(TestContext.CurrentContext.TestDirectory,
+                                         "Vectors", "Session.iso20-dc-eim.trace.json");
+
+            var theirs = DeclaredFlow.FromFile(scenarioPath);
+            var ours   = DeclaredFlow.FromFile(tracePath);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(theirs.Name,     Is.EqualTo("audi-dc-iso2:1"));
+                Assert.That(theirs.Messages, Does.Contain("CableCheckReq"));
+
+                Assert.That(ours.Name,     Does.Contain("iso20-dc-eim"));
+                Assert.That(ours.Messages, Does.Contain("SessionSetupReq"));
+
+                // Whose reference it is has to be in the report: nobody reading an interop write-up
+                // should have to work out whether the expected column was a foreign capture or ours.
+                Assert.That(ours.Source,   Does.Contain("our own"));
+                Assert.That(theirs.Source, Does.Contain("tux-evse"));
+            });
+
+            var neither = Path.Combine(directory, "neither.json");
+            File.WriteAllText(neither, """{"hello":"world"}""");
+
+            var thrown = Assert.Throws<InvalidDataException>(() => DeclaredFlow.FromFile(neither));
+            Assert.That(thrown!.Message, Does.Contain("exchanges").And.Contain("scenarios"));
+
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+
+    }
+
+
+    /// <summary>
+    /// The two sources of a message name have to agree, or every comparison is 100% divergent.
+    /// </summary>
+    /// <remarks>
+    /// A trace records the generated type name (<c>SessionSetupReqType</c>) and the flow report decodes
+    /// the frame afresh. Both go through <see cref="FrameLabel.Canonical"/>, and this is what says so —
+    /// if one of them ever stopped, the reports would be a wall of red with nothing wrong underneath it.
+    /// </remarks>
+    [Test]
+    public void OurOwnRecordingComparedWithItselfShowsNoDivergence()
+    {
+
+        var trace = Corpus("iso20-dc-eim");
+
+        var report = SessionFlow.Report(trace.Exchanges.Select(e => e.Request.Bytes).ToList(),
+                                        trace.Exchanges.Select(e => e.Response.Bytes).ToList(),
+                                        DeclaredFlow.FromSessionTrace(File.ReadAllText(
+                                            Path.Combine(TestContext.CurrentContext.TestDirectory,
+                                                         "Vectors", "Session.iso20-dc-eim.trace.json"))));
+
+        Assert.That(report, Does.Contain("The order matches the declared flow exactly."),
+                    $"the report was:{Environment.NewLine}{report}");
+
+    }
+
+
     // ── the alignment ──────────────────────────────────────────────────────────────────────────────
 
     [Test]
@@ -226,7 +310,7 @@ public class SessionFlowTests
 
         var report = SessionFlow.Report(frames,
                                         trace.Exchanges.Select(e => e.Response.Bytes).ToList(),
-                                        TuxEvseScenario.Parse(ShippedShape));
+                                        DeclaredFlow.FromTuxEvseScenario(ShippedShape));
 
         Assert.That(report, Does.Contain("The order matches the declared flow exactly."),
                     $"the flows should agree; the report was:{Environment.NewLine}{report}");
@@ -250,7 +334,7 @@ public class SessionFlowTests
                           .Select(e => e.Request.Bytes)
                           .ToList();
 
-        var report = SessionFlow.Report(frames, [], TuxEvseScenario.Parse(ShippedShape));
+        var report = SessionFlow.Report(frames, [], DeclaredFlow.FromTuxEvseScenario(ShippedShape));
 
         Assert.Multiple(() =>
         {

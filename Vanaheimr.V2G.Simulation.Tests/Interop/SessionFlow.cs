@@ -138,7 +138,7 @@ internal static class SessionFlow
     /// <summary>The whole report, as markdown, for pasting into an interop run's <c>notes.md</c>.</summary>
     public static String Report(IReadOnlyList<Byte[]> evToStation,
                                 IReadOnlyList<Byte[]> stationToEv,
-                                TuxEvseScenario?      expected)
+                                DeclaredFlow?         expected)
     {
 
         var requests  = Of(evToStation);
@@ -189,19 +189,21 @@ internal static class SessionFlow
 
 
     private static void AppendScenarioComparison(StringBuilder report, IReadOnlyList<FlowStep> requests,
-                                                 TuxEvseScenario expected)
+                                                 DeclaredFlow expected)
     {
 
         var actual   = Collapse(requests.Select(s => s.Message));
-        var declared = Collapse(expected.ExpectedMessages);
+        var declared = Collapse(expected.Messages);
         var aligned  = Align(actual.Select(x => x.Message).ToList(),
                              declared.Select(x => x.Message).ToList());
 
         report.AppendLine();
         report.AppendLine($"## Against the declared flow — `{expected.Name}`");
         report.AppendLine();
-        report.AppendLine("Consecutive repeats are collapsed on both sides: a session polls, and their");
-        report.AppendLine("scenarios are compacted, so the counts are compared separately from the order.");
+        report.AppendLine($"Reference: {expected.Source}.");
+        report.AppendLine();
+        report.AppendLine("Consecutive repeats are collapsed on both sides: a session polls, and a compacted");
+        report.AppendLine("scenario names each request once, so the counts are compared separately from the order.");
         report.AppendLine();
 
         foreach (var (kind, message) in aligned)

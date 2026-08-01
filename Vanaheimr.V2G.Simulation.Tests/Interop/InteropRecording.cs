@@ -55,13 +55,14 @@ internal sealed class InteropRecording
 
 
     /// <summary>
-    /// The flow the counterparty's scenario file declares, when <c>V2G_INTEROP_SCENARIO</c> points at one.
+    /// The flow to compare this run against, when <c>V2G_INTEROP_SCENARIO</c> points at one — either a
+    /// counterparty's scenario file or one of our own recorded traces.
     /// </summary>
     /// <remarks>
-    /// Optional, and a file that cannot be read is reported in the flow report rather than failing the
-    /// run: an unreadable scenario is a reason to lose the comparison, never a reason to lose the session.
+    /// Optional, and a file that cannot be read is reported rather than thrown: an unreadable reference
+    /// is a reason to lose the comparison, never a reason to lose the session.
     /// </remarks>
-    public static TuxEvseScenario? DeclaredFlow()
+    public static DeclaredFlow? Reference()
     {
 
         var path = Environment.GetEnvironmentVariable("V2G_INTEROP_SCENARIO");
@@ -70,7 +71,7 @@ internal sealed class InteropRecording
 
         try
         {
-            return TuxEvseScenario.ReadFrom(path);
+            return DeclaredFlow.FromFile(path);
         }
         catch (Exception e)
         {
@@ -120,7 +121,7 @@ internal sealed class InteropRecording
         Write("flow.md", path => File.WriteAllText(path,
             SessionFlow.Report(SplitAsFarAsPossible(evToStation).Frames,
                                SplitAsFarAsPossible(stationToEv).Frames,
-                               DeclaredFlow()),
+                               Reference()),
             new UTF8Encoding(false)));
 
         try

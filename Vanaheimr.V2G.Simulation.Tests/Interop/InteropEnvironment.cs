@@ -67,6 +67,12 @@ internal static class InteropEnvironment
     }
 
 
+    /// <summary>-20 only: whether our station should offer the Dynamic control-mode parameter set first.
+    /// <c>V2G_INTEROP_DYNAMIC=1</c>.</summary>
+    public static Boolean PreferDynamic()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_DYNAMIC") == "1";
+
+
     public static (ProtocolVariant Protocol, PowerMode Mode) ProtocolAndMode()
         => (Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") switch
             {

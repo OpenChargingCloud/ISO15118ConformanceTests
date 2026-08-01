@@ -50,9 +50,12 @@ internal static class InteropSession
     }
 
 
+    /// <param name="preferDynamic">-20 only: offer the Dynamic (ControlMode 2) parameter set first. An EV
+    /// that takes the first offered set then runs a Dynamic session — which is the mode eVDriveFlow works
+    /// in, and the one that drives schedule renegotiation. Ignored for -2, which has no control modes.</param>
     /// <returns>Whether our station reached the terminal session state.</returns>
     public static async Task<Boolean> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
-                                                   CancellationToken ct)
+                                                   CancellationToken ct, Boolean preferDynamic = false)
     {
 
         if (protocol == ProtocolVariant.Iso15118_2)
@@ -65,6 +68,9 @@ internal static class InteropSession
         Secc20Base secc20 = mode == PowerMode.Dc
                                 ? new Secc20Dc(SequenceTimeout, TimeProvider.System)
                                 : new Secc20Ac(SequenceTimeout, TimeProvider.System);
+
+        secc20.PreferDynamicControlMode = preferDynamic;
+
         await secc20.RunAsync(stream, ct);
         return secc20.IsDone;
 
