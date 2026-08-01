@@ -26,6 +26,29 @@ namespace Vanaheimr.V2G.Tp
 
         public const int HeaderSize = 8;
 
+        /// <summary>
+        /// The largest payload a reader will allocate for. A <b>receive</b> limit, not a wire change.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The header's length is a 32-bit count supplied by the peer, so believing it means letting
+        /// whoever answered the socket choose an allocation of up to 4 GiB — out of one 8-byte frame
+        /// that carries no payload at all. On a phone that is an out-of-memory kill; the frame that
+        /// asked for it costs the sender nothing.
+        /// </para>
+        /// <para>
+        /// Nothing legitimate comes close. The largest frame in any recorded session is a -20
+        /// <c>AuthorizationReq</c> carrying a contract chain, at <b>921 bytes</b>; the largest EXI
+        /// vector in the corpus is 266. A megabyte is three orders of magnitude of headroom, so this
+        /// refuses only what no encoder here can produce.
+        /// </para>
+        /// <para>
+        /// Encoding is unaffected: a payload too large for its length field already fails at
+        /// <see cref="V2GTPDispatcher"/>. This is about what a reader will believe.
+        /// </para>
+        /// </remarks>
+        public const int MaximumPayloadBytes = 1 << 20;
+
         public static int WriteHeader(Span<byte> dest, ushort payloadType, uint payloadLength)
         {
             if (dest.Length < HeaderSize)

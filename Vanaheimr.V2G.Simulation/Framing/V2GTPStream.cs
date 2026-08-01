@@ -48,7 +48,15 @@ namespace Vanaheimr.V2G.Simulation.Framing
             if (!V2GTP.TryReadHeader(frame, out ushort payloadType, out uint payloadLength))
                 throw new InvalidDataException("V2GTP frame: bad version/type bytes in the 8-byte header.");
 
-            Array.Resize(ref frame, V2GTP.HeaderSize + checked((int)payloadLength));
+            // Before the allocation, not after. The length is the peer's word for how much memory to
+            // set aside, and `checked` would only turn the largest lies into an OverflowException
+            // while still honouring a 2 GiB one. See V2GTP.MaximumPayloadBytes.
+            if (payloadLength > V2GTP.MaximumPayloadBytes)
+                throw new InvalidDataException(
+                    $"V2GTP frame: a frame of payload type 0x{payloadType:x4} declares {payloadLength} " +
+                    $"payload byte(s); this reader accepts at most {V2GTP.MaximumPayloadBytes}.");
+
+            Array.Resize(ref frame, V2GTP.HeaderSize + (int)payloadLength);
             if (payloadLength > 0)
             {
                 try

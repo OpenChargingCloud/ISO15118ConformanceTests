@@ -85,5 +85,47 @@ namespace Vanaheimr.V2G.Simulation.Tests.Framing
             Assert.That(async () => await V2GTPStream.ReadFrameAsync(stream),
                 Throws.InstanceOf<InvalidDataException>());
         }
+
+        /// <summary>
+        /// A declared length nobody could mean is refused before it is allocated.
+        /// </summary>
+        /// <remarks>
+        /// The length field is the peer's word for how much memory to set aside, and the peer is
+        /// whatever answered the socket. Both values matter and for different reasons: 0x7FFFFFFF is
+        /// a 2 GiB allocation an 8-byte frame can ask for, and 0xFFFFFFFF is the one that a cast to
+        /// a signed int turns into a negative length — which in a reader without this check produces
+        /// a silently truncated frame instead of a refusal, and that is worse than a crash.
+        /// <para>
+        /// A receive limit, not a wire change: the largest frame in any recorded session is 921
+        /// bytes. See <see cref="V2GTP.MaximumPayloadBytes"/>.
+        /// </para>
+        /// </remarks>
+        [Test]
+        [TestCase(0x7FFFFFFFu)]
+        [TestCase(0xFFFFFFFFu)]
+        public void ReadRawFrameAsync_RefusesAnAbsurdDeclaredLengthRatherThanAllocatingForIt(uint declared)
+        {
+            var header = new byte[V2GTP.HeaderSize];
+            V2GTP.WriteHeader(header, V2GTP.PayloadType_DinIso2Main, declared);
+
+            using var stream = new MemoryStream(header);
+
+            Assert.That(async () => await V2GTPStream.ReadRawFrameAsync(stream),
+                Throws.InstanceOf<InvalidDataException>().With.Message.Contain("accepts at most"));
+        }
+
+        /// <summary>And the limit is far above anything the corpus contains.</summary>
+        [Test]
+        public async Task ReadRawFrameAsync_AcceptsAFrameAtTheLargestRecordedSize()
+        {
+            var payload = new byte[921 - V2GTP.HeaderSize];   // the -20 AuthorizationReq with a chain
+
+            using var stream = new MemoryStream();
+            await V2GTPStream.WriteRawFrameAsync(stream, V2GTP.PayloadType_Iso20Main, payload);
+            stream.Position = 0;
+
+            var (frame, _) = await V2GTPStream.ReadRawFrameAsync(stream);
+            Assert.That(frame, Has.Length.EqualTo(921));
+        }
     }
 }
