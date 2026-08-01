@@ -8,6 +8,11 @@ using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Simulation.Timing;
 using Vanaheimr.V2G.Tp;
 
+// Each -20 message set carries its own generated ResponseCode and V2GResponseType; RefuseOnFailure
+// has to see all three.
+using Ac20 = Vanaheimr.V2G.Iso15118_20.AC.Generated;
+using Dc20 = Vanaheimr.V2G.Iso15118_20.DC.Generated;
+
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
     /// <summary>The EV's verdict over a signed -20 <c>AbsolutePriceSchedule</c> in ScheduleExchangeRes:
@@ -288,9 +293,69 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             if (elapsed > perMessageTimeout)
                 throw new SessionAborted($"no response within {perMessageTimeout.TotalMilliseconds:0} ms (took {elapsed.TotalMilliseconds:0} ms).");
 
+            RefuseOnFailure(message);
+
             Exchanges++;
             BytesOnWire += V2GTP.HeaderSize + reqLen;
             return (set, message);
+        }
+
+
+        /// <summary>
+        /// Ends the session when the station answers with a code from the <c>FAILED</c> family.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Found live, not by reasoning.</b> Until 2026-08-01 nothing in the -20 EVCC looked at a
+        /// response code at all: <c>Expect&lt;T&gt;</c> checks the message set and the type, and the
+        /// cable-check loop watched only <c>EVSEProcessing</c>. eVDriveFlow answered
+        /// <c>DC_CableCheckRes</c> with <c>FAILED</c> and our car went on to PreCharge, PowerDelivery and
+        /// into the charge loop — a station could answer FAILED to every message of a session and we
+        /// would drive it to completion
+        /// (<c>docs/interop-runs/2026-08-01-edf-iso20-dc-notls/</c>).
+        /// </para>
+        /// <para>
+        /// The loopback suite could not have found this: our own SECC never answers FAILED, so no
+        /// recorded session and no trace replay contains one. It needed a station that says it.
+        /// </para>
+        /// <para>
+        /// <b>The three families.</b> <c>OK*</c> continues, <c>WARNING*</c> continues — a warning is
+        /// explicitly the code for "something is off and the session goes on" — and <c>FAILED*</c>
+        /// terminates. The comparison is <c>&gt;= FAILED</c> because the enumeration is ordered by family
+        /// in the schema (OK 0–4, WARNING 5–20, FAILED 21 and up), which
+        /// <c>Evcc20FailureHandlingTests.TheResponseCodeFamiliesAreContiguousAndOrdered</c> pins so a
+        /// regenerated enum cannot quietly move the boundary.
+        /// </para>
+        /// <para>
+        /// <b>Why it aborts rather than sending SessionStop.</b> A FAILED response is the station saying
+        /// it is done; the specification has the EVCC terminate, and sending a further message invites a
+        /// second error on a session that already has one. The CLI and the fixtures surface the
+        /// <see cref="SessionAborted"/> with the code in it, which is what a live run needs to read.
+        /// </para>
+        /// <para>
+        /// Each message set has its own generated <c>ResponseCode</c> and its own <c>V2GResponseType</c>
+        /// base, so all three are matched here. Anything without a code — the SupportedAppProtocol
+        /// handshake, a request — falls through untouched.
+        /// </para>
+        /// </remarks>
+        private static void RefuseOnFailure(object message)
+        {
+
+            var failure = message switch
+            {
+                V2GResponseType     r when r.ResponseCode >= ResponseCode.FAILED
+                    => r.ResponseCode.ToString(),
+                Ac20.V2GResponseType r when r.ResponseCode >= Ac20.ResponseCode.FAILED
+                    => r.ResponseCode.ToString(),
+                Dc20.V2GResponseType r when r.ResponseCode >= Dc20.ResponseCode.FAILED
+                    => r.ResponseCode.ToString(),
+                _   => null,
+            };
+
+            if (failure is not null)
+                throw new SessionAborted(
+                    $"the station answered {message.GetType().Name} with {failure}; the session ends here.");
+
         }
 
         // ISO 15118-20 energy-transfer service ids (Table 204): AC=1, DC=2, AC_BPT=5, DC_BPT=6.

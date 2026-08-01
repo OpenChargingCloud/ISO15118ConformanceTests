@@ -175,7 +175,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             throw new NotSupportedException("WeldingDetection has no handler for this energy-transfer mode.");
 
         /// <summary>One request in, one response out, and the next phase — the -20 analogue of <see cref="Iso2.Secc2.Handle"/>.</summary>
-        public (MessageSet Set, object Response) Handle(MessageSet set, object request)
+        /// <remarks>Virtual so a test station can answer as a foreign one does — a FAILED response code,
+        /// for instance, which no station of ours ever sends and which the EVCC therefore never met until
+        /// a live peer sent one (see <c>Evcc20FailureHandlingTests</c>).</remarks>
+        public virtual (MessageSet Set, object Response) Handle(MessageSet set, object request)
         {
             var now = clock.GetUtcNow();
             if (Phase is not Phase20.SessionSetup && now - _lastSeen > sequenceTimeout)

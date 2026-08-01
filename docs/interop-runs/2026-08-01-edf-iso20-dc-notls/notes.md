@@ -110,8 +110,22 @@ reason of its own, in virtual mode with no hardware — to make it visible. This
 `docs/CONCEPT.md` §1.3 describes: a conformance gap that lives in the state machine, does not announce
 itself, and is invisible to any oracle built from our own output.
 
-**Not fixed here.** Terminating on the FAILED family is a behaviour change to the EVCC and to its three
-ports, and it wants its own decision, its own tests and its own corpus entry.
+**Fixed on 2026-08-01, in all three languages.** `Evcc20Base.RefuseOnFailure` sits in the one place
+every -20 response passes through (`ExchangeRaw` / `exchangeRaw` / `exchangeRaw`), in C#, Kotlin and
+Swift alike. `OK*` and `WARNING*` continue — a warning is explicitly the code for "something is off and
+the session goes on" — and `FAILED*` ends the session with the message and the code in the error.
+
+It aborts rather than sending SessionStop: a FAILED response is the station saying it is done, and a
+further message invites a second error on a session that already has one.
+
+Each language got the same three tests, because the corpus cannot check any of this — no recorded
+response is a failure. Two of them are the behaviour; the third pins the enum's family ordering, since
+the check is a range test (`>= FAILED`) and a regenerated enum that interleaved the families would
+quietly turn failures back into successes.
+
+**Still open: the -2 EVCC has the same hole.** `Evcc2` records `SessionSetupCode` and checks no other
+response code. Out of scope for this fix, which was asked for and made for -20, and named here so it
+is not mistaken for done.
 
 ## How to reproduce
 
