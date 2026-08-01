@@ -169,7 +169,15 @@ internal static class SessionFlow
 
         // A response code that is not the ordinary one is the single most useful line in an interop
         // write-up, and it is easy to miss in a table of thirty rows.
-        var notable = responses.Where(s => s.ResponseCode is not null and not "OK" and not "OK_NewSessionEstablished")
+        // The successful codes, all of them. OK_SuccessfulNegotiation is the SupportedAppProtocol
+        // handshake's normal answer and listing it here put a green result at the top of the one section
+        // meant to hold only the things worth looking at — noise in exactly the wrong place.
+        var notable = responses.Where(s => s.ResponseCode is not null
+                                                         and not "OK"
+                                                         and not "OK_NewSessionEstablished"
+                                                         and not "OK_OldSessionJoined"
+                                                         and not "OK_SuccessfulNegotiation"
+                                                         and not "OK_CertificateExpiresSoon")
                                .ToList();
         if (notable.Count > 0)
         {
