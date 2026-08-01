@@ -357,16 +357,56 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1");
         }
 
+        /// <summary>
+        /// Whether this station advertises Plug &amp; Charge alongside EIM. Default <c>true</c>, which is
+        /// what every recorded session and the whole corpus contain.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Set to <c>false</c> and the station offers EIM only, with the EIM authorization-mode block and
+        /// no challenge, and stops advertising contract installation. Both forms are legal; which one a
+        /// station sends is a deployment choice, not a protocol one.
+        /// </para>
+        /// <para>
+        /// <b>Why the switch exists.</b> An EV is supposed to pick the service it can use out of the list
+        /// and ignore the rest. Not all of them do: eVDriveFlow's EVCC raises on the first entry it does
+        /// not support — <c>NotImplementedError</c> — even when the EIM it does support is the next entry
+        /// in the same list, which ends the session at authorization
+        /// (<c>docs/interop-runs/2026-08-01-edf-iso20-dc-dynamic-reverse/</c>). Offering less is how a
+        /// station gets past a car like that, and it is the only way to reach anything behind
+        /// authorization with such a peer.
+        /// </para>
+        /// <para>
+        /// Same shape and same reason as <see cref="PreferDynamicControlMode"/>: a legal choice among
+        /// legal alternatives, made switchable because a real counterparty forced the question. The
+        /// default is unchanged, so nothing that exists today sees a different wire.
+        /// </para>
+        /// </remarks>
+        public bool OfferPlugAndCharge { get; set; } = true;
+
+
         private AuthorizationSetupRes AuthSetup(AuthorizationSetupReq req)
         {
-            // Offer both EIM and Plug & Charge. A PnC-capable EV (e.g. a Josev EVCC with a contract cert) will
-            // pick PnC and sign its AuthorizationReq over this GenChallenge; our own loopback EVCC uses EIM. The
-            // challenge is a fresh 16 bytes the EV must echo back (ISO 15118-20 Table 62).
+            // The challenge is a fresh 16 bytes the EV must echo back in a PnC AuthorizationReq
+            // (ISO 15118-20 Table 62). Generated either way so the pinning seam behaves identically.
             _genChallenge = FixedGenChallenge ?? RandomNumberGenerator.GetBytes(16);
-            // The response's authorization-mode params are a *choice* (exactly one of EIM/PnC), so to enable
-            // PnC we send the PnC mode (with the challenge) and leave EIM null — while still advertising both
-            // in AuthorizationServices. An EIM-only EV (our loopback EVCC) ignores the mode block and sends
-            // EIM regardless; a PnC EV (Josev with a contract cert) reads the challenge and signs.
+
+            // The response's authorization-mode params are a *choice* (exactly one of EIM/PnC).
+            if (!OfferPlugAndCharge)
+                return new(SessionCtx.ToCommonHeader(), ResponseCode.OK,
+                    new[] { Authorization.EIM },
+                    // No PnC on offer, so no contract provisioning either: an EV that took the offer up
+                    // would be installing a certificate for an authorization method this station just
+                    // said it does not do.
+                    CertificateInstallationService: false,
+                    EIM_ASResAuthorizationMode: new EIM_ASResAuthorizationModeType(),
+                    PnC_ASResAuthorizationMode: null);
+
+            // Offer both EIM and Plug & Charge. A PnC-capable EV (e.g. a Josev EVCC with a contract cert) will
+            // pick PnC and sign its AuthorizationReq over this GenChallenge; our own loopback EVCC uses EIM.
+            // To enable PnC we send the PnC mode (with the challenge) and leave EIM null — while still
+            // advertising both in AuthorizationServices. An EIM-only EV (our loopback EVCC) ignores the mode
+            // block and sends EIM regardless; a PnC EV (Josev with a contract cert) reads the challenge and signs.
             return new(SessionCtx.ToCommonHeader(), ResponseCode.OK,
                 new[] { Authorization.PnC, Authorization.EIM },
                 // Contract provisioning is offered: an EV that needs a contract cert (e.g. a Josev EVCC with

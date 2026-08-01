@@ -140,6 +140,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
                     ? new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System)
                     : new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
                 secc.PreferDynamicControlMode = args.PreferDynamic;
+                secc.OfferPlugAndCharge       = !args.NoPnc;
                 secc.ResumeSessionId = resumeId;
                 secc.RequestRenegotiation = args.Renegotiate;
                 if (args.TariffCertPath is not null)

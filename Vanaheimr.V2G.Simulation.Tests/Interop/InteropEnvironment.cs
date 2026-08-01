@@ -21,6 +21,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop;
 ///   <item><term><c>V2G_INTEROP_MODE</c></term><description><c>ac</c> (default) or <c>dc</c>.</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS</c></term><description><c>1</c> to run TLS, accepting any server
 ///         certificate. Development only.</description></item>
+///   <item><term><c>V2G_INTEROP_NO_PNC</c></term><description><c>1</c> to advertise EIM only (-20).</description></item>
 ///   <item><term><c>V2G_INTEROP_RECORD</c></term><description>a directory for the artifacts — see
 ///         <see cref="InteropRecording"/>. Unset means a run that leaves nothing behind.</description></item>
 /// </list>
@@ -71,6 +72,18 @@ internal static class InteropEnvironment
     /// <c>V2G_INTEROP_DYNAMIC=1</c>.</summary>
     public static Boolean PreferDynamic()
         => Environment.GetEnvironmentVariable("V2G_INTEROP_DYNAMIC") == "1";
+
+
+    /// <summary>
+    /// -20 only: <c>V2G_INTEROP_NO_PNC=1</c> makes our station advertise EIM only.
+    /// </summary>
+    /// <remarks>
+    /// For a counterparty whose EV cannot ignore an authorization service it does not support. Both
+    /// offers are legal; see <c>Secc20Base.OfferPlugAndCharge</c> and
+    /// <c>docs/interop-runs/2026-08-01-edf-iso20-dc-dynamic-reverse/</c>.
+    /// </remarks>
+    public static Boolean OfferPlugAndCharge()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_NO_PNC") != "1";
 
 
     public static (ProtocolVariant Protocol, PowerMode Mode) ProtocolAndMode()

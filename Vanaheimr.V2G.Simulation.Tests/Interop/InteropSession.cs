@@ -50,12 +50,15 @@ internal static class InteropSession
     }
 
 
+    /// <param name="offerPlugAndCharge">-20 only: advertise Plug &amp; Charge alongside EIM. False narrows the
+    /// offer to EIM, for an EV that cannot ignore a service it does not support.</param>
     /// <param name="preferDynamic">-20 only: offer the Dynamic (ControlMode 2) parameter set first. An EV
     /// that takes the first offered set then runs a Dynamic session — which is the mode eVDriveFlow works
     /// in, and the one that drives schedule renegotiation. Ignored for -2, which has no control modes.</param>
     /// <returns>Whether our station reached the terminal session state.</returns>
     public static async Task<Boolean> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
-                                                   CancellationToken ct, Boolean preferDynamic = false)
+                                                   CancellationToken ct, Boolean preferDynamic = false,
+                                                   Boolean offerPlugAndCharge = true)
     {
 
         if (protocol == ProtocolVariant.Iso15118_2)
@@ -70,6 +73,7 @@ internal static class InteropSession
                                 : new Secc20Ac(SequenceTimeout, TimeProvider.System);
 
         secc20.PreferDynamicControlMode = preferDynamic;
+        secc20.OfferPlugAndCharge       = offerPlugAndCharge;
 
         await secc20.RunAsync(stream, ct);
         return secc20.IsDone;

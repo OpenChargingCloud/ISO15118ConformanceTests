@@ -120,6 +120,7 @@ public class EverestInteropTests
         var (protocol, mode) = InteropEnvironment.ProtocolAndMode();
         var (protocolName, modeName) = InteropEnvironment.ProtocolAndModeNames();
         var preferDynamic    = InteropEnvironment.PreferDynamic();
+        var offerPnc         = InteropEnvironment.OfferPlugAndCharge();
 
         var recording = InteropRecording.FromEnvironment($"everest-{protocolName}-{modeName}-reverse");
 
@@ -137,7 +138,7 @@ public class EverestInteropTests
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic);
+            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc);
 
             Assert.That(isDone, Is.True, "our SECC drove their EV to the terminal session state");
         }

@@ -13,12 +13,14 @@ namespace Vanaheimr.V2G.Simulation.Cli
     ///   <item><c>--sdp</c> — discover/advertise the endpoint via SDP on <c>--interface</c> instead of a fixed one.</item>
     ///   <item><c>--dynamic</c> — SECC, -20 only: advertise the Dynamic (ControlMode=2) parameter set first,
     ///         so an EV that takes the first offered set (e.g. Josev) runs a Dynamic-mode session.</item>
+    ///   <item><c>--no-pnc</c> — SECC, -20 only: advertise EIM only instead of EIM + Plug &amp; Charge, for
+    ///         an EV that cannot ignore a service it does not support (see <c>Secc20Base.OfferPlugAndCharge</c>).</item>
     /// </list>
     /// </summary>
     public sealed record CliArgs(
         Role Role, string? ConnectHost, int ConnectPort, int ListenPort,
         ProtocolVariant Protocol, PowerMode Mode, TlsBackend TlsBackend,
-        bool UseSdp, string? Interface, bool PreferDynamic,
+        bool UseSdp, string? Interface, bool PreferDynamic, bool NoPnc,
         bool UseSlac, int SlacListenPort, string? SlacPeerHost, int SlacPeerPort,
         string? PkiDir, string? ClientCertPath, string? ClientCertPass,
         string? ServerCertPath, string? ServerCertPass, bool RequireClientCert,
@@ -38,6 +40,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             var mode = PowerMode.Ac;
             var backend = TlsBackend.None;
             bool tls = false;
+            bool noPnc = false;
             bool useSdp = false, useSlac = false, requireClientCert = false, preferDynamic = false, pauseResume = false, endPaused = false, renegotiate = false;
             string? resumeSessionIdHex = null;
             string? iface = null, slacPeerHost = null, pkiDir = null, clientCertPath = null, clientCertPass = null;
@@ -87,6 +90,11 @@ namespace Vanaheimr.V2G.Simulation.Cli
                         break;
                     case "--dynamic":
                         preferDynamic = true;
+                        break;
+                    // Offer EIM only. Legal either way; some EVs cannot cope with a list containing a
+                    // service they do not support — see Secc20Base.OfferPlugAndCharge.
+                    case "--no-pnc":
+                        noPnc = true;
                         break;
                     case "--interface":
                         iface = args[++i];
@@ -154,7 +162,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             Validate(role, connectHost, listenPort, backend, useSdp, iface, useSlac, slacListenPort, slacPeerHost, pkiDir);
 
             return new CliArgs(role, connectHost, connectPort, listenPort, protocol, mode, backend,
-                               useSdp, iface, preferDynamic, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
+                               useSdp, iface, preferDynamic, noPnc, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
                                clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert,
                                contractCertPath, contractCertPass, pauseResume, endPaused, resumeSessionIdHex, renegotiate,
                                tariffCertPath, tariffCertPass);
@@ -211,6 +219,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             "         evcc --client-cert <pfx> [--client-cert-pass <pw>]  (mutual TLS on the .NET backend)\n" +
             "         secc --server-cert <pfx> [--server-cert-pass <pw>] [--require-client-cert]  (.NET backend)\n" +
             "  SDP:   --sdp --interface <name>          (discover/advertise instead of a fixed endpoint)\n" +
+            "  Auth:  secc --no-pnc                     (-20: advertise EIM only, not EIM + Plug & Charge)\n" +
             "  Mode:  secc --dynamic                    (-20: offer the Dynamic control-mode parameter set first)\n" +
             "  PnC:   evcc --contract-cert <pfx> [--contract-cert-pass <pw>]  (-2/-20: signed Plug & Charge auth)\n" +
             "  Pause: evcc --pause-resume    (pause after the charge loop, reconnect, rejoin the old session)\n" +

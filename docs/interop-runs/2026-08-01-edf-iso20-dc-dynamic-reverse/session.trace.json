@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "evdriveflow-dc-reverse",
+  "protocol": "iso15118-20",
+  "mode": "dc",
+  "note": "live interop: EDF-Lab/eVDriveFlow\u0027s EV against our SECC (Dynamic control mode)",
+  "signingKey": null,
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040",
+        "signature": null
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040",
+        "signature": null
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupReq",
+        "frame": "01fe800200000027808c0418181818181818180c989b9d30620b22a2232b23291899199a1a9b1b9c1cad2d2d2d1c00",
+        "signature": null
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupRes",
+        "frame": "01fe80020000001d809004311b46b610104a7c0c989b9d30620402d1114a905090ca914c40",
+        "signature": null
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupReq",
+        "frame": "01fe800200000011800804311b46b610104a7c0c989b9d3062",
+        "signature": null
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupRes",
+        "frame": "01fe800200000026800c04311b46b610104a7c0c989b9d3062002012087866a6bdc4ad528f555c9b5a8c21388310",
+        "signature": null
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionStopReq",
+        "frame": "01fe800200000012809404311b46b610104a7c0c989b9d306228",
+        "signature": null
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionStopRes",
+        "frame": "01fe800200000013809804311b46b610104a7c0c989b9d30620000",
+        "signature": null
+      }
+    }
+  ]
+}
