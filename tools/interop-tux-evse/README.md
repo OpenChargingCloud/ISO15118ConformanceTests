@@ -60,9 +60,28 @@ So the verdicts are:
 
 | Signal | What it means |
 |---|---|
-| Our fixture's assertion (`isDone`) | our SECC drove the session to its terminal state — **this is our verdict** |
-| Their transaction log | which of *their* recorded expectations matched; a mismatch is a lead, not a defect |
-| The recording (below) | what actually crossed the wire — the only thing worth arguing from afterwards |
+| **The flow report** (`*.flow.md`, below) | which messages crossed, in which order, with which response codes, and how that compares with the sequence their scenario declares — **this is the verdict worth reading** |
+| Our fixture's assertion (`isDone`) | our SECC reached its terminal state. Necessary, and coarse: a session can end correctly and still have taken a route no car would take |
+| Their transaction log | which of *their* recorded expectations matched; a field mismatch is a lead, not a defect |
+| The recording | what actually crossed the wire — the only thing worth arguing from afterwards |
+
+The scenario file is not only a list of things to send: it is **a declared flow**, lifted from a real
+capture, with the real gaps between the messages. Point the fixture at it and the flow report says
+where our session and that capture's session diverge:
+
+```bash
+V2G_INTEROP_SCENARIO=/usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json
+```
+
+Consecutive repeats are collapsed on both sides before the comparison, and that is not a nicety: a
+charging session polls CurrentDemand while their `basic`/`strong` compaction names it once, so an
+uncollapsed diff would report the poll loop as forty insertions and bury whatever the real difference
+was. Counts are reported separately, as counts.
+
+Their verb vocabulary is a hand-kept table in `TuxEvseScenario.Vocabulary`, not a snake_case
+conversion — `payment_selection_req` is `PaymentServiceSelectionReq`, `param_discovery_req` is
+`ChargeParameterDiscoveryReq`, `app_proto_req` is the SupportedAppProtocol handshake. A verb not in
+the table is named in the report and left out of the comparison, rather than guessed at.
 
 Run [`scenario-expectations.py`](scenario-expectations.py) over the scenario file **before** the run to
 list which expectations are station-specific, so the noise is known up front:
@@ -141,6 +160,7 @@ Or through the fixture, which additionally **records the session**:
 ```bash
 V2G_INTEROP_LISTEN=55000 V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/tux-run \
+V2G_INTEROP_SCENARIO=/usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json \
   dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
     --filter "FullyQualifiedName~TuxEvseInteropTests.TheirInjector"
 ```
@@ -162,6 +182,7 @@ Or through the fixture:
 ```bash
 V2G_INTEROP_SECC='[fe80::…%evcc-veth]:64109' V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/tux-run \
+V2G_INTEROP_SCENARIO=/usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json \
   dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
     --filter "FullyQualifiedName~TuxEvseInteropTests.OurEvcc"
 ```
@@ -193,12 +214,16 @@ Set `V2G_INTEROP_RECORD=<dir>` on any of the fixtures. Every run leaves:
 | File | What it is |
 |---|---|
 | `*.ev-to-station.bin`, `*.station-to-ev.bin` | the raw octets of each direction, always written |
-| `*.frames.log` | frame by frame: index, payload type, length, hex — including any trailing bytes that never became a frame |
+| `*.frames.log` | frame by frame: index, **message name**, response code, payload type, length, hex — including any trailing bytes that never became a frame |
+| `*.flow.md` | the session as a flow: the paired sequence, every response code that was not OK, and the comparison against `V2G_INTEROP_SCENARIO` when one was given |
 | `*.trace.json` | a `SessionTrace`, **if** the session was well-formed enough to be one |
 | `*.trace-not-built.txt` | why it was not, when it was not |
 
 The point of the split is that the run which *fails* is the interesting one, and it is exactly the run
-whose recording a strict corpus builder refuses. Bytes first, always.
+whose recording a strict corpus builder refuses. Bytes first, always — and the frame log and the flow
+report are built from the frames rather than from the trace, so a session that stopped in the middle
+still says which message it stopped on. That was the first thing this harness got wrong: the artifact
+a failed run leaves behind was the one without names.
 
 A `trace.json` from a run is not just an artifact: it is in the format all four back ends replay, so a
 session captured against their simulator can become a corpus entry that C#, Kotlin, Swift and TypeScript

@@ -18,10 +18,16 @@ Each directory should contain:
 The `[Explicit] [Category("Interop")]` fixtures write these artifacts themselves when
 `V2G_INTEROP_RECORD=<dir>` is set — see
 [`Vanaheimr.V2G.Simulation.Tests/Interop/InteropRecording.cs`](../../Vanaheimr.V2G.Simulation.Tests/Interop/InteropRecording.cs).
-Per run: the raw octets of each direction, a `frames.log`, and a `*.trace.json` in the same format as
-`Vectors/Session.*.trace.json` when the session was strictly alternating and untruncated. When it was
-not, a `trace-not-built.txt` says why and the bytes are there anyway — the failed run is the
-interesting one, and it is precisely the one a strict corpus builder refuses.
+Per run: the raw octets of each direction, a `frames.log` (named messages and response codes, not just
+payload types), a `flow.md`, and a `*.trace.json` in the same format as `Vectors/Session.*.trace.json`
+when the session was strictly alternating and untruncated. When it was not, a `trace-not-built.txt`
+says why and the bytes are there anyway — the failed run is the interesting one, and it is precisely
+the one a strict corpus builder refuses.
+
+`flow.md` is the one to paste into `notes.md`: the paired message sequence, every response code that
+was not OK, and — when `V2G_INTEROP_SCENARIO` points at a counterparty scenario file — how the order
+compares with the flow that scenario declares. That comparison is the part of interop a vector corpus
+can never do, and it is where §1.3's conformance fixes live.
 
 A recorded `trace.json` can be adopted as a corpus entry, which is how a conformance fix earned in a
 one-off run becomes something all four back ends are held to. That is a deliberate step, not

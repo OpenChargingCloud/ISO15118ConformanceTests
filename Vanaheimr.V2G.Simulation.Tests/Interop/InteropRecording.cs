@@ -54,6 +54,34 @@ internal sealed class InteropRecording
         => Directory is { } dir ? new InteropRecording(dir, name) : null;
 
 
+    /// <summary>
+    /// The flow the counterparty's scenario file declares, when <c>V2G_INTEROP_SCENARIO</c> points at one.
+    /// </summary>
+    /// <remarks>
+    /// Optional, and a file that cannot be read is reported in the flow report rather than failing the
+    /// run: an unreadable scenario is a reason to lose the comparison, never a reason to lose the session.
+    /// </remarks>
+    public static TuxEvseScenario? DeclaredFlow()
+    {
+
+        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_SCENARIO");
+        if (String.IsNullOrWhiteSpace(path))
+            return null;
+
+        try
+        {
+            return TuxEvseScenario.ReadFrom(path);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"V2G_INTEROP_SCENARIO='{path}' could not be read, so the flow report will " +
+                              $"have nothing to compare against: {e.Message}");
+            return null;
+        }
+
+    }
+
+
     /// <summary>Wraps the session's stream. Everything in both directions is kept.</summary>
     public Stream Tap(Stream inner)
         => tap = new RecordingStream(inner);
@@ -85,6 +113,15 @@ internal sealed class InteropRecording
         Write("station-to-ev.bin", path => File.WriteAllBytes(path, stationToEv));
         Write("frames.log",        path => File.WriteAllText(path, FrameLog(evToStation, stationToEv),
                                                              new UTF8Encoding(false)));
+
+        // The reading of the run, as opposed to the evidence for it. Written from the frames rather than
+        // from the trace, so a session that ended badly still has one — that is the session whose order of
+        // messages somebody most wants to see.
+        Write("flow.md", path => File.WriteAllText(path,
+            SessionFlow.Report(SplitAsFarAsPossible(evToStation).Frames,
+                               SplitAsFarAsPossible(stationToEv).Frames,
+                               DeclaredFlow()),
+            new UTF8Encoding(false)));
 
         try
         {
@@ -133,13 +170,15 @@ internal sealed class InteropRecording
             log.AppendLine();
             log.AppendLine($"## {label}: {bytes.Length} byte(s), {frames.Count} frame(s)");
 
-            for (var i = 0; i < frames.Count; i++)
-            {
-                var frame = frames[i];
-                V2GTP.TryReadHeader(frame, out var payloadType, out _);
-                log.AppendLine($"[{i}] payloadType=0x{payloadType:X4} bytes={frame.Length}");
-                log.AppendLine($"    {Convert.ToHexString(frame).ToLowerInvariant()}");
-            }
+            // Named, not just typed. This file is what a run that produced no trace leaves behind, and a
+            // list of payload types and hex is the wrong artifact for the only question anybody asks of a
+            // session that stopped in the middle: which message was it on?
+            foreach (var step in SessionFlow.Of(frames))
+                log.AppendLine($"[{step.Index}] {step.Message}" +
+                               (step.ResponseCode is { } code ? $" ({code})" : "") +
+                               $" payloadType={step.PayloadType} bytes={step.Bytes}" +
+                               Environment.NewLine +
+                               $"    {Convert.ToHexString(frames[step.Index]).ToLowerInvariant()}");
 
             if (leftover.Length > 0)
             {

@@ -2,8 +2,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Vanaheimr.V2G.AppProtocol;
-using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Traces;
@@ -171,38 +169,9 @@ public sealed record SessionTrace(
         // mean decoding them with the wrong codec.
         var signature = isSap ? null : SignedFrame.SignatureValueOf(frame);
 
-        return new TraceFrame($"0x{payloadType:X4}", Label(frame, isSap),
+        return new TraceFrame($"0x{payloadType:X4}", FrameLabel.Describe(frame, isSap).Message,
                               Convert.ToHexString(frame).ToLowerInvariant(),
                               signature is null ? null : Convert.ToHexString(signature).ToLowerInvariant());
-    }
-
-
-    /// <summary>Best-effort name for the message in a frame. Only ever used in failure text, so a frame
-    /// that will not decode is labelled rather than fatal — the bytes are still worth recording, and a
-    /// codec that cannot read back what the session just sent is a finding for a different test.</summary>
-    private static string Label(byte[] frame, bool isSap)
-    {
-        try
-        {
-
-            if (isSap)
-                return SupportedAppProtocolCodec.DecodeAny(frame.AsSpan(V2GTP.HeaderSize), out _)
-                                                .GetType().Name;
-
-            if (!V2GTPDispatcher.TryDecode(frame, out _, out var message, out _) || message is null)
-                return "undecodable";
-
-            // -2 wraps everything in V2G_Message; the interesting name is the body element. The -20 sets
-            // decode straight to the concrete message type.
-            return message is V2G_Message v2g
-                       ? v2g.Body.BodyElement?.GetType().Name ?? "V2G_Message(empty body)"
-                       : message.GetType().Name;
-
-        }
-        catch (Exception e)
-        {
-            return $"undecodable({e.GetType().Name})";
-        }
     }
 
 

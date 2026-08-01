@@ -177,9 +177,24 @@ public class InteropRecordingTests
                         Has.Length.EqualTo(trace.Exchanges.Take(4).Sum(e => e.Response.Bytes.Length) - 5));
 
             var log = File.ReadAllText(Artifact(written, "frames.log"));
-            Assert.That(log, Does.Contain("[3] payloadType=0x8001"), "the frames that did arrive are listed");
+
+            // By name, not just by payload type. On a session that stopped in the middle this file is all
+            // there is, and "which message was it on" is the only question anybody asks of it.
+            Assert.That(log, Does.Contain("[3] PaymentServiceSelectionReq payloadType=0x8001"),
+                        "the frames that did arrive are listed, and named");
             Assert.That(log, Does.Contain("trailing byte(s) that are not a complete frame"),
                         "and the tail that did not is the most useful line in the file");
+
+            // The flow report is written from the frames, so an aborted session still has one — and the
+            // row where it stopped is the row that says so.
+            var flow = File.ReadAllText(Artifact(written, "flow.md"));
+            Assert.That(flow, Does.Contain("| 1 | SessionSetupReq | SessionSetupRes | OK_NewSessionEstablished |"));
+            Assert.That(flow, Does.Contain("| 3 | PaymentServiceSelectionReq | — (no answer) |"),
+                        "the response that never completed is shown as missing rather than omitted");
+
+            // The handshake's own code, which the hand-written SAP codec calls 'Code' rather than
+            // 'ResponseCode' — and which is the first thing an interop session can fail on.
+            Assert.That(flow, Does.Contain("| 0 | SupportedAppProtocolReq | SupportedAppProtocolRes | OK_"));
         });
 
     }
