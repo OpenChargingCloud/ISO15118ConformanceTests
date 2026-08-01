@@ -1,13 +1,13 @@
 # Roadmap & status
 
-Last updated: **2026-07-25**. Authoritative per-phase detail lives in
+Last updated: **2026-08-02**. Authoritative per-phase detail lives in
 [`docs/prompts/`](prompts/README.md) (the phase prompts + their status table) and the
 [`README.md`](../README.md); this file is the bird's-eye plan and the "why".
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 1116 tests are green**
-(`dotnet test -c Release`, measured 2026-08-01: 911 in `Vanaheimr.V2G.Exi.Tests`, 197 in
+**All phases (0–5) are complete.** The solution builds cleanly and **all 1126 tests are green**
+(`dotnet test -c Release`, measured 2026-08-02: 911 in `Vanaheimr.V2G.Exi.Tests`, 207 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
 toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
 `[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
@@ -37,9 +37,15 @@ scorecard + honest-gaps ledger) and the per-run write-ups under [`docs/interop-r
 
 The scope of that claim is worth stating precisely: **validated against Josev**, which is one live peer.
 Two peers of the same lineage cannot show what they have agreed to be wrong about, and ~15 fixes from
-the first one is a reason to expect more from the second. Harnesses for three further counterparties are
-written and **have not been run** — see [Live counterparties beyond Josev](#live-counterparties-beyond-josev)
-for what each would prove, and [What remains](#what-remains) for what is blocking them.
+the first one was a reason to expect more from the second.
+
+**There were more.** The second peer — eVDriveFlow, run on 2026-08-01 — found in its first thirteen
+messages that neither EVCC read a response code at all, in either protocol or any of the three
+languages: a station could answer `FAILED` to everything and the car would charge through it. Fixed the
+same day; see [Response-code handling](#-response-code-handling-2026-08-01). Harnesses for tux-evse and
+EVerest are written and **have not been run** — see
+[Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each would prove, and
+[What remains](#what-remains) for what is blocking them.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -51,7 +57,9 @@ for what each would prove, and [What remains](#what-remains) for what is blockin
 | 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop, PnC/cert-install/pause/renegotiation/tariffs live) | ✅ **done** |
 
 **Beyond the phases** — three additions outside the original roadmap, each honest about its own limits;
-detail and what stays parked in [Completed extras](#completed-extras):
+detail and what stays parked in [Completed extras](#completed-extras), which also records the one
+*correction* that came from outside the plan entirely
+([response-code handling](#-response-code-handling-2026-08-01), found by a live peer):
 
 | Addition | Status |
 |---|---|
@@ -92,12 +100,12 @@ Everything the roadmap targeted is done — see [`phase5-report.md`](phase5-repo
 scorecard. What is left over is either a **structural non-goal** (no independent counterpart exists to
 validate against), a small cleanup, or — since 2026-08-01 — a run that has not happened yet:
 
-**⬜ Run the three new counterparties.** Harnesses exist for
+**⬜ Run the two counterparties that still have not been run.** Harnesses exist for
 [tux-evse](../tools/interop-tux-evse/README.md), [eVDriveFlow](../tools/interop-evdriveflow/README.md)
-and [EVerest](../tools/interop-everest/README.md), with `[Explicit]` fixtures, a recorder and a flow
-report — and **not one byte has crossed between our stack and any of the three**. Josev is still the only
-counterparty with recorded sessions. Everything checked so far is what was checkable without a peer, so
-nothing here should be read as an interop result. What each run would prove, and what it cannot, is in
+and [EVerest](../tools/interop-everest/README.md). **eVDriveFlow has been run** — twice, on 2026-08-01,
+and it paid for itself immediately (see [Response-code handling](#-response-code-handling-2026-08-01)
+below). **tux-evse and EVerest have not**, so nothing about either should be read as an interop result.
+What each run would prove, and what it cannot, is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
 
 The blocker is a machine, not code: tux-evse needs Linux veth pairs and podman, EVerest a full
@@ -192,6 +200,33 @@ differs for all our message sets) and outside `dotnet test` since it needs Java;
 amendment *text*, which we don't have — guessing is exactly what the ground rule forbids); the SAE
 `DER_*` members (four mandatory limit structures, worth building once there's an encode-side oracle).
 EVerest doesn't implement AC DER either, so there is no live counterpart.
+
+#### ✅ Response-code handling (2026-08-01)
+
+Not an addition so much as a hole closed, and it belongs here because nothing in the roadmap predicted
+it: **neither EVCC ever looked at a `ResponseCode`.** `Expect<T>` checked the message set and the type;
+the -2 side recorded `SessionSetupCode` for the caller and acted on nothing. A station could answer
+`FAILED` to every message of a session and our car would drive it to completion — which is exactly what
+happened when eVDriveFlow's SECC answered `DC_CableCheckRes` with `FAILED` and we went on through
+PreCharge, PowerDelivery and into the charge loop.
+
+`RefuseOnFailure` now sits in the one place every response passes through, in **-2 and -20** and in
+**C#, Kotlin and Swift**. `OK*` and `WARNING*` continue — `WARNING` is explicitly the code for
+"something is off and the session goes on", and aborting on it would turn an expiring certificate into
+a refused charge — and `FAILED*` ends the session with the message and the code in the error. It aborts
+rather than sending SessionStop: a FAILED response is the station saying it is done.
+
+Two shapes, because the two schemas differ. -20 has a common `V2GResponseType` base per message set, so
+the check is typed. -2 has none — every `*ResType` declares its own code — so it is read by property
+name, and `Evcc2FailureHandlingTests.EveryResponseTypeIsCheckable` enumerates the generated assembly to
+prove every response carries one. A hand-written switch would have been *fail-open*: the one forgotten,
+or the one added later, silently unchecked.
+
+**Why no oracle here could have found it.** Every recorded response in the trace corpus was produced by
+our own SECC, and our own SECC never says FAILED. The corpus is silent on this by construction, and so
+is every replay built on it. It took a station that says it — which is the §1.3 argument in one
+paragraph, arrived at the hard way. Full account:
+[`docs/interop-runs/2026-08-01-edf-iso20-dc-notls/`](interop-runs/2026-08-01-edf-iso20-dc-notls/notes.md).
 
 #### ✅ MCS — Megawatt Charging System (2026-07-25)
 
@@ -347,8 +382,8 @@ counterparties — is [below](#live-counterparties-beyond-josev)):
 
 ### Live counterparties beyond Josev
 
-*(harnesses built 2026-08-01; **none of the three has been run against yet** — Josev remains the only
-counterparty with recorded sessions under `docs/interop-runs/`)*
+*(harnesses built 2026-08-01. **eVDriveFlow has been run**, twice, on 2026-08-01 — see
+`docs/interop-runs/2026-08-01-edf-*`. tux-evse and EVerest have not.)*
 
 Josev was one live peer, and one live peer cannot show what two implementations of the *same* lineage
 have agreed to be wrong about. These three extend that, and they do not extend it equally — the useful
