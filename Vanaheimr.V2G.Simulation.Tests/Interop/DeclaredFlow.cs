@@ -26,10 +26,15 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop;
 /// <param name="Source">Where it came from, in words — a reader of an interop write-up should never have
 /// to work out whether the expected column was somebody else's capture or our own recording.</param>
 /// <param name="Messages">The messages expected on the wire, EV → station, in order.</param>
+/// <param name="Responses">The same for station → EV, when the source declares them. Empty when it does
+/// not, and then that half of the comparison is simply not made — which is better than comparing against
+/// an assumption. <b>This half is the interesting one for a station-side counterparty</b>: against
+/// EVerest's <c>EvseV2G</c> what is new is not what our car sends but what their charger answers.</param>
 /// <param name="UnknownVerbs">Anything in the source this build could not map, named rather than dropped.</param>
 internal sealed record DeclaredFlow(String                Name,
                                     String                Source,
                                     IReadOnlyList<String> Messages,
+                                    IReadOnlyList<String> Responses,
                                     IReadOnlyList<String> UnknownVerbs)
 {
 
@@ -75,6 +80,14 @@ internal sealed record DeclaredFlow(String                Name,
         return new DeclaredFlow(scenario.Name,
                                 "a tux-evse scenario — a real session, captured and replayed",
                                 scenario.ExpectedMessages,
+                                // Req → Res is mechanical in ISO 15118's own naming, and this substitution
+                                // stays inside *our* vocabulary rather than guessing at theirs: the request
+                                // name came from the hand-kept table, and only the suffix is changed.
+                                scenario.ExpectedMessages
+                                        .Select(m => m.EndsWith("Req", StringComparison.Ordinal)
+                                                         ? $"{m[..^3]}Res"
+                                                         : m)
+                                        .ToList(),
                                 scenario.UnknownVerbs);
     }
 
@@ -86,6 +99,7 @@ internal sealed record DeclaredFlow(String                Name,
         return new DeclaredFlow($"{trace.Name} ({trace.Protocol}, {trace.Mode})",
                                 "our own recorded session — the route this stack takes, not a conformance claim",
                                 trace.Exchanges.Select(e => FrameLabel.Canonical(e.Request.Message)).ToList(),
+                                trace.Exchanges.Select(e => FrameLabel.Canonical(e.Response.Message)).ToList(),
                                 []);
     }
 

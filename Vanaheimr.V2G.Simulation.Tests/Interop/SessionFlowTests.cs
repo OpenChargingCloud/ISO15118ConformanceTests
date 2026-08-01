@@ -321,25 +321,35 @@ public class SessionFlowTests
     }
 
 
-    /// <summary>The same comparison, with a message removed from the wire — it has to bite.</summary>
+    /// <summary>
+    /// The same comparison with a phase removed from the wire — in both directions, because both are
+    /// compared.
+    /// </summary>
+    /// <remarks>
+    /// The station half is the one that matters for a counterparty that <i>is</i> a station: what our car
+    /// sends is ours and already pinned by the corpus, while what their charger answers is the thing no
+    /// test here has ever seen.
+    /// </remarks>
     [Test]
-    public void AMissingPhaseShowsUpAsADivergence()
+    public void AMissingPhaseShowsUpAsADivergenceInBothDirections()
     {
 
-        var trace  = Corpus("iso2-dc-eim");
+        var trace = Corpus("iso2-dc-eim");
 
         // Drop the cable check, the way a station that skipped a phase would.
-        var frames = trace.Exchanges
-                          .Where (e => !e.Request.Message.StartsWith("CableCheck", StringComparison.Ordinal))
-                          .Select(e => e.Request.Bytes)
-                          .ToList();
+        var kept = trace.Exchanges
+                        .Where(e => !e.Request.Message.StartsWith("CableCheck", StringComparison.Ordinal))
+                        .ToList();
 
-        var report = SessionFlow.Report(frames, [], DeclaredFlow.FromTuxEvseScenario(ShippedShape));
+        var report = SessionFlow.Report(kept.Select(e => e.Request.Bytes).ToList(),
+                                        kept.Select(e => e.Response.Bytes).ToList(),
+                                        DeclaredFlow.FromTuxEvseScenario(ShippedShape));
 
         Assert.Multiple(() =>
         {
             Assert.That(report, Does.Contain("CableCheckReq   (in the scenario, never on the wire)"));
-            Assert.That(report, Does.Contain("1 divergence(s) in the order."));
+            Assert.That(report, Does.Contain("CableCheckRes   (in the reference, never answered)"));
+            Assert.That(report, Does.Contain("2 divergence(s) in the order."));
         });
 
     }

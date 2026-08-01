@@ -4,8 +4,9 @@ One directory per successful (or informative) interop run, named
 `<yyyy-mm-dd>-<scenario>/` (e.g. `2026-08-01-iso2-ac-eim-notls/`; prefix the counterparty when it is
 not Josev, e.g. `2026-08-01-tux-iso2-dc-notls/`, `2026-08-01-edf-iso20-dc-dynamic/`). See
 [`tools/interop-josev/`](../../tools/interop-josev/README.md),
-[`tools/interop-tux-evse/`](../../tools/interop-tux-evse/README.md) and
-[`tools/interop-evdriveflow/`](../../tools/interop-evdriveflow/README.md) for how to produce them.
+[`tools/interop-tux-evse/`](../../tools/interop-tux-evse/README.md),
+[`tools/interop-evdriveflow/`](../../tools/interop-evdriveflow/README.md) and
+[`tools/interop-everest/`](../../tools/interop-everest/README.md) for how to produce them.
 
 Each directory should contain:
 
@@ -35,9 +36,14 @@ The reference can be either kind of file, told apart by structure:
 - **a counterparty's scenario** (tux-evse), which is a real session captured and replayed — so the
   expected column is another car's route;
 - **one of our own `Vectors/Session.*.trace.json`**, for a counterparty that publishes no such file
-  (eVDriveFlow is a state machine, not a replayer). Then the comparison answers "did the live run take
-  the same route as ours" — not a conformance claim, and against a Dynamic-mode -20 peer it has every
-  reason to say no. The divergence is the result.
+  (eVDriveFlow and EVerest are stacks, not replayers). Then the comparison answers "did the live run
+  take the same route as ours" — not a conformance claim, and against a Dynamic-mode -20 peer it has
+  every reason to say no. The divergence is the result.
+
+Both directions are compared when the reference declares both. For a counterparty that is a
+**station** — EVerest's `EvseV2G` is the likeliest thing to be on a real charger — the *station → EV*
+section is the one that carries the news: what our car sends is ours and already pinned by the corpus,
+while what their charger answers is the thing no test here has ever seen.
 
 A recorded `trace.json` can be adopted as a corpus entry, which is how a conformance fix earned in a
 one-off run becomes something all four back ends are held to. That is a deliberate step, not

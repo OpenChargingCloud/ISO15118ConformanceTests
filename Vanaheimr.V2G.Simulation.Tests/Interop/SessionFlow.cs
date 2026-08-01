@@ -181,14 +181,16 @@ internal static class SessionFlow
         }
 
         if (expected is not null)
-            AppendScenarioComparison(report, requests, expected);
+            AppendScenarioComparison(report, requests, responses, expected);
 
         return report.ToString();
 
     }
 
 
-    private static void AppendScenarioComparison(StringBuilder report, IReadOnlyList<FlowStep> requests,
+    private static void AppendScenarioComparison(StringBuilder report,
+                                                 IReadOnlyList<FlowStep> requests,
+                                                 IReadOnlyList<FlowStep> responses,
                                                  DeclaredFlow expected)
     {
 
@@ -205,6 +207,8 @@ internal static class SessionFlow
         report.AppendLine("Consecutive repeats are collapsed on both sides: a session polls, and a compacted");
         report.AppendLine("scenario names each request once, so the counts are compared separately from the order.");
         report.AppendLine();
+        report.AppendLine("### EV → station");
+        report.AppendLine();
 
         foreach (var (kind, message) in aligned)
             report.AppendLine(kind switch
@@ -213,6 +217,37 @@ internal static class SessionFlow
                 FlowDiff.Extra   => $"  +   {message}   (on the wire, not in the scenario)",
                 _                => $"  -   {message}   (in the scenario, never on the wire)",
             });
+
+        // The other direction, when the reference declares one.
+        //
+        // For a counterparty that is a *station* — EVerest's EvseV2G is the likeliest thing to be on the
+        // other end of a real charger — this is the half that carries the news. What our car sends is
+        // ours and already pinned by the corpus; what their charger answers is the thing no test here has
+        // ever seen. Skipped rather than faked when the reference has no responses, because a comparison
+        // against an assumption is worse than none.
+        var declaredResponses = Collapse(expected.Responses);
+
+        if (declaredResponses.Count > 0)
+        {
+
+            var alignedResponses = Align(Collapse(responses.Select(s => s.Message)).Select(x => x.Message).ToList(),
+                                         declaredResponses.Select(x => x.Message).ToList());
+
+            report.AppendLine();
+            report.AppendLine("### station → EV");
+            report.AppendLine();
+
+            foreach (var (kind, message) in alignedResponses)
+                report.AppendLine(kind switch
+                {
+                    FlowDiff.Same    => $"      {message}",
+                    FlowDiff.Extra   => $"  +   {message}   (answered, not in the reference)",
+                    _                => $"  -   {message}   (in the reference, never answered)",
+                });
+
+            aligned = [.. aligned, .. alignedResponses];
+
+        }
 
         var counts = actual.Where(a => declared.Any(d => d.Message == a.Message && d.Count != a.Count))
                            .ToList();
