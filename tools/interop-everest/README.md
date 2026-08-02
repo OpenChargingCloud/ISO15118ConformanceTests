@@ -161,9 +161,32 @@ corpus; what their charger answered is the thing no test here has ever seen.
 [Known friction](#known-friction-expect-these-first) — and a harness that only ever opens one connection
 cannot see that. Every station is worth two sessions.
 
-### Authorizing the session  ([`mqtt-authorize.sh`](mqtt-authorize.sh))
+### Driving their hardware simulation  ([`sil-car.sh`](sil-car.sh))
 
-**Without this, a forward run stops at `Authorization` and never leaves it.** EVerest authorizes when a
+**Use this one for a complete charge.** It plugs the simulated car in, which authorizes the session the
+way a real car does, and moves the CP line to state C when the station starts its cable check — the two
+things a V2G peer arriving over TCP cannot do for itself, and without which every forward run ends at
+`CableCheck` with `FAILED`. With it, our EVCC ran an ISO 15118-2 DC session end to end against
+`EvseV2G`: [`2026-08-02-everest-iso2-dc-full-charge`](../../docs/interop-runs/2026-08-02-everest-iso2-dc-full-charge/notes.md).
+
+```bash
+docker cp sil-car.sh mqtt:/tmp/
+docker exec -d mqtt sh -c "/tmp/sil-car.sh > /tmp/sil-car.log 2>&1"
+until docker exec everest sh -c "grep -q 'Set PWM On' /tmp/everest.log"; do sleep 2; done   # then connect
+```
+
+Their car simulator takes bare command strings on `everest_external/nodered/<connector_id>/carsim/cmd/…`
+— no envelope. Three of its habits decide what those strings must look like, and the script's header
+comment spells each one out: a command list that runs out **resets the car to unplugged**;
+`execute_charging_session` is refused while one is running and resets the simulation when accepted,
+while `modify_charging_session` does neither; and `cp C` is overwritten on the next tick, so the state
+that holds 6 V is `draw_power_fixed 0,0`.
+
+### Authorizing a session with no hardware at all  ([`mqtt-authorize.sh`](mqtt-authorize.sh))
+
+The shorter path when the station only needs to talk — no plug-in, no contactor, and the run will still
+stop at `CableCheck`. **Without either script a forward run stops at `Authorization` and never leaves
+it.** EVerest authorizes when a
 token arrives, and in the SIL configs the token comes from `DummyTokenProvider`, which is wired to
 `EvseManager`'s *plug-in* events. Our EVCC arrives over TCP and plugs nothing in, so the station answers
 `EVSEProcessing = Ongoing` for ever — correctly. That is what the 2026-08-02 run recorded, 1 170 times.
@@ -214,13 +237,17 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
 
 ### Scenario order
 
-1. **-2 DC, EIM, `tls_security: prohibit`** — forward. The plain baseline.
-2. **-2 AC** (`config-sil.yaml`), forward.
-3. **-20 DC** against `Evse15118D20` (`config-sil-dc-d20.yaml`), forward.
-4. **Reverse** with `PyEvJosev`, once the forward runs are clean — lower value, so later.
-5. **TLS** (`config-sil-dc-tls.yaml`), with `tls_key_logging: true`.
-6. **IsoMux**, which is the closest thing to a real charger's behaviour: one endpoint answering both.
-7. **MCS**, eventually — the first live counterpart our MCS support would ever have had.
+1. ✅ **-2 DC, EIM, `tls_security: allow`** — forward. Done 2026-08-02: a complete charge, 36/36 `OK`.
+2. **-20 DC** against `Evse15118D20` (`config-sil-dc-d20.yaml`), forward. **Next** — the same two
+   hardware steps should apply, and no complete -20 session against a foreign station exists yet.
+3. **-2 AC** (`config-sil.yaml`), forward. A different CP/PWM story: the plug-in sequence wants
+   `iec_wait_pwr_ready` rather than the 5 % HLC mode.
+4. **TLS** (`config-sil-dc-tls.yaml`), with `tls_key_logging: true`, now that there is a full plaintext
+   session to compare against.
+5. **IsoMux**, which is the closest thing to a real charger's behaviour: one endpoint answering both.
+6. **MCS** — the first live counterpart our MCS support would ever have had.
+7. **Reverse** with `PyEvJosev`, lower value (it is Josev in a wrapper) and the one the relay cannot
+   cover, so last.
 
 ---
 
@@ -259,9 +286,9 @@ Confirmed on first contact, and no longer questions:
   runs**, and see [`2026-08-02-everest-iso2-dc-mqtt-auth`](../../docs/interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md).
 - **`CableCheck` needs their hardware simulation.** `EvseManager` waits ~5 s for the board-support module
   to report the contactor closed and answers `FAILED` when it does not. In the SIL that contactor closes
-  because the simulated car walks the CP line A→B→C; a V2G peer over TCP has no CP line, so every
-  forward run stops there. Publishing `cp C` to `car_simulator` is not enough — the state machine has to
-  be walked from `A`.
+  because the simulated car walks the CP line A→B→C; a V2G peer over TCP has no CP line, so a forward
+  run stops there unless [`sil-car.sh`](sil-car.sh) drives it. Publishing `cp C` is **not** the way —
+  the state machine rewrites `cp_voltage` from its own state on every tick.
 - **Killing the manager orphans its modules.** They are separate processes and stay bound to port 61341.
   `pkill -f 'bin/manager'` leaves a half-dead charger answering connections; kill the process group or
   recreate the container.

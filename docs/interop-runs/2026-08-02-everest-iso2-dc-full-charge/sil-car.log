@@ -1,0 +1,97 @@
+# What sil-car.sh published, and what their charger published back.
+#
+# The '->' lines are the two hardware-simulation steps: plug in at the start, CP to state C when
+# the station starts its cable check. Everything else is EvseV2G's own record of the session on
+# everest/iso15118_charger/charger/var. Trust the message names, not the response bytes — see the
+# 2026-08-02-everest-iso2-dc-mqtt-auth notes for why.
+
+18:59:36  >> plug in: sleep 2;iso_wait_slac_matched;iso_wait_pwm_is_running;sleep 600
+18:59:51  [var] EV_AppProtocol = [{"Priority": 1, "ProtocolNamespace": "urn:iso:15118:2:2013:MsgDef", "SchemaID": 1, "VersionNumberMajor": 2, "VersionNumberMinor": 0}]
+18:59:51  SupportedAppProtocolReq
+18:59:51  [var] Selected_Protocol = "ISO15118-2-2013"
+18:59:51  SupportedAppProtocolRes
+18:59:51  [var] EVCCIDD = "AB:CD:EF:01:02:03"
+18:59:51  SessionSetupReq
+18:59:51  SessionSetupRes
+18:59:51  ServiceDiscoveryReq
+18:59:51  ServiceDiscoveryRes
+18:59:51  [var] SelectedPaymentOption = "ExternalPayment"
+18:59:51  PaymentServiceSelectionReq
+18:59:51  PaymentServiceSelectionRes
+18:59:51  [var] Require_Auth_EIM = null
+18:59:51  AuthorizationReq
+18:59:51  AuthorizationRes
+18:59:51  AuthorizationReq
+18:59:51  AuthorizationRes
+18:59:51  [var] RequestedEnergyTransferMode = "DC_extended"
+18:59:51  ChargeParameterDiscoveryReq
+18:59:51  ChargeParameterDiscoveryRes
+18:59:51  [var] Start_CableCheck = null
+18:59:51  >> CP to state C: draw_power_fixed 0,0;sleep 600
+18:59:51  [var] DC_EVStatus = {"DC_EVErrorCode": "NO_ERROR", "DC_EVRESSSOC": 50.0, "DC_EVReady": true}
+18:59:51  CableCheckReq
+18:59:52  CableCheckRes
+18:59:52  CableCheckReq
+18:59:52  CableCheckRes
+18:59:52  CableCheckReq
+18:59:52  CableCheckRes
+18:59:52  CableCheckReq
+18:59:52  CableCheckRes
+18:59:52  CableCheckReq
+18:59:52  CableCheckRes
+18:59:52  CableCheckReq
+18:59:52  CableCheckRes
+18:59:52  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:53  CableCheckRes
+18:59:53  CableCheckReq
+18:59:54  CableCheckRes
+18:59:54  CableCheckReq
+18:59:54  CableCheckRes
+18:59:54  CableCheckReq
+18:59:54  CableCheckRes
+18:59:54  CableCheckReq
+18:59:54  CableCheckRes
+18:59:54  CableCheckReq
+18:59:54  CableCheckRes
+18:59:54  CableCheckReq
+18:59:54  CableCheckRes
+18:59:54  CableCheckReq
+18:59:55  CableCheckRes
+18:59:55  CableCheckReq
+18:59:55  CableCheckRes
+18:59:55  [var] DC_EVTargetVoltageCurrent = {"DC_EVTargetCurrent": 2.0, "DC_EVTargetVoltage": 400.0}
+18:59:55  PreChargeReq
+18:59:55  PreChargeRes
+18:59:55  [var] V2G_Setup_Finished = null
+18:59:55  PowerDeliveryReq
+18:59:55  PowerDeliveryRes
+18:59:55  [var] currentDemand_Started = null
+18:59:55  [var] DC_ChargingComplete = false
+18:59:55  [var] DC_EVTargetVoltageCurrent = {"DC_EVTargetCurrent": 120.0, "DC_EVTargetVoltage": 400.0}
+18:59:55  CurrentDemandReq
+18:59:55  CurrentDemandRes
+18:59:55  CurrentDemandReq
+18:59:55  CurrentDemandRes
+18:59:55  CurrentDemandReq
+18:59:55  CurrentDemandRes
+18:59:55  [var] currentDemand_Finished = null
+18:59:55  [var] DC_Open_Contactor = null
+18:59:55  PowerDeliveryReq
+18:59:55  PowerDeliveryRes
+18:59:55  WeldingDetectionReq
+18:59:56  WeldingDetectionRes
+18:59:56  [var] dlink_terminate = null
+18:59:56  SessionStopReq
+18:59:56  SessionStopRes

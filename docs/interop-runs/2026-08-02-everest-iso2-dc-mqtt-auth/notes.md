@@ -221,11 +221,13 @@ foreign station's message to the corpus is a deliberate decision, not a side eff
 
 ## Next
 
-- **Simulate the plug** so the cable check can pass: walk the CP line A→B→C through
-  `car_simulator`'s `executeChargingSession` over MQTT, or drive `yeti_driver`'s
-  `yeti_simulation_control.setSimulationData` directly. Past `CableCheck` lie `PreCharge`,
-  `PowerDelivery` and `CurrentDemand` — the first actual charge loop against a foreign station.
-- **Report the second-session crash** to EVerest, with `their-crash-on-second-session.log`.
+- ✅ **Simulate the plug** so the cable check can pass — done the same day, and it produced a complete
+  charge: [`../2026-08-02-everest-iso2-dc-full-charge/`](../2026-08-02-everest-iso2-dc-full-charge/notes.md).
+  The route was `car_simulator`'s external MQTT interface, and `cp C` was indeed not enough: the
+  command that holds the CP line at 6 V is `draw_power_fixed 0,0`.
+- **Report the second-session crash** to EVerest, with `their-crash-on-second-session.log`. The full
+  charge run sharpened it: reproduction five happened after a *successful* first session with a clean
+  SessionStop and a proper re-plug, so the abnormal end of the first session was never the cause.
 - **Run every future session twice**, in every harness. One session is not a test of a station.
 - Then `config-sil-dc-d20.yaml` (`Evse15118D20`) — the -20 charger, and the one this stack has the most
   to say about — `config-sil-dc-isomux.yaml`, and eventually `config-sil-mcs.yaml`.
