@@ -1,0 +1,194 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 1142 byte(s), 47 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=44
+    01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040
+[1] SessionSetupReq payloadType=0x8001 bytes=29
+    01fe800100000015809802000000000000000011d01aaf37bc04080c00
+[2] ServiceDiscoveryReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe91b8
+[3] PaymentServiceSelectionReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9132001280
+[4] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[5] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[6] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[7] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[8] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[9] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[10] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098023c4d2f8f7d9ffcfe9008
+[11] ChargeParameterDiscoveryReq payloadType=0x8001 bytes=37
+    01fe80010000001d8098023c4d2f8f7d9ffcfe9094ca400640618640088c40f40313205000
+[12] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[13] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[14] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[15] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[16] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[17] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[18] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[19] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[20] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[21] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[22] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[23] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[24] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[25] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[26] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[27] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[28] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[29] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[30] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[31] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[32] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[33] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[34] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[35] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[36] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[37] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[38] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[39] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[40] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[41] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[42] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[43] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[44] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[45] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+[46] CableCheckReq payloadType=0x8001 bytes=24
+    01fe8001000000108098023c4d2f8f7d9ffcfe9031001900
+
+## station -> EV: 1293 byte(s), 47 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8001 bytes=39
+    01fe80010000001f8098023c4d2f8f7d9ffcfe91e020451114a9413960a914c4c8ccd0d4a8c480
+[2] ServiceDiscoveryRes (OK) payloadType=0x8001 bytes=44
+    01fe8001000000248098023c4d2f8f7d9ffcfe91c0010000482032001006a1b2b93a34b334b1b0ba3288a200
+[3] PaymentServiceSelectionRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e8098023c4d2f8f7d9ffcfe914000
+[4] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100200
+[5] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100200
+[6] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100200
+[7] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100200
+[8] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100200
+[9] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100200
+[10] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098023c4d2f8f7d9ffcfe90100000
+[11] ChargeParameterDiscoveryRes (OK) payloadType=0x8001 bytes=70
+    01fe80010000003e8098023c4d2f8f7d9ffcfe90a000000000002028c140c50000aa00000008086141380206280001081508c04180501081a01e020c050083014018c1209c00
+[12] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[13] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[14] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[15] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[16] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[17] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[18] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[19] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[20] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[21] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[22] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[23] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[24] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[25] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[26] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[27] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[28] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[29] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[30] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[31] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[32] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[33] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[34] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[35] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[36] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[37] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[38] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[39] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[40] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[41] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[42] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[43] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[44] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[45] CableCheckRes (OK) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040000000004100
+[46] CableCheckRes (FAILED) payloadType=0x8001 bytes=27
+    01fe8001000000138098023c4d2f8f7d9ffcfe9040800000004100

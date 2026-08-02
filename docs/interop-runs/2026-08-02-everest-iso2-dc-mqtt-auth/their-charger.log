@@ -1,0 +1,149 @@
+2026-08-02 18:16:01.832780 [INFO] manager          ::   ________      __                _
+2026-08-02 18:16:01.839122 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-02 18:16:01.839300 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-02 18:16:01.839426 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-02 18:16:01.839545 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-02 18:16:01.839654 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-02 18:16:01.839767 [INFO] manager          ::
+2026-08-02 18:16:01.839878 [INFO] manager          :: Using MQTT broker mqtt:1883
+2026-08-02 18:16:02.056930 [INFO] manager          :: Loading config file at: /workspace/dist/etc/everest/config-ours.yaml
+2026-08-02 18:16:08.178170 [INFO] manager          :: - Types loaded in [325ms]
+2026-08-02 18:16:08.178509 [INFO] manager          :: - Types validated [5725ms]
+2026-08-02 18:16:08.191754 [INFO] manager          :: - Errors loaded in [3ms]
+2026-08-02 18:16:08.192072 [INFO] manager          :: - Errors validated [9ms]
+2026-08-02 18:16:10.349139 [INFO] manager          :: Config loading completed in 8508ms
+2026-08-02 18:16:10.439918 [INFO] everest_ctrl     :: Launching controller service on port 8849
+2026-08-02 18:16:32.798102 [INFO] energy_manager:  :: Module energy_manager initialized [21380ms]
+2026-08-02 18:16:33.298441 [INFO] grid_connection  :: Module grid_connection_point initialized [21776ms]
+2026-08-02 18:16:33.308283 [INFO] token_validator  :: Module token_validator initialized [21683ms]
+2026-08-02 18:16:33.519446 [INFO] token_provider:  :: Module token_provider initialized [21883ms]
+2026-08-02 18:16:33.890257 [INFO] evse_manager:Ev  :: Module evse_manager initialized [22515ms]
+2026-08-02 18:16:34.941331 [INFO] evse_security:E  :: Module evse_security initialized [23450ms]
+2026-08-02 18:16:35.008239 [INFO] auth:Auth        :: Module auth initialized [23572ms]
+2026-08-02 18:16:35.316161 [INFO] api:API          :: Module api initialized [23955ms]
+2026-08-02 18:16:35.556197 [INFO] iso15118_charge  :: TCP server on eth0 is listening on port [fe80::9074:95ff:fea4:cc38%2]:61341
+2026-08-02 18:16:35.579944 [INFO] iso15118_charge  :: TLS server on eth0 is listening on port [fe80::9074:95ff:fea4:cc38%2]:64109
+2026-08-02 18:16:35.581988 [INFO] iso15118_charge  :: SDP socket setup succeeded
+2026-08-02 18:16:35.593443 [INFO] iso15118_charge  :: Module iso15118_charger initialized [23877ms]
+2026-08-02 18:16:41.883077 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [40108ms] 🚙🚙🚙
+2026-08-02 18:16:45.091908 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-02 18:17:00.536662 [INFO] iso15118_charge  :: Incoming connection on eth0 from [a00:8a0c:0:0:fe80::]:35340
+2026-08-02 18:17:00.537560 [INFO] iso15118_charge  :: Started new TCP connection thread
+2026-08-02 18:17:00.539924 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+2026-08-02 18:17:00.546052 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-02 18:17:00.559311 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+2026-08-02 18:17:00.559682 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+2026-08-02 18:17:00.559838 [INFO] iso15118_charge  :: Created new session with id 0x18082937624397231345
+2026-08-02 18:17:00.769509 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-02 18:17:00.946735 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "connectors": [
+        1
+    ],
+    "id_token": "TOKEN1",
+    "id_token_type": "ISO14443",
+    "prevalidated": false
+}
+2026-08-02 18:17:01.024956 [INFO] token_validator  :: Got validation request for token: TOKEN1
+2026-08-02 18:17:01.275633 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-02 18:17:01.301635 [INFO] auth:Auth        :: Providing authorization to connector#1
+2026-08-02 18:17:01.623189 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-02 18:17:01.625702 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: Authorized
+2026-08-02 18:17:01.634933 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-02 18:17:01.652321 [INFO] token_provider:  :: Publishing new dummy token: TOKEN1 (RFID)
+2026-08-02 18:17:01.675989 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-02 18:17:01.687358 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": "TOKEN1"
+}
+2026-08-02 18:17:01.688121 [INFO] auth:Auth        :: Received token TOKEN1 repeatedly while still processing it
+2026-08-02 18:17:01.688278 [INFO] auth:Auth        :: Result for token: TOKEN1: ALREADY_IN_PROCESS
+2026-08-02 18:17:01.796966 [INFO] auth:Auth        :: Result for token: TOKEN1: ACCEPTED
+2026-08-02 18:17:01.803607 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-02 18:17:01.825040 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-02 18:17:01.891093 [INFO] iso15118_charge  :: Parameter-phase started
+2026-08-02 18:17:01.891906 [INFO] iso15118_charge  :: Selected energy transfer mode: DC_extended
+2026-08-02 18:17:01.951093 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-02 18:17:01.955547 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-02 18:17:02.015462 [INFO] evse_manager:Ev  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-02 18:17:02.036381 [INFO] evse_manager:Ev  :: EVSE ISO Start cable check...
+2026-08-02 18:17:02.037955 [INFO] evse_manager:Ev  ::                                     CAR ISO DC HLC Close contactor (in CableCheck)
+2026-08-02 18:17:02.058318 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:02.141930 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:02.184319 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:02.302315 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:02.332628 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:02.425522 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:02.477104 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:02.582332 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:02.633460 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:02.731092 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:02.783074 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:02.877989 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:02.939942 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.035612 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:03.090512 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.194445 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:03.245838 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.359837 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:03.391750 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.497954 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:03.548588 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.682339 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:03.700119 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.818407 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:03.882776 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:03.949730 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.003482 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:04.100615 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.154503 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:04.266565 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.307952 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:04.412684 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.464316 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:04.577645 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.608901 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:04.738335 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.769291 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:04.887152 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:04.963978 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.027234 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.082605 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.176372 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.228831 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.343398 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.386435 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.490534 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.563101 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.638733 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.691275 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.806041 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.858309 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:05.931796 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:05.986260 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:06.096520 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:06.149872 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:06.244561 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:06.331227 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:06.396107 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:06.447920 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:06.569752 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:06.600367 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:06.706019 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:06.747020 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:06.851668 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:06.905240 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:07.012576 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:07.064655 [ERRO] evse_manager:Ev module::EvseManager::cable_check()::<lambda()> :: CableCheck Thread: Contactors are still open after timeout, giving up.
+2026-08-02 18:17:07.065602 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:07.183543 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Cable Check", error: Response FAILED
+2026-08-02 18:17:07.185031 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:07.193592 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply OFF
+2026-08-02 18:17:07.215027 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CableCheckReq
+2026-08-02 18:17:07.311514 [INFO] evse_manager:Ev  :: EVSE ISO V2G CableCheckRes
+2026-08-02 18:17:07.321909 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Timeout waiting for next request or peer closed connection
+2026-08-02 18:17:07.322437 [INFO] iso15118_charge  :: v2g_handle_connection exited with -1
+2026-08-02 18:17:07.322551 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-02 18:17:07.322738 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-02 18:17:07.382858 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Idle->Error
+2026-08-02 18:17:07.385646 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off

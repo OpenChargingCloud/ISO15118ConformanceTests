@@ -157,6 +157,45 @@ V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso2-d
 Read the **station → EV** section of `flow.md` first. What our car sends is ours and already pinned by the
 corpus; what their charger answered is the thing no test here has ever seen.
 
+**Run it twice.** Their `EvseV2G` segfaults on the second V2G session in the same process — see
+[Known friction](#known-friction-expect-these-first) — and a harness that only ever opens one connection
+cannot see that. Every station is worth two sessions.
+
+### Authorizing the session  ([`mqtt-authorize.sh`](mqtt-authorize.sh))
+
+**Without this, a forward run stops at `Authorization` and never leaves it.** EVerest authorizes when a
+token arrives, and in the SIL configs the token comes from `DummyTokenProvider`, which is wired to
+`EvseManager`'s *plug-in* events. Our EVCC arrives over TCP and plugs nothing in, so the station answers
+`EVSEProcessing = Ongoing` for ever — correctly. That is what the 2026-08-02 run recorded, 1 170 times.
+
+The script publishes the same `ProvidedIdToken` on the same topic their own provider uses, triggered by
+the HLC instead of by hardware — `EvseV2G` sets `Require_Auth_EIM` the moment the EV has selected EIM
+and sent `AuthorizationReq`. Nothing in EVerest is patched, and their `Auth` module cannot tell the
+difference.
+
+```bash
+docker cp mqtt-authorize.sh mqtt:/tmp/
+docker exec -d mqtt sh -c "/tmp/mqtt-authorize.sh > /tmp/auth.log 2>&1"   # before the session
+```
+
+Timing matters and the trigger gets it right for free: `connection_timeout` (10 s in the SIL configs)
+withdraws the authorization if no transaction starts, so a token published before the EV connects is
+already gone by the time it polls.
+
+The script also logs every V2G message their charger publishes — a station-side record of the session.
+Trust the message **names**, not the bytes: the responses they publish carry the preceding *request's*
+V2GTP length, so each one is truncated or padded with stale buffer. Requests are byte-exact.
+
+**The topic scheme**, since their documentation does not carry it:
+
+| | |
+|---|---|
+| published variable | `everest/<module_id>/<impl_id>/var` — `{"data": <value>, "name": "<var>"}` |
+| command call | `everest/<module_id>/<impl_id>/cmd` — `{"data": {"args": {…}, "id": "<uuid>", "origin": "<caller>"}, "name": "<cmd>", "type": "call"}` |
+
+Module ids are the **keys in the config file**, not the module types. `mosquitto_sub -v -t 'everest/#'`
+against their broker is the fastest way to learn any wiring this README does not cover.
+
 ### Their PyEvJosev → our SECC  ([`reverse-iso2-dc.sh`](reverse-iso2-dc.sh))
 
 ```bash
@@ -211,3 +250,22 @@ config file used, and every divergence.
   the bytes are generated from the same encoder. Look at order and timing.
 - **Their EV is Josev.** If a reverse run reproduces something already recorded under
   `docs/interop-runs/2026-07-2*`, that is not a new finding; check there first.
+
+Confirmed on first contact, and no longer questions:
+
+- **`EvseV2G` segfaults on the second V2G session in one process** (status 139, while handling
+  `PaymentServiceSelectionReq`), and EVerest's manager then terminates every module — one crash takes
+  the whole charger down. The first session is always fine, however short. **Restart the manager between
+  runs**, and see [`2026-08-02-everest-iso2-dc-mqtt-auth`](../../docs/interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md).
+- **`CableCheck` needs their hardware simulation.** `EvseManager` waits ~5 s for the board-support module
+  to report the contactor closed and answers `FAILED` when it does not. In the SIL that contactor closes
+  because the simulated car walks the CP line A→B→C; a V2G peer over TCP has no CP line, so every
+  forward run stops there. Publishing `cp C` to `car_simulator` is not enough — the state machine has to
+  be walked from `A`.
+- **Killing the manager orphans its modules.** They are separate processes and stay bound to port 61341.
+  `pkill -f 'bin/manager'` leaves a half-dead charger answering connections; kill the process group or
+  recreate the container.
+- **On colima, publish a port only once its backend is listening.** A relay container that installs
+  `socat` at startup leaves the published port empty for ten seconds, and the lima forward is poisoned
+  for good afterwards: connections are accepted and silently dropped, `nc -z` says the port is open, and
+  the container never sees an accept. Bake `socat` into the image.

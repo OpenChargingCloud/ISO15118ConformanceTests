@@ -134,11 +134,14 @@ V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso2-d
 The relay path held again — no veth pairs, no zones, no multicast on our side. Unlike tux-evse, nothing
 about the image had to be repaired: it runs as published.
 
-## Next
+## Next — both done the same day
 
-- **Decide on the ongoing-poll bound**, in -2 and -20 and all three languages.
-- **Authorize the session properly** — their API module over MQTT, or a DC plug sequence — and the run
-  should continue into ChargeParameterDiscovery, CableCheck, PreCharge and the charge loop, which is
-  where the *station → EV* half of the flow comparison finally has something to say.
-- Then `config-sil-dc-d20.yaml` (`Evse15118D20`), `config-sil-dc-isomux.yaml`, and eventually
+- **The ongoing-poll bound**, in -2 and -20 and all three languages: `OngoingGuard`, see above.
+- **Authorizing the session** over MQTT: done, and it moved the wall from `Authorization` to
+  `CableCheck`. Seven phases, and then their station answered `CableCheckRes` with `FAILED` because the
+  cable check waits for a contactor no TCP-only EV can close. Full account:
+  [`2026-08-02-everest-iso2-dc-mqtt-auth/`](../2026-08-02-everest-iso2-dc-mqtt-auth/notes.md), which
+  also carries a crash in their `EvseV2G` that this run could not have seen — it opened only one
+  session, and it is the *second* one that dies.
+- Still open: `config-sil-dc-d20.yaml` (`Evse15118D20`), `config-sil-dc-isomux.yaml`, and eventually
   `config-sil-mcs.yaml` — the first live counterpart our MCS support would ever have had.

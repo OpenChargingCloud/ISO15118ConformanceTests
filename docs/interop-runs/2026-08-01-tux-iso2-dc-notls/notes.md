@@ -137,7 +137,7 @@ V2G_INTEROP_RECORD=/tmp/tux-run V2G_INTEROP_SCENARIO=<their audi-dc-iso2-compact
     --filter "FullyQualifiedName~TuxEvseInteropTests.OurEvcc"
 ```
 
-The relay path documented in [`../../tools/interop-tux-evse/README.md`](../../tools/interop-tux-evse/README.md)
+The relay path documented in [`../../../tools/interop-tux-evse/README.md`](../../../tools/interop-tux-evse/README.md)
 held up again: no veth pairs, no zones and no multicast on our side, and their bridge script was never
 run at all. Their `tcp_port: 61341` is fixed in `binding-simu15118-evse-no-tls.yaml`, so the port did
 not even have to be discovered — the README's `ss` step is unnecessary for the responder.

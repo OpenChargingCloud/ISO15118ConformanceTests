@@ -159,7 +159,7 @@ V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso20-
     --filter "FullyQualifiedName~EvDriveFlowInteropTests.OurEvcc"
 ```
 
-Two things this depends on, both documented in [`../../tools/interop-evdriveflow/README.md`](../../tools/interop-evdriveflow/README.md):
+Two things this depends on, both documented in [`../../../tools/interop-evdriveflow/README.md`](../../../tools/interop-evdriveflow/README.md):
 
 - **A container needs an IPv6 network.** On the default bridge `eth0` has no IPv6 at all, and their
   `get_tcp_server_address()` reads `netifaces.ifaddresses(iface)[AF_INET6][0]` — a `KeyError` before
