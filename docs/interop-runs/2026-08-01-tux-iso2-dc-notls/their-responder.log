@@ -1,0 +1,6 @@
+<5> NOTICE: [API iso15118-evse] tcp-wserver listen socket:[fe80::a882:e7ff:fe2a:7c34%2]:61341 [/home/abuild/rpmbuild/BUILD/iso15118-simulator-rs-0.2/vendor/nettls/src/ipv6-tcp.rs:162,nettls::tcp::TcpServer::new]
+<5> NOTICE: [API libafb_sim15118_evse.so] sdp-server accept anycast-ipv6 udp:15118@eth0 [/home/abuild/rpmbuild/BUILD/iso15118-simulator-rs-0.2/vendor/nettls/src/ipv6-udp.rs:35,nettls::udp::SdpServer::new]
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+-- exp:{"id":"[00,7d,fa,07,5e,4a]","tagid":"session_setup_req","proto":"iso2","msgid":0}
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/v
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,f
