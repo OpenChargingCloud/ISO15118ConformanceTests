@@ -52,6 +52,13 @@ MQTT, our EVCC reached `CableCheck` and their station answered **`FAILED`** — 
 until the day before would have been read by nobody. It ended the session in one line. Two live peers:
 one to find the hole, another to walk into it.
 
+**Then the whole charge.** Driving EVerest's simulated car over MQTT as well — plug in, and CP to
+state C when the station asks for its cable check — our EVCC ran a **complete ISO 15118-2 DC session
+against `EvseV2G`**: 36 exchanges through PreCharge, the CurrentDemand loop, WeldingDetection and
+SessionStop, every response `OK`, and the flow report's verdict on the route was *"matches the declared
+flow exactly"*. The first complete charging session this project has run against a station somebody
+else wrote ([`2026-08-02-everest-iso2-dc-full-charge`](interop-runs/2026-08-02-everest-iso2-dc-full-charge/notes.md)).
+
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
 could not.
@@ -110,8 +117,8 @@ Everything the roadmap targeted is done — see [`phase5-report.md`](phase5-repo
 scorecard. What is left over is either a **structural non-goal** (no independent counterpart exists to
 validate against), a small cleanup, or a next step that one of the new counterparties has opened up:
 
-**⬜ Get further with the three new counterparties.** All four have now been run, and each stopped
-somewhere worth naming rather than completing a charge:
+**⬜ Get further with the three new counterparties.** All four have now been run. One of them completes
+a charge; the other two stop somewhere worth naming:
 
 - **eVDriveFlow** — their EV ends the session after `AuthorizationSetupRes`, even when offered exactly
   the one authorization service it configures. Root cause inside their state machine, not identified.
@@ -119,23 +126,25 @@ somewhere worth naming rather than completing a charge:
 - **tux-evse** — their responder matches the *incoming request* field by field against the capture, so
   with a shipped scenario it answers the recorded Audi and no other car. Getting past SessionSetup
   means relaxing every field an EV chooses for itself.
-- **EVerest** — pushed twice on 2026-08-02 and now the deepest of the four. Authorizing over MQTT took
-  it from four phases to **seven**, and the wall moved from the protocol to the physics: their
-  `CableCheck` waits for a contactor that only closes when their simulated car walks the CP line
-  A→B→C, and a V2G peer over TCP has no CP line. **The protocol half is done and the physical half is
-  not.** Driving their hardware simulation is the next step, and past it lie `PreCharge`,
-  `PowerDelivery` and `CurrentDemand` — the first real charge loop against a foreign station, and the
-  route to `Evse15118D20`, `IsoMux` and eventually `config-sil-mcs.yaml`.
+- **EVerest** — pushed three times on 2026-08-02 and **no longer stopped anywhere.** Authorizing over
+  MQTT took it from four phases to seven; driving their simulated car over MQTT as well — plug in, CP
+  to state C at the cable check — took it to a complete DC charge, 36/36 `OK`. What remains here is
+  not a wall but a list: **-20 against `Evse15118D20`** (next, and the message set this stack has most
+  to say about), AC, TLS, `IsoMux`, and `config-sil-mcs.yaml`, which stops being hypothetical the
+  moment the -20 run works.
 
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
 
 **⬜ Run every session twice, in every harness.** EVerest's `EvseV2G` segfaults on the *second* V2G
 session in one process — and because their manager kills every module when one dies, that takes the
-whole charger with it. Four reproductions, always at the same line, and none of the eight interop
-fixtures could have found it: **every run so far has been exactly one session long.** A station that
-answers the first car correctly and dies on the second is a defect a one-shot harness is blind to by
-construction, which puts it in the same family as everything else on this page.
+whole charger with it. Five reproductions, always at the same line, and the last one settles what the
+first four could not: it followed a **complete, successful charge** ending in `SessionStopRes`, a
+proper unplug and a fresh plug-in. So it is the second session as such, not a first session that ended
+badly. None of the eight interop fixtures could have found it, because **every run before this was
+exactly one session long.** A station that answers the first car correctly and dies on the second is a
+defect a one-shot harness is blind to by construction, which puts it in the same family as everything
+else on this page.
 
 The blocker was expected to be a machine — veth pairs, podman, an `everest-core` build, link-local
 SDP — and it was not. After the SAP handshake an ISO 15118 session is plain TCP, so a `socat` relay in
@@ -453,7 +462,8 @@ counterparties — is [below](#live-counterparties-beyond-josev)):
 *(harnesses built 2026-08-01; **all three have been run**, 2026-08-01 and 2026-08-02 — see
 `docs/interop-runs/2026-08-01-edf-*`, `2026-08-01-tux-*` and `2026-08-02-everest-*`. Between them they
 found two defects in our own EVCCs, both since fixed, one crash in a counterparty's charger, and none
-in our codecs — which is the split the EXI-lineage column below predicts.)*
+in our codecs — which is the split the EXI-lineage column below predicts. One of them, EVerest, has
+since been taken through a **complete DC charge**.)*
 
 Josev was one live peer, and one live peer cannot show what two implementations of the *same* lineage
 have agreed to be wrong about. These three extend that, and they do not extend it equally — the useful
@@ -480,11 +490,13 @@ What each is actually *for*, beyond the byte question:
   -20 lives now (`libiso15118` was archived 2026-02-26 and folded in); `IsoMux` answers -2 and -20 behind
   one endpoint. `config/config-sil-mcs.yaml` would be **the first live counterpart our MCS support has
   ever had** — see the MCS line in Phase 5.
-  *Since 2026-08-02 it is also the deepest run:* seven phases, authorized over MQTT rather than by a
-  plug event, which is a piece of reusable knowledge rather than a workaround —
-  [`mqtt-authorize.sh`](../tools/interop-everest/mqtt-authorize.sh) publishes their own token on their
-  own topic, triggered by the HLC. Their whole module graph is addressable this way
-  (`everest/<module_id>/<impl_id>/var` and `/cmd`), which is how the *next* wall gets driven too.
+  *Since 2026-08-02 it is also the only counterparty we have completed a charge against.* Both walls
+  fell to the same idea — their whole module graph is addressable over MQTT
+  (`everest/<module_id>/<impl_id>/var` and `/cmd`, plus a bare-string external interface for the car
+  simulator). [`mqtt-authorize.sh`](../tools/interop-everest/mqtt-authorize.sh) publishes their own
+  token on their own topic, triggered by the HLC;
+  [`sil-car.sh`](../tools/interop-everest/sil-car.sh) plugs their simulated car in and moves its CP
+  line to state C when the station starts its cable check. Neither patches a line of EVerest.
 
 **Shared machinery, so a fourth harness is mostly a README.** One vocabulary of environment variables
 (`V2G_INTEROP_SECC`, `_LISTEN`, `_PROTOCOL`, `_MODE`, `_TLS`, `_DYNAMIC`, `_RECORD`, `_SCENARIO`), one
