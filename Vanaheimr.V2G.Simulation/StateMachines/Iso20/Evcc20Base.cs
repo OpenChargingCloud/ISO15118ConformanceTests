@@ -83,6 +83,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>The session id in effect — keep it for a resume after a paused session.</summary>
         public byte[] SessionId => SessionCtx.SessionId;
 
+        /// <summary>
+        /// How long a phase may keep answering <c>EVSEProcessing = Ongoing</c> before the session ends.
+        /// </summary>
+        /// <remarks>60 s, ISO 15118's EVCC ongoing timeout. See <see cref="OngoingGuard"/> for the live
+        /// run that made this necessary.</remarks>
+        public TimeSpan OngoingTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
         /// <summary>The tariff signer's public key (fachlich the eMSP's). When set and the Scheduled-mode
         /// ScheduleExchangeRes carries a signed AbsolutePriceSchedule, the EV verifies it.</summary>
         public System.Security.Cryptography.ECDsa? TariffVerifyKey { get; set; }
@@ -124,9 +131,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 await RunCertificateInstallationAsync(oem, ct);
 
             var encodeAuthReq = BuildAuthorizationReqEncoder(authSetup);
+            var authGuard = new OngoingGuard(clock, OngoingTimeout, "Authorization");
             while ((await Exchange<AuthorizationRes>(MessageSet.Iso20CommonMessages, encodeAuthReq, ct))
                    .EVSEProcessing != Processing.Finished)
+            {
+                authGuard.Tick();
                 await pollDelay.Wait(PollInterval, ct);
+            }
 
             // Service negotiation is dynamic: select the energy-transfer service and parameter set the SECC
             // actually advertises, rather than assuming fixed ids. A live Josev interop run caught the old
@@ -282,6 +293,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         }
 
         /// <summary>Same as <see cref="Exchange{TRes}"/> but returns the undiscriminated <see cref="MessageSet"/>/object pair — for DC/AC-specific exchanges.</summary>
+        /// <summary>A deadline for one 'Ongoing' phase, for the subclasses' own poll loops.</summary>
+        protected OngoingGuard Ongoing(String phase) => new(clock, OngoingTimeout, phase);
+
         protected async Task<(MessageSet Set, object Message)> ExchangeRaw(MessageSet expectedSet, Func<byte[], int> encode, CancellationToken ct)
         {
             int reqLen = encode(_buf);

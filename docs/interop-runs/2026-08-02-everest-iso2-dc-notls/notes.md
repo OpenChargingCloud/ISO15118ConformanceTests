@@ -59,8 +59,20 @@ so no loopback test and no recorded session ever contains a station that keeps s
 the same blind spot as the FAILED response codes, one layer along: the corpus can only contain
 behaviour our own station exhibits.
 
-**Not fixed in this run.** It is a behaviour change to both protocols and all three languages, exactly
-like the FAILED handling, and it wants its own decision and its own tests.
+**Fixed on 2026-08-02, in both protocols and all three languages.** `OngoingGuard` is a per-phase
+deadline — 60 s by default, ISO 15118's EVCC ongoing timeout — checked once per poll in the
+authorization, cable-check and charge-parameter loops. The error names the phase and how long it
+actually waited, because that is the line a live run is read from.
+
+One deliberate difference between the implementations, documented at all three: C# reads the session's
+injected `TimeProvider`, so a pinned-clock replay pins this too; Kotlin and Swift have no clock
+parameter on their `Evcc2` and use a monotonic wall clock instead. The measured quantity — real time
+spent waiting for a peer — is the same.
+
+The tests needed a station our own SECC cannot be. In C# that meant answering the authorization poll
+directly rather than through `Secc2`/`Secc20Dc`, whose sequence guards reject a second
+`AuthorizationReq` — correctly, since a station that authorizes normally has moved on by then. That
+detail is itself worth keeping: the thing being reproduced is precisely a station that never moves on.
 
 ## Why their station never finished authorizing
 

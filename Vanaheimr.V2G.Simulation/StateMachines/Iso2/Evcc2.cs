@@ -64,6 +64,14 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// the all-zero id) so the SECC rejoins the old session.</summary>
         public byte[]? ResumeSessionId { get; set; }
 
+        /// <summary>
+        /// How long a phase may keep answering <c>EVSEProcessing = Ongoing</c> before the session ends.
+        /// </summary>
+        /// <remarks>60 s, ISO 15118's EVCC ongoing timeout. See <see cref="OngoingGuard"/> for the live
+        /// run that made this necessary — without it a station that answers promptly and never finishes
+        /// is polled for ever.</remarks>
+        public TimeSpan OngoingTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
         /// <summary>The SECC's SessionSetup verdict: <c>OK_NewSessionEstablished</c> or, on a successful
         /// resume, <c>OK_OldSessionJoined</c>.</summary>
         public ResponseCode SessionSetupCode { get; private set; }
@@ -134,18 +142,26 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             else
                 authReq = new AuthorizationReqType(Id: null, GenChallenge: null);
 
+            var authGuard = new OngoingGuard(clock, OngoingTimeout, "Authorization");
             while ((await Send<AuthorizationResType>(authReq, ct, authSignature))
                        .EVSEProcessing != EVSEProcessing.Finished)
+            {
+                authGuard.Tick();
                 await pollDelay.Wait(PollInterval, ct);
+            }
 
             // ── CHARGE PARAMETERS (+ DC cable check / pre-charge) ──────────────
             await RunChargeParameterDiscovery(ct);
 
             if (mode == PowerMode.Dc)
             {
+                var cableGuard = new OngoingGuard(clock, OngoingTimeout, "CableCheck");
                 while ((await Send<CableCheckResType>(new CableCheckReqType(EvStatus()), ct))
                            .EVSEProcessing != EVSEProcessing.Finished)
+                {
+                    cableGuard.Tick();
                     await pollDelay.Wait(PollInterval, ct);
+                }
                 await Send<PreChargeResType>(new PreChargeReqType(EvStatus(),
                     EVTargetVoltage: Volt(400), EVTargetCurrent: Amp(2)), ct);
             }
@@ -202,9 +218,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         private async Task RunChargeParameterDiscovery(CancellationToken ct)
         {
             ChargeParameterDiscoveryResType cpd;
+            var guard = new OngoingGuard(clock, OngoingTimeout, "ChargeParameterDiscovery");
             while ((cpd = await Send<ChargeParameterDiscoveryResType>(ChargeParameterDiscovery(), ct))
                        .EVSEProcessing != EVSEProcessing.Finished)
+            {
+                guard.Tick();
                 await pollDelay.Wait(PollInterval, ct);
+            }
             EvaluateSchedules(cpd);
         }
 

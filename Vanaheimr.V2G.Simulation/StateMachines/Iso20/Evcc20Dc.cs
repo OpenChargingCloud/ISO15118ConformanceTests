@@ -31,12 +31,14 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         protected override async Task RunPreChargeSequenceAsync(CancellationToken ct)
         {
+            var cableGuard = Ongoing("DC_CableCheck");
             while (true)
             {
                 var (set, message) = await ExchangeRaw(MessageSet.Iso20DC,
                     dest => Dc20.DcCodec.TryEncode(new Dc20.DC_CableCheckReq(SessionCtx.ToDcHeader()), dest, out int n) ? n : throw EncodeFailed(), ct);
                 var res = Expect<Dc20.DC_CableCheckRes>(set, message, MessageSet.Iso20DC);
                 if (res.EVSEProcessing == Dc20.Processing.Finished) break;
+                cableGuard.Tick();
                 await PollDelay.Wait(PollInterval, ct);
             }
 
