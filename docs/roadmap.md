@@ -6,8 +6,8 @@ Last updated: **2026-08-02**. Authoritative per-phase detail lives in
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 1126 tests are green**
-(`dotnet test -c Release`, measured 2026-08-02: 911 in `Vanaheimr.V2G.Exi.Tests`, 207 in
+**All phases (0–5) are complete.** The solution builds cleanly and **all 1129 tests are green**
+(`dotnet test -c Release`, measured 2026-08-02: 911 in `Vanaheimr.V2G.Exi.Tests`, 210 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
 toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
 `[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
@@ -39,13 +39,17 @@ The scope of that claim is worth stating precisely: **validated against Josev**,
 Two peers of the same lineage cannot show what they have agreed to be wrong about, and ~15 fixes from
 the first one was a reason to expect more from the second.
 
-**There were more.** The second peer — eVDriveFlow, run on 2026-08-01 — found in its first thirteen
-messages that neither EVCC read a response code at all, in either protocol or any of the three
-languages: a station could answer `FAILED` to everything and the car would charge through it. Fixed the
-same day; see [Response-code handling](#-response-code-handling-2026-08-01). Harnesses for tux-evse and
-EVerest are written and **have not been run** — see
-[Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each would prove, and
-[What remains](#what-remains) for what is blocking them.
+**There were more, and they came from two different peers.** eVDriveFlow, run on 2026-08-01, found in
+its first thirteen messages that neither EVCC read a response code at all — a station could answer
+`FAILED` to everything and the car would charge through it. EVerest, run on 2026-08-02, found that no
+poll loop had a deadline — its station answered 1 170 authorization polls with `Ongoing`, correctly,
+and our car would have kept going for ever. Both are fixed, in both protocols and all three languages;
+see [Response-code handling](#-response-code-handling-2026-08-01) and
+[The ongoing-poll deadline](#-the-ongoing-poll-deadline-2026-08-02).
+
+All four counterparties have now been run — see
+[Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
+could not.
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -57,9 +61,10 @@ EVerest are written and **have not been run** — see
 | 5 | EV↔EVSE simulation (SLAC, SDP, TCP/TLS incl. mutual, state machines, Josev interop, PnC/cert-install/pause/renegotiation/tariffs live) | ✅ **done** |
 
 **Beyond the phases** — three additions outside the original roadmap, each honest about its own limits;
-detail and what stays parked in [Completed extras](#completed-extras), which also records the one
-*correction* that came from outside the plan entirely
-([response-code handling](#-response-code-handling-2026-08-01), found by a live peer):
+detail and what stays parked in [Completed extras](#completed-extras), which also records the two
+*corrections* that came from outside the plan entirely — the
+[response-code handling](#-response-code-handling-2026-08-01) and the
+[ongoing-poll deadline](#-the-ongoing-poll-deadline-2026-08-02), each found by a different live peer:
 
 | Addition | Status |
 |---|---|
@@ -98,21 +103,31 @@ against a code-unit-wise reading. **No vector file in the repo now proves only i
 
 Everything the roadmap targeted is done — see [`phase5-report.md`](phase5-report.md) for the full
 scorecard. What is left over is either a **structural non-goal** (no independent counterpart exists to
-validate against), a small cleanup, or — since 2026-08-01 — a run that has not happened yet:
+validate against), a small cleanup, or a next step that one of the new counterparties has opened up:
 
-**⬜ Run the two counterparties that still have not been run.** Harnesses exist for
-[tux-evse](../tools/interop-tux-evse/README.md), [eVDriveFlow](../tools/interop-evdriveflow/README.md)
-and [EVerest](../tools/interop-everest/README.md). **eVDriveFlow has been run** — twice, on 2026-08-01,
-and it paid for itself immediately (see [Response-code handling](#-response-code-handling-2026-08-01)
-below). **tux-evse and EVerest have not**, so nothing about either should be read as an interop result.
-What each run would prove, and what it cannot, is in
+**⬜ Get further with the three new counterparties.** All four have now been run, and each stopped
+somewhere worth naming rather than completing a charge:
+
+- **eVDriveFlow** — their EV ends the session after `AuthorizationSetupRes`, even when offered exactly
+  the one authorization service it configures. Root cause inside their state machine, not identified.
+  The Dynamic-mode run sits behind that wall.
+- **tux-evse** — their responder matches the *incoming request* field by field against the capture, so
+  with a shipped scenario it answers the recorded Audi and no other car. Getting past SessionSetup
+  means relaxing every field an EV chooses for itself.
+- **EVerest** — five phases negotiated, then their station waits for an authorization that our setup
+  never delivers. Fixable: their API over MQTT, or a DC-shaped plug sequence. The most promising of
+  the three to push further, and the route to `Evse15118D20`, `IsoMux` and eventually
+  `config-sil-mcs.yaml`.
+
+What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
 
-The blocker is a machine, not code: tux-evse needs Linux veth pairs and podman, EVerest a full
-`everest-core` build. eVDriveFlow is the likeliest to run on a developer box (Python + conda), and
-whether SDP over link-local IPv6 works there is itself the first question. Each harness carries its own
-*confirm on first contact* list — those are questions, not statements, and the first run is what turns
-them into either.
+The blocker was expected to be a machine — veth pairs, podman, an `everest-core` build, link-local
+SDP — and it was not. After the SAP handshake an ISO 15118 session is plain TCP, so a `socat` relay in
+front of each station removed the topology problem entirely, and all three ran from a Mac against
+containers. Every remaining wall is inside the counterparty, and named above. The *confirm on first
+contact* lists in the harness READMEs have served their purpose: they were questions, and the runs
+answered them.
 
 **Remaining non-goals** (would need something that doesn't exist yet):
 - ⬜ **WPT / ACDP session state machines** — codecs are byte-exact vs cbV2G, but no independent stack
@@ -227,6 +242,30 @@ our own SECC, and our own SECC never says FAILED. The corpus is silent on this b
 is every replay built on it. It took a station that says it — which is the §1.3 argument in one
 paragraph, arrived at the hard way. Full account:
 [`docs/interop-runs/2026-08-01-edf-iso20-dc-notls/`](interop-runs/2026-08-01-edf-iso20-dc-notls/notes.md).
+
+#### ✅ The ongoing-poll deadline (2026-08-02)
+
+The sibling of the entry above, found by a different peer, and the same shape of hole: **no poll loop
+in either EVCC had a deadline.** `while (… != Finished)`, no counter, no limit. EVerest's `EvseV2G`
+answered 1 170 `AuthorizationReq` with `OK` and `EVSEProcessing = Ongoing` — correctly, because nothing
+had authorized the session — and our car would have polled until somebody unplugged it.
+
+What makes this one instructive is *where* the gap was: between two timeouts that each looked like it
+covered the case. The per-message timeout fires when a response is **late**, and all 1 170 were fast.
+The cancellation token ends the whole session, which is a stop-everything rather than a phase deadline.
+Missing was the one in the middle, which ISO 15118 specifies as the EVCC's *ongoing* timeout.
+
+`OngoingGuard` is that deadline — 60 s by default, checked once per poll in the authorization,
+cable-check and charge-parameter phases of **-2 and -20**, in **C#, Kotlin and Swift**. One deliberate
+difference is documented at all three sites: C# reads the session's injected `TimeProvider`, the two
+ports have no clock on their `Evcc2` and use a monotonic one.
+
+**Same reason no oracle here could have found it** as the response codes: our own SECC answers
+`Finished` within a poll or two, so no recorded session contains a station that keeps saying `Ongoing`.
+Writing the test made that concrete — the station had to answer the poll *outside* `Secc2`/`Secc20Dc`,
+because their sequence guards reject a second `AuthorizationReq`. A station that never moves on is not
+a thing either of our state machines can be. Full account:
+[`docs/interop-runs/2026-08-02-everest-iso2-dc-notls/`](interop-runs/2026-08-02-everest-iso2-dc-notls/notes.md).
 
 #### ✅ MCS — Megawatt Charging System (2026-07-25)
 
@@ -382,8 +421,9 @@ counterparties — is [below](#live-counterparties-beyond-josev)):
 
 ### Live counterparties beyond Josev
 
-*(harnesses built 2026-08-01. **eVDriveFlow has been run**, twice, on 2026-08-01 — see
-`docs/interop-runs/2026-08-01-edf-*`. tux-evse and EVerest have not.)*
+*(harnesses built 2026-08-01; **all three have been run**, 2026-08-01 and 2026-08-02 — see
+`docs/interop-runs/2026-08-01-edf-*`, `2026-08-01-tux-*` and `2026-08-02-everest-*`. Between them they
+found two defects in our own EVCCs, both since fixed, and none in our codecs.)*
 
 Josev was one live peer, and one live peer cannot show what two implementations of the *same* lineage
 have agreed to be wrong about. These three extend that, and they do not extend it equally — the useful
