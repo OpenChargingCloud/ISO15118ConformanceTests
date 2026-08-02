@@ -47,6 +47,11 @@ and our car would have kept going for ever. Both are fixed, in both protocols an
 see [Response-code handling](#-response-code-handling-2026-08-01) and
 [The ongoing-poll deadline](#-the-ongoing-poll-deadline-2026-08-02).
 
+**And then the first one paid for itself.** Later on 2026-08-02, with EVerest's charger authorized over
+MQTT, our EVCC reached `CableCheck` and their station answered **`FAILED`** — the response code that
+until the day before would have been read by nobody. It ended the session in one line. Two live peers:
+one to find the hole, another to walk into it.
+
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
 could not.
@@ -114,13 +119,23 @@ somewhere worth naming rather than completing a charge:
 - **tux-evse** — their responder matches the *incoming request* field by field against the capture, so
   with a shipped scenario it answers the recorded Audi and no other car. Getting past SessionSetup
   means relaxing every field an EV chooses for itself.
-- **EVerest** — five phases negotiated, then their station waits for an authorization that our setup
-  never delivers. Fixable: their API over MQTT, or a DC-shaped plug sequence. The most promising of
-  the three to push further, and the route to `Evse15118D20`, `IsoMux` and eventually
-  `config-sil-mcs.yaml`.
+- **EVerest** — pushed twice on 2026-08-02 and now the deepest of the four. Authorizing over MQTT took
+  it from four phases to **seven**, and the wall moved from the protocol to the physics: their
+  `CableCheck` waits for a contactor that only closes when their simulated car walks the CP line
+  A→B→C, and a V2G peer over TCP has no CP line. **The protocol half is done and the physical half is
+  not.** Driving their hardware simulation is the next step, and past it lie `PreCharge`,
+  `PowerDelivery` and `CurrentDemand` — the first real charge loop against a foreign station, and the
+  route to `Evse15118D20`, `IsoMux` and eventually `config-sil-mcs.yaml`.
 
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
+
+**⬜ Run every session twice, in every harness.** EVerest's `EvseV2G` segfaults on the *second* V2G
+session in one process — and because their manager kills every module when one dies, that takes the
+whole charger with it. Four reproductions, always at the same line, and none of the eight interop
+fixtures could have found it: **every run so far has been exactly one session long.** A station that
+answers the first car correctly and dies on the second is a defect a one-shot harness is blind to by
+construction, which puts it in the same family as everything else on this page.
 
 The blocker was expected to be a machine — veth pairs, podman, an `everest-core` build, link-local
 SDP — and it was not. After the SAP handshake an ISO 15118 session is plain TCP, so a `socat` relay in
@@ -175,9 +190,11 @@ have already landed are in [Completed extras](#completed-extras) below:
   monorepo modules, re-run our vector + loopback + live-interop suites against the current versions,
   and reconcile the drift — new counterpart features to match, our own bugs to fix, fresh counterpart
   bugs to document (~12 Josev findings so far). Also the natural moment to revisit the pinned
-  `03350be` codec commit. Standing up an EVerest node once — which unlocks `EvseV2G` /
-  `Evse15118D20` / `IsoMux` as live counterparts — is no longer a design question but a scheduling
-  one: the harness is written and waiting ([`tools/interop-everest/`](../tools/interop-everest/README.md)).
+  `03350be` codec commit. **Standing up an EVerest node is done** — `EvseV2G` has been run twice
+  (2026-08-02) from `ghcr.io/everest/everest-demo/manager:main`, which needs no `everest-core` build,
+  so this task is now a matter of repeating an existing recipe
+  ([`tools/interop-everest/`](../tools/interop-everest/README.md)). `Evse15118D20` and `IsoMux` are
+  configuration changes away.
 
 ### Completed extras
 
@@ -243,6 +260,13 @@ is every replay built on it. It took a station that says it — which is the §1
 paragraph, arrived at the hard way. Full account:
 [`docs/interop-runs/2026-08-01-edf-iso20-dc-notls/`](interop-runs/2026-08-01-edf-iso20-dc-notls/notes.md).
 
+**Exercised in the field the next day, by a different peer.** On 2026-08-02 EVerest's `EvseV2G`
+answered `CableCheckRes` with `FAILED`, and the session ended on that line instead of continuing into
+PreCharge. Two unrelated stacks, two protocols, and both refuse at the **cable check** — it is the first
+message where a station has to consult hardware, and a peer arriving over TCP has none. So it is the
+natural first `FAILED` of any bench run, and the one a fixture built from our own SECC will never
+contain: [`2026-08-02-everest-iso2-dc-mqtt-auth/`](interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md).
+
 #### ✅ The ongoing-poll deadline (2026-08-02)
 
 The sibling of the entry above, found by a different peer, and the same shape of hole: **no poll loop
@@ -266,6 +290,11 @@ Writing the test made that concrete — the station had to answer the poll *outs
 because their sequence guards reject a second `AuthorizationReq`. A station that never moves on is not
 a thing either of our state machines can be. Full account:
 [`docs/interop-runs/2026-08-02-everest-iso2-dc-notls/`](interop-runs/2026-08-02-everest-iso2-dc-notls/notes.md).
+
+The rerun against the same station later that day, this time authorized, is the other half of the
+evidence: seven authorization polls and 35 cable-check polls, both far inside the limit, and the guard
+armed through all of them. A deadline that never fires against a station that finishes is exactly what
+it should look like.
 
 #### ✅ MCS — Megawatt Charging System (2026-07-25)
 
@@ -423,7 +452,8 @@ counterparties — is [below](#live-counterparties-beyond-josev)):
 
 *(harnesses built 2026-08-01; **all three have been run**, 2026-08-01 and 2026-08-02 — see
 `docs/interop-runs/2026-08-01-edf-*`, `2026-08-01-tux-*` and `2026-08-02-everest-*`. Between them they
-found two defects in our own EVCCs, both since fixed, and none in our codecs.)*
+found two defects in our own EVCCs, both since fixed, one crash in a counterparty's charger, and none
+in our codecs — which is the split the EXI-lineage column below predicts.)*
 
 Josev was one live peer, and one live peer cannot show what two implementations of the *same* lineage
 have agreed to be wrong about. These three extend that, and they do not extend it equally — the useful
@@ -450,6 +480,11 @@ What each is actually *for*, beyond the byte question:
   -20 lives now (`libiso15118` was archived 2026-02-26 and folded in); `IsoMux` answers -2 and -20 behind
   one endpoint. `config/config-sil-mcs.yaml` would be **the first live counterpart our MCS support has
   ever had** — see the MCS line in Phase 5.
+  *Since 2026-08-02 it is also the deepest run:* seven phases, authorized over MQTT rather than by a
+  plug event, which is a piece of reusable knowledge rather than a workaround —
+  [`mqtt-authorize.sh`](../tools/interop-everest/mqtt-authorize.sh) publishes their own token on their
+  own topic, triggered by the HLC. Their whole module graph is addressable this way
+  (`everest/<module_id>/<impl_id>/var` and `/cmd`), which is how the *next* wall gets driven too.
 
 **Shared machinery, so a fourth harness is mostly a README.** One vocabulary of environment variables
 (`V2G_INTEROP_SECC`, `_LISTEN`, `_PROTOCOL`, `_MODE`, `_TLS`, `_DYNAMIC`, `_RECORD`, `_SCENARIO`), one
