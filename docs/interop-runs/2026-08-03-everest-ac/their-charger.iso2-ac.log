@@ -1,0 +1,392 @@
+2026-08-03 02:55:52.448773 [INFO] manager          ::   ________      __                _
+2026-08-03 02:55:52.454496 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-03 02:55:52.454755 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-03 02:55:52.454881 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-03 02:55:52.454986 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-03 02:55:52.455072 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-03 02:55:52.455161 [INFO] manager          ::
+2026-08-03 02:55:52.455413 [INFO] manager          :: everest-framework 0.24.0 @v0.24.0
+2026-08-03 02:55:52.455538 [INFO] manager          :: everest-core_tests  @2025.10.0-dirty
+2026-08-03 02:55:52.455652 [INFO] manager          ::
+2026-08-03 02:55:52.455769 [INFO] manager          :: Using MQTT broker mqtt:1883
+2026-08-03 02:55:52.456056 [INFO] manager          :: Telemetry enabled
+2026-08-03 02:55:52.520092 [INFO] everest_ctrl     :: Launching controller service on port 8849
+2026-08-03 02:55:52.702176 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-03 02:55:52.702466 [INFO] manager          :: Loading config file at: /ext/dist/etc/everest/config-ac2-ours.yaml
+2026-08-03 02:55:54.013901 [INFO] manager          :: Config loading completed in 1548ms
+2026-08-03 02:55:54.056532 [INFO] manager          :: Starting 17 modules
+2026-08-03 02:55:59.243534 [INFO] ev_api:EvAPI     :: Module ev_api initialized [4542ms]
+2026-08-03 02:55:59.272730 [WARN] api:API         void module::API::init() :: No evse energy sink configured for evse_id: 1. API module does therefore not allow control of amps or power limits for this EVSE
+2026-08-03 02:55:59.381371 [INFO] api:API          :: Module api initialized [5002ms]
+2026-08-03 02:55:59.562212 [INFO] connector_1_pow  :: Module connector_1_powerpath initialized [4698ms]
+2026-08-03 02:55:59.676777 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-03 02:55:59.723311 [INFO] error_history:E  :: Checking database
+2026-08-03 02:55:59.721196 [INFO] token_validator  :: Module token_validator initialized [4397ms]
+2026-08-03 02:55:59.814092 [INFO] energy_manager:  :: Module energy_manager initialized [4895ms]
+2026-08-03 02:55:59.848280 [INFO] setup:Setup      :: Module setup initialized [4595ms]
+2026-08-03 02:55:59.921084 [INFO] slac:SlacSimula  :: Module slac initialized [4697ms]
+2026-08-03 02:55:59.964468 [INFO] error_history:E  :: Module error_history initialized [5025ms]
+2026-08-03 02:56:00.019338 [INFO] grid_connection  :: Module grid_connection_point initialized [5056ms]
+2026-08-03 02:56:00.035318 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [5236ms]
+2026-08-03 02:56:00.026108 [INFO] token_provider:  :: Module token_provider initialized [4741ms]
+2026-08-03 02:56:00.023493 [INFO] persistent_stor  :: Module persistent_store initialized [4853ms]
+2026-08-03 02:56:00.069641 [INFO] evse_security:E  :: Module evse_security initialized [5010ms]
+2026-08-03 02:56:00.098284 [INFO] auth:Auth        :: Module auth initialized [5263ms]
+2026-08-03 02:56:00.108154 [INFO] iso15118_charge  :: Module iso15118_charger initialized [4959ms]
+2026-08-03 02:56:00.218609 [INFO] connector_1:Evs  :: Module connector_1 initialized [5319ms]
+2026-08-03 02:56:03.300828 [INFO] iso15118_car     :: Module iso15118_car initialized [2387ms]
+2026-08-03 02:56:03.303942 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-03 02:56:03.307502 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [10968ms] 🚙🚙🚙
+2026-08-03 02:56:03.329943 [INFO] iso15118_charge  :: TCP server on eth0 is listening on port [fe80::1092:6bff:fe77:d439%2]:61341
+2026-08-03 02:56:03.333163 [INFO] iso15118_charge  :: TLS server on eth0 is listening on port [fe80::1092:6bff:fe77:d439%2]:64109
+2026-08-03 02:56:03.387292 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-03 02:56:03.592518 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::handle_update_ac_maximum_limits(types::iso15118::AcEvseMaximumPower&) :: Ignoring handle_update_ac_maximum_limits call
+2026-08-03 02:56:03.596589 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-08-03 02:56:03.652997 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::handle_update_ac_minimum_limits(types::iso15118::AcEvseMinimumPower&) :: Ignoring handle_update_ac_minimum_limits call
+2026-08-03 02:56:03.695080 [INFO] evse_security:E  :: Found valid leaf: ["/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-03 02:56:03.705228 [INFO] evse_security:E  :: Found valid leaf: ["/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-08-03 02:56:03.713213 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::handle_update_ac_parameters(types::iso15118::AcParameters&) :: Ignoring handle_update_ac_parameters call
+2026-08-03 02:56:03.727119 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:03.727527 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:03.730187 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:03.732698 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:03.734987 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:03.735161 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:03.735251 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:03.737140 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:03.737254 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:03.827079 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:03.827363 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:03.829260 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:03.831326 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:03.833157 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:03.833276 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:03.833367 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:03.835149 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:03.835258 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:03.841762 [INFO] connector_1:Evs  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-03 02:56:03.914247 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:03.914511 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:03.916430 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:03.918258 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:03.920096 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:03.920407 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:03.920590 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:03.922766 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:03.922892 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:04.000575 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:04.000976 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.003347 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:04.005686 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:04.007824 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:04.007978 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:04.008075 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.010309 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:04.010604 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:04.046953 [INFO] connector_1:Evs  :: AC HLC mode enabled.
+2026-08-03 02:56:04.106873 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:04.107155 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.109483 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:04.112354 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:04.115062 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:04.115308 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:04.115406 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.117525 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:04.117705 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:04.173752 [INFO] connector_1:Evs  :: Cleaning up any other transaction on start up
+2026-08-03 02:56:04.220299 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:04.220622 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.222612 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:04.224543 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:04.226448 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:04.226574 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:04.226680 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.228521 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:04.228635 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:04.317376 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:04.317763 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.321231 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:04.324737 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:04.326978 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:04.327144 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:04.327240 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.333974 [INFO] connector_1:Evs  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-03 02:56:04.346108 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:04.346401 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:04.449424 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"
+2026-08-03 02:56:04.449743 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.451879 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA2
+2026-08-03 02:56:04.454103 [INFO] evse_security:E  :: SHANKARI: Considering cert CPOSubCA1
+2026-08-03 02:56:04.456516 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.der"
+2026-08-03 02:56:04.456789 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"
+2026-08-03 02:56:04.456891 [INFO] evse_security:E  :: SHANKARI: Considering cert SECCCert
+2026-08-03 02:56:04.458932 [INFO] evse_security:E  :: SHANKARI: Considering chain "/ext/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-03 02:56:04.459068 [INFO] evse_security:E  :: SHANKARI: Considering cert V2GRootCA
+2026-08-03 02:56:04.600694 [INFO] connector_1:Evs  :: All errors cleared
+2026-08-03 02:56:04.620488 [WARN] iso15118_charge void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-03 02:56:04.996212 [INFO] iso15118_charge  :: SDP socket setup succeeded
+2026-08-03 02:56:27.902186 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-03 02:56:34.439770 [INFO] connector_1_pow  :: Lock connector
+2026-08-03 02:56:34.621885 [INFO] connector_1:Evs  :: SYS  Session logging started.
+2026-08-03 02:56:34.625102 [INFO] connector_1:Evs  :: EVSE IEC Session Started: EVConnected
+2026-08-03 02:56:34.662798 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-03 02:56:34.672376 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-03 02:56:34.738072 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-03 02:56:34.766490 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-03 02:56:35.021410 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-03 02:56:35.043410 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-03 02:56:35.101038 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-03 02:56:35.140866 [INFO] connector_1:Evs  :: EVSE IEC EIM Authorization received
+2026-08-03 02:56:35.197454 [INFO] connector_1:Evs  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-03 02:56:35.205534 [INFO] connector_1:Evs  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-03 02:56:35.208551 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-03 02:56:35.212739 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-03 02:56:36.744807 [INFO] connector_1:Evs  :: EVSE ISO SLAC MATCHED
+2026-08-03 02:56:36.751376 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (true)
+2026-08-03 02:56:37.248018 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarRequestedPower
+2026-08-03 02:56:37.271046 [INFO] connector_1:Evs  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-03 02:56:37.509442 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOn
+2026-08-03 02:57:10.987616 [INFO] iso15118_charge  :: Incoming connection on eth0 from [a00:9608:0:0:fe80::]:38408
+2026-08-03 02:57:10.989719 [INFO] iso15118_charge  :: Started new TCP connection thread
+2026-08-03 02:57:10.993803 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+2026-08-03 02:57:11.003852 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-03 02:57:11.008330 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-03 02:57:11.016934 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+2026-08-03 02:57:11.017487 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+2026-08-03 02:57:11.017603 [INFO] iso15118_charge  :: Created new session with id 0x2214140024
+2026-08-03 02:57:11.050085 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-03 02:57:11.060040 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-03 02:57:11.118589 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-03 02:57:11.122281 [WARN] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: PnC is not allowed without TLS-communication. Correcting value to '1' (ExternalPayment)
+2026-08-03 02:57:11.126604 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-03 02:57:11.238469 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-03 02:57:11.246488 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-03 02:57:11.256926 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-03 02:57:11.339747 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-03 02:57:11.403273 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-03 02:57:11.442909 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-03 02:57:11.496039 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-03 02:57:11.592369 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-03 02:57:11.594482 [INFO] iso15118_charge  :: Parameter-phase started
+2026-08-03 02:57:11.604732 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 32.000000, nom_voltage 230, pmax 22080, departure_duration 0
+2026-08-03 02:57:11.605387 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Charge Parameter Discovery", error: Wrong Energy Transfer Mode
+2026-08-03 02:57:11.622486 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-03 02:57:11.697879 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-03 02:57:11.729176 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Timeout waiting for next request or peer closed connection
+2026-08-03 02:57:11.729659 [INFO] iso15118_charge  :: v2g_handle_connection exited with -1
+2026-08-03 02:57:11.729812 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-03 02:57:16.732106 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-03 03:00:29.181823 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-03 03:00:29.376657 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOff
+2026-08-03 03:00:29.478416 [INFO] connector_1_pow  :: Unlock connector
+2026-08-03 03:00:29.617624 [INFO] connector_1:Evs  :: EVSE ISO SLAC UNMATCHED
+2026-08-03 03:00:29.620275 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (false)
+2026-08-03 03:00:29.672202 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarUnplugged
+2026-08-03 03:00:29.675898 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-03 03:00:29.689234 [INFO] connector_1:Evs  :: EVSE IEC Set PWM Off
+2026-08-03 03:00:29.704291 [INFO] connector_1:Evs  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-03 03:00:29.771075 [INFO] connector_1:Evs  :: EVSE IEC Transaction Finished: EVDisconnected (0.441 kWh)
+2026-08-03 03:00:29.881992 [INFO] connector_1:Evs  :: EVSE IEC Session Finished
+2026-08-03 03:00:29.882859 [INFO] connector_1:Evs  :: SYS  Session logging stopped.
+2026-08-03 03:00:29.945894 [INFO] connector_1:Evs  :: All errors cleared
+2026-08-03 03:00:37.745870 [INFO] connector_1_pow  :: Lock connector
+2026-08-03 03:00:37.910560 [INFO] connector_1:Evs  :: SYS  Session logging started.
+2026-08-03 03:00:37.911922 [INFO] connector_1:Evs  :: EVSE IEC Session Started: EVConnected
+2026-08-03 03:00:37.925138 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-03 03:00:37.932179 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-03 03:00:37.934789 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-03 03:00:37.945345 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-03 03:00:38.196024 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-03 03:00:38.205474 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-03 03:00:38.228565 [INFO] connector_1:Evs  :: EVSE IEC EIM Authorization received
+2026-08-03 03:00:38.261089 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-03 03:00:38.265407 [INFO] connector_1:Evs  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-03 03:00:38.270871 [INFO] connector_1:Evs  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-03 03:00:38.273218 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-03 03:00:38.276003 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-03 03:00:39.940509 [INFO] connector_1:Evs  :: EVSE ISO SLAC MATCHED
+2026-08-03 03:00:39.982179 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (true)
+2026-08-03 03:00:40.567453 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarRequestedPower
+2026-08-03 03:00:40.589631 [INFO] connector_1:Evs  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-03 03:00:40.841325 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOn
+2026-08-03 03:00:42.042562 [INFO] iso15118_charge  :: Incoming connection on eth0 from [a00:bfce:0:0:fe80::]:49102
+2026-08-03 03:00:42.043498 [INFO] iso15118_charge  :: Started new TCP connection thread
+2026-08-03 03:00:42.045063 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+2026-08-03 03:00:42.047684 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-03 03:00:42.051494 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-03 03:00:42.054731 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-03 03:00:42.059740 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+2026-08-03 03:00:42.060049 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+2026-08-03 03:00:42.060140 [INFO] iso15118_charge  :: Created new session with id 0x3197484285
+2026-08-03 03:00:42.106601 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-03 03:00:42.167122 [WARN] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: PnC is not allowed without TLS-communication. Correcting value to '1' (ExternalPayment)
+2026-08-03 03:00:42.189502 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-03 03:00:42.191451 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-03 03:00:42.269575 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-03 03:00:42.272057 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-03 03:00:42.276503 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-03 03:00:42.373036 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-03 03:00:42.434165 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-03 03:00:42.476918 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-03 03:00:42.532320 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-03 03:00:42.632267 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-03 03:00:42.634227 [INFO] iso15118_charge  :: Parameter-phase started
+2026-08-03 03:00:42.638547 [INFO] iso15118_charge  :: Selected energy transfer mode: AC_single_phase_core
+2026-08-03 03:00:42.644391 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 32.000000, nom_voltage 230, pmax 7360, departure_duration 0
+2026-08-03 03:00:42.656568 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-03 03:00:42.777230 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-03 03:00:42.785375 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-03 03:00:42.847020 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-03 03:00:42.849367 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-03 03:00:42.949844 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-03 03:00:43.006452 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-03 03:00:43.106512 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-03 03:00:43.164730 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-03 03:00:43.280367 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-03 03:00:43.314479 [INFO] connector_1:Evs  ::                                     CAR ISO AC HLC Open contactor
+2026-08-03 03:00:43.316817 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-03 03:00:43.416116 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-03 03:00:43.420054 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionStopReq
+2026-08-03 03:00:43.515565 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-03 03:00:43.518101 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionStopRes
+2026-08-03 03:00:48.521868 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-03 03:00:48.525139 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-03 03:00:48.526154 [INFO] connector_1:Evs  :: EVSE IEC Set PWM Off
+2026-08-03 03:00:48.574398 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-03 03:00:48.620986 [INFO] connector_1:Evs  :: EVSE ISO SLAC UNMATCHED
+2026-08-03 03:00:48.623434 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (false)
+2026-08-03 03:01:29.083074 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-03 03:01:29.359677 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOff
+2026-08-03 03:01:29.505491 [INFO] connector_1_pow  :: Unlock connector
+2026-08-03 03:01:29.573781 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarUnplugged
+2026-08-03 03:01:29.574944 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Charging->Finished
+2026-08-03 03:01:29.665424 [INFO] connector_1:Evs  :: EVSE IEC Transaction Finished: EVDisconnected (0.092 kWh)
+2026-08-03 03:01:29.765929 [INFO] connector_1:Evs  :: EVSE IEC Session Finished
+2026-08-03 03:01:29.766797 [INFO] connector_1:Evs  :: SYS  Session logging stopped.
+2026-08-03 03:01:29.827918 [INFO] connector_1:Evs  :: All errors cleared
+2026-08-03 03:01:37.459618 [INFO] connector_1_pow  :: Lock connector
+2026-08-03 03:01:37.574198 [INFO] connector_1:Evs  :: SYS  Session logging started.
+2026-08-03 03:01:37.575347 [INFO] connector_1:Evs  :: EVSE IEC Session Started: EVConnected
+2026-08-03 03:01:37.588157 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-03 03:01:37.591915 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-03 03:01:37.598594 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-03 03:01:37.608990 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-03 03:01:37.859813 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-03 03:01:37.866064 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-03 03:01:37.886755 [INFO] connector_1:Evs  :: EVSE IEC EIM Authorization received
+2026-08-03 03:01:37.920723 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-03 03:01:37.940123 [INFO] connector_1:Evs  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-03 03:01:37.950360 [INFO] connector_1:Evs  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-03 03:01:37.951371 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-03 03:01:37.961866 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-03 03:01:39.699558 [INFO] connector_1:Evs  :: EVSE ISO SLAC MATCHED
+2026-08-03 03:01:39.701001 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (true)
+2026-08-03 03:01:40.250301 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarRequestedPower
+2026-08-03 03:01:40.258398 [INFO] connector_1:Evs  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-03 03:01:40.515388 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOn
+2026-08-03 03:01:41.963611 [INFO] iso15118_charge  :: Incoming connection on eth0 from [a00:dc28:0:0:fe80::]:56360
+2026-08-03 03:01:41.964081 [INFO] iso15118_charge  :: Started new TCP connection thread
+2026-08-03 03:01:41.965516 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+2026-08-03 03:01:41.967883 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-03 03:01:41.972086 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-03 03:01:41.981071 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+2026-08-03 03:01:41.981320 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+2026-08-03 03:01:41.981400 [INFO] iso15118_charge  :: Created new session with id 0x3175152770
+2026-08-03 03:01:42.015858 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-03 03:01:42.021818 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-03 03:01:42.085947 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-03 03:01:42.089438 [WARN] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: PnC is not allowed without TLS-communication. Correcting value to '1' (ExternalPayment)
+2026-08-03 03:01:42.093312 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-03 03:01:42.193325 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-03 03:01:42.195999 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-03 03:01:42.201226 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-03 03:01:42.305159 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-03 03:01:42.374812 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-03 03:01:42.427792 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-03 03:01:42.484626 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-03 03:01:42.566127 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-03 03:01:42.566926 [INFO] iso15118_charge  :: Parameter-phase started
+2026-08-03 03:01:42.575402 [INFO] iso15118_charge  :: Selected energy transfer mode: AC_single_phase_core
+2026-08-03 03:01:42.575649 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 32.000000, nom_voltage 230, pmax 7360, departure_duration 0
+2026-08-03 03:01:42.591660 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-03 03:01:42.670631 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-03 03:01:42.681583 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-03 03:01:42.782914 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-03 03:01:42.786387 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-03 03:01:42.892216 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-03 03:01:42.983069 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-03 03:01:43.045345 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-03 03:01:43.102531 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-03 03:01:43.202896 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-03 03:01:43.258567 [INFO] connector_1:Evs  ::                                     CAR ISO AC HLC Open contactor
+2026-08-03 03:01:43.262507 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-03 03:01:43.356076 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-03 03:01:43.360975 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionStopReq
+2026-08-03 03:01:43.460726 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-03 03:01:43.470302 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionStopRes
+2026-08-03 03:01:48.465924 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-03 03:01:48.468863 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-03 03:01:48.469744 [INFO] connector_1:Evs  :: EVSE IEC Set PWM Off
+2026-08-03 03:01:48.518907 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-03 03:01:48.569343 [INFO] connector_1:Evs  :: EVSE ISO SLAC UNMATCHED
+2026-08-03 03:01:48.577587 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (false)
