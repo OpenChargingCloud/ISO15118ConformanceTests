@@ -258,7 +258,10 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
    `iec_wait_pwr_ready` rather than the 5 % HLC mode.
 4. **TLS** (`config-sil-dc-tls.yaml`), with `tls_key_logging: true`, now that there is a full plaintext
    session to compare against.
-5. **IsoMux**, which is the closest thing to a real charger's behaviour: one endpoint answering both.
+5. ✅ **IsoMux**, the closest thing to a real charger's behaviour: one endpoint answering both. Done
+   2026-08-03 — it binds its own TCP port at startup (61342, no SDP step needed), terminates the
+   SupportedAppProtocol handshake itself and routes on the offered namespace. Its backends sit on `lo`
+   with `enable_sdp_server: false`, and `Evse15118D20` behind it still claims `[::1]:50000`.
 6. **MCS** — the first live counterpart our MCS support would ever have had.
 7. **Reverse** with `PyEvJosev`, lower value (it is Josev in a wrapper) and the one the relay cannot
    cover, so last.
