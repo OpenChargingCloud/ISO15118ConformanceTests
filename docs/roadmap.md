@@ -208,11 +208,24 @@ car offers -20 at priority 1 and -2 at priority 2 and then runs whichever the st
 the case EVerest's `IsoMux` exists for, and the one thing the run against it could not exercise. Same
 shape as the Dynamic gap: a capability that reads as present because both halves exist separately.
 
-**⬜ Port Dynamic control mode and the energy-transfer-mode selection to the Kotlin and Swift EVCCs.** C# gained it on 2026-08-03
-([the Dynamic EVCC](#-the-dynamic-evcc-2026-08-03)); the two ports stay Scheduled-only. Nothing fails
-there, because no trace-corpus entry is a Dynamic session — which is the same blind spot as everywhere
-else on this page, one layer along: the ports are validated against a corpus that cannot contain the
-thing they are missing.
+**✅ Port parity: Dynamic, the sweep fixes and the energy-transfer-mode selection are in the Kotlin
+and Swift EVCCs (2026-08-03, later the same day).** C# gained Dynamic in the morning; the ports
+stayed Scheduled-only, and nothing failed, because no trace-corpus entry was a Dynamic session — the
+same blind spot as everywhere else on this page, one layer along: the ports are validated against a
+corpus that cannot contain the thing they are missing. Closed from both ends:
+
+- **Two Dynamic sessions are in the corpus** (`iso20-dc-eim-dynamic`, `iso20-ac-eim-dynamic`) and
+  replay byte-exactly in both ports — with the negative that replaying them *without* the flag
+  diverges at ServiceSelection, so the traces cannot pass a flag that is read nowhere. The bridge
+  event corpus was regenerated over them; all four back ends agree on the new events unchanged.
+- **The four sweep fixes and the -2 mode selection are ported**, pinned by scripted-station tests
+  (`Evcc2EnergyTransferModeTest`, `Evcc20OfferTest`, `SapHandshakeTest`, and their Swift twins): a
+  deaf station whose canned offer differs from ours, because a foreign offer is the one thing the
+  corpus structurally cannot contain.
+- **En route, the parity pass found the ongoing-poll deadline was itself only half-ported**: Swift's
+  -2 cable-check guard was constructed and never ticked, and the -2 ChargeParameterDiscovery and
+  -20 DC_CableCheck poll loops were unguarded in both ports. All wired now, in exactly the places
+  C# guards — the compiler's unused-variable warning was what surfaced it, three days late.
 
 **✅ Run every session twice, in every harness** — adopted 2026-08-02, and it immediately paid for
 itself twice over. `EvseV2G` in EVerest's `:main` demo image segfaults on the *second* V2G session in a

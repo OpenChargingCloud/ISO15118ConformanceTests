@@ -86,6 +86,11 @@ the transfer-mode selection — see [What remains](roadmap.md#what-remains). The
 against the trace corpus, and no corpus entry contains a station that answers differently from ours,
 which is the same blind spot one layer along.
 
+> *Closed later the same day.* Both ports carry all four now, pinned by scripted-station tests —
+> a deaf station with a canned foreign offer, since the corpus structurally cannot contain one —
+> and the corpus gained two Dynamic traces so the mode itself is held to bytes. See the roadmap's
+> [port-parity entry](roadmap.md#what-remains).
+
 **Two of the four could still only be found this way.** Numbers 1 and 4 produce no failure against any
 station that behaves like ours — no live run would have caught them, and no test built from our own
 parts either. That is the argument for repeating this sweep after the next protocol feature lands rather

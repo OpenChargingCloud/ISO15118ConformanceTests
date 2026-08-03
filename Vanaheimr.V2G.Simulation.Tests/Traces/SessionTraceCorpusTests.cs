@@ -143,6 +143,51 @@ public class SessionTraceCorpusTests
                             FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
             }),
 
+        // ── Dynamic control mode ──────────────────────────────────────────
+        //
+        // Recorded the day the EVCC learned to drive Dynamic (2026-08-03), and for the ports rather
+        // than for C#: the Kotlin and Swift EVCCs are validated against this corpus, so a mode with
+        // no recorded session is a mode the ports can claim without ever being checked — the same
+        // blind spot the roadmap names, one layer along. The mode touches four places (parameter
+        // set, ScheduleExchange, EVPowerProfile, charge loop), and every one of them is in these
+        // bytes.
+
+        new("iso20-dc-eim-dynamic", "iso15118-20", "dc",
+            "-20 DC, EIM, Dynamic control mode: the EV states energy needs and a departure time " +
+            "instead of picking a schedule tuple — ControlMode = 2 in ServiceSelection, the Dynamic " +
+            "arms in ScheduleExchange, the EVPowerProfile and the charge loop, the station " +
+            "answering in kind ([V2G20-1600]).",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true }.RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-ac-eim-dynamic", "iso15118-20", "ac",
+            "-20 AC, EIM, Dynamic control mode: as the DC one, on the AC message set — the arm " +
+            "Evcc20Ac carries and the DC trace cannot reach.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Evcc20Ac(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true }.RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Secc20Ac(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+            }),
+
         // ── signed sessions ───────────────────────────────────────────────
         //
         // The reason schema 2 exists. Both of these carry a signed AuthorizationReq, which is not
