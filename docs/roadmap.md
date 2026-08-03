@@ -1,6 +1,6 @@
 # Roadmap & status
 
-Last updated: **2026-08-02**. Authoritative per-phase detail lives in
+Last updated: **2026-08-03**. Authoritative per-phase detail lives in
 [`docs/prompts/`](prompts/README.md) (the phase prompts + their status table) and the
 [`README.md`](../README.md); this file is the bird's-eye plan and the "why".
 
@@ -58,6 +58,21 @@ against `EvseV2G`**: 36 exchanges through PreCharge, the CurrentDemand loop, Wel
 SessionStop, every response `OK`, and the flow report's verdict on the route was *"matches the declared
 flow exactly"*. The first complete charging session this project has run against a station somebody
 else wrote ([`2026-08-02-everest-iso2-dc-full-charge`](interop-runs/2026-08-02-everest-iso2-dc-full-charge/notes.md)).
+
+**And it counted for more than planned.** Every note on this counterparty said its `EvseV2G` sits on
+cbV2G — the encoder our corpus is generated from — so that byte agreement with it would be agreement
+with ourselves. True of `everest-core` today; **false of the image all three runs used.**
+`manager:main` is everest-core **2023.10.0** and links `libopenv2g.so.1`, with no libcbv2g in it
+anywhere. The codec on the other end was OpenV2G, which shares no lineage with cbexigen — so those
+sessions were independent-codec results in both directions after all. A tag is not a version; the runs
+are pinned by digest now, and the lesson is cheaper to learn here than in a conformance claim.
+
+**And then -20.** On 2026-08-03, against `Evse15118D20` on **everest-core 2025.10**, our EVCC ran a
+**complete ISO 15118-20 DC session**: 113 exchanges through AuthorizationSetup, ServiceDetail,
+ServiceSelection, ScheduleExchange, DC_CableCheck, DC_PreCharge, the DC_ChargeLoop and
+DC_WeldingDetection to SessionStop, every response `OK`, route identical to our own recorded -20
+session. That sequence had never been answered by anything but our own SECC
+([`2026-08-03-everest-iso20-dc-full-charge`](interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md)).
 
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
@@ -126,25 +141,30 @@ a charge; the other two stop somewhere worth naming:
 - **tux-evse** — their responder matches the *incoming request* field by field against the capture, so
   with a shipped scenario it answers the recorded Audi and no other car. Getting past SessionSetup
   means relaxing every field an EV chooses for itself.
-- **EVerest** — pushed three times on 2026-08-02 and **no longer stopped anywhere.** Authorizing over
-  MQTT took it from four phases to seven; driving their simulated car over MQTT as well — plug in, CP
-  to state C at the cable check — took it to a complete DC charge, 36/36 `OK`. What remains here is
-  not a wall but a list: **-20 against `Evse15118D20`** (next, and the message set this stack has most
-  to say about), AC, TLS, `IsoMux`, and `config-sil-mcs.yaml`, which stops being hypothetical the
-  moment the -20 run works.
+- **EVerest** — **complete charges in both protocols**, and the only counterparty that gets that far.
+  ISO 15118-2 against `EvseV2G` (36 exchanges, 2026-08-02) and ISO 15118-20 against `Evse15118D20`
+  (113 exchanges, 2026-08-03), each with the route matching our own recorded session message for
+  message. Both walls fell to the same idea: their module graph is addressable over MQTT, so the
+  session can be authorized and the simulated car plugged in without patching a line of EVerest.
+  What is left is a list rather than a blocker — **Dynamic control mode** (one variable; their module
+  supports it by default), **-20 over TLS 1.3**, **AC**, and **`IsoMux`**, the closest thing to a real
+  charger. **MCS stays parked:** `config-sil-mcs.yaml` is not in 2025.10 either.
 
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
 
-**⬜ Run every session twice, in every harness.** EVerest's `EvseV2G` segfaults on the *second* V2G
-session in one process — and because their manager kills every module when one dies, that takes the
-whole charger with it. Five reproductions, always at the same line, and the last one settles what the
-first four could not: it followed a **complete, successful charge** ending in `SessionStopRes`, a
-proper unplug and a fresh plug-in. So it is the second session as such, not a first session that ended
-badly. None of the eight interop fixtures could have found it, because **every run before this was
-exactly one session long.** A station that answers the first car correctly and dies on the second is a
-defect a one-shot harness is blind to by construction, which puts it in the same family as everything
-else on this page.
+**✅ Run every session twice, in every harness** — adopted 2026-08-02, and it immediately paid for
+itself twice over. `EvseV2G` in EVerest's `:main` demo image segfaults on the *second* V2G session in a
+process and, because their manager kills every module when one dies, takes the whole charger with it.
+Five reproductions; the fifth followed a complete, successful charge, so it is the second session as
+such and not a first one that ended badly. **None of the eight interop fixtures could have found it,
+because every run before this was exactly one session long.**
+
+Then the same discipline, applied one step further, withdrew the finding: before reporting it, the
+same procedure was run against everest-core **2025.10**, where two consecutive sessions both complete
+and nothing crashes. The defect belongs to a 2023 image. Ten minutes of checking, and the difference
+between a useful report and an embarrassing one — see
+[an image tag is not a version](#-an-image-tag-is-not-a-version-2026-08-03).
 
 The blocker was expected to be a machine — veth pairs, podman, an `everest-core` build, link-local
 SDP — and it was not. After the SAP handshake an ISO 15118 session is plain TCP, so a `socat` relay in
@@ -304,6 +324,32 @@ The rerun against the same station later that day, this time authorized, is the 
 evidence: seven authorization polls and 35 cable-check polls, both far inside the limit, and the guard
 armed through all of them. A deadline that never fires against a station that finishes is exactly what
 it should look like.
+
+#### ✅ An image tag is not a version (2026-08-03)
+
+Not a code change — a **methodology fix**, and it belongs here because it silently decided what three
+interop runs meant. Every note on EVerest said its `EvseV2G` sits on cbV2G, the encoder our corpus is
+generated from, so byte agreement with it would be agreement with ourselves. That is true of
+`everest-core` HEAD. The image was `ghcr.io/everest/everest-demo/manager:main`, which is **everest-core
+2023.10.0, built 2023-12-05**, links `libopenv2g.so.1`, and carries no libcbv2g at all. The tag had not
+been rebuilt in three years.
+
+Three consequences, in both directions:
+
+- **In our favour:** those runs *were* independent-codec results. OpenV2G shares no lineage with
+  chargebyte's cbexigen, so a complete DC charge against that image is 36 of our messages decoded and
+  acted on by a foreign encoder, and 36 of theirs read by ours.
+- **Against us:** the same image has no `Evse15118D20`, no `IsoMux` and no `config-sil-mcs.yaml` —
+  targets this project had been carrying as "next", read from HEAD and never checked against the
+  artifact. The -20 charger did not exist yet when that image was built.
+- **A finding withdrawn:** `EvseV2G`'s second-session segfault, reproduced five times and written up as
+  something to report, does not reproduce on 2025.10. Checking that took ten minutes and is the
+  difference between a useful report and an embarrassing one.
+
+**Every run write-up now records the image digest**, and "which build is this actually" is a question
+the harness READMEs ask before the first byte, with the `ldd`/`release.json` commands to answer it.
+Full account:
+[`docs/interop-runs/2026-08-03-everest-iso20-dc-full-charge/`](interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md).
 
 #### ✅ MCS — Megawatt Charging System (2026-07-25)
 
@@ -473,7 +519,7 @@ question for each is **what a disagreement with it would prove**:
 |---|---|---|---|
 | [tux-evse/iso15118-simulator-rs](https://github.com/tux-evse/iso15118-simulator-rs) (Rust, -2) | [`tools/interop-tux-evse/`](../tools/interop-tux-evse/README.md) | cbexigen — **ours** | never EXI, by construction: sequencing, framing or timing |
 | [EDF-Lab/eVDriveFlow](https://github.com/EDF-Lab/eVDriveFlow) (Python, **-20 Ed. 1**) | [`tools/interop-evdriveflow/`](../tools/interop-evdriveflow/README.md) | **OpenEXI — independent** | either layer: the only counterparty that is an oracle for both |
-| [EVerest](https://github.com/EVerest/everest-core) (C/C++/Python, DIN/-2/-20) | [`tools/interop-everest/`](../tools/interop-everest/README.md) | cbV2G — **ours** (car side: Josev) | station side: sequencing/timing. Car side: little — `PyEvJosev` is Josev in a wrapper |
+| [EVerest](https://github.com/EVerest/everest-core) (C/C++/Python, DIN/-2/-20) | [`tools/interop-everest/`](../tools/interop-everest/README.md) | cbV2G — **ours** — at HEAD; **OpenV2G — independent** in the `:main` demo image we ran (car side: Josev) | as run: either layer. At HEAD: station-side sequencing/timing only. Car side little either way — `PyEvJosev` is Josev in a wrapper |
 
 What each is actually *for*, beyond the byte question:
 
