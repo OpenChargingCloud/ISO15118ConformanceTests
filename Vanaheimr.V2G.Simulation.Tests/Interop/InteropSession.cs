@@ -29,9 +29,12 @@ internal static class InteropSession
     public static readonly TimeSpan SequenceTimeout   = TimeSpan.FromSeconds(60);
 
 
+    /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
+    /// rather than Scheduled — the EV states energy needs and a departure time and lets the station steer.
+    /// Ignored for -2, which has no control modes. Set by <c>V2G_INTEROP_DYNAMIC=1</c>.</param>
     /// <returns>How many messages our car exchanged with their station.</returns>
     public static async Task<Int32> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
-                                                 CancellationToken ct)
+                                                 CancellationToken ct, Boolean preferDynamic = false)
     {
 
         if (protocol == ProtocolVariant.Iso15118_2)
@@ -44,6 +47,9 @@ internal static class InteropSession
         Evcc20Base evcc20 = mode == PowerMode.Dc
                                 ? new Evcc20Dc(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
                                 : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout);
+
+        evcc20.PreferDynamicControlMode = preferDynamic;
+
         await evcc20.RunAsync(ct);
         return evcc20.Exchanges;
 

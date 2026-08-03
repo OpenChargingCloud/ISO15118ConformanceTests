@@ -90,7 +90,39 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// run that made this necessary.</remarks>
         public TimeSpan OngoingTimeout { get; set; } = TimeSpan.FromSeconds(60);
 
-        /// <summary>The tariff signer's public key (fachlich the eMSP's). When set and the Scheduled-mode
+        /// <summary>
+        /// Drive the session in <b>Dynamic</b> control mode (ControlMode = 2) instead of Scheduled.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The mirror of <c>Secc20Base.PreferDynamicControlMode</c>, and it arrived much later: until
+        /// 2026-08-03 our station could answer a Dynamic EV but our car could not be one. Every recorded
+        /// Dynamic run had Josev's EVCC on the other side
+        /// (<c>docs/interop-runs/2026-07-22-iso20-dynamic-sdp/</c>), so the mode was validated in exactly one
+        /// direction and the roadmap's "Scheduled and Dynamic" quietly meant "Scheduled both ways, Dynamic
+        /// inbound".
+        /// </para>
+        /// <para>
+        /// It touches four places, because the mode is a property of the whole session and not of one
+        /// message: the parameter set selected out of <c>ServiceDetailRes</c> (ControlMode = 2),
+        /// <c>ScheduleExchangeReq</c>'s control-mode arm, the <c>EVPowerProfile</c> in
+        /// <c>PowerDelivery(Start)</c>, and the charge loop's request arm. Answering in kind is
+        /// [V2G20-1600]; asking in kind is the same rule read from the other end.
+        /// </para>
+        /// <para>
+        /// The substantive difference is who plans: in Scheduled mode the EV picks a schedule tuple the SECC
+        /// offered and commits to it, in Dynamic mode it states energy needs and a departure time and lets
+        /// the station steer. Hence the mandatory energy triple below and the empty
+        /// <c>Dynamic_EVPPTControlMode</c> — there is no tuple to point at.
+        /// </para>
+        /// </remarks>
+        public Boolean PreferDynamicControlMode { get; set; }
+
+        /// <summary>When the car leaves, as a -20 <c>DepartureTime</c> (seconds from the session's time
+        /// anchor). Dynamic mode only: it is the deadline the station schedules against.</summary>
+        public UInt32 DepartureTime { get; set; } = 3600;
+
+        /// <summary>The tariff signer's public key (fachlich the eMSP's). When set and the
         /// ScheduleExchangeRes carries a signed AbsolutePriceSchedule, the EV verifies it.</summary>
         public System.Security.Cryptography.ECDsa? TariffVerifyKey { get; set; }
 
@@ -165,8 +197,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             {
                 scheduleRes = await Exchange<ScheduleExchangeRes>(MessageSet.Iso20CommonMessages,
                     dest => new ScheduleExchangeReq(SessionCtx.ToCommonHeader(), MaximumSupportingPoints: 12,
-                        Dynamic_SEReqControlMode: null,
-                        Scheduled_SEReqControlMode: new Scheduled_SEReqControlModeType(null, null, null, null, null))
+                        Dynamic_SEReqControlMode:   PreferDynamicControlMode ? DynamicScheduleRequest() : null,
+                        Scheduled_SEReqControlMode: PreferDynamicControlMode ? null : new Scheduled_SEReqControlModeType(null, null, null, null, null))
                         .TryEncode(dest, out int n) ? n : throw EncodeFailed(), ct);
                 if (scheduleRes.EVSEProcessing != Processing.Finished)
                     await pollDelay.Wait(PollInterval, ct);
@@ -396,18 +428,39 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             return (match ?? offered[0]).ServiceID;
         }
 
-        /// <summary>Picks the parameter set to select from the SECC's ServiceDetail: preferring a Scheduled
-        /// control-mode set (ControlMode=1, matching the Scheduled ScheduleExchange the EVCC drives), else the
-        /// first offered set.</summary>
-        private static ushort SelectParameterSet(ServiceDetailRes res)
+        /// <summary>Picks the parameter set to select from the SECC's ServiceDetail: the one whose
+        /// <c>ControlMode</c> matches the mode this EVCC is about to drive (1 = Scheduled, 2 = Dynamic), else
+        /// the first offered set. The order the SECC lists them in is its own preference and not binding —
+        /// what binds is that the selected set and the ScheduleExchange agree.</summary>
+        private ushort SelectParameterSet(ServiceDetailRes res)
         {
             var sets = res.ServiceParameterList.ParameterSet;
             if (sets.Count == 0)
                 throw new SessionAborted("ServiceDetail: the SECC advertised no parameter set.");
 
-            var scheduled = sets.FirstOrDefault(p => p.Parameter.Any(x => x.Name == "ControlMode" && x.IntValue == 1));
-            return (scheduled ?? sets[0]).ParameterSetID;
+            int wanted = PreferDynamicControlMode ? 2 : 1;
+            var match  = sets.FirstOrDefault(p => p.Parameter.Any(x => x.Name == "ControlMode" && x.IntValue == wanted));
+
+            if (match is null && PreferDynamicControlMode)
+                throw new SessionAborted("ServiceDetail: Dynamic control mode was requested, but the station "
+                                       + "offers no parameter set with ControlMode = 2.");
+
+            return (match ?? sets[0]).ParameterSetID;
         }
+
+        /// <summary>The Dynamic-mode ScheduleExchange request: a departure time and what the battery needs,
+        /// instead of a schedule to choose from. The three energy fields are <b>mandatory</b> in this arm
+        /// (they are optional in the Scheduled one), which is the schema saying the same thing: a station can
+        /// only steer if it knows the target.</summary>
+        private Dynamic_SEReqControlModeType DynamicScheduleRequest()
+            => new(DepartureTime:            DepartureTime,
+                   MinimumSOC:               30,
+                   TargetSOC:                80,
+                   EVTargetEnergyRequest:    new RationalNumberType(3, 30),   // 30 kWh
+                   EVMaximumEnergyRequest:   new RationalNumberType(3, 60),   // 60 kWh
+                   EVMinimumEnergyRequest:   new RationalNumberType(3, 10),   // 10 kWh
+                   EVMaximumV2XEnergyRequest: null,
+                   EVMinimumV2XEnergyRequest: null);
 
         /// <summary>Verifies a signed <c>AbsolutePriceSchedule</c> in the Scheduled-mode offer, if any:
         /// reference digest over the schedule's re-encoded EXI fragment, then (with
@@ -416,9 +469,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// (Josev's SECC, for one, never signs its price schedules).</summary>
         private void VerifyPriceSchedule(ScheduleExchangeRes res)
         {
-            var priceSchedule = res.Scheduled_SEResControlMode?.ScheduleTuple
-                .Select(t => t.ChargingSchedule.AbsolutePriceSchedule)
-                .FirstOrDefault(p => p?.Id is not null);
+            // Scheduled mode hangs the price schedule off each schedule tuple; Dynamic mode has no tuples and
+            // carries one directly on the control mode. Same verification either way.
+            var priceSchedule = res.Dynamic_SEResControlMode?.AbsolutePriceSchedule is { Id: not null } dynamicPrice
+                ? dynamicPrice
+                : res.Scheduled_SEResControlMode?.ScheduleTuple
+                    .Select(t => t.ChargingSchedule.AbsolutePriceSchedule)
+                    .FirstOrDefault(p => p?.Id is not null);
             if (priceSchedule is null)
                 return;
 
@@ -438,19 +495,23 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             Tariff = new Iso20TariffResult(signaturePresent, digestOk, signatureOk);
         }
 
-        /// <summary>Builds the Scheduled-mode EVPowerProfile that <c>PowerDelivery(Start)</c> must carry: it
+        /// <summary>Builds the EVPowerProfile that <c>PowerDelivery(Start)</c> must carry. Scheduled mode
         /// selects the first schedule tuple the SECC returned in <c>ScheduleExchangeRes</c> and echoes one
-        /// power-schedule entry. Falls back to tuple id 1 if the SECC returned no Scheduled control mode.</summary>
-        private static EVPowerProfileType BuildEvPowerProfile(ScheduleExchangeRes scheduleRes)
+        /// power-schedule entry (falling back to tuple id 1 if the SECC returned no Scheduled control mode);
+        /// Dynamic mode has no tuple to point at, so its control-mode element is empty — the profile is then
+        /// only the EV's own power curve.</summary>
+        private EVPowerProfileType BuildEvPowerProfile(ScheduleExchangeRes scheduleRes)
         {
             uint tupleId = scheduleRes.Scheduled_SEResControlMode?.ScheduleTuple.FirstOrDefault()?.ScheduleTupleID ?? 1;
 
             return new EVPowerProfileType(
                 TimeAnchor: 0,
-                Dynamic_EVPPTControlMode: null,
+                Dynamic_EVPPTControlMode: PreferDynamicControlMode ? new Dynamic_EVPPTControlModeType() : null,
                 // PowerToleranceAcceptance is schema-optional but Josev's model requires it (its SECC rejects
                 // an absent one); a live run needed it set. PowerToleranceConfirmed = the EV accepts the tolerance.
-                Scheduled_EVPPTControlMode: new Scheduled_EVPPTControlModeType(tupleId, PowerToleranceAcceptance.PowerToleranceConfirmed),
+                Scheduled_EVPPTControlMode: PreferDynamicControlMode
+                                                ? null
+                                                : new Scheduled_EVPPTControlModeType(tupleId, PowerToleranceAcceptance.PowerToleranceConfirmed),
                 EVPowerProfileEntries: new EVPowerProfileEntryListType(new[]
                 {
                     // one 1-hour entry at 10 kW (Power = 10 × 10^3 W)

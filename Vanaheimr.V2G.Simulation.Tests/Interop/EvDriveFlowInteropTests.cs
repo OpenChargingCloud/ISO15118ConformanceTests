@@ -82,7 +82,8 @@ public class EvDriveFlowInteropTests
         {
             await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
 
-            var exchanges = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token);
+            var exchanges = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
+                                                              InteropEnvironment.PreferDynamic());
 
             Assert.That(exchanges, Is.GreaterThan(0),
                         "our EVCC exchanged at least one message with their SECC");

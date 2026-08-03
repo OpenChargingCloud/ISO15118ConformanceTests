@@ -28,10 +28,27 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         protected override async Task RunChargeLoopIterationAsync(CancellationToken ct)
         {
-            var req = new Ac20.AC_ChargeLoopReq(SessionCtx.ToAcHeader(), DisplayParameters: null, MeterInfoRequested: false,
-                CLReqControlMode: new Ac20.Scheduled_AC_CLReqControlModeType(
-                    null, null, null, null, null, null, null, null, null,
-                    EVPresentActivePower: Rat(2_200, 1), null, null, null, null, null));
+            // Asking in kind, the mirror of [V2G20-1600] — see Evcc20Dc for the same split and why.
+            Ac20.CLReqControlModeType controlMode = PreferDynamicControlMode
+                ? new Ac20.Dynamic_AC_CLReqControlModeType(
+                      DepartureTime:            DepartureTime,
+                      EVTargetEnergyRequest:    Rat(30, 3),   // 30 kWh
+                      EVMaximumEnergyRequest:   Rat(60, 3),   // 60 kWh
+                      EVMinimumEnergyRequest:   Rat(10, 3),   // 10 kWh
+                      EVMaximumChargePower:     Rat(11, 3),   // 11 kW
+                      EVMaximumChargePower_L2:  null, EVMaximumChargePower_L3: null,
+                      EVMinimumChargePower:     Rat(1,  3),
+                      EVMinimumChargePower_L2:  null, EVMinimumChargePower_L3: null,
+                      EVPresentActivePower:     Rat(2_200, 1),
+                      EVPresentActivePower_L2:  null, EVPresentActivePower_L3: null,
+                      EVPresentReactivePower:   Rat(0),
+                      EVPresentReactivePower_L2: null, EVPresentReactivePower_L3: null)
+                : new Ac20.Scheduled_AC_CLReqControlModeType(
+                      null, null, null, null, null, null, null, null, null,
+                      EVPresentActivePower: Rat(2_200, 1), null, null, null, null, null);
+
+            var req = new Ac20.AC_ChargeLoopReq(SessionCtx.ToAcHeader(), DisplayParameters: null,
+                MeterInfoRequested: false, CLReqControlMode: controlMode);
 
             var (set, message) = await ExchangeRaw(MessageSet.Iso20AC,
                 dest => Ac20.AcCodec.TryEncode(req, dest, out int n) ? n : throw EncodeFailed(), ct);

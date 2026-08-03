@@ -51,10 +51,26 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         protected override async Task RunChargeLoopIterationAsync(CancellationToken ct)
         {
+            // Asking in kind, the mirror of [V2G20-1600]: the request's control mode must be the one the
+            // session negotiated. Dynamic states what the battery needs and what the car can take, and lets
+            // the station choose the setpoint; Scheduled names the setpoint itself.
+            Dc20.CLReqControlModeType controlMode = PreferDynamicControlMode
+                ? new Dc20.Dynamic_DC_CLReqControlModeType(
+                      DepartureTime:          DepartureTime,
+                      EVTargetEnergyRequest:  Rat(30, 3),    // 30 kWh
+                      EVMaximumEnergyRequest: Rat(60, 3),    // 60 kWh
+                      EVMinimumEnergyRequest: Rat(10, 3),    // 10 kWh
+                      EVMaximumChargePower:   Rat(50, 3),    // 50 kW
+                      EVMinimumChargePower:   Rat(1,  3),    //  1 kW
+                      EVMaximumChargeCurrent: Rat(125),
+                      EVMaximumVoltage:       Rat(500),
+                      EVMinimumVoltage:       Rat(200))
+                : new Dc20.Scheduled_DC_CLReqControlModeType(
+                      null, null, null, EVTargetCurrent: Rat(120), EVTargetVoltage: Rat(400),
+                      null, null, null, null, null);
+
             var req = new Dc20.DC_ChargeLoopReq(SessionCtx.ToDcHeader(), DisplayParameters: null, MeterInfoRequested: false,
-                EVPresentVoltage: Rat(400), CLReqControlMode: new Dc20.Scheduled_DC_CLReqControlModeType(
-                    null, null, null, EVTargetCurrent: Rat(120), EVTargetVoltage: Rat(400),
-                    null, null, null, null, null));
+                EVPresentVoltage: Rat(400), CLReqControlMode: controlMode);
 
             var (set, message) = await ExchangeRaw(MessageSet.Iso20DC,
                 dest => Dc20.DcCodec.TryEncode(req, dest, out int n) ? n : throw EncodeFailed(), ct);

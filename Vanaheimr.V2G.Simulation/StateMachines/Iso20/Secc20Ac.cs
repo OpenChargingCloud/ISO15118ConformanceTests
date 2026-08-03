@@ -10,8 +10,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     /// iteration. No CableCheck/PreCharge/WeldingDetection (DC-only). <c>AC.Generated</c> is aliased
     /// (<c>Ac20</c>) for the same reason as <see cref="Secc20Dc"/> — it redeclares
     /// <c>ResponseCode</c>/<c>Processing</c>/<c>RationalNumberType</c>/etc. as distinct CLR types.
+    /// <para>
+    /// Unsealed to match <see cref="Secc20Dc"/>, which never was: the difference was an accident, and a test
+    /// that needs to watch what a station received (<c>Evcc20DynamicModeTests</c>) should not be able to do
+    /// that for DC and not for AC.
+    /// </para>
     /// </summary>
-    public sealed class Secc20Ac(TimeSpan sequenceTimeout, TimeProvider clock) : Secc20Base(sequenceTimeout, clock)
+    public class Secc20Ac(TimeSpan sequenceTimeout, TimeProvider clock) : Secc20Base(sequenceTimeout, clock)
     {
         protected override bool HasPreChargeSequence => false;
         protected override bool HasPostChargeSequence => false;
