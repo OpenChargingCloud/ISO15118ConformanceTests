@@ -50,6 +50,15 @@ namespace Vanaheimr.V2G.Simulation.Sap
                 throw new SessionAborted("SAP: expected a SupportedAppProtocolRes.");
             if (res.Code is not (ResponseCode.OK_SuccessfulNegotiation or ResponseCode.OK_SuccessfulNegotiationWithMinorDeviation))
                 throw new SessionAborted($"SAP: SECC rejected the protocol offer ({res.Code}).");
+
+            // The SchemaID says *which* of the offered protocols was accepted, and it was read by nobody:
+            // harmless while the offer is a single entry, and a silent protocol mismatch the moment it is
+            // not. Checked now rather than when the second entry is added — that is the point at which
+            // nobody would think to look (found in the 2026-08-03 sweep; see docs/roadmap.md).
+            if (res.SchemaID != req.AppProtocols[0].SchemaID)
+                throw new SessionAborted(
+                    $"SAP: the SECC accepted SchemaID {res.SchemaID?.ToString() ?? "<none>"}, which is not the "
+                  + $"{req.AppProtocols[0].SchemaID} it was offered.");
         }
 
         /// <summary>SECC side: accepts if the EVCC offered <paramref name="accepted"/>, otherwise replies Failed and throws.</summary>

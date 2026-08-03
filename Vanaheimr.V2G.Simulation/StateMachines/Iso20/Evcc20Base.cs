@@ -307,6 +307,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                     Authorization.PnC, null, pncMode).TryEncode(dest, out int n) ? n : throw EncodeFailed();
             }
 
+            // EIM is what is left, and it too has to be on offer: a station that advertises PnC only is
+            // saying it cannot authorize this car, and hearing that at AuthorizationSetup is better than
+            // hearing FAILED at AuthorizationReq.
+            if (!authSetup.AuthorizationServices.Contains(Authorization.EIM))
+                throw new SessionAborted(
+                    "AuthorizationSetup: the station offers no EIM authorization "
+                  + $"(offered: {String.Join(", ", authSetup.AuthorizationServices)})"
+                  + (Pnc is null ? " and this EVCC has no contract certificate." : "."));
+
             return dest => new AuthorizationReq(SessionCtx.ToCommonHeader(), Authorization.EIM,
                 new EIM_AReqAuthorizationModeType(), null).TryEncode(dest, out int n) ? n : throw EncodeFailed();
         }
@@ -404,19 +413,30 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         }
 
-        // ISO 15118-20 energy-transfer service ids (Table 204): AC=1, DC=2, AC_BPT=5, DC_BPT=6.
-        private static readonly ushort[] DcServiceIds = { 2, 6 };
-        private static readonly ushort[] AcServiceIds = { 1, 5 };
+        // ISO 15118-20 energy-transfer service ids (Table 204): AC=1, DC=2, AC_BPT=5, DC_BPT=6,
+        // MCS=8, MCS_BPT=9. MCS is the DC message set under different ids, so it is *drivable* by a DC
+        // EVCC even when it is not what that EVCC would ask for first — which is the difference the two
+        // lists below carry.
+        private static readonly ushort[] DcServiceIds     = { 2, 6 };
+        private static readonly ushort[] AcServiceIds     = { 1, 5 };
+        private static readonly ushort[] DcDrivableIds    = { 2, 6, 8, 9 };
+        private static readonly ushort[] AcDrivableIds    = { 1, 5 };
 
-        /// <summary>Energy-transfer service ids this EVCC will accept from the SECC's catalogue, best first
-        /// (Table 204: AC=1, DC=2, AC_BPT=5, DC_BPT=6, MCS=8, MCS_BPT=9). Virtual so an MCS vehicle can ask
-        /// for the megawatt services instead — see <see cref="Evcc20Mcs"/>.</summary>
+        /// <summary>Energy-transfer service ids this EVCC will accept from the SECC's catalogue, best first.
+        /// Virtual so an MCS vehicle can ask for the megawatt services instead — see
+        /// <see cref="Evcc20Mcs"/>.</summary>
         protected virtual IReadOnlyList<ushort> PreferredEnergyServiceIds
             => EnergyMode == PowerMode.Dc ? DcServiceIds : AcServiceIds;
 
-        /// <summary>Picks the energy-transfer service to select from the SECC's advertised list: the first one
-        /// whose id matches this EVCC's mode (DC → 2/6, AC → 1/5), else the first offered (a simplified SECC
-        /// may advertise a single generic id).</summary>
+        /// <summary>Every service id whose messages this EVCC can actually speak — the ones on its own
+        /// message set. Wider than <see cref="PreferredEnergyServiceIds"/> on purpose: a megawatt truck at an
+        /// ordinary DC charger should take the DC service rather than refuse, and a DC car at an AC-only
+        /// station has nothing to take.</summary>
+        protected virtual IReadOnlyList<ushort> DrivableEnergyServiceIds
+            => EnergyMode == PowerMode.Dc ? DcDrivableIds : AcDrivableIds;
+
+        /// <summary>Picks the energy-transfer service to select from the SECC's advertised list: the best one
+        /// this EVCC asks for, else any other it can actually drive, else a refusal.</summary>
         private ushort SelectEnergyTransferService(ServiceDiscoveryRes res)
         {
             var offered = res.EnergyTransferServiceList.Service;
@@ -424,8 +444,23 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 throw new SessionAborted("ServiceDiscovery: the SECC advertised no energy-transfer service.");
 
             var preferred = PreferredEnergyServiceIds;
-            var match = offered.FirstOrDefault(s => preferred.Contains(s.ServiceID));
-            return (match ?? offered[0]).ServiceID;
+            var drivable  = DrivableEnergyServiceIds;
+
+            // First choice, then anything else on our own message set. The old fallback was `offered[0]`,
+            // which for a DC car at an AC-only station selects the AC service and then sends the next
+            // request on the DC set — refused two exchanges later, for a reason that no longer names the
+            // cause. Falling back *within* the message set keeps the case this is really for (a megawatt
+            // truck at an ordinary DC charger) and drops the one it never was.
+            var match = offered.FirstOrDefault(s => preferred.Contains(s.ServiceID))
+                     ?? offered.FirstOrDefault(s => drivable.Contains(s.ServiceID));
+
+            if (match is null)
+                throw new SessionAborted(
+                    $"ServiceDiscovery: the station offers no {(EnergyMode == PowerMode.Dc ? "DC" : "AC")} "
+                  + $"energy-transfer service (wanted {String.Join("/", preferred)}, "
+                  + $"offered {String.Join(", ", offered.Select(s => s.ServiceID))}).");
+
+            return match.ServiceID;
         }
 
         /// <summary>Picks the parameter set to select from the SECC's ServiceDetail: the one whose

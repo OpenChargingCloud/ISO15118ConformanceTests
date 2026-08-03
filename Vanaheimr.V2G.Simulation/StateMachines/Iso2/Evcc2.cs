@@ -117,10 +117,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             var discovery = await Send<ServiceDiscoveryResType>(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null), ct);
             _energyTransferMode = SelectEnergyTransferMode(discovery);
 
+            // The service id is the station's, not a constant. Ours has always been 1 and so has every
+            // counterparty's so far, which is exactly why this was a literal until the sweep of 2026-08-03.
+            ushort chargeServiceId = discovery.ChargeService?.ServiceID
+                ?? throw new SessionAborted("ServiceDiscovery: the station advertised no ChargeService.");
+
             bool contract = Pnc is not null && discovery.PaymentOptionList.PaymentOption.Contains(PaymentOption.Contract);
             await Send<PaymentServiceSelectionResType>(new PaymentServiceSelectionReqType(
                 contract ? PaymentOption.Contract : PaymentOption.ExternalPayment,
-                new SelectedServiceListType(new[] { new SelectedServiceType(ServiceID: 1, ParameterSetID: null) })), ct);
+                new SelectedServiceListType(new[] { new SelectedServiceType(chargeServiceId, ParameterSetID: null) })), ct);
 
             // ── AUTH (loop until authorised) ───────────────────────────────────
             // Contract: PaymentDetails first (contract chain → GenChallenge), then a signed AuthorizationReq
