@@ -188,6 +188,57 @@ public class SessionTraceCorpusTests
                             FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
             }),
 
+        // ── the multi-protocol offer ──────────────────────────────────────
+        //
+        // Both protocols in ONE SupportedAppProtocol request, the state machine chosen after the
+        // handshake — the case a multiplexing station exists for. Two traces because the two answers
+        // differ in the one byte that decides everything: the station's SchemaID names which entry
+        // won, and the ports must run the machine it names rather than the one they would prefer.
+
+        new("iso2-ac-eim-sapboth", "iso15118-2", "ac",
+            "AC, EIM, negotiated: the EV offers -20 AC at priority 1 and -2 at priority 2 in one " +
+            "handshake; this station speaks only -2, answers SchemaID 2 — the priority-2 entry — " +
+            "and the -2 session runs. Also the first recording in which the SECC's answered " +
+            "SchemaID is not 1, which is what shows it echoes the accepted entry rather than a literal.",
+            async (stream, clock, ct) =>
+            {
+                var accepted = await SapHandshake.RunEvccSideAsync(stream,
+                    new SapOffer[] { new(ProtocolVariant.Iso15118_20, PowerMode.Ac),
+                                     new(ProtocolVariant.Iso15118_2,  PowerMode.Ac) }, ct);
+                if (accepted.Protocol != ProtocolVariant.Iso15118_2)
+                    throw new InvalidOperationException("this station is -2-only; the negotiation must settle on -2");
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage).RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-dc-eim-sapboth", "iso15118-20", "dc",
+            "-20 DC, EIM, negotiated: the same two-entry offer at a -20 station, which answers " +
+            "SchemaID 1 — the priority-1 entry — and the -20 session runs.",
+            async (stream, clock, ct) =>
+            {
+                var accepted = await SapHandshake.RunEvccSideAsync(stream,
+                    new SapOffer[] { new(ProtocolVariant.Iso15118_20, PowerMode.Dc),
+                                     new(ProtocolVariant.Iso15118_2,  PowerMode.Dc) }, ct);
+                if (accepted.Protocol != ProtocolVariant.Iso15118_20)
+                    throw new InvalidOperationException("this station speaks -20; the negotiation must settle on -20");
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage).RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+            }),
+
         // ── signed sessions ───────────────────────────────────────────────
         //
         // The reason schema 2 exists. Both of these carry a signed AuthorizationReq, which is not

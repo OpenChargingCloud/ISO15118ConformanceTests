@@ -19,7 +19,9 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop;
 ///         their station, for a run in which we are the car.</description></item>
 ///   <item><term><c>V2G_INTEROP_LISTEN</c></term><description>a port — our station, for a run in which
 ///         they are the car.</description></item>
-///   <item><term><c>V2G_INTEROP_PROTOCOL</c></term><description><c>2</c> (default) or <c>20</c>.</description></item>
+///   <item><term><c>V2G_INTEROP_PROTOCOL</c></term><description><c>2</c> (default), <c>20</c>, or
+///   <c>both</c> — one handshake offering -20 at priority 1 and -2 at priority 2, running whichever
+///   the station picks (EVCC side; see <see cref="OfferBothProtocols"/>).</description></item>
 ///   <item><term><c>V2G_INTEROP_MODE</c></term><description><c>ac</c> (default) or <c>dc</c>.</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS</c></term><description><c>1</c> to run TLS, accepting any server
 ///         certificate. Development only.</description></item>
@@ -95,20 +97,36 @@ internal static class InteropEnvironment
     public static (ProtocolVariant Protocol, PowerMode Mode) ProtocolAndMode()
         => (Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") switch
             {
-                "20" => ProtocolVariant.Iso15118_20,
-                _    => ProtocolVariant.Iso15118_2,
+                // "both" resolves to -20 here because that is the offer's priority-1 entry — the
+                // protocol everything decided *before* the handshake (TLS profile, recording name)
+                // should assume; the handshake itself then settles what actually runs.
+                "20" or "both" => ProtocolVariant.Iso15118_20,
+                _              => ProtocolVariant.Iso15118_2,
             },
             Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "dc"
                 ? PowerMode.Dc
                 : PowerMode.Ac);
 
 
-    /// <summary>The names the trace corpus uses, so a recorded interop session is filed like any other.</summary>
+    /// <summary>
+    /// <c>V2G_INTEROP_PROTOCOL=both</c>: offer -20 at priority 1 and -2 at priority 2 in <b>one</b>
+    /// SupportedAppProtocol handshake and run whichever the station picks — the case a multiplexing
+    /// station (EVerest's <c>IsoMux</c>) exists for, and the one thing the 2026-08-03 run against it
+    /// could not exercise while our EVCC offered exactly the protocol it was constructed for.
+    /// </summary>
+    public static Boolean OfferBothProtocols()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") == "both";
+
+
+    /// <summary>The names the trace corpus uses, so a recorded interop session is filed like any other.
+    /// A both-protocol offer is filed as <c>both</c>: the offer is the fact of the run, whichever way
+    /// the station decides.</summary>
     public static (String Protocol, String Mode) ProtocolAndModeNames()
     {
         var (protocol, mode) = ProtocolAndMode();
-        return (protocol == ProtocolVariant.Iso15118_20 ? "iso15118-20" : "iso15118-2",
-                mode     == PowerMode.Dc                ? "dc"          : "ac");
+        return (OfferBothProtocols() ? "both"
+                    : protocol == ProtocolVariant.Iso15118_20 ? "iso15118-20" : "iso15118-2",
+                mode == PowerMode.Dc ? "dc" : "ac");
     }
 
 

@@ -26,7 +26,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
         string? ServerCertPath, string? ServerCertPass, bool RequireClientCert,
         string? ContractCertPath, string? ContractCertPass, bool PauseResume,
         bool EndPaused, string? ResumeSessionIdHex, bool Renegotiate,
-        string? TariffCertPath, string? TariffCertPass)
+        string? TariffCertPath, string? TariffCertPass,
+        bool OfferBoth = false)
     {
         public static CliArgs Parse(string[] args)
         {
@@ -37,6 +38,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
             string? connectHost = null;
             int connectPort = 0, listenPort = 0;
             var protocol = ProtocolVariant.Iso15118_2;
+            var offerBoth = false;
             var mode = PowerMode.Ac;
             var backend = TlsBackend.None;
             bool tls = false;
@@ -59,11 +61,15 @@ namespace Vanaheimr.V2G.Simulation.Cli
                         listenPort = ParsePort(args[++i], "--listen");
                         break;
                     case "--protocol":
-                        protocol = args[++i] switch
+                        // "both": one SupportedAppProtocol offer carrying -20 at priority 1 and -2 at
+                        // priority 2; the session runs whichever the peer settles on. Protocol keeps the
+                        // top preference for everything decided before the handshake (banner, TLS).
+                        (protocol, offerBoth) = args[++i] switch
                         {
-                            "2" => ProtocolVariant.Iso15118_2,
-                            "20" => ProtocolVariant.Iso15118_20,
-                            var v => throw new ArgumentException($"--protocol expects 2 or 20, got '{v}'."),
+                            "2"    => (ProtocolVariant.Iso15118_2,  false),
+                            "20"   => (ProtocolVariant.Iso15118_20, false),
+                            "both" => (ProtocolVariant.Iso15118_20, true),
+                            var v  => throw new ArgumentException($"--protocol expects 2, 20 or both, got '{v}'."),
                         };
                         break;
                     case "--mode":
@@ -165,7 +171,7 @@ namespace Vanaheimr.V2G.Simulation.Cli
                                useSdp, iface, preferDynamic, noPnc, useSlac, slacListenPort, slacPeerHost, slacPeerPort, pkiDir,
                                clientCertPath, clientCertPass, serverCertPath, serverCertPass, requireClientCert,
                                contractCertPath, contractCertPass, pauseResume, endPaused, resumeSessionIdHex, renegotiate,
-                               tariffCertPath, tariffCertPass);
+                               tariffCertPath, tariffCertPass, offerBoth);
         }
 
         private static void Validate(Role role, string? connectHost, int listenPort, TlsBackend backend,
@@ -213,8 +219,10 @@ namespace Vanaheimr.V2G.Simulation.Cli
             => int.TryParse(value, out var port) ? port : throw new ArgumentException($"{flag} expects a port number, got '{value}'.");
 
         public const string Usage =
-            "usage: evcc --connect <host:port> --protocol 2|20 --mode ac|dc [tls/stage options]\n" +
-            "       secc --listen  <port>      --protocol 2|20 --mode ac|dc [tls/stage options]\n" +
+            "usage: evcc --connect <host:port> --protocol 2|20|both --mode ac|dc [tls/stage options]\n" +
+            "       secc --listen  <port>      --protocol 2|20|both --mode ac|dc [tls/stage options]\n" +
+            "         (both: offer/accept -20 at priority 1 and -2 at priority 2 in one handshake,\n" +
+            "          then run whichever the peer settles on)\n" +
             "  TLS:   --tls | --tls-backend dotnet|bc   (bc = -20-faithful mutual TLS, needs --pki-dir <dir>)\n" +
             "         evcc --client-cert <pfx> [--client-cert-pass <pw>]  (mutual TLS on the .NET backend)\n" +
             "         secc --server-cert <pfx> [--server-cert-pass <pw>] [--require-client-cert]  (.NET backend)\n" +

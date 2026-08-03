@@ -83,7 +83,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
                                      ? new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, args.ListenPort), bcTls)
                                      : new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, args.ListenPort), dotnetTls);
 
-            Console.WriteLine($"SECC listening on {listener.LocalEndpoint} (protocol {ProtocolName(args.Protocol)}, " +
+            Console.WriteLine($"SECC listening on {listener.LocalEndpoint} " +
+                              $"(protocol {(args.OfferBoth ? "both (-20 preferred)" : ProtocolName(args.Protocol))}, " +
                               $"{ModeName(args.Mode)}, TLS {args.TlsBackend})...");
 
             await using var sdp = args.UseSdp ? await StartSeccSdpAsync(args, listener.LocalEndpoint.Port) : null;
@@ -94,13 +95,31 @@ namespace Vanaheimr.V2G.Simulation.Cli
             do
             {
                 using var stream = await listener.AcceptAsync();
-                await SapHandshake.RunSeccSideAsync(stream, args.Protocol, mode: args.Mode);
-                resumeId = await RunSeccSessionAsync(stream, args, resumeId);
+                CliArgs sessionArgs;
+                if (args.OfferBoth)
+                {
+                    // A mini-IsoMux: accept both protocols, follow the EV's priority, and run the state
+                    // machine the handshake settled on rather than one chosen before it ran.
+                    var settled = await SapHandshake.RunSeccSideAsync(stream, BothOffers(args.Mode));
+                    Console.WriteLine($"SAP: the EV's offer settled on {ProtocolName(settled.Protocol)}.");
+                    sessionArgs = args with { Protocol = settled.Protocol };
+                }
+                else
+                {
+                    await SapHandshake.RunSeccSideAsync(stream, args.Protocol, mode: args.Mode);
+                    sessionArgs = args;
+                }
+                resumeId = await RunSeccSessionAsync(stream, sessionArgs, resumeId);
                 if (resumeId is not null)
                     Console.WriteLine($"Session paused (id {Convert.ToHexString(resumeId)}) — awaiting resume...");
             }
             while (resumeId is not null);
         }
+
+        /// <summary>-20 first, -2 second: a real car's preference order, and the SECC list a
+        /// multiplexer supports. The mode applies to both entries.</summary>
+        private static SapOffer[] BothOffers(PowerMode mode) =>
+            [new(ProtocolVariant.Iso15118_20, mode), new(ProtocolVariant.Iso15118_2, mode)];
 
         /// <summary>Runs one session; returns the session id when it ended <b>paused</b> (offer it to the
         /// next session as the resume id), else <c>null</c>.</summary>
@@ -244,6 +263,17 @@ namespace Vanaheimr.V2G.Simulation.Cli
         {
             var (host, port) = await ResolveEvccEndpointAsync(args);
             using var stream = await ConnectEvccAsync(args, host, port);
+
+            if (args.OfferBoth)
+            {
+                // The state machine is chosen AFTER the handshake: offer both, run whichever the
+                // station picked — the case a multiplexing station (EVerest's IsoMux) exists for.
+                var accepted = await SapHandshake.RunEvccSideAsync(stream, BothOffers(args.Mode));
+                Console.WriteLine($"SAP: offered -20 (priority 1) and -2 (priority 2); " +
+                                  $"the station picked {ProtocolName(accepted.Protocol)}.");
+                return await RunEvccSessionAsync(stream, args with { Protocol = accepted.Protocol }, pause, resumeId);
+            }
+
             await SapHandshake.RunEvccSideAsync(stream, args.Protocol, mode: args.Mode);
             return await RunEvccSessionAsync(stream, args, pause, resumeId);
         }

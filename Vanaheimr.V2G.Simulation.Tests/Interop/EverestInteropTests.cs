@@ -3,6 +3,7 @@ using System.Net;
 using NUnit.Framework;
 
 using Vanaheimr.V2G.Simulation.Sap;
+using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.Transport;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Interop;
@@ -82,7 +83,19 @@ public class EverestInteropTests
 
         try
         {
-            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
+            if (InteropEnvironment.OfferBothProtocols())
+            {
+                // The IsoMux case, from the EV side: both protocols in one offer, the station picks,
+                // and the state machine is chosen after the handshake rather than before it.
+                var accepted = await SapHandshake.RunEvccSideAsync(stream,
+                    [new SapOffer(ProtocolVariant.Iso15118_20, mode), new SapOffer(ProtocolVariant.Iso15118_2, mode)],
+                    cts.Token);
+                protocol = accepted.Protocol;
+                TestContext.Out.WriteLine($"SAP: offered -20 (priority 1) and -2 (priority 2); the station " +
+                                          $"picked {(protocol == ProtocolVariant.Iso15118_20 ? "-20" : "-2")}.");
+            }
+            else
+                await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode);
 
             var exchanges = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                               InteropEnvironment.PreferDynamic());

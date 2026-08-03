@@ -7,11 +7,27 @@ using Vanaheimr.V2G.Tp;
 namespace Vanaheimr.V2G.Simulation.Sap
 {
     /// <summary>
-    /// The SupportedAppProtocol handshake every session starts with, before either side switches to the
-    /// negotiated -2/-20 codec (see <see cref="MessageSet.AppProtocol"/>). This slice negotiates a single,
-    /// fixed protocol per side — no multi-candidate EVCC offer list — since the simulator always knows in
-    /// advance which protocol/mode it's testing.
+    /// One protocol a peer is prepared to run, in a SupportedAppProtocol offer: the variant, and for
+    /// -20 the power mode that picks the application namespace (…-20:DC / …-20:AC).
     /// </summary>
+    /// <remarks>
+    /// The EVCC's list order is its preference: entry 0 is offered at Priority 1 (the highest) with
+    /// SchemaID 1, entry 1 at Priority 2 with SchemaID 2, and so on. The SECC's list order carries no
+    /// priority — [V2G2-179] has the station follow the <i>EV's</i> ranking among what it supports.
+    /// </remarks>
+    public sealed record SapOffer(ProtocolVariant Protocol, PowerMode Mode = PowerMode.Dc);
+
+    /// <summary>
+    /// The SupportedAppProtocol handshake every session starts with, before either side switches to the
+    /// negotiated -2/-20 codec (see <see cref="MessageSet.AppProtocol"/>).
+    /// </summary>
+    /// <remarks>
+    /// Two shapes per side. The single-protocol overloads negotiate a fixed protocol — the simulator
+    /// usually knows in advance which one it is testing. The list overloads are the real thing: the EVCC
+    /// offers every protocol it can run in <b>one</b> request and then runs whichever the station picked,
+    /// and the SECC picks the highest-priority entry it supports — which is what a multiplexing station
+    /// (EVerest's <c>IsoMux</c>) exists for, and until 2026-08-03 the one case this stack could not be.
+    /// </remarks>
     public static class SapHandshake
     {
         private const string Iso2Namespace   = "urn:iso:15118:2:2013:MsgDef";
@@ -28,19 +44,38 @@ namespace Vanaheimr.V2G.Simulation.Sap
             _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, "unknown protocol variant"),
         };
 
-        /// <summary>EVCC side: offers exactly <paramref name="wanted"/> (for -20, the <paramref name="mode"/>-specific
-        /// namespace), throws <see cref="SessionAborted"/> if the SECC rejects it.</summary>
+        // Version numbers per protocol: ISO 15118-2:2013 MsgDef is protocol version 2.0, the -20 sets
+        // are 1.0. A live Josev SECC matches namespace AND major version — offering -2 as "1.0" gets
+        // Failed_NoNegotiation (found live 2026-07-22; our own SECC matches on namespace only).
+        private static (uint Major, uint Minor) VersionFor(ProtocolVariant variant)
+            => variant == ProtocolVariant.Iso15118_2 ? (2u, 0u) : (1u, 0u);
+
+        /// <summary>EVCC side, one fixed protocol: offers exactly <paramref name="wanted"/> (for -20, the
+        /// <paramref name="mode"/>-specific namespace), throws <see cref="SessionAborted"/> if the SECC
+        /// rejects it.</summary>
         public static async Task RunEvccSideAsync(Stream stream, ProtocolVariant wanted, CancellationToken ct = default, PowerMode mode = PowerMode.Dc)
+            => await RunEvccSideAsync(stream, new[] { new SapOffer(wanted, mode) }, ct).ConfigureAwait(false);
+
+        /// <summary>
+        /// EVCC side, the multi-protocol offer: every entry in one request, best first, and the state
+        /// machine is chosen <b>after</b> the handshake — the caller runs whichever came back.
+        /// </summary>
+        /// <returns>The offer the SECC accepted, mapped back through the answered SchemaID.</returns>
+        public static async Task<SapOffer> RunEvccSideAsync(Stream stream, IReadOnlyList<SapOffer> offers, CancellationToken ct = default)
         {
-            // Version numbers per protocol: ISO 15118-2:2013 MsgDef is protocol version 2.0, the -20 sets
-            // are 1.0. A live Josev SECC matches namespace AND major version — offering -2 as "1.0" gets
-            // Failed_NoNegotiation (found live 2026-07-22; our own SECC matched on namespace only).
-            var (major, minor) = wanted == ProtocolVariant.Iso15118_2 ? (2u, 0u) : (1u, 0u);
-            var req = new SupportedAppProtocolReq(new[]
+            if (offers.Count is < 1 or > 20)
+                throw new ArgumentException("a SupportedAppProtocol offer carries 1..20 entries.", nameof(offers));
+
+            var req = new SupportedAppProtocolReq(offers.Select((offer, i) =>
             {
-                new AppProtocolEntry(NamespaceFor(wanted, mode), VersionNumberMajor: major, VersionNumberMinor: minor, SchemaID: 1, Priority: 1),
-            });
-            var buf = new byte[128];
+                var (major, minor) = VersionFor(offer.Protocol);
+                return new AppProtocolEntry(NamespaceFor(offer.Protocol, offer.Mode),
+                                            VersionNumberMajor: major, VersionNumberMinor: minor,
+                                            SchemaID: (byte) (i + 1), Priority: (byte) (i + 1));
+            }).ToArray());
+
+            // 4 KiB: the schema allows 20 entries of up to 100-character namespaces.
+            var buf = new byte[4096];
             if (!SupportedAppProtocolCodec.TryEncodeRequest(req, buf, out int n))
                 throw new InvalidOperationException("SAP: EXI encode failed (buffer too small?).");
 
@@ -51,27 +86,52 @@ namespace Vanaheimr.V2G.Simulation.Sap
             if (res.Code is not (ResponseCode.OK_SuccessfulNegotiation or ResponseCode.OK_SuccessfulNegotiationWithMinorDeviation))
                 throw new SessionAborted($"SAP: SECC rejected the protocol offer ({res.Code}).");
 
-            // The SchemaID says *which* of the offered protocols was accepted, and it was read by nobody:
-            // harmless while the offer is a single entry, and a silent protocol mismatch the moment it is
-            // not. Checked now rather than when the second entry is added — that is the point at which
-            // nobody would think to look (found in the 2026-08-03 sweep; see docs/roadmap.md).
-            if (res.SchemaID != req.AppProtocols[0].SchemaID)
+            // The SchemaID says *which* of the offered protocols was accepted, and it was read by nobody
+            // until the sweep of 2026-08-03: harmless while the offer was a single entry, and a silent
+            // protocol mismatch now that it is not — the whole point of a multi-protocol offer is that the
+            // answer decides which state machine runs next.
+            if (res.SchemaID is not { } schemaId || schemaId < 1 || schemaId > offers.Count)
                 throw new SessionAborted(
-                    $"SAP: the SECC accepted SchemaID {res.SchemaID?.ToString() ?? "<none>"}, which is not the "
-                  + $"{req.AppProtocols[0].SchemaID} it was offered.");
+                    $"SAP: the SECC accepted SchemaID {res.SchemaID?.ToString() ?? "<none>"}, which is not "
+                  + $"among the offered ({String.Join(", ", req.AppProtocols.Select(e => e.SchemaID))}).");
+
+            return offers[schemaId - 1];
         }
 
-        /// <summary>SECC side: accepts if the EVCC offered <paramref name="accepted"/>, otherwise replies Failed and throws.</summary>
+        /// <summary>SECC side, one fixed protocol: accepts if the EVCC offered <paramref name="accepted"/>,
+        /// otherwise replies Failed and throws.</summary>
         public static async Task RunSeccSideAsync(Stream stream, ProtocolVariant accepted, CancellationToken ct = default, PowerMode mode = PowerMode.Dc)
+            => await RunSeccSideAsync(stream, new[] { new SapOffer(accepted, mode) }, ct).ConfigureAwait(false);
+
+        /// <summary>
+        /// SECC side: picks the highest-priority entry of the EVCC's offer that this station supports
+        /// ([V2G2-179]; Priority 1 is the highest), and answers with <b>that entry's</b> SchemaID.
+        /// </summary>
+        /// <remarks>
+        /// The echo is the load-bearing part, and it used to be a literal <c>1</c> — indistinguishable
+        /// from correct for as long as every EVCC this station met assigned SchemaID 1, which is exactly
+        /// the assumed-value shape the 2026-08-03 sweep hunted: our own EVCC supplies what our own SECC
+        /// assumes. A two-entry offer whose second entry wins is what makes it visible.
+        /// </remarks>
+        /// <returns>The supported offer the station settled on.</returns>
+        public static async Task<SapOffer> RunSeccSideAsync(Stream stream, IReadOnlyList<SapOffer> supported, CancellationToken ct = default)
         {
             if (await ReadSapAsync(stream, ct).ConfigureAwait(false) is not SupportedAppProtocolReq req)
                 throw new SessionAborted("SAP: expected a SupportedAppProtocolReq.");
 
-            var wantedNamespace = NamespaceFor(accepted, mode);
-            bool offered = req.AppProtocols.Any(p => p.ProtocolNamespace == wantedNamespace);
+            (AppProtocolEntry Entry, SapOffer Offer)? match = null;
+            foreach (var entry in req.AppProtocols.OrderBy(e => e.Priority))   // stable: ties keep offer order
+            {
+                var offer = supported.FirstOrDefault(o => NamespaceFor(o.Protocol, o.Mode) == entry.ProtocolNamespace);
+                if (offer is not null)
+                {
+                    match = (entry, offer);
+                    break;
+                }
+            }
 
-            var res = offered
-                ? new SupportedAppProtocolRes(ResponseCode.OK_SuccessfulNegotiation, SchemaID: 1)
+            var res = match is { } m
+                ? new SupportedAppProtocolRes(ResponseCode.OK_SuccessfulNegotiation, m.Entry.SchemaID)
                 : new SupportedAppProtocolRes(ResponseCode.Failed_NoNegotiation, SchemaID: null);
 
             var buf = new byte[16];
@@ -79,8 +139,11 @@ namespace Vanaheimr.V2G.Simulation.Sap
                 throw new InvalidOperationException("SAP: EXI encode failed (buffer too small?).");
             await V2GTPStream.WriteRawFrameAsync(stream, V2GTP.PayloadType_AppProtocol, buf.AsMemory(0, n), ct).ConfigureAwait(false);
 
-            if (!offered)
-                throw new SessionAborted($"SAP: EVCC did not offer {wantedNamespace}.");
+            if (match is not { } settled)
+                throw new SessionAborted(
+                    $"SAP: the EVCC offered none of {String.Join(", ", supported.Select(o => NamespaceFor(o.Protocol, o.Mode)))}.");
+
+            return settled.Offer;
         }
 
         /// <summary>Reads one SupportedAppProtocol frame. SAP shares payload id 0x8001 with the -2 messages

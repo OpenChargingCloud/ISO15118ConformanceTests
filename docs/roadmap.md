@@ -94,9 +94,10 @@ and **our own tests were the only thing that had ever checked it**
 ISO 15118-2 charge and an ISO 15118-20 charge minutes apart, routed on the namespace our car offered in
 `SupportedAppProtocolReq`. The closest thing to a real charger this project has met, since a station in
 the field does not know which protocol is about to arrive
-([`2026-08-03-everest-isomux-dc`](interop-runs/2026-08-03-everest-isomux-dc/notes.md)). What it cannot
-show is a multiplexer *choosing*: our EVCC offers one protocol per session, so the case of a car that
-offers both with priorities has still never been exercised — see [What remains](#what-remains).
+([`2026-08-03-everest-isomux-dc`](interop-runs/2026-08-03-everest-isomux-dc/notes.md)). What it could not
+show is a multiplexer *choosing*: our EVCC offered one protocol per session, so the case of a car that
+offers both with priorities had never been exercised. Closed later the same day in loopback and in the
+corpus — see [the multi-protocol offer](#what-remains) — with the live IsoMux rerun still open.
 
 **And AC found a third one in our own EVCC.** Running their AC configuration took seven messages to be
 told `FAILED_WrongEnergyTransferMode`: our -2 EVCC **hard-coded** the energy transfer mode it asked for
@@ -202,11 +203,25 @@ a charge; the other two stop somewhere worth naming:
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
 
-**⬜ Offer both protocols in one SupportedAppProtocol handshake.** Our EVCC announces exactly the one
-protocol it was constructed for, because the state machine is chosen before the handshake runs. A real
-car offers -20 at priority 1 and -2 at priority 2 and then runs whichever the station picked — which is
-the case EVerest's `IsoMux` exists for, and the one thing the run against it could not exercise. Same
-shape as the Dynamic gap: a capability that reads as present because both halves exist separately.
+**✅ Offer both protocols in one SupportedAppProtocol handshake (2026-08-03).** Our EVCC announced
+exactly the one protocol it was constructed for, because the state machine was chosen before the
+handshake ran. Now the offer can carry both — -20 at priority 1, -2 at priority 2 — and the state
+machine is chosen **after** the handshake, from the entry the station's answered SchemaID names. In
+all three languages, held by two new corpus traces (`iso2-ac-eim-sapboth`, whose station picks the
+priority-2 entry, and `iso20-dc-eim-sapboth`, whose station picks priority 1 — the two answers differ
+in exactly one byte, and the ports must run the machine it names) plus loopback tests either way
+round, including a both-capable station following the EV's ranking ([V2G2-179]).
+
+En route it uncovered the same family's fifth member, on the station side this time: **our SECC
+answered SchemaID 1 as a literal** rather than echoing the id of the entry it accepted —
+indistinguishable from correct for as long as every EVCC it met assigned SchemaID 1, which ours did.
+Fixed; the -2-only station accepting a two-entry offer's second entry is the recording that shows it.
+
+Wired through: `evcc`/`secc --protocol both` in the CLI (the SECC half is a mini-IsoMux: accept both,
+follow the EV's priority), and `V2G_INTEROP_PROTOCOL=both` in the interop harness — the EVerest
+`IsoMux` run can now exercise the one case it could not. That live run is still open, and it is a
+run, not a feature. The app-side config contract (`bridge`/`SessionConfig`) stays single-protocol on
+purpose: how a phone expresses "offer both" is a B1 product decision, not a stack one.
 
 **✅ Port parity: Dynamic, the sweep fixes and the energy-transfer-mode selection are in the Kotlin
 and Swift EVCCs (2026-08-03, later the same day).** C# gained Dynamic in the morning; the ports
