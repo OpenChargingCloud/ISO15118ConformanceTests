@@ -1,4 +1,6 @@
+using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 
 using NUnit.Framework;
 
@@ -21,6 +23,10 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop;
 ///   <item><term><c>V2G_INTEROP_MODE</c></term><description><c>ac</c> (default) or <c>dc</c>.</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS</c></term><description><c>1</c> to run TLS, accepting any server
 ///         certificate. Development only.</description></item>
+///   <item><term><c>V2G_INTEROP_TLS_TRUST</c></term><description>a PEM trust anchor — validate their
+///         chain against it instead of accepting anything.</description></item>
+///   <item><term><c>V2G_INTEROP_TLS_CLIENT</c></term><description><c>&lt;pfx&gt;[:password]</c> — our TLS
+///         client certificate, which a -20 station requires.</description></item>
 ///   <item><term><c>V2G_INTEROP_NO_PNC</c></term><description><c>1</c> to advertise EIM only (-20).</description></item>
 ///   <item><term><c>V2G_INTEROP_RECORD</c></term><description>a directory for the artifacts — see
 ///         <see cref="InteropRecording"/>. Unset means a run that leaves nothing behind.</description></item>
@@ -107,17 +113,121 @@ internal static class InteropEnvironment
 
 
     /// <summary>
-    /// TLS for a probe against a third-party station whose version we do not control — hence permissive,
-    /// and hence never a conformance path. Josev serves TLS 1.2 unilateral by default; the Rust simulators
-    /// use GnuTLS with their own profile.
+    /// TLS for a probe against a third-party station whose version we do not control.
     /// </summary>
-    public static TlsOptions? DevTlsOrNull()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_TLS") == "1"
-               ? new TlsOptions
-                 {
-                     ServerCertificateValidation = (_, _, _, _) => true,   // dev only
-                     EnabledSslProtocols         = SslProtocols.Tls12 | SslProtocols.Tls13,
-                 }
-               : null;
+    /// <remarks>
+    /// <para>
+    /// <c>V2G_INTEROP_TLS=1</c> alone is the permissive probe: any server certificate is accepted and both
+    /// 1.2 and 1.3 are offered. That is enough to answer "does a TLS session run at all" and is
+    /// deliberately <b>not</b> a conformance path — Josev serves TLS 1.2 unilateral by default and the Rust
+    /// simulators bring their own profile.
+    /// </para>
+    /// <para>
+    /// Two variables make it mean more, and a -20 station will need both:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><c>V2G_INTEROP_TLS_TRUST=&lt;pem&gt;</c> — validate the station's chain against this trust
+    ///         anchor instead of accepting it. With it the run proves our EVCC verifies a foreign SECC
+    ///         chain; without it, it proves only that bytes flowed.</item>
+    ///   <item><c>V2G_INTEROP_TLS_CLIENT=&lt;pfx&gt;[:password]</c> — the TLS client certificate for mutual
+    ///         TLS. ISO 15118-20 needs one: EVerest's <c>Evse15118D20</c> switches to
+    ///         <c>SSL_VERIFY_FAIL_IF_NO_PEER_CERT</c> the moment the client offers TLS 1.3, and a handshake
+    ///         without a client certificate is refused there.</item>
+    /// </list>
+    /// <para>
+    /// Both take file paths rather than material, and nothing here creates a key: the certificates for a
+    /// third-party station belong to that station's PKI and are the operator's to provide.
+    /// </para>
+    /// </remarks>
+    public static TlsOptions? DevTlsOrNull(ProtocolVariant protocol)
+    {
+
+        if (Environment.GetEnvironmentVariable("V2G_INTEROP_TLS") != "1")
+            return null;
+
+        var trustPath  = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_TRUST");
+        var clientSpec = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_CLIENT");
+
+        RemoteCertificateValidationCallback validation = (_, _, _, _) => true;   // dev default
+
+        if (!String.IsNullOrWhiteSpace(trustPath))
+        {
+            // A PEM *bundle*, not a single anchor: self-signed certificates in it become trust roots, the
+            // rest become intermediates we are willing to supply ourselves. That second half is needed
+            // because a station may send only its leaf — EVerest's Evse15118D20 does, so a chain to the V2G
+            // root cannot be built from what arrives on the wire (openssl agrees: "unable to get local
+            // issuer certificate"). Supplying them here keeps the run going and is recorded as a finding
+            // rather than hidden: in the field the SECC is the one that has to send its chain.
+            var bundle        = new X509Certificate2Collection();
+            bundle.ImportFromPemFile(trustPath);
+            var roots         = new X509Certificate2Collection();
+            var intermediates = new X509Certificate2Collection();
+            foreach (var certificate in bundle)
+                (IsSelfSigned(certificate) ? roots : intermediates).Add(certificate);
+
+            validation = (_, certificate, _, _) =>
+            {
+                if (certificate is null)
+                    return false;
+
+                using var chain = new X509Chain();
+                chain.ChainPolicy.TrustMode      = X509ChainTrustMode.CustomRootTrust;
+                chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+                chain.ChainPolicy.CustomTrustStore.AddRange(roots);
+                chain.ChainPolicy.ExtraStore.AddRange(intermediates);
+                return chain.Build(new X509Certificate2(certificate));
+            };
+        }
+
+        X509Certificate2?           clientCertificate = null;
+        X509Certificate2Collection? clientChain       = null;
+        if (!String.IsNullOrWhiteSpace(clientSpec))
+        {
+            var separator = clientSpec.LastIndexOf(':');
+            var (path, password) = separator > 1
+                                       ? (clientSpec[..separator], clientSpec[(separator + 1)..])
+                                       : (clientSpec, (String?) null);
+
+            // Everything in the PKCS#12: the one entry with a private key is the leaf, the rest are the
+            // intermediates to send with it. Without them a station that holds only the root cannot build
+            // the chain — the same trap as the server side, from the other end.
+            // Exportable, because our -20 transport hands the key to the BouncyCastle TLS backend (the
+            // profile needs secp521r1 and a pinned suite list, which SslStream will not give us). Without
+            // the flag macOS parks the key in the keychain and the run dies with a clear but late error.
+            var contents      = X509CertificateLoader.LoadPkcs12CollectionFromFile(
+                                    path, password, X509KeyStorageFlags.Exportable);
+            clientCertificate = contents.FirstOrDefault(c => c.HasPrivateKey)
+                                    ?? throw new ArgumentException(
+                                           $"V2G_INTEROP_TLS_CLIENT: no private key in '{path}'.");
+            clientChain       = new X509Certificate2Collection(
+                                    contents.Where(c => !ReferenceEquals(c, clientCertificate)).ToArray());
+        }
+
+        return new TlsOptions
+        {
+            ServerCertificateValidation = validation,
+            ClientCertificate           = clientCertificate,
+            ClientCertificateChain      = clientChain,
+            // Pinned by protocol, as docs/pki-model.md pins it: -2 to TLS 1.2, -20 to TLS 1.3. This used to
+            // offer both to both, which is the permissive choice TlsOptions itself warns about — and it cost
+            // a run: EVerest's Evse15118D20 under `enforce_tls_1_3` refuses a ClientHello that still allows
+            // 1.2 ("tls_early_post_process_client_hello: unsupported protocol"), which arrives on our side as
+            // an opaque "bad protocol version". A station being strict about its own profile is not a defect.
+            EnabledSslProtocols         = protocol == ProtocolVariant.Iso15118_20
+                                              ? SslProtocols.Tls13
+                                              : SslProtocols.Tls12,
+            // …and the suites with it, because pki-model.md treats version, suites, signature algorithms
+            // and curve as one unit. Pinning them here makes the run assert the profile instead of
+            // inheriting it from whichever backend happened to be chosen.
+            CipherSuites                = protocol == ProtocolVariant.Iso15118_20
+                                              ? TlsProfiles.Iso20CipherSuites
+                                              : TlsProfiles.Iso2CipherSuites,
+        };
+
+    }
+
+
+    private static Boolean IsSelfSigned(X509Certificate2 certificate)
+        => certificate.SubjectName.RawData.AsSpan().SequenceEqual(certificate.IssuerName.RawData);
 
 }

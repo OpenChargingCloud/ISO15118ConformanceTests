@@ -39,7 +39,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 
             using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
-                                                               InteropEnvironment.DevTlsOrNull(), cts.Token);
+                                                               InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
 
             var stream = recording?.Tap(socket) ?? socket;
 

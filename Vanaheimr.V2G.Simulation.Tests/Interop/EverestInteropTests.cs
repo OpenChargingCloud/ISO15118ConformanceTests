@@ -76,7 +76,7 @@ public class EverestInteropTests
         TestContext.Out.WriteLine($"Connecting to their SECC at {endpoint} ...");
 
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
-                                                           InteropEnvironment.DevTlsOrNull(), cts.Token);
+                                                           InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
 
         var stream = recording?.Tap(socket) ?? socket;
 

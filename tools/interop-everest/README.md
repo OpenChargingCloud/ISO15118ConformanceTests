@@ -302,14 +302,26 @@ Confirmed on first contact, and no longer questions:
   2025.10**, where two consecutive sessions both complete; it is a property of everest-core 2023.10.0.
   Restart the manager between runs on that image. See
   [`2026-08-02-everest-iso2-dc-mqtt-auth`](../../docs/interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md).
-- **`Evse15118D20` has no TCP port until an SDP request arrives**, and a *unicast* one shuts its event
-  loop down (`Read on sdp server socket failed … Resource temporarily unavailable`) while leaving the
-  sockets bound, so the station looks alive and answers nothing. Use [`sdp-probe.sh`](sdp-probe.sh),
+- **`Evse15118D20` has no TCP port until an SDP request arrives.** Use [`sdp-probe.sh`](sdp-probe.sh),
   which multicasts.
+- **Any error on their accept path ends the whole event loop, not the connection** — one defect with at
+  least three triggers: a unicast SDP request, key logging enabled, a refused TLS handshake. The sockets
+  stay bound afterwards, so the station keeps accepting connections and answers nothing, which looks
+  like a hung peer rather than a crash. **Restart the manager after every failed attempt**, or you will
+  debug the corpse instead of the run.
 - **`Evse15118D20` refuses to start without a V2G certificate**, even with `ENFORCE_NO_TLS`. The image
   ships CA roots and an empty `client/cso`; their own test PKI is at
   `tests/ocpp_tests/test_sets/everest-aux/certs/` and its `SECC_LEAF` password matches the SIL configs,
   so copying it into `etc/everest/certs/` is enough — no key generation.
+- **A TLS 1.3 run needs a Vehicle certificate**, which no image ships: `Evse15118D20` switches to
+  `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT` as soon as the client offers 1.3, so mutual TLS is
+  mandatory there. Their `create_certs.sh` (Josev, `iso15118/shared/pki/`) generates the whole chain,
+  station and vehicle, and that is their own documented workflow.
+- **Their station sends only its leaf.** No CPO Sub-CAs on the wire, so an EV must already hold them;
+  pass root + both Sub-CAs as one PEM bundle in `V2G_INTEROP_TLS_TRUST`.
+- **`enable_tls_key_logging: true` kills their -20 server here** — it binds a UDP socket to an interface
+  and the call fails under qemu (`Could not set interface name:eth0`). Probably emulation rather than a
+  defect; leave it off unless you are on x86-64.
 - **`supported_scheduled_mode` defaults to false** on `Evse15118D20` while `supported_dynamic_mode`
   defaults to true. Our EVCC negotiates Scheduled unless told otherwise.
 - **`CableCheck` needs their hardware simulation.** `EvseManager` waits ~5 s for the board-support module
