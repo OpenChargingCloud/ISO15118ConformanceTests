@@ -6,8 +6,8 @@ Last updated: **2026-08-03**. Authoritative per-phase detail lives in
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 1136 tests are green**
-(`dotnet test -c Release`, measured 2026-08-03: 911 in `Vanaheimr.V2G.Exi.Tests`, 217 in
+**All phases (0–5) are complete.** The solution builds cleanly and **all 1140 tests are green**
+(`dotnet test -c Release`, measured 2026-08-03: 911 in `Vanaheimr.V2G.Exi.Tests`, 221 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
 toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
 `[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
@@ -386,6 +386,37 @@ evidence: seven authorization polls and 35 cable-check polls, both far inside th
 armed through all of them. A deadline that never fires against a station that finishes is exactly what
 it should look like.
 
+#### ✅ The sweep for the fourth (2026-08-03)
+
+Three findings of one shape in three days made the fourth worth *looking* for rather than paying another
+counterparty to trip over. Every place either EVCC puts a value into a request, checked against "did the
+station already tell us this?" — and the answer written down either way, because a sweep that records
+only its hits cannot be repeated. Full account, including the eleven places that were already correct:
+[`docs/assumed-values-sweep.md`](assumed-values-sweep.md).
+
+**Four found, all fixed:**
+
+- **-2 selected `ServiceID: 1` as a literal** while `ServiceDiscoveryRes` carried the station's own
+  ChargeService id. Ours is 1 and every counterparty's has been 1, which is why it survived.
+- **-20 fell back to `offered[0]`** when no preferred energy-transfer service matched — for a DC car at
+  an AC-only station that selects the AC service and then sends DC messages against it. Narrowed to
+  *fall back within the message set you speak*, which keeps the case the fallback actually exists for:
+  MCS ids ride the DC message set, so a megawatt truck at an ordinary DC charger still takes service 2.
+  A first attempt removed the fallback outright and broke `Secc20McsTests`; the test was right.
+- **-20 assumed EIM was on offer** after checking PnC. Now refused at AuthorizationSetup, one message
+  before the station would have said FAILED, naming what was offered instead.
+- **The SupportedAppProtocol response's `SchemaID` was read by nobody** — which of the offered protocols
+  the station accepted. Latent while our offer is one entry, a silent protocol mismatch on the day it is
+  not, and that is the day nobody would re-read this function.
+
+**Two of the four could not have been found any other way.** The service id and the SchemaID produce no
+failure against a station that behaves like ours, so neither a live run nor a test built from our own
+parts would have shown them. That is the case for repeating this after the next protocol feature lands
+instead of waiting to be embarrassed by a peer.
+
+**No fifth**, and that is stated rather than left open: everything else is either the vehicle's own
+description, a schema constant, or already read from the peer.
+
 #### ✅ Reading the energy transfer mode instead of assuming it (2026-08-03)
 
 The third hole of the same shape in three days, and the cheapest to describe: `Evcc2` **hard-coded** the
@@ -405,7 +436,8 @@ advertises exactly the one mode our own EVCC names. A constant and a list agree 
 nothing made only of our own parts can tell them apart. Grouped with
 [response-code handling](#-response-code-handling-2026-08-01) and
 [the ongoing-poll deadline](#-the-ongoing-poll-deadline-2026-08-02), the three are one family: **a value
-taken from our own assumption where the protocol supplies one.** Worth a sweep for the fourth.
+taken from our own assumption where the protocol supplies one.** The sweep that followed is
+[its own entry](#-the-sweep-for-the-fourth-2026-08-03).
 
 Full account: [`2026-08-03-everest-ac`](interop-runs/2026-08-03-everest-ac/notes.md).
 
