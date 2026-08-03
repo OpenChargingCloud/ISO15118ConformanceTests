@@ -6,8 +6,8 @@ Last updated: **2026-08-03**. Authoritative per-phase detail lives in
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 1129 tests are green**
-(`dotnet test -c Release`, measured 2026-08-02: 911 in `Vanaheimr.V2G.Exi.Tests`, 210 in
+**All phases (0–5) are complete.** The solution builds cleanly and **all 1133 tests are green**
+(`dotnet test -c Release`, measured 2026-08-03: 911 in `Vanaheimr.V2G.Exi.Tests`, 214 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
 toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
 `[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
@@ -17,7 +17,10 @@ ISO 15118-2 and -20 are **feature-complete at session level** and validated live
 Josev stack in every direction Josev supports — the feature-gap list is **empty**:
 
 - **Both protocols, all four -20 energy modes** (DC, AC, DC_BPT, AC_BPT), plain TCP **and** TLS
-  (1.2 unilateral / 1.3 mutual), EIM **and** Plug & Charge, Scheduled **and** Dynamic control mode.
+  (1.2 unilateral / 1.3 mutual), EIM **and** Plug & Charge, Scheduled **and** Dynamic control mode —
+  *the last of those was one-directional until 2026-08-03*: our SECC has answered Dynamic EVs since
+  2026-07-22, our EVCC could not be one. Now both, in C#
+  ([the Dynamic EVCC](#-the-dynamic-evcc-2026-08-03)).
 - **Plug & Charge live in both directions in both protocols** — they sign → we verify, we sign → they
   verify (dual-grammar: our cbV2G-byte-exact combined form + Josev's standalone-xmldsig form).
 - **-2 PnC session flow**: PaymentDetails, signed AuthorizationReq, signed MeteringReceiptReq — all live.
@@ -73,6 +76,12 @@ ServiceSelection, ScheduleExchange, DC_CableCheck, DC_PreCharge, the DC_ChargeLo
 DC_WeldingDetection to SessionStop, every response `OK`, route identical to our own recorded -20
 session. That sequence had never been answered by anything but our own SECC
 ([`2026-08-03-everest-iso20-dc-full-charge`](interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md)).
+
+**And in Dynamic mode.** The same station, the same day, with the EV stating energy needs and limits
+instead of picking a schedule — and their power supply showing the difference: 400 V/120 A at the
+setpoint our car named in Scheduled, 500 V/125 A at the operating point their station chose from our
+envelope in Dynamic
+([`2026-08-03-everest-iso20-dc-dynamic`](interop-runs/2026-08-03-everest-iso20-dc-dynamic/notes.md)).
 
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
@@ -146,12 +155,18 @@ a charge; the other two stop somewhere worth naming:
   (113 exchanges, 2026-08-03), each with the route matching our own recorded session message for
   message. Both walls fell to the same idea: their module graph is addressable over MQTT, so the
   session can be authorized and the simulated car plugged in without patching a line of EVerest.
-  What is left is a list rather than a blocker — **Dynamic control mode** (one variable; their module
-  supports it by default), **-20 over TLS 1.3**, **AC**, and **`IsoMux`**, the closest thing to a real
+  Dynamic control mode followed the same day, once our EVCC could speak it. What is left is a list
+  rather than a blocker — **-20 over TLS 1.3**, **AC**, and **`IsoMux`**, the closest thing to a real
   charger. **MCS stays parked:** `config-sil-mcs.yaml` is not in 2025.10 either.
 
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
+
+**⬜ Port Dynamic control mode to the Kotlin and Swift EVCCs.** C# gained it on 2026-08-03
+([the Dynamic EVCC](#-the-dynamic-evcc-2026-08-03)); the two ports stay Scheduled-only. Nothing fails
+there, because no trace-corpus entry is a Dynamic session — which is the same blind spot as everywhere
+else on this page, one layer along: the ports are validated against a corpus that cannot contain the
+thing they are missing.
 
 **✅ Run every session twice, in every harness** — adopted 2026-08-02, and it immediately paid for
 itself twice over. `EvseV2G` in EVerest's `:main` demo image segfaults on the *second* V2G session in a
@@ -324,6 +339,40 @@ The rerun against the same station later that day, this time authorized, is the 
 evidence: seven authorization polls and 35 cable-check polls, both far inside the limit, and the guard
 armed through all of them. A deadline that never fires against a station that finishes is exactly what
 it should look like.
+
+#### ✅ The Dynamic EVCC (2026-08-03)
+
+A capability that was claimed and half-present. Our SECC has answered Dynamic-mode EVs since
+2026-07-22 and every recorded Dynamic session had **Josev's** car on the other side, so the mode was
+live-validated in exactly one direction while this page said "Scheduled **and** Dynamic" without
+qualification. `Evcc20Base` mentioned the word twice, both times as `null`.
+
+It surfaced when the previous run's next step — "Dynamic against `Evse15118D20`, one environment
+variable" — turned out to set a flag on the *station*. The variable was real, it just pointed the other
+way.
+
+`PreferDynamicControlMode` now exists on the EVCC too, and it had to reach four places, because the mode
+is a property of the session and not of a message: the parameter set selected out of `ServiceDetailRes`
+(ControlMode = 2), `ScheduleExchangeReq`'s control-mode arm with its **mandatory** energy triple, the
+`EVPowerProfile` in `PowerDelivery(Start)` — empty in Dynamic, since there is no schedule tuple to point
+at — and the charge-loop arm, DC and AC. Answering in kind is [V2G20-1600]; asking in kind is the same
+rule from the other end. A flag reaching three of the four would still complete a session against a
+lenient station and be wrong on the wire, so `Evcc20DynamicModeTests` asserts each on the messages the
+station received, plus the negative (the default stays Scheduled end to end) and the refusal (a station
+offering only Scheduled is named as such, not silently fallen back from).
+
+Two things came with it: the tariff check now also reads
+`Dynamic_SEResControlMode.AbsolutePriceSchedule`, which Dynamic mode carries instead of hanging one off
+each tuple — otherwise that path would have been silently dead in this mode; and `Secc20Ac` lost a
+`sealed` that `Secc20Dc` never had.
+
+**Kotlin and Swift stay Scheduled-only**, unlike the two corrections before it, which went to all three
+languages the same day. Nothing fails there — no corpus entry is a Dynamic session — so what is missing
+is the capability, not a test. Named here rather than left to be found:
+[port Dynamic to the two ports](#what-remains).
+
+Live the same day, against `Evse15118D20`:
+[`2026-08-03-everest-iso20-dc-dynamic/`](interop-runs/2026-08-03-everest-iso20-dc-dynamic/notes.md).
 
 #### ✅ An image tag is not a version (2026-08-03)
 
