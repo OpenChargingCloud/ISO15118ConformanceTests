@@ -83,6 +83,13 @@ setpoint our car named in Scheduled, 500 V/125 A at the operating point their st
 envelope in Dynamic
 ([`2026-08-03-everest-iso20-dc-dynamic`](interop-runs/2026-08-03-everest-iso20-dc-dynamic/notes.md)).
 
+**And over mutual TLS 1.3.** The same station again, this time with `ENFORCE_TLS` and
+`enforce_tls_1_3`: a complete -20 DC charge on the profile's own cipher suites, our EVCC validating
+their SECC chain against a supplied trust anchor and their SECC validating ours.
+[`docs/pki-model.md`](pki-model.md) has pinned -20 to a mutual TLS 1.3 handshake since it was written,
+and **our own tests were the only thing that had ever checked it**
+([`2026-08-03-everest-iso20-dc-tls13`](interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md)).
+
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
 could not.
@@ -155,9 +162,14 @@ a charge; the other two stop somewhere worth naming:
   (113 exchanges, 2026-08-03), each with the route matching our own recorded session message for
   message. Both walls fell to the same idea: their module graph is addressable over MQTT, so the
   session can be authorized and the simulated car plugged in without patching a line of EVerest.
-  Dynamic control mode followed the same day, once our EVCC could speak it. What is left is a list
-  rather than a blocker — **-20 over TLS 1.3**, **AC**, and **`IsoMux`**, the closest thing to a real
-  charger. **MCS stays parked:** `config-sil-mcs.yaml` is not in 2025.10 either.
+  Dynamic control mode and mutual TLS 1.3 followed the same day. What is left is a list rather than a
+  blocker — **`IsoMux`** (one endpoint answering both protocols, the closest thing to a real charger),
+  **AC** in both protocols, and **-2 over TLS 1.2** now that the trust plumbing exists. **MCS stays
+  parked:** `config-sil-mcs.yaml` is not in 2025.10 either.
+  One thing is worth reporting to them, and it is not any single symptom: **an error anywhere on their
+  accept path ends the whole event loop while leaving the sockets bound**, so the station keeps
+  accepting connections and answers nothing. Three triggers found so far — a unicast SDP request, TLS
+  key logging, a refused handshake.
 
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
