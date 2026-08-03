@@ -90,6 +90,14 @@ their SECC chain against a supplied trust anchor and their SECC validating ours.
 and **our own tests were the only thing that had ever checked it**
 ([`2026-08-03-everest-iso20-dc-tls13`](interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md)).
 
+**And through their multiplexer.** `IsoMux` in front of both backends, one TCP port, one process: an
+ISO 15118-2 charge and an ISO 15118-20 charge minutes apart, routed on the namespace our car offered in
+`SupportedAppProtocolReq`. The closest thing to a real charger this project has met, since a station in
+the field does not know which protocol is about to arrive
+([`2026-08-03-everest-isomux-dc`](interop-runs/2026-08-03-everest-isomux-dc/notes.md)). What it cannot
+show is a multiplexer *choosing*: our EVCC offers one protocol per session, so the case of a car that
+offers both with priorities has still never been exercised — see [What remains](#what-remains).
+
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
 could not.
@@ -162,10 +170,14 @@ a charge; the other two stop somewhere worth naming:
   (113 exchanges, 2026-08-03), each with the route matching our own recorded session message for
   message. Both walls fell to the same idea: their module graph is addressable over MQTT, so the
   session can be authorized and the simulated car plugged in without patching a line of EVerest.
-  Dynamic control mode and mutual TLS 1.3 followed the same day. What is left is a list rather than a
-  blocker — **`IsoMux`** (one endpoint answering both protocols, the closest thing to a real charger),
-  **AC** in both protocols, and **-2 over TLS 1.2** now that the trust plumbing exists. **MCS stays
-  parked:** `config-sil-mcs.yaml` is not in 2025.10 either.
+  Dynamic control mode, mutual TLS 1.3 and their `IsoMux` followed the same day. What is left is a
+  list rather than a blocker — **AC** in both protocols, **-2 over TLS 1.2** now that the trust
+  plumbing exists, and `config-sil-dc-isomux-tls.yaml`. **MCS stays parked:** `config-sil-mcs.yaml` is
+  not in 2025.10 either.
+  One thing is worth reporting to them, and it is not any single symptom: **an error anywhere on their
+  accept path ends the whole event loop while leaving the sockets bound**, so the station keeps
+  accepting connections and answers nothing. Three triggers found so far — a unicast SDP request, TLS
+  key logging, a refused handshake.
   One thing is worth reporting to them, and it is not any single symptom: **an error anywhere on their
   accept path ends the whole event loop while leaving the sockets bound**, so the station keeps
   accepting connections and answers nothing. Three triggers found so far — a unicast SDP request, TLS
@@ -173,6 +185,12 @@ a charge; the other two stop somewhere worth naming:
 
 What each run *did* produce is in
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev).
+
+**⬜ Offer both protocols in one SupportedAppProtocol handshake.** Our EVCC announces exactly the one
+protocol it was constructed for, because the state machine is chosen before the handshake runs. A real
+car offers -20 at priority 1 and -2 at priority 2 and then runs whichever the station picked — which is
+the case EVerest's `IsoMux` exists for, and the one thing the run against it could not exercise. Same
+shape as the Dynamic gap: a capability that reads as present because both halves exist separately.
 
 **⬜ Port Dynamic control mode to the Kotlin and Swift EVCCs.** C# gained it on 2026-08-03
 ([the Dynamic EVCC](#-the-dynamic-evcc-2026-08-03)); the two ports stay Scheduled-only. Nothing fails
