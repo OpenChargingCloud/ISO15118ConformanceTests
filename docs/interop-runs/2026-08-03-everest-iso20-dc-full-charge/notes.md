@@ -165,8 +165,9 @@ and leave the published one alone.
 
 ## Next
 
-- **Dynamic control mode** against `Evse15118D20` — one variable, and their module supports it by
-  default.
+- ✅ **Dynamic control mode** against `Evse15118D20` — done, and *not* one variable: our EVCC could not
+  speak Dynamic at all, only our SECC could. See
+  [`../2026-08-03-everest-iso20-dc-dynamic/`](../2026-08-03-everest-iso20-dc-dynamic/notes.md).
 - **-20 over TLS 1.3** (`ENFORCE_TLS`, `enable_tls_key_logging`), the configuration their own SIL uses.
 - **`IsoMux`** — one endpoint answering both -2 and -20, which is the closest thing to a real charger.
 - **AC**, both protocols.
