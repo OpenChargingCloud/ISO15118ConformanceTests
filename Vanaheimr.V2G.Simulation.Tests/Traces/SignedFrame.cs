@@ -4,8 +4,12 @@ using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Tp;
 
-using C  = Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
-using I2 = Vanaheimr.V2G.Iso15118_2.Generated;
+using Vanaheimr.V2G.Simulation.Metering;
+
+using Ac20 = Vanaheimr.V2G.Iso15118_20.AC.Generated;
+using C    = Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
+using Dc20 = Vanaheimr.V2G.Iso15118_20.DC.Generated;
+using I2   = Vanaheimr.V2G.Iso15118_2.Generated;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Traces;
 
@@ -91,6 +95,125 @@ internal static class SignedFrame
     }
 
 
+    // ── the meter's signature ─────────────────────────────────────────────
+    //
+    // A second randomised signature, by a second signer, and the reason schema 3 exists. A station
+    // with a meter fitted signs its reading into MeterInfo — SigMeterReading in -2, MeterSignature
+    // in -20 — and that value is 64 random-looking bytes in a *response*, which is the direction the
+    // corpus never had to think about before. Everything below is the header signature's story one
+    // field along: record it, substitute it to compare, verify it on its own.
+    //
+    // What it is NOT is the header signature under another name. That one is the vehicle's, over a
+    // message fragment, in XMLDSig. This one is the meter's, over a layout of our own
+    // (MeterSigningPayload), in a fixed 64-byte slot. Two signers in one frame is the whole point:
+    // a MeteringReceiptReq the EV signed can carry a reading the *station's meter* signed.
+
+    /// <summary>One frame's meter reading, flattened out of two protocols' <c>MeterInfo</c>.</summary>
+    /// <param name="Protocol">2 or 20 — part of what was signed, so a -20 reading cannot be replayed
+    /// as a -2 one. It never appears on the wire, which is why only a session-level check can catch
+    /// it being wrong.</param>
+    private sealed record MeterReading(int Protocol, byte[] SessionId, string MeterId,
+                                       ulong Reading, long? Timestamp, byte[]? Signature);
+
+    /// <summary>The raw <c>r‖s</c> meter signature a frame carries, or <c>null</c> for the frames —
+    /// most of them — whose message type has no <c>MeterInfo</c> at all.</summary>
+    public static byte[]? MeterSignatureOf(byte[] frame) => ReadingOf(Decode(frame))?.Signature;
+
+    /// <summary>Re-encodes <paramref name="frame"/> with <paramref name="meterSignature"/> in place of
+    /// the one its <c>MeterInfo</c> carried.</summary>
+    /// <remarks>
+    /// Independent of <see cref="WithSignatureValue"/> on purpose: a frame can carry both, and
+    /// substituting one must leave the other exactly as the port produced it. Applying both is the
+    /// caller's business, and order does not matter — they touch different fields.
+    /// </remarks>
+    public static byte[] WithMeterSignature(byte[] frame, byte[] meterSignature)
+    {
+        var (set, message) = DecodeWithSet(frame);
+        return Encode(set, SubstituteMeter(message, meterSignature));
+    }
+
+    /// <summary>
+    /// Verifies a frame's meter reading against the meter's public key, using only values that were
+    /// on the wire — the half <see cref="WithMeterSignature"/> throws away.
+    /// </summary>
+    /// <remarks>
+    /// This is the vehicle's own check, run on recorded bytes: rebuild <see cref="MeterSigningPayload"/>
+    /// from the frame's <c>MeterInfo</c> and its <em>header's</em> session id, and verify. Reading the
+    /// session id from the header rather than from the recorder is deliberate — the binding is what
+    /// stops a reading captured elsewhere being presented here, and checking it against a value we
+    /// already hold would check nothing.
+    /// </remarks>
+    public static bool MeterReadingVerifiesWith(byte[] frame, ECDsa meterKey)
+    {
+        if (ReadingOf(Decode(frame)) is not { Signature: { } signature } reading)
+            return false;
+
+        return SigningMeter.Verify(meterKey, reading.Protocol, reading.SessionId, reading.MeterId,
+                                   reading.Reading, reading.Timestamp, signature);
+    }
+
+
+    private static MeterReading? ReadingOf(object message) => message switch
+    {
+        // -2 carries MeterInfo on three body elements: the two charge-loop responses a station
+        // reports through, and the receipt the EV echoes back.
+        I2.V2G_Message m => m.Body.BodyElement switch
+        {
+            I2.ChargingStatusResType  { MeterInfo: { } i } => Iso2(m, i),
+            I2.CurrentDemandResType   { MeterInfo: { } i } => Iso2(m, i),
+            I2.MeteringReceiptReqType { MeterInfo:     var i } => Iso2(m, i),
+            _ => null,
+        },
+
+        // -20 has one per message set, because each set generates its own MeterInfoType.
+        Ac20.AC_ChargeLoopRes { MeterInfo: { } i } r => Iso20(r.Header.SessionID, i.MeterID,
+                                                              i.ChargedEnergyReadingWh,
+                                                              i.MeterSignature, i.MeterTimestamp),
+        Dc20.DC_ChargeLoopRes { MeterInfo: { } i } r => Iso20(r.Header.SessionID, i.MeterID,
+                                                              i.ChargedEnergyReadingWh,
+                                                              i.MeterSignature, i.MeterTimestamp),
+        _ => null,
+    };
+
+    private static MeterReading Iso2(I2.V2G_Message m, I2.MeterInfoType info) =>
+        new(2, m.Header.SessionID, info.MeterID, info.MeterReading ?? 0, info.TMeter,
+            info.SigMeterReading);
+
+    private static MeterReading Iso20(byte[] sessionId, string meterId, ulong reading,
+                                      byte[]? signature, ulong? timestamp) =>
+        new(20, sessionId, meterId, reading, (long?) timestamp, signature);
+
+
+    private static object SubstituteMeter(object message, byte[] meterSignature)
+    {
+        switch (message)
+        {
+            case I2.V2G_Message m:
+                var body = m.Body.BodyElement switch
+                {
+                    I2.ChargingStatusResType  { MeterInfo: { } i } b => (I2.BodyBaseType) (b with { MeterInfo = i with { SigMeterReading = meterSignature } }),
+                    I2.CurrentDemandResType   { MeterInfo: { } i } b => b with { MeterInfo = i with { SigMeterReading = meterSignature } },
+                    I2.MeteringReceiptReqType { MeterInfo: var i } b => b with { MeterInfo = i with { SigMeterReading = meterSignature } },
+                    _ => throw NotModelled(m.Body.BodyElement),
+                };
+                return m with { Body = m.Body with { BodyElement = body } };
+
+            case Ac20.AC_ChargeLoopRes { MeterInfo: { } i } r:
+                return r with { MeterInfo = i with { MeterSignature = meterSignature } };
+
+            case Dc20.DC_ChargeLoopRes { MeterInfo: { } i } r:
+                return r with { MeterInfo = i with { MeterSignature = meterSignature } };
+
+            default:
+                throw NotModelled(message);
+        }
+    }
+
+    private static NotSupportedException NotModelled(object? message) =>
+        new($"the trace corpus does not model a meter signature on {message?.GetType().Name ?? "null"}. " +
+             "Add it here rather than letting the comparison skip it.");
+
+
     // ── the type-specific parts ───────────────────────────────────────────
     //
     // Deliberately a closed switch that throws on anything unlisted rather than a reflective walk.
@@ -136,8 +259,10 @@ internal static class SignedFrame
         var buffer = new byte[8192];
         var ok = message switch
         {
-            I2.V2G_Message m     => I2.Iso2Codec.TryEncode(m, buffer, out var n) ? n : -1,
-            C.AuthorizationReq r => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            I2.V2G_Message m          => I2.Iso2Codec.TryEncode(m, buffer, out var n) ? n : -1,
+            C.AuthorizationReq r      => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            Ac20.AC_ChargeLoopRes r   => Ac20.AcCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            Dc20.DC_ChargeLoopRes r   => Dc20.DcCodec.TryEncode(r, buffer, out var n) ? n : -1,
             _ => throw new NotSupportedException($"cannot re-encode a {message.GetType().Name}."),
         };
 

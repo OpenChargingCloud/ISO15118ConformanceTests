@@ -21,7 +21,14 @@ public sealed record TraceSigningKey(string X, string Y);
 /// <param name="Signature">The raw <c>r‖s</c> signature value this frame carried, when it carried one.
 /// Its presence is what switches the comparison to the signature-aware path — see
 /// <see cref="SignedFrame"/> for why a signed frame cannot simply be compared byte for byte.</param>
-public sealed record TraceFrame(string PayloadType, string Message, string Frame, string? Signature = null)
+/// <param name="MeterSignature">The raw <c>r‖s</c> value in this frame's <c>MeterInfo</c> —
+/// <c>SigMeterReading</c> (-2) or <c>MeterSignature</c> (-20) — when it carries one. A *second*
+/// randomised signature, by a *different* signer, in a different place: the station's meter signs
+/// this one, and it rides in the body rather than the header. Recorded separately for exactly the
+/// reason the header signature is, and separately from it because substituting one must not disturb
+/// the other.</param>
+public sealed record TraceFrame(string PayloadType, string Message, string Frame,
+                                string? Signature = null, string? MeterSignature = null)
 {
     [JsonIgnore]
     public byte[] Bytes => Convert.FromHexString(Frame);
@@ -30,7 +37,14 @@ public sealed record TraceFrame(string PayloadType, string Message, string Frame
     public byte[]? SignatureBytes => Signature is null ? null : Convert.FromHexString(Signature);
 
     [JsonIgnore]
+    public byte[]? MeterSignatureBytes =>
+        MeterSignature is null ? null : Convert.FromHexString(MeterSignature);
+
+    [JsonIgnore]
     public bool IsSigned => Signature is not null;
+
+    [JsonIgnore]
+    public bool CarriesMeterSignature => MeterSignature is not null;
 }
 
 
@@ -73,25 +87,53 @@ public sealed record TraceExchange(int Index, TraceFrame Request, TraceFrame Res
 /// <param name="SigningKey">The public half of the identity a signed session signs with — present
 /// exactly when some exchange is signed. Verification needs a key from outside the frame, or a port
 /// could sign with anything at all and still compare equal.</param>
+/// <param name="MeterKey">The public half of the station's <b>meter</b> key, present exactly when
+/// some frame carries a meter signature. Deliberately a second key rather than a reuse of
+/// <paramref name="SigningKey"/>: the whole point of <c>SigMeterReading</c> is that the meter signs
+/// what it measured rather than the station asserting it, so a corpus that verified both with one
+/// key would quietly erase the distinction it exists to record.
+/// <para>
+/// <b>And it proves less than it looks like.</b> In a recording the key necessarily travels with the
+/// session it authenticates, so verifying against it shows the reading was not altered between meter
+/// and file and is bound to this session — not that the station is who it claims. For that the key
+/// has to arrive out of band, which in this project is the pairing code's <c>meter</c> field
+/// (<c>docs/CONCEPT.md</c> §4.5). Anything reading this file should say so rather than show a tick.
+/// </para></param>
 public sealed record SessionTrace(
     string                       Name,
     string                       Protocol,
     string                       Mode,
     string                       Note,
     IReadOnlyList<TraceExchange> Exchanges,
-    TraceSigningKey?             SigningKey = null)
+    TraceSigningKey?             SigningKey = null,
+    TraceSigningKey?             MeterKey   = null)
 {
 
-    /// <summary>2 since 2026-07-31: frames gained an optional <c>signature</c>, traces an optional
-    /// <c>signingKey</c>. A reader that does not understand signed frames must refuse the file rather
-    /// than compare it as though the bytes were deterministic — hence a version bump for what is
-    /// otherwise an additive change.</summary>
-    public const int SchemaVersion = 2;
+    /// <summary>
+    /// 3 since 2026-08-03: frames gained an optional <c>meterSignature</c> and traces an optional
+    /// <c>meterKey</c>, so a station's signed meter reading can be recorded without making the
+    /// session incomparable.
+    /// </summary>
+    /// <remarks>
+    /// Bumped rather than added silently, for the same reason 2 was: a reader that does not know
+    /// about the second signature would compare a meter-signed response byte for byte and fail on
+    /// 64 random bytes — or, worse, a reader that skips responses would pass and check nothing.
+    /// (2 since 2026-07-31: the header signature and <c>signingKey</c>.)
+    /// </remarks>
+    public const int SchemaVersion = 3;
 
+    /// <remarks>
+    /// Nulls are omitted since schema 3. With two optional signatures per frame and neither present
+    /// on the overwhelming majority of them, writing both out would bury the handful of frames that
+    /// carry one under four hundred lines that say "no" — in a file whose whole job is to be read by
+    /// somebody deciding whether a regeneration's diff is innocent. The readers all treat an absent
+    /// key as null already, which is what makes this safe.
+    /// </remarks>
     private static readonly JsonSerializerOptions Json = new()
     {
-        WriteIndented        = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented          = true,
+        PropertyNamingPolicy   = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
 
@@ -99,7 +141,8 @@ public sealed record SessionTrace(
     /// Splits both recorded directions into V2GTP frames and pairs them up.
     /// </summary>
     public static SessionTrace Build(string name, string protocol, string mode, string note,
-                                     byte[] sent, byte[] received, TraceSigningKey? signingKey = null)
+                                     byte[] sent, byte[] received, TraceSigningKey? signingKey = null,
+                                     TraceSigningKey? meterKey = null)
     {
 
         var requests  = SplitFrames(sent,     "EV→station");
@@ -127,7 +170,16 @@ public sealed record SessionTrace(
                 $"trace '{name}' has signed requests but no signing key — the signature-aware " +
                  "comparison would substitute the recorded value and verify nothing.");
 
-        return new SessionTrace(name, protocol, mode, note, exchanges, signingKey);
+        // The same rule for the meter's key, and it has to be checked in both directions: a meter
+        // reading reaches the corpus in a station *response*, which is precisely the direction the
+        // first version of this comparison never looked at.
+        if (exchanges.Any(e => e.Request.CarriesMeterSignature || e.Response.CarriesMeterSignature)
+            && meterKey is null)
+            throw new InvalidDataException(
+                $"trace '{name}' carries a meter signature but no meter key — the substitution " +
+                 "would remove the only random part and leave nothing checking it.");
+
+        return new SessionTrace(name, protocol, mode, note, exchanges, signingKey, meterKey);
 
     }
 
@@ -168,10 +220,14 @@ public sealed record SessionTrace(
         // The SAP frames are not V2G messages and have no header to carry a signature; asking would
         // mean decoding them with the wrong codec.
         var signature = isSap ? null : SignedFrame.SignatureValueOf(frame);
+        var meter     = isSap ? null : SignedFrame.MeterSignatureOf(frame);
+
+        static string? Hex(byte[]? bytes) =>
+            bytes is null ? null : Convert.ToHexString(bytes).ToLowerInvariant();
 
         return new TraceFrame($"0x{payloadType:X4}", FrameLabel.Describe(frame, isSap).Message,
                               Convert.ToHexString(frame).ToLowerInvariant(),
-                              signature is null ? null : Convert.ToHexString(signature).ToLowerInvariant());
+                              Hex(signature), Hex(meter));
     }
 
 
@@ -187,6 +243,7 @@ public sealed record SessionTrace(
             mode          = Mode,
             note          = Note,
             signingKey    = SigningKey,
+            meterKey      = MeterKey,
             exchanges     = Exchanges,
         }, Json);
 
@@ -202,15 +259,19 @@ public sealed record SessionTrace(
             throw new InvalidDataException(
                 $"trace schema version {version}, this build understands {SchemaVersion}.");
 
+        static TraceSigningKey? KeyAt(JsonElement root, string name) =>
+            root.TryGetProperty(name, out var key) && key.ValueKind is not JsonValueKind.Null
+                ? key.Deserialize<TraceSigningKey>(Json)
+                : null;
+
         return new SessionTrace(
             root.GetProperty("name").GetString()!,
             root.GetProperty("protocol").GetString()!,
             root.GetProperty("mode").GetString()!,
             root.GetProperty("note").GetString()!,
             root.GetProperty("exchanges").Deserialize<List<TraceExchange>>(Json)!,
-            root.TryGetProperty("signingKey", out var key) && key.ValueKind is not JsonValueKind.Null
-                ? key.Deserialize<TraceSigningKey>(Json)
-                : null);
+            KeyAt(root, "signingKey"),
+            KeyAt(root, "meterKey"));
 
     }
 

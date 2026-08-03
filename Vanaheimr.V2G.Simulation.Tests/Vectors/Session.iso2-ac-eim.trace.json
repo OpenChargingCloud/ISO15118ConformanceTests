@@ -1,25 +1,22 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
   "name": "iso2-ac-eim",
   "protocol": "iso15118-2",
   "mode": "ac",
   "note": "AC, external payment, happy path: SAP, setup, service discovery, authorization poll, charge-parameter discovery, three charging-status cycles, stop.",
-  "signingKey": null,
   "exchanges": [
     {
       "index": 0,
       "request": {
         "payloadType": "0x8001",
         "message": "SupportedAppProtocolReq",
-        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040",
-        "signature": null
+        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "SupportedAppProtocolRes",
-        "frame": "01fe80010000000480400040",
-        "signature": null
+        "frame": "01fe80010000000480400040"
       }
     },
     {
@@ -27,14 +24,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "SessionSetupReqType",
-        "frame": "01fe800100000015809802000000000000000011d01aaf37bc04080c00",
-        "signature": null
+        "frame": "01fe800100000015809802000000000000000011d01aaf37bc04080c00"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "SessionSetupResType",
-        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c410141f1f40a0",
-        "signature": null
+        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c410141f1f40a0"
       }
     },
     {
@@ -42,14 +37,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ServiceDiscoveryReqType",
-        "frame": "01fe80010000000d8098020282c3034383c40451b8",
-        "signature": null
+        "frame": "01fe80010000000d8098020282c3034383c40451b8"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ServiceDiscoveryResType",
-        "frame": "01fe8001000000178098020282c3034383c40451c00008004011050c050248",
-        "signature": null
+        "frame": "01fe8001000000178098020282c3034383c40451c00008004011050c050248"
       }
     },
     {
@@ -57,14 +50,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PaymentServiceSelectionReqType",
-        "frame": "01fe8001000000108098020282c3034383c4045132001280",
-        "signature": null
+        "frame": "01fe8001000000108098020282c3034383c4045132001280"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PaymentServiceSelectionResType",
-        "frame": "01fe80010000000e8098020282c3034383c404514000",
-        "signature": null
+        "frame": "01fe80010000000e8098020282c3034383c404514000"
       }
     },
     {
@@ -72,14 +63,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "AuthorizationReqType",
-        "frame": "01fe80010000000d8098020282c3034383c4045008",
-        "signature": null
+        "frame": "01fe80010000000d8098020282c3034383c4045008"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "AuthorizationResType",
-        "frame": "01fe80010000000f8098020282c3034383c40450100000",
-        "signature": null
+        "frame": "01fe80010000000f8098020282c3034383c40450100000"
       }
     },
     {
@@ -87,14 +76,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ChargeParameterDiscoveryReqType",
-        "frame": "01fe80010000001f8098020282c3034383c4045094423183c2ac040c409003030c0800c3006000",
-        "signature": null
+        "frame": "01fe80010000001f8098020282c3034383c4045094423183c2ac040c409003030c0800c3006000"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ChargeParameterDiscoveryResType",
-        "frame": "01fe8001000000258098020282c3034383c40450a00000000000240700c50f8550a80000006207300818604000",
-        "signature": null
+        "frame": "01fe8001000000258098020282c3034383c40450a00000000000240700c50f8550a80000006207300818604000"
       }
     },
     {
@@ -102,14 +89,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryReqType",
-        "frame": "01fe8001000000168098020282c3034383c4045150000000018a1f0aa2c0",
-        "signature": null
+        "frame": "01fe8001000000168098020282c3034383c4045150000000018a1f0aa2c0"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryResType",
-        "frame": "01fe8001000000118098020282c3034383c404516000000000",
-        "signature": null
+        "frame": "01fe8001000000118098020282c3034383c404516000000000"
       }
     },
     {
@@ -117,14 +102,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ChargingStatusReqType",
-        "frame": "01fe80010000000d8098020282c3034383c40450b0",
-        "signature": null
+        "frame": "01fe80010000000d8098020282c3034383c40450b0"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ChargingStatusResType",
-        "frame": "01fe80010000001d8098020282c3034383c40450c0002d1114a905090ca914c40018000000",
-        "signature": null
+        "frame": "01fe80010000001d8098020282c3034383c40450c0002d1114a905090ca914c40018000000"
       }
     },
     {
@@ -132,14 +115,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ChargingStatusReqType",
-        "frame": "01fe80010000000d8098020282c3034383c40450b0",
-        "signature": null
+        "frame": "01fe80010000000d8098020282c3034383c40450b0"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ChargingStatusResType",
-        "frame": "01fe80010000001d8098020282c3034383c40450c0002d1114a905090ca914c40018000000",
-        "signature": null
+        "frame": "01fe80010000001d8098020282c3034383c40450c0002d1114a905090ca914c40018000000"
       }
     },
     {
@@ -147,14 +128,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "ChargingStatusReqType",
-        "frame": "01fe80010000000d8098020282c3034383c40450b0",
-        "signature": null
+        "frame": "01fe80010000000d8098020282c3034383c40450b0"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "ChargingStatusResType",
-        "frame": "01fe80010000001d8098020282c3034383c40450c0002d1114a905090ca914c40018000000",
-        "signature": null
+        "frame": "01fe80010000001d8098020282c3034383c40450c0002d1114a905090ca914c40018000000"
       }
     },
     {
@@ -162,14 +141,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryReqType",
-        "frame": "01fe8001000000108098020282c3034383c4045151000600",
-        "signature": null
+        "frame": "01fe8001000000108098020282c3034383c4045151000600"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryResType",
-        "frame": "01fe8001000000118098020282c3034383c404516000000000",
-        "signature": null
+        "frame": "01fe8001000000118098020282c3034383c404516000000000"
       }
     },
     {
@@ -177,14 +154,12 @@
       "request": {
         "payloadType": "0x8001",
         "message": "SessionStopReqType",
-        "frame": "01fe80010000000e8098020282c3034383c40451f000",
-        "signature": null
+        "frame": "01fe80010000000e8098020282c3034383c40451f000"
       },
       "response": {
         "payloadType": "0x8001",
         "message": "SessionStopResType",
-        "frame": "01fe80010000000e8098020282c3034383c404520000",
-        "signature": null
+        "frame": "01fe80010000000e8098020282c3034383c404520000"
       }
     }
   ]

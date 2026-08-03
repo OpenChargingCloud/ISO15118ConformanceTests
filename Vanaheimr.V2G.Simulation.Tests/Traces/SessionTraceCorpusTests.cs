@@ -3,12 +3,15 @@ using System.Security.Cryptography;
 
 using NUnit.Framework;
 
+using Vanaheimr.V2G.Iso15118_2.Generated;
+using Vanaheimr.V2G.Simulation.Metering;
 using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Tests.Timing;
 using Vanaheimr.V2G.Simulation.Transport;
+using Vanaheimr.V2G.Tp;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Traces;
 
@@ -69,7 +72,47 @@ public class SessionTraceCorpusTests
         string                                            Note,
         Func<Stream, TimeProvider, CancellationToken, Task> RunEvcc,
         Func<Stream, TimeProvider, CancellationToken, Task> RunSecc,
-        bool                                              Signed = false);
+        bool                                              Signed  = false,
+        bool                                              Metered = false);
+
+
+    /// <summary>
+    /// The station meter the metered scenarios fit, keyed off a fixed private key so the corpus
+    /// records one meter identity rather than a fresh one per regeneration.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Fixing the key does <b>not</b> make the recording reproducible — ECDSA still picks its nonce
+    /// at random, so every reading is 64 fresh bytes. What it fixes is <c>meterKey</c>, which would
+    /// otherwise change on every regeneration and make the diff of a re-record useless. The same
+    /// distinction <c>MeterVectorTests</c> had to correct in its own summary.
+    /// </para>
+    /// <para>
+    /// Test material. It is checked into a public repository, which is exactly why it must never be
+    /// a key any real meter uses.
+    /// </para>
+    /// </remarks>
+    private const string MeterKeyD = "4a1f0f0b1d5f7c3e9a2b8c6d4e0f1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d0e1f";
+
+    private static ECDsa MeterKeyPair()
+    {
+        var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        key.ImportParameters(new ECParameters
+        {
+            Curve = ECCurve.NamedCurves.nistP256,
+            D     = Convert.FromHexString(MeterKeyD),
+        });
+        return key;
+    }
+
+    private static SigningMeter Meter(TimeProvider clock)
+    {
+        // A reading of zero would verify perfectly and say nothing about whether the number in the
+        // signature is the number on the wire — every field would be its default.
+        var meter = new SigningMeter("VAN*M*4711", MeterKeyPair(), clock);
+        meter.Add(4_200);
+        return meter;
+    }
 
 
     private static readonly Scenario[] Scenarios =
@@ -239,6 +282,63 @@ public class SessionTraceCorpusTests
                             FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
             }),
 
+        // ── metered sessions ──────────────────────────────────────────────
+        //
+        // A station whose meter signs what it measured. The field is standard and almost never
+        // populated — that is the whole reason to populate it (docs/CONCEPT.md §4.3) — and until
+        // these two were recorded no session in the corpus carried one, so nothing downstream of the
+        // recorder had ever seen a signed reading: not the bridge, not the app, not the ports.
+        //
+        // EIM, deliberately. A meter reports every cycle regardless of how the driver authorized, so
+        // EIM is both the simpler case and the commoner one; and it keeps the meter's signature out
+        // of any *signed* request, where it would land inside the fragment the EV digests and make
+        // two substitutions fight over one digest. That case is real and is written down as open
+        // rather than quietly avoided — see TheMeterSignatureIsNotInsideASignedFragment.
+        //
+        // Both protocols, because the protocol byte in the signed payload is the one thing keeping a
+        // -20 reading from being presented as a -2 one, and it never appears on the wire: only a
+        // recorded session can show the two are actually signed differently.
+
+        new("iso2-ac-eim-meter", "iso15118-2", "ac",
+            "AC, EIM, with a signing meter fitted: every ChargingStatusRes carries a MeterInfo whose " +
+            "SigMeterReading is a real P-256 signature over the station's own reading, bound to this " +
+            "session. The first recorded session a vehicle could verify a station's meter from.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage).RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            InstalledMeter    = Meter(clock) }.RunAsync(stream, ct);
+            },
+            Metered: true),
+
+        new("iso20-dc-eim-meter", "iso15118-20", "dc",
+            "-20 DC, EIM, with the same meter fitted: the reading rides in MeterInfo.MeterSignature " +
+            "instead of SigMeterReading, over the same payload layout with the protocol byte set to " +
+            "20 — so this trace and the -2 one differ in a byte that is never transmitted.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage).RunAsync(ct);
+            },
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            InstalledMeter    = Meter(clock) }.RunAsync(stream, ct);
+            },
+            Metered: true),
+
         // ── signed sessions ───────────────────────────────────────────────
         //
         // The reason schema 2 exists. Both of these carry a signed AuthorizationReq, which is not
@@ -377,14 +477,27 @@ public class SessionTraceCorpusTests
         if (scenario.Signed)
         {
             using var publicKey = PncMaterial.PublicKey();
-            var q = publicKey.ExportParameters(includePrivateParameters: false).Q;
-            signingKey = new TraceSigningKey(Convert.ToHexString(q.X!).ToLowerInvariant(),
-                                             Convert.ToHexString(q.Y!).ToLowerInvariant());
+            signingKey = PublicHalfOf(publicKey);
+        }
+
+        TraceSigningKey? meterKey = null;
+        if (scenario.Metered)
+        {
+            using var key = MeterKeyPair();
+            meterKey = PublicHalfOf(key);
         }
 
         return SessionTrace.Build(scenario.Name, scenario.Protocol, scenario.Mode, scenario.Note,
-                                  recorder.Sent, recorder.Received, signingKey);
+                                  recorder.Sent, recorder.Received, signingKey, meterKey);
 
+    }
+
+
+    private static TraceSigningKey PublicHalfOf(ECDsa key)
+    {
+        var q = key.ExportParameters(includePrivateParameters: false).Q;
+        return new TraceSigningKey(Convert.ToHexString(q.X!).ToLowerInvariant(),
+                                   Convert.ToHexString(q.Y!).ToLowerInvariant());
     }
 
 
@@ -427,6 +540,14 @@ public class SessionTraceCorpusTests
     /// corpus claims in its own summary that "anyone can regenerate it and get identical bytes", and its
     /// signatures are randomised ECDSA, so that sentence is true only of the payload field.
     /// </remarks>
+    /// <remarks>
+    /// <b>Both directions, since 2026-08-03.</b> This used to compare a signed session's *requests*
+    /// only and leave its responses out of the comparison entirely — harmless while the EV was the
+    /// sole signer, and a hole the moment a station's meter started signing too. A station's reading
+    /// travels in a response, so the direction that was not being compared was exactly the one the
+    /// next feature needed. Comparing both is also strictly stronger for the existing PnC traces,
+    /// whose responses had never been checked at all.
+    /// </remarks>
     [Test]
     public async Task RecordingTheCorpusAgainProducesTheSameBytes(
         [ValueSource(nameof(ScenarioNames))] string name)
@@ -436,46 +557,83 @@ public class SessionTraceCorpusTests
         var recorded = await RecordAsync(scenario);
         var onDisk   = SessionTrace.ReadFrom(TracePath(name));
 
-        if (!scenario.Signed)
+        Assert.Multiple(() =>
         {
-            Assert.That(recorded.ToJson(), Is.EqualTo(onDisk.ToJson()),
-                        "a fresh recording differs from the checked-in one — either something is no " +
-                        "longer pinned, or the session really changed and the corpus needs " +
-                        "regenerating on purpose");
-            return;
-        }
+            Assert.That(recorded.Protocol,   Is.EqualTo(onDisk.Protocol));
+            Assert.That(recorded.Mode,       Is.EqualTo(onDisk.Mode));
+            Assert.That(recorded.Note,       Is.EqualTo(onDisk.Note));
+            Assert.That(recorded.SigningKey, Is.EqualTo(onDisk.SigningKey));
+            Assert.That(recorded.MeterKey,   Is.EqualTo(onDisk.MeterKey),
+                        "the meter identity changed — a fresh key would make every re-record's diff total");
+        });
 
-        // A signed session is reproducible *except* for its signature values, and saying so precisely
-        // is better than exempting it. Compare under exactly the rule the replay uses: substitute the
-        // checked-in signature, then require the bytes to be identical.
         Assert.That(recorded.Exchanges, Has.Count.EqualTo(onDisk.Exchanges.Count));
+
+        // What the substitution threw away, so it can be required to be non-empty exactly when the
+        // session has a random part — and empty otherwise, which is the strong statement an EIM
+        // recording gets to make.
+        var randomised = new List<string>();
 
         for (var i = 0; i < onDisk.Exchanges.Count; i++)
         {
-            var (fresh, old) = (recorded.Exchanges[i].Request, onDisk.Exchanges[i].Request);
+            foreach (var (fresh, old, direction) in new[]
+                     {
+                         (recorded.Exchanges[i].Request,  onDisk.Exchanges[i].Request,  "request"),
+                         (recorded.Exchanges[i].Response, onDisk.Exchanges[i].Response, "response"),
+                     })
+            {
+                Assert.That(fresh.IsSigned, Is.EqualTo(old.IsSigned),
+                            $"exchange {i} {direction}: one recording thinks this frame is signed and " +
+                             "the other does not");
+                Assert.That(fresh.CarriesMeterSignature, Is.EqualTo(old.CarriesMeterSignature),
+                            $"exchange {i} {direction}: one recording found a meter reading here and " +
+                             "the other did not");
 
-            Assert.That(fresh.IsSigned, Is.EqualTo(old.IsSigned),
-                        $"exchange {i}: one recording thinks this frame is signed and the other does not");
+                if (fresh.Signature      != old.Signature)      randomised.Add($"{i} {direction} signature");
+                if (fresh.MeterSignature != old.MeterSignature) randomised.Add($"{i} {direction} meter");
 
-            var comparable = old.SignatureBytes is { } signature
-                                 ? Convert.ToHexString(SignedFrame.WithSignatureValue(fresh.Bytes, signature))
-                                          .ToLowerInvariant()
-                                 : fresh.Frame;
+                // Substitute the recorded random parts back in, then require everything — payload
+                // type, message name, and every other byte — to be identical.
+                var comparable = fresh with
+                {
+                    Frame          = Convert.ToHexString(Restore(fresh, old)).ToLowerInvariant(),
+                    Signature      = old.Signature,
+                    MeterSignature = old.MeterSignature,
+                };
 
-            Assert.That(comparable, Is.EqualTo(old.Frame), $"exchange {i} ({old.Message}) differs");
+                Assert.That(comparable, Is.EqualTo(old),
+                            $"exchange {i} {direction} ({old.Message}) differs — either something is no " +
+                             "longer pinned, or the session really changed and the corpus needs " +
+                             "regenerating on purpose");
+            }
         }
 
-        // And the part the substitution discards: two runs must produce *different* signatures, or the
-        // signing is not randomised and this whole mechanism was unnecessary.
-        var signedPairs = recorded.Exchanges.Zip(onDisk.Exchanges)
-                                  .Where(p => p.First.Request.IsSigned)
-                                  .ToList();
+        // The half the substitution discards. Two runs must produce *different* random parts, or the
+        // signing is not randomised and the whole mechanism was unnecessary; and a session with no
+        // signer at all must reproduce exactly, which is what makes a re-record's diff readable.
+        if (scenario.Signed || scenario.Metered)
+            Assert.That(randomised, Is.Not.Empty,
+                        "two recordings came out byte-identical, so nothing here is actually " +
+                        "randomised and the substitution is solving a problem that does not exist");
+        else
+            Assert.That(randomised, Is.Empty,
+                        "an unsigned, unmetered session recorded a value that changes between runs: " +
+                        $"{string.Join(", ", randomised)}");
 
-        Assert.That(signedPairs, Is.Not.Empty, "a scenario marked Signed recorded no signed request");
-        Assert.That(signedPairs.Any(p => p.First.Request.Signature != p.Second.Request.Signature),
-                    "two recordings produced identical signatures — if ECDSA here were deterministic, " +
-                    "the signature-aware comparison would be solving a problem that does not exist");
+    }
 
+
+    /// <summary>Puts the checked-in random parts back into a freshly recorded frame.</summary>
+    private static byte[] Restore(TraceFrame fresh, TraceFrame old)
+    {
+        var bytes = fresh.Bytes;
+
+        // Order does not matter: the two live in different fields — one in the message header, one
+        // in the body's MeterInfo — and each substitution decodes and re-encodes the whole frame.
+        if (old.SignatureBytes      is { } signature) bytes = SignedFrame.WithSignatureValue(bytes, signature);
+        if (old.MeterSignatureBytes is { } reading)   bytes = SignedFrame.WithMeterSignature(bytes, reading);
+
+        return bytes;
     }
 
 
@@ -531,7 +689,193 @@ public class SessionTraceCorpusTests
                               : "an EIM trace should carry no signatures");
             Assert.That(trace.SigningKey is not null, Is.EqualTo(isPnc),
                         "the signing key and the signatures must appear together, or verification is skipped");
+
+            // And the same pairing for the meter. A trace named for a signing meter that recorded no
+            // reading would be an ordinary session under a promising name — and the app, which reads
+            // this corpus to show a station's signed reading, would have nothing to show and no way
+            // to tell that apart from a station that simply has no meter.
+            var isMetered = name.EndsWith("-meter");
+            Assert.That(trace.Exchanges.Any(e => e.Response.CarriesMeterSignature), Is.EqualTo(isMetered),
+                        isMetered ? "a metered trace whose responses carry no meter signature recorded "
+                                  + "a station without a meter"
+                                  : "a station with no meter fitted must sign no readings");
+            Assert.That(trace.MeterKey is not null, Is.EqualTo(isMetered),
+                        "the meter key and the meter signatures must appear together, or verification "
+                      + "is skipped");
         });
+
+    }
+
+
+    /// <summary>
+    /// Every recorded meter reading verifies, against the meter key the trace carries and the values
+    /// that are actually on the wire.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The point of recording a signed reading is that somebody downstream can check it, so the
+    /// corpus checks it here first. Everything the verification needs is taken out of the frame —
+    /// meter id, reading, timestamp, and the session id from the message header — because that is
+    /// what a vehicle has, and verifying against values the recorder happens to still hold in memory
+    /// would prove nothing about what was transmitted.
+    /// </para>
+    /// <para>
+    /// <b>What a green here does not mean.</b> The key travels in the same file as the session it
+    /// authenticates, so this says the reading was not altered between the meter and the file and is
+    /// bound to this session. It does not say the station is who it claims — for that the key has to
+    /// arrive out of band, which is the pairing code's job (<c>docs/CONCEPT.md</c> §4.5).
+    /// </para>
+    /// </remarks>
+    [Test]
+    public void EveryRecordedMeterReadingVerifies(
+        [Values("iso2-ac-eim-meter", "iso20-dc-eim-meter")] string name)
+    {
+
+        var trace   = SessionTrace.ReadFrom(TracePath(name));
+        var metered = trace.Exchanges.Where(e => e.Response.CarriesMeterSignature).ToList();
+
+        Assert.That(metered, Is.Not.Empty, "no meter reading in a trace recorded with a meter fitted");
+
+        using var key = KeyOf(trace.MeterKey!);
+
+        Assert.Multiple(() =>
+        {
+            foreach (var exchange in metered)
+            {
+                Assert.That(exchange.Response.MeterSignatureBytes, Has.Length.EqualTo(64),
+                            $"exchange {exchange.Index}: the field holds 64 bytes — one raw P-256 r‖s pair");
+                Assert.That(SignedFrame.MeterReadingVerifiesWith(exchange.Response.Bytes, key), Is.True,
+                            $"exchange {exchange.Index} ({exchange.Response.Message}): the recorded " +
+                             "reading does not verify against the trace's own meter key");
+            }
+        });
+
+    }
+
+
+    /// <summary>
+    /// The meter verification is a check and not a decoration: another key does not do, and neither
+    /// does the right key over an altered reading.
+    /// </summary>
+    /// <remarks>
+    /// The second half is the one worth having. A signature that verifies regardless of the number
+    /// beside it would be the most convincing possible way to display a wrong reading, and a
+    /// verification that reads its inputs from the wrong place — the recorder's memory rather than
+    /// the frame — would behave exactly like that.
+    /// </remarks>
+    [Test]
+    public void TheMeterVerificationActuallyBites()
+    {
+
+        var trace    = SessionTrace.ReadFrom(TracePath("iso2-ac-eim-meter"));
+        var exchange = trace.Exchanges.First(e => e.Response.CarriesMeterSignature);
+
+        using var key      = KeyOf(trace.MeterKey!);
+        using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(SignedFrame.MeterReadingVerifiesWith(exchange.Response.Bytes, key), Is.True,
+                        "the recorded reading must verify against the recorded key");
+
+            Assert.That(SignedFrame.MeterReadingVerifiesWith(exchange.Response.Bytes, otherKey), Is.False,
+                        "any key must not do — that would make the verification decorative");
+
+            // A CPO shaving the reading between meter and vehicle: the bytes still decode, the
+            // signature is untouched, and the number no longer matches what was signed.
+            var shaved = ShaveTheReading(exchange.Response.Bytes);
+            Assert.That(shaved, Is.Not.EqualTo(exchange.Response.Bytes), "the tampering did nothing");
+            Assert.That(SignedFrame.MeterReadingVerifiesWith(shaved, key), Is.False,
+                        "an altered reading verified — the verification is not reading the number " +
+                        "from the frame it is checking");
+        });
+
+    }
+
+
+    /// <summary>
+    /// No frame carries a meter signature *and* a header signature at once.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is a limit written down as a running check rather than as a comment. In a Plug &amp; Charge
+    /// session the EV echoes the station's <c>MeterInfo</c> back inside a <b>signed</b>
+    /// <c>MeteringReceiptReq</c>, so the meter's 64 random bytes land inside the fragment the EV
+    /// digests. Substituting the recorded meter signature would then leave the digest in
+    /// <c>SignedInfo</c> describing a body that no longer exists, and the comparison would fail on
+    /// the digest rather than on anything real.
+    /// </para>
+    /// <para>
+    /// Solvable — verify each side's digest against its own body instead of substituting — and not
+    /// solved here, because the metered scenarios are EIM and never reach that shape. If someone
+    /// records a metered PnC session this fails immediately, which is the point: the alternative is
+    /// a corpus that quietly compares nothing for exactly the session that motivated it.
+    /// </para>
+    /// </remarks>
+    [Test]
+    public void TheMeterSignatureIsNotInsideASignedFragment(
+        [ValueSource(nameof(ScenarioNames))] string name)
+    {
+
+        var trace = SessionTrace.ReadFrom(TracePath(name));
+
+        foreach (var exchange in trace.Exchanges)
+            foreach (var frame in new[] { exchange.Request, exchange.Response })
+                Assert.That(frame.IsSigned && frame.CarriesMeterSignature, Is.False,
+                            $"exchange {exchange.Index} ({frame.Message}) carries both a header " +
+                             "signature and a meter signature. The substitution cannot handle that " +
+                             "yet: the meter's bytes are inside the fragment the header signature " +
+                             "digests, so replacing them invalidates the digest.");
+
+    }
+
+
+    private static ECDsa KeyOf(TraceSigningKey key) =>
+        ECDsa.Create(new ECParameters
+        {
+            Curve = ECCurve.NamedCurves.nistP256,
+            Q = new ECPoint
+            {
+                X = Convert.FromHexString(key.X),
+                Y = Convert.FromHexString(key.Y),
+            },
+        });
+
+
+    /// <summary>Re-encodes a -2 charge-loop response with 100 Wh taken off its meter reading, leaving
+    /// the signature and everything else exactly as recorded.</summary>
+    private static byte[] ShaveTheReading(byte[] frame)
+    {
+
+        if (!V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error))
+            throw new InvalidDataException($"expected a -2 ChargingStatusRes: {error}");
+
+        if (message is not V2G_Message m || m.Body.BodyElement is not ChargingStatusResType status)
+            throw new InvalidDataException($"expected a -2 ChargingStatusRes, got {message?.GetType().Name}");
+
+        var shaved = m with
+        {
+            Body = m.Body with
+            {
+                BodyElement = status with
+                {
+                    MeterInfo = status.MeterInfo! with
+                    {
+                        MeterReading = status.MeterInfo!.MeterReading!.Value - 100,
+                    },
+                },
+            },
+        };
+
+        var payload = new byte[8192];
+        if (!Iso2Codec.TryEncode(shaved, payload, out var n))
+            throw new InvalidOperationException("re-encoding the shaved response failed");
+
+        var result = new byte[V2GTP.HeaderSize + n];
+        if (!V2GTPDispatcher.TryEncode(set, payload.AsSpan(0, n), result, out var written))
+            throw new InvalidOperationException("re-framing the shaved response failed");
+
+        return result.AsSpan(0, written).ToArray();
 
     }
 

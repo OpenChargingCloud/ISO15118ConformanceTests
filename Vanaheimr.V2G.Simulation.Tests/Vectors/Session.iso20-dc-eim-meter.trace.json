@@ -1,17 +1,21 @@
 {
   "schemaVersion": 3,
   "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
-  "name": "iso20-dc-eim-sapboth",
+  "name": "iso20-dc-eim-meter",
   "protocol": "iso15118-20",
   "mode": "dc",
-  "note": "-20 DC, EIM, negotiated: the same two-entry offer at a -20 station, which answers SchemaID 1 \u2014 the priority-1 entry \u2014 and the -20 session runs.",
+  "note": "-20 DC, EIM, with the same meter fitted: the reading rides in MeterInfo.MeterSignature instead of SigMeterReading, over the same payload layout with the protocol byte set to 20 \u2014 so this trace and the -2 one differ in a byte that is never transmitted.",
+  "meterKey": {
+    "x": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f48884",
+    "y": "41a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+  },
   "exchanges": [
     {
       "index": 0,
       "request": {
         "payloadType": "0x8001",
         "message": "SupportedAppProtocolReq",
-        "frame": "01fe8001000000478000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040001d75726e3a69736f3a31353131383a323a323031333a4d73674465660040000100880"
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040"
       },
       "response": {
         "payloadType": "0x8001",
@@ -172,7 +176,8 @@
       "response": {
         "payloadType": "0x8004",
         "message": "DC_ChargeLoopRes",
-        "frame": "01fe80040000001c8038040505860687078808880f2d6ca0620064003c02002400c00090"
+        "frame": "01fe8004000000728038040505860687078808880f2d6ca062002062b20a71526951a1b98988e8203204514d325965e7283135771704c91dc44fb48825e9af9bfebc278061196048562d575496d9736a54e02b24d46c0da735b572c45b36d053e45e6c68462cd1156f1140796b650309000f0080090030002400",
+        "meterSignature": "8a29a64b2cbce50626aee2e09923b889f69104bd35f37fd784f00c232c090ac5aaea92db2e6d4a9c05649a8d81b4e6b6ae588b66da0a7c8bcd8d08c59a22ade2"
       }
     },
     {
@@ -185,7 +190,8 @@
       "response": {
         "payloadType": "0x8004",
         "message": "DC_ChargeLoopRes",
-        "frame": "01fe80040000001c8038040505860687078808880f2d6ca0620064003c02002400c00090"
+        "frame": "01fe8004000000728038040505860687078808880f2d6ca062002062b20a71526951a1b98988e82032007e207aefcba199fb72ef80c310c7bbf1c1f19d302e2edd56795e39808bcd336a11215188916135130b81c37b718deb9ad796ebbb1afc5370b81d8530fe4252b940796b650309000f0080090030002400",
+        "meterSignature": "0fc40f5df974333f6e5df0186218f77e383e33a605c5dbaacf2bc7301179a66d42242a31122c26a26170386f6e31bd735af2dd77635f8a6e1703b0a61fc84a57"
       }
     },
     {
@@ -198,7 +204,8 @@
       "response": {
         "payloadType": "0x8004",
         "message": "DC_ChargeLoopRes",
-        "frame": "01fe80040000001c8038040505860687078808880f2d6ca0620064003c02002400c00090"
+        "frame": "01fe8004000000728038040505860687078808880f2d6ca062002062b20a71526951a1b98988e8203203813de09537f0486c47f8fc622bea022535c54a10604d06a7d4764eddbdf6d95a049d835b4e5bdb58e0052ac921399fd9f82a9c0e702411fe1cc3cb2d9181156940796b650309000f0080090030002400",
+        "meterSignature": "7027bc12a6fe090d88ff1f8c457d4044a6b8a9420c09a0d4fa8ec9dbb7bedb2b4093b06b69cb7b6b1c00a559242733fb3f055381ce04823fc3987965b23022ad"
       }
     },
     {
