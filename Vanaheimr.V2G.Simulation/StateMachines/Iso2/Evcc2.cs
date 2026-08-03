@@ -98,6 +98,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 
         private MessageHeaderType? _lastHeader;             // the header of the response just received
         private byte _chosenTupleId = 1;                    // the SAScheduleTuple the EV selected
+        private EnergyTransferMode _energyTransferMode;     // chosen from what ServiceDiscoveryRes offered
         private ChargingProfileType? _chargingProfile;      // derived from the chosen tuple's PMaxSchedule
 
         public async Task RunAsync(CancellationToken ct = default)
@@ -114,6 +115,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             var setup = await Send<SessionSetupResType>(new SessionSetupReqType(EVCCID: new byte[] { 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03 }), ct);
             SessionSetupCode = setup.ResponseCode;
             var discovery = await Send<ServiceDiscoveryResType>(new ServiceDiscoveryReqType(ServiceScope: null, ServiceCategory: null), ct);
+            _energyTransferMode = SelectEnergyTransferMode(discovery);
 
             bool contract = Pnc is not null && discovery.PaymentOptionList.PaymentOption.Contains(PaymentOption.Contract);
             await Send<PaymentServiceSelectionResType>(new PaymentServiceSelectionReqType(
@@ -432,13 +434,56 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 ChargingProfile: progress == ChargeProgress.Start ? _chargingProfile : null,
                 EVPowerDeliveryParameter: null);
 
+        /// <summary>
+        /// The energy transfer mode to request, chosen from the ones the station advertised in
+        /// <c>ServiceDiscoveryRes</c>'s ChargeService rather than assumed.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This used to be hard-coded — <c>DC_extended</c> for DC, <c>AC_three_phase_core</c> for AC — and it
+        /// worked against every station this project had met, because every one of them offered exactly what
+        /// we happened to name. EVerest's AC SIL configuration does not: it advertises a single-phase mode,
+        /// answers our three-phase request with <c>FAILED_WrongEnergyTransferMode</c>, and is right to
+        /// (<c>docs/interop-runs/2026-08-03-everest-iso2-ac/</c>).
+        /// </para>
+        /// <para>
+        /// The list is there to be read; picking without looking is the same mistake as the unread response
+        /// code, one message earlier. Preference within our own power mode is best-first — three-phase over
+        /// single-phase, extended over core — and a station that offers nothing in our mode is refused by
+        /// name rather than asked for something it just said it cannot do.
+        /// </para>
+        /// </remarks>
+        private EnergyTransferMode SelectEnergyTransferMode(ServiceDiscoveryResType discovery)
+        {
+
+            var offered = discovery.ChargeService?.SupportedEnergyTransferMode?.EnergyTransferMode
+                              ?? Array.Empty<EnergyTransferMode>();
+
+            var preferred = mode == PowerMode.Dc
+                                ? new[] { EnergyTransferMode.DC_extended, EnergyTransferMode.DC_core,
+                                          EnergyTransferMode.DC_combo_core, EnergyTransferMode.DC_unique }
+                                : new[] { EnergyTransferMode.AC_three_phase_core,
+                                          EnergyTransferMode.AC_single_phase_core };
+
+            foreach (var candidate in preferred)
+                if (offered.Contains(candidate))
+                    return candidate;
+
+            // Nothing in our power mode. Say what was offered: it is the one line that turns "the station
+            // refused" into "the station is a DC charger and we are an AC car".
+            throw new SessionAborted(
+                $"ServiceDiscovery: the station offers no {(mode == PowerMode.Dc ? "DC" : "AC")} energy "
+              + $"transfer mode (offered: {(offered.Count == 0 ? "none" : String.Join(", ", offered))}).");
+
+        }
+
         private ChargeParameterDiscoveryReqType ChargeParameterDiscovery() =>
             mode == PowerMode.Dc
-                ? new ChargeParameterDiscoveryReqType(MaxEntriesSAScheduleTuple: null, EnergyTransferMode.DC_extended,
+                ? new ChargeParameterDiscoveryReqType(MaxEntriesSAScheduleTuple: null, _energyTransferMode,
                     new DC_EVChargeParameterType(DepartureTime: null, EvStatus(),
                         EVMaximumCurrentLimit: Amp(200), EVMaximumPowerLimit: null, EVMaximumVoltageLimit: Volt(500),
                         EVEnergyCapacity: null, EVEnergyRequest: null, FullSOC: 100, BulkSOC: 80))
-                : new ChargeParameterDiscoveryReqType(MaxEntriesSAScheduleTuple: null, EnergyTransferMode.AC_three_phase_core,
+                : new ChargeParameterDiscoveryReqType(MaxEntriesSAScheduleTuple: null, _energyTransferMode,
                     new AC_EVChargeParameterType(DepartureTime: null,
                         EAmount: PhysicalValue.Of(22_000, UnitSymbol.Wh), EVMaxVoltage: Volt(400),
                         EVMaxCurrent: Amp(32), EVMinCurrent: Amp(6)));
