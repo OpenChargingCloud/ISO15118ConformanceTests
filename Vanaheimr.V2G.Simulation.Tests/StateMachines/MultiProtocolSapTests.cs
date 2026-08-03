@@ -106,8 +106,10 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
         }
 
 
-        /// <summary>A station that supports both follows the EV's ranking, not its own ([V2G2-179]) — the
-        /// EV putting -2 first is unusual but legal, and the station has to take it.</summary>
+        /// <summary>A station that supports both follows the EV's ranking, not its own — the EV putting
+        /// -2 first is unusual but legal. Our station honours it; EVerest's <c>IsoMux</c>, measured on
+        /// 2026-08-03, does not (it routes to -20 whenever -20 appears anywhere in the offer), which is
+        /// the case this test would have caught had they been the peer.</summary>
         [Test]
         public async Task ABothCapableStationFollowsTheEvsPriority()
         {

@@ -87,12 +87,14 @@ public class EverestInteropTests
             {
                 // The IsoMux case, from the EV side: both protocols in one offer, the station picks,
                 // and the state machine is chosen after the handshake rather than before it.
-                var accepted = await SapHandshake.RunEvccSideAsync(stream,
-                    [new SapOffer(ProtocolVariant.Iso15118_20, mode), new SapOffer(ProtocolVariant.Iso15118_2, mode)],
-                    cts.Token);
+                var offers   = InteropEnvironment.BothOffers(mode);
+                var accepted = await SapHandshake.RunEvccSideAsync(stream, offers, cts.Token);
                 protocol = accepted.Protocol;
-                TestContext.Out.WriteLine($"SAP: offered -20 (priority 1) and -2 (priority 2); the station " +
-                                          $"picked {(protocol == ProtocolVariant.Iso15118_20 ? "-20" : "-2")}.");
+
+                String Name(ProtocolVariant p) => p == ProtocolVariant.Iso15118_20 ? "-20" : "-2";
+                TestContext.Out.WriteLine(
+                    $"SAP: offered {String.Join(", ", offers.Select((o, i) => $"{Name(o.Protocol)} (priority {i + 1})"))}; " +
+                    $"the station picked {Name(protocol)}.");
             }
             else
                 await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode);

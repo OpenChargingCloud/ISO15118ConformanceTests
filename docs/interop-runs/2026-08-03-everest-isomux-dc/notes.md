@@ -52,6 +52,11 @@ cannot; the state machine is selected before the handshake. Named here rather th
 result, and it is the same shape as the Dynamic gap found yesterday: a capability that reads as present
 because both halves exist separately.
 
+> **Closed the same day, and the answer was not the expected one.** Our EVCC learned to offer both, and
+> the rerun found that `IsoMux` **does not read `Priority` at all** — it routes to -20 whenever -20
+> appears anywhere in the offer, so an EV ranking -2 first still lands on the -20 backend. See
+> [`../2026-08-03-everest-isomux-both/`](../2026-08-03-everest-isomux-both/notes.md).
+
 ## Two small things in their log
 
 **Their peer address is rendered wrong.** `Incoming connection on eth0 from [a00:9b48:0:0:fe80::]:39752`

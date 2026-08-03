@@ -13,7 +13,11 @@ namespace Vanaheimr.V2G.Simulation.Sap
     /// <remarks>
     /// The EVCC's list order is its preference: entry 0 is offered at Priority 1 (the highest) with
     /// SchemaID 1, entry 1 at Priority 2 with SchemaID 2, and so on. The SECC's list order carries no
-    /// priority — [V2G2-179] has the station follow the <i>EV's</i> ranking among what it supports.
+    /// priority of its own — the <c>Priority</c> field exists so the <i>EV</i> can rank, and our
+    /// station honours that ranking among what it supports. (Deliberately not cited to a requirement
+    /// id: this project does not hold the ISO 15118-2 requirement text, and an unchecked
+    /// <c>[V2G2-nnn]</c> would read as verified. EVerest's <c>IsoMux</c> does <b>not</b> honour it —
+    /// see <c>docs/interop-runs/2026-08-03-everest-isomux-both/</c>.)
     /// </remarks>
     public sealed record SapOffer(ProtocolVariant Protocol, PowerMode Mode = PowerMode.Dc);
 
@@ -105,7 +109,7 @@ namespace Vanaheimr.V2G.Simulation.Sap
 
         /// <summary>
         /// SECC side: picks the highest-priority entry of the EVCC's offer that this station supports
-        /// ([V2G2-179]; Priority 1 is the highest), and answers with <b>that entry's</b> SchemaID.
+        /// (Priority 1 is the highest), and answers with <b>that entry's</b> SchemaID.
         /// </summary>
         /// <remarks>
         /// The echo is the load-bearing part, and it used to be a literal <c>1</c> — indistinguishable

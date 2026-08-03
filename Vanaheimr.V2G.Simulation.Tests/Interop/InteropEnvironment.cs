@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 
 using NUnit.Framework;
 
+using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.Transport;
 
@@ -116,6 +117,23 @@ internal static class InteropEnvironment
     /// </summary>
     public static Boolean OfferBothProtocols()
         => Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") == "both";
+
+
+    /// <summary>
+    /// The two-entry offer, in the order <c>V2G_INTEROP_SAP_FIRST</c> asks for: <c>20</c> (default) or
+    /// <c>2</c> at priority 1.
+    /// </summary>
+    /// <remarks>
+    /// The reversal is the experiment, not a preference. A station that routes a -20-first offer to its
+    /// -20 backend has done something consistent with <i>two</i> different rules — "follow the EV's
+    /// ranking" and "take the first -20 you can find" — and only an offer that ranks -2 above -20 tells
+    /// the two apart. EVerest's <c>IsoMux</c> answers that question by doing the latter
+    /// (<c>docs/interop-runs/2026-08-03-everest-isomux-both/</c>).
+    /// </remarks>
+    public static SapOffer[] BothOffers(PowerMode mode)
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_SAP_FIRST") == "2"
+               ? [new SapOffer(ProtocolVariant.Iso15118_2,  mode), new SapOffer(ProtocolVariant.Iso15118_20, mode)]
+               : [new SapOffer(ProtocolVariant.Iso15118_20, mode), new SapOffer(ProtocolVariant.Iso15118_2,  mode)];
 
 
     /// <summary>The names the trace corpus uses, so a recorded interop session is filed like any other.

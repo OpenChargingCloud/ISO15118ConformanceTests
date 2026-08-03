@@ -210,7 +210,17 @@ machine is chosen **after** the handshake, from the entry the station's answered
 all three languages, held by two new corpus traces (`iso2-ac-eim-sapboth`, whose station picks the
 priority-2 entry, and `iso20-dc-eim-sapboth`, whose station picks priority 1 — the two answers differ
 in exactly one byte, and the ports must run the machine it names) plus loopback tests either way
-round, including a both-capable station following the EV's ranking ([V2G2-179]).
+round, including a both-capable station following the EV's ranking.
+
+**And it went live the same day**, against the multiplexer it was built for: two complete -20 DC
+charges through EVerest's `IsoMux` from a two-entry offer, and the second one — ranking **-2** above
+-20 — got routed to -20 anyway. Their selection loop never reads `Priority`: it walks the offer in
+array order and returns on the first namespace starting with `-20`. Our EVCC followed their answered
+SchemaID (2) into the -20 machine rather than its own ranking, which is exactly what the feature is
+for; a car that had chosen its machine first would have spoken -2 at a -20 backend
+([`2026-08-03-everest-isomux-both`](interop-runs/2026-08-03-everest-isomux-both/notes.md)). Their
+`SupportedAppProtocolRes` for that offer is byte-identical to the one our own SECC records in the
+`iso2-ac-eim-sapboth` trace.
 
 En route it uncovered the same family's fifth member, on the station side this time: **our SECC
 answered SchemaID 1 as a literal** rather than echoing the id of the entry it accepted —
