@@ -8,7 +8,7 @@
 # (docs/interop-runs/2026-08-02-everest-iso2-dc-notls/).
 #
 # What this does. It publishes the same ProvidedIdToken on the same topic their own provider uses, but
-# triggered by the HLC instead of by hardware: EvseV2G sets Require_Auth_EIM the moment the EV has
+# triggered by the HLC instead of by hardware: EvseV2G sets require_auth_eim the moment the EV has
 # selected EIM and sent AuthorizationReq. Their Auth module cannot tell the difference — it validates
 # the token, calls evse_manager.authorize_response, and the next AuthorizationRes says Finished.
 #
@@ -21,22 +21,55 @@
 #   docker cp mqtt-authorize.sh mqtt:/tmp/
 #   docker exec -d mqtt sh -c "/tmp/mqtt-authorize.sh > /tmp/auth.log 2>&1"
 #
-# Topics are everest/<module_id>/<impl_id>/var with payload {"data": <value>, "name": "<var>"}. The
-# module ids are the ones in the config file — iso15118_charger and token_provider in ours.
+# ── The topic shape changed between the images we use ────────────────────────────────────────────
+#
+#   2023.10.0  (manager:main)                everest/<module_id>/<impl_id>/var
+#   2025.10.0  (manager:2025.10.0-patches)   everest/modules/<module_id>/impl/<impl_id>/var
+#
+# Both are subscribed, and the token is published back on whichever shape the trigger arrived on, so
+# the same script drives either image. This is worth the six lines: carrying only the old form made
+# the script **silently do nothing** against 2025.10 — it matched no message, wrote an empty log, and
+# looked exactly like a script that was working and simply had nothing to say. The plug-in flow of
+# sil-car.sh had been doing the authorizing all along
+# (docs/interop-runs/2026-08-03-everest-pnc/notes.md).
+#
+# So: an empty log means no message ever arrived on either topic. Check the module id against the
+# config file, and check the shape against the image — do not assume it is working.
+#
+# The payload is {"data": <value>, "name": "<var>"} either way. The variable is spelled
+# Require_Auth_EIM in the older image and require_auth_eim in the newer, hence the case-tolerant match.
 
 CHARGER=${CHARGER_MODULE:-iso15118_charger}
 PROVIDER=${TOKEN_PROVIDER_MODULE:-token_provider}
 TOKEN_ID=${TOKEN_ID:-TOKEN1}
 BROKER=${MQTT_HOST:-localhost}
 
+CHARGER_TOPIC_FLAT="everest/$CHARGER/charger/var"                 # 2023.10.0
+CHARGER_TOPIC_MODULES="everest/modules/$CHARGER/impl/charger/var" # 2025.10.0
+
 TOKEN="{\"data\":{\"id_token\":\"$TOKEN_ID\",\"authorization_type\":\"RFID\",\"id_token_type\":\"ISO14443\",\"prevalidated\":false,\"connectors\":[1]},\"name\":\"provided_token\"}"
 
-mosquitto_sub -h "$BROKER" -t "everest/$CHARGER/charger/var" | while read -r line; do
-  echo "$(date -u +%H:%M:%S) charger/var: $line"
-  case "$line" in
-    *Require_Auth_EIM*)
-      echo "$(date -u +%H:%M:%S) -> $TOKEN_ID to everest/$PROVIDER/main/var"
-      mosquitto_pub -h "$BROKER" -t "everest/$PROVIDER/main/var" -m "$TOKEN"
+echo "$(date -u +%H:%M:%S) watching $CHARGER_TOPIC_FLAT"
+echo "$(date -u +%H:%M:%S)      and $CHARGER_TOPIC_MODULES"
+
+# -v so each line is "<topic> <payload>": the topic is what tells us which shape this image speaks.
+mosquitto_sub -h "$BROKER" -v \
+              -t "$CHARGER_TOPIC_FLAT" \
+              -t "$CHARGER_TOPIC_MODULES" | while read -r line; do
+
+  topic=${line%% *}
+  payload=${line#* }
+
+  echo "$(date -u +%H:%M:%S) $topic: $payload"
+
+  case "$payload" in
+    *equire_[Aa]uth_[Ee][Ii][Mm]*)
+      case "$topic" in
+        everest/modules/*) provider_topic="everest/modules/$PROVIDER/impl/main/var" ;;
+        *)                 provider_topic="everest/$PROVIDER/main/var" ;;
+      esac
+      echo "$(date -u +%H:%M:%S) -> $TOKEN_ID to $provider_topic"
+      mosquitto_pub -h "$BROKER" -t "$provider_topic" -m "$TOKEN"
       ;;
   esac
 done
