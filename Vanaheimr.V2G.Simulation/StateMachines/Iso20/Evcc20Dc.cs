@@ -2,7 +2,8 @@ using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Simulation.Timing;
 using Vanaheimr.V2G.Tp;
 
-using Dc20 = Vanaheimr.V2G.Iso15118_20.DC.Generated;
+using Dc20         = Vanaheimr.V2G.Iso15118_20.DC.Generated;
+using Dc20Rational = Vanaheimr.V2G.Iso15118_20.DC.RationalNumber;
 
 namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 {
@@ -74,7 +75,15 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
             var (set, message) = await ExchangeRaw(MessageSet.Iso20DC,
                 dest => Dc20.DcCodec.TryEncode(req, dest, out int n) ? n : throw EncodeFailed(), ct);
-            Expect<Dc20.DC_ChargeLoopRes>(set, message, MessageSet.Iso20DC);
+            var response = Expect<Dc20.DC_ChargeLoopRes>(set, message, MessageSet.Iso20DC);
+
+            // The EV's own voltage — it sent EVPresentVoltage above, and a DC vehicle really does
+            // measure that at its own inlet — times the current the station reports. Half-borrowed on
+            // purpose: -20 DC gives the vehicle no field for a current it measured itself, and
+            // inventing one from EVTargetCurrent would be a *request* rather than a measurement, and
+            // would not exist at all in Dynamic mode.
+            Meter.Sample((double) Dc20Rational.ToDecimal(req.EVPresentVoltage),
+                         (double) Dc20Rational.ToDecimal(response.EVSEPresentCurrent));
         }
 
         protected override async Task RunPostChargeSequenceAsync(CancellationToken ct)

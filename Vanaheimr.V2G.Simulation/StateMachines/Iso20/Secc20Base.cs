@@ -107,6 +107,18 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// answering, which means AC and DC are two call sites that can drift apart. Both are driven
         /// to the charge loop and verified in <c>Secc20SignedMeterTests</c>.
         /// </remarks>
+        /// <summary>
+        /// Books one charge-loop iteration of <paramref name="watts"/> onto the installed meter.
+        /// </summary>
+        /// <remarks>
+        /// The -20 half of what <c>Secc2.Deliver</c> does, and for the same reason: the station's
+        /// signed reading and the vehicle's <c>EvMeter</c> have to be measuring one process, or a
+        /// comparison between them shows a difference that means nothing. Each set calls this from
+        /// its own charge-loop response, where it knows the power it is announcing.
+        /// </remarks>
+        protected void Deliver(double watts) =>
+            InstalledMeter?.Add(Metering.ChargeLoopSample.WattHoursRounded(watts));
+
         protected (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? MeterReading()
         {
             if (InstalledMeter is null)

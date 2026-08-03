@@ -357,6 +357,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             if (tuple is null)  return (PowerDeliveryRes(ResponseCode.FAILED_TariffSelectionInvalid), Phase.PowerOn);
             if (!withinPMax)    return (PowerDeliveryRes(ResponseCode.FAILED_ChargingProfileInvalid), Phase.PowerOn);
             _chosenTupleId = req.SAScheduleTupleID;   // the charging-status responses echo the EV's choice
+            // AC puts no power on the wire in either direction, so the profile the EV committed to
+            // here is also what the station's meter has to measure — see Meter().
+            _acCommittedPowerW = req.ChargingProfile is { ProfileEntry.Count: > 0 } profile
+                                     ? (double) profile.ProfileEntry[0].ChargingProfileEntryMaxPower.ToDecimal()
+                                     : 0;
             return (PowerOnOrOff(), Phase.Charging);
         }
 
@@ -387,6 +392,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 
         private BodyBaseType CurrentDemand()
         {
+            // The station's own view of this iteration: what it is presenting at the outlet. The same
+            // 400 V x 120 A it reports below, so the number it signs is the number it announces.
+            Deliver(400d * 120d);
+
             bool receipt = DemandReceipt();
             // A station with a real meter reports it every cycle, not only when it wants a receipt
             // signed back: the signed reading is the point on its own (docs/CONCEPT.md §4.3), and
@@ -402,6 +411,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 
         private BodyBaseType ChargingStatus()
         {
+            Deliver(_acCommittedPowerW);   // see CurrentDemand(); AC's only power is the accepted profile
+
             // A Contract session gets ReceiptRequired + the MeterInfo the EV echoes back inside its
             // signed MeteringReceiptReq (a Josev EVCC only honours this over TLS).
             bool receipt = DemandReceipt();
@@ -513,6 +524,42 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// </summary>
         public SigningMeter? InstalledMeter { get; init; }
 
+        /// <summary>The power the EV committed to in its accepted ChargingProfile; AC's only power.</summary>
+        private double _acCommittedPowerW;
+
+        /// <summary>
+        /// Books one charge-loop iteration of <paramref name="watts"/> onto the installed meter.
+        /// </summary>
+        /// <remarks>
+        /// This is what makes the station's reading and the vehicle's <see cref="EvMeter"/> two views
+        /// of one process rather than two unrelated numbers. Before it existed the meter held a fixed
+        /// figure, and any comparison against the EV would have shown a difference that meant nothing
+        /// — the most confusing possible outcome for a screen whose whole point is agreement.
+        /// <para>
+        /// Both sides count the same <see cref="ChargeLoopSample.Period"/> at the same power, so in a
+        /// clean session they land on the same watt-hour. That is not a proof about real meters; it
+        /// is two implementations of one arithmetic agreeing, which is what catches a wrong field or
+        /// a wrong unit.
+        /// </para>
+        /// </remarks>
+        private void Deliver(double watts)
+        {
+            var wattHours = ChargeLoopSample.WattHoursRounded(watts);
+            _deliveredWh += wattHours;
+            InstalledMeter?.Add(wattHours);
+        }
+
+        /// <summary>What this session has delivered, counted whether or not a meter is fitted.</summary>
+        /// <remarks>
+        /// A station without a <em>signing</em> meter still has a meter — almost all of them do; what
+        /// they lack is one that signs. Reporting the same figure unsigned is truer to the field and
+        /// more useful: every session then has two counts to compare, and only some have a signature
+        /// over the station's. (Until 2026-08-03 this path reported a literal 42 Wh, which was
+        /// harmless placeholder data right up until something started comparing it with the
+        /// vehicle's count.)
+        /// </remarks>
+        private ulong _deliveredWh;
+
         /// <summary>
         /// The station's meter reading, signed into <c>SigMeterReading</c> when a meter is installed.
         /// </summary>
@@ -526,7 +573,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         private MeterInfoType Meter()
         {
             if (InstalledMeter is null)
-                return new("VAN*M1", MeterReading: 42, SigMeterReading: null, MeterStatus: null,
+                return new("VAN*M1", MeterReading: _deliveredWh, SigMeterReading: null, MeterStatus: null,
                            TMeter: clock.GetUtcNow().ToUnixTimeSeconds());
 
             var (wh, timestamp) = InstalledMeter.Read();

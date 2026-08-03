@@ -87,6 +87,8 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 Dc20.BPT_Scheduled_DC_CLReqControlModeType => new Dc20.BPT_Scheduled_DC_CLResControlModeType(null, null, null, null, null, null, null, null),
                 _ => new Dc20.Scheduled_DC_CLResControlModeType(null, null, null, null),
             };
+            Deliver(400d * 120d);   // the EVSEPresentVoltage x EVSEPresentCurrent announced below
+
             var res = new Dc20.DC_ChargeLoopRes(SessionCtx.ToDcHeader(), Dc20.ResponseCode.OK,
                 // Service renegotiation is requested via the (otherwise absent) EVSEStatus ([V2G20-1477]);
                 // a Josev EVCC reacts with PowerDelivery(Stop) + SessionStopReq(ServiceRenegotiation).

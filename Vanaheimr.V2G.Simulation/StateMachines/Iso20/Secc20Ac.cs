@@ -64,6 +64,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                 Ac20.BPT_Scheduled_AC_CLReqControlModeType => new Ac20.BPT_Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null),
                 _ => new Ac20.Scheduled_AC_CLResControlModeType(null, null, null, null, null, null, null, null, null),
             };
+            // 22 kW: the EVSETargetActivePower announced below, and the EVPresentActivePower the
+            // vehicle reports — AC is the one case where both sides name the same figure outright.
+            Deliver(22_000);
+
             var res = new Ac20.AC_ChargeLoopRes(SessionCtx.ToAcHeader(), Ac20.ResponseCode.OK,
                 // Service renegotiation is requested via the (otherwise absent) EVSEStatus ([V2G20-1477]).
                 EVSEStatus: SignalRenegotiationOnce()

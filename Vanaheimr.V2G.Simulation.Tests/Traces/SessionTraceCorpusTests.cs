@@ -105,14 +105,18 @@ public class SessionTraceCorpusTests
         return key;
     }
 
-    private static SigningMeter Meter(TimeProvider clock)
-    {
-        // A reading of zero would verify perfectly and say nothing about whether the number in the
-        // signature is the number on the wire — every field would be its default.
-        var meter = new SigningMeter("VAN*M*4711", MeterKeyPair(), clock);
-        meter.Add(4_200);
-        return meter;
-    }
+    /// <summary>
+    /// A meter that starts at zero and counts what the session actually delivers.
+    /// </summary>
+    /// <remarks>
+    /// It used to be primed with a fixed 4200 Wh, which made the recorded reading a constant — fine
+    /// while nothing compared it to anything, and wrong the moment the vehicle grew a counter of its
+    /// own (2026-08-03): two unrelated numbers side by side would have shown a difference that meant
+    /// nothing. Now both sides count the same <see cref="ChargeLoopSample.Period"/> at the same power,
+    /// so the reading climbs through the session and lands where the EV's does.
+    /// </remarks>
+    private static SigningMeter Meter(TimeProvider clock) =>
+        new("VAN*M*4711", MeterKeyPair(), clock);
 
 
     private static readonly Scenario[] Scenarios =

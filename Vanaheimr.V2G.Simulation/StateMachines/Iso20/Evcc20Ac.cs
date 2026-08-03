@@ -26,6 +26,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
 
         protected override Task RunPreChargeSequenceAsync(CancellationToken ct) => Task.CompletedTask;   // AC: not applicable
 
+        /// <summary>The EV's present active power, 22 kW. One constant rather than the same literal in
+        /// two control-mode branches and again at the meter, because those three drifting apart would
+        /// mean the vehicle's counter no longer counted what the vehicle said.</summary>
+        private static readonly Ac20.RationalNumberType PresentActivePower = Rat(2_200, 1);
+        private const double PresentActivePowerW = 22_000;
+
         protected override async Task RunChargeLoopIterationAsync(CancellationToken ct)
         {
             // Asking in kind, the mirror of [V2G20-1600] — see Evcc20Dc for the same split and why.
@@ -39,13 +45,13 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
                       EVMaximumChargePower_L2:  null, EVMaximumChargePower_L3: null,
                       EVMinimumChargePower:     Rat(1,  3),
                       EVMinimumChargePower_L2:  null, EVMinimumChargePower_L3: null,
-                      EVPresentActivePower:     Rat(2_200, 1),
+                      EVPresentActivePower:     PresentActivePower,
                       EVPresentActivePower_L2:  null, EVPresentActivePower_L3: null,
                       EVPresentReactivePower:   Rat(0),
                       EVPresentReactivePower_L2: null, EVPresentReactivePower_L3: null)
                 : new Ac20.Scheduled_AC_CLReqControlModeType(
                       null, null, null, null, null, null, null, null, null,
-                      EVPresentActivePower: Rat(2_200, 1), null, null, null, null, null);
+                      EVPresentActivePower: PresentActivePower, null, null, null, null, null);
 
             var req = new Ac20.AC_ChargeLoopReq(SessionCtx.ToAcHeader(), DisplayParameters: null,
                 MeterInfoRequested: false, CLReqControlMode: controlMode);
@@ -53,6 +59,11 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             var (set, message) = await ExchangeRaw(MessageSet.Iso20AC,
                 dest => Ac20.AcCodec.TryEncode(req, dest, out int n) ? n : throw EncodeFailed(), ct);
             Expect<Ac20.AC_ChargeLoopRes>(set, message, MessageSet.Iso20AC);
+
+            // The one place in this project where the EV's own inlet power is a field on the wire:
+            // -20 AC has EVPresentActivePower in the request, so the vehicle's view needs no deriving
+            // and nothing borrowed from the station.
+            Meter.Sample(PresentActivePowerW);
         }
 
         protected override Task RunPostChargeSequenceAsync(CancellationToken ct) => Task.CompletedTask;   // AC: not applicable

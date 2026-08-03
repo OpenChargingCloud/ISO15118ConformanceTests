@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using Vanaheimr.V2G.Iso15118_2;
 using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
+using Vanaheimr.V2G.Simulation.Metering;
 using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Timing;
@@ -55,6 +56,16 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
 
         /// <summary>How many signed MeteringReceiptReq this session sent (Contract only).</summary>
         public int MeteringReceiptsSent { get; private set; }
+
+        /// <summary>
+        /// The vehicle's own energy counter — what this EV thinks it took, kept independently of what
+        /// the station reports (<c>docs/CONCEPT.md</c> §4.2/§4.3).
+        /// </summary>
+        /// <remarks>
+        /// Settable so a caller can shorten or lengthen what one charge-loop iteration stands for; see
+        /// <see cref="EvMeter"/> for why an iteration has to declare a duration at all.
+        /// </remarks>
+        public EvMeter Meter { get; init; } = new();
 
         /// <summary>How to end the session: <c>Terminate</c> (default) or <c>Pause</c> — after a pause the
         /// caller reconnects and resumes via <see cref="ResumeSessionId"/> ([V2G2-740]).</summary>
@@ -184,8 +195,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 EVSENotification notification;
                 if (mode == PowerMode.Dc)
                 {
-                    var cd = await Send<CurrentDemandResType>(CurrentDemand(), ct);
+                    var demand = CurrentDemand();
+                    var cd = await Send<CurrentDemandResType>(demand, ct);
                     notification = cd.DC_EVSEStatus.EVSENotification;
+
+                    // The EV's own view, from the EV's own request. ISO 15118-2 gives a DC vehicle no
+                    // field for a *measured* inlet power, so what it asked for is the closest thing it
+                    // owns — and taking the station's EVSEPresent* instead would make this counter an
+                    // echo of the very number it exists to be compared against.
+                    Meter.Sample((double) demand.EVTargetVoltage.ToDecimal(),
+                                 (double) demand.EVTargetCurrent.ToDecimal());
+
                     if (cd.ReceiptRequired == true && cd.MeterInfo is not null)
                         await SendMeteringReceipt(cd.MeterInfo, cd.SAScheduleTupleID, ct);
                 }
@@ -193,6 +213,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 {
                     var cs = await Send<ChargingStatusResType>(new ChargingStatusReqType(), ct);
                     notification = cs.AC_EVSEStatus.EVSENotification;
+
+                    // AC carries no power in either direction, so the EV's own view is the profile it
+                    // committed to in PowerDeliveryReq — which it derived itself from the tuple it
+                    // chose, and which the station validated against its own PMax.
+                    Meter.Sample(CommittedPowerW());
+
                     if (cs.ReceiptRequired == true && cs.MeterInfo is not null)
                         await SendMeteringReceipt(cs.MeterInfo, cs.SAScheduleTupleID, ct);
                 }
@@ -499,6 +525,21 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 BulkChargingComplete: null, ChargingComplete: false,
                 RemainingTimeToFullSoC: null, RemainingTimeToBulkSoC: null,
                 EVTargetVoltage: Volt(400));
+
+        /// <summary>
+        /// The power this EV committed to in its ChargingProfile — its own view of an AC session,
+        /// since -2 puts no power on the wire in either direction.
+        /// </summary>
+        /// <remarks>
+        /// The first entry, because the profile's later entries start at offsets a three-iteration
+        /// charge loop never reaches. Zero when there is no profile: an AC session that never agreed
+        /// one has no committed power to count, and inventing one would put a number on screen that
+        /// nothing in the session supports.
+        /// </remarks>
+        private double CommittedPowerW() =>
+            _chargingProfile is { ProfileEntry.Count: > 0 } profile
+                ? (double) profile.ProfileEntry[0].ChargingProfileEntryMaxPower.ToDecimal()
+                : 0;
 
         private static DC_EVStatusType EvStatus() => new(EVReady: true, DC_EVErrorCode.NO_ERROR, EVRESSSOC: 50);
         private static PhysicalValueType Volt(short v) => new(0, UnitSymbol.V, v);

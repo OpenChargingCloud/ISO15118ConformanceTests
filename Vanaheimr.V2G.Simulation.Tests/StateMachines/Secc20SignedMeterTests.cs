@@ -105,28 +105,36 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
         }
 
         /// <summary>
-        /// And with one installed, both loops carry it. Two call sites, two message sets, one meter —
-        /// the case that catches wiring AC and forgetting DC.
+        /// And with one installed, both loops carry it — and it counts what the loop delivered.
         /// </summary>
+        /// <remarks>
+        /// Two things at once, because until 2026-08-03 only the first was true. Two call sites and
+        /// two message sets catch wiring AC and forgetting DC. The <em>reading</em> catches the newer
+        /// and quieter failure: a meter that is fitted, signs correctly, and never advances. That
+        /// version passed every signature check in this file while reporting a constant, and it only
+        /// became visible once the vehicle grew a counter to compare against.
+        /// <para>
+        /// AC announces 22 kW and DC 400 V x 120 A, over one <c>ChargeLoopSample.Period</c> — so a
+        /// minute of each is 367 Wh and 800 Wh. The AC figure is rounded up from 366.67, which is
+        /// worth having in a test: it is the only place the rounding rule is visible.
+        /// </para>
+        /// </remarks>
         [Test]
-        public void WithAMeterBothChargeLoopsCarryASignedReading()
+        public void WithAMeterBothChargeLoopsCarryASignedReadingOfWhatTheyDelivered()
         {
-            var acMeter = Meter();
-            acMeter.Add(4_200);
-            var dcMeter = Meter();
-            dcMeter.Add(4_200);
-
-            var acLoop = new Ac20SessionDriver(Ac(acMeter)).ToChargeLoop().ChargeLoop();
-            var dcLoop = new Dc20SessionDriver(Dc(dcMeter)).ToChargeLoop().ChargeLoop();
+            var acLoop = new Ac20SessionDriver(Ac(Meter())).ToChargeLoop().ChargeLoop();
+            var dcLoop = new Dc20SessionDriver(Dc(Meter())).ToChargeLoop().ChargeLoop();
 
             Assert.Multiple(() =>
             {
                 Assert.That(acLoop.MeterInfo!.MeterID, Is.EqualTo("VAN*M1"));
-                Assert.That(acLoop.MeterInfo!.ChargedEnergyReadingWh, Is.EqualTo(4_200));
+                Assert.That(acLoop.MeterInfo!.ChargedEnergyReadingWh, Is.EqualTo(367),
+                            "22 kW for one sample period, rounded from 366.67");
                 Assert.That(acLoop.MeterInfo!.MeterSignature, Has.Length.EqualTo(64));
 
                 Assert.That(dcLoop.MeterInfo!.MeterID, Is.EqualTo("VAN*M1"));
-                Assert.That(dcLoop.MeterInfo!.ChargedEnergyReadingWh, Is.EqualTo(4_200));
+                Assert.That(dcLoop.MeterInfo!.ChargedEnergyReadingWh, Is.EqualTo(800),
+                            "48 kW for one sample period");
                 Assert.That(dcLoop.MeterInfo!.MeterSignature, Has.Length.EqualTo(64));
             });
         }

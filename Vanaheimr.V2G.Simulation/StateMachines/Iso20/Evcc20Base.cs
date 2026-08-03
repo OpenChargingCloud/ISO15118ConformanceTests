@@ -49,6 +49,17 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// <summary>Contract credentials enabling Plug &amp; Charge; <c>null</c> (default) authorizes via EIM.</summary>
         public PncEvccOptions? Pnc { get; set; }
 
+        /// <summary>
+        /// The vehicle's own energy counter — what this EV thinks it took, kept independently of what
+        /// the station reports (<c>docs/CONCEPT.md</c> §4.2/§4.3).
+        /// </summary>
+        /// <remarks>
+        /// On the base rather than per set: the counter is the vehicle's, and AC and DC differ only in
+        /// what a sample is worth. Each subclass takes its own sample in
+        /// <see cref="RunChargeLoopIterationAsync"/>, where it knows which field carries the EV's view.
+        /// </remarks>
+        public Metering.EvMeter Meter { get; init; } = new();
+
         /// <summary>How this session actually authorized: <c>"eim"</c>, or <c>"pnc-signed"</c> when a signed
         /// PnC AuthorizationReq was sent (requires <see cref="Pnc"/> set and the SECC offering PnC).</summary>
         public string AuthorizationMode { get; private set; } = "eim";
