@@ -186,8 +186,17 @@ a charge; the other two stop somewhere worth naming:
   session can be authorized and the simulated car plugged in without patching a line of EVerest.
   Dynamic control mode, mutual TLS 1.3, their `IsoMux` and AC followed the same day. What is left is a
   list rather than a blocker — **AC BPT** (their `supported_iso_ac_bpt: true`, and our -20 AC BPT arm
-  has never met a station), **-2 over TLS 1.2** now that the trust plumbing exists, and
-  `config-sil-dc-isomux-tls.yaml`. One real wall remains: **their -20 AC expects their own EV module to
+  has never met a station) and `config-sil-dc-isomux-tls.yaml`. **-2 over TLS 1.2 is done**, as the
+  carrier for the PnC run below.
+  **Plug &amp; Charge, 2026-08-03:** our signed -2 `AuthorizationReq` **verified at their station** —
+  the second independent stack ever to check one of our contract signatures, after Josev — using
+  their own MO credential so no key was generated. Their station also taught us a station-side rule
+  nothing here had had to satisfy: **-2 PnC is refused without TLS**, correctly. It stops short of a
+  complete charge for a reason that is theirs: the SIL has no backend to authorize an eMAID
+  (`NO_CONNECTOR_AVAILABLE`), where a deployment would have OCPP. And **-20 PnC cannot be run against
+  them at all** — `auth_services.push_back(…PnC)` is commented out in `Evse15118D20` with
+  *"Currently Plug&amp;Charge is not supported and ignored"*, so that item moves off this list and onto
+  theirs ([`2026-08-03-everest-pnc`](interop-runs/2026-08-03-everest-pnc/notes.md)). One real wall remains: **their -20 AC expects their own EV module to
   close the contactor**, so getting past `PowerDelivery(Start)` there means driving their EV-side
   hardware simulation and not only the car's CP line. **MCS stays parked:** `config-sil-mcs.yaml` is
   not in 2025.10 either.

@@ -1,0 +1,2 @@
+15:59:11 require_auth_pnc: {"data":{"authorization_type":"PlugAndCharge","certificate":"-----BEGIN CERTIFICATE-----\nMIICZjCCAg2gAwIBAgICMEQwCgYIKoZIzj0EAwIwVzEiMCAGA1UEAwwZUEtJLUV4\ndF9DUlRfTU9fU1VCMl9WQUxJRDEQMA4GA1UECgwHRVZl
+15:59:11 -> forwarded to token_provider

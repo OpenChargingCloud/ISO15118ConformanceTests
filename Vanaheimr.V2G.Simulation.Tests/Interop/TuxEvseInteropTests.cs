@@ -88,10 +88,15 @@ public class TuxEvseInteropTests
         {
             await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
 
-            var exchanges = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
-                                                              InteropEnvironment.PreferDynamic());
+            var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
+                                                            InteropEnvironment.PreferDynamic(),
+                                                            InteropEnvironment.ContractCredentialsOrNull());
 
-            Assert.That(exchanges, Is.GreaterThan(0),
+            TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
+                                      (outcome.MeteringReceiptsSent > 0
+                                           ? $", {outcome.MeteringReceiptsSent} signed metering receipt(s)" : ""));
+
+            Assert.That(outcome.Exchanges, Is.GreaterThan(0),
                         "our EVCC exchanged at least one message with their responder");
         }
         finally

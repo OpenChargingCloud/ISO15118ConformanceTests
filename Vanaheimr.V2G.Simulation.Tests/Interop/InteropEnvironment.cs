@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.StateMachines;
+using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Transport;
 
 namespace Vanaheimr.V2G.Simulation.Tests.Interop;
@@ -130,6 +131,53 @@ internal static class InteropEnvironment
     /// the two apart. EVerest's <c>IsoMux</c> answers that question by doing the latter
     /// (<c>docs/interop-runs/2026-08-03-everest-isomux-both/</c>).
     /// </remarks>
+    /// <summary>
+    /// Plug &amp; Charge credentials for the EVCC side: <c>V2G_INTEROP_CONTRACT_CERT</c> is a PKCS#12
+    /// holding the contract leaf with its private key plus the MO sub-CAs,
+    /// <c>V2G_INTEROP_CONTRACT_PASS</c> its password. Unset (the default) authorizes via EIM.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Same shape as the CLI's <c>--contract-cert</c>: the certificate that carries a private key is
+    /// the leaf, every other one goes into <c>SubCertificates</c> in file order.
+    /// </para>
+    /// <para>
+    /// <b>The credential is the counterparty's, deliberately.</b> A station verifies a contract
+    /// signature against a chain it trusts, so a self-made one would be refused for a reason that says
+    /// nothing about our signing. EVerest ships a complete MO hierarchy in its own test PKI
+    /// (<c>tests/ocpp_tests/test_sets/everest-aux/certs/client/mo/</c>) whose root their
+    /// <c>EvseSecurity</c> already trusts — so the run needs no key generation at all, only their
+    /// throwaway material handed back to them.
+    /// </para>
+    /// </remarks>
+    public static PncEvccOptions? ContractCredentialsOrNull()
+    {
+
+        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_CONTRACT_CERT");
+        if (String.IsNullOrEmpty(path))
+            return null;
+
+        var collection = X509CertificateLoader.LoadPkcs12CollectionFromFile(
+                             path, Environment.GetEnvironmentVariable("V2G_INTEROP_CONTRACT_PASS"),
+                             X509KeyStorageFlags.Exportable);
+
+        var leaf = collection.FirstOrDefault(c => c.HasPrivateKey)
+                       ?? throw new InvalidOperationException(
+                              $"V2G_INTEROP_CONTRACT_CERT: no certificate in '{path}' carries a private key.");
+        var key  = leaf.GetECDsaPrivateKey()
+                       ?? throw new InvalidOperationException(
+                              "V2G_INTEROP_CONTRACT_CERT: the contract leaf's private key is not ECDSA.");
+
+        var subCertificates = collection.Where(c => !c.HasPrivateKey).Select(c => c.RawData).ToArray();
+
+        TestContext.Out.WriteLine($"PnC: contract {leaf.Subject} (+{subCertificates.Length} sub-CA(s)), " +
+                                  $"{key.KeySize}-bit EC.");
+
+        return new PncEvccOptions(leaf.RawData, subCertificates, key);
+
+    }
+
+
     public static SapOffer[] BothOffers(PowerMode mode)
         => Environment.GetEnvironmentVariable("V2G_INTEROP_SAP_FIRST") == "2"
                ? [new SapOffer(ProtocolVariant.Iso15118_2,  mode), new SapOffer(ProtocolVariant.Iso15118_20, mode)]

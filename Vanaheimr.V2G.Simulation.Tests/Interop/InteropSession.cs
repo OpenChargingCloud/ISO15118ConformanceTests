@@ -29,19 +29,30 @@ internal static class InteropSession
     public static readonly TimeSpan SequenceTimeout   = TimeSpan.FromSeconds(60);
 
 
+    /// <summary>How a session actually ran: the exchange count, and the authorization mode it really
+    /// used. The second field exists because a Plug &amp; Charge run that quietly falls back to EIM —
+    /// because the station did not offer Contract, or sent no challenge — completes just as happily and
+    /// would otherwise be reported as a PnC result.</summary>
+    public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent);
+
+
     /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
     /// rather than Scheduled — the EV states energy needs and a departure time and lets the station steer.
     /// Ignored for -2, which has no control modes. Set by <c>V2G_INTEROP_DYNAMIC=1</c>.</param>
-    /// <returns>How many messages our car exchanged with their station.</returns>
-    public static async Task<Int32> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
-                                                 CancellationToken ct, Boolean preferDynamic = false)
+    /// <param name="pnc">Contract credentials; when set <i>and</i> the station offers Contract/PnC, the
+    /// session authorizes with a signed AuthorizationReq instead of EIM. Set by
+    /// <c>V2G_INTEROP_CONTRACT_CERT</c>.</param>
+    public static async Task<EvccOutcome> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
+                                                       CancellationToken ct, Boolean preferDynamic = false,
+                                                       PncEvccOptions? pnc = null)
     {
 
         if (protocol == ProtocolVariant.Iso15118_2)
         {
-            var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout);
+            var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
+                           { Pnc = pnc };
             await evcc.RunAsync(ct);
-            return evcc.Exchanges;
+            return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent);
         }
 
         Evcc20Base evcc20 = mode == PowerMode.Dc
@@ -49,9 +60,10 @@ internal static class InteropSession
                                 : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout);
 
         evcc20.PreferDynamicControlMode = preferDynamic;
+        evcc20.Pnc                      = pnc;
 
         await evcc20.RunAsync(ct);
-        return evcc20.Exchanges;
+        return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0);
 
     }
 

@@ -1,0 +1,104 @@
+
+    /* build up response */
+    res->ResponseCode = iso2_responseCodeType_OK;
+
+    // Checking of the charge service id
+    if (conn->ctx->evse_v2g_data.charge_service.ServiceID != V2G_SERVICE_ID_CHARGING) {
+        dlog(DLOG_LEVEL_WARNING,
+             "Selected ServiceID is not ISO15118 conform. Correcting value to '1' (Charge service id)");
+        conn->ctx->evse_v2g_data.charge_service.ServiceID = V2G_SERVICE_ID_CHARGING;
+    }
+    // Checking of the service category
+    if (conn->ctx->evse_v2g_data.charge_service.ServiceCategory != iso2_serviceCategoryType_EVCharging) {
+        dlog(DLOG_LEVEL_WARNING,
+             "Selected ServiceCategory is not ISO15118 conform. Correcting value to '0' (EVCharging)");
+        conn->ctx->evse_v2g_data.charge_service.ServiceCategory = iso2_serviceCategoryType_EVCharging;
+    }
+
+    res->ChargeService = conn->ctx->evse_v2g_data.charge_service;
+
+    // Checking of the payment options
+    if ((!conn->is_tls_connection) &&
+        ((conn->ctx->evse_v2g_data.payment_option_list[0] == iso2_paymentOptionType_Contract) ||
+         (conn->ctx->evse_v2g_data.payment_option_list[1] == iso2_paymentOptionType_Contract))) {
+        conn->ctx->evse_v2g_data.payment_option_list[0] = iso2_paymentOptionType_ExternalPayment;
+        conn->ctx->evse_v2g_data.payment_option_list_len = 1;
+        dlog(DLOG_LEVEL_WARNING,
+             "PnC is not allowed without TLS-communication. Correcting value to '1' (ExternalPayment)");
+    }
+
+    memcpy(res->PaymentOptionList.PaymentOption.array, conn->ctx->evse_v2g_data.payment_option_list,
+           conn->ctx->evse_v2g_data.payment_option_list_len * sizeof(iso2_paymentOptionType));
+    res->PaymentOptionList.PaymentOption.arrayLen = conn->ctx->evse_v2g_data.payment_option_list_len;
+
+    /* Find requested scope id within evse service list */
+    if (req->ServiceScope_isUsed) {
+        /* Check if ServiceScope is in evse ServiceList */
+
+--- EvseV2G AuthorizationReq handling:
+    res->ResponseCode = iso2_responseCodeType_OK;
+
+    if (conn->ctx->last_v2g_msg != V2G_AUTHORIZATION_MSG &&
+        (conn->ctx->session.iso_selected_payment_option == iso2_paymentOptionType_Contract)) { /* [V2G2-684] */
+        if (req->GenChallenge_isUsed == 0 ||
+            req->GenChallenge.bytesLen != 16 // [V2G2-697]  The GenChallenge field shall be exactly 128 bits long.
+            || memcmp(req->GenChallenge.bytes, conn->ctx->session.gen_challenge, 16) != 0) {
+            dlog(DLOG_LEVEL_ERROR, "Challenge invalid or not present");
+            res->ResponseCode = iso2_responseCodeType_FAILED_ChallengeInvalid; // [V2G2-475]
+            goto error_out;
+        }
+        if (conn->exi_in.iso2EXIDocument->V2G_Message.Header.Signature_isUsed == 0) {
+            dlog(DLOG_LEVEL_ERROR, "Missing signature (Signature_isUsed == 0)");
+            res->ResponseCode = iso2_responseCodeType_FAILED_SignatureError;
+            goto error_out;
+        }
+
+        /* Validation of the received signature */
+        struct iso2_exiFragment iso2_fragment;
+        init_iso2_exiFragment(&iso2_fragment);
+
+        iso2_fragment.AuthorizationReq_isUsed = 1u;
+        memcpy(&iso2_fragment.AuthorizationReq, req, sizeof(*req));
+
+        assert(conn->pubkey != nullptr);
+        const bool bSigRes = check_iso2_signature(&conn->exi_in.iso2EXIDocument->V2G_Message.Header.Signature,
+                                                  conn->pubkey->get(), &iso2_fragment);
+
+        if (!bSigRes) {
+            res->ResponseCode = iso2_responseCodeType_FAILED_SignatureError;
+            goto error_out;
+        }
+        if (conn->ctx->session.provided_id_token.has_value()) {
+            conn->ctx->p_charger->publish_require_auth_pnc(conn->ctx->session.provided_id_token.value());
+            conn->ctx->session.provided_id_token.reset();
+        } else {
+            // this should never happen, since the contract certificate is set in handle_iso_payment_details in case
+            // contract is selected
+            dlog(DLOG_LEVEL_ERROR, "No contract certificate could be retrieved!");
+            res->ResponseCode = iso2_responseCodeType_FAILED;
+            goto error_out;
+        }
+    }
+    res->EVSEProcessing = (iso2_EVSEProcessingType)conn->ctx->evse_v2g_data.evse_processing[PHASE_AUTH];
+
+
+--- Evse15118D20 handle_session_setup:
+void ISO15118_chargerImpl::handle_session_setup(std::vector<types::iso15118::PaymentOption>& payment_options,
+                                                bool& supported_certificate_service,
+                                                [[maybe_unused]] bool& central_contract_validation_allowed) {
+    std::scoped_lock lock(GEL);
+
+    std::vector<dt::Authorization> auth_services;
+
+    for (auto& option : payment_options) {
+        if (option == types::iso15118::PaymentOption::ExternalPayment) {
+            auth_services.push_back(dt::Authorization::EIM);
+        } else if (option == types::iso15118::PaymentOption::Contract) {
+            // auth_services.push_back(iso15118::message_20::Authorization::PnC);
+            EVLOG_warning << "Currently Plug&Charge is not supported and ignored";
+        }
+    }
+
+    setup_config.authorization_services = auth_services;
+    setup_config.enable_certificate_install_service = supported_certificate_service;
+
