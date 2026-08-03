@@ -27,11 +27,14 @@ namespace Vanaheimr.V2G.Simulation.Tests.Interop;
 ///
 /// <para><b>Which half is new, and which is not.</b></para>
 /// <list type="bullet">
-///   <item><b>Their station is new.</b> <c>EvseV2G</c> (DIN 70121 and -2, C, cbV2G underneath) and
-///         <c>Evse15118D20</c> (-20) are implementations nothing here has met. Since <c>EvseV2G</c> sits
-///         on cbV2G — the encoder our vector corpus is generated from — a disagreement is <b>not</b> an
-///         EXI disagreement by construction: it is a sequencing, timing or semantics one, which is
-///         exactly the class our corpora cannot see.</item>
+///   <item><b>Their station is new.</b> <c>EvseV2G</c> (DIN 70121 and -2, C) and <c>Evse15118D20</c>
+///         (-20) are implementations nothing here has met. At <c>everest-core</c> HEAD <c>EvseV2G</c>
+///         sits on cbV2G — the encoder our vector corpus is generated from — so a disagreement would
+///         <b>not</b> be an EXI disagreement by construction: it would be a sequencing, timing or
+///         semantics one, which is exactly the class our corpora cannot see.
+///         <b>Check the image, though.</b> The <c>manager:main</c> demo image is everest-core 2023.10.0
+///         and links <c>libopenv2g.so.1</c>, so runs against it <i>are</i> independent-codec results —
+///         see <c>docs/interop-runs/2026-08-02-everest-iso2-dc-full-charge/</c>.</item>
 ///   <item><b>Their car is Josev.</b> <c>PyEvJosev</c> is the same implementation family the recorded
 ///         runs under <c>docs/interop-runs/</c> already used, repackaged as a module. Running it is still
 ///         worth doing — a different configuration exercises different paths — but a green reverse run

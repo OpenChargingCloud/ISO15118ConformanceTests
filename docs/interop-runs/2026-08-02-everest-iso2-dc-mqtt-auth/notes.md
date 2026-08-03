@@ -92,8 +92,13 @@ session 1 complete, session 2 dead 200 ms in.
 
 This is also why the previous run never saw it. One session, three minutes of polling, no second
 connection. **Every interop run so far has been one session long** — the shape of the harness hid a
-crash that any real charger would hit on the second car of the day. Worth reporting to them, and worth
-remembering here: *run it twice* belongs in the harness, not in the write-up.
+crash the second car of the day would hit. *Run it twice* belongs in the harness, not in the write-up.
+
+*Corrected 2026-08-03:* **not present in everest-core 2025.10.** The same two-session procedure against
+that release's `EvseV2G` gives two complete charges and no crash, so this is a defect of the 2023.10.0
+image and there is nothing to report to EVerest. Checking before reporting cost ten minutes and is the
+practical case for pinning an image digest —
+[`../2026-08-03-everest-iso20-dc-full-charge/notes.md`](../2026-08-03-everest-iso20-dc-full-charge/notes.md).
 
 ## The wall now: the cable check waits for hardware that does not exist
 
@@ -225,9 +230,8 @@ foreign station's message to the corpus is a deliberate decision, not a side eff
   charge: [`../2026-08-02-everest-iso2-dc-full-charge/`](../2026-08-02-everest-iso2-dc-full-charge/notes.md).
   The route was `car_simulator`'s external MQTT interface, and `cp C` was indeed not enough: the
   command that holds the CP line at 6 V is `draw_power_fixed 0,0`.
-- **Report the second-session crash** to EVerest, with `their-crash-on-second-session.log`. The full
-  charge run sharpened it: reproduction five happened after a *successful* first session with a clean
-  SessionStop and a proper re-plug, so the abnormal end of the first session was never the cause.
+- ~~Report the second-session crash to EVerest~~ — **withdrawn 2026-08-03**: it does not reproduce on
+  everest-core 2025.10. Five reproductions on 2023.10.0, none on the current release.
 - **Run every future session twice**, in every harness. One session is not a test of a station.
 - Then `config-sil-dc-d20.yaml` (`Evse15118D20`) — the -20 charger, and the one this stack has the most
   to say about — `config-sil-dc-isomux.yaml`, and eventually `config-sil-mcs.yaml`.

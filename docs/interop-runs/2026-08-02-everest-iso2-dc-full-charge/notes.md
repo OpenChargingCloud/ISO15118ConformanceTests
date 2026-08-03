@@ -99,11 +99,46 @@ only needs to talk.
 
 ## What this proves, and what it does not
 
-**Not an EXI result.** `EvseV2G` sits on cbV2G, the encoder our vector corpus is generated from, so
-byte agreement here is agreement with ourselves. That was true of every EVerest run and is why the
-counterparty table calls this one a sequencing oracle.
+**Correction, found while preparing the -20 run: this *was* an EXI result.** Every plan for this
+counterparty, this file included, said `EvseV2G` sits on cbV2G — the encoder our vector corpus is
+generated from — so that byte agreement with it would be agreement with ourselves. That is true of
+`everest-core` today. It is **not** true of the image all three runs used:
 
-**What it does prove is the whole shape of a DC charge**, which is precisely the class a corpus of
+```
+$ ldd /workspace/dist/libexec/everest/modules/EvseV2G/EvseV2G
+        libopenv2g.so.1 => /workspace/dist/lib/libopenv2g.so.1
+$ find /workspace -iname '*cbv2g*' -o -iname '*cbexigen*'
+        (nothing)
+```
+
+`ghcr.io/everest/everest-demo/manager:main` is **everest-core 2023.10.0, built 2023-12-05** — its
+`release.json` lists `OpenV2G 2023.3.0` and no libcbv2g, and the module links `libopenv2g.so.1` with
+245 ISO/DIN/appHand symbols in it. EVerest moved `EvseV2G` onto libcbv2g later; the `:main` tag was
+simply never rebuilt. It surfaced while looking for `Evse15118D20` for the -20 run — see
+[below](#the--20-run-this-was-meant-to-be).
+
+The tag moves, so the runs are pinned by digest instead:
+
+```
+ghcr.io/everest/everest-demo/manager@sha256:89799fb3302309c5337ab40c85af7e573d65ff2decda6315c2c1eb644c722681
+```
+
+That a moving tag silently decided what our results meant is the lesson worth more than the finding:
+**an image tag is not a version.** Every future run write-up records the digest.
+
+So the codec on the other end was **OpenV2G** — a hand-written C codec from the original ISO 15118
+reference work, a different codebase from chargebyte's cbexigen generator by different authors. Which
+means all 36 of our messages were decoded and acted on correctly by an EXI implementation that shares
+no lineage with our corpus, and all 36 of theirs were decoded by ours. Not a byte diff — we never
+encoded the same content with both and compared octets — but a working independent decoder in **both
+directions**, which is the same kind of evidence Josev's EXIficient gives and which nothing in the plan
+expected from this counterparty.
+
+The lineage column in the counterparty table is therefore right about `everest-core` HEAD and wrong
+about what we ran, in the direction that makes the runs worth more rather than less. Corrected there
+and in the harness README.
+
+**What it also proves is the whole shape of a DC charge**, which is precisely the class a corpus of
 single messages cannot hold: that our EVCC's phase order, its poll-until-`Finished` loops, its
 transitions out of CableCheck into PreCharge, its `PowerDelivery`/`CurrentDemand`/`PowerDelivery`
 bracket and its shutdown are the ones a real charger implementation expects — and that a station
@@ -116,6 +151,35 @@ agree on the route, where before there was one.
 36 exchanges, strictly alternating, a complete session from a foreign station. Promoting it into
 `Vectors/` is still a separate decision — a foreign station's bytes in the corpus changes what the
 corpus means — but for the first time there is a candidate worth the discussion.
+
+## The -20 run this was meant to be
+
+The next step after a complete -2 charge was the same against **`Evse15118D20`**, and it did not happen.
+The reason is the finding above, from the other end:
+
+```
+$ docker exec everest sh -c "ls /workspace/dist/libexec/everest/modules/ | grep -iE '15118|d20|mux'"
+(nothing)
+$ docker exec everest sh -c "ls /workspace/dist/etc/everest/ | grep d20"
+(nothing)
+```
+
+**everest-core 2023.10.0 has no `Evse15118D20`, no `IsoMux`, no `config-sil-dc-d20.yaml` and no
+`config-sil-mcs.yaml`.** All four are things this harness's README lists as targets, taken from
+`everest-core` HEAD — and none of them are in the image the harness has been running. The -20 charger
+did not exist yet when that image was built.
+
+Newer tags do exist (`2025.10.0-patches`, `2025.6.x-dt-esdp`, `2025.3.x-dt-esp`, …), so `:main` being
+three years stale is a property of that tag rather than of the project. Pulling `2025.10.0-patches`
+(4.28 GB compressed, amd64) failed twice on **disk**: it does not fit in colima's default 20 GB VM, even
+after freeing the old image — the extraction ran out of space partway through
+`libexec/everest/modules/OCPP201`, and the layer contents show why (it carries a build tree, `ccache`
+included). Growing the VM disk is the next move and it is a decision about somebody's laptop, not a
+technical unknown.
+
+So the -20 run is **not blocked by anything in the protocol stack**, ours or theirs. It needs a bigger
+disk and one more pull, and then the same recipe: `sil-car.sh` for the hardware, `V2G_INTEROP_PROTOCOL=20`,
+and `Evse15118D20`'s `tls_negotiation_strategy` set so a first run can be plaintext.
 
 ## The second-session crash, now beyond doubt
 
@@ -133,7 +197,14 @@ ending in `SessionStopRes`, followed by a proper `unplug`, a fresh plug-in, SLAC
 transaction opened. The second V2G session still dies at the same line. So the crash is about the
 second session, full stop — not about how the first one ended.
 
-For a charger in the field that is one car per process. It is the first thing to report to them.
+For a charger in the field that would be one car per process — and it never was one, for anybody
+running a current EVerest. **Not in the 2025.10 release:** the same two-session procedure against that
+image's `EvseV2G` produced two complete charges and no crash, so the defect belongs to everest-core
+2023.10.0 and nothing needs reporting.
+See [`../2026-08-03-everest-iso20-dc-full-charge/notes.md`](../2026-08-03-everest-iso20-dc-full-charge/notes.md).
+
+The discipline still stands, though, and so does the reason for it: a station that answers the first
+car and dies on the second is invisible to a one-session harness, whichever build it lives in.
 
 ## How to reproduce
 

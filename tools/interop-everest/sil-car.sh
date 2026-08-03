@@ -37,13 +37,22 @@
 #
 # Then wait for "Set PWM On" in their log before connecting the EVCC.
 
+# CP_AT_PLUGIN=1 holds the CP line at state C from the plug-in onwards instead of waiting for
+# Start_CableCheck. Required for Evse15118D20 (-20), which does not publish that variable at all, and
+# harmless for EvseV2G: the station closes the contactor when it wants to, the car is just ready early.
 CONNECTOR=${CONNECTOR_ID:-1}
 CHARGER=${CHARGER_MODULE:-iso15118_charger}
 BROKER=${MQTT_HOST:-localhost}
+CP_AT_PLUGIN=${CP_AT_PLUGIN:-0}
 CARSIM="everest_external/nodered/$CONNECTOR/carsim/cmd"
 
-PLUG_IN='sleep 2;iso_wait_slac_matched;iso_wait_pwm_is_running;sleep 600'
 STATE_C='draw_power_fixed 0,0;sleep 600'
+
+if [ "$CP_AT_PLUGIN" = 1 ]; then
+  PLUG_IN='sleep 2;iso_wait_slac_matched;iso_wait_pwm_is_running;draw_power_fixed 0,0;sleep 600'
+else
+  PLUG_IN='sleep 2;iso_wait_slac_matched;iso_wait_pwm_is_running;sleep 600'
+fi
 
 # Clear whatever the last run left behind, then plug in.
 mosquitto_pub -h "$BROKER" -t "$CARSIM/modify_charging_session" -m 'unplug'
@@ -51,10 +60,13 @@ sleep 4
 echo "$(date -u +%H:%M:%S) -> plug in: $PLUG_IN"
 mosquitto_pub -h "$BROKER" -t "$CARSIM/execute_charging_session" -m "$PLUG_IN"
 
+[ "$CP_AT_PLUGIN" = 1 ] && echo "$(date -u +%H:%M:%S)    (CP held at state C from the plug-in; no Start_CableCheck trigger needed)"
+
 mosquitto_sub -h "$BROKER" -t "everest/$CHARGER/charger/var" | while read -r line; do
   echo "$(date -u +%H:%M:%S) charger/var: $line"
   case "$line" in
     *Start_CableCheck*)
+      [ "$CP_AT_PLUGIN" = 1 ] && continue
       echo "$(date -u +%H:%M:%S) -> CP to state C: $STATE_C"
       mosquitto_pub -h "$BROKER" -t "$CARSIM/modify_charging_session" -m "$STATE_C"
       ;;

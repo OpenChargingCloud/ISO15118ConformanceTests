@@ -24,7 +24,7 @@ Only one half of it is new to us, and it is worth being precise about which:
 
 | Their module | What it is | New to us? |
 |---|---|---|
-| `modules/EVSE/EvseV2G` | DIN 70121 + ISO 15118-2 charger, C, **cbV2G** underneath | **yes** — a station nothing here has met |
+| `modules/EVSE/EvseV2G` | DIN 70121 + ISO 15118-2 charger, C. **cbV2G** underneath at HEAD — but **OpenV2G** in the demo image, see below | **yes** — a station nothing here has met |
 | `modules/EVSE/Evse15118D20` | the ISO 15118-**20** charger | **yes** |
 | `modules/EVSE/IsoMux` | multiplexes the two, so one charger answers both | yes |
 | `modules/EV/PyEvJosev` | the car — the **Josev**-derived Python stack | **no**: same implementation family as `docs/interop-runs/` already used |
@@ -33,10 +33,24 @@ So the **forward** direction (our EVCC → their charger) is where the findings 
 report's *station → EV* half is where to look. A green reverse run against `PyEvJosev` is much less news:
 it is Josev in a different wrapper.
 
-And because `EvseV2G` sits on **cbV2G** — the encoder our own vector corpus is generated from — a
-disagreement there is **not** an EXI disagreement by construction. It is sequencing, timing or semantics,
-which is exactly the class a corpus of single messages cannot see. (For independent bytes the
-counterparties are Josev and eVDriveFlow.)
+At `everest-core` HEAD, `EvseV2G` sits on **cbV2G** — the encoder our own vector corpus is generated
+from — so a disagreement there would **not** be an EXI disagreement by construction: it would be
+sequencing, timing or semantics, which is exactly the class a corpus of single messages cannot see.
+
+> ⚠️ **Check what the image you are running actually links, before repeating that sentence.**
+> `ghcr.io/everest/everest-demo/manager:main` is **everest-core 2023.10.0** (built 2023-12-05, per its
+> own `release.json`) and its `EvseV2G` links **`libopenv2g.so.1`** — there is no libcbv2g anywhere in
+> it. OpenV2G is a different codebase from chargebyte's cbexigen generator, so every run against that
+> image *was* an independent-codec result, in both directions. The `:main` tag has simply not been
+> rebuilt in years; newer tags (`2025.10.0-patches`, `2025.6.x-dt-esdp`, …) exist and are what to use
+> for anything -20, which 2023.10.0 does not have at all.
+>
+> ```bash
+> docker exec everest sh -c "ldd /workspace/dist/libexec/everest/modules/EvseV2G/EvseV2G | grep -i v2g"
+> docker exec everest sh -c "head -c 200 /workspace/dist/etc/everest/release.json"
+> ```
+
+(For independent bytes the other counterparties are Josev and eVDriveFlow.)
 
 ### Where the -20 SECC lives now
 
@@ -273,17 +287,31 @@ config file used, and every divergence.
 - **`device` on both sides.** Their modules bind an interface by name; ours takes it as `--interface`.
   All three must agree, and it must have an IPv6 link-local address.
 - **Link-local addressing with zones**, as everywhere: write `[fe80::…%iface]:port`.
-- **cbV2G lineage on their `EvseV2G`.** Do not reach for the vector corpus when something disagrees —
-  the bytes are generated from the same encoder. Look at order and timing.
+- **Check their `EvseV2G`'s EXI lineage per image, not per project.** At HEAD it is cbV2G, the encoder
+  our corpus comes from, so a byte disagreement would be with ourselves and the thing to read is order
+  and timing. In the `:main` demo image it is OpenV2G, and a byte disagreement is a real one. `ldd` the
+  module before deciding which of those two you are looking at.
 - **Their EV is Josev.** If a reverse run reproduces something already recorded under
   `docs/interop-runs/2026-07-2*`, that is not a new finding; check there first.
 
 Confirmed on first contact, and no longer questions:
 
-- **`EvseV2G` segfaults on the second V2G session in one process** (status 139, while handling
-  `PaymentServiceSelectionReq`), and EVerest's manager then terminates every module — one crash takes
-  the whole charger down. The first session is always fine, however short. **Restart the manager between
-  runs**, and see [`2026-08-02-everest-iso2-dc-mqtt-auth`](../../docs/interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md).
+- **`EvseV2G` in the `:main` demo image segfaults on the second V2G session in one process** (status 139,
+  while handling `PaymentServiceSelectionReq`), and EVerest's manager then terminates every module — one
+  crash takes the whole charger down. The first session is always fine, however short. **Not present in
+  2025.10**, where two consecutive sessions both complete; it is a property of everest-core 2023.10.0.
+  Restart the manager between runs on that image. See
+  [`2026-08-02-everest-iso2-dc-mqtt-auth`](../../docs/interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md).
+- **`Evse15118D20` has no TCP port until an SDP request arrives**, and a *unicast* one shuts its event
+  loop down (`Read on sdp server socket failed … Resource temporarily unavailable`) while leaving the
+  sockets bound, so the station looks alive and answers nothing. Use [`sdp-probe.sh`](sdp-probe.sh),
+  which multicasts.
+- **`Evse15118D20` refuses to start without a V2G certificate**, even with `ENFORCE_NO_TLS`. The image
+  ships CA roots and an empty `client/cso`; their own test PKI is at
+  `tests/ocpp_tests/test_sets/everest-aux/certs/` and its `SECC_LEAF` password matches the SIL configs,
+  so copying it into `etc/everest/certs/` is enough — no key generation.
+- **`supported_scheduled_mode` defaults to false** on `Evse15118D20` while `supported_dynamic_mode`
+  defaults to true. Our EVCC negotiates Scheduled unless told otherwise.
 - **`CableCheck` needs their hardware simulation.** `EvseManager` waits ~5 s for the board-support module
   to report the contactor closed and answers `FAILED` when it does not. In the SIL that contactor closes
   because the simulated car walks the CP line A→B→C; a V2G peer over TCP has no CP line, so a forward

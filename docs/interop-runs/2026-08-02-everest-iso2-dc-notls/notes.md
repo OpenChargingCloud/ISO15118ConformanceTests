@@ -28,9 +28,13 @@ ever giving up — because nothing in our -2 EVCC bounds an `EVSEProcessing = On
 why it is not checked in here.
 
 **Four message pairs of ISO 15118-2 exchanged cleanly with an implementation that runs on real
-chargers.** `EvseV2G` sits on cbV2G, the same encoder our vector corpus is generated from, so that is
-not an independent codec result — but the sequencing, the framing and the field semantics are, and they
-held.
+chargers.** The sequencing, the framing and the field semantics held.
+
+*Corrected 2026-08-02:* this paragraph originally said `EvseV2G` sits on cbV2G — the encoder our corpus
+is generated from — and that the exchange was therefore not an independent codec result. That is true
+of `everest-core` today and **not** of this image, which is everest-core 2023.10.0 and links
+`libopenv2g.so.1`. The codec on the other end was OpenV2G, which shares no lineage with our corpus. See
+[`../2026-08-02-everest-iso2-dc-full-charge/notes.md`](../2026-08-02-everest-iso2-dc-full-charge/notes.md).
 
 ## The finding — ours: no bound on an "Ongoing" poll
 

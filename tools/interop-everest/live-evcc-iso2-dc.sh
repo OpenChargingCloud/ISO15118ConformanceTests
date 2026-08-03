@@ -2,7 +2,8 @@
 #
 # OUR EVCC against EVerest's charger — the direction worth the setup.
 #
-# Their EvseV2G (DIN 70121 / ISO 15118-2, cbV2G underneath) or Evse15118D20 (-20) is the half of EVerest
+# Their EvseV2G (DIN 70121 / ISO 15118-2; cbV2G at HEAD, OpenV2G in the :main demo image — check with
+# ldd) or Evse15118D20 (-20) is the half of EVerest
 # nothing here has met. Their EV is Josev, which we already have recorded runs against, so the forward
 # direction is where the findings are.
 #
