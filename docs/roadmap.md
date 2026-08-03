@@ -6,8 +6,8 @@ Last updated: **2026-08-03**. Authoritative per-phase detail lives in
 
 ## Current status
 
-**All phases (0–5) are complete.** The solution builds cleanly and **all 1133 tests are green**
-(`dotnet test -c Release`, measured 2026-08-03: 911 in `Vanaheimr.V2G.Exi.Tests`, 214 in
+**All phases (0–5) are complete.** The solution builds cleanly and **all 1136 tests are green**
+(`dotnet test -c Release`, measured 2026-08-03: 911 in `Vanaheimr.V2G.Exi.Tests`, 217 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
 toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
 `[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
@@ -98,6 +98,19 @@ the field does not know which protocol is about to arrive
 show is a multiplexer *choosing*: our EVCC offers one protocol per session, so the case of a car that
 offers both with priorities has still never been exercised — see [What remains](#what-remains).
 
+**And AC found a third one in our own EVCC.** Running their AC configuration took seven messages to be
+told `FAILED_WrongEnergyTransferMode`: our -2 EVCC **hard-coded** the energy transfer mode it asked for
+(`AC_three_phase_core`) and never read the `SupportedEnergyTransferMode` list the station had sent five
+messages earlier. EVerest's AC SIL is single-phase and was right to refuse. Fixed the same day, with the
+offer named in the refusal when nothing matches; ISO 15118-2 AC then completes, run twice. **-20 AC gets
+nine phases and stops at a contactor their SIL expects its own EV module to close**
+([`2026-08-03-everest-ac`](interop-runs/2026-08-03-everest-ac/notes.md)).
+
+That is the third defect of the same shape in three days — **a value taken from our own assumption where
+the protocol supplies one** — after the unread response code and the unbounded poll. All three were
+invisible to every oracle here for the same reason: our own SECC supplies exactly what our own EVCC
+assumes.
+
 All four counterparties have now been run — see
 [Live counterparties beyond Josev](#live-counterparties-beyond-josev) for what each proved and what it
 could not.
@@ -170,9 +183,12 @@ a charge; the other two stop somewhere worth naming:
   (113 exchanges, 2026-08-03), each with the route matching our own recorded session message for
   message. Both walls fell to the same idea: their module graph is addressable over MQTT, so the
   session can be authorized and the simulated car plugged in without patching a line of EVerest.
-  Dynamic control mode, mutual TLS 1.3 and their `IsoMux` followed the same day. What is left is a
-  list rather than a blocker — **AC** in both protocols, **-2 over TLS 1.2** now that the trust
-  plumbing exists, and `config-sil-dc-isomux-tls.yaml`. **MCS stays parked:** `config-sil-mcs.yaml` is
+  Dynamic control mode, mutual TLS 1.3, their `IsoMux` and AC followed the same day. What is left is a
+  list rather than a blocker — **AC BPT** (their `supported_iso_ac_bpt: true`, and our -20 AC BPT arm
+  has never met a station), **-2 over TLS 1.2** now that the trust plumbing exists, and
+  `config-sil-dc-isomux-tls.yaml`. One real wall remains: **their -20 AC expects their own EV module to
+  close the contactor**, so getting past `PowerDelivery(Start)` there means driving their EV-side
+  hardware simulation and not only the car's CP line. **MCS stays parked:** `config-sil-mcs.yaml` is
   not in 2025.10 either.
   One thing is worth reporting to them, and it is not any single symptom: **an error anywhere on their
   accept path ends the whole event loop while leaving the sockets bound**, so the station keeps
@@ -192,7 +208,7 @@ car offers -20 at priority 1 and -2 at priority 2 and then runs whichever the st
 the case EVerest's `IsoMux` exists for, and the one thing the run against it could not exercise. Same
 shape as the Dynamic gap: a capability that reads as present because both halves exist separately.
 
-**⬜ Port Dynamic control mode to the Kotlin and Swift EVCCs.** C# gained it on 2026-08-03
+**⬜ Port Dynamic control mode and the energy-transfer-mode selection to the Kotlin and Swift EVCCs.** C# gained it on 2026-08-03
 ([the Dynamic EVCC](#-the-dynamic-evcc-2026-08-03)); the two ports stay Scheduled-only. Nothing fails
 there, because no trace-corpus entry is a Dynamic session — which is the same blind spot as everywhere
 else on this page, one layer along: the ports are validated against a corpus that cannot contain the
@@ -369,6 +385,29 @@ The rerun against the same station later that day, this time authorized, is the 
 evidence: seven authorization polls and 35 cable-check polls, both far inside the limit, and the guard
 armed through all of them. A deadline that never fires against a station that finishes is exactly what
 it should look like.
+
+#### ✅ Reading the energy transfer mode instead of assuming it (2026-08-03)
+
+The third hole of the same shape in three days, and the cheapest to describe: `Evcc2` **hard-coded** the
+energy transfer mode it requested — `AC_three_phase_core` for AC, `DC_extended` for DC — while
+`ServiceDiscoveryRes` had carried the station's `SupportedEnergyTransferMode` list five messages earlier.
+EVerest's AC SIL configuration is single-phase, advertises `AC_single_phase_core`, and answered our
+three-phase request with `FAILED_WrongEnergyTransferMode`. It was right.
+
+`SelectEnergyTransferMode` now picks from what was offered, best-first inside our own power mode, and a
+station offering nothing in that mode is refused with the offer named — *"the station offers no AC
+energy transfer mode (offered: DC_extended)"*, which is the difference between "it refused" and "it is a
+DC charger". `Evcc2EnergyTransferModeTests` pins all three cases: single-phase taken when it is all
+there is, three-phase still preferred when both are offered, and the named refusal.
+
+**Why no oracle here could have found it,** for the third time and for the same reason: our own SECC
+advertises exactly the one mode our own EVCC names. A constant and a list agree until they don't, and
+nothing made only of our own parts can tell them apart. Grouped with
+[response-code handling](#-response-code-handling-2026-08-01) and
+[the ongoing-poll deadline](#-the-ongoing-poll-deadline-2026-08-02), the three are one family: **a value
+taken from our own assumption where the protocol supplies one.** Worth a sweep for the fourth.
+
+Full account: [`2026-08-03-everest-ac`](interop-runs/2026-08-03-everest-ac/notes.md).
 
 #### ✅ The Dynamic EVCC (2026-08-03)
 
