@@ -1,10 +1,12 @@
 using System.Net;
+using System.Text;
 using System.Security.Cryptography;
 
 using NUnit.Framework;
 
 using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Metering;
+using Vanaheimr.V2G.Simulation.Ocpp;
 using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
@@ -71,7 +73,7 @@ public class SessionTraceCorpusTests
         string                                            Mode,
         string                                            Note,
         Func<Stream, TimeProvider, CancellationToken, Task> RunEvcc,
-        Func<Stream, TimeProvider, CancellationToken, Task> RunSecc,
+        Func<Stream, TimeProvider, Func<string, OcppTransactionRecorder>?, CancellationToken, Task> RunSecc,
         bool                                              Signed  = false,
         bool                                              Metered = false);
 
@@ -130,12 +132,13 @@ public class SessionTraceCorpusTests
                 await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
                                 LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
                 await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         new("iso2-dc-eim", "iso15118-2", "dc",
@@ -147,12 +150,13 @@ public class SessionTraceCorpusTests
                 await new Evcc2(stream, PowerMode.Dc, clock, new ImmediateAsyncDelay(),
                                 LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Dc);
                 await new Secc2(PowerMode.Dc, SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         new("iso20-ac-eim", "iso15118-20", "ac",
@@ -165,12 +169,13 @@ public class SessionTraceCorpusTests
                 await new Evcc20Ac(stream, clock, new ImmediateAsyncDelay(),
                                    LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
                 await new Secc20Ac(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         new("iso20-dc-eim", "iso15118-20", "dc",
@@ -182,12 +187,13 @@ public class SessionTraceCorpusTests
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
                                    LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 await new Secc20Dc(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         // ── Dynamic control mode ──────────────────────────────────────────
@@ -210,12 +216,13 @@ public class SessionTraceCorpusTests
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
                                    LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true }.RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 await new Secc20Dc(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         new("iso20-ac-eim-dynamic", "iso15118-20", "ac",
@@ -227,12 +234,13 @@ public class SessionTraceCorpusTests
                 await new Evcc20Ac(stream, clock, new ImmediateAsyncDelay(),
                                    LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true }.RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
                 await new Secc20Ac(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         // ── the multi-protocol offer ──────────────────────────────────────
@@ -257,12 +265,13 @@ public class SessionTraceCorpusTests
                 await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
                                 LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
                 await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         new("iso20-dc-eim-sapboth", "iso15118-20", "dc",
@@ -278,12 +287,13 @@ public class SessionTraceCorpusTests
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
                                    LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 await new Secc20Dc(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             }),
 
         // ── metered sessions ──────────────────────────────────────────────
@@ -313,13 +323,14 @@ public class SessionTraceCorpusTests
                 await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
                                 LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
                 await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
                             FixedGenChallenge = RecordedGenChallenge,
-                            InstalledMeter    = Meter(clock) }.RunAsync(stream, ct);
+                            InstalledMeter    = Meter(clock),
+                            Backend           = backend }.RunAsync(stream, ct);
             },
             Metered: true),
 
@@ -333,13 +344,14 @@ public class SessionTraceCorpusTests
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
                                    LoopbackTimeouts.PerMessage).RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 await new Secc20Dc(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
                             FixedGenChallenge = RecordedGenChallenge,
-                            InstalledMeter    = Meter(clock) }.RunAsync(stream, ct);
+                            InstalledMeter    = Meter(clock),
+                            Backend           = backend }.RunAsync(stream, ct);
             },
             Metered: true),
 
@@ -365,12 +377,13 @@ public class SessionTraceCorpusTests
                                                        [PncMaterial.Certificate()], contractKey),
                           }.RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
                 await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             },
             Signed: true),
 
@@ -387,12 +400,13 @@ public class SessionTraceCorpusTests
                                                        [PncMaterial.Certificate()], contractKey),
                           }.RunAsync(ct);
             },
-            async (stream, clock, ct) =>
+            async (stream, clock, backend, ct) =>
             {
                 await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 await new Secc20Dc(SeccSequenceTimeout, clock)
                           { FixedSessionId    = RecordedSessionId,
-                            FixedGenChallenge = RecordedGenChallenge }.RunAsync(stream, ct);
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
             },
             Signed: true),
     ];
@@ -444,20 +458,71 @@ public class SessionTraceCorpusTests
     }
 
 
-    [Test, Explicit("Regenerates Vectors/Session.*.trace.json — run deliberately")]
+    [Test, Explicit("Regenerates Vectors/Session.*.trace.json and Session.ocpp-transactions.json")]
     public async Task RegenerateTheCorpus()
     {
+
+        var transactions = new SortedDictionary<string, OcppTransactionRecord>(StringComparer.Ordinal);
+
         foreach (var scenario in Scenarios)
         {
-            var trace = await RecordAsync(scenario);
-            var path  = SourceTracePath(scenario.Name);
+            var (trace, ocpp) = await RecordWithBackendAsync(scenario);
+            var path = SourceTracePath(scenario.Name);
             trace.WriteTo(path);
-            TestContext.Out.WriteLine($"{scenario.Name}: {trace.Exchanges.Count} exchanges → {path}");
+            transactions[scenario.Name] = ocpp;
+            TestContext.Out.WriteLine($"{scenario.Name}: {trace.Exchanges.Count} exchanges, " +
+                                      $"{ocpp.MeterValues.Count} meter value(s) → {path}");
         }
+
+        var ocppPath = Path.Combine(Path.GetDirectoryName(SourceTracePath("x"))!, OcppFileName);
+        File.WriteAllText(ocppPath, OcppCorpusJson(transactions), new UTF8Encoding(false));
+        TestContext.Out.WriteLine($"-> {ocppPath}");
+
     }
 
 
-    private static async Task<SessionTrace> RecordAsync(Scenario scenario)
+    /// <summary>Every session's transaction record in one file, keyed by session name.</summary>
+    /// <remarks>
+    /// One file rather than a companion per trace, for the reason <c>Bridge.events.json</c> is one
+    /// file: these are small, they are always read together, and a reviewer judging a regeneration
+    /// wants one diff rather than twelve.
+    /// </remarks>
+    private const string OcppFileName = "Session.ocpp-transactions.json";
+
+    private static string OcppCorpusJson(IReadOnlyDictionary<string, OcppTransactionRecord> transactions)
+    {
+        var body = string.Join(",\n", transactions.Select(pair =>
+            $"    \"{pair.Key}\": " + Indent(pair.Value.ToJson(), "    ")));
+
+        return "{\n" +
+               "  \"schemaVersion\": 1,\n" +
+               "  \"generator\": \"Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus\",\n" +
+               "  \"note\": \"What each recorded station would have reported to its backend. NOT an " +
+               "independent third measurement: it is the same station as the MeterInfo on the wire, so " +
+               "the energies cannot disagree in a way that means anything. What it does support is the " +
+               "one question a phone can settle without a CSMS — whether the station told the backend " +
+               "the same signed values it showed the car. See Ocpp/OcppTransactionRecord.cs.\",\n" +
+               "  \"transactions\": {\n" + body + "\n  }\n}\n";
+    }
+
+    private static string Indent(string json, string by) =>
+        string.Join("\n", json.Split('\n').Select((line, i) => i == 0 ? line : by + line));
+
+
+    private static async Task<SessionTrace> RecordAsync(Scenario scenario) =>
+        (await RecordWithBackendAsync(scenario)).Trace;
+
+
+    /// <summary>
+    /// Records one session and keeps what the station would have told its backend.
+    /// </summary>
+    /// <remarks>
+    /// The recorder is handed <em>to</em> the SECC rather than derived from the frames afterwards,
+    /// and that is the whole point: a record reconstructed from the wire could never contain a value
+    /// the car did not see, which is exactly the case worth being able to look at.
+    /// </remarks>
+    private static async Task<(SessionTrace Trace, OcppTransactionRecord Ocpp)>
+        RecordWithBackendAsync(Scenario scenario)
     {
 
         using var cts      = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -465,17 +530,21 @@ public class SessionTraceCorpusTests
 
         var clock = new ManualTimeProvider(RecordedAt);
 
+        OcppTransactionRecorder? recorder = null;
+
         var seccTask = Task.Run(async () =>
         {
             using var seccStream = await listener.AcceptAsync(cts.Token);
-            await scenario.RunSecc(seccStream, clock, cts.Token);
+            await scenario.RunSecc(seccStream, clock, sessionId =>
+                recorder = new OcppTransactionRecorder($"TX-{scenario.Name}", "DE*ABC*E1", sessionId),
+                cts.Token);
         }, cts.Token);
 
         using var socket = await TcpV2GClient.ConnectAsync(
                                      IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
 
-        var recorder = new RecordingStream(socket);
-        await Task.WhenAll(scenario.RunEvcc(recorder, clock, cts.Token), seccTask);
+        var recordingStream = new RecordingStream(socket);
+        await Task.WhenAll(scenario.RunEvcc(recordingStream, clock, cts.Token), seccTask);
 
         TraceSigningKey? signingKey = null;
         if (scenario.Signed)
@@ -491,8 +560,12 @@ public class SessionTraceCorpusTests
             meterKey = PublicHalfOf(key);
         }
 
-        return SessionTrace.Build(scenario.Name, scenario.Protocol, scenario.Mode, scenario.Note,
-                                  recorder.Sent, recorder.Received, signingKey, meterKey);
+        var trace = SessionTrace.Build(scenario.Name, scenario.Protocol, scenario.Mode, scenario.Note,
+                                       recordingStream.Sent, recordingStream.Received, signingKey, meterKey);
+
+        return (trace,
+                recorder?.Build()
+                    ?? new OcppTransactionRecord($"TX-{scenario.Name}", "DE*ABC*E1", "", []));
 
     }
 
@@ -830,6 +903,133 @@ public class SessionTraceCorpusTests
                              "signature and a meter signature. The substitution cannot handle that " +
                              "yet: the meter's bytes are inside the fragment the header signature " +
                              "digests, so replacing them invalidates the digest.");
+
+    }
+
+
+    /// <summary>
+    /// The station told its backend the same signed values it showed the car.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>The one question the OCPP record can settle without a CSMS.</b> Its energies cannot
+    /// disagree with the wire's in a way that means anything — same station, same counter, so
+    /// agreement there is arithmetic and not evidence. But the <em>signature</em> is a different
+    /// matter: a station quietly reporting one figure for billing and showing another to the driver
+    /// would produce two different signed values, and that is visible from the two records alone,
+    /// with no key, no backend, and no trust in either party.
+    /// </para>
+    /// <para>
+    /// Checked inside one recording rather than against the checked-in file, because ECDSA is
+    /// randomised: the point is not which 64 bytes they are but that both records carry the
+    /// <em>same</em> 64 bytes. A station that signed its reading twice — once for the wire, once for
+    /// the backend — would produce two perfectly valid signatures and fail here, which is exactly
+    /// what should happen.
+    /// </para>
+    /// </remarks>
+    [Test]
+    public async Task TheBackendRecordCarriesTheSameSignedValuesTheCarSaw(
+        [Values("iso2-ac-eim-meter", "iso20-dc-eim-meter")] string name)
+    {
+
+        var (trace, ocpp) = await RecordWithBackendAsync(Scenarios.Single(s => s.Name == name));
+
+        var onTheWire = trace.Exchanges
+                             .Where(e => e.Response.CarriesMeterSignature)
+                             .Select(e => e.Response.MeterSignature!)
+                             .ToList();
+
+        var reported = ocpp.MeterValues
+                           .SelectMany(v => v.SampledValue)
+                           .Select(v => v.SignedMeterValue?.SignedMeterData)
+                           .ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(onTheWire, Is.Not.Empty, "the metered session put no signature on the wire");
+            Assert.That(reported, Is.EqualTo(onTheWire),
+                        "the station reported different signed values to its backend than it showed "
+                      + "the car — which is the whole reason to keep both records");
+
+            Assert.That(ocpp.V2GSessionId,
+                        Is.EqualTo(Convert.ToHexString(RecordedSessionId).ToLowerInvariant()),
+                        "the transaction is not bound to the session, so nothing may be compared "
+                      + "against it");
+
+            Assert.That(ocpp.MeterValues[^1].SampledValue[0].Context, Is.EqualTo("Transaction.End"),
+                        "the billed reading has to be identifiable as the final one");
+        });
+
+    }
+
+
+    /// <summary>
+    /// A station reports to its backend even when it shows the car nothing.
+    /// </summary>
+    /// <remarks>
+    /// The ordinary case in the field and the one worth being able to look at: an EIM session at a
+    /// station with no signing meter puts <c>MeterInfo</c> on the wire only when it wants a receipt,
+    /// which for EIM is never — while the backend gets the full account and the driver is billed on
+    /// it. A record reconstructed from the wire could not contain this, which is why the recorder is
+    /// handed to the station rather than derived afterwards.
+    /// </remarks>
+    [Test]
+    public async Task TheBackendIsToldWhatTheCarIsNot()
+    {
+
+        var (trace, ocpp) = await RecordWithBackendAsync(Scenarios.Single(s => s.Name == "iso2-ac-eim"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(trace.Exchanges.Any(e => e.Response.CarriesMeterSignature), Is.False,
+                        "an EIM session at an unmetered station shows the car no signed reading");
+            Assert.That(ocpp.MeterValues, Is.Not.Empty,
+                        "…and the backend was told nothing either, so the record proves nothing");
+            Assert.That(ocpp.MeterValues[^1].SampledValue[0].Value, Is.EqualTo("549"),
+                        "the backend's final figure is the one the driver would be billed on");
+        });
+
+    }
+
+
+    /// <summary>The checked-in transaction corpus still describes what these sessions produce.</summary>
+    /// <remarks>
+    /// Energies, contexts and the binding only. The signed values are randomised per recording and
+    /// are checked by <see cref="TheBackendRecordCarriesTheSameSignedValuesTheCarSaw"/> instead —
+    /// comparing them here would fail on every run for the one reason that is not a fault.
+    /// </remarks>
+    [Test]
+    public async Task TheTransactionCorpusIsUnchanged([ValueSource(nameof(ScenarioNames))] string name)
+    {
+
+        var path = Path.Combine(TestContext.CurrentContext.TestDirectory, "Vectors", OcppFileName);
+        Assert.That(File.Exists(path), Is.True, $"the transaction corpus is missing at {path}");
+
+        var onDisk = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path))
+                                                  .RootElement.GetProperty("transactions")
+                                                  .GetProperty(name);
+
+        var (_, fresh) = await RecordWithBackendAsync(Scenarios.Single(s => s.Name == name));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(onDisk.GetProperty("v2gSessionId").GetString(), Is.EqualTo(fresh.V2GSessionId));
+            Assert.That(onDisk.GetProperty("source").GetString(), Is.EqualTo("station-recording"),
+                        "a corpus that claimed to come from a CSMS would overstate every verdict "
+                      + "drawn from it");
+
+            var values = onDisk.GetProperty("meterValues").EnumerateArray().ToList();
+            Assert.That(values, Has.Count.EqualTo(fresh.MeterValues.Count), name);
+
+            for (var i = 0; i < values.Count; i++)
+            {
+                var sampled = values[i].GetProperty("sampledValue")[0];
+                Assert.That(sampled.GetProperty("value").GetString(),
+                            Is.EqualTo(fresh.MeterValues[i].SampledValue[0].Value), $"{name} value {i}");
+                Assert.That(sampled.GetProperty("context").GetString(),
+                            Is.EqualTo(fresh.MeterValues[i].SampledValue[0].Context), $"{name} context {i}");
+            }
+        });
 
     }
 

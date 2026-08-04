@@ -5,6 +5,7 @@ using Vanaheimr.V2G.Iso15118_2;
 using Vanaheimr.V2G.Iso15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Metering;
+using Vanaheimr.V2G.Simulation.Ocpp;
 using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Tp;
 
@@ -233,6 +234,10 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             }
 
             _sessionId = FixedSessionId ?? RandomNumberGenerator.GetBytes(8);
+            // A transaction begins when the session does, and is bound to it from the first byte:
+            // an OCPP record that cannot be tied to one ISO 15118 session is a record of some
+            // transaction or other, and any agreement found against it is luck.
+            _backend = Backend?.Invoke(Convert.ToHexString(_sessionId).ToLowerInvariant());
             return new SessionSetupResType(ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1", 1_600_000_000L);
         }
 
@@ -394,7 +399,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         {
             // The station's own view of this iteration: what it is presenting at the outlet. The same
             // 400 V x 120 A it reports below, so the number it signs is the number it announces.
-            Deliver(400d * 120d);
+            var measured = Deliver(400d * 120d);
 
             bool receipt = DemandReceipt();
             // A station with a real meter reports it every cycle, not only when it wants a receipt
@@ -406,12 +411,12 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
                 EVSECurrentLimitAchieved: false, EVSEVoltageLimitAchieved: false, EVSEPowerLimitAchieved: false,
                 EVSEMaximumVoltageLimit: null, EVSEMaximumCurrentLimit: null, EVSEMaximumPowerLimit: null,
                 EVSEID: "DE*ABC*E1", SAScheduleTupleID: _chosenTupleId,
-                MeterInfo: reading ? Meter() : null, ReceiptRequired: receipt ? true : null);
+                MeterInfo: reading ? measured : null, ReceiptRequired: receipt ? true : null);
         }
 
         private BodyBaseType ChargingStatus()
         {
-            Deliver(_acCommittedPowerW);   // see CurrentDemand(); AC's only power is the accepted profile
+            var measured = Deliver(_acCommittedPowerW);   // see CurrentDemand(); AC's only power is the profile
 
             // A Contract session gets ReceiptRequired + the MeterInfo the EV echoes back inside its
             // signed MeteringReceiptReq (a Josev EVCC only honours this over TLS).
@@ -419,7 +424,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
             bool reading = receipt || InstalledMeter is not null;   // see CurrentDemand()
             return new ChargingStatusResType(ResponseCode.OK, "DE*ABC*E1", SAScheduleTupleID: _chosenTupleId,
                 EVSEMaxCurrent: null,
-                MeterInfo: reading ? Meter() : null, ReceiptRequired: receipt ? true : null,
+                MeterInfo: reading ? measured : null, ReceiptRequired: receipt ? true : null,
                 AcEvseStatus(Notification()));
         }
 
@@ -542,12 +547,51 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
         /// a wrong unit.
         /// </para>
         /// </remarks>
-        private void Deliver(double watts)
+        private MeterInfoType Deliver(double watts)
         {
             var wattHours = ChargeLoopSample.WattHoursRounded(watts);
             _deliveredWh += wattHours;
             InstalledMeter?.Add(wattHours);
+
+            // Read and signed exactly once per iteration, and the one value is what both the wire
+            // and the backend record get. Signing twice would produce two different signatures over
+            // one reading — legitimate ECDSA, and it would quietly destroy the only comparison the
+            // OCPP record makes possible (see OcppTransactionRecord).
+            var measured = Meter();
+
+            _backend?.Sample(measured.MeterReading ?? 0, measured.TMeter ?? 0,
+                             measured.SigMeterReading is { } signature
+                                 ? Convert.ToHexString(signature).ToLowerInvariant() : null,
+                             MeterPublicKeyHex());
+
+            return measured;
         }
+
+        /// <summary>The installed meter's public key as hex <c>X‖Y</c>, for the backend record.</summary>
+        private string? MeterPublicKeyHex()
+        {
+            if (InstalledMeter is null) return null;
+
+            using var key = InstalledMeter.PublicKey;
+            var q = key.ExportParameters(includePrivateParameters: false).Q;
+            return (Convert.ToHexString(q.X!) + Convert.ToHexString(q.Y!)).ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// Where this station reports to, when it reports anywhere.
+        /// </summary>
+        /// <remarks>
+        /// A factory rather than a recorder, because the transaction cannot exist before the session
+        /// id it is bound to. Null by default: a station with no backend behaves exactly as it did.
+        /// <para>
+        /// It books every iteration, including the ones whose reading never reaches the car — an EIM
+        /// session at a station with no signing meter shows the driver nothing and bills the backend
+        /// all the same, and a record that only kept what was displayed would hide precisely that.
+        /// </para>
+        /// </remarks>
+        public Func<string, OcppTransactionRecorder>? Backend { get; init; }
+
+        private OcppTransactionRecorder? _backend;
 
         /// <summary>What this session has delivered, counted whether or not a meter is fitted.</summary>
         /// <remarks>

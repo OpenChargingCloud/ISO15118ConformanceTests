@@ -116,10 +116,44 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
         /// comparison between them shows a difference that means nothing. Each set calls this from
         /// its own charge-loop response, where it knows the power it is announcing.
         /// </remarks>
-        protected void Deliver(double watts) =>
-            InstalledMeter?.Add(Metering.ChargeLoopSample.WattHoursRounded(watts));
+        protected void Deliver(double watts)
+        {
+            var wattHours = Metering.ChargeLoopSample.WattHoursRounded(watts);
+            _deliveredWh += wattHours;
+            InstalledMeter?.Add(wattHours);
 
-        protected (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? MeterReading()
+            // Read and signed exactly once per iteration, so the wire and the backend record carry
+            // one signature over one reading rather than two legitimate signatures over the same
+            // number — which would quietly destroy the comparison the record exists for.
+            _lastReading = MeasureNow();
+
+            _backend?.Sample(_lastReading?.Wh ?? _deliveredWh,
+                             (long) (_lastReading?.Timestamp ?? (ulong) clock.GetUtcNow().ToUnixTimeSeconds()),
+                             _lastReading is { } r ? Convert.ToHexString(r.Signature).ToLowerInvariant() : null,
+                             MeterPublicKeyHex());
+        }
+
+        /// <summary>Where this station reports to, when it reports anywhere. See <c>Secc2.Backend</c>.</summary>
+        public Func<string, Ocpp.OcppTransactionRecorder>? Backend { get; init; }
+
+        private Ocpp.OcppTransactionRecorder? _backend;
+        private ulong _deliveredWh;
+        private (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? _lastReading;
+
+        private string? MeterPublicKeyHex()
+        {
+            if (InstalledMeter is null) return null;
+
+            using var key = InstalledMeter.PublicKey;
+            var q = key.ExportParameters(includePrivateParameters: false).Q;
+            return (Convert.ToHexString(q.X!) + Convert.ToHexString(q.Y!)).ToLowerInvariant();
+        }
+
+        /// <summary>The reading this iteration took, or null without a meter. Built by
+        /// <see cref="Deliver"/>, never here, so one iteration yields exactly one signature.</summary>
+        protected (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? MeterReading() => _lastReading;
+
+        private (string Id, ulong Wh, ulong Timestamp, byte[] Signature)? MeasureNow()
         {
             if (InstalledMeter is null)
                 return null;
@@ -369,6 +403,9 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
             }
 
             SessionCtx.SessionId = FixedSessionId ?? System.Security.Cryptography.RandomNumberGenerator.GetBytes(8);
+            // A transaction begins when the session does, bound to it from the first byte — see
+            // Secc2 for why an unbound OCPP record is worth nothing to compare against.
+            _backend = Backend?.Invoke(Convert.ToHexString(SessionCtx.SessionId).ToLowerInvariant());
             return new SessionSetupRes(SessionCtx.ToCommonHeader(), ResponseCode.OK_NewSessionEstablished, "DE*ABC*E1");
         }
 

@@ -1,0 +1,691 @@
+{
+  "schemaVersion": 1,
+  "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "note": "What each recorded station would have reported to its backend. NOT an independent third measurement: it is the same station as the MeterInfo on the wire, so the energies cannot disagree in a way that means anything. What it does support is the one question a phone can settle without a CSMS — whether the station told the backend the same signed values it showed the car. See Ocpp/OcppTransactionRecord.cs.",
+  "transactions": {
+    "iso2-ac-eim": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-ac-eim",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "183",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "366",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "549",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso2-ac-eim-meter": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-ac-eim-meter",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "183",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet",
+              "signedMeterValue": {
+                "signedMeterData": "3ac5b4f0c78d010993da02aef1fb6df124c411f7c5ab61d9ff3a4031320dcb6f1f0379c4a3ca9fc4e862c2d71280f6f2de8340654430cb4a8af72a6b3f061b26",
+                "signingMethod": "ECDSA-secp256r1-SHA256",
+                "encodingMethod": "V2G-METER-1",
+                "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+              }
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "366",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet",
+              "signedMeterValue": {
+                "signedMeterData": "a0f8d519e9ac1c313215e7420609495c63616191e6f1b6df2abdebfd9827a66e4e76f3eb7ac0ba0c2b0980eaf19b36bc2d3477a411f6500ce0b3d0a791553b9a",
+                "signingMethod": "ECDSA-secp256r1-SHA256",
+                "encodingMethod": "V2G-METER-1",
+                "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+              }
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "549",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet",
+              "signedMeterValue": {
+                "signedMeterData": "3eb06c04b57296a4df3bf4c50685c7612ea9d69d6ff21fd72f2f652c0efb3e071269d21c667241b437c3e001319e93863040d83f4347d58c8d6f64020c469962",
+                "signingMethod": "ECDSA-secp256r1-SHA256",
+                "encodingMethod": "V2G-METER-1",
+                "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "iso2-ac-eim-sapboth": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-ac-eim-sapboth",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "183",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "366",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "549",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso2-ac-pnc": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-ac-pnc",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "183",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "366",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "549",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso2-dc-eim": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-dc-eim",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-ac-eim": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-ac-eim",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "367",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "734",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1101",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-ac-eim-dynamic": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-ac-eim-dynamic",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "367",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "734",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1101",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-dc-eim": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-dc-eim",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-dc-eim-dynamic": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-dc-eim-dynamic",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-dc-eim-meter": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-dc-eim-meter",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet",
+              "signedMeterValue": {
+                "signedMeterData": "3aa584e4475b7e5b50407cec48c56d3ef5d663dd12ba569356793a65e497e3e1dd0034e3b045bd5151b32765da1219883f0a651365ee988979a16681e3e0aae1",
+                "signingMethod": "ECDSA-secp256r1-SHA256",
+                "encodingMethod": "V2G-METER-1",
+                "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+              }
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet",
+              "signedMeterValue": {
+                "signedMeterData": "ae843341539ef8f759648b400035c3eced5dea039278d1bd54384490b748e5d78db8c5f2f585be5cc321157e0f67e8a120c30ba429b5d2ad02e6df22b0b90051",
+                "signingMethod": "ECDSA-secp256r1-SHA256",
+                "encodingMethod": "V2G-METER-1",
+                "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+              }
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet",
+              "signedMeterValue": {
+                "signedMeterData": "b33e0fde6b450e1fdcd5e25a88a6f96501dba35461a1e5b63edd9faac5cd8dcea9010ce70ecc1463b0cadaaff04e1556cfa3e4385e4f1904c1bccb8b261c965d",
+                "signingMethod": "ECDSA-secp256r1-SHA256",
+                "encodingMethod": "V2G-METER-1",
+                "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-dc-eim-sapboth": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-dc-eim-sapboth",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso20-dc-pnc": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso20-dc-pnc",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
