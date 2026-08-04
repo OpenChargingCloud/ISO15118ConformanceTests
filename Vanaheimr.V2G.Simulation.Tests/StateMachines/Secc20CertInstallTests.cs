@@ -1,12 +1,29 @@
+/*
+ * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 using System.Security.Cryptography;
 
 using NUnit.Framework;
 
-using Vanaheimr.V2G.Iso15118_20.CommonMessages;
-using Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
+using cloud.charging.open.protocols.ISO15118_20.CommonMessages;
+using cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated;
 using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
-using Vanaheimr.V2G.Tp;
+using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
 namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
 {
@@ -14,7 +31,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
     /// The SECC's live contract-provisioning path, exercised with the REAL Josev
     /// <c>CertificateInstallationReq</c> (byte-exact reproduction of the 2026-07-22 live probe frame — a
     /// Josev EVCC's signed OEM provisioning chain; see <c>JosevCertificateInstallationReqTests</c> in
-    /// Vanaheimr.V2G.Exi.Tests for the frame's provenance and byte-exactness proofs). The SECC must verify
+    /// cloud.charging.open.protocols.ISO15118.EXI.Tests for the frame's provenance and byte-exactness proofs). The SECC must verify
     /// Josev's OEM signature (standalone-xmldsig grammar, ecdsa-sha256) and answer with a schema-valid
     /// signed CertificateInstallationRes — staying in the Authorization phase so the AuthorizationReq can
     /// follow. Josev's OEM cert is P-256, so the issued key cannot be encrypted *for* it

@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -313,8 +330,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
             {
                 var evcc = new Evcc2(stream, args.Mode, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2))
                 {
-                    StopMode = pause ? Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Pause
-                                     : Vanaheimr.V2G.Iso15118_2.Generated.ChargingSession.Terminate,
+                    StopMode = pause ? cloud.charging.open.protocols.ISO15118_2.Generated.ChargingSession.Pause
+                                     : cloud.charging.open.protocols.ISO15118_2.Generated.ChargingSession.Terminate,
                     ResumeSessionId = resumeId,
                     Renegotiate = args.Renegotiate,
                 };
@@ -338,8 +355,8 @@ namespace Vanaheimr.V2G.Simulation.Cli
                 Evcc20Base evcc = args.Mode == PowerMode.Dc
                     ? new Evcc20Dc(stream, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2))
                     : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), TimeSpan.FromSeconds(2));
-                evcc.StopMode = pause ? Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Pause
-                                      : Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Terminate;
+                evcc.StopMode = pause ? cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ChargingSession.Pause
+                                      : cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ChargingSession.Terminate;
                 evcc.ResumeSessionId = resumeId;
                 if (args.ContractCertPath is not null)
                     evcc.Pnc = LoadContractCredentials(args.ContractCertPath, args.ContractCertPass);

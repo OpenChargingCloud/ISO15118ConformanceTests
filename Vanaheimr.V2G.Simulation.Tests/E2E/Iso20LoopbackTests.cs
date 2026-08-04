@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 using System.Net;
 
 using NUnit.Framework;
@@ -13,7 +30,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
     /// <summary>
     /// Real TCP, loopback-only, end-to-end for ISO 15118-20: SAP negotiates -20, then a full DC or AC
     /// happy path runs to SessionStop across the three interleaved message sets (CommonMessages/DC/AC),
-    /// each auto-detected per frame by <see cref="Vanaheimr.V2G.Tp.V2GTPDispatcher"/>.
+    /// each auto-detected per frame by <see cref="cloud.charging.open.protocols.ISO15118.EXI.Dispatch.V2GTPDispatcher"/>.
     /// </summary>
     [TestFixture]
     public class Iso20LoopbackTests
@@ -236,7 +253,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
                 await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
                 var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                 {
-                    StopMode = Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ChargingSession.Pause,
+                    StopMode = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ChargingSession.Pause,
                 };
                 await evcc.RunAsync(cts.Token);
                 sessionId = evcc.SessionId;
@@ -266,7 +283,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.E2E
             Assert.Multiple(() =>
             {
                 Assert.That(evcc2.SessionSetupCode,
-                    Is.EqualTo(Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ResponseCode.OK_OldSessionJoined));
+                    Is.EqualTo(cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ResponseCode.OK_OldSessionJoined));
                 Assert.That(evcc2.SessionId, Is.EqualTo(sessionId));
                 Assert.That(secc2.IsDone, Is.True);
                 Assert.That(secc2.Paused, Is.False);

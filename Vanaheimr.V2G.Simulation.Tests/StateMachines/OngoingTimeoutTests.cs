@@ -1,8 +1,25 @@
+/*
+ * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 using System.Net;
 
 using NUnit.Framework;
 
-using Vanaheimr.V2G.Iso15118_2.Generated;
+using cloud.charging.open.protocols.ISO15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.Session;
@@ -12,7 +29,7 @@ using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Tests.Timing;
 using Vanaheimr.V2G.Simulation.Timing;
 using Vanaheimr.V2G.Simulation.Transport;
-using Vanaheimr.V2G.Tp;
+using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
 namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
 {
@@ -139,12 +156,12 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
                 // Answered before the base state machine sees it, for the same reason as the -2 station:
                 // its sequence guard rejects a second AuthorizationReq, because a station that authorizes
                 // normally has moved on by then.
-                if (request is Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.AuthorizationReq)
+                if (request is cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.AuthorizationReq)
                     return (MessageSet.Iso20CommonMessages,
-                            new Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.AuthorizationRes(
+                            new cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.AuthorizationRes(
                                 SessionCtx.ToCommonHeader(),
-                                Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.ResponseCode.OK,
-                                Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated.Processing.Ongoing));
+                                cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ResponseCode.OK,
+                                cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.Processing.Ongoing));
 
                 return base.Handle(set, request);
             }

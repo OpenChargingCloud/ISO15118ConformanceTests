@@ -1,9 +1,26 @@
+/*
+ * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
+ * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 using System.Net;
 
 using NUnit.Framework;
 
-using Vanaheimr.V2G.AppProtocol;
-using Vanaheimr.V2G.Iso15118_2.Generated;
+using cloud.charging.open.protocols.ISO15118.AppProtocol;
+using cloud.charging.open.protocols.ISO15118_2.Generated;
 using Vanaheimr.V2G.Simulation.Framing;
 using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.Session;
@@ -12,9 +29,9 @@ using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Tests.Timing;
 using Vanaheimr.V2G.Simulation.Transport;
-using Vanaheimr.V2G.Tp;
+using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
-using D20 = Vanaheimr.V2G.Iso15118_20.CommonMessages.Generated;
+using D20 = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated;
 
 namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
 {
@@ -216,7 +233,7 @@ namespace Vanaheimr.V2G.Simulation.Tests.StateMachines
                 var (_, _) = await V2GTPStream.ReadRawFrameAsync(seccStream, cts.Token);
 
                 var buffer = new byte[16];
-                var res    = new SupportedAppProtocolRes(Vanaheimr.V2G.AppProtocol.ResponseCode.OK_SuccessfulNegotiation,
+                var res    = new SupportedAppProtocolRes(cloud.charging.open.protocols.ISO15118.AppProtocol.ResponseCode.OK_SuccessfulNegotiation,
                                                              SchemaID: 7);
                 if (!SupportedAppProtocolCodec.TryEncodeResponse(res, buffer, out int n))
                     throw new InvalidOperationException("encode failed");
