@@ -57,7 +57,7 @@ No cycle appears in either direction.
 | `WWCP_ISO15118_20.{WPT,ACDP}` | 0 | schema-only; everything is generated |
 | `WWCP_ISO15118_XMLDSig` | 0 | schema-only |
 | `WWCP_ISO15118_EXI_Dispatch` | 2 | payload type ↔ message set |
-| `ChargingSimulation` (demos/EXI/) | 6 | the "every line is a real EXI round-trip" console demo |
+| `ChargingSimulation` (demos/) | 6 | the "every line is a real EXI round-trip" console demo |
 | `WWCP_ISO15118_EXI_Tests` | 55 | codec tests, minus `Interop/` and the port-emitter tests |
 | `WWCP_ISO15118_EXI_Tests/Vectors/` | 16 files | the byte-level oracle |
 | `tools/cbv2g-ref/`, `tools/exificient-ref/` | — | the reference encoders that *produce* those vectors |
@@ -193,7 +193,7 @@ regression.
 | `Vanaheimr.V2G.Exi` | `cloud.charging.open.protocols.ISO15118.EXI` |
 | `WWCP_ISO15118_EXI_SourceGenerator[.Emit\|.Grammar\|.Xsd]` | `cloud.charging.open.protocols.ISO15118.EXI.SourceGenerator[…]` |
 | `EVSimulatorApp.Codegen` | `cloud.charging.open.protocols.ISO15118.EXI.Codegen` |
-| `ChargingSimulation` (demos/EXI/) | `cloud.charging.open.protocols.ISO15118.EXI.Simulation` |
+| `ChargingSimulation` (demos/) | `cloud.charging.open.protocols.ISO15118.EXI.Simulation` |
 | `WWCP_ISO15118_EXI_Tests[.Infrastructure\|.Interop]` | `cloud.charging.open.protocols.ISO15118.EXI.Tests[…]` |
 | `Vanaheimr.V2G.AppProtocol` | `cloud.charging.open.protocols.ISO15118.AppProtocol` |
 | `Vanaheimr.V2G.Tp` | `cloud.charging.open.protocols.ISO15118.EXI.Dispatch` — see §1 |
