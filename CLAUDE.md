@@ -1,28 +1,32 @@
-# Vanaheimr.V2G.Exi
+# ISO15118ConformanceTests
 
-.NET 10 library for ISO 15118 EXI: parsing and serializing 15118-2 and
-15118-20 messages, ultimate goal EV↔EVSE simulation.
+Conformance & interoperability test suite for the ISO 15118 stack in the `EVSimulatorApp` submodule
+(EXI codec, EV↔EVSE state machines, TLS/PKI, Plug & Charge). This repository is the harness that
+holds the app to account against independent stacks — Josev, EVerest, EVDriveFlow, TuxEVSE.
 
 ## Orientation
 
-- **Overall plan / current status:** `docs/roadmap.md`
-- **Phase prompts for agent runs (Phase 0–5):** `docs/prompts/` (index: `docs/prompts/README.md`)
-- Project structure and current prototype status: `README.md`
+- **What is proven, and how:** `README.md` — the interop-status ledger.
+- **Per-run write-ups and frame logs:** `docs/interop-runs/`.
+- **The stack under test:** `EVSimulatorApp/` — its own README documents the codec and the simulation.
 
 ## Build & test
 
 ```
+git submodule update --init --recursive
 dotnet test -c Release
 ```
 
-Must pass green without a C toolchain, Java, or network — external reference encoders
-(cbV2G, EXIficient) are only used for vector (re-)generation, never for the test run itself.
+Must pass green without a C toolchain, Java, or network — record-mode interop checks replay frames
+under `ISO15118ConformanceTests.Simulation/Traces/`, and the loopback E2Es run both peers in-process.
+The ISO schemas must be present in `EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/` (see the app's
+`tools/download-schemas.sh`).
 
 ## Ground rules
 
-- Never change wire semantics speculatively — only based on a concrete byte diff
-  against a reference encoder (vector files under `WWCP_ISO15118_EXI_Tests/Vectors/`).
-- Source generator: fail-loud philosophy — unknown XSD constructs produce
-  build diagnostics, never get silently skipped.
-- No hand-written codec code for -2/-20; everything runs through the generator.
-  The hand-written AppProtocol codec remains as a diff reference.
+- The codec, the simulation library and the CLI are the app's — change them in `EVSimulatorApp/`,
+  not here. This repository holds tests, recorded traces, and run notes.
+- Live interop tests are `[Explicit]` and stay out of the offline run — they need the other stack on
+  the wire.
+- Never change wire semantics speculatively — only on a concrete byte diff against a reference
+  encoder. That oracle corpus and the rule live with the codec, in the app.

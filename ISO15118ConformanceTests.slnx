@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="ISO15118ConformanceTests.Simulation/ISO15118ConformanceTests.Simulation.csproj" />
+    <Project Path="ISO15118ConformanceTests.Pqc/ISO15118ConformanceTests.Pqc.csproj" />
+  </Folder>
+  <Folder Name="/EVSimulatorApp/">
+    <Project Path="EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/Vanaheimr.V2G.Simulation.csproj" />
+    <Project Path="EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/Vanaheimr.V2G.Simulation.Cli.csproj" />
+    <Project Path="EVSimulatorApp/experiments/Vanaheimr.V2G.Experiments.Pqc/Vanaheimr.V2G.Experiments.Pqc.csproj" />
+    <Project Path="EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_PKI/WWCP_ISO15118_PKIBuilder/WWCP_ISO15118_PKIBuilder.csproj" />
+  </Folder>
+</Solution>
