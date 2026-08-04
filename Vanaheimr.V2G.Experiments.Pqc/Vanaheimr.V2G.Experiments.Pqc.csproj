@@ -13,7 +13,7 @@
   <ItemGroup>
     <!-- EXPERIMENT: post-quantum crypto for ISO 15118 is NOT standardized — nothing in this project
          is wire-conformant, and nothing here is referenced by any production project. See README.md. -->
-    <ProjectReference Include="..\libs\WWCP_ISO15118\new\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.csproj" />
+    <ProjectReference Include="..\libs\WWCP_ISO15118\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages\Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages.csproj" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
     <!-- The binary-clean JSON alternative in the size report: CBOR keeps byte strings raw (no base64). -->
     <PackageReference Include="System.Formats.Cbor" Version="10.0.0" />

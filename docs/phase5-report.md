@@ -11,7 +11,7 @@ Companion docs: [`roadmap.md`](roadmap.md), [`pki-model.md`](pki-model.md),
 ## 1. What Phase 5 delivered
 
 A real-networking EVCC↔SECC simulation in `Vanaheimr.V2G.Simulation` (distinct from the older
-in-process `Vanaheimr.V2G.Exi.Simulation` demo), composing the full connection front-end:
+in-process `ChargingSimulation` demo), composing the full connection front-end:
 
 **SLAC pairing → SDP discovery → TLS → SAP handshake → -2/-20 AC/DC session → SessionStop**,
 

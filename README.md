@@ -23,7 +23,7 @@ Vanaheimr.V2G.Exi.slnx
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_IEC/      ISO 15118-20 Amd 1: AC + DER (IEC) grammar variant
 ├─ Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_SAE/      ISO 15118-20 Amd 1: AC + DER (SAE) grammar variant
 ├─ Vanaheimr.V2G.Exi.Dispatch/           V2GTP payload-type → codec dispatcher
-├─ Vanaheimr.V2G.Exi.Simulation/         console app: in-process -2 AC/DC session (no sockets)
+├─ ChargingSimulation/         console app: in-process -2 AC/DC session (no sockets)
 ├─ Vanaheimr.V2G.Simulation/             class library: real TCP/TLS EVCC↔SECC session (Phase 5)
 ├─ Vanaheimr.V2G.Simulation.Cli/         console app: `evcc`/`secc` subcommands over Vanaheimr.V2G.Simulation
 ├─ Vanaheimr.V2G.Simulation.Tests/       NUnit: framing/state-machine/loopback E2E tests for Phase 5
@@ -246,7 +246,7 @@ ECDSA-P256 over the SignedInfo EXI fragment) is covered end to end.
 
 ### Charging-session simulation
 
-`Vanaheimr.V2G.Exi.Simulation` is a small console app that drives a full AC or DC session
+`ChargingSimulation` is a small console app that drives a full AC or DC session
 end to end — SessionSetup → ServiceDiscovery → PaymentServiceSelection → Authorization →
 ChargeParameterDiscovery → (DC: CableCheck/PreCharge) → PowerDelivery → charging loop
 (CurrentDemand / ChargingStatus) → (DC: WeldingDetection) → SessionStop. Every step is a
@@ -254,9 +254,9 @@ real EXI encode → decode round-trip; the EVCC applies a per-message timeout an
 sequence-guarded (out-of-order requests are rejected). Run it with:
 
 ```
-dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc          # or: ac
-dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --slow            # trips the EV timeout
-dotnet run --project Vanaheimr.V2G.Exi.Simulation -- dc --break-sequence  # trips the SECC guard
+dotnet run --project ChargingSimulation -- dc          # or: ac
+dotnet run --project ChargingSimulation -- dc --slow            # trips the EV timeout
+dotnet run --project ChargingSimulation -- dc --break-sequence  # trips the SECC guard
 ```
 
 ## ISO 15118-20 (Phase 4)
@@ -412,7 +412,7 @@ is exactly what the wire-semantics ground rule forbids. `V2GTPDispatcher` is unt
 ## EV↔EVSE simulation (Phase 5)
 
 `Vanaheimr.V2G.Simulation` is a real-networking EVCC↔SECC session — distinct from
-`Vanaheimr.V2G.Exi.Simulation` above, which stays an in-process, no-sockets, -2-only demo.
+`ChargingSimulation` above, which stays an in-process, no-sockets, -2-only demo.
 It now composes the full connection front-end: **SLAC pairing → SDP discovery → TLS →
 SAP → -2/-20 session**, all loopback-testable in `dotnet test`. (An early slice deliberately
 skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired in.)
@@ -438,7 +438,7 @@ skipped SLAC/SDP and connected via a fixed host:port; both stages are now wired 
   -20's three self-contained per-schema-set `MessageHeaderType`s (CommonMessages/DC/AC — each its
   own CLR type, no cross-references between those assemblies) the next phase needs.
 - **State machines** (`StateMachines/`): `Evcc2`/`Secc2` for -2 (AC+DC via a mode flag, mirroring
-  `Vanaheimr.V2G.Exi.Simulation`'s shape but driven over real sockets with an injectable
+  `ChargingSimulation`'s shape but driven over real sockets with an injectable
   `TimeProvider`/`IAsyncDelay` instead of `DateTime.UtcNow`/`Thread.Sleep`); `Evcc20Base`/
   `Secc20Base` + `{Evcc,Secc}20{Dc,Ac}` for -20 (shared CommonMessages phases in the base class,
   DC/AC-specific charge-parameter/pre-charge/charge-loop/welding-detection hooks in the subclasses);
