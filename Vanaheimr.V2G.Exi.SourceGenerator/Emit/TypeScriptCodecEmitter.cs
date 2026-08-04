@@ -1872,9 +1872,17 @@ namespace Vanaheimr.V2G.Exi.SourceGenerator.Emit
             /// nullable parameter per branch — cbexigen models it as N sibling fields with only one
             /// set, not as a single polymorphic field the way a substitution group is modelled.
             /// </summary>
+            /// <remarks>
+            /// <c>" | null"</c>, not <c>"?"</c>. The trailing question mark is how Kotlin and Swift
+            /// spell an optional type and is a syntax error in TypeScript — where <c>?</c> marks an
+            /// optional *parameter or property*, never a type. This line said <c>"?"</c> until
+            /// 2026-08-04 and nothing noticed, because ISO 15118-2 has no inline choice anywhere:
+            /// the first file that would not parse was <c>AuthorizationReqType</c> in -20
+            /// CommonMessages, three years of schema later.
+            /// </remarks>
             private static List<(string Name, string Type)> ChildParams(ChildPlan c) =>
                 c.Value is ValueEncoding.InlineChoice ic
-                    ? ic.Members.Select(m => (Prop(m.FieldName), Type(m.Type) + "?")).ToList()
+                    ? ic.Members.Select(m => (Prop(m.FieldName), Type(m.Type) + " | null")).ToList()
                     : [(Prop(c.FieldName), DeclType(c))];
 
             /// <summary>An inline-choice branch as a throwaway child, so it can go through the
