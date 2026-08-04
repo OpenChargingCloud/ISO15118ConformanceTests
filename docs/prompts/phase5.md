@@ -7,8 +7,8 @@ for ISO 15118 EXI. State after Phase 0–4:
 
 - EXI primitives complete (value tables, signed/binary/boolean).
 - Generated codecs, byte-validated against cbV2G: AppProtocol (SAP),
-  `Vanaheimr.V2G.Exi.Iso15118_2` (all 17 message pairs),
-  `Vanaheimr.V2G.Exi.Iso15118_20.{CommonMessages,DC,AC}`.
+  `WWCP_ISO15118_2` (all 17 message pairs),
+  `WWCP_ISO15118_20.{CommonMessages,DC,AC}`.
 - XMLDSig over EXI fragments (-2: P-256/SHA-256; -20: secp521r1/SHA-512).
 - V2GTP layer with a payload-type dispatcher (SAP / -2 / -20 sets).
 - `tools/cbv2g-ref/` (libcbv2g harness, pinned), a vector-driven NUnit suite.

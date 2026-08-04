@@ -4,7 +4,7 @@
 
 The eight -20 schemas were downloaded from `https://standards.iso.org/iso/15118/-20/ed-1/en/` —
 the same freely accessible ISO source the already-checked-in -2 schemas came from
-(see the header comment in `Vanaheimr.V2G.Exi.Iso15118_2/Schemas/V2G_CI_MsgDef.xsd`;
+(see the header comment in `WWCP_ISO15118_2/Schemas/V2G_CI_MsgDef.xsd`;
 cbexigen's `tools_config.py` uses exactly the same URL structure for its
 `--auto-download-public-xsd` mode). Downloaded on 2026-07-10:
 
@@ -30,7 +30,7 @@ They are **not a sixth and seventh message set**. Both import the base AC schema
 message roots commented out, and contribute six `DER_*` **substitution-group members** extending
 AC's own types via `xs:extension` — the same construct AC already uses for its `BPT_*` variants,
 so the generator needed no changes. They are consumed by
-`Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_{IEC,SAE}`, each compiling AC + DER + `CommonTypes` +
+`WWCP_ISO15118_20.AC_DER_{IEC,SAE}`, each compiling AC + DER + `CommonTypes` +
 `xmldsig` into a *grammar variant of AC*.
 
 **No cbV2G reference exists for these:** cbexigen crashes analysing them (a substitution-group
@@ -47,7 +47,7 @@ incl. reproduction: [`ac-der.md`](ac-der.md).
 - **Five independent schema sets** in the base edition (Amendment 1 adds no sixth — see above):
   CommonMessages, AC, DC, WPT, ACDP — each imports
   `CommonTypes` + `xmldsig-core-schema`. One generated assembly per set
-  (`Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages/.AC/.DC/.WPT/.ACDP`), `CommonTypes` is
+  (`WWCP_ISO15118_20.CommonMessages/.AC/.DC/.WPT/.ACDP`), `CommonTypes` is
   deliberately duplicated per assembly (as cbV2G/cbexigen itself does). WPT and ACDP were
   originally explicitly out of scope, but were completed afterward on 2026-07-11 (see
   "WPT/ACDP — completed afterward" below for the new constructs found in the process).
@@ -240,11 +240,11 @@ already supported. No `xs:any`/`mixed` outside the already-opaque `xmldsig` name
 
 1. ✅ The `InlineChoice` construct (generator + mini-XSD tests) — this practically blocked
    every CommonMessages message.
-2. ✅ The `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages` project: the full schema generates +
+2. ✅ The `WWCP_ISO15118_20.CommonMessages` project: the full schema generates +
    compiles. Along the way, found and closed two more constructs: the
    bounded-repeating-list-with-tail (`AuthorizationServices`) and the abstract-on-type-instead-
    of-element pitfall (`CLReqControlMode`/`CLResControlMode`).
-3. ✅ The `Vanaheimr.V2G.Exi.Iso15118_20.DC`/`.AC` projects: both generate + compile.
+3. ✅ The `WWCP_ISO15118_20.DC`/`.AC` projects: both generate + compile.
    Transitive/concrete substitution implemented (confirmed against cbV2G's
    `iso20_dc_DC_ChargeLoopReqType`, 5 flat productions, 3 bits); found and fixed the
    pattern-matching shadowing pitfall along the way (the third new finding this session).

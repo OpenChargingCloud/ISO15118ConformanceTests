@@ -5,12 +5,12 @@
 You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
 for ISO 15118-2/-20 EXI. Architecture:
 
-- `Vanaheimr.V2G.Exi.Prototype/` — EXI primitives incl. string value tables, signed
+- `WWCP_ISO15118_EXI/` — EXI primitives incl. string value tables, signed
   integer, binary; V2GTP; hand-written AppProtocol codec (reference, untouched).
-- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn generator: five -2 XSDs
-  (MsgDef/MsgHeader/MsgBody/MsgDataTypes/xmldsig) → `Vanaheimr.V2G.Exi.Iso15118_2`.
+- `WWCP_ISO15118_EXI_SourceGenerator/` — Roslyn generator: five -2 XSDs
+  (MsgDef/MsgHeader/MsgBody/MsgDataTypes/xmldsig) → `WWCP_ISO15118_2`.
   Supports import/choice/extension/substitutionGroup/attribute/unbounded.
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven; `tools/cbv2g-ref/` is a
+- `WWCP_ISO15118_EXI_Tests/` — NUnit, vector-driven; `tools/cbv2g-ref/` is a
   CLI harness around libcbv2g (pinned commit) with the appHand and iso-2 modules.
 - Docs: `docs/xsd-inventory-15118-2.md`, `docs/xsd-to-csharp-mapping.md`.
 

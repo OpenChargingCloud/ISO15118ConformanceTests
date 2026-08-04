@@ -7,7 +7,7 @@ Last updated: **2026-08-03**. Authoritative per-phase detail lives in
 ## Current status
 
 **All phases (0–5) are complete.** The solution builds cleanly and **all 1140 tests are green**
-(`dotnet test -c Release`, measured 2026-08-03: 911 in `Vanaheimr.V2G.Exi.Tests`, 221 in
+(`dotnet test -c Release`, measured 2026-08-03: 911 in `WWCP_ISO15118_EXI_Tests`, 221 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`) — offline, with no C
 toolchain, JRE, or network beyond loopback. The live over-the-wire interop tests stay
 `[Explicit] [Category("Interop")]` and script-driven: eight of them now, four counterparties × two
@@ -141,10 +141,10 @@ What exists today, at a glance:
 
 | Component | State |
 |---|---|
-| ✅ [BitReader/BitWriter](../Vanaheimr.V2G.Exi.Prototype/Exi/BitReader.cs) | Bit-packed streams, MSB-first |
-| ✅ [ExiPrimitives](../Vanaheimr.V2G.Exi.Prototype/Exi/ExiPrimitives.cs) + `ExiStringTable` | Unsigned/signed integer, binary, boolean, n-bit, string values incl. local+global value tables (decode-side; encode is miss-only, matching cbV2G) |
-| ✅ [V2GTP](../Vanaheimr.V2G.Exi.Prototype/V2GTP/V2GTP.cs) + [Dispatch](../Vanaheimr.V2G.Exi.Dispatch/V2GTPDispatcher.cs) | 8-byte transport header; payload-type → codec dispatcher over all seven sets |
-| ✅ [SourceGenerator](../Vanaheimr.V2G.Exi.SourceGenerator/ExiCodecGenerator.cs) | `IIncrementalGenerator`: XSD set → grammar plan → C# document + fragment codecs; fail-loud on unknown constructs; emits block-scoped namespaces |
+| ✅ [BitReader/BitWriter](../WWCP_ISO15118_EXI/Exi/BitReader.cs) | Bit-packed streams, MSB-first |
+| ✅ [ExiPrimitives](../WWCP_ISO15118_EXI/Exi/ExiPrimitives.cs) + `ExiStringTable` | Unsigned/signed integer, binary, boolean, n-bit, string values incl. local+global value tables (decode-side; encode is miss-only, matching cbV2G) |
+| ✅ [V2GTP](../WWCP_ISO15118_EXI/V2GTP/V2GTP.cs) + [Dispatch](../WWCP_ISO15118_EXI_Dispatch/V2GTPDispatcher.cs) | 8-byte transport header; payload-type → codec dispatcher over all seven sets |
+| ✅ [SourceGenerator](../WWCP_ISO15118_EXI_SourceGenerator/ExiCodecGenerator.cs) | `IIncrementalGenerator`: XSD set → grammar plan → C# document + fragment codecs; fail-loud on unknown constructs; emits block-scoped namespaces |
 | ✅ ISO 15118-2 codec | All 17 message pairs **byte-exact vs cbV2G**; signed `AuthorizationReq` byte-exact; `SignedInfo` fragment cross-checked vs EXIficient |
 | ✅ ISO 15118-20 codecs (×5) | CommonMessages/DC/AC/WPT/ACDP all generate + compile + byte-exact vs cbV2G; XMLDSig for CommonMessages/DC/AC (ECDSA-P521/SHA-512 **and** Ed448 via BouncyCastle) |
 | ✅ ISO 15118-20 Amd 1 AC DER (×2) | `AC_DER_IEC`/`AC_DER_SAE` — grammar variants of AC, not further message sets; cross-validated vs EXIficient (decode direction), no cbV2G reference exists. Codec only, no session wiring — see [Completed extras](#completed-extras) |

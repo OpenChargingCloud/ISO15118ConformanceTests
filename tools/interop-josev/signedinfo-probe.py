@@ -4,7 +4,7 @@ Reproduce Josev's exact PnC ``SignedInfo`` signing octets using Josev's own EXI 
 
 This is the ground-truth reproduction behind the "SignedInfo signature" root cause
 (docs/interop-runs/2026-07-21-iso20-dc-pnc-tls/notes.md,
- Vanaheimr.V2G.Exi.Tests/Interop/JosevPnCSignatureDiag.cs):
+ WWCP_ISO15118_EXI_Tests/Interop/JosevPnCSignatureDiag.cs):
 
 Josev encodes the ``SignedInfo`` for signing via ``EXI().to_exi(signed_info, Namespace.XML_DSIG)``.
 Inside Josev's ``EXICodec.jar`` the XMLDSig namespace maps to ``BuiltInSchema.XSDCore`` →

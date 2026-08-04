@@ -57,7 +57,7 @@ our lineage (it uses EXIficient, not cbV2G). The adoption path into the regular 
 1. Isolate a single message's EXI bytes from `frames.log`.
 2. Decode it with our codec (`DecodeAny`) and confirm the decoded content is what the scenario expects.
 3. If it round-trips (decode → re-encode) byte-for-byte, add it as a checked-in vector under
-   `Vanaheimr.V2G.Exi.Tests/Vectors/` with `source: "josev@<sha>"`, so it guards against regressions
+   `WWCP_ISO15118_EXI_Tests/Vectors/` with `source: "josev@<sha>"`, so it guards against regressions
    from a second, independent oracle.
 4. If it does *not* round-trip, that is a real interop finding — analyse the byte diff, fix the root
    cause (codec or generator), and add the captured bytes as a regression vector.

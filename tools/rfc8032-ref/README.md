@@ -1,12 +1,12 @@
 # RFC 8032 Ed448 reference vectors
 
 Extracts the published Ed448 test vectors from RFC 8032 §7.4 into
-`Vanaheimr.V2G.Exi.Tests/Vectors/Ed448.rfc8032.vectors.json`.
+`WWCP_ISO15118_EXI_Tests/Vectors/Ed448.rfc8032.vectors.json`.
 
 ```bash
 curl -sSo /tmp/rfc8032.txt https://www.rfc-editor.org/rfc/rfc8032.txt
 python3 extract.py /tmp/rfc8032.txt \
-  > ../../Vanaheimr.V2G.Exi.Tests/Vectors/Ed448.rfc8032.vectors.json
+  > ../../WWCP_ISO15118_EXI_Tests/Vectors/Ed448.rfc8032.vectors.json
 ```
 
 Nothing else here needs a toolchain: unlike `cbv2g-ref/` there is no C to build, because the
@@ -33,7 +33,7 @@ not a flag.
 
 ## What the vectors are checked against
 
-`Vanaheimr.V2G.Exi.Tests/Ed448RfcVectorTests.cs` (BouncyCastle .NET) and
+`WWCP_ISO15118_EXI_Tests/Ed448RfcVectorTests.cs` (BouncyCastle .NET) and
 `kotlin/exi-iso20-common/.../Ed448RfcVectorTest.kt` (BouncyCastle Java). Both back ends read *this*
 file rather than each keeping a copy, as with the cbV2G corpus.
 

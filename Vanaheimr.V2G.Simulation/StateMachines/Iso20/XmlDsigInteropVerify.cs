@@ -31,7 +31,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     /// the XMLDSig namespace to its <c>XMLDSIG_Core_Schema_Grammar</c> (a grammar built from
     /// xmldsig-core-schema.xsd alone), which gives the EXI <i>Fragment</i> top-level element event code one fewer
     /// bit and shifts the whole bitstream, yielding a 209-byte form vs our/cbV2G 210-byte one. Our own generator
-    /// reproduces those exact bytes from the same schema (see the <c>Vanaheimr.V2G.Exi.XmlDsig</c> project and
+    /// reproduces those exact bytes from the same schema (see the <c>WWCP_ISO15118_XMLDSig</c> project and
     /// <c>XmlDsigStandaloneGrammarReproducesJosev</c>), so we can <b>verify</b> such signatures — and, for the
     /// EVCC-side interop path, <b>sign</b> in the same form (see <see cref="XmlDsigInteropSign"/>): a Josev SECC
     /// re-encodes a received SignedInfo with its own standalone grammar before checking the ECDSA signature, so

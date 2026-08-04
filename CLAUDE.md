@@ -21,7 +21,7 @@ Must pass green without a C toolchain, Java, or network — external reference e
 ## Ground rules
 
 - Never change wire semantics speculatively — only based on a concrete byte diff
-  against a reference encoder (vector files under `Vanaheimr.V2G.Exi.Tests/Vectors/`).
+  against a reference encoder (vector files under `WWCP_ISO15118_EXI_Tests/Vectors/`).
 - Source generator: fail-loud philosophy — unknown XSD constructs produce
   build diagnostics, never get silently skipped.
 - No hand-written codec code for -2/-20; everything runs through the generator.

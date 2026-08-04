@@ -34,7 +34,7 @@ Reproduce: `tools/interop-josev/reverse-ac-sdp.sh`.
 Live WPT and ACDP runs are **not possible** with Josev as the oracle: Josev implements only AC and DC session
 state machines (`iso15118_20_states.py` has AC/DC states only; the only EVCC configs are `evcc_config_{ac,dc}[_bpt].json`).
 It defines the WPT/ACDP *namespaces and payload types* but no session logic. Our own sim is symmetric — the
-`Vanaheimr.V2G.Exi.Iso15118_20.WPT` / `.ACDP` projects are **codec-only** (byte-exact vs cbV2G, cross-checked in
+`WWCP_ISO15118_20.WPT` / `.ACDP` projects are **codec-only** (byte-exact vs cbV2G, cross-checked in
 CI), with no `Evcc20Wpt`/`Secc20Wpt` state machines. A live WPT/ACDP run would require implementing full session
 state machines on **both** sides; there is no third-party -20 WPT/ACDP implementation available to interop against.
-WPT/ACDP therefore remain **codec-validated (record mode) only** — see `Vanaheimr.V2G.Exi.Tests` WPT/ACDP vectors.
+WPT/ACDP therefore remain **codec-validated (record mode) only** — see `WWCP_ISO15118_EXI_Tests` WPT/ACDP vectors.

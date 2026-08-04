@@ -29,7 +29,7 @@ reference digest, **and** the ECDSA signature all verify, and the session comple
 (SOC 10→100%) to `SessionStop`.
 
 - Verify-only: our generator reproduces Josev's exact 209-byte standalone-xmldsig `SignedInfo`
-  (`Vanaheimr.V2G.Exi.XmlDsig` project; `XmlDsigStandaloneGrammarReproducesJosev`), and
+  (`WWCP_ISO15118_XMLDSig` project; `XmlDsigStandaloneGrammarReproducesJosev`), and
   `XmlDsigInteropVerify` re-encodes + verifies. We never *sign* this form — our signing stays cbV2G-byte-exact.
 
 ## Reproduce

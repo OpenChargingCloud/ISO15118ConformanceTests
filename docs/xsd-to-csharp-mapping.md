@@ -1,6 +1,6 @@
 # XSD → C# mapping (source generator)
 
-How `Vanaheimr.V2G.Exi.SourceGenerator` turns an XSD schema set into C# records and a
+How `WWCP_ISO15118_EXI_SourceGenerator` turns an XSD schema set into C# records and a
 codec. These are the binding rules; they are exercised construct-by-construct in
 `GeneratorGrammarTests` and end-to-end against cbV2G in `Iso15118_2VectorTests`.
 

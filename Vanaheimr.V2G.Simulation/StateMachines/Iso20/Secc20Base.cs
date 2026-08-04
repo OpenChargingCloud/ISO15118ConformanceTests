@@ -52,7 +52,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso20
     /// one charge-loop iteration, the DC-only WeldingDetection) is delegated to <see cref="Secc20Dc"/>/
     /// <see cref="Secc20Ac"/> via the <c>protected virtual</c> hooks below. Unlike -2, -20's messages
     /// interleave <em>three</em> distinct codecs (CommonMessages/DC/AC) within one session — each self
-    /// contained per <c>Vanaheimr.V2G.Exi.Iso15118_20.*.csproj</c> (no cross-references), so
+    /// contained per <c>WWCP_ISO15118_20.*.csproj</c> (no cross-references), so
     /// <see cref="Session.SessionContext"/> renders the header type each phase actually needs.
     /// </summary>
     public abstract class Secc20Base(TimeSpan sequenceTimeout, TimeProvider clock)

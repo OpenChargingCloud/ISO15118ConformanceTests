@@ -33,7 +33,7 @@ sets). Amendment 1 extends rather than adds.
 
 ## Two assemblies, because the grammar differs
 
-`Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_IEC` and `…_SAE` each compile
+`WWCP_ISO15118_20.AC_DER_IEC` and `…_SAE` each compile
 `V2G_CI_AC_DER_{IEC,SAE}.xsd` **together with** `V2G_CI_AC.xsd` + `CommonTypes` + `xmldsig`. They are
 separate from the plain AC assembly because the generator inlines substitution-group members as
 grammar productions, so the grammar for the AC messages is not the same one.
@@ -161,7 +161,7 @@ Consequences:
 
 ## Where this lives
 
-- `Vanaheimr.V2G.Exi.Iso15118_20.AC_DER_IEC/`, `…_SAE/` — the two grammar variants (+ their schemas)
-- `Vanaheimr.V2G.Exi.Tests/Iso15118_20AcDerTests.cs` — five tests: DER roundtrip, plain-AC roundtrip
+- `WWCP_ISO15118_20.AC_DER_IEC/`, `…_SAE/` — the two grammar variants (+ their schemas)
+- `WWCP_ISO15118_EXI_Tests/Iso15118_20AcDerTests.cs` — five tests: DER roundtrip, plain-AC roundtrip
   staying distinct from DER, SAE roundtrip, the byte-identity measurement, and the
   plain-codec-vs-DER-message boundary

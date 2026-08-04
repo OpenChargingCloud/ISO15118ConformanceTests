@@ -48,18 +48,18 @@ No cycle appears in either direction.
 
 | Project | .cs | What it is |
 |---|--:|---|
-| `Vanaheimr.V2G.Exi.SourceGenerator` | 31 | XSD → grammar → codec, plus the C# back end — see "the port back ends" below |
-| `Vanaheimr.V2G.Exi.Prototype` | 12 | `BitReader`/`BitWriter`, EXI primitives, the hand-written AppProtocol codec, the V2GTP header |
-| `Vanaheimr.V2G.Exi.Iso15118_2` | 2 | -2 schemas + `PhysicalValue`, `V2GSignature` |
-| `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages` | 2 | schemas + `RationalNumber`, `V2GSignature` |
-| `Vanaheimr.V2G.Exi.Iso15118_20.{DC,AC}` | 2 each | ditto |
-| `Vanaheimr.V2G.Exi.Iso15118_20.{AC_DER_IEC,AC_DER_SAE}` | 1 each | ditto |
-| `Vanaheimr.V2G.Exi.Iso15118_20.{WPT,ACDP}` | 0 | schema-only; everything is generated |
-| `Vanaheimr.V2G.Exi.XmlDsig` | 0 | schema-only |
-| `Vanaheimr.V2G.Exi.Dispatch` | 2 | payload type ↔ message set |
+| `WWCP_ISO15118_EXI_SourceGenerator` | 31 | XSD → grammar → codec, plus the C# back end — see "the port back ends" below |
+| `WWCP_ISO15118_EXI` | 12 | `BitReader`/`BitWriter`, EXI primitives, the hand-written AppProtocol codec, the V2GTP header |
+| `WWCP_ISO15118_2` | 2 | -2 schemas + `PhysicalValue`, `V2GSignature` |
+| `WWCP_ISO15118_20.CommonMessages` | 2 | schemas + `RationalNumber`, `V2GSignature` |
+| `WWCP_ISO15118_20.{DC,AC}` | 2 each | ditto |
+| `WWCP_ISO15118_20.{AC_DER_IEC,AC_DER_SAE}` | 1 each | ditto |
+| `WWCP_ISO15118_20.{WPT,ACDP}` | 0 | schema-only; everything is generated |
+| `WWCP_ISO15118_XMLDSig` | 0 | schema-only |
+| `WWCP_ISO15118_EXI_Dispatch` | 2 | payload type ↔ message set |
 | `ChargingSimulation` (demos/EXI/) | 6 | the "every line is a real EXI round-trip" console demo |
-| `Vanaheimr.V2G.Exi.Tests` | 55 | codec tests, minus `Interop/` and the port-emitter tests |
-| `Vanaheimr.V2G.Exi.Tests/Vectors/` | 16 files | the byte-level oracle |
+| `WWCP_ISO15118_EXI_Tests` | 55 | codec tests, minus `Interop/` and the port-emitter tests |
+| `WWCP_ISO15118_EXI_Tests/Vectors/` | 16 files | the byte-level oracle |
 | `tools/cbv2g-ref/`, `tools/exificient-ref/` | — | the reference encoders that *produce* those vectors |
 
 Roughly 130 source files. The generated code is not among them: it exists only in `obj/`, produced
@@ -73,7 +73,7 @@ at build time from the XSDs, so "the generated code moves" means the schemas and
 | `Vanaheimr.V2G.Simulation.Cli` | 5 | the harness binary |
 | `Vanaheimr.V2G.Simulation.Tests` | 68 | loopback, traces, and `Interop/` — Josev, EVerest, EVDriveFlow |
 | `Vanaheimr.V2G.Experiments.Pqc` (+ Tests) | 6 | ML-DSA in a V2G signature; research, not the standard |
-| `Vanaheimr.V2G.Exi.Tests/Interop/` | 6 | `Josev*` — see the boundary question below |
+| `WWCP_ISO15118_EXI_Tests/Interop/` | 6 | `Josev*` — see the boundary question below |
 | `tools/interop-{josev,everest,evdriveflow}/` | — | live harnesses |
 | `docs/interop-runs/` | 30+ dirs | evidence of runs; belongs with the rig that produced it |
 
@@ -120,8 +120,8 @@ Swift and TypeScript AppProtocol sets, come out byte-identical from the driver's
 `WWCP_ISO15118_V2GTP` already implements V2GTP as `V2GTP_Frame` / `V2GTP_Header` /
 `V2GTP_PayloadType` in `cloud.charging.open.protocols.ISO15118.V2GTP`, with its own exception
 hierarchy and its own tests under `tests/V2G.V2GTP.Tests/`. This repository implements the same
-eight header bytes again in `Vanaheimr.V2G.Exi.Prototype/V2GTP/V2GTP.cs` plus
-`Vanaheimr.V2G.Exi.Dispatch`, in a nullable-return style with no exceptions.
+eight header bytes again in `WWCP_ISO15118_EXI/V2GTP/V2GTP.cs` plus
+`WWCP_ISO15118_EXI_Dispatch`, in a nullable-return style with no exceptions.
 
 The rename surfaced this rather than causing it, and it surfaced it *hard*: mapping the framing
 namespace onto `cloud.charging.open.protocols.ISO15118.V2GTP` does not even compile, because the
@@ -141,7 +141,7 @@ The user rule is "interoperability tests stay". That is unambiguous for
 `Vanaheimr.V2G.Simulation.Tests/Interop/` and the `tools/interop-*` scripts: those drive a live
 peer over a socket.
 
-It is less obvious for `Vanaheimr.V2G.Exi.Tests/Interop/` (6 files) and
+It is less obvious for `WWCP_ISO15118_EXI_Tests/Interop/` (6 files) and
 `JosevCuratedVectorTests.cs`. Those tests never open a socket — they decode bytes Josev *once*
 produced, checked into `Vectors/Iso15118_20.DC.josev.vectors.json`. Functionally they are codec
 tests whose oracle happens to be a third-party encoder, which is exactly what `CLAUDE.md` demands
@@ -182,7 +182,7 @@ tools/cbv2g-ref/, tools/exificient-ref/
 
 Directory and assembly names are **not** part of the namespace rewrite that has already happened —
 they are part of the move itself, and several tests locate schema sets by walking to a directory of
-that exact name (`EmitterHarness.RealSchemaSet("Vanaheimr.V2G.Exi.Iso15118_2")`). Rename the
+that exact name (`EmitterHarness.RealSchemaSet("WWCP_ISO15118_2")`). Rename the
 directories and those strings in the same commit, or the tests fail in a way that looks like a codec
 regression.
 
@@ -191,10 +191,10 @@ regression.
 | was | is |
 |---|---|
 | `Vanaheimr.V2G.Exi` | `cloud.charging.open.protocols.ISO15118.EXI` |
-| `Vanaheimr.V2G.Exi.SourceGenerator[.Emit\|.Grammar\|.Xsd]` | `cloud.charging.open.protocols.ISO15118.EXI.SourceGenerator[…]` |
-| `Vanaheimr.V2G.Exi.Codegen` | `cloud.charging.open.protocols.ISO15118.EXI.Codegen` |
+| `WWCP_ISO15118_EXI_SourceGenerator[.Emit\|.Grammar\|.Xsd]` | `cloud.charging.open.protocols.ISO15118.EXI.SourceGenerator[…]` |
+| `EVSimulatorApp.Codegen` | `cloud.charging.open.protocols.ISO15118.EXI.Codegen` |
 | `ChargingSimulation` (demos/EXI/) | `cloud.charging.open.protocols.ISO15118.EXI.Simulation` |
-| `Vanaheimr.V2G.Exi.Tests[.Infrastructure\|.Interop]` | `cloud.charging.open.protocols.ISO15118.EXI.Tests[…]` |
+| `WWCP_ISO15118_EXI_Tests[.Infrastructure\|.Interop]` | `cloud.charging.open.protocols.ISO15118.EXI.Tests[…]` |
 | `Vanaheimr.V2G.AppProtocol` | `cloud.charging.open.protocols.ISO15118.AppProtocol` |
 | `Vanaheimr.V2G.Tp` | `cloud.charging.open.protocols.ISO15118.EXI.Dispatch` — see §1 |
 | `Vanaheimr.V2G.Iso15118_2` | `cloud.charging.open.protocols.ISO15118_2` |

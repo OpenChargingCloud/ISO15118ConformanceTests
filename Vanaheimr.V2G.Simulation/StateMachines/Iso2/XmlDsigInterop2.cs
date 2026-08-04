@@ -29,7 +29,7 @@ namespace Vanaheimr.V2G.Simulation.StateMachines.Iso2
     /// <c>SignedInfo</c> octets are EXI-encoded over the <b>standalone xmldsig grammar</b> (not the combined
     /// <c>V2G_CI_MsgDef</c> fragment grammar our production codec and cbV2G use), with hardcoded SHA-256 and
     /// a mandatory <c>Transforms</c> (EXI C14N) in each Reference. The xmldsig schema is byte-identical
-    /// across -2/-20, so the same <c>Vanaheimr.V2G.Exi.XmlDsig</c> codec serves both; only the CLR record
+    /// across -2/-20, so the same <c>WWCP_ISO15118_XMLDSig</c> codec serves both; only the CLR record
     /// families differ, hence this separate structural mapping.
     /// </summary>
     public static class XmlDsigInterop2

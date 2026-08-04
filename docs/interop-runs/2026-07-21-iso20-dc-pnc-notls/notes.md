@@ -22,7 +22,7 @@ optional step. The negotiated application protocol is genuinely `ISO_15118_20_DC
 
 ## Cross-validation result (checked in as a regression test)
 
-`Vanaheimr.V2G.Exi.Tests/Interop/JosevCapturedFrames20Tests.cs` (runs in CI, bytes baked in) — our codec
+`WWCP_ISO15118_EXI_Tests/Interop/JosevCapturedFrames20Tests.cs` (runs in CI, bytes baked in) — our codec
 **decodes and re-encodes each of Josev's -20 frames to the identical bytes**, spanning the SAP handshake and
 both -20 schema sets:
 
@@ -54,7 +54,7 @@ own generated `decode_iso20_TransformType`):
   the child but read by the emitter from the plan, leaving `ListMax=0` — so `Encode_TransformsType`'s
   `count is < 1 or > 0` guard rejected every list.
 
-**Fix** (`Vanaheimr.V2G.Exi.SourceGenerator`): the XSD reader now models an optional/repeatable direct choice
+**Fix** (`WWCP_ISO15118_EXI_SourceGenerator`): the XSD reader now models an optional/repeatable direct choice
 as an EE-terminated optional run (the same shape the emitter already produces byte-exact for the mixed
 `SignatureMethod`/`DigestMethod` content), and the grammar builder promotes a lone repeating child's bound to
 the plan level. Regenerated `Decode/Encode_TransformType` now match cbexigen's grammar exactly (empty Transform

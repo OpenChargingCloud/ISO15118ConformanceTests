@@ -20,7 +20,7 @@ against **Josev** (SwitchEV/iso15118), an independent Python stack that encodes 
 and shares no lineage with the cbV2G oracle our vectors come from.
 
 Test state at the close of Phase 5 (2026-07-23) was **609 green**; **current: 629 green**
-(`dotnet test -c Release`, 2026-07-25) — 534 in `Vanaheimr.V2G.Exi.Tests`, 87 in
+(`dotnet test -c Release`, 2026-07-25) — 534 in `WWCP_ISO15118_EXI_Tests`, 87 in
 `Vanaheimr.V2G.Simulation.Tests`, 8 in `Vanaheimr.V2G.Experiments.Pqc.Tests`. The live
 over-the-wire Josev tests are `[Explicit]`/script-driven and excluded. Offline: no C toolchain,
 JRE, or network beyond loopback.
@@ -157,7 +157,7 @@ Nothing below blocks the happy-path simulation; each is honestly out of scope or
   container) reproduces the 209 bytes exactly and Josev's captured signature verifies against them — checked in
   as `JosevPnCSignatureDiag.JosevStandaloneXmldsigSignedInfoHex` (runs in CI, no Java). **Now closed:** a
   verify-only interop path re-encodes `SignedInfo` under the standalone-xmldsig grammar
-  (`Vanaheimr.V2G.Exi.XmlDsig` — our own generator reproduces Josev's 209 bytes byte-for-byte —
+  (`WWCP_ISO15118_XMLDSig` — our own generator reproduces Josev's 209 bytes byte-for-byte —
   + `XmlDsigInteropVerify`), and `Secc20Base.VerifyPnc` falls back to it. **Verified live** on 2026-07-22
   (Josev EVCC → our SECC, mutual TLS 1.3): `challenge OK, digest OK, signature OK … grammar=xmldsig-standalone`,
   full DC loop to `SessionStop` (`docs/interop-runs/2026-07-22-iso20-dc-pnc-tls-verified/`). Our own signing

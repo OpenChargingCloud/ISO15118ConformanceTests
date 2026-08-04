@@ -15,7 +15,7 @@ cleanly (only difference observed: JRE is OpenJDK 21 vs 11; the EXI codec JAR ru
 
 ## Cross-validation result (checked in as a regression test)
 
-`Vanaheimr.V2G.Exi.Tests/Interop/JosevCapturedFramesDcTests.cs` (runs in CI, bytes baked in) — our codec
+`WWCP_ISO15118_EXI_Tests/Interop/JosevCapturedFramesDcTests.cs` (runs in CI, bytes baked in) — our codec
 **decodes and re-encodes each of Josev's DC frames to the identical bytes**, covering the full DC loop and
 its DC-specific `PhysicalValue` / `DC_EVStatus` content:
 

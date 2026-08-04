@@ -15,7 +15,7 @@ our vectors come from, so agreement is an independent conformance signal.
 
 ## Cross-validation result (checked in as a regression test)
 
-`Vanaheimr.V2G.Exi.Tests/Interop/JosevCapturedFramesTests.cs` (runs in normal CI, bytes baked in):
+`WWCP_ISO15118_EXI_Tests/Interop/JosevCapturedFramesTests.cs` (runs in normal CI, bytes baked in):
 
 | Message | Josev EXI (EXIficient) | Our codec |
 |---|---|---|

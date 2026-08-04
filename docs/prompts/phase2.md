@@ -15,16 +15,16 @@
 You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
 intended to parse and serialize ISO 15118-2 and 15118-20 EXI messages. Architecture:
 
-- `Vanaheimr.V2G.Exi.Prototype/` — EXI primitives (BitReader/BitWriter, ExiPrimitives),
+- `WWCP_ISO15118_EXI/` — EXI primitives (BitReader/BitWriter, ExiPrimitives),
   V2GTP header, hand-written SupportedAppProtocol codec (stays untouched,
   serves as the reference for diff tests).
-- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn `IIncrementalGenerator` (netstandard2.0):
+- `WWCP_ISO15118_EXI_SourceGenerator/` — Roslyn `IIncrementalGenerator` (netstandard2.0):
   `Xsd/XsdReader.cs` (XSD parser), `Grammar/GrammarBuilder.cs` (XSD → grammar plan),
   `Emit/CodecEmitter.cs` (plan → C#). Today it only understands the tiny subset
   the AppProtocol schema needs: global elements, sequence, simpleType restrictions,
   bounded repetition. Philosophy: unknown constructs produce a loud
   build diagnostic, never a silent skip — keep it that way!
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven (JSON + bit-exact hex diff).
+- `WWCP_ISO15118_EXI_Tests/` — NUnit, vector-driven (JSON + bit-exact hex diff).
 
 Read before starting: `README.md`, the complete SourceGenerator, the hand-written
 AppProtocol codec (the XML doc comments explain the EXI grammar model), and the
@@ -45,7 +45,7 @@ instead of building it on the side — they're their own work packages.
 The generator translates the complete ISO 15118-2 schema set
 (`V2G_CI_MsgDef.xsd` + `V2G_CI_MsgHeader.xsd` + `V2G_CI_MsgBody.xsd` +
 `V2G_CI_MsgDataTypes.xsd` + `xmldsig-core-schema.xsd`) into a new assembly
-`Vanaheimr.V2G.Exi.Iso15118_2`, and the first messages (at minimum
+`WWCP_ISO15118_2`, and the first messages (at minimum
 SessionSetupReq/Res, ServiceDiscoveryReq/Res) are validated byte-exact against cbV2G.
 Full message coverage and XMLDSig signature computation are Phase 3 —
 but the entire schema set must run through the generator without diagnostics and
@@ -57,7 +57,7 @@ compile.
 
 - The -2 XSDs ship with several OSS projects (e.g. RISE-V2G under
   `RISE-V2G-Shared/src/main/resources/schemas`, and around the cbexigen ecosystem).
-  Put them under `Vanaheimr.V2G.Exi.Iso15118_2/Schemas/` and document
+  Put them under `WWCP_ISO15118_2/Schemas/` and document
   source + commit in a README next to them. If you can't find them: stop and report.
 - Write a small throwaway analysis script (may live in the scratchpad) that lists
   every XSD construct and facet actually used across the five XSDs
@@ -114,7 +114,7 @@ Replace the ad-hoc patterns with grammar construction per W3C EXI 1.0
 
 ### 5. New project + differential validation
 
-- Project `Vanaheimr.V2G.Exi.Iso15118_2` (net10.0) with the five XSDs as
+- Project `WWCP_ISO15118_2` (net10.0) with the five XSDs as
   `AdditionalFiles` and a generator reference (OutputItemType="Analyzer").
 - Extend `tools/cbv2g-ref/` with libcbv2g's iso-2 module
   (encode/decode for `iso2_exiDocument`).

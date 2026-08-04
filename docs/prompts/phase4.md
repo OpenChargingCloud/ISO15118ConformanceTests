@@ -3,7 +3,7 @@
 > **Update (post-Phase 4):** Ed448 — flagged below as a deliberate gap because .NET's
 > `System.Security.Cryptography` has no Ed448 support — has since been added via the
 > `BouncyCastle.Cryptography` NuGet package (`V2GSignature.SignEd448`/`VerifyEd448` in
-> `Vanaheimr.V2G.Exi.Iso15118_20.{CommonMessages,DC,AC}`). The step 6/DoD text below is kept
+> `WWCP_ISO15118_20.{CommonMessages,DC,AC}`). The step 6/DoD text below is kept
 > as-is for historical accuracy; see `README.md`'s -20 signature section for the current state.
 
 ## Context
@@ -11,20 +11,20 @@
 You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a .NET 10 library
 for ISO 15118 EXI. State after Phase 0–3:
 
-- `Vanaheimr.V2G.Exi.Prototype/` — EXI primitives (incl. string value tables, signed
+- `WWCP_ISO15118_EXI/` — EXI primitives (incl. string value tables, signed
   integer, binary), V2GTP header, hand-written AppProtocol codec (reference).
-- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn generator: collects all `.xsd` files
+- `WWCP_ISO15118_EXI_SourceGenerator/` — Roslyn generator: collects all `.xsd` files
   of a project as ONE schema set, supports import/choice/extension/substitutionGroup/
   attribute/unbounded, emits document AND fragment codecs.
-- `Vanaheimr.V2G.Exi.Iso15118_2/` — generated -2 codec, all 17 message pairs
+- `WWCP_ISO15118_2/` — generated -2 codec, all 17 message pairs
   validated against cbV2G; XMLDSig signatures (EXI fragments, ECDSA P-256/SHA-256)
   via `V2GSignatureBuilder`/`V2GSignatureVerifier`.
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven; `tools/cbv2g-ref/` a CLI harness
+- `WWCP_ISO15118_EXI_Tests/` — NUnit, vector-driven; `tools/cbv2g-ref/` a CLI harness
   around libcbv2g (pinned commit) with the appHand and iso-2 modules.
 - Docs: `docs/xsd-inventory-15118-2.md`, `docs/xsd-to-csharp-mapping.md`.
 
 Read before starting: `README.md`, both docs, the generator architecture, and how
-`Vanaheimr.V2G.Exi.Iso15118_2` wires the XSDs in as AdditionalFiles.
+`WWCP_ISO15118_2` wires the XSDs in as AdditionalFiles.
 
 ## Preconditions (check these first)
 
@@ -75,7 +75,7 @@ that adding another schema set only means a new csproj + vectors).
 
 ### 3. Project structure: one assembly per message set
 
-- New projects `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages`, `….DC`, `….AC`
+- New projects `WWCP_ISO15118_20.CommonMessages`, `….DC`, `….AC`
   (net10.0), each with its own XSD set (set XSD + CommonTypes + xmldsig) as
   AdditionalFiles + a generator reference.
 - Deliberate tradeoff: this duplicates the CommonTypes types across assemblies

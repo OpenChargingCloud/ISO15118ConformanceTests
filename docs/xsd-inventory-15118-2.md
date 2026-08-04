@@ -4,7 +4,7 @@ Mechanical inventory of every XSD construct/facet **actually used** by the five
 ISO 15118-2 schema files. This is the binding requirements list for the generator —
 implement exactly these constructs, construct by construct, verifying each against cbV2G.
 
-Source schemas: `Vanaheimr.V2G.Exi.Iso15118_2/Schemas/` (provenance: RISE-V2G
+Source schemas: `WWCP_ISO15118_2/Schemas/` (provenance: RISE-V2G
 `055806d`, see the README next to them). Produced by a throwaway ElementTree script
 over the five files (`V2G_CI_MsgDef`, `V2G_CI_MsgHeader`, `V2G_CI_MsgBody`,
 `V2G_CI_MsgDataTypes`, `xmldsig-core-schema`).

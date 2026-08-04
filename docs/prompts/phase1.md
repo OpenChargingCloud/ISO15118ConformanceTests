@@ -6,13 +6,13 @@ You're working in the repo `D:\Coding\OpenChargingCloud\Vanaheimr.V2G.Exi` — a
 intended, long-term, to parse and serialize ISO 15118-2 and 15118-20 EXI messages
 (goal: EV↔EVSE simulation). Current state:
 
-- `Vanaheimr.V2G.Exi.Prototype/Exi/` — `BitReader`, `BitWriter` (bit-packed, MSB-first)
+- `WWCP_ISO15118_EXI/Exi/` — `BitReader`, `BitWriter` (bit-packed, MSB-first)
   and `ExiPrimitives` (unsigned integer, n-bit unsigned, string only in the "miss" case).
-- `Vanaheimr.V2G.Exi.Prototype/AppProtocol/` — hand-written SupportedAppProtocol codec.
-- `Vanaheimr.V2G.Exi.SourceGenerator/` — Roslyn IIncrementalGenerator (XSD → codec),
+- `WWCP_ISO15118_EXI/AppProtocol/` — hand-written SupportedAppProtocol codec.
+- `WWCP_ISO15118_EXI_SourceGenerator/` — Roslyn IIncrementalGenerator (XSD → codec),
   secured by a diff test against the hand-written codec. Do NOT touch it in this phase,
   unless an API change to the primitives forces it.
-- `Vanaheimr.V2G.Exi.Tests/` — NUnit, vector-driven, 71 tests green.
+- `WWCP_ISO15118_EXI_Tests/` — NUnit, vector-driven, 71 tests green.
   `dotnet test -c Release` must still be fully green at the end.
 
 Read before starting: `README.md`, `Exi/ExiPrimitives.cs`, `Exi/BitReader.cs`, `Exi/BitWriter.cs`,
