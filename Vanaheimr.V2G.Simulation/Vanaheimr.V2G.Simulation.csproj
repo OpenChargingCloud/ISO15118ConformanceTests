@@ -13,7 +13,7 @@
   <ItemGroup>
     <!-- Managed TLS stack for the ISO 15118-20-faithful TLS profile (P-521 / Ed448, exact -20
          cipher-suite & curve pinning) that Windows Schannel cannot provide. Opt-in backend. -->
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" />
   </ItemGroup>
 
   <ItemGroup>
