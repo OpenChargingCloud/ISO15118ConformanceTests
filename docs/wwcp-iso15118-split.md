@@ -19,11 +19,10 @@ is the step that made the seam visible.
 Nothing in the codec set references anything in the conformance set. The arrows all point one way:
 
 ```
-                 ┌─ Exi.SourceGenerator ─────────┐   (Roslyn; netstandard2.0)
-                 │            ▲                  │
-  Exi.Codegen ───┘            │ Analyzer         │
-  (Kotlin/TS/Swift driver)    │                  │
-                              │                  ▼
+  EVSimulatorApp.Codegen ──┐  Exi.SourceGenerator ─────────┐   (Roslyn; netstandard2.0)
+  (Kotlin/TS/Swift back    │           ▲                   │
+   ends; linked source) ───┘           │ Analyzer          │
+                                       │                   ▼
                         Exi.Prototype ──── BitReader/BitWriter, ExiPrimitives,
                               ▲            AppProtocol codec, V2GTP header
             ┌─────────────────┼──────────────────┬──────────────┐
@@ -49,8 +48,7 @@ No cycle appears in either direction.
 
 | Project | .cs | What it is |
 |---|--:|---|
-| `Vanaheimr.V2G.Exi.SourceGenerator` | 37 | XSD → grammar → codec, plus the C#/Kotlin/TypeScript/Swift back ends |
-| `Vanaheimr.V2G.Exi.Codegen` | 1 | Roslyn-free driver so the non-C# back ends can run outside a compilation |
+| `Vanaheimr.V2G.Exi.SourceGenerator` | 31 | XSD → grammar → codec, plus the C# back end — see "the port back ends" below |
 | `Vanaheimr.V2G.Exi.Prototype` | 12 | `BitReader`/`BitWriter`, EXI primitives, the hand-written AppProtocol codec, the V2GTP header |
 | `Vanaheimr.V2G.Exi.Iso15118_2` | 2 | -2 schemas + `PhysicalValue`, `V2GSignature` |
 | `Vanaheimr.V2G.Exi.Iso15118_20.CommonMessages` | 2 | schemas + `RationalNumber`, `V2GSignature` |
@@ -60,7 +58,7 @@ No cycle appears in either direction.
 | `Vanaheimr.V2G.Exi.XmlDsig` | 0 | schema-only |
 | `Vanaheimr.V2G.Exi.Dispatch` | 2 | payload type ↔ message set |
 | `Vanaheimr.V2G.Exi.Simulation` | 6 | the "every line is a real EXI round-trip" console demo |
-| `Vanaheimr.V2G.Exi.Tests` | 64 | codec tests, minus `Interop/` — see below |
+| `Vanaheimr.V2G.Exi.Tests` | 55 | codec tests, minus `Interop/` and the port-emitter tests |
 | `Vanaheimr.V2G.Exi.Tests/Vectors/` | 16 files | the byte-level oracle |
 | `tools/cbv2g-ref/`, `tools/exificient-ref/` | — | the reference encoders that *produce* those vectors |
 
@@ -78,6 +76,42 @@ at build time from the XSDs, so "the generated code moves" means the schemas and
 | `Vanaheimr.V2G.Exi.Tests/Interop/` | 6 | `Josev*` — see the boundary question below |
 | `tools/interop-{josev,everest,evdriveflow}/` | — | live harnesses |
 | `docs/interop-runs/` | 30+ dirs | evidence of runs; belongs with the rig that produced it |
+
+## The port back ends did not go to WWCP_ISO15118
+
+The generator emits C#, Kotlin, Swift and TypeScript. Only the first is of use to a .NET
+consumer, and the sizes say the rest loudly:
+
+| | lines |
+|---|--:|
+| front end (`Xsd/` + `Grammar/`) | 1 771 |
+| `Emit/` shared base | 2 634 |
+| **C# back end** | **715** |
+| Kotlin / Swift / TypeScript | 8 651 |
+
+So the three port back ends, the `Codegen` driver that runs them, and their nine test files live
+in the app instead — `tools/EVSimulatorApp.Codegen` and `.Codegen.Tests`. The app is their only
+consumer, and putting them in an ISO 15118 library would have meant 8 651 lines of Kotlin and
+Swift templating that no .NET caller will ever reach.
+
+Nothing new was invented to make this work. `Codegen` never referenced the generator as an
+assembly — the generator is a netstandard2.0 analyzer with a Roslyn dependency the driver must
+not carry — so it always compiled `Xsd/`, `Grammar/` and `Emit/` in as linked source. The app does
+the same, across the submodule boundary.
+
+Two consequences worth stating plainly:
+
+- **`CodecEmitter` is the base class all four back ends specialise, and it stays here.** A change
+  to it is a change to two repositories. That is the price of the split, and it is not hidden:
+  the app's build breaks immediately if the base moves out from under it.
+- **The differential tests moved too.** Every Swift and Kotlin test asserts against what the C#
+  back end emits for the same schema — that is what caught a TypeScript emitter spelling an
+  optional type the way Kotlin does. They still work, because the C# emitter arrives through the
+  same linked sources; they simply run in the app's suite now. `EmitterHarness` is linked rather
+  than copied so the two sides cannot drift about what "emit this schema" means.
+
+Verified by regenerating rather than by reasoning: all 1 395 checked-in Kotlin files, and the
+Swift and TypeScript AppProtocol sets, come out byte-identical from the driver's new home.
 
 ## Three things the split is not mechanical about
 
@@ -138,7 +172,6 @@ Matching the repository's existing `WWCP_ISO15118_<area>` convention:
 ```
 WWCP_ISO15118_EXI/                      ← Exi.Prototype
 WWCP_ISO15118_EXI_SourceGenerator/
-WWCP_ISO15118_EXI_Codegen/
 WWCP_ISO15118_EXI_Dispatch/
 WWCP_ISO15118_EXI_Tests/
 WWCP_ISO15118_2_EXI/                    ← Exi.Iso15118_2 (schemas)
