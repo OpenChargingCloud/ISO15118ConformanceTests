@@ -54,7 +54,7 @@ not implemented on their side
 | BPT, AC + DC (incl. Dynamic) | ✅ | ▢ (their 2026.02.1 SIL now advertises BPT) | — | — |
 | Plug & Charge | ✅ | — commented out on their side | ▢ | — |
 | CertificateInstallation | ◐ our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
-| Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session⁶ | — (plain TCP only) | — |
+| Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
 | SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1) | ✅ their EV found our SECC | — |
 | Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ | — | — |
 | WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
@@ -77,15 +77,15 @@ PnC unreachable. -20 PnC is a single commented-out line in their module, unchang
 the run notes — and 12 of our -20 messages decoded clean by a second independent codec.
 ⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot
 produce; not reachable from the wire.
-⁶ Complete charge over mutual TLS 1.3 on 2025.10.0; on 2026.02.1 the station side is re-validated
-(bridged client). The caveat that stood here — Schannel refuses to present a test-PKI client chain, so
-our -20 TLS client was provable only from macOS — **is gone from the app**: a session now names its TLS
-backend (`TlsOptions.Backend`, or `V2G_TLS_BACKEND=BouncyCastle` for a run that cannot edit them), and
-`Iso20BackendOptInLoopbackTests` carries a secp521r1 chain from a root no store has heard of through -20
-AC *and* DC to `SessionStop` on Windows, with nothing installed anywhere. What has **not** happened is
-the live one: this cell still rests on the 2025.10/macOS session and the bridged 2026.02.1 station-side
-check, because no -20 mutual-TLS run against EVerest has been driven from Windows yet. That run is now
-one variable away rather than one platform away.
+⁶ Complete charge over mutual TLS 1.3 on 2025.10.0 (macOS), and **×2 against 2026.02.1 driven from
+Windows** — 59 and 68 exchanges to `SessionStop`, their side logging `Handshake complete` /
+`Verify certificate result is okay`
+([`2026-08-06-everest-iso20-tls13-windows`](docs/interop-runs/2026-08-06-everest-iso20-tls13-windows/notes.md)).
+The Schannel caveat that stood here is retired at both ends: the app lets a session name its TLS backend
+(`V2G_TLS_BACKEND=BouncyCastle`), and that is the only variable the live run added. One bound survives,
+and it is about *their* material rather than ours — their `create_certs.sh -v iso-20` emits **P-256**
+(`EC_CURVE=prime256v1`, with their own `TODO` beside it), so the secp521r1 half of our -20 profile still
+has no counterparty that generates it.
 ⁷ And the finding that goes with it: `IsoMux` routes on "mentions -20 anywhere", never reading SAP
 `Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
 ⁸ The **catalogue** is what this validates, not the envelope: their MCS SIL is electrically an ordinary
@@ -116,10 +116,9 @@ id 8 read back by their stack as MCS, the first external witness this project ha
 ([`2026-08-05-everest-mcs`](docs/interop-runs/2026-08-05-everest-mcs/notes.md)).
 PnC was repeated too: our signed -2 `AuthorizationReq` verifies against their station on 2026.02.1 as
 it did on 2025.10, and the wall behind it is theirs (nothing in the SIL validates a contract).
-Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; and no -20 mutual-TLS
-session has been driven against them from Windows — which is now a run that has not happened rather
-than a client that could not exist, since the app's TLS-backend opt-in landed (see ⁶; their station
-side is bridged and green either way).
+Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling. The Windows/TLS bound is
+gone — two -20 DC sessions over mutual TLS 1.3 now run from Windows against 2026.02.1, client chain and
+all (see ⁶).
 
 **Josev has a page of its own**, because it is the counterparty with the most history here and the only
 one that serves both roles well: [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) —
