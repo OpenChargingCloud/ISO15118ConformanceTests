@@ -1,8 +1,28 @@
 # Draft report to EVerest — libiso15118 `loop()` shutdown
 
-Status: **draft, not sent.** Reproduce it yourself before filing; see *Before sending* at the bottom.
+Status: **draft, not sent — re-verified on 2026.02.1 (2026-08-05); file it with trigger 3 as the lead.**
 Evidence: [`../interop-runs/2026-08-03-everest-iso20-dc-tls13/`](../interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md)
 and [`../interop-runs/2026-08-03-everest-iso20-dc-full-charge/`](../interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md).
+
+> **2026-08-05, against everest-core 2026.02.1 built from source** (libiso15118 v0.9.1 vendored
+> in-tree; see [`../interop-runs/2026-08-05-everest-2026021-matrix/`](../interop-runs/2026-08-05-everest-2026021-matrix/notes.md)):
+>
+> - **Trigger 1 (unicast SDP) no longer reproduces** — 0/2 attempts, idle and in-session, both
+>   security bytes. The request is answered (idle) or ignored with a log line (in-session), the loop
+>   survives. The quoted `recvfrom`/`log_and_throw` code below is **unchanged** at
+>   `sdp_server.cpp:106`, so this is a behavioural fix upstream of it, not a repair of the pattern;
+>   the reproduction section below is now historical (2025.10.0).
+> - **Trigger 3 (refused TLS handshake) still reproduces — 3/3.**
+>   `Shutdown loop() because of: Failed to SSL_accept(): … tls_process_client_certificate:certificate
+>   verify failed`, and the zombie state was observed directly afterwards: the SDP socket stays bound
+>   and answers nothing (a multicast probe times out), nothing restarts the module.
+> - The asymmetry is now the cleanest form of the argument: an `SSL_read_ex` failure on an
+>   **established** session is scoped to the session ("Shutting down session … closed gracefully",
+>   loop survives — observed) while the same class of error inside `SSL_accept` ends `loop()`.
+> - Trigger 2 (TLS key logging) was not retried (its 2025.10 sighting was qemu-specific).
+>
+> The `tbd_controller.cpp` line numbers below now read 50-56 (catch/break at :54); everything else
+> in the code quotes is current.
 
 ---
 
@@ -127,7 +147,10 @@ Two separable things, and we would happily send a PR for the first if you agree 
 
 ## Before sending
 
-- [ ] Reproduce step 1–4 yourself once. If it does not reproduce, this does not get filed.
+- [x] ~~Reproduce step 1–4 yourself once.~~ Done 2026-08-05 on 2026.02.1: trigger 1 does **not**
+      reproduce any more, trigger 3 does (3/3). **Rewrite the summary around trigger 3** (a refused
+      TLS handshake in `SSL_accept` ends `loop()`; sockets stay bound) and present the unicast-SDP
+      case as "fixed in 2026.02.1, underlying pattern unchanged at `sdp_server.cpp:106`".
 - [ ] File **one** issue, this one. The other observations from these runs (`IsoMux` not reading
       `Priority`, -20 PnC being commented out in `Evse15118D20`) are deliberately not in here: the
       first rests on a requirement we cannot cite, the second is their own documented TODO.

@@ -216,6 +216,18 @@ Beyond Josev, the suite carries recorded and live cross-checks against three mor
 frames they replay live under `ISO15118ConformanceTests.Simulation/Traces/`, so the offline suite exercises
 them without the other stack present.
 
+**EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
+in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
+image, 02/03.08) **and re-validated against 2026.02.1 built from source**
+([`2026-08-05-everest-2026021-matrix`](docs/interop-runs/2026-08-05-everest-2026021-matrix/notes.md)).
+Standing deltas on 2026.02.1: their unicast-SDP loop shutdown is fixed, the refused-TLS-handshake loop
+shutdown persists (report ready to file, [`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md)),
+`IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, and
+`config-sil-mcs.yaml` now exists — the first MCS counterpart in sight (our fixture has no MCS arm yet).
+Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; PnC not yet repeated on
+2026.02.1; on Windows the -20 mutual-TLS client needs the BouncyCastle path made reachable (Schannel
+refuses untrusted-root client chains — station side bridged and green).
+
 ---
 
 The stack all of this tests — the EXI codec, the state machines, the TLS/PKI, the CLI — is documented in
