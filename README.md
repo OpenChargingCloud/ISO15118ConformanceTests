@@ -78,8 +78,14 @@ the run notes — and 12 of our -20 messages decoded clean by a second independe
 ⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot
 produce; not reachable from the wire.
 ⁶ Complete charge over mutual TLS 1.3 on 2025.10.0; on 2026.02.1 the station side is re-validated
-(bridged client). Caveat of ours: on Windows, Schannel refuses to present a test-PKI client chain, so
-the conformant -20 TLS client remains proven from the macOS/BouncyCastle path.
+(bridged client). The caveat that stood here — Schannel refuses to present a test-PKI client chain, so
+our -20 TLS client was provable only from macOS — **is gone from the app**: a session now names its TLS
+backend (`TlsOptions.Backend`, or `V2G_TLS_BACKEND=BouncyCastle` for a run that cannot edit them), and
+`Iso20BackendOptInLoopbackTests` carries a secp521r1 chain from a root no store has heard of through -20
+AC *and* DC to `SessionStop` on Windows, with nothing installed anywhere. What has **not** happened is
+the live one: this cell still rests on the 2025.10/macOS session and the bridged 2026.02.1 station-side
+check, because no -20 mutual-TLS run against EVerest has been driven from Windows yet. That run is now
+one variable away rather than one platform away.
 ⁷ And the finding that goes with it: `IsoMux` routes on "mentions -20 anywhere", never reading SAP
 `Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
 ⁸ The **catalogue** is what this validates, not the envelope: their MCS SIL is electrically an ordinary
@@ -110,9 +116,10 @@ id 8 read back by their stack as MCS, the first external witness this project ha
 ([`2026-08-05-everest-mcs`](docs/interop-runs/2026-08-05-everest-mcs/notes.md)).
 PnC was repeated too: our signed -2 `AuthorizationReq` verifies against their station on 2026.02.1 as
 it did on 2025.10, and the wall behind it is theirs (nothing in the SIL validates a contract).
-Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; on Windows the -20
-mutual-TLS client needs the BouncyCastle path made reachable (Schannel refuses untrusted-root client
-chains — station side bridged and green).
+Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; and no -20 mutual-TLS
+session has been driven against them from Windows — which is now a run that has not happened rather
+than a client that could not exist, since the app's TLS-backend opt-in landed (see ⁶; their station
+side is bridged and green either way).
 
 **Josev has a page of its own**, because it is the counterparty with the most history here and the only
 one that serves both roles well: [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) —
