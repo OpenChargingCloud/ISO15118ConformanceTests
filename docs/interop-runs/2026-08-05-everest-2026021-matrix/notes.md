@@ -117,11 +117,13 @@ Their PKI workflow is unchanged: `create_certs.sh -v iso-20` from the vendored J
   throwaway test root into the user's Windows trust store was not an acceptable fix. The 2025.10 TLS
   result came from the BC path on macOS; the faithful -20 TLS client on Windows needs the same
   fallback made reachable there — named as follow-up for the app, not changed today.
-  **Since done** (app `99e8925` + `63a2302`, later the same day): a session names its TLS backend via
-  `TlsOptions.Backend` or `V2G_TLS_BACKEND=BouncyCastle`, and `Iso20BackendOptInLoopbackTests` proves
-  the route on Windows — secp521r1 chain from an untrusted root, -20 AC and DC to `SessionStop`, nothing
-  installed in any store. The **live** run this finding blocked has still not been driven from Windows;
-  it now needs only that variable alongside the `V2G_INTEROP_TLS*` set.
+  **Since resolved, and then run** (app `99e8925` + `63a2302`, later the same day): a session names its
+  TLS backend via `TlsOptions.Backend` or `V2G_TLS_BACKEND=BouncyCastle`. On 2026-08-06 that one variable
+  carried two complete -20 DC sessions over mutual TLS 1.3 from Windows against this same station —
+  [`2026-08-06-everest-iso20-tls13-windows`](../2026-08-06-everest-iso20-tls13-windows/notes.md). So the
+  honest TLS row is no longer split by platform. What that run *did* leave standing is a different bound:
+  their own `create_certs.sh -v iso-20` emits P-256, so nothing here has yet met secp521r1 material from a
+  counterparty.
 
 So the honest TLS row reads: *station side re-validated on 2026.02.1; our client side remains
 validated on 2025.10/macOS only.*
