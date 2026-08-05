@@ -76,6 +76,54 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             });
         }
 
+        /// <summary>
+        /// The EV's ranking decides, not the catalogue's order.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A regression guard for a defect a live run found and this suite could not:
+        /// <c>Evcc20Base.SelectEnergyTransferService</c> used to walk the <i>station's</i> list and take the
+        /// first entry the EV accepted, so <c>PreferredEnergyServiceIds</c> — documented "best first" —
+        /// never ranked anything. Our own <c>Secc20Mcs</c> advertises <c>{ 8, 9 }</c> in that order, which
+        /// is exactly the shape EVerest's MCS catalogue has, so the bug reproduces offline: before the fix
+        /// this test selects 8.
+        /// See <c>docs/interop-runs/2026-08-05-everest-mcs-bpt/notes.md</c>.
+        /// </para>
+        /// <para>
+        /// Note what this session does <i>not</i> prove: it completes, because our SECC answers the
+        /// charge-parameter request in kind rather than checking it against the selected service. EVerest's
+        /// station refuses the same exchange with <c>FAILED_WrongChargeParameter</c>. The difference is
+        /// recorded in the run notes; only the selection is asserted here.
+        /// </para>
+        /// </remarks>
+        [Test]
+        public async Task Evcc_RankingDecides_NotTheStationsCatalogueOrder()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Mcs(TimeSpan.FromSeconds(60), TimeProvider.System);   // advertises 8, then 9
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+            // The same probe the interop fixture uses: Evcc20Mcs's list, reversed.
+            var evcc = new Interop.McsBptFirstEvcc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
+            await Task.WhenAll(evcc.RunAsync(cts.Token), seccTask);
+
+            Assert.That(evcc.SelectedEnergyServiceId, Is.EqualTo(9),
+                        "the EVCC ranked MCS_BPT (9) first and the station offered it, so 9 is the only "
+                      + "answer the EV's own ranking allows — 8 means the station's order won");
+        }
+
+
         [Test]
         public async Task McsEvcc_FallsBackToWhateverAPlainDcSeccOffers()
         {

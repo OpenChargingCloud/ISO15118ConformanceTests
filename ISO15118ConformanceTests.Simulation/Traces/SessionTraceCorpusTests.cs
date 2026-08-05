@@ -757,7 +757,11 @@ public class SessionTraceCorpusTests
             // that ran a cable check on AC would be wrong, and only a per-mode expectation says so.
             // Substring, not prefix: the same phase is WeldingDetectionReqType in -2 and
             // DC_WeldingDetectionReq in -20, which is a naming difference and not a behavioural one.
-            var dc = trace.Mode is "dc";
+            // "mcs" counts as DC here because MCS *is* the DC message set — it differs in the service
+            // catalogue (ids 8/9) and the power envelope, not in the phases. Filed under its own mode name
+            // so a capture says which catalogue it negotiated; asserted as DC so an MCS trace is held to
+            // the cable check and the welding detection it really runs.
+            var dc = trace.Mode is "dc" or "mcs";
             Assert.That(messages.Any(m => m.Contains("WeldingDetection")), Is.EqualTo(dc),
                         $"welding detection is DC-only; this is the '{trace.Mode}' trace");
             Assert.That(messages.Any(m => m.Contains("CableCheck")), Is.EqualTo(dc),

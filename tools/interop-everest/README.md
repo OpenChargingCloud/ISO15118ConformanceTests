@@ -128,12 +128,22 @@ Their `config/` directory carries the whole matrix. The ones this harness is bui
 | `config-sil-dc-d20.yaml` | **-20 DC** (`Evse15118D20` + `PyEvJosev` with TLS 1.3) |
 | `config-sil-ac-d20.yaml` | -20 AC |
 | `config-sil-dc-isomux.yaml`, `-isomux-tls.yaml` | one charger answering both -2 and -20 |
-| `config-sil-mcs.yaml` | **MCS** — see below |
+| `config-sil-mcs.yaml` | **MCS** (`Evse15118D20` + `EvseManager` with `connector_type: cMCS`) — see below |
 | `config-sil-dc-sae-v2g.yaml`, `-v2h.yaml` | SAE bidirectional profiles |
 
-**MCS is worth noting.** Our own roadmap records MCS (service ids 8/9) as implemented but *"untested
-against a live counterpart"*. `config-sil-mcs.yaml` is the first live counterpart in sight for it. Out of
-scope for a first contact, and the reason to come back.
+**MCS: run it.** This is the only live MCS counterpart this project has ever had, and it is the reason
+`V2G_INTEROP_MODE=mcs` exists. Their `EvseManager`'s `connector_type: cMCS` is the line that makes the
+station an MCS one: it hands `Evse15118D20` the energy-transfer modes `MCS` and (because their
+`DCSupplySimulator` defaults to `bidirectional: true`) `MCS_BPT`, so the catalogue carries service ids
+**8** and **9**. Three sessions ran complete on 2026-08-05 —
+[`2026-08-05-everest-mcs`](../../docs/interop-runs/2026-08-05-everest-mcs/notes.md). Two things to know
+before repeating it:
+
+- Their stock MCS config, like their stock d20 one, **enables neither control mode**, and the module
+  defaults to Dynamic-only — a Scheduled EVCC fails service selection against it. Re-enable both, as
+  [`config-mcs-ours.yaml`](../../docs/interop-runs/2026-08-05-everest-mcs/config-mcs-ours.yaml) does.
+- Their MCS SIL is **electrically an ordinary charger** (22 kW HLC limits, same fuse configuration as
+  their plain -20 DC config). The run validates the service catalogue, not the power envelope.
 
 ### The two settings that decide whether a run can work
 
@@ -179,6 +189,27 @@ V2G_INTEROP_SCENARIO=../../ISO15118ConformanceTests.Simulation/Vectors/Session.i
 
 Read the **station → EV** section of `flow.md` first. What our car sends is ours and already pinned by the
 corpus; what their charger answered is the thing no test here has ever seen.
+
+**The MCS arm** is the same fixture with one variable, against a station brought up on
+`config-sil-mcs.yaml`:
+
+```bash
+V2G_INTEROP_SECC=127.0.0.1:15200 V2G_INTEROP_MODE=mcs V2G_INTEROP_RECORD=/tmp/mcs-run \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
+    --filter "FullyQualifiedName~EverestInteropTests.OurEvcc"
+```
+
+`mcs` implies ISO 15118-20 — service ids 8/9 exist in no other catalogue — and a contradicting
+`V2G_INTEROP_PROTOCOL` is refused rather than silently outranked. Add `V2G_INTEROP_DYNAMIC=1` for the
+Dynamic arm. The fixture asserts that the negotiated service really was 8 or 9: `Evcc20Mcs` falls back to
+a plain DC service when none is offered, by design, and a fallback that completed would otherwise be
+written up as an MCS result.
+
+Add **`V2G_INTEROP_MCS_FIRST=9`** to go for **MCS_BPT** instead, and the assertion narrows to exactly 9.
+Expect it to reach `DC_ChargeParameterDiscoveryRes` and fail there with `FAILED_WrongChargeParameter` —
+that refusal is the current state of our bidirectional EV support (no `Evcc20*` builds the `BPT_*`
+request types), and the run notes explain it. Selecting 9 at all took an app fix: the EVCC's service
+ranking used to be ignored in favour of the station's catalogue order.
 
 **Run it twice.** Their `EvseV2G` segfaults on the second V2G session in the same process — see
 [Known friction](#known-friction-expect-these-first) — and a harness that only ever opens one connection
@@ -271,9 +302,16 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
    2026-08-03 — it binds its own TCP port at startup (61342, no SDP step needed), terminates the
    SupportedAppProtocol handshake itself and routes on the offered namespace. Its backends sit on `lo`
    with `enable_sdp_server: false`, and `Evse15118D20` behind it still claims `[::1]:50000`.
-6. **MCS** — the first live counterpart our MCS support would ever have had.
+6. ✅ **MCS** — the first live counterpart our MCS support ever had. Done 2026-08-05 against
+   `config-sil-mcs.yaml`: three complete sessions, service id 8 read back as MCS by their stack.
+   **MCS_BPT (9)** was probed the same day (`V2G_INTEROP_MCS_FIRST=9`) and is where our side stops: their
+   station accepts the selection and then refuses the session with `FAILED_WrongChargeParameter`, because
+   no `Evcc20*` builds the `BPT_*` charge parameters that a bidirectional service requires.
+   [`2026-08-05-everest-mcs-bpt`](../../docs/interop-runs/2026-08-05-everest-mcs-bpt/notes.md).
 7. **Reverse** with `PyEvJosev`, lower value (it is Josev in a wrapper) and the one the relay cannot
-   cover, so last.
+   cover, so last — **except for MCS**, where their `config-sil-mcs.yaml` configures their car with
+   `supported_d20_energy_services: MCS`. That is an EV that asks for service 8 specifically, and it is
+   the only way to put *our* MCS catalogue in front of a foreign chooser.
 
 ---
 

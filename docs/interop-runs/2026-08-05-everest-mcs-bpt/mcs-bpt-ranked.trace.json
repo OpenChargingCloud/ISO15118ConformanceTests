@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-20-mcs-forward",
+  "protocol": "iso15118-20",
+  "mode": "mcs",
+  "note": "live interop: our EVCC against EVerest\u0027s EvseV2G / Evse15118D20",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupReq",
+        "frame": "01fe800200000019808c0400000000000000000cd90ccd30620422ab21a1981880"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupRes",
+        "frame": "01fe800200000023809004329d6859fa7a45e98cd90ccd3062040451114a9413960a914c4c8ccd0d4a8c40"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupReq",
+        "frame": "01fe800200000011800804329d6859fa7a45e98cd90ccd3062"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupRes",
+        "frame": "01fe800200000014800c04329d6859fa7a45e98cd90ccd3062000400"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationReq",
+        "frame": "01fe800200000012800004329d6859fa7a45e98cd90ccd306200"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationRes",
+        "frame": "01fe800200000013800404329d6859fa7a45e98cd90ccd30620010"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationReq",
+        "frame": "01fe800200000012800004329d6859fa7a45e98cd90ccd306200"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationRes",
+        "frame": "01fe800200000013800404329d6859fa7a45e98cd90ccd30620000"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryReq",
+        "frame": "01fe800200000012807c04329d6859fa7a45e98cd90ccd306280"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryRes",
+        "frame": "01fe800200000018808004329d6859fa7a45e98cd90ccd306200000800024050"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailReq",
+        "frame": "01fe800200000013807404329d6859fa7a45e98cd90ccd30620480"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailRes",
+        "frame": "01fe8002000000c5807804329d6859fa7a45e98cd90ccd30620002400002d0dbdb9b9958dd1bdc980200d436f6e74726f6c4d6f6465601004d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e6760000310941510da185b9b995b180200f47656e657261746f724d6f6465600880080b436f6e6e6563746f7260080350dbdb9d1c9bdb135bd91958020134d6f62696c6974794e656564734d6f6465600802541c9a58da5b99d80000c4250544368616e6e656c600803d1d95b995c985d1bdc935bd9195802280"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionReq",
+        "frame": "01fe800200000015808404329d6859fa7a45e98cd90ccd306202400880"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionRes",
+        "frame": "01fe800200000013808804329d6859fa7a45e98cd90ccd30620000"
+      }
+    },
+    {
+      "index": 8,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryReq",
+        "frame": "01fe800400000029803c04329d6859fa7a45e98cd90ccd3062881088270400000200320041000000800f40304001902800"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryRes",
+        "frame": "01fe800400000026804004329d6859fa7a45e98cd90ccd30624e4400000200000100000080000040000020000040"
+      }
+    }
+  ]
+}

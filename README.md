@@ -58,7 +58,8 @@ not implemented on their side
 | SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1) | ✅ their EV found our SECC | — |
 | Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ | — | — |
 | WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
-| MCS | *first counterpart in sight: 2026.02.1 ships `config-sil-mcs.yaml`; our interop fixture has no MCS arm yet* | | | |
+| MCS | — | ✅ ×3 sessions (Scheduled ×2, Dynamic), service id **8** confirmed as MCS by their decoder⁸ | — | — |
+| MCS_BPT | — | ◐ service **9** selected and accepted; session then refused `FAILED_WrongChargeParameter` — our EVCC has no bidirectional request path⁹ | — | — |
 
 ¹ EVerest's current `EvseV2G` sits on cbV2G — the encoder our vector corpus is generated from — so
 byte-level agreement there is not independent. The 2023.10.0 demo image ran **OpenV2G**, which *was* an
@@ -77,10 +78,29 @@ the run notes — and 12 of our -20 messages decoded clean by a second independe
 ⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot
 produce; not reachable from the wire.
 ⁶ Complete charge over mutual TLS 1.3 on 2025.10.0; on 2026.02.1 the station side is re-validated
-(bridged client). Caveat of ours: on Windows, Schannel refuses to present a test-PKI client chain, so
-the conformant -20 TLS client remains proven from the macOS/BouncyCastle path.
+(bridged client). The caveat that stood here — Schannel refuses to present a test-PKI client chain, so
+our -20 TLS client was provable only from macOS — **is gone from the app**: a session now names its TLS
+backend (`TlsOptions.Backend`, or `V2G_TLS_BACKEND=BouncyCastle` for a run that cannot edit them), and
+`Iso20BackendOptInLoopbackTests` carries a secp521r1 chain from a root no store has heard of through -20
+AC *and* DC to `SessionStop` on Windows, with nothing installed anywhere. What has **not** happened is
+the live one: this cell still rests on the 2025.10/macOS session and the bridged 2026.02.1 station-side
+check, because no -20 mutual-TLS run against EVerest has been driven from Windows yet. That run is now
+one variable away rather than one platform away.
 ⁷ And the finding that goes with it: `IsoMux` routes on "mentions -20 anywhere", never reading SAP
 `Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
+⁸ The **catalogue** is what this validates, not the envelope: their MCS SIL is electrically an ordinary
+charger (22 kW HLC limits, same as their plain -20 DC config), and our own `Evcc20Mcs` declares a 50 kW
+EV envelope under the MCS service — the EV-side limits in `Evcc20Dc` are not virtual, so the megawatt
+figures exist only on our station side. Both bounds are named in the run notes.
+⁹ Their refusal is correct — a BPT service wants `BPT_*` charge parameters, and ours were charge-only —
+and it is the first external confirmation that the service/parameter coupling is enforced against an EV
+at all. What remains open is ours: no `Evcc20*` builds the `BPT_*` request types, because our
+bidirectional work was done station-side, where the EV's message decides the direction. Getting far enough
+to learn that turned up a second defect of ours and **fixed** it:
+`Evcc20Base.SelectEnergyTransferService` followed the *station's* catalogue order, so
+`PreferredEnergyServiceIds` — documented "best first" — was a filter and never a ranking. That is the same
+defect shape as ⁷ pointed at ourselves; it now walks the EV's list, the run was repeated to confirm it on
+the wire, and a loopback regression test reproduces the old behaviour.
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
@@ -91,12 +111,15 @@ one persists and turns out to be reachable from their *stock* SIL config by one 
 line — after it, the charger answers nothing while its process stays healthy (report ready to file,
 [`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md)),
 `IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, and
-`config-sil-mcs.yaml` now exists — the first MCS counterpart in sight (our fixture has no MCS arm yet).
+`config-sil-mcs.yaml` now exists — **which has since been run**: three complete MCS sessions, our service
+id 8 read back by their stack as MCS, the first external witness this project has ever had for MCS
+([`2026-08-05-everest-mcs`](docs/interop-runs/2026-08-05-everest-mcs/notes.md)).
 PnC was repeated too: our signed -2 `AuthorizationReq` verifies against their station on 2026.02.1 as
 it did on 2025.10, and the wall behind it is theirs (nothing in the SIL validates a contract).
-Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; on Windows the -20
-mutual-TLS client needs the BouncyCastle path made reachable (Schannel refuses untrusted-root client
-chains — station side bridged and green).
+Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; and no -20 mutual-TLS
+session has been driven against them from Windows — which is now a run that has not happened rather
+than a client that could not exist, since the app's TLS-backend opt-in landed (see ⁶; their station
+side is bridged and green either way).
 
 **Josev has a page of its own**, because it is the counterparty with the most history here and the only
 one that serves both roles well: [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) —

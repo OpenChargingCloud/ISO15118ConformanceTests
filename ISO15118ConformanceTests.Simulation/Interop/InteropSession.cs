@@ -49,8 +49,15 @@ internal static class InteropSession
     /// <summary>How a session actually ran: the exchange count, and the authorization mode it really
     /// used. The second field exists because a Plug &amp; Charge run that quietly falls back to EIM —
     /// because the station did not offer Contract, or sent no challenge — completes just as happily and
-    /// would otherwise be reported as a PnC result.</summary>
-    public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent);
+    /// would otherwise be reported as a PnC result.
+    /// <para>
+    /// <see cref="SelectedEnergyServiceId"/> is there for the same reason, one negotiation earlier: an
+    /// <c>Evcc20Mcs</c> that finds no MCS service in the catalogue takes the DC one <i>by design</i>, so a
+    /// run reported only as "completed" cannot tell an MCS result from a megawatt truck charging at an
+    /// ordinary DC post. <c>null</c> for -2, which has no service catalogue to select from.
+    /// </para></summary>
+    public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent,
+                                     UInt16? SelectedEnergyServiceId = null);
 
 
     /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
@@ -59,10 +66,27 @@ internal static class InteropSession
     /// <param name="pnc">Contract credentials; when set <i>and</i> the station offers Contract/PnC, the
     /// session authorizes with a signed AuthorizationReq instead of EIM. Set by
     /// <c>V2G_INTEROP_CONTRACT_CERT</c>.</param>
+    /// <param name="mcs">Drive the -20 DC session as <b>MCS</b>: ask for energy-transfer services 8 / 9
+    /// instead of 2 / 6. Set by <c>V2G_INTEROP_MODE=mcs</c>; see <see cref="InteropEnvironment.Mcs"/>.</param>
+    /// <param name="mcsBptFirst">With <paramref name="mcs"/>: rank MCS_BPT (9) ahead of MCS (8), which is
+    /// the only way to reach the bidirectional entry of a catalogue that carries both. Set by
+    /// <c>V2G_INTEROP_MCS_FIRST=9</c>; see <see cref="McsBptFirstEvcc"/> for what it does <i>not</i>
+    /// make bidirectional.</param>
     public static async Task<EvccOutcome> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
-                                                       PncEvccOptions? pnc = null)
+                                                       PncEvccOptions? pnc = null, Boolean mcs = false,
+                                                       Boolean mcsBptFirst = false)
     {
+
+        if (mcs)
+            RefuseImpossibleMcs(protocol, mode);
+
+        // Stated rather than implied: ranking 9 first is meaningless outside an MCS catalogue, and silently
+        // ignoring it would leave a run that was asked for MCS_BPT looking like one that got it.
+        else if (mcsBptFirst)
+            throw new ArgumentException(
+                "MCS_BPT was ranked first without an MCS session; services 8 / 9 are only asked for when "
+              + "mcs is set.", nameof(mcsBptFirst));
 
         if (protocol == ProtocolVariant.Iso15118_2)
         {
@@ -72,15 +96,20 @@ internal static class InteropSession
             return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent);
         }
 
-        Evcc20Base evcc20 = mode == PowerMode.Dc
-                                ? new Evcc20Dc(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
-                                : new Evcc20Ac(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout);
+        Evcc20Base evcc20 = (mode, mcs, mcsBptFirst) switch
+        {
+            (PowerMode.Dc, true, true ) => new McsBptFirstEvcc(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+            (PowerMode.Dc, true, false) => new Evcc20Mcs      (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+            (PowerMode.Dc, false,    _) => new Evcc20Dc       (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+            _                           => new Evcc20Ac       (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+        };
 
         evcc20.PreferDynamicControlMode = preferDynamic;
         evcc20.Pnc                      = pnc;
 
         await evcc20.RunAsync(ct);
-        return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0);
+        return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,
+                               evcc20.SelectedEnergyServiceId);
 
     }
 
@@ -90,11 +119,16 @@ internal static class InteropSession
     /// <param name="preferDynamic">-20 only: offer the Dynamic (ControlMode 2) parameter set first. An EV
     /// that takes the first offered set then runs a Dynamic session — which is the mode eVDriveFlow works
     /// in, and the one that drives schedule renegotiation. Ignored for -2, which has no control modes.</param>
+    /// <param name="mcs">Advertise the <b>MCS</b> catalogue — services 8 / 9 and a megawatt envelope —
+    /// rather than DC's 2 / 6. -20 DC only; set by <c>V2G_INTEROP_MODE=mcs</c>.</param>
     /// <returns>Whether our station reached the terminal session state.</returns>
     public static async Task<Boolean> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                    CancellationToken ct, Boolean preferDynamic = false,
-                                                   Boolean offerPlugAndCharge = true)
+                                                   Boolean offerPlugAndCharge = true, Boolean mcs = false)
     {
+
+        if (mcs)
+            RefuseImpossibleMcs(protocol, mode);
 
         if (protocol == ProtocolVariant.Iso15118_2)
         {
@@ -103,15 +137,44 @@ internal static class InteropSession
             return secc.IsDone;
         }
 
-        Secc20Base secc20 = mode == PowerMode.Dc
-                                ? new Secc20Dc(SequenceTimeout, TimeProvider.System)
-                                : new Secc20Ac(SequenceTimeout, TimeProvider.System);
+        Secc20Base secc20 = (mode, mcs) switch
+        {
+            (PowerMode.Dc, true ) => new Secc20Mcs(SequenceTimeout, TimeProvider.System),
+            (PowerMode.Dc, false) => new Secc20Dc (SequenceTimeout, TimeProvider.System),
+            _                     => new Secc20Ac (SequenceTimeout, TimeProvider.System),
+        };
 
         secc20.PreferDynamicControlMode = preferDynamic;
         secc20.OfferPlugAndCharge       = offerPlugAndCharge;
 
         await secc20.RunAsync(stream, ct);
         return secc20.IsDone;
+
+    }
+
+
+    /// <summary>
+    /// MCS rides the -20 DC message set and nothing else, so the two combinations that cannot mean anything
+    /// are refused here rather than silently dropped.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="InteropEnvironment.ProtocolAndMode"/> already rules both out for a run configured from the
+    /// environment. This guard is for the direct caller, and for the same reason the environment has one: a
+    /// request for MCS that quietly becomes an ordinary AC or -2 session is a run that proves something
+    /// other than what it will be written up as.
+    /// </remarks>
+    private static void RefuseImpossibleMcs(ProtocolVariant protocol, PowerMode mode)
+    {
+
+        if (protocol != ProtocolVariant.Iso15118_20)
+            throw new ArgumentException(
+                "MCS was requested for an ISO 15118-2 session, but service ids 8 / 9 exist only in the "
+              + "-20 catalogue.", nameof(protocol));
+
+        if (mode != PowerMode.Dc)
+            throw new ArgumentException(
+                "MCS was requested for an AC session; MCS is the DC message set under services 8 / 9.",
+                nameof(mode));
 
     }
 

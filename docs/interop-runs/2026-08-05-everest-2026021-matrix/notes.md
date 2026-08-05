@@ -117,6 +117,11 @@ Their PKI workflow is unchanged: `create_certs.sh -v iso-20` from the vendored J
   throwaway test root into the user's Windows trust store was not an acceptable fix. The 2025.10 TLS
   result came from the BC path on macOS; the faithful -20 TLS client on Windows needs the same
   fallback made reachable there — named as follow-up for the app, not changed today.
+  **Since done** (app `99e8925` + `63a2302`, later the same day): a session names its TLS backend via
+  `TlsOptions.Backend` or `V2G_TLS_BACKEND=BouncyCastle`, and `Iso20BackendOptInLoopbackTests` proves
+  the route on Windows — secp521r1 chain from an untrusted root, -20 AC and DC to `SessionStop`, nothing
+  installed in any store. The **live** run this finding blocked has still not been driven from Windows;
+  it now needs only that variable alongside the `V2G_INTEROP_TLS*` set.
 
 So the honest TLS row reads: *station side re-validated on 2026.02.1; our client side remains
 validated on 2025.10/macOS only.*
@@ -245,10 +250,12 @@ a fact about their module, not a result of ours.
   missing run: nothing there validates a contract. `config-sil-ocpp201-pnc.yaml` is the configuration
   that would, and it needs an OCPP 2.0.1 CSMS on the other end — a different counterparty, and a
   bigger piece of work than this harness has ever set up.
-- **MCS: no longer parked for their reason.** `config-sil-mcs.yaml` **exists in 2026.02.1** — the
-  counterpart our roadmap called distant is now one config away. What is missing now is on our side:
-  the interop fixture has no MCS arm. That is the single most valuable next piece of work this run
-  surfaced.
+- ~~**MCS**~~ — **done, later the same day.** `config-sil-mcs.yaml` exists in 2026.02.1, the fixture got
+  its MCS arm (`V2G_INTEROP_MODE=mcs`), and three sessions ran complete against it: service id 8 read
+  back by their stack as MCS, in both control modes. See
+  [`2026-08-05-everest-mcs`](../2026-08-05-everest-mcs/notes.md) — including the two bounds it puts on
+  itself (their MCS SIL is electrically a 22 kW charger, and our `Evcc20Mcs` declares a DC-scale EV
+  envelope) and the follow-up they imply for the app.
 
 ## Artifacts
 
