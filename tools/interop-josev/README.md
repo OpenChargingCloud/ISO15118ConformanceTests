@@ -118,7 +118,7 @@ matching write-up under `docs/interop-runs/2026-07-22-*/`):
 1. Start Josev SECC (see setup); note its `host:port`.
 2. Point our EVCC at it, either via the CLI:
    ```bash
-   dotnet run --project ../../EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli -- \
+   dotnet run --project ../../libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli -- \
        evcc --connect <josev-host:port> --protocol 2 --mode ac
    ```
    or via the interop test:

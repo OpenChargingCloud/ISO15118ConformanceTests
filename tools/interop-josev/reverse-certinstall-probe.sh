@@ -5,7 +5,7 @@
 # probe's value is Josev's EXI log of the req it encodes, esp. WHAT its signature covers).
 set -uo pipefail
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 SECC_LOG=/tmp/secc-certinstall-probe.log
 EVCC_LOG=/tmp/evcc-certinstall-probe.log
 

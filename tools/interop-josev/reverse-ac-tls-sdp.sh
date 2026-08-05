@@ -3,7 +3,7 @@
 # Josev EVCC (AC, useTls=true) SDP-discovers our SECC and runs a -20 AC session over TLS.
 set -uo pipefail
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 SECC_LOG=/tmp/secc-ac-tls.log
 EVCC_LOG=/tmp/evcc-ac-tls.log
 AC_TLS_CFG=/tmp/evcc_config_ac_tls.json

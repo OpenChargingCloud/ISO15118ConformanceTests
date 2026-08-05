@@ -3,7 +3,7 @@
 # Confirms whether the WWCP SDP multicast interface binding works end-to-end with a real Josev EVCC.
 set -uo pipefail
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 SECC_LOG=/tmp/secc-sdp.log
 EVCC_LOG=/tmp/evcc-sdp.log
 

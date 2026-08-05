@@ -14,7 +14,7 @@
 # Prereq: /tmp/josev-cfg/evcc_config_dc_certinstall.json (evcc_config_dc.json with isCertInstallNeeded=true).
 set -uo pipefail
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 SECC_LOG=/tmp/secc-certinstall.log
 EVCC_LOG=/tmp/evcc-certinstall.log
 

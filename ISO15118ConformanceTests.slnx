@@ -6,12 +6,12 @@
          cross-checks against cbV2G and against Josev's EXIficient-encoded frames. The code they test
          is the app's, but a foreign encoder as oracle is the one thing the loopback E2Es and our own
          session corpus cannot be — so the offline judgement runs them here too. -->
-    <Project Path="EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EXI_Tests/WWCP_ISO15118_EXI_Tests.csproj" />
+    <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EXI_Tests/WWCP_ISO15118_EXI_Tests.csproj" />
   </Folder>
   <Folder Name="/EVSimulatorApp/">
-    <Project Path="EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/Vanaheimr.V2G.Simulation.csproj" />
-    <Project Path="EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/Vanaheimr.V2G.Simulation.Cli.csproj" />
-    <Project Path="EVSimulatorApp/experiments/Vanaheimr.V2G.Experiments.Pqc/Vanaheimr.V2G.Experiments.Pqc.csproj" />
-    <Project Path="EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_PKI/WWCP_ISO15118_PKIBuilder/WWCP_ISO15118_PKIBuilder.csproj" />
+    <Project Path="libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/Vanaheimr.V2G.Simulation.csproj" />
+    <Project Path="libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/Vanaheimr.V2G.Simulation.Cli.csproj" />
+    <Project Path="libs/EVSimulatorApp/experiments/Vanaheimr.V2G.Experiments.Pqc/Vanaheimr.V2G.Experiments.Pqc.csproj" />
+    <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_PKI/WWCP_ISO15118_PKIBuilder/WWCP_ISO15118_PKIBuilder.csproj" />
   </Folder>
 </Solution>

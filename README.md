@@ -1,6 +1,6 @@
 # ISO/IEC 15118 Conformance & Interoperability Test Suite
 
-The conformance and interoperability tests for the [EVSimulatorApp](EVSimulatorApp) ISO 15118 stack —
+The conformance and interoperability tests for the [EVSimulatorApp](libs/EVSimulatorApp) ISO 15118 stack —
 its EXI codec, its EV↔EVSE state machines, its TLS and PKI, its Plug & Charge. The app is carried
 here as a submodule; this repository is the harness that proves it behaves the way the standard and
 the independent stacks in the field expect.
@@ -21,27 +21,27 @@ ISO15118ConformanceTests.slnx
 │   ├─ Vectors/     the recorded session corpus the offline tests replay
 │   └─ Traces/      the replay and recording machinery behind it
 ├─ ISO15118ConformanceTests.Pqc/          post-quantum-crypto experiment tests (ML-KEM/ML-DSA)
-└─ EVSimulatorApp/                         the stack under test, as a submodule
+└─ libs/EVSimulatorApp/                   the stack under test, as a submodule
     └─ …/WWCP_ISO15118_EXI_Tests/         the app's codec tests — the byte-exact cbV2G and Josev
                                           oracle, carried into this solution so the offline run
                                           judges against a foreign encoder and not only ourselves
 ```
 
 The codec, the simulation library and the CLI are **not** here — they are the app's, in
-`EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read
-[`EVSimulatorApp`'s own README](EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the codec works;
+`libs/EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read
+[`EVSimulatorApp`'s own README](libs/EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the codec works;
 this one is about how it is held to account.
 
 ## Run
 
 ```
 git submodule update --init --recursive
-bash EVSimulatorApp/libs/WWCP_ISO15118/tools/download-schemas.sh
+bash libs/EVSimulatorApp/libs/WWCP_ISO15118/tools/download-schemas.sh
 dotnet test -c Release
 ```
 
 The middle step is not optional. The source generators run at build time from the ISO schemas in the
-app's WWCP submodule (`EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/`), and those schemas are ISO's —
+app's WWCP submodule (`libs/EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/`), and those schemas are ISO's —
 not redistributed here, so a fresh clone carries only a placeholder `README.md` in each `Schemas/` and
 the build stops at `EXIGEN001`. Running the script is you accepting the ISO Customer Licence
 Agreement, which nobody can accept on your behalf; if you already have the files,
@@ -219,4 +219,4 @@ them without the other stack present.
 ---
 
 The stack all of this tests — the EXI codec, the state machines, the TLS/PKI, the CLI — is documented in
-**[EVSimulatorApp](EVSimulatorApp)**. This repository is only the judge.
+**[EVSimulatorApp](libs/EVSimulatorApp)**. This repository is only the judge.

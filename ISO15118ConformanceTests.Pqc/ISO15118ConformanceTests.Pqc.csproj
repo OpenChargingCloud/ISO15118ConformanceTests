@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EVSimulatorApp\experiments\Vanaheimr.V2G.Experiments.Pqc\Vanaheimr.V2G.Experiments.Pqc.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\experiments\Vanaheimr.V2G.Experiments.Pqc\Vanaheimr.V2G.Experiments.Pqc.csproj" />
     <!-- The BC TLS backend + -20 state machines the ML-KEM loopback E2E runs over. -->
-    <ProjectReference Include="..\EVSimulatorApp\simulation\Vanaheimr.V2G.Simulation\Vanaheimr.V2G.Simulation.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\simulation\Vanaheimr.V2G.Simulation\Vanaheimr.V2G.Simulation.csproj" />
   </ItemGroup>
 </Project>

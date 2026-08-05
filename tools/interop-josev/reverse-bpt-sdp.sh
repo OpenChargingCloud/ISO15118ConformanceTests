@@ -7,7 +7,7 @@
 set -uo pipefail
 MODE="${1:-dc}"
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 CFG="/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_20/evcc_config_${MODE}_bpt.json"
 SECC_LOG=/tmp/secc-${MODE}-bpt.log
 EVCC_LOG=/tmp/evcc-${MODE}-bpt.log

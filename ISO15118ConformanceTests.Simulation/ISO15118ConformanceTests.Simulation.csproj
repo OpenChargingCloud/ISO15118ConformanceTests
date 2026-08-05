@@ -19,11 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EVSimulatorApp\simulation\Vanaheimr.V2G.Simulation\Vanaheimr.V2G.Simulation.csproj" />
-    <ProjectReference Include="..\EVSimulatorApp\simulation\Vanaheimr.V2G.Simulation.Cli\Vanaheimr.V2G.Simulation.Cli.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\simulation\Vanaheimr.V2G.Simulation\Vanaheimr.V2G.Simulation.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\simulation\Vanaheimr.V2G.Simulation.Cli\Vanaheimr.V2G.Simulation.Cli.csproj" />
     <!-- Test-only: the WWCP V2G PKI builder (submodule) generates a real strict-20 certificate
          hierarchy for the mutual-TLS E2E tests. Shipping code stays certificate-agnostic. -->
-    <ProjectReference Include="..\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_PKI\WWCP_ISO15118_PKIBuilder\WWCP_ISO15118_PKIBuilder.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_PKI\WWCP_ISO15118_PKIBuilder\WWCP_ISO15118_PKIBuilder.csproj" />
   </ItemGroup>
 
   <!-- The meter-signing corpus, consumed by the Swift and Kotlin verifiers too. -->

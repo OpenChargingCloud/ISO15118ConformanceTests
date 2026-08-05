@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_VECTORS = HERE.parent / "EVSimulatorApp" / "libs" / "WWCP_ISO15118" / "WWCP_ISO15118_EXI_Tests" / "Vectors" / "AppProtocol.vectors.json"
+DEFAULT_VECTORS = HERE.parent / "libs" / "EVSimulatorApp" / "libs" / "WWCP_ISO15118" / "WWCP_ISO15118_EXI_Tests" / "Vectors" / "AppProtocol.vectors.json"
 DEFAULT_BIN = Path(os.environ.get("CBV2G_REF_BIN", Path.home() / "cbv2g-ref-build" / "cbv2g_ref"))
 
 # cbV2G responseCodeType enum: declaration order in the XSD (== the EXI n-bit index).

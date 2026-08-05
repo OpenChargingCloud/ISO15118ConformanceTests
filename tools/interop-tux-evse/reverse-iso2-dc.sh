@@ -14,7 +14,7 @@ iface="${1:-evse-veth}"
 port="${2:-55000}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli"
+cli="$here/../../libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli"
 log="${V2G_INTEROP_LOG:-/tmp/tux-reverse-secc.log}"
 
 if ! ip link show "$iface" >/dev/null 2>&1; then

@@ -26,7 +26,7 @@ own throwaway test PKI, including a ready `MO_CERT_CHAIN.p12` — contract leaf 
 to them; nothing was minted here.
 
 Two small mercies in that file: the leaf's Common Name is `UKSWI123456789A`, **15 characters**, so it
-passes our own eMAID length check ([the one added on 2026-07-31](../../../EVSimulatorApp/docs/CONCEPT.md) after a
+passes our own eMAID length check ([the one added on 2026-07-31](../../../libs/EVSimulatorApp/docs/CONCEPT.md) after a
 19-character CN travelled in this repository's corpus), and the password is in the tin next to it.
 
 ## ISO 15118-2 — and the first thing they taught us

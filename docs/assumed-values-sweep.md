@@ -5,9 +5,9 @@ protocol supplies one** — so the roadmap asked for a sweep rather than a fourt
 
 | | found by | what was assumed |
 |---|---|---|
-| [Response-code handling](../EVSimulatorApp/docs/roadmap.md#-response-code-handling-2026-08-01) | eVDriveFlow | that a response meant success |
-| [The ongoing-poll deadline](../EVSimulatorApp/docs/roadmap.md#-the-ongoing-poll-deadline-2026-08-02) | EVerest | that `Ongoing` would end |
-| [The energy transfer mode](../EVSimulatorApp/docs/roadmap.md#-reading-the-energy-transfer-mode-instead-of-assuming-it-2026-08-03) | EVerest | that the station wanted three-phase AC |
+| [Response-code handling](../libs/EVSimulatorApp/docs/roadmap.md#-response-code-handling-2026-08-01) | eVDriveFlow | that a response meant success |
+| [The ongoing-poll deadline](../libs/EVSimulatorApp/docs/roadmap.md#-the-ongoing-poll-deadline-2026-08-02) | EVerest | that `Ongoing` would end |
+| [The energy transfer mode](../libs/EVSimulatorApp/docs/roadmap.md#-reading-the-energy-transfer-mode-instead-of-assuming-it-2026-08-03) | EVerest | that the station wanted three-phase AC |
 
 All three were invisible to every oracle here for one reason: **our own SECC supplies exactly what our
 own EVCC assumes.** A constant and a field agree until a foreign station disagrees, and loopback,
@@ -56,7 +56,7 @@ whether we hold a contract certificate.
 
 The handshake checked the response code and ignored `SchemaID` — *which* of the offered protocols the
 station accepted. Harmless while the offer is a single entry, which it is today, and a silent protocol
-mismatch the moment [it is not](../EVSimulatorApp/docs/roadmap.md#what-remains). Checked now rather than on the day a second
+mismatch the moment [it is not](../libs/EVSimulatorApp/docs/roadmap.md#what-remains). Checked now rather than on the day a second
 entry is added, because that is exactly the day nobody re-reads this function.
 
 ## Checked and correct — the other half of the sweep
@@ -82,14 +82,14 @@ finished. The remaining request fields either describe the vehicle, or are schem
 already read from the peer.
 
 **The ports are untouched.** Kotlin and Swift carry none of these four, as they carry neither Dynamic nor
-the transfer-mode selection — see [What remains](../EVSimulatorApp/docs/roadmap.md#what-remains). Their EVCCs are validated
+the transfer-mode selection — see [What remains](../libs/EVSimulatorApp/docs/roadmap.md#what-remains). Their EVCCs are validated
 against the trace corpus, and no corpus entry contains a station that answers differently from ours,
 which is the same blind spot one layer along.
 
 > *Closed later the same day.* Both ports carry all four now, pinned by scripted-station tests —
 > a deaf station with a canned foreign offer, since the corpus structurally cannot contain one —
 > and the corpus gained two Dynamic traces so the mode itself is held to bytes. See the roadmap's
-> [port-parity entry](../EVSimulatorApp/docs/roadmap.md#what-remains).
+> [port-parity entry](../libs/EVSimulatorApp/docs/roadmap.md#what-remains).
 
 **Two of the four could still only be found this way.** Numbers 1 and 4 produce no failure against any
 station that behaves like ours — no live run would have caught them, and no test built from our own
