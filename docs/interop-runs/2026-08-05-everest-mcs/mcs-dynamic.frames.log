@@ -1,0 +1,234 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 1629 byte(s), 57 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=45
+    01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040
+[1] SessionSetupReq payloadType=0x8002 bytes=33
+    01fe800200000019808c0400000000000000000b0fecbd30620422ab21a1981880
+[2] AuthorizationSetupReq payloadType=0x8002 bytes=25
+    01fe8002000000118008040d740ccbf1cf80488b0fecbd3062
+[3] AuthorizationReq payloadType=0x8002 bytes=26
+    01fe8002000000128000040d740ccbf1cf80488b0fecbd306200
+[4] ServiceDiscoveryReq payloadType=0x8002 bytes=26
+    01fe800200000012807c040d740ccbf1cf80488b0fecbd306280
+[5] ServiceDetailReq payloadType=0x8002 bytes=27
+    01fe8002000000138074040d740ccbf1cf80488b1fecbd30620400
+[6] ServiceSelectionReq payloadType=0x8002 bytes=29
+    01fe8002000000158084040d740ccbf1cf80488b1fecbd306202000080
+[7] DC_ChargeParameterDiscoveryReq payloadType=0x8004 bytes=49
+    01fe800400000029803c040d740ccbf1cf80488b1fecbd3062881088270400000200320041000000800f40304001902800
+[8] ScheduleExchangeReq payloadType=0x8002 bytes=42
+    01fe800200000022806c040d740ccbf1cf80488b1fecbd30620000901c03c14020c07810607808300a20
+[9] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b1fecbd3062
+[10] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b1fecbd3062
+[11] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b1fecbd3062
+[12] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b1fecbd3062
+[13] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b1fecbd3062
+[14] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b1fecbd3062
+[15] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[16] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[17] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[18] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[19] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[20] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[21] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[22] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[23] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[24] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b2fecbd3062
+[25] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[26] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[27] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[28] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[29] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[30] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[31] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[32] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[33] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[34] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b3fecbd3062
+[35] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[36] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[37] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[38] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[39] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[40] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[41] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[42] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[43] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[44] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b4fecbd3062
+[45] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b5fecbd3062
+[46] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b5fecbd3062
+[47] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b5fecbd3062
+[48] DC_CableCheckReq payloadType=0x8004 bytes=25
+    01fe800400000011802c040d740ccbf1cf80488b5fecbd3062
+[49] DC_PreChargeReq payloadType=0x8004 bytes=33
+    01fe8004000000198044040d740ccbf1cf80488b5fecbd30620100000080090030
+[50] PowerDeliveryReq payloadType=0x8002 bytes=35
+    01fe80020000001b8054040d740ccbf1cf80488b5fecbd30620000000480e041805124
+[51] DC_ChargeLoopReq payloadType=0x8004 bytes=60
+    01fe8004000000348034040d740ccbf1cf80488b5fecbd306281001200631203810603c08303c041805020c0c810600208007d04007a018200320040
+[52] DC_ChargeLoopReq payloadType=0x8004 bytes=60
+    01fe8004000000348034040d740ccbf1cf80488b5fecbd306281001200631203810603c08303c041805020c0c810600208007d04007a018200320040
+[53] DC_ChargeLoopReq payloadType=0x8004 bytes=60
+    01fe8004000000348034040d740ccbf1cf80488b5fecbd306281001200631203810603c08303c041805020c0c810600208007d04007a018200320040
+[54] PowerDeliveryReq payloadType=0x8002 bytes=27
+    01fe8002000000138054040d740ccbf1cf80488b5fecbd30620140
+[55] DC_WeldingDetectionReq payloadType=0x8004 bytes=26
+    01fe800400000012804c040d740ccbf1cf80488b6fecbd306200
+[56] SessionStopReq payloadType=0x8002 bytes=26
+    01fe8002000000128094040d740ccbf1cf80488b6fecbd306228
+
+## station -> EV: 1776 byte(s), 57 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8002 bytes=43
+    01fe8002000000238090040d740ccbf1cf80488b0fecbd3062040451114a9413960a914c4c8ccd0d4a8c40
+[2] AuthorizationSetupRes (OK) payloadType=0x8002 bytes=28
+    01fe800200000014800c040d740ccbf1cf80488b0fecbd3062000400
+[3] AuthorizationRes (OK) payloadType=0x8002 bytes=27
+    01fe8002000000138004040d740ccbf1cf80488b0fecbd30620000
+[4] ServiceDiscoveryRes (OK) payloadType=0x8002 bytes=32
+    01fe8002000000188080040d740ccbf1cf80488b0fecbd306200000800024050
+[5] ServiceDetailRes (OK) payloadType=0x8002 bytes=146
+    01fe80020000008a8078040d740ccbf1cf80488b1fecbd30620002000002d0dbdb9b9958dd1bdc980200d436f6e74726f6c4d6f6465601004d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e67600080080b436f6e6e6563746f7260080350dbdb9d1c9bdb135bd91958020134d6f62696c6974794e656564734d6f6465600802541c9a58da5b99d800280
+[6] ServiceSelectionRes (OK) payloadType=0x8002 bytes=27
+    01fe8002000000138088040d740ccbf1cf80488b1fecbd30620000
+[7] DC_ChargeParameterDiscoveryRes (OK) payloadType=0x8004 bytes=52
+    01fe80040000002c8040040d740ccbf1cf80488b1fecbd30620044106e0581fc3403c0fe1a01e07d0e80703f8542301fc3403c40
+[8] ScheduleExchangeRes (OK) payloadType=0x8002 bytes=28
+    01fe8002000000148070040d740ccbf1cf80488b1fecbd3062000340
+[9] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b1fecbd30620010
+[10] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b1fecbd30620010
+[11] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b1fecbd30620010
+[12] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b1fecbd30620010
+[13] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b1fecbd30620010
+[14] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b1fecbd30620010
+[15] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[16] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[17] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[18] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[19] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[20] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[21] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[22] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[23] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[24] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b2fecbd30620010
+[25] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[26] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[27] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[28] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[29] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[30] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[31] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[32] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[33] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[34] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b3fecbd30620010
+[35] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[36] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[37] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[38] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[39] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[40] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[41] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[42] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[43] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[44] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b4fecbd30620010
+[45] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b5fecbd30620010
+[46] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b5fecbd30620010
+[47] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b5fecbd30620010
+[48] DC_CableCheckRes (OK) payloadType=0x8004 bytes=27
+    01fe8004000000138030040d740ccbf1cf80488b5fecbd30620000
+[49] DC_PreChargeRes (OK) payloadType=0x8004 bytes=30
+    01fe8004000000168048040d740ccbf1cf80488b5fecbd30620010000000
+[50] PowerDeliveryRes (OK) payloadType=0x8002 bytes=27
+    01fe8002000000138058040d740ccbf1cf80488b5fecbd30620040
+[51] DC_ChargeLoopRes (OK) payloadType=0x8004 bytes=52
+    01fe80040000002c8038040d740ccbf1cf80488b5fecbd306200640000020000000070810a01103f8680781fc3403c0fe1508c00
+[52] DC_ChargeLoopRes (OK) payloadType=0x8004 bytes=54
+    01fe80040000002e8038040d740ccbf1cf80488b5fecbd30620063e8740381fc2807c00070810a01103f8680781fc3403c0fe1508c00
+[53] DC_ChargeLoopRes (OK) payloadType=0x8004 bytes=54
+    01fe80040000002e8038040d740ccbf1cf80488b5fecbd30620063e8740381fc2807c00070810a01103f8680781fc3403c0fe1508c00
+[54] PowerDeliveryRes (OK) payloadType=0x8002 bytes=27
+    01fe8002000000138058040d740ccbf1cf80488b5fecbd30620040
+[55] DC_WeldingDetectionRes (OK) payloadType=0x8004 bytes=30
+    01fe8004000000168050040d740ccbf1cf80488b6fecbd30620010000000
+[56] SessionStopRes (OK) payloadType=0x8002 bytes=27
+    01fe8002000000138098040d740ccbf1cf80488b6fecbd30620000

@@ -1,0 +1,42 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 286 byte(s), 9 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=45
+    01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040
+[1] SessionSetupReq payloadType=0x8002 bytes=33
+    01fe800200000019808c0400000000000000000cd90ccd30620422ab21a1981880
+[2] AuthorizationSetupReq payloadType=0x8002 bytes=25
+    01fe800200000011800804329d6859fa7a45e98cd90ccd3062
+[3] AuthorizationReq payloadType=0x8002 bytes=26
+    01fe800200000012800004329d6859fa7a45e98cd90ccd306200
+[4] AuthorizationReq payloadType=0x8002 bytes=26
+    01fe800200000012800004329d6859fa7a45e98cd90ccd306200
+[5] ServiceDiscoveryReq payloadType=0x8002 bytes=26
+    01fe800200000012807c04329d6859fa7a45e98cd90ccd306280
+[6] ServiceDetailReq payloadType=0x8002 bytes=27
+    01fe800200000013807404329d6859fa7a45e98cd90ccd30620480
+[7] ServiceSelectionReq payloadType=0x8002 bytes=29
+    01fe800200000015808404329d6859fa7a45e98cd90ccd306202400880
+[8] DC_ChargeParameterDiscoveryReq payloadType=0x8004 bytes=49
+    01fe800400000029803c04329d6859fa7a45e98cd90ccd3062881088270400000200320041000000800f40304001902800
+
+## station -> EV: 447 byte(s), 9 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8002 bytes=43
+    01fe800200000023809004329d6859fa7a45e98cd90ccd3062040451114a9413960a914c4c8ccd0d4a8c40
+[2] AuthorizationSetupRes (OK) payloadType=0x8002 bytes=28
+    01fe800200000014800c04329d6859fa7a45e98cd90ccd3062000400
+[3] AuthorizationRes (OK) payloadType=0x8002 bytes=27
+    01fe800200000013800404329d6859fa7a45e98cd90ccd30620010
+[4] AuthorizationRes (OK) payloadType=0x8002 bytes=27
+    01fe800200000013800404329d6859fa7a45e98cd90ccd30620000
+[5] ServiceDiscoveryRes (OK) payloadType=0x8002 bytes=32
+    01fe800200000018808004329d6859fa7a45e98cd90ccd306200000800024050
+[6] ServiceDetailRes (OK) payloadType=0x8002 bytes=205
+    01fe8002000000c5807804329d6859fa7a45e98cd90ccd30620002400002d0dbdb9b9958dd1bdc980200d436f6e74726f6c4d6f6465601004d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e6760000310941510da185b9b995b180200f47656e657261746f724d6f6465600880080b436f6e6e6563746f7260080350dbdb9d1c9bdb135bd91958020134d6f62696c6974794e656564734d6f6465600802541c9a58da5b99d80000c4250544368616e6e656c600803d1d95b995c985d1bdc935bd9195802280
+[7] ServiceSelectionRes (OK) payloadType=0x8002 bytes=27
+    01fe800200000013808804329d6859fa7a45e98cd90ccd30620000
+[8] DC_ChargeParameterDiscoveryRes (FAILED_WrongChargeParameter) payloadType=0x8004 bytes=46
+    01fe800400000026804004329d6859fa7a45e98cd90ccd30624e4400000200000100000080000040000020000040

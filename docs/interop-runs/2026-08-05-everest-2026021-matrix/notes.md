@@ -245,10 +245,12 @@ a fact about their module, not a result of ours.
   missing run: nothing there validates a contract. `config-sil-ocpp201-pnc.yaml` is the configuration
   that would, and it needs an OCPP 2.0.1 CSMS on the other end — a different counterparty, and a
   bigger piece of work than this harness has ever set up.
-- **MCS: no longer parked for their reason.** `config-sil-mcs.yaml` **exists in 2026.02.1** — the
-  counterpart our roadmap called distant is now one config away. What is missing now is on our side:
-  the interop fixture has no MCS arm. That is the single most valuable next piece of work this run
-  surfaced.
+- ~~**MCS**~~ — **done, later the same day.** `config-sil-mcs.yaml` exists in 2026.02.1, the fixture got
+  its MCS arm (`V2G_INTEROP_MODE=mcs`), and three sessions ran complete against it: service id 8 read
+  back by their stack as MCS, in both control modes. See
+  [`2026-08-05-everest-mcs`](../2026-08-05-everest-mcs/notes.md) — including the two bounds it puts on
+  itself (their MCS SIL is electrically a 22 kW charger, and our `Evcc20Mcs` declares a DC-scale EV
+  envelope) and the follow-up they imply for the app.
 
 ## Artifacts
 

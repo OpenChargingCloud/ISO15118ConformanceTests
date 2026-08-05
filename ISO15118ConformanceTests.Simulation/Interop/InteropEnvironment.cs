@@ -41,7 +41,11 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 ///   <item><term><c>V2G_INTEROP_PROTOCOL</c></term><description><c>2</c> (default), <c>20</c>, or
 ///   <c>both</c> — one handshake offering -20 at priority 1 and -2 at priority 2, running whichever
 ///   the station picks (EVCC side; see <see cref="OfferBothProtocols"/>).</description></item>
-///   <item><term><c>V2G_INTEROP_MODE</c></term><description><c>ac</c> (default) or <c>dc</c>.</description></item>
+///   <item><term><c>V2G_INTEROP_MODE</c></term><description><c>ac</c> (default), <c>dc</c>, or
+///         <c>mcs</c> — the Megawatt Charging System, which is the DC session under a different service
+///         catalogue and implies -20 (see <see cref="Mcs"/>).</description></item>
+///   <item><term><c>V2G_INTEROP_MCS_FIRST</c></term><description><c>9</c> to rank MCS_BPT ahead of MCS
+///         in the EVCC's request (see <see cref="McsBptFirst"/>).</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS</c></term><description><c>1</c> to run TLS, accepting any server
 ///         certificate. Development only.</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS_TRUST</c></term><description>a PEM trust anchor — validate their
@@ -113,18 +117,79 @@ internal static class InteropEnvironment
         => Environment.GetEnvironmentVariable("V2G_INTEROP_NO_PNC") != "1";
 
 
+    /// <summary>
+    /// Whether this run is a <b>Megawatt Charging System</b> session — <c>V2G_INTEROP_MODE=mcs</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>MCS is not a third power mode</b>, which is why it is a predicate beside
+    /// <see cref="ProtocolAndMode"/> rather than a third <see cref="PowerMode"/>. It is the DC message set
+    /// — <c>DC_ChargeParameterDiscovery</c> → <c>CableCheck</c> → <c>PreCharge</c> → <c>ChargeLoop</c> →
+    /// <c>WeldingDetection</c>, unchanged — advertised under energy-transfer service ids <b>8 (MCS)</b> and
+    /// <b>9 (MCS_BPT)</b> instead of DC's 2 / 6, with a megawatt envelope. So the mode stays
+    /// <see cref="PowerMode.Dc"/> and only the state machines change, to <c>Evcc20Mcs</c> /
+    /// <c>Secc20Mcs</c> — thin subclasses of the DC ones that differ in the catalogue and the limits.
+    /// </para>
+    /// <para>
+    /// <b>What a live run of this is worth.</b> Our service ids and connector values were read off
+    /// EVerest's <c>libiso15118</c> and never met a counterpart — <c>docs/roadmap.md</c> carries MCS as
+    /// "implemented, untested against a live counterpart", and <c>Secc20McsTests</c> is our own two sides
+    /// agreeing with each other. everest-core <b>2026.02.1</b> is the first release to ship
+    /// <c>config/config-sil-mcs.yaml</c>, so the numbers can finally be put on a wire somebody else reads.
+    /// </para>
+    /// </remarks>
+    public static Boolean Mcs()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "mcs";
+
+
+    /// <summary>
+    /// MCS only: rank <b>MCS_BPT (9)</b> ahead of <b>MCS (8)</b> in what our EVCC asks for.
+    /// <c>V2G_INTEROP_MCS_FIRST=9</c>.
+    /// </summary>
+    /// <remarks>
+    /// The counterpart of <see cref="BothOffers"/> one negotiation later, and for the same reason: a
+    /// station that advertises both services never has to reveal what it does with the second one while
+    /// our EVCC keeps taking the first. EVerest's <c>config-sil-mcs.yaml</c> carries both — their
+    /// <c>EvseManager</c> adds <c>MCS_BPT</c> whenever the power supply reports itself bidirectional, and
+    /// their <c>DCSupplySimulator</c> defaults to exactly that — so 9 is one variable away and was
+    /// untested by the 2026-08-05 run for no better reason than ordering.
+    /// <para>
+    /// See <see cref="McsBptFirstEvcc"/> for what selecting 9 does and does not make bidirectional.
+    /// </para>
+    /// </remarks>
+    public static Boolean McsBptFirst()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_MCS_FIRST") == "9";
+
+
     public static (ProtocolVariant Protocol, PowerMode Mode) ProtocolAndMode()
-        => (Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") switch
-            {
-                // "both" resolves to -20 here because that is the offer's priority-1 entry — the
-                // protocol everything decided *before* the handshake (TLS profile, recording name)
-                // should assume; the handshake itself then settles what actually runs.
-                "20" or "both" => ProtocolVariant.Iso15118_20,
-                _              => ProtocolVariant.Iso15118_2,
-            },
-            Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "dc"
-                ? PowerMode.Dc
-                : PowerMode.Ac);
+    {
+
+        var requested = Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL");
+
+        // MCS settles the protocol by construction: service ids 8 / 9 exist only in the -20 catalogue, and
+        // a "both" offer that a mux routes to its -2 backend would leave the session with nothing to ask
+        // for. Refused rather than quietly outranked, because the failure this arm exists to rule out is
+        // exactly a run that degrades to plain DC and still gets filed as an MCS result.
+        if (Mcs())
+            return requested is null or "" or "20"
+                       ? (ProtocolVariant.Iso15118_20, PowerMode.Dc)
+                       : throw new ArgumentException(
+                             $"V2G_INTEROP_MODE=mcs is an ISO 15118-20 session, so V2G_INTEROP_PROTOCOL="
+                           + $"'{requested}' cannot be honoured — unset it, or set it to 20.");
+
+        return (requested switch
+                {
+                    // "both" resolves to -20 here because that is the offer's priority-1 entry — the
+                    // protocol everything decided *before* the handshake (TLS profile, recording name)
+                    // should assume; the handshake itself then settles what actually runs.
+                    "20" or "both" => ProtocolVariant.Iso15118_20,
+                    _              => ProtocolVariant.Iso15118_2,
+                },
+                Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "dc"
+                    ? PowerMode.Dc
+                    : PowerMode.Ac);
+
+    }
 
 
     /// <summary>
@@ -203,13 +268,15 @@ internal static class InteropEnvironment
 
     /// <summary>The names the trace corpus uses, so a recorded interop session is filed like any other.
     /// A both-protocol offer is filed as <c>both</c>: the offer is the fact of the run, whichever way
-    /// the station decides.</summary>
+    /// the station decides. An MCS session is filed as <c>mcs</c> rather than <c>dc</c> even though its
+    /// messages are DC's — the catalogue it negotiated is the whole content of the run, and a capture
+    /// filed under <c>dc</c> would keep the bytes and lose the reason they were recorded.</summary>
     public static (String Protocol, String Mode) ProtocolAndModeNames()
     {
         var (protocol, mode) = ProtocolAndMode();
         return (OfferBothProtocols() ? "both"
                     : protocol == ProtocolVariant.Iso15118_20 ? "iso15118-20" : "iso15118-2",
-                mode == PowerMode.Dc ? "dc" : "ac");
+                Mcs() ? "mcs" : mode == PowerMode.Dc ? "dc" : "ac");
     }
 
 

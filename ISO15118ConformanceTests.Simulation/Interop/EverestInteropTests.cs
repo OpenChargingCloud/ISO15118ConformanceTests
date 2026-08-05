@@ -71,12 +71,23 @@ public class EverestInteropTests
 {
 
     /// <summary>
-    /// Our car against their charger — <c>EvseV2G</c> for DIN/-2, <c>Evse15118D20</c> for -20.
+    /// Our car against their charger — <c>EvseV2G</c> for DIN/-2, <c>Evse15118D20</c> for -20 and MCS.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The direction worth the setup. Their <c>EvseV2G</c> runs an SDP server by default
     /// (<c>enable_sdp_server: true</c>) on the interface named in its <c>device</c> setting, so the
     /// endpoint is normally discovered rather than configured — see the harness scripts.
+    /// </para>
+    /// <para>
+    /// <b>The MCS arm</b> (<c>V2G_INTEROP_MODE=mcs</c>) is the one scenario here whose counterpart did not
+    /// exist until recently: everest-core <b>2026.02.1</b> is the first release shipping
+    /// <c>config/config-sil-mcs.yaml</c>, whose <c>EvseManager</c> carries <c>connector_type: cMCS</c> and
+    /// therefore hands <c>Evse15118D20</c> the energy-transfer modes <c>MCS</c> / <c>MCS_BPT</c> — service
+    /// ids <b>8</b> and <b>9</b>. Ours were read off their <c>libiso15118</c> headers and had never been
+    /// negotiated with anything but ourselves, so this run is the first thing that can turn "the numbers
+    /// agree with the one other implementation that has MCS" into "the numbers were accepted by it".
+    /// </para>
     /// </remarks>
     [Test]
     public async Task OurEvcc_AgainstTheirEvseV2G_RunsToCompletion()
@@ -118,14 +129,40 @@ public class EverestInteropTests
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
-                                                            InteropEnvironment.ContractCredentialsOrNull());
+                                                            InteropEnvironment.ContractCredentialsOrNull(),
+                                                            mcs: InteropEnvironment.Mcs(),
+                                                            mcsBptFirst: InteropEnvironment.McsBptFirst());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
                                            ? $", {outcome.MeteringReceiptsSent} signed metering receipt(s)" : ""));
 
+            if (outcome.SelectedEnergyServiceId is { } serviceId)
+                TestContext.Out.WriteLine($"Energy transfer service: {serviceId} ({ServiceName(serviceId)}).");
+
             Assert.That(outcome.Exchanges, Is.GreaterThan(0),
                         "our EVCC exchanged at least one message with their charger");
+
+            // The MCS run's actual claim, and it needs asserting rather than reading: Evcc20Mcs falls back
+            // to a plain DC service when the station advertises no MCS one — deliberately, so a megawatt
+            // truck can still charge at an ordinary post. That fallback completes a session just as
+            // happily, and without this line a station that ignored MCS entirely would be written up as
+            // the first live MCS result.
+            //
+            // With MCS_BPT ranked first the expectation narrows to 9, for the same reason one step further
+            // in: a station that advertises only 8 lets our EVCC take it and finish, and a run that asked
+            // for the bidirectional service and quietly charged one-way under the unidirectional one is
+            // exactly the result that must not be filed as an MCS_BPT session.
+            if (InteropEnvironment.Mcs())
+                Assert.That(outcome.SelectedEnergyServiceId,
+                            InteropEnvironment.McsBptFirst()
+                                ? Is.EqualTo(9)
+                                : Is.EqualTo(8).Or.EqualTo(9),
+                            InteropEnvironment.McsBptFirst()
+                                ? "MCS_BPT (9) was ranked first, so anything else means their catalogue did "
+                                + "not carry it and our EVCC fell back"
+                                : "an MCS run has to have negotiated an MCS service (8 = MCS, 9 = MCS_BPT); "
+                                + "anything else means their catalogue offered none and our EVCC fell back to DC");
         }
         finally
         {
@@ -150,6 +187,13 @@ public class EverestInteropTests
     /// <para>
     /// What it does <i>not</i> answer is whether a config containing only the EV-side modules can be
     /// assembled and started; see the harness README.
+    /// </para>
+    /// <para>
+    /// <b>MCS is the exception to "the reverse direction is the less interesting one."</b> Their
+    /// <c>config-sil-mcs.yaml</c> configures <c>PyEvJosev</c> with
+    /// <c>supported_d20_energy_services: MCS</c> — an EV that asks for service 8 specifically. Pointed at
+    /// our <c>Secc20Mcs</c> (<c>V2G_INTEROP_MODE=mcs</c>), that is the only run in this file that puts
+    /// <i>our</i> MCS catalogue in front of a foreign chooser rather than our own.
     /// </para>
     /// </remarks>
     [Test]
@@ -179,7 +223,8 @@ public class EverestInteropTests
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc);
+            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
+                                                           mcs: InteropEnvironment.Mcs());
 
             Assert.That(isDone, Is.True, "our SECC drove their EV to the terminal session state");
         }
@@ -191,6 +236,17 @@ public class EverestInteropTests
         }
 
     }
+
+
+    /// <summary>The ISO 15118-20 energy-transfer service ids (Table 204), so the run's own output says which
+    /// catalogue entry was negotiated instead of leaving a bare number to be looked up.</summary>
+    private static String ServiceName(UInt16 serviceId)
+        => serviceId switch
+           {
+               1 => "AC",   2 => "DC",  3 => "WPT", 4 => "DC_ACDP", 5 => "AC_BPT",
+               6 => "DC_BPT", 7 => "DC_ACDP_BPT",  8 => "MCS",      9 => "MCS_BPT",
+               _ => "unknown to Table 204 as we read it",
+           };
 
 
     private static void Report(IReadOnlyList<String>? written)

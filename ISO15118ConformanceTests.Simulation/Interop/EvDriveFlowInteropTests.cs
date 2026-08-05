@@ -101,7 +101,8 @@ public class EvDriveFlowInteropTests
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
-                                                            InteropEnvironment.ContractCredentialsOrNull());
+                                                            InteropEnvironment.ContractCredentialsOrNull(),
+                                                            mcs: InteropEnvironment.Mcs());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
@@ -163,7 +164,8 @@ public class EvDriveFlowInteropTests
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc);
+            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
+                                                           mcs: InteropEnvironment.Mcs());
 
             Assert.That(isDone, Is.True, "our SECC drove their EV to the terminal session state");
         }

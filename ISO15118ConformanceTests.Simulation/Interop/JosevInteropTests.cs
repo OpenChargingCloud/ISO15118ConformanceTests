@@ -66,7 +66,8 @@ namespace ISO15118ConformanceTests.Simulation.Interop
 
                 var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                                 InteropEnvironment.PreferDynamic(),
-                                                                InteropEnvironment.ContractCredentialsOrNull());
+                                                                InteropEnvironment.ContractCredentialsOrNull(),
+                                                                mcs: InteropEnvironment.Mcs());
 
                 TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                           (outcome.MeteringReceiptsSent > 0
@@ -114,7 +115,8 @@ namespace ISO15118ConformanceTests.Simulation.Interop
             {
                 await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-                var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token);
+                var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
+                                                               mcs: InteropEnvironment.Mcs());
 
                 Assert.That(isDone, Is.True, "our SECC drove Josev's EVCC to the terminal session state");
             }
