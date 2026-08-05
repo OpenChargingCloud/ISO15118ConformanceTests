@@ -23,7 +23,12 @@ using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.Timing;
+using ISO15118ConformanceTests.Simulation.Traces;
 using Vanaheimr.V2G.Simulation.Transport;
+using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
+using cloud.charging.open.protocols.ISO15118_20.DC;
+
+using Dc20 = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
 
 namespace ISO15118ConformanceTests.Simulation.StateMachines
 {
@@ -36,9 +41,10 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
     /// still runs over the unchanged DC state machines.
     /// </para>
     /// <para>
-    /// <b>No external validation.</b> The service ids and connector values come from EVerest's libiso15118,
-    /// whose neighbouring values (AC=1, DC=2, DC_BPT=6) match ours exactly; nothing here has been
-    /// byte-diffed or run against a live MCS counterpart. See <c>docs/roadmap.md</c>.
+    /// <b>The ids are validated, the envelope is not.</b> They come from EVerest's libiso15118, and on
+    /// 2026-08-05 three complete sessions against everest-core 2026.02.1's MCS SIL config had their
+    /// <c>Evse15118D20</c> read service id 8 back as MCS. The megawatt limits are still untested against a
+    /// counterpart — their SIL clamps to its own 22 kW whatever is offered.
     /// </para>
     /// </summary>
     [TestFixture]
@@ -73,6 +79,60 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 // The whole point: an MCS session negotiated an MCS service id, not a DC one.
                 Assert.That(evcc.SelectedEnergyServiceId, Is.EqualTo(8).Or.EqualTo(9),
                             "the EVCC should have selected an MCS service (8 / 9), not DC's 2 / 6");
+            });
+        }
+
+        [Test]
+        public async Task McsEvcc_DeclaresAMegawattEnvelope_NotADcOne()
+        {
+            // The regression this exists for. Until 2026-08-05 `Evcc20Mcs` overrode only the service ids —
+            // the EV-side limits in `Evcc20Dc` were literals where the station side's were already virtual —
+            // so a megawatt truck selected service 8 and then declared an ordinary DC envelope. EVerest
+            // 2026.02.1 read it back verbatim ("dc_ev_maximum_power_limit: 50000.0" under an MCS service)
+            // and charged anyway, because their SIL clamps to its own 22 kW. Nothing failed, and no test
+            // here noticed, because nothing here looked at what the EV actually declared. This does.
+            using var cts      = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Mcs(TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
+
+            // Wrapped from before the SAP handshake, so the recorded frames pair up the way SessionTrace
+            // expects (SAP is exchange 0) and `Sent` is exactly what the vehicle put on the wire.
+            var recorder = new RecordingStream(evccStream);
+            await SapHandshake.RunEvccSideAsync(recorder, ProtocolVariant.Iso15118_20, cts.Token);
+
+            var evcc = new Evcc20Mcs(recorder, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
+            await Task.WhenAll(evcc.RunAsync(cts.Token), seccTask);
+
+            var trace = SessionTrace.Build("mcs-envelope", "iso15118-20", "dc",
+                                           "the envelope an MCS EVCC declares at charge-parameter discovery",
+                                           recorder.Sent, recorder.Received);
+
+            var discovery = trace.Exchanges.SingleOrDefault(e => e.Request.Message == "DC_ChargeParameterDiscoveryReq");
+            Assert.That(discovery, Is.Not.Null, "the session sent no DC_ChargeParameterDiscoveryReq");
+
+            Assert.That(V2GTPDispatcher.TryDecode(Convert.FromHexString(discovery!.Request.Frame),
+                                                  out _, out var message, out _), Is.True,
+                        "the recorded DC_ChargeParameterDiscoveryReq did not decode");
+
+            var declared = ((Dc20.DC_ChargeParameterDiscoveryReq) message!).DC_CPDReqEnergyTransferMode;
+            Assert.Multiple(() =>
+            {
+                // The same figures Secc20Mcs offers — 1250 V x 3000 A = 3.75 MW — asserted as decimals so
+                // the check is about the value and not about which (exponent, value) pair encodes it.
+                Assert.That(declared.EVMaximumChargePower.ToDecimal(),   Is.EqualTo(3_750_000m), "EVMaximumChargePower");
+                Assert.That(declared.EVMaximumChargeCurrent.ToDecimal(), Is.EqualTo(    3_000m), "EVMaximumChargeCurrent");
+                Assert.That(declared.EVMaximumVoltage.ToDecimal(),       Is.EqualTo(    1_250m), "EVMaximumVoltage");
+                Assert.That(declared.EVMinimumVoltage.ToDecimal(),       Is.EqualTo(      150m), "EVMinimumVoltage");
             });
         }
 
