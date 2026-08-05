@@ -34,7 +34,9 @@ namespace ISO15118ConformanceTests.Simulation.E2E
     {
         /// <param name="stream">The stream returned by <c>TcpV2GClient</c>/<c>TcpV2GListener</c>.</param>
         /// <param name="expected">The version the protocol's TLS profile requires.</param>
-        internal static void NegotiatedVersion(Stream stream, SslProtocols expected)
+        /// <param name="tls">The options the session was opened with, when the backend was chosen rather
+        /// than left to the platform — see <see cref="OnTheExpectedBackend"/>.</param>
+        internal static void NegotiatedVersion(Stream stream, SslProtocols expected, TlsOptions? tls = null)
         {
             if (stream is SslStream ssl)
             {
@@ -44,17 +46,30 @@ namespace ISO15118ConformanceTests.Simulation.E2E
                 return;
             }
 
-            // Not an SslStream, so this is the BouncyCastle backend — reachable here only via the macOS
-            // TLS 1.3 fallback. That stack offers exactly ProtocolVersion.TLSv13 on both ends
-            // (BcV2GTls.Tls13Only), so a completed handshake is TLS 1.3 by construction; there is no
-            // negotiated-version property to read. Assert the two things that are checkable: that TLS 1.3
-            // was what we wanted, and that we are on the platform where this substitution is expected.
+            // Not an SslStream, so this is the BouncyCastle backend. That stack offers exactly
+            // ProtocolVersion.TLSv13 on both ends (BcV2GTls.Tls13Only), so a completed handshake is TLS 1.3
+            // by construction; there is no negotiated-version property to read. Assert the two things that
+            // are checkable: that TLS 1.3 was what we wanted, and that this backend is the one this session
+            // was supposed to land on.
             Assert.That(expected, Is.EqualTo(SslProtocols.Tls13),
                         $"Only the TLS 1.3 profile may run on the BouncyCastle backend, but {expected} was expected.");
-            Assert.That(TlsPlatform.SslStreamSupportsTls13, Is.False,
-                        "The BouncyCastle fallback engaged on a platform whose SslStream can do TLS 1.3 — " +
-                        "the .NET backend should have been used.");
+            OnTheExpectedBackend(tls);
         }
+
+        /// <summary>
+        /// Guards the substitution itself: a session that ended up on the managed stack must have been sent
+        /// there. With <paramref name="tls"/> that is <see cref="TlsPlatform.ResolveBackend"/>'s verdict —
+        /// which honours an explicit <see cref="TlsOptions.Backend"/>, so a -20 session that asked for the
+        /// managed backend is legitimate on Windows too. Without it, the old expectation stands: only a
+        /// platform whose <c>SslStream</c> has no TLS 1.3 may silently divert.
+        /// </summary>
+        private static void OnTheExpectedBackend(TlsOptions? tls)
+            => Assert.That(tls is null
+                               ? !TlsPlatform.SslStreamSupportsTls13
+                               : TlsPlatform.ResolveBackend(tls) == TlsBackend.BouncyCastle,
+                           Is.True,
+                           "The session ran on the BouncyCastle backend, but nothing asked it to and this " +
+                           "platform's SslStream can do TLS 1.3 — the .NET backend should have been used.");
 
         /// <summary>
         /// Asserts the session negotiated one of its profile's cipher suites. Where the platform cannot pin
@@ -90,7 +105,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
         /// <summary>
         /// Asserts the peer authenticated with a certificate (mutual TLS), across both backends.
         /// </summary>
-        internal static void MutuallyAuthenticated(Stream stream, string because)
+        internal static void MutuallyAuthenticated(Stream stream, string because, TlsOptions? tls = null)
         {
             if (stream is SslStream ssl)
             {
@@ -103,8 +118,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             // BcV2GTls.ValidatePeer raises certificate_required for an empty client Certificate message and
             // bad_certificate when the validation callback rejects it — so an established session cannot have
             // skipped client authentication. Guard the substitution itself instead.
-            Assert.That(TlsPlatform.SslStreamSupportsTls13, Is.False,
-                        "The BouncyCastle fallback engaged on a platform whose SslStream can do TLS 1.3.");
+            OnTheExpectedBackend(tls);
         }
     }
 }
