@@ -2,6 +2,11 @@
   <Folder Name="/tests/">
     <Project Path="ISO15118ConformanceTests.Simulation/ISO15118ConformanceTests.Simulation.csproj" />
     <Project Path="ISO15118ConformanceTests.Pqc/ISO15118ConformanceTests.Pqc.csproj" />
+    <!-- The app's own codec tests, carried into this solution deliberately: they hold the byte-exact
+         cross-checks against cbV2G and against Josev's EXIficient-encoded frames. The code they test
+         is the app's, but a foreign encoder as oracle is the one thing the loopback E2Es and our own
+         session corpus cannot be — so the offline judgement runs them here too. -->
+    <Project Path="EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EXI_Tests/WWCP_ISO15118_EXI_Tests.csproj" />
   </Folder>
   <Folder Name="/EVSimulatorApp/">
     <Project Path="EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/Vanaheimr.V2G.Simulation.csproj" />

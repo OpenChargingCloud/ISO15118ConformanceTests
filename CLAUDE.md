@@ -14,13 +14,20 @@ holds the app to account against independent stacks — Josev, EVerest, EVDriveF
 
 ```
 git submodule update --init --recursive
+bash EVSimulatorApp/libs/WWCP_ISO15118/tools/download-schemas.sh
 dotnet test -c Release
 ```
 
-Must pass green without a C toolchain, Java, or network — record-mode interop checks replay frames
-under `ISO15118ConformanceTests.Simulation/Traces/`, and the loopback E2Es run both peers in-process.
-The ISO schemas must be present in `EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/` (see the app's
-`tools/download-schemas.sh`).
+The middle step is not optional: the source generators run at build time from the ISO schemas in
+`EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/`, and those are ISO's — not redistributed here, so a
+fresh clone has only the placeholder `README.md` in each `Schemas/` and the build stops at
+`EXIGEN001`. Running the script is you accepting the ISO Customer Licence Agreement;
+`SCHEMA_CACHE=<dir>` lays out a copy you already have instead of fetching.
+
+Must pass green without a C toolchain, Java, or network — the record-mode cross-checks replay Josev's
+captured frames (`WWCP_ISO15118_EXI_Tests`, the app's codec tests, carried in this solution), the
+session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our own wire output, and
+the loopback E2Es run both peers in-process.
 
 ## Ground rules
 

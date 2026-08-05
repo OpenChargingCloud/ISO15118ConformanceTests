@@ -15,12 +15,16 @@ repository answers and the app does not have to carry.
 ```
 ISO15118ConformanceTests.slnx
 ├─ ISO15118ConformanceTests.Simulation/   the conformance suite proper
-│   ├─ Interop/     live + recorded cross-checks vs Josev, EVerest, EVDriveFlow, TuxEVSE
+│   ├─ Interop/     live cross-checks vs Josev, EVerest, EVDriveFlow, TuxEVSE (all [Explicit])
 │   ├─ E2E/         full-stack loopback sessions (SLAC→SDP→TLS→SAP→-2/-20) to SessionStop
 │   ├─ StateMachines/, Discovery/, Framing/, Metering/, Sap/, Slac/, Timing/, Transport/
-│   └─ Traces/      the recorded-frame corpus the interop tests replay
+│   ├─ Vectors/     the recorded session corpus the offline tests replay
+│   └─ Traces/      the replay and recording machinery behind it
 ├─ ISO15118ConformanceTests.Pqc/          post-quantum-crypto experiment tests (ML-KEM/ML-DSA)
 └─ EVSimulatorApp/                         the stack under test, as a submodule
+    └─ …/WWCP_ISO15118_EXI_Tests/         the app's codec tests — the byte-exact cbV2G and Josev
+                                          oracle, carried into this solution so the offline run
+                                          judges against a foreign encoder and not only ourselves
 ```
 
 The codec, the simulation library and the CLI are **not** here — they are the app's, in
@@ -32,17 +36,24 @@ this one is about how it is held to account.
 
 ```
 git submodule update --init --recursive
+bash EVSimulatorApp/libs/WWCP_ISO15118/tools/download-schemas.sh
 dotnet test -c Release
 ```
 
-The suite needs the ISO schemas present in the app's WWCP submodule
-(`EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/`) — the generators run at build time. See
-`EVSimulatorApp`'s `tools/download-schemas.sh`; the schemas are ISO's and are not redistributed here.
+The middle step is not optional. The source generators run at build time from the ISO schemas in the
+app's WWCP submodule (`EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/`), and those schemas are ISO's —
+not redistributed here, so a fresh clone carries only a placeholder `README.md` in each `Schemas/` and
+the build stops at `EXIGEN001`. Running the script is you accepting the ISO Customer Licence
+Agreement, which nobody can accept on your behalf; if you already have the files,
+`SCHEMA_CACHE=<dir> bash …/download-schemas.sh` lays that copy out instead of fetching — `<dir>`
+holding the `iso-2/`, `iso-20/` and `amd1/` directories the script would otherwise have created.
 
-The offline run (`dotnet test`) needs no C toolchain, no Java and no network: the record-mode interop
-checks replay frames captured under `Traces/`, and the loopback E2Es run both peers in-process. The
-**live** cross-checks against a running Josev or EVerest are `[Explicit]` and stay out of the offline
-run — they need the other stack on the wire. What each has proven is below.
+The offline run (`dotnet test`) needs no C toolchain, no Java and no network: the record-mode
+cross-checks re-encode Josev's captured EXIficient frames through our codec
+(`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
+regression, and the loopback E2Es run both peers in-process. The **live** cross-checks against a
+running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
+on the wire. What each has proven is below.
 
 ---
 
@@ -50,11 +61,11 @@ run — they need the other stack on the wire. What each has proven is below.
 
 Cross-validated against **Josev** (SwitchEV/iso15118 @ `d645255`), an independent Python stack that encodes
 with **EXIficient** and shares no lineage with our cbV2G oracle — the highest-value conformance signal short of
-certified hardware. Tooling under [`EVSimulatorApp`'s `tools/interop-josev/`]; full write-ups and
+certified hardware. Tooling under [`tools/interop-josev/`](tools/interop-josev/README.md); full write-ups and
 frame logs under [`docs/interop-runs/`](docs/interop-runs/). The `[Explicit]` `JosevInteropTests` gate keeps
 all of this out of the offline CI run.
 
-- **Record mode (byte-exact codec cross-check, in CI):** Josev's own EXIficient-encoded frames decode and
+- **Record mode (byte-exact codec cross-check, in the offline run):** Josev's own EXIficient-encoded frames decode and
   re-encode *identically* through our codec — for -2, SAP + the full AC and DC charge loops; for -20, SAP +
   **all 30** frames of a full PnC DC session across both schema sets, including the **signed**
   `AuthorizationReq` (`JosevCapturedFrames{,Dc,20}Tests`). On the SAP frames, **our codec ≡ cbV2G ≡
