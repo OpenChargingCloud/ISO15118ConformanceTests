@@ -10,6 +10,10 @@ judges it — the corpus of recorded frames, the loopback E2Es, the live cross-c
 EVerest — lives beside it rather than inside it, so "does our stack interoperate" is a question this
 repository answers and the app does not have to carry.
 
+**The answer, at a glance: [the interop matrix](#the-interop-matrix--who-we-test-against-and-what-happened)** —
+which sessions ran against which independent stack (Josev, EVerest, eVDriveFlow, tux-evse), split by
+-2/-20, AC/DC, EIM/PnC, TLS, and where each one stopped when it did.
+
 ## What is here
 
 ```
@@ -208,13 +212,73 @@ only independent -20 stack available — implements no WPT/ACDP session state ma
 WPT/ACDP projects are codec-only by the same token; a live run would need full session state machines built on
 both sides.
 
-## Interop status (EVerest, EVDriveFlow, TuxEVSE)
+## The interop matrix — who we test against, and what happened
 
-Beyond Josev, the suite carries recorded and live cross-checks against three more independent stacks —
-**EVerest**, **EVDriveFlow** and **TuxEVSE** (`EverestInteropTests`, `EvDriveFlowInteropTests`,
-`TuxEvseInteropTests`). Each run is written up under [`docs/interop-runs/`](docs/interop-runs/); the recorded
-frames they replay live under `ISO15118ConformanceTests.Simulation/Traces/`, so the offline suite exercises
-them without the other stack present.
+Four independent stacks sit on the other end of the live cross-checks (`JosevInteropTests`,
+`EverestInteropTests`, `EvDriveFlowInteropTests`, `TuxEvseInteropTests`; all `[Explicit]`). They are
+worth having *because* they differ — each brings a different EXI lineage and a different kind of
+evidence:
+
+| | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | eVDriveFlow | tux-evse |
+|---|---|---|---|---|
+| Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
+| Their EXI | **EXIficient** | **cbV2G**¹ (OpenV2G in the 2023 image) | **OpenEXI**/Nagasena | replays a **captured Audi** |
+| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image |
+| Directions | forward + reverse | forward | forward + reverse | forward (responder) |
+
+Every row below also runs **in-repo** as a loopback E2E (both peers ours) — the matrix counts only
+what a *foreign* stack has confirmed. Sessions recorded from these runs replay offline as part of the
+suite, so the matrix does not rot silently when the code moves. Evidence per cell lives under
+[`docs/interop-runs/`](docs/interop-runs/); the run-notes README explains how to read one.
+
+✅ complete live session &nbsp;·&nbsp; ◐ partial — ran to the stated point &nbsp;·&nbsp; ⛔ blocked by a
+counterparty defect or limitation &nbsp;·&nbsp; ▢ not attempted yet &nbsp;·&nbsp; — not applicable /
+not implemented on their side
+
+**ISO 15118-2**
+
+| Scenario | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|
+| AC, EIM | ✅ both directions | ✅ ×2 sessions | — | — |
+| DC, EIM | ✅ both directions | ✅ ×2 sessions¹ | — | ◐ stops at `SessionSetup`² |
+| Plug & Charge (over TLS) | ✅ both directions, signed msgs verified both ways | ◐ chain accepted + our signature verified; their SIL has no eMAID backend³ | — | — |
+| Pause / Resume | ✅ forward (`OK_OldSessionJoined`) | — | — | — |
+| Signed tariffs (SalesTariff) | ✅ both roles, incl. their MO-signed tariff verified by us | — | — | — |
+| TLS 1.2 (unilateral) | ✅ | ✅ (the PnC session above) | — | — |
+
+**ISO 15118-20**
+
+| Scenario | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|
+| DC, Scheduled, EIM | ✅ TCP + TLS | ✅ ×2 sessions | ◐ 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
+| DC, Dynamic | ✅ | ✅ | ⛔ their EV quits at Authorization | — |
+| AC | ✅ TCP + TLS | ◐ to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ | ▢ (their 2026.02.1 SIL now advertises BPT) | — | — |
+| Plug & Charge | ✅ | — commented out on their side | ▢ | — |
+| CertificateInstallation | ◐ our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
+| Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session⁶ | — (plain TCP only) | — |
+| SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1) | ✅ their EV found our SECC | — |
+| Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ | — | — |
+| WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
+| MCS | *first counterpart in sight: 2026.02.1 ships `config-sil-mcs.yaml`; our interop fixture has no MCS arm yet* | | | |
+
+¹ EVerest's current `EvseV2G` sits on cbV2G — the encoder our vector corpus is generated from — so
+byte-level agreement there is not independent. The 2023.10.0 demo image ran **OpenV2G**, which *was* an
+independent-codec witness; Josev (EXIficient) and eVDriveFlow (OpenEXI) are the standing independent
+lineages.
+² Their responder replays a captured car and refuses any request whose identifiers differ from the
+recording — a property of their tool, not an interop verdict.
+³ Their station-side rule "no Contract without TLS" was also the first external check of that spec
+requirement against us.
+⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in
+the run notes — and 12 of our -20 messages decoded clean by a second independent codec.
+⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot
+produce; not reachable from the wire.
+⁶ Complete charge over mutual TLS 1.3 on 2025.10.0; on 2026.02.1 the station side is re-validated
+(bridged client). Caveat of ours: on Windows, Schannel refuses to present a test-PKI client chain, so
+the conformant -20 TLS client remains proven from the macOS/BouncyCastle path.
+⁷ And the finding that goes with it: `IsoMux` routes on "mentions -20 anywhere", never reading SAP
+`Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
