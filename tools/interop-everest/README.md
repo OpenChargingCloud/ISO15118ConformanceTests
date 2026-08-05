@@ -11,6 +11,15 @@ gated on environment variables — `dotnet test -c Release` skips it entirely.
 *Written against `everest-core` as of 2026-08-01. Lines marked **confirm on first contact** could not be
 checked from their documentation and are questions for the first run, not statements.*
 
+*Update 2026-08-05: the whole matrix was repeated against **everest-core 2026.02.1 built from source**
+(WSL2, no demo image) — see
+[`docs/interop-runs/2026-08-05-everest-2026021-matrix/`](../../docs/interop-runs/2026-08-05-everest-2026021-matrix/notes.md).
+The demo-image ceiling no longer binds this harness; `everest-demo` still ships nothing newer than
+`2025.10.0-patches`. Deltas that matter to this README: stock `config-sil-dc-d20.yaml` is now
+**Dynamic-only** (re-enable `supported_scheduled_mode` in an `-ours` config), `config-sil-mcs.yaml`
+**exists** in 2026.02.1, the unicast-SDP loop shutdown is **fixed** there while the refused-TLS-handshake
+one is **not**, and `sdp-probe.sh`/`sil-car.sh` must run under **bash** (dash's `printf` has no `\x`).*
+
 ---
 
 ## Why this one, and what is actually new in it

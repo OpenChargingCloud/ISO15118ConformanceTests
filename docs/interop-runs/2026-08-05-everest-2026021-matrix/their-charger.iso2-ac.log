@@ -1,0 +1,417 @@
+2026-08-05 05:12:35.284372 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:   [0;1;35;95m_[0;1;31;91m__[0;1;33;93m__[0;1;32;92m__[0;1;36;96m_[0m      [0;1;31;91m_[0;1;33;93m_[0m                [0;1;36;96m_[0m   
+2026-08-05 05:12:35.284543 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;31;91m|[0m  [0;1;33;93m_[0;1;32;92m__[0;1;36;96m_\[0m [0;1;34;94m\[0m    [0;1;33;93m/[0m [0;1;32;92m/[0m               [0;1;34;94m|[0m [0;1;35;95m|[0m
+2026-08-05 05:12:35.284552 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;33;93m|[0m [0;1;32;92m|_[0;1;36;96m_[0m   [0;1;35;95m\[0m [0;1;31;91m\[0m  [0;1;33;93m/[0m [0;1;32;92m/[0;1;36;96m__[0m [0;1;34;94m_[0m [0;1;35;95m_[0;1;31;91m_[0m [0;1;33;93m__[0;1;32;92m_[0m  [0;1;36;96m_[0;1;34;94m__[0;1;35;95m|[0m [0;1;31;91m|_[0m
+2026-08-05 05:12:35.284558 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_|[0m   [0;1;31;91m\[0m [0;1;33;93m\[0;1;32;92m/[0m [0;1;36;96m/[0m [0;1;34;94m_[0m [0;1;35;95m\[0m [0;1;31;91m'_[0;1;33;93m_/[0m [0;1;32;92m_[0m [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m__[0;1;31;91m|[0m [0;1;33;93m__[0;1;32;92m|[0m
+2026-08-05 05:12:35.284564 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;36;96m|[0m [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m_[0m   [0;1;32;92m\[0m  [0;1;36;96m/[0m  [0;1;35;95m__[0;1;31;91m/[0m [0;1;33;93m|[0m [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_/[0;1;35;95m\_[0;1;31;91m_[0m [0;1;33;93m\[0m [0;1;32;92m|_[0m
+2026-08-05 05:12:35.284569 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m__[0;1;33;93m_|[0m   [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m\_[0;1;31;91m__[0;1;33;93m|_[0;1;32;92m|[0m  [0;1;36;96m\[0;1;34;94m__[0;1;35;95m_|[0;1;31;91m|_[0;1;33;93m__[0;1;32;92m/\[0;1;36;96m__[0;1;34;94m|[0m
+2026-08-05 05:12:35.284575 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-08-05 05:12:35.284581 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-framework 0.25.0-dev 2026.02.1
+2026-08-05 05:12:35.284586 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-core 2026.02.1-dev 2026.02.1
+2026-08-05 05:12:35.284592 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-08-05 05:12:35.284598 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using MQTT broker localhost:1883
+2026-08-05 05:12:35.284607 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Telemetry enabled
+2026-08-05 05:12:35.305125 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-05 05:12:35.305201 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading config file at: /home/ahzf/everest/configs-ours/config-ac2-ours.yaml
+2026-08-05 05:12:35.420471 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Config loading completed in 135ms
+2026-08-05 05:12:35.423087 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Starting 17 modules
+2026-08-05 05:12:37.549766 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m initialized [2102ms]
+2026-08-05 05:12:37.569650 [[1;37mINFO[0m] [1;32mev_api:EvAPI   [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_api[0m initialized [2117ms]
+2026-08-05 05:12:37.571385 [[1;37mINFO[0m] [1;32mconnector_1_pow[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mconnector_1_powerpath[0m initialized [2123ms]
+2026-08-05 05:12:37.580376 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m initialized [2113ms]
+2026-08-05 05:12:37.580887 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m initialized [2111ms]
+2026-08-05 05:12:37.597788 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m initialized [2139ms]
+2026-08-05 05:12:37.598904 [[1;37mINFO[0m] [1;32msetup:Setup    [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34msetup[0m initialized [2135ms]
+2026-08-05 05:12:37.599365 [[1;37mINFO[0m] [1;32menergy_manager:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m initialized [2149ms]
+2026-08-05 05:12:37.600096 [[1;37mINFO[0m] [1;32mgrid_connection[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m initialized [2142ms]
+2026-08-05 05:12:37.601646 [[1;37mINFO[0m] [1;32mslac:SlacSimula[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m initialized [2136ms]
+2026-08-05 05:12:37.601975 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m initialized [2147ms]
+2026-08-05 05:12:37.602875 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m initialized [2140ms]
+2026-08-05 05:12:37.614505 [[1;37mINFO[0m] [1;32mapi:API        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m initialized [2166ms]
+2026-08-05 05:12:37.616138 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mconnector_1[0m initialized [2165ms]
+2026-08-05 05:12:37.622963 [[1;37mINFO[0m] [1;32mpersistent_stor[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpersistent_store[0m initialized [2161ms]
+2026-08-05 05:12:37.647995 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using database at "/tmp/error_history.db"
+2026-08-05 05:12:37.648184 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Checking database
+2026-08-05 05:12:37.649189 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34merror_history[0m initialized [2198ms]
+2026-08-05 05:12:37.943634 [[1;37mINFO[0m] [1;32miso15118_car   [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m initialized [2109ms]
+2026-08-05 05:12:37.944304 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Clearing retained topics published by manager during startup
+2026-08-05 05:12:37.945454 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🚙🚙🚙 All modules are initialized. EVerest up and running [2669ms] 🚙🚙🚙[0m
+
+2026-08-05 05:12:37.946686 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TCP server on eth0 is listening on port [fe80::215:5dff:feca:a645%2]:61341
+
+2026-08-05 05:12:37.946770 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TLS server on eth0 is listening on port [fe80::215:5dff:feca:a645%2]:64109
+2026-08-05 05:12:37.993733 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G
+2026-08-05 05:12:37.997136 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-05 05:12:37.997404 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-08-05 05:12:38.041357 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mvoid {anonymous}::log_handler(openssl::log_level_t, const std::string&)[0m [1;30m:[0m[1;32m[0m: <n> certificates != <n> OCSP responses
+
+2026-08-05 05:12:38.051766 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SDP socket setup succeeded
+2026-08-05 05:12:38.093606 [[1;33mWARN[0m] [1;32mauth:Auth      [0m [1;36mvoid module::ReservationHandler::load_reservations()[0m [1;30m:[0m[1;32m[0m: Can not load reservations because no storage was configured.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:12:38.129409 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mvirtual void module::charger::ISO15118_chargerImpl::handle_update_ac_minimum_limits(types::iso15118::AcEvseMinimumPower&)[0m [1;30m:[0m[1;32m[0m: Ignoring handle_update_ac_minimum_limits call
+2026-08-05 05:12:38.233709 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mvirtual void module::charger::ISO15118_chargerImpl::handle_update_ac_parameters(types::iso15118::AcParameters&)[0m [1;30m:[0m[1;32m[0m: Ignoring handle_update_ac_parameters call
+2026-08-05 05:12:38.369772 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: AC HLC mode enabled.
+2026-08-05 05:12:38.465208 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-05 05:12:38.511084 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Cleaning up any other transaction on start up
+2026-08-05 05:12:38.642642 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🌀🌀🌀 Ready to start charging 🌀🌀🌀[0m
+2026-08-05 05:12:38.730203 [[1;33mWARN[0m] [1;32mapi:API        [0m [1;36mvoid module::API::ready()[0m [1;30m:[0m[1;32m[0m: No evse energy sink configured for evse_id: 1. API module does therefore not allow control of amps or power limits for this EVSE
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:12:47.737131 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Finished simulation.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:12:54.061426 [[1;37mINFO[0m] [1;32mconnector_1_pow[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Lock connector
+2026-08-05 05:12:54.237866 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SYS  Session logging started.
+2026-08-05 05:12:54.238022 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Session Started: EVConnected[1;0m
+2026-08-05 05:12:54.239502 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Plug In event for evse#1, starting auth
+2026-08-05 05:12:54.239567 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-05 05:12:54.240534 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-05 05:12:54.242023 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-05 05:12:54.492237 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Returning validation status: Accepted
+2026-08-05 05:12:54.493478 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Providing authorization to evse#1
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:12:54.574223 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC EIM Authorization received[1;0m
+2026-08-05 05:12:54.575249 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-05 05:12:54.618128 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Transaction Started (0 kWh)[1;0m
+2026-08-05 05:12:54.618686 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.[1;0m
+2026-08-05 05:12:54.618779 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: Wait for Auth->PrepareCharging[1;0m
+2026-08-05 05:12:54.619439 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM On (53.3%) took 0 ms[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:12:56.249397 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC MATCHED[1;0m
+2026-08-05 05:12:56.249397 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (true)[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:12:56.785240 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event CarRequestedPower[1;0m
+2026-08-05 05:12:56.785404 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: PrepareCharging->Charging[1;0m
+2026-08-05 05:12:57.030832 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOn[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-05 05:13:28.135611 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Incoming connection on eth0 from [a00:bc1c:0:0:fe80::]:48156
+
+2026-08-05 05:13:28.135872 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Started new TCP connection thread
+
+2026-08-05 05:13:28.141136 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Handling SupportedAppProtocolReq
+
+2026-08-05 05:13:28.141761 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Protocol negotiation was successful. Selected protocol is ISO15118
+
+2026-08-05 05:13:28.155688 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-05 05:13:28.155782 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-05 05:13:28.155791 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Created new session with id 0xde920cb1fa93aace
+2026-08-05 05:13:28.157439 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SupportedAppProtocolReq[1;0m
+2026-08-05 05:13:28.157883 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SupportedAppProtocolRes[1;0m
+2026-08-05 05:13:28.197470 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionSetupReq[1;0m
+2026-08-05 05:13:28.289450 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionSetupRes[1;0m
+2026-08-05 05:13:28.289689 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ServiceDiscoveryReq[1;0m
+2026-08-05 05:13:28.361915 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ServiceDiscoveryRes[1;0m
+
+2026-08-05 05:13:28.366656 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SelectedPaymentOption: ExternalPayment
+2026-08-05 05:13:28.367584 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PaymentServiceSelectionReq[1;0m
+2026-08-05 05:13:28.465235 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PaymentServiceSelectionRes[1;0m
+2026-08-05 05:13:28.466442 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:28.565251 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+2026-08-05 05:13:28.627744 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+
+2026-08-05 05:13:28.728873 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Parameter-phase started
+
+2026-08-05 05:13:28.729894 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Selected energy transfer mode: AC_three_phase_core
+
+2026-08-05 05:13:28.729959 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: before adjusting for departure time, max_current 96.000000, nom_voltage 230, pmax 66240, departure_duration 0
+2026-08-05 05:13:28.745494 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+2026-08-05 05:13:28.773731 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargeParameterDiscoveryReq[1;0m
+2026-08-05 05:13:28.828321 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargeParameterDiscoveryRes[1;0m
+2026-08-05 05:13:28.835276 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-08-05 05:13:28.932789 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-08-05 05:13:28.933932 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargingStatusReq[1;0m
+2026-08-05 05:13:29.032540 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargingStatusRes[1;0m
+2026-08-05 05:13:29.100965 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargingStatusReq[1;0m
+2026-08-05 05:13:29.229389 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargingStatusRes[1;0m
+2026-08-05 05:13:29.273401 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargingStatusReq[1;0m
+2026-08-05 05:13:29.354653 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargingStatusRes[1;0m
+2026-08-05 05:13:29.413855 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO AC HLC Open contactor[1;0m
+2026-08-05 05:13:29.413875 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-08-05 05:13:29.512635 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-08-05 05:13:29.513692 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionStopReq[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-05 05:13:29.611660 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Closing TCP connection
+2026-08-05 05:13:29.612343 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionStopRes[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-05 05:13:31.612055 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TCP connection closed gracefully
+2026-08-05 05:13:31.613026 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_TERMINATE.req[1;0m
+2026-08-05 05:13:31.613218 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM Off[1;0m
+2026-08-05 05:13:31.674193 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM On (53.3%) took 0 ms[1;0m
+2026-08-05 05:13:31.674861 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC UNMATCHED[1;0m
+2026-08-05 05:13:31.674937 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (false)[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:47.029288 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Finished simulation.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:47.377461 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event CarUnplugged[1;0m
+2026-08-05 05:13:47.377661 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Stop in Charging: [EV unplugged][1;0m
+2026-08-05 05:13:47.377726 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: Charging->StoppingCharging[1;0m
+2026-08-05 05:13:47.378473 [[1;37mINFO[0m] [1;32mconnector_1_pow[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Unlock connector
+2026-08-05 05:13:47.509580 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOff[1;0m
+2026-08-05 05:13:47.509764 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: StoppingCharging->Finished[1;0m
+2026-08-05 05:13:47.557654 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Transaction Finished: EVDisconnected (0.095 kWh)[1;0m
+2026-08-05 05:13:47.689396 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Session Finished[1;0m
+2026-08-05 05:13:47.689559 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SYS  Session logging stopped.
+2026-08-05 05:13:47.777745 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: All errors cleared
+2026-08-05 05:13:47.777897 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: All errors cleared
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:53.311970 [[1;37mINFO[0m] [1;32mconnector_1_pow[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Lock connector
+2026-08-05 05:13:53.489832 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SYS  Session logging started.
+2026-08-05 05:13:53.489979 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Session Started: EVConnected[1;0m
+2026-08-05 05:13:53.491081 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Plug In event for evse#1, starting auth
+2026-08-05 05:13:53.491155 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-05 05:13:53.492053 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-05 05:13:53.493164 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got validation request for token: [redacted] hash: 29F2679CA504908
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:53.743392 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Returning validation status: Accepted
+2026-08-05 05:13:53.744713 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Providing authorization to evse#1
+2026-08-05 05:13:53.790962 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC EIM Authorization received[1;0m
+2026-08-05 05:13:53.791923 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-05 05:13:53.833367 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Transaction Started (0 kWh)[1;0m
+2026-08-05 05:13:53.833913 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.[1;0m
+2026-08-05 05:13:53.833984 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: Wait for Auth->PrepareCharging[1;0m
+2026-08-05 05:13:53.834448 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM On (53.3%) took 0 ms[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:55.521564 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC MATCHED[1;0m
+2026-08-05 05:13:55.521567 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (true)[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:13:56.074941 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event CarRequestedPower[1;0m
+2026-08-05 05:13:56.075205 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: PrepareCharging->Charging[1;0m
+2026-08-05 05:13:56.325886 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOn[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-05 05:14:03.657402 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Incoming connection on eth0 from [a00:e1f0:0:0:fe80::]:57840
+
+2026-08-05 05:14:03.657632 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Started new TCP connection thread
+
+2026-08-05 05:14:03.662541 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Handling SupportedAppProtocolReq
+
+2026-08-05 05:14:03.662956 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-05 05:14:03.663910 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SupportedAppProtocolReq[1;0m
+
+2026-08-05 05:14:03.678920 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-05 05:14:03.679009 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-05 05:14:03.679018 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Created new session with id 0x7bb0fb83d229faec
+2026-08-05 05:14:03.705561 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SupportedAppProtocolRes[1;0m
+2026-08-05 05:14:03.753574 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionSetupReq[1;0m
+2026-08-05 05:14:03.777711 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionSetupRes[1;0m
+2026-08-05 05:14:03.825414 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ServiceDiscoveryReq[1;0m
+
+2026-08-05 05:14:03.890095 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SelectedPaymentOption: ExternalPayment
+2026-08-05 05:14:03.913672 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ServiceDiscoveryRes[1;0m
+2026-08-05 05:14:03.913976 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PaymentServiceSelectionReq[1;0m
+2026-08-05 05:14:04.005410 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PaymentServiceSelectionRes[1;0m
+2026-08-05 05:14:04.005608 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+2026-08-05 05:14:04.089402 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+2026-08-05 05:14:04.144637 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+2026-08-05 05:14:04.242083 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+
+2026-08-05 05:14:04.245207 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Parameter-phase started
+
+2026-08-05 05:14:04.246326 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Selected energy transfer mode: AC_three_phase_core
+
+2026-08-05 05:14:04.246381 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: before adjusting for departure time, max_current 96.000000, nom_voltage 230, pmax 66240, departure_duration 0
+2026-08-05 05:14:04.381346 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargeParameterDiscoveryReq[1;0m
+2026-08-05 05:14:04.425393 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargeParameterDiscoveryRes[1;0m
+2026-08-05 05:14:04.425654 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-08-05 05:14:04.450102 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-08-05 05:14:04.451177 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargingStatusReq[1;0m
+2026-08-05 05:14:04.548861 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargingStatusRes[1;0m
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-05 05:14:04.613415 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargingStatusReq[1;0m
+2026-08-05 05:14:04.710987 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargingStatusRes[1;0m
+2026-08-05 05:14:04.763192 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargingStatusReq[1;0m
+2026-08-05 05:14:04.861597 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargingStatusRes[1;0m
+2026-08-05 05:14:04.921745 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO AC HLC Open contactor[1;0m
+2026-08-05 05:14:04.921994 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-08-05 05:14:05.057270 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-08-05 05:14:05.057551 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionStopReq[1;0m
+
+2026-08-05 05:14:05.110893 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Closing TCP connection
+2026-08-05 05:14:05.111822 [[1;37mINFO[0m] [1;32mconnector_1:Evs[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionStopRes[1;0m
