@@ -11,7 +11,7 @@
 # cert against its V2G root, so we present the chain it trusts. -2 TLS is unilateral (no client cert).
 set -uo pipefail
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 CFG=/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_2/evcc_config_pnc_ac.json
 SECC_LOG=/tmp/secc-iso2-pnc.log
 EVCC_LOG=/tmp/evcc-iso2-pnc.log

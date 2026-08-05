@@ -21,7 +21,7 @@ CFGDIR=/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc
 CFG=$([ "$PROTO" = "2" ] && echo "$CFGDIR/iso15118_2/evcc_config_eim_ac.json" || echo "$CFGDIR/iso15118_20/evcc_config_ac.json")
 TARIFF=$([ "$PROTO" = "2" ] && echo /tmp/tariff2.p12 || echo /tmp/tariff20.p12)
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 SECC_LOG=/tmp/secc-tariff-$PROTO.log
 EVCC_LOG=/tmp/evcc-tariff-$PROTO.log
 

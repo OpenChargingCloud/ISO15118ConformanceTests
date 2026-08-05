@@ -121,8 +121,8 @@ but it is the format all four back ends replay, produced from a session with som
 ```bash
 # our SECC, Dynamic, waiting
 V2G_INTEROP_LISTEN=55000 V2G_INTEROP_PROTOCOL=20 V2G_INTEROP_MODE=dc V2G_INTEROP_DYNAMIC=1 \
-V2G_INTEROP_RECORD=/tmp/dyn V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso20-dc-eim.trace.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+V2G_INTEROP_RECORD=/tmp/dyn V2G_INTEROP_SCENARIO=../../ISO15118ConformanceTests.Simulation/Vectors/Session.iso20-dc-eim.trace.json \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~EvDriveFlowInteropTests.TheirEvcc" &
 
 # their EV, plus the shim and the hop back to the Mac

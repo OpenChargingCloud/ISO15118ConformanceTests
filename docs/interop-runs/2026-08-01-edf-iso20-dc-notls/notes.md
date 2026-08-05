@@ -92,7 +92,7 @@ PowerDelivery, into the charge loop. The cable-check loop looks only at `EVSEPro
 var res = Expect<Dc20.DC_CableCheckRes>(set, message, MessageSet.Iso20DC);
 if (res.EVSEProcessing == Dc20.Processing.Finished) break;
 ```
-(`Vanaheimr.V2G.Simulation/StateMachines/Iso20/Evcc20Dc.cs`)
+(`EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/StateMachines/Iso20/Evcc20Dc.cs`)
 
 And `Expect<T>` checks the message *set* and *type* only:
 
@@ -154,8 +154,8 @@ docker exec -d edf-secc socat TCP4-LISTEN:15118,fork,reuseaddr 'TCP6:[fd00:beef:
 
 V2G_INTEROP_SECC=127.0.0.1:15118 V2G_INTEROP_PROTOCOL=20 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/edf-run \
-V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso20-dc-eim.trace.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+V2G_INTEROP_SCENARIO=../../ISO15118ConformanceTests.Simulation/Vectors/Session.iso20-dc-eim.trace.json \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~EvDriveFlowInteropTests.OurEvcc"
 ```
 

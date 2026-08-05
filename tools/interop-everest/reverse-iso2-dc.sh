@@ -15,7 +15,7 @@ protocol="${3:-2}"
 mode="${4:-dc}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../Vanaheimr.V2G.Simulation.Cli"
+cli="$here/../../EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli"
 log="${V2G_INTEROP_LOG:-/tmp/everest-reverse-secc.log}"
 
 if ! ip link show "$iface" >/dev/null 2>&1; then

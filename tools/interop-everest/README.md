@@ -5,7 +5,7 @@ the Linux Foundation Energy charging stack.
 
 Like the other three harnesses this is **opt-in and never part of the offline CI**. The automated hook is
 the `[Explicit] [Category("Interop")]` fixture
-[`Vanaheimr.V2G.Simulation.Tests/Interop/EverestInteropTests.cs`](../../Vanaheimr.V2G.Simulation.Tests/Interop/EverestInteropTests.cs),
+[`ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs),
 gated on environment variables — `dotnet test -c Release` skips it entirely.
 
 *Written against `everest-core` as of 2026-08-01. Lines marked **confirm on first contact** could not be
@@ -163,8 +163,8 @@ own recorded sessions:
 ```bash
 V2G_INTEROP_SECC='[fe80::…%eth0]:15118' V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/everest-run \
-V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso2-dc-eim.trace.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+V2G_INTEROP_SCENARIO=../../ISO15118ConformanceTests.Simulation/Vectors/Session.iso2-dc-eim.trace.json \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~EverestInteropTests.OurEvcc"
 ```
 

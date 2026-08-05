@@ -4,7 +4,7 @@
 set -uo pipefail
 
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-CLI="$REPO/Vanaheimr.V2G.Simulation.Cli"
+CLI="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli"
 SECC_LOG=/tmp/secc-pnc2.log
 SDP_LOG=/tmp/sdp-pnc2.log
 EVCC_LOG=/tmp/evcc-pnc2.log

@@ -6,7 +6,7 @@ packet captures.
 
 Like [`../interop-josev`](../interop-josev/README.md) this is **opt-in and never part of the offline CI**.
 The automated hook is the `[Explicit] [Category("Interop")]` fixture
-[`Vanaheimr.V2G.Simulation.Tests/Interop/TuxEvseInteropTests.cs`](../../Vanaheimr.V2G.Simulation.Tests/Interop/TuxEvseInteropTests.cs),
+[`ISO15118ConformanceTests.Simulation/Interop/TuxEvseInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/TuxEvseInteropTests.cs),
 gated on environment variables — `dotnet test -c Release` skips it entirely.
 
 *Written against the repository as of 2026-08-01. Every line marked **confirm on first contact** could not
@@ -202,7 +202,7 @@ Or through the fixture, which additionally **records the session**:
 V2G_INTEROP_LISTEN=55000 V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/tux-run \
 V2G_INTEROP_SCENARIO=/usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~TuxEvseInteropTests.TheirInjector"
 ```
 
@@ -224,7 +224,7 @@ Or through the fixture:
 V2G_INTEROP_SECC='[fe80::…%evcc-veth]:64109' V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/tux-run \
 V2G_INTEROP_SCENARIO=/usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~TuxEvseInteropTests.OurEvcc"
 ```
 

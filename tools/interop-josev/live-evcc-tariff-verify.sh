@@ -13,7 +13,7 @@
 set -uo pipefail
 IFACE="${1:-eth0}"
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 SECC_LOG=/tmp/josev-secc-tariff.log
 EVCC_LOG=/tmp/our-evcc-tariff.log
 

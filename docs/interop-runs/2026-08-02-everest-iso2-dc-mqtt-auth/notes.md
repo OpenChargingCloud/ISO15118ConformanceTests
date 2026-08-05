@@ -212,8 +212,8 @@ docker run -d --name ev-relay --network v2gnet -p 15130:15120 v2g-socat \
 
 V2G_INTEROP_SECC=127.0.0.1:15130 V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/everest-mqtt-run \
-V2G_INTEROP_SCENARIO=$PWD/Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso2-dc-eim.trace.json \
-  dotnet test Vanaheimr.V2G.Simulation.Tests -c Release \
+V2G_INTEROP_SCENARIO=$PWD/ISO15118ConformanceTests.Simulation/Vectors/Session.iso2-dc-eim.trace.json \
+  dotnet test ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~EverestInteropTests.OurEvcc"
 ```
 

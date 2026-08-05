@@ -5,7 +5,7 @@ Interop between **our** EVCC/SECC and **[EDF-Lab/eVDriveFlow](https://github.com
 
 Like the other two harnesses this is **opt-in and never part of the offline CI**. The automated hook is
 the `[Explicit] [Category("Interop")]` fixture
-[`Vanaheimr.V2G.Simulation.Tests/Interop/EvDriveFlowInteropTests.cs`](../../Vanaheimr.V2G.Simulation.Tests/Interop/EvDriveFlowInteropTests.cs),
+[`ISO15118ConformanceTests.Simulation/Interop/EvDriveFlowInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/EvDriveFlowInteropTests.cs),
 gated on environment variables — `dotnet test -c Release` skips it entirely.
 
 *Written against their repository as of 2026-08-01. Lines marked **confirm on first contact** could not be
@@ -109,7 +109,7 @@ do TLS 1.3 on macOS at all, and their certificates come from their own `generate
 than from our PKI builder:
 
 ```bash
-dotnet run --project ../../Vanaheimr.V2G.Simulation.Cli -c Release -- \
+dotnet run --project ../../EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli -c Release -- \
     evcc --connect '[fe80::…%enp0s3]:49152' --protocol 20 --mode dc \
          --tls-backend bc --pki-dir <dir>
 ```
@@ -145,8 +145,8 @@ Through the fixture, which records the run and compares the flow:
 ```bash
 V2G_INTEROP_LISTEN=55000 V2G_INTEROP_PROTOCOL=20 V2G_INTEROP_MODE=dc V2G_INTEROP_DYNAMIC=1 \
 V2G_INTEROP_RECORD=/tmp/edf-run \
-V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso20-dc-eim.trace.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+V2G_INTEROP_SCENARIO=../../ISO15118ConformanceTests.Simulation/Vectors/Session.iso20-dc-eim.trace.json \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~EvDriveFlowInteropTests.TheirEvcc"
 ```
 

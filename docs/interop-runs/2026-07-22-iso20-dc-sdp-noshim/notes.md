@@ -40,7 +40,7 @@ after:   [TLS-request 0x00] RESPONSE security=0x10   [NoTLS-request 0x10] RESPON
 
 `Program.BuildSeccSdpOptions(iface, port, noTls)` now sets `RejectNoTlsRequests = !noTls` — reject no-TLS
 downgrade requests only when we ourselves are a TLS SECC; a plaintext SECC answers plaintext requests.
-Guarded by `Vanaheimr.V2G.Simulation.Tests/Discovery/SeccSdpOptionsTests`. Also fixed a cosmetic
+Guarded by `ISO15118ConformanceTests.Simulation/Discovery/SeccSdpOptionsTests`. Also fixed a cosmetic
 `…%2%2` scope doubling in the advertise log (re-derive the scoped display address once).
 
 The Python `tools/interop-josev/sdp-responder.py` stays as a generic pentest/fallback helper, but `--sdp` no

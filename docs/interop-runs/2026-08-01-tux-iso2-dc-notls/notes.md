@@ -133,7 +133,7 @@ docker run -d --name tux-relay --network v2gnet -p 15119:15119 <any-image-with-s
 
 V2G_INTEROP_SECC=127.0.0.1:15119 V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/tux-run V2G_INTEROP_SCENARIO=<their audi-dc-iso2-compact.json> \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~TuxEvseInteropTests.OurEvcc"
 ```
 

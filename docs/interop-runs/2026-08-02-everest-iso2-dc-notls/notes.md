@@ -46,7 +46,7 @@ Our EVCC polled until the fixture's own 3-minute budget ran out.
 while ((await Send<AuthorizationResType>(authReq, ct, authSignature))
            .EVSEProcessing != EVSEProcessing.Finished)
 ```
-(`Vanaheimr.V2G.Simulation/StateMachines/Iso2/Evcc2.cs`)
+(`EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/StateMachines/Iso2/Evcc2.cs`)
 
 No counter, no deadline. The same shape appears at two more places in the same file — the
 charge-parameter-discovery and cable-check/pre-charge polls — and the -20 EVCC's poll loops are built
@@ -130,8 +130,8 @@ docker run -d --name ev-relay --network v2gnet -p 15120:15120 <image-with-socat>
 
 V2G_INTEROP_SECC=127.0.0.1:15120 V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/ev-run \
-V2G_INTEROP_SCENARIO=../../Vanaheimr.V2G.Simulation.Tests/Vectors/Session.iso2-dc-eim.trace.json \
-  dotnet test ../../Vanaheimr.V2G.Simulation.Tests -c Release \
+V2G_INTEROP_SCENARIO=../../ISO15118ConformanceTests.Simulation/Vectors/Session.iso2-dc-eim.trace.json \
+  dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~EverestInteropTests.OurEvcc"
 ```
 

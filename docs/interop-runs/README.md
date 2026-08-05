@@ -19,7 +19,7 @@ Each directory should contain:
 
 The `[Explicit] [Category("Interop")]` fixtures write these artifacts themselves when
 `V2G_INTEROP_RECORD=<dir>` is set — see
-[`Vanaheimr.V2G.Simulation.Tests/Interop/InteropRecording.cs`](../../Vanaheimr.V2G.Simulation.Tests/Interop/InteropRecording.cs).
+[`ISO15118ConformanceTests.Simulation/Interop/InteropRecording.cs`](../../ISO15118ConformanceTests.Simulation/Interop/InteropRecording.cs).
 Per run: the raw octets of each direction, a `frames.log` (named messages and response codes, not just
 payload types), a `flow.md`, and a `*.trace.json` in the same format as `Vectors/Session.*.trace.json`
 when the session was strictly alternating and untruncated. When it was not, a `trace-not-built.txt`

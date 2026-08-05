@@ -26,7 +26,7 @@ own throwaway test PKI, including a ready `MO_CERT_CHAIN.p12` — contract leaf 
 to them; nothing was minted here.
 
 Two small mercies in that file: the leaf's Common Name is `UKSWI123456789A`, **15 characters**, so it
-passes our own eMAID length check ([the one added on 2026-07-31](../../CONCEPT.md) after a
+passes our own eMAID length check ([the one added on 2026-07-31](../../../EVSimulatorApp/docs/CONCEPT.md) after a
 19-character CN travelled in this repository's corpus), and the password is in the tin next to it.
 
 ## ISO 15118-2 — and the first thing they taught us
@@ -79,7 +79,7 @@ Two causes, and the second survived fixing the first. Their SIL plug-in fires `D
 which authorizes connector 1 by **RFID** before our car ever connects — the same plug-in the DC cable
 check needs. Swapping in `DummyTokenProviderManual` (their own module, `requires: {}`) removes that
 collision and the connector starts free; the PnC token is still refused. In a real deployment an OCPP
-backend authorizes the eMAID, and the SIL has no stand-in for one. [`pnc-authorize.sh`](../../tools/interop-everest/pnc-authorize.sh)
+backend authorizes the eMAID, and the SIL has no stand-in for one. [`pnc-authorize.sh`](../../../tools/interop-everest/pnc-authorize.sh)
 forwards their own token back to their auth module and gets no further; it is checked in because it
 documents the topic shape, not because it works.
 

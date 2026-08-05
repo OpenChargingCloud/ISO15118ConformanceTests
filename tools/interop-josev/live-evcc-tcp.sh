@@ -13,7 +13,7 @@ set -euo pipefail
 iface="${1:-eth0}"
 mode="${2:-dc}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli_dll="$here/../../Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+cli_dll="$here/../../EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
 
 # The CLI's own --sdp discovery works live since the MulticastLoopback fix (2026-07-23).
 exec dotnet "$cli_dll" evcc --sdp --interface "$iface" --protocol 20 --mode "$mode"
