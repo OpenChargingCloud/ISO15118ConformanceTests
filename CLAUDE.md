@@ -6,7 +6,8 @@ holds the app to account against independent stacks — Josev, EVerest, EVDriveF
 
 ## Orientation
 
-- **What is proven, and how:** `README.md` — the interop-status ledger.
+- **What is proven, and how:** `README.md` — the interop matrix, per counterparty and scenario.
+  Josev's column in full: `docs/josev-cross-validation.md`.
 - **Per-run write-ups and frame logs:** `docs/interop-runs/`.
 - **The stack under test:** `libs/EVSimulatorApp/` — its own README documents the codec and the simulation.
 
