@@ -36,6 +36,9 @@ binds this harness.
 | -2 AC | complete ×2 (13) | **complete ×2** (13/13) |
 | -20 AC | `FAILED_ContactorError` at PowerDelivery | **same**, same message, 10 exchanges — the SIL still expects its own EV module |
 | -20 DC, mutual TLS 1.3 | complete ×2 (116, macOS) | **their side completes** (61, bridged — see the platform finding) |
+| -2 DC PnC over TLS 1.2 | chain accepted, our signed `AuthorizationReq` verified | **same, re-verified** — then a terminal `FAILED`; and their SIL only offers Contract at all under one condition (finding 6) |
+| -2 PnC without TLS | Contract stripped from the offer | **same** — `PnC is not allowed without TLS-communication` |
+| -20 PnC | not implemented on their side | **unchanged** — the same line is still commented out |
 | unicast SDP → loop shutdown | reproduces 2/2 | **does not reproduce** 0/2 |
 | refused TLS handshake → loop shutdown | reproduces | **reproduces 3/3** |
 
@@ -152,12 +155,96 @@ Three machine notes, all cheap once known:
 `CP_AT_PLUGIN=1` on every scenario including -2 DC: the `Start_CableCheck` trigger topic shape died
 with the 2023 image, and holding state C from the plug-in is the posture that works everywhere.
 
+## Finding 6 — Plug & Charge: the signature verifies again, and the offer is the hard part
+
+*(Added 2026-08-05, later the same day; these runs used ours @ `693f3f9`. No keys were minted: the
+contract credential is **their own** `everest-aux` MO material — `client/mo/MO_CERT_CHAIN.p12`,
+`CN=UKSWI123456789A`, password in the tin next to it — handed back to them, exactly as in the
+2025.10 run. Their whole test PKI was restored pristine first, because the TLS 1.3 run had overlaid a
+freshly generated `iso-20` PKI on it.)*
+
+**ISO 15118-2 PnC over TLS 1.2 gets exactly as far as it did on 2025.10, and no further:**
+
+```
+SelectedPaymentOption: Contract
+PaymentDetailsRes        OK       ← their EvseSecurity accepted our contract chain
+AuthorizationRes × 362   OK       ← EVSEProcessing = Ongoing, for 55 s
+AuthorizationRes         FAILED   ← and then it gives up
+```
+
+The middle step is the one that matters, and their own MQTT interface proves it
+([`require-auth-pnc.log`](require-auth-pnc.log)):
+
+```
+require_auth_pnc {"data":{"data":{"authorization_type":"PlugAndCharge","certificate":"-----BEGIN CERT…
+```
+
+`EvseV2G` publishes that **only after `check_iso2_signature()` has returned true** (their
+`handle_iso_authorization`, quoted in the [2025.10 run](../2026-08-03-everest-pnc/their-pnc-code.txt)).
+So **our signed `AuthorizationReq` was verified by a second independent stack again, on the current
+release.** The token then reaches their `Auth` module — `provided_token`, `PlugAndCharge` — and stops
+there: a contract/eMAID needs a validating backend, and the SIL has none (their `DummyTokenValidator`
+is not in that path; `config-sil-ocpp201-pnc.yaml` is, and it wants an OCPP 2.0.1 CSMS). Same wall as
+2025.10, now with the terminal `FAILED` and the MQTT trace to say precisely where it stands.
+
+### The trap: with the car plugged in, PnC is never offered at all
+
+The first attempt came out as plain EIM despite TLS and a loaded credential, and their code says why —
+`EvseManager.cpp:1299-1315`:
+
+```cpp
+if (pnc_enabled and s == types::evse_manager::SessionEventEnum::SessionFinished) {
+    payment_options.push_back(types::iso15118::PaymentOption::Contract);
+} else {
+    // We dont add contract if this is an Authorized event, as in this case the ISO15118 stack
+    // should not offer the contract option and certifiate installation service.
+```
+
+`sil-car.sh` plugs the simulated car in, their `DummyTokenProvider` answers the resulting AuthRequired
+with an EIM token, and the session is **Authorized before our EV ever connects** — so `ServiceDiscoveryRes`
+carries `ExternalPayment` only and our EVCC correctly declines to do PnC. Two ways out, both config-only:
+run with no car at all (what the 2025.10 run must effectively have done — it never reached CableCheck
+either), or keep the car for the CP line and park the EIM token. [`config-dc2-pnc-ours.yaml`](config-dc2-pnc-ours.yaml)
+does the latter with their own knobs — `token_provider.main.connector_id: 2` (a connector that does not
+exist) plus `payment_enable_eim: false`. Nothing of theirs is patched.
+
+Worth knowing for anyone repeating this: **a PnC run and a complete-charge run are mutually exclusive
+against their SIL as it ships.** The plug-in that makes CableCheck possible is the same event that
+removes Contract from the offer.
+
+### Still enforced: no Contract without TLS
+
+Control run over plain TCP with the same credential — their rule from the 2025.10 notes holds
+unchanged, and it is still the only station-side check of that spec requirement this project has met:
+
+```
+PnC is not allowed without TLS-communication. Correcting value to '1' (ExternalPayment)
+```
+
+### ISO 15118-20 PnC: unchanged, still commented out
+
+`modules/EVSE/Evse15118D20/charger/ISO15118_chargerImpl.cpp:702` `handle_session_setup()` — byte for
+byte what 2025.10 had:
+
+```cpp
+} else if (option == types::iso15118::PaymentOption::Contract) {
+    // auth_services.push_back(iso15118::message_20::Authorization::PnC);
+    EVLOG_warning << "Currently Plug&Charge is not supported and ignored";
+}
+```
+
+So -20 PnC remains unavailable against EVerest at 2026.02.1, with or without TLS or configuration —
+a fact about their module, not a result of ours.
+
 ## Not repeated, and why
 
-- **PnC** (2026-08-03-everest-pnc): needs the MO contract credential packaged for our side and the
-  station's PnC configuration; nothing suggests 2026.02.1 moved, but it is unverified. Next.
+- ~~**PnC**~~ — done the same day, see finding 6 above.
 - **Reverse** (`PyEvJosev` → our SECC): was not in the 02/03.08 set either; still the
   lowest-information direction (their car is Josev).
+- **A complete PnC charge** stays out of reach against their SIL for a structural reason, not a
+  missing run: nothing there validates a contract. `config-sil-ocpp201-pnc.yaml` is the configuration
+  that would, and it needs an OCPP 2.0.1 CSMS on the other end — a different counterparty, and a
+  bigger piece of work than this harness has ever set up.
 - **MCS: no longer parked for their reason.** `config-sil-mcs.yaml` **exists in 2026.02.1** — the
   counterpart our roadmap called distant is now one config away. What is missing now is on our side:
   the interop fixture has no MCS arm. That is the single most valuable next piece of work this run

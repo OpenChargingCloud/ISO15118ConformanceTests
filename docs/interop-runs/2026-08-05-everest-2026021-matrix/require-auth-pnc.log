@@ -1,0 +1,7 @@
+# Their own MQTT interface during the PnC session (2026.02.1, config-dc2-pnc-ours.yaml).
+# require_auth_pnc is published by EvseV2G only after check_iso2_signature() has passed,
+# so this line IS their verification of our signed AuthorizationReq. Certificate bodies
+# are truncated here; they are EVerest's own throwaway MO test material.
+
+require_auth_pnc {"data":{"data":{"authorization_type":"PlugAndCharge","certificate":"-----BEGIN CERTIFICATE-----\n…truncated…
+provided_token {"data":{"data":{"authorization_type":"PlugAndCharge","certificate":"-----BEGIN CERTIFICATE-----\n…truncated…

@@ -241,7 +241,7 @@ not implemented on their side
 |---|---|---|---|---|
 | AC, EIM | ✅ both directions | ✅ ×2 sessions | — | — |
 | DC, EIM | ✅ both directions | ✅ ×2 sessions¹ | — | ◐ stops at `SessionSetup`² |
-| Plug & Charge (over TLS) | ✅ both directions, signed msgs verified both ways | ◐ chain accepted + our signature verified; their SIL has no eMAID backend³ | — | — |
+| Plug & Charge (over TLS) | ✅ both directions, signed msgs verified both ways | ◐ chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
 | Pause / Resume | ✅ forward (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ both roles, incl. their MO-signed tariff verified by us | — | — | — |
 | TLS 1.2 (unilateral) | ✅ | ✅ (the PnC session above) | — | — |
@@ -269,7 +269,11 @@ lineages.
 ² Their responder replays a captured car and refuses any request whose identifiers differ from the
 recording — a property of their tool, not an interop verdict.
 ³ Their station-side rule "no Contract without TLS" was also the first external check of that spec
-requirement against us.
+requirement against us, and still holds on 2026.02.1. Two structural limits sit behind that cell: a
+contract/eMAID has no validator in their SIL (their PnC-capable configuration wants an OCPP 2.0.1
+CSMS), and their `EvseManager` drops `Contract` from the offer for an already-authorized session — so
+plugging the simulated car in, which is what makes a *complete charge* possible, is also what makes
+PnC unreachable. -20 PnC is a single commented-out line in their module, unchanged since 2025.10.
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in
 the run notes — and 12 of our -20 messages decoded clean by a second independent codec.
 ⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot
@@ -290,9 +294,11 @@ line — after it, the charger answers nothing while its process stays healthy (
 [`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md)),
 `IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, and
 `config-sil-mcs.yaml` now exists — the first MCS counterpart in sight (our fixture has no MCS arm yet).
-Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; PnC not yet repeated on
-2026.02.1; on Windows the -20 mutual-TLS client needs the BouncyCastle path made reachable (Schannel
-refuses untrusted-root client chains — station side bridged and green).
+PnC was repeated too: our signed -2 `AuthorizationReq` verifies against their station on 2026.02.1 as
+it did on 2025.10, and the wall behind it is theirs (nothing in the SIL validates a contract).
+Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; on Windows the -20
+mutual-TLS client needs the BouncyCastle path made reachable (Schannel refuses untrusted-root client
+chains — station side bridged and green).
 
 ---
 
