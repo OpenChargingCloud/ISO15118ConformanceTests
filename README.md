@@ -284,8 +284,10 @@ the conformant -20 TLS client remains proven from the macOS/BouncyCastle path.
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
 image, 02/03.08) **and re-validated against 2026.02.1 built from source**
 ([`2026-08-05-everest-2026021-matrix`](docs/interop-runs/2026-08-05-everest-2026021-matrix/notes.md)).
-Standing deltas on 2026.02.1: their unicast-SDP loop shutdown is fixed, the refused-TLS-handshake loop
-shutdown persists (report ready to file, [`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md)),
+Standing deltas on 2026.02.1: their unicast-SDP loop shutdown is fixed, while the refused-TLS-handshake
+one persists and turns out to be reachable from their *stock* SIL config by one `openssl s_client`
+line — after it, the charger answers nothing while its process stays healthy (report ready to file,
+[`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md)),
 `IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, and
 `config-sil-mcs.yaml` now exists — the first MCS counterpart in sight (our fixture has no MCS arm yet).
 Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling; PnC not yet repeated on

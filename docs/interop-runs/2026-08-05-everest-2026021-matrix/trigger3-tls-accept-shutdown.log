@@ -1,0 +1,58 @@
+# Trigger 3 — a TLS handshake failing inside SSL_accept ends TbdController::loop()
+#
+# everest-core 2026.02.1 (b61bb12b8), built from source; libiso15118 v0.9.1 in-tree.
+# Three reproductions, one attempt each, ANSI escapes stripped. Recorded 2026-08-05.
+# Full station logs of each run follow, filtered to the lines that carry the finding.
+
+================================================================
+## stock-d20 — their own shipped config/config-sil-dc-d20.yaml, UNMODIFIED — client offers no certificate
+================================================================
+2026-08-05 10:09:55.437763 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-05 10:09:55.437785 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-05 10:09:56.010477 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-05 10:09:56.861215 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:feca:a645%eth0]:50000
+2026-08-05 10:09:57.384982 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feca:a645%eth0]:34186
+2026-08-05 10:09:57.385903 [INFO] iso15118_charge  :: Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+2026-08-05 10:09:57.388271 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Shutdown loop() because of: Failed to SSL_accept(): 1: C0F6CB09567D0000:error:0A0000C7:SSL routines:tls_process_client_certificate:peer did not return a certificate:../ssl/statem/statem_srvr.c:3751:
+-- 'Shutdown loop' occurrences in this run: 1
+
+================================================================
+## trigger3-A — config-d20-tls-ours.yaml (ENFORCE_TLS + enforce_tls_1_3) — client offers no certificate
+================================================================
+2026-08-05 10:07:35.345556 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-05 10:07:35.345694 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-05 10:07:35.797954 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-05 10:07:36.567832 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:feca:a645%eth0]:50000
+2026-08-05 10:07:37.085627 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feca:a645%eth0]:39468
+2026-08-05 10:07:37.086756 [INFO] iso15118_charge  :: Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+2026-08-05 10:07:37.089207 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Shutdown loop() because of: Failed to SSL_accept(): 1: C0F62B3A43760000:error:0A0000C7:SSL routines:tls_process_client_certificate:peer did not return a certificate:../ssl/statem/statem_srvr.c:3751:
+-- 'Shutdown loop' occurrences in this run: 1
+
+================================================================
+## trigger3-B — config-d20-tls-ours.yaml — client offers an untrusted self-signed certificate
+================================================================
+2026-08-05 10:08:02.525641 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-05 10:08:02.525719 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-05 10:08:02.758680 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-05 10:08:03.056562 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:feca:a645%eth0]:50000
+2026-08-05 10:08:03.580010 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feca:a645%eth0]:50560
+2026-08-05 10:08:03.580937 [INFO] iso15118_charge  :: Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+2026-08-05 10:08:03.583447 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Shutdown loop() because of: Failed to SSL_accept(): 1: C0F6EB9141790000:error:0A000086:SSL routines:tls_process_client_certificate:certificate verify failed:../ssl/statem/statem_srvr.c:3764:
+-- 'Shutdown loop' occurrences in this run: 1
+
+================================================================
+## contrast — CONTRAST — valid mutual handshake, then the client disconnects mid-session
+================================================================
+2026-08-05 10:08:50.465414 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-05 10:08:50.465492 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-05 10:08:50.506237 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-05 10:08:50.931761 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:feca:a645%eth0]:50000
+2026-08-05 10:08:51.455599 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feca:a645%eth0]:52562
+2026-08-05 10:08:51.456638 [INFO] iso15118_charge  :: Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+2026-08-05 10:08:51.460172 [INFO] iso15118_charge  :: Handshake complete!
+2026-08-05 10:08:51.460422 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Shutting down session because of: Failed to SSL_read_ex(): 6
+2026-08-05 10:08:51.460443 [INFO] iso15118_charge  :: Closing TLS connection
+2026-08-05 10:08:51.460543 [INFO] iso15118_charge  :: TLS connection closed gracefully
+2026-08-05 10:08:53.472518 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:feca:a645%eth0]:50000
+-- 'Shutdown loop' occurrences in this run: 0
+

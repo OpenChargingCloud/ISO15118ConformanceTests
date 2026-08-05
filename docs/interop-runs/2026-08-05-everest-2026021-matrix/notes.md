@@ -52,19 +52,28 @@ On 2026.02.1:
   breaks the loop) — what changed is upstream of it: the malformed-payload path now warns and returns
   (`sdp_server.cpp:125`, "FIXME (aw): we should not die here immediately"), and the EAGAIN wakeup that
   a unicast reply used to provoke evidently no longer happens.
-- **Trigger 3 (refused TLS handshake): alive.** Three independent reproductions today, all
-  `Shutdown loop() because of: Failed to SSL_accept(): … certificate verify failed` (twice from a
-  client chain their OpenSSL could not build, once from a deliberate client-side abort). After each,
-  the **zombie state** the report describes was observed directly: SDP stays bound and silent — the
-  next `sdp-probe.sh` times out against a socket that still exists — and nothing restarts the module.
+- **Trigger 3 (refused TLS handshake): alive, and cheaper to hit than the report assumed.** First met
+  driving our own EVCC at it; then reproduced deliberately, **three times, one attempt each**, with a
+  single `openssl s_client` line and no ISO 15118 stack involved at all:
+  **their stock `config/config-sil-dc-d20.yaml`, unmodified**, client offering no certificate
+  (`peer did not return a certificate`); the same under `ENFORCE_TLS`+`enforce_tls_1_3`; and once with
+  an untrusted self-signed client certificate (`certificate verify failed`). The stock-config hit is
+  the one that matters: `tls_negotiation_strategy` defaults to `ACCEPT_CLIENT_OFFER`, so any TLS 1.3
+  client without an acceptable certificate reaches it.
+  After each, the **zombie state** was observed directly and is worse than the report described: the
+  SDP socket stays bound with datagrams queueing unread (`Recv-Q 960`), a multicast probe gets no
+  answer for **either** security byte, and — because `Evse15118D20` creates its TCP server only on an
+  SDP request — the charger can never serve anyone again, while module and manager processes both
+  stay alive. Evidence: [`trigger3-tls-accept-shutdown.log`](trigger3-tls-accept-shutdown.log).
 - The contrast is now sharper than in the report: an `SSL_read_ex` failure on an **established**
   session is handled per-session ("Shutting down session … Closing TLS connection gracefully", loop
   survives — observed today after an `openssl s_client` disconnect), while the same class of error
   inside `SSL_accept` ends the world. That asymmetry is the one-line argument for scoping accept-path
   errors to the connection.
 
-**Consequence for the report:** it can be filed, and should lead with the TLS-accept trigger; the
-unicast-SDP section becomes "fixed in 2026.02.1, code still fragile". Updated in the report itself.
+**Consequence for the report:** it can be filed, and now leads with the TLS-accept trigger; the
+unicast-SDP section is demoted to "fixed in 2026.02.1, same shape still reachable in principle".
+Rewritten accordingly in [`docs/reports/everest-loop-shutdown.md`](../../reports/everest-loop-shutdown.md).
 
 ## Finding 2 — IsoMux still routes on "mentions -20", not on Priority
 
