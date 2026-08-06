@@ -109,10 +109,17 @@ Everything below was unblocked by it.
   ([`…-pnc`](interop-runs/2026-08-03-everest-pnc/notes.md)). Their station-side rule *"no `Contract`
   without TLS"* was also the first external check of that spec requirement against us, and it still holds
   on 2026.02.1.
-  <br>**The two halves of this cell exclude each other**, which is worth naming: their `EvseManager`
-  drops `Contract` from the offer for an already-authorized session, and plugging the simulated car in —
-  the thing that makes a *complete charge* possible at all — is what authorizes it. So a complete charge
-  and a PnC offer cannot be had in the same session against this SIL.
+  <br>**A complete charge and a PnC offer never came in the same session — which is their design, not a
+  wall.** Their `EvseManager` narrows `PaymentOptionList` to `ExternalPayment` the moment an EIM
+  authorization arrives, switching certificate installation off with it, and restores `Contract` at
+  `SessionFinished`; the comment on that branch says the stack *"should not offer the contract option"*.
+  It is the ad-hoc / RFID path a public charger has to have, expressed per session — and the same switch
+  exists per station, fed from OCPP through `set_plug_and_charge_configuration`.
+  <br>Only the *ordering* belongs to the SIL: `DummyTokenProvider` publishes an ISO14443 token on
+  `SessionStarted`, so the simulated swipe lands at plug-in and the window in which a plugged-in but
+  still unauthorized car is offered `Contract` never opens. On a real charger that window is the ordinary
+  case. Our own workaround says it from the other side — `token_provider.main.connector_id: 2`, a
+  connector that does not exist, is just *do not swipe*.
 
 - **`IsoMux`, all four offer shapes (2026-08-03), and over TLS (2026-08-06).** One endpoint answering
   both protocols; then both protocols in *one* offer, which is the case a multiplexer exists for; then

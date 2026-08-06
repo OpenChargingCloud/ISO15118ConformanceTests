@@ -111,9 +111,9 @@ ourselves, and the value of this column is behavioural.
 recording — a property of their tool, not an interop verdict.
 
 ³ Their rule *"no `Contract` without TLS"* was the first external check of that requirement against us.
-A complete charge and a PnC offer are **mutually exclusive** against their SIL: plugging the simulated
-car in is what makes the charge possible and what authorizes the session, and their `EvseManager` drops
-`Contract` for an already-authorized one.
+A complete charge and a PnC offer never came in the same session — but that is the **intended EIM path**,
+not a wall: their `EvseManager` offers `ExternalPayment` alone once a session is authorized, and their
+SIL's dummy token provider swipes at plug-in.
 
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
 run notes — and 12 of our -20 messages decoded clean by a second independent codec.
