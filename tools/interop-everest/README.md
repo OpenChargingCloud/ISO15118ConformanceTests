@@ -206,10 +206,12 @@ a plain DC service when none is offered, by design, and a fallback that complete
 written up as an MCS result.
 
 Add **`V2G_INTEROP_MCS_FIRST=9`** to go for **MCS_BPT** instead, and the assertion narrows to exactly 9.
-Expect it to reach `DC_ChargeParameterDiscoveryRes` and fail there with `FAILED_WrongChargeParameter` —
-that refusal is the current state of our bidirectional EV support (no `Evcc20*` builds the `BPT_*`
-request types), and the run notes explain it. Selecting 9 at all took an app fix: the EVCC's service
-ranking used to be ignored in favour of the station's catalogue order.
+This now runs to `SessionStop` with the discharge half declared and their station logging
+`Max discharge current 3000.000000A`. It took two app fixes to get there, both found by the run that
+failed before them: the EVCC's service ranking used to be ignored in favour of the station's catalogue
+order, and no `Evcc20*` built the `BPT_*` request types, so a BPT service was answered with charge-only
+parameters and refused — `FAILED_WrongChargeParameter`. See
+[`2026-08-06-everest-mcs-bpt-complete`](../../docs/interop-runs/2026-08-06-everest-mcs-bpt-complete/notes.md).
 
 **Run it twice.** Their `EvseV2G` segfaults on the second V2G session in the same process — see
 [Known friction](#known-friction-expect-these-first) — and a harness that only ever opens one connection
@@ -304,10 +306,12 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
    with `enable_sdp_server: false`, and `Evse15118D20` behind it still claims `[::1]:50000`.
 6. ✅ **MCS** — the first live counterpart our MCS support ever had. Done 2026-08-05 against
    `config-sil-mcs.yaml`: three complete sessions, service id 8 read back as MCS by their stack.
-   **MCS_BPT (9)** was probed the same day (`V2G_INTEROP_MCS_FIRST=9`) and is where our side stops: their
-   station accepts the selection and then refuses the session with `FAILED_WrongChargeParameter`, because
-   no `Evcc20*` builds the `BPT_*` charge parameters that a bidirectional service requires.
-   [`2026-08-05-everest-mcs-bpt`](../../docs/interop-runs/2026-08-05-everest-mcs-bpt/notes.md).
+   ✅ **MCS_BPT (9)** followed on 2026-08-06 (`V2G_INTEROP_MCS_FIRST=9`): two complete sessions with the
+   discharge half declared, and 3.75 MW decoded by their `EvseManager`. The first attempt a day earlier
+   was refused with `FAILED_WrongChargeParameter` and is what drove the two app fixes behind it —
+   [`2026-08-05-everest-mcs-bpt`](../../docs/interop-runs/2026-08-05-everest-mcs-bpt/notes.md) for the
+   refusal, [`2026-08-06-everest-mcs-bpt-complete`](../../docs/interop-runs/2026-08-06-everest-mcs-bpt-complete/notes.md)
+   for the result.
 7. **Reverse** with `PyEvJosev`, lower value (it is Josev in a wrapper) and the one the relay cannot
    cover, so last — **except for MCS**, where their `config-sil-mcs.yaml` configures their car with
    `supported_d20_energy_services: MCS`. That is an EV that asks for service 8 specifically, and it is

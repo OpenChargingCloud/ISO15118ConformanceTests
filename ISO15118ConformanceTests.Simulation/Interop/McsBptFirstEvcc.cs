@@ -18,6 +18,8 @@
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Timing;
 
+using Dc20 = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
+
 namespace ISO15118ConformanceTests.Simulation.Interop;
 
 /// <summary>
@@ -48,14 +50,21 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 /// mundane reason that the latter is <c>sealed</c>; the two differ in exactly this list.
 /// </para>
 /// <para>
-/// <b>What this cannot do, and it matters for reading the result.</b> Selecting service 9 does <i>not</i>
-/// make the session bidirectional. <c>Evcc20Dc</c> sends a plain <c>DC_CPDReqEnergyTransferModeType</c> and
-/// plain control modes; the <c>BPT_*</c> request types exist in the codec but no EVCC in the app builds
-/// them, because our bidirectional support was written from the station side
-/// (<c>docs/interop-runs/2026-07-22-iso20-dc-bpt-sdp/</c>: <i>"the direction is driven by what the EV
-/// sends"</i> — and what our EV sends is unidirectional). So a run with this class asks for a BPT service
-/// and then charges one way under it. Whether the station minds is precisely the question worth putting to
-/// it; a genuinely bidirectional forward run needs a BPT request path in the app first.
+/// <b>Selecting service 9 used not to make the session bidirectional</b>, and the first run with this class
+/// is how we learned it: <c>Evcc20Dc</c> sent a plain <c>DC_CPDReqEnergyTransferModeType</c> under a BPT
+/// service and EVerest refused it with <c>FAILED_WrongChargeParameter</c>. That is fixed in the app —
+/// <c>Evcc20Base.BidirectionalService</c> derives the direction from the selected service and
+/// <c>Evcc20Dc</c> builds the <c>BPT_*</c> types accordingly — so this class now drives a genuinely
+/// bidirectional session.
+/// </para>
+/// <para>
+/// <b>Why the envelope is repeated below.</b> Deriving from <c>Evcc20Dc</c> means inheriting the ordinary
+/// DC envelope, which is exactly the defect the app fixed for <c>Evcc20Mcs</c> — and the first complete
+/// MCS_BPT run caught the same thing here instead: their <c>EvseManager</c> read back
+/// <c>dc_ev_maximum_power_limit: 50000.0</c> under service 9. The four properties mirror
+/// <c>Evcc20Mcs</c>'s so a truck asking for MCS_BPT declares megawatts in <i>both</i> directions.
+/// Duplication is the price of <c>sealed</c>; the better home is the app, either by unsealing
+/// <c>Evcc20Mcs</c> or by letting it rank the bidirectional service first.
 /// </para>
 /// </remarks>
 internal sealed class McsBptFirstEvcc(Stream stream, TimeProvider clock, IAsyncDelay pollDelay,
@@ -71,5 +80,16 @@ internal sealed class McsBptFirstEvcc(Stream stream, TimeProvider clock, IAsyncD
     // carries no MCS_BPT should still complete a session on whatever it does offer, so the run comes back
     // with a negotiated service id to report rather than a refusal to diagnose. The fixture's assertion,
     // not the state machine, is what decides whether that counts as an MCS_BPT result.
+
+    // Evcc20Mcs's envelope, repeated because that class is sealed (see the remarks). 1250 V × 3000 A ≈
+    // 3.75 MW; under a BPT service the base mirrors these onto the discharge half as well, so the truck
+    // declares megawatts in both directions rather than only the one it charges through.
+    protected override Dc20.RationalNumberType MaxPower   => new(3, 3750);   // 3.75 MW
+    protected override Dc20.RationalNumberType MaxCurrent => new(0, 3000);   // 3000 A
+    protected override Dc20.RationalNumberType MaxVoltage => new(0, 1250);   // 1250 V
+    protected override Dc20.RationalNumberType MinVoltage => new(0,  150);   //  150 V
+
+    protected override Dc20.RationalNumberType LoopMaxPower   => MaxPower;
+    protected override Dc20.RationalNumberType LoopMaxCurrent => MaxCurrent;
 
 }
