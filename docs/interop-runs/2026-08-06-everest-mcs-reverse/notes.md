@@ -60,6 +60,13 @@ side had no equivalent because nothing had needed one.
 the manifest documentation lags. Cheap to trip over, since a value absent from the manifest is a natural
 thing to assume unsupported.
 
+Written up for filing as [`docs/reports/pyevjosev-manifest-services.md`](../../reports/pyevjosev-manifest-services.md).
+Two details found while drafting it sharpen the case: the manifest lists **4 of 12** accepted values, and
+an unrecognised entry is *silently dropped* rather than reported — so the description is the only place
+the correct spelling exists. The station side avoids the same trap by documenting its enum **by
+reference** (`EvseManager.connector_type` → `/evse_manager#/ConnectorTypeEnum`), which is what the fix
+should copy.
+
 ## What it took to run at all
 
 The reverse direction has a topology problem the forward one does not: `PyEvJosev` finds a station **only**
