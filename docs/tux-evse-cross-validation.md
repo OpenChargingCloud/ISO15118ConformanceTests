@@ -79,9 +79,10 @@ the first message carrying an identifier of its own — which is the first messa
 **What it means for this counterparty.** With a shipped scenario, their responder answers the capture and
 nothing else. Using it as a station for a foreign EV means relaxing or rewriting every `query` field the EV
 chooses for itself; patching just the EVCCID is the first of an unknown number, and the same wall would
-reappear at ServiceDiscovery, PaymentServiceSelection and every request carrying our own values. Their
-`strong` compaction mode does **not** help — compaction governs which requests are *played* on the injector
-side, not how strictly a received one is matched.
+reappear at ServiceDiscovery, PaymentServiceSelection and every request carrying our own values. **No
+compaction mode helps** — `CompactMode` is `None | Reduced | Minimal` and it acts at *pcap-import* time,
+deciding which transactions are written into the scenario at all, not how strictly a received request is
+matched afterwards.
 
 ---
 
@@ -90,10 +91,13 @@ side, not how strictly a received one is matched.
 Each is a fact about the published artifact, not about ISO 15118, and each is written down so the next
 person does not rediscover it:
 
-1. **Their container image is incomplete.** A single 35 MB layer over a base (`FROM 98072c178779`) the
-   registry does not ship — no `/bin`, no `/tmp`, no coreutils, so `docker run … sh` fails with *executable
-   file not found*. Everything they built is under `/usr/bin`, so the image is usable with an explicit
-   `--entrypoint /usr/bin/bash`; a log file needs a mounted volume, because nothing is writable otherwise.
+1. **Their image has no shell — by design, which is not obvious from outside.** `docker run … sh` fails
+   with *executable file not found*: no `/bin`, no `/tmp`, no coreutils, and the pulled `v0.1` artifact is
+   a single 35 MB layer over a base (`FROM 98072c178779`) the registry does not ship. Their recipe explains
+   it — `oci-15118/Dockerfile` builds on almalinux and then assembles the result `FROM scratch` over a
+   `mkTinyRootFs` root. So this is a deliberately minimal image, not a broken one. Everything they built
+   sits under `/usr/bin`, so it is usable with an explicit `--entrypoint /usr/bin/bash`; a log file needs a
+   mounted volume, because nothing is writable otherwise.
 2. **It is amd64 only.** On ARM, `docker run --privileged --rm tonistiigi/binfmt --install amd64` registers
    qemu inside the VM and their binder runs — slowly but correctly.
 3. **`binding-start-evse` hardcodes `export IFACE_SIMU=evse-veth`**, making their network script
@@ -129,7 +133,10 @@ the kind of question a first contact is supposed to produce.
 
 - **Anything past `SessionSetup`, forward.** Gated entirely on the `query` matching. Either every field a
   foreign EV chooses for itself gets relaxed, or their matcher turns out to support a wildcard — that is
-  one question to them, or one read of `afb-evse/src/verbs.rs`.
+  one question to them, or one read of the **`iso15118-responder` API**: their EVSE binding decodes the
+  request and forwards it under `{prefix}:{proto}:{tagid}` (`afb-evse/src/controller.rs:144`,
+  `target: iso15118-responder` in `afb-evse/etc/binding-simu15118-evse.yaml`), so the comparison happens
+  in the scenario binding, not in the EVSE one.
 - **The reverse direction — their injector against our SECC — is untouched, and is the direction their
   design actually favours.** There the captured Audi drives *our* station, and the field matching applies
   to responses they can be told to ignore, so this finding does not block it. It is the obvious next run
@@ -150,3 +157,23 @@ The honest summary is that this counterparty has not yet been used in the direct
 design is a replayer: pointed at our SECC as an injector, a captured Audi would be driving our station,
 which is a route no specification-derived test can produce. Pointed at us as a responder, it answers the
 car in its recording and no other. The first is untried; the second is where the two exchanges came from.
+
+---
+
+## Every claim about their side, in their source
+
+Re-checked on **2026-08-06** against `tux-evse/iso15118-simulator-rs` at tag **`0.2`** — the closest match
+to the `iso15118-simulator-rs-0.2` the image reports. **The artifact we ran was the `v0.1` OCI image and
+21 months old**, so drift between it and this tag is possible; where a claim rests on the image rather than
+the source, the table says so.
+
+| Claim | In their source |
+|---|---|
+| Their codec is cbexigen's, so no independent byte oracle | `tux-evse/iso15118-encoders-rs`, `README.md:3` — *"Relies on cbexigen iso15118-encoder library for low level EXI binary encoding"*. Every crate here depends on it (`afb-evse/Cargo.toml:13` and siblings) |
+| The `query` block carries the captured car's own values | `pcap-15118/src/pcap-import.rs:73,146` — `jsonc.add("query", body_to_jsonc(body)?)`: the block **is** the request body lifted out of the pcap |
+| Their responder matches it against the incoming request | The EVSE binding decodes and forwards under `{prefix}:{proto}:{tagid}` to the `iso15118-responder` API (`afb-evse/src/controller.rs:144`; `target:` in `afb-evse/etc/binding-simu15118-evse.yaml`). The refusal itself is from **our run's log**, not from reading their matcher |
+| No compaction mode relaxes it | `pcap-15118/src/pcap-import.rs:220` — `CompactMode` is `None \| Reduced \| Minimal`, applied while importing the pcap |
+| `autorun: 0` in the shipped scenarios | `afb-test/etc/*.json:10` — all five, including `audi-dc-iso2-compact.json` |
+| `binding-start-evse` hardcodes the interface | `afb-evse/etc/binding-start-evse.sh:22`, an unconditional `export IFACE_SIMU=evse-veth` — while the EV-side sibling guards the same line with `if test -z "$IFACE_SIMU"` (`binding-start-evcc.sh:58`) |
+| No shell in the image | `oci-15118/Dockerfile` — builds on almalinux, then assembles the result `FROM scratch` over a `mkTinyRootFs` root. Deliberate, not broken |
+| amd64 only · the dangling base layer | Properties of the pulled `v0.1` artifact; not re-checkable from the source tree |

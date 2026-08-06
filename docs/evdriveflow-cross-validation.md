@@ -173,3 +173,24 @@ seventeen exchanges total.
 Going back is cheap and the order is fixed by their own walls: the authorization termination gates
 everything, and until somebody reads their EV's state machine, the four capabilities this counterparty was
 chosen for stay unreachable.
+
+---
+
+## Every claim about their side, in their source
+
+Re-checked on **2026-08-06** against `EDF-Lab/eVDriveFlow` @ **`60249c3`** — the commit every run above
+met.
+
+| Claim | In their source |
+|---|---|
+| An optional element is dereferenced | `secc/states/process_service_discovery_request.py:31` — `if 6 in payload.supported_service_ids.service_id:`, unguarded. **Their own generated model** declares it `Optional[ServiceIdlistType]` (`shared/xml_classes/common_messages/v2_g_ci_common_messages.py:827`), so both halves of the defect sit in their tree |
+| The charge loop assumes Dynamic control mode | `secc/states/process_dc_charge_loop_request.py:128,149,161` read `payload.dynamic_dc_clreq_control_mode`; `scheduled_dc_clreq_control_mode` appears **0×** in the file. The one branch is `if self.session_parameters.dc_bpt_selected == True:` — BPT or not, never control mode |
+| An EVSE offering PnC *and* EIM breaks their EV | `evcc/states/wait_for_authorization_setup_response.py:30-37`. The loop has **no `break`**, so this is order-independent: `[EIM, PnC]` matches on the first pass and still raises on the second — stronger than the write-up above states |
+| TLS is on by default, off by a testing switch | `shared/global_values.py:37` — `SECURITY_PROTOCOL = 0x00  # Use 0x00 to enable TLS or 0x10 to disable TLS [Testing purposes]` |
+| Their EXI is OpenEXI/Nagasena | `shared/lib/nagasena.jar`, `nagasena-rta.jar` — which is why the install needs a JDK |
+| Their EV has no fixed-endpoint option | `evcc/ev_session_handler.py:50` builds the TCP client from `udp_protocol.tcp_server_address` / `tcp_server_port` — strictly what discovery returned, with no override |
+| The configured ports | `secc/evse_config.ini:3` (`tcp_port = 49152`), `evcc/ev_config.ini:3,5` (`udp_port = 49153`, `tcp_port = 49154`) |
+
+Not checkable from the source: **why their EV terminates after `AuthorizationSetupRes`**. The wall above
+is recorded as an open question, and reading their state machine — rather than running more interop — is
+still what would settle it.
