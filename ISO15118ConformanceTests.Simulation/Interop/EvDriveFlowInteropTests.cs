@@ -16,6 +16,7 @@
  */
 
 using System.Net;
+using System.Net.Security;
 
 using NUnit.Framework;
 
@@ -145,21 +146,39 @@ public class EvDriveFlowInteropTests
                 "stack is built around Dynamic — if the session stops after ServiceSelection, that is the " +
                 "first thing to change.");
 
-        var recording = InteropRecording.FromEnvironment($"evdriveflow-{modeName}-reverse");
+        // Their EV verifies the station against its own V2G root (`SECC_CERTIFICATE_AUTHORITY` in
+        // shared/global_values.py) and presents a vehicle certificate of its own, so the only material
+        // that can work here is theirs — their `seccCertChain.pem` + `secc.key` as a PKCS#12. See
+        // InteropEnvironment.ServerTlsOrNull; null leaves the listener plaintext, as before.
+        var serverTls = InteropEnvironment.ServerTlsOrNull(protocol);
+
+        var recording = InteropRecording.FromEnvironment(
+                            $"evdriveflow-{modeName}-reverse{(serverTls is null ? "" : "-tls")}");
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(240));
 
         // IPv6, dual-stack: their EV reaches the station over a link-local address on the interface named
         // in ev_config.ini, and an IPv4 wildcard socket cannot accept that connection at all.
-        using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
+        using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort), serverTls);
 
+        // The same flag the listener was built with: their EV reads the SDP response's security byte and
+        // opens a TLS or a plaintext socket accordingly, so the two must never disagree.
         await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
-                                                                     tls: false, cts.Token);
+                                                                     tls: serverTls is not null, cts.Token);
 
         TestContext.Out.WriteLine($"Waiting for their EV on [::]:{listenPort} " +
-                                  $"(control mode: {(preferDynamic ? "Dynamic" : "Scheduled")}) ...");
+                                  $"({(serverTls is null ? "plain TCP" : "TLS")}, control mode: " +
+                                  $"{(preferDynamic ? "Dynamic" : "Scheduled")}) ...");
 
         using var socket = await listener.AcceptAsync(cts.Token);
+
+        // Read back rather than assumed: their EV brings a secp521r1 PKI, which is the curve ISO 15118-20
+        // asks for and the one no counterparty had supplied before — so what was actually negotiated is
+        // the result of this run, not a detail of it.
+        if (socket is SslStream tls)
+            TestContext.Out.WriteLine(
+                $"TLS: {tls.SslProtocol}, {tls.NegotiatedCipherSuite}, " +
+                $"client certificate {(tls.RemoteCertificate is { } c ? c.Subject : "none")}.");
 
         var stream = recording?.Tap(socket) ?? socket;
 

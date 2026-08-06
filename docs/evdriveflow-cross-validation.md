@@ -31,11 +31,13 @@ pins -20 to TLS 1.3 with a mutual handshake, and
 until this counterparty our own tests were the only thing that had ever checked we do it right — a second
 implementation that *requires* it is an oracle rather than a second opinion from ourselves.
 
-**Three of those four are now reachable, and one is exercised** — since 2026-08-06, when the wall that
-held all of them turned out to be a closed file descriptor rather than a state machine. Dynamic control
-mode now runs end to end and their EV selects the bidirectional service on the way; what remains in front
-of a complete charge loop is a second, genuine defect of theirs, and mutual TLS 1.3 is one config switch
-away. The story is below, in order: the wall, why it was invisible, and what stands behind it.
+**Two of those four are now done and the other two are reachable** — since 2026-08-06, when the wall
+that held all of them turned out to be a closed file descriptor rather than a state machine. Dynamic
+control mode runs end to end; **mutual TLS 1.3 ran the next day**, with `TLS_AES_256_GCM_SHA384` and
+secp521r1 on both sides — the first P-521 material any counterparty has supplied this project. Their EV
+selects the bidirectional service on the way through, so DC-BPT needs a run rather than a fix; what
+stands in front of a complete charge loop is a second, genuine defect of theirs. The story is below, in
+order: the wall, why it was invisible, and what stands behind it.
 
 ---
 
@@ -177,9 +179,10 @@ offered-services problem. Further diagnosis means reading their state machine ra
 
 Rewritten 2026-08-06: the authorization wall was the common cause, and it is gone.
 
-- **Mutual TLS 1.3** — the reason it was chosen, and now **one config switch away**: their
-  `SECURITY_PROTOCOL` was set to `0x10` (TLS off, their own testing switch) to get a first session at
-  all. Not yet run.
+- **Mutual TLS 1.3** — ✅ **done, 2026-08-07.** TLS 1.3 with `TLS_AES_256_GCM_SHA384`, both peers
+  authenticated, **secp521r1 on both sides**, and 15 exchanges over it. Their PKI had to be regenerated
+  with their own script first — the certificates in the repository expired in 2022.
+  [`2026-08-07-edf-mutual-tls13`](interop-runs/2026-08-07-edf-mutual-tls13/notes.md).
 - **Dynamic control mode** — ✅ **reached.** `ScheduleExchange` negotiated it and the session ran into
   the charge loop.
 - **DC bidirectional** — their EV **selects the BPT service** on the way through, so this is no longer

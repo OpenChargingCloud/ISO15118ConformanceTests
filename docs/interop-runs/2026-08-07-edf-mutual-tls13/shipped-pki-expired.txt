@@ -1,0 +1,8 @@
+# First attempt, with the certificates eVDriveFlow ships (repo @ 60249c3):
+
+
+# Validity of the shipped material, read on 2026-08-07:
+#   seccCert     notAfter=Oct  6 21:21:21 2022 GMT   (60 days, as ISO 15118 asks of a SECC leaf)
+#   cpoSubCA2    notAfter=Aug  7 21:21:21 2023 GMT
+#   cpoSubCA1    notAfter=Aug  6 21:21:21 2026 GMT   (expired the day before this run)
+#   v2gRootCA    notAfter=Aug  1 21:21:20 2047 GMT

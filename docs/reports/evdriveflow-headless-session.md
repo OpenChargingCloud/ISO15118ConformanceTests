@@ -154,6 +154,33 @@ null any other configured value the peer leaves out.
 
 ---
 
+## Also seen — the shipped certificates expired in 2022
+
+Not a code defect, but it stops any TLS run today and the error blames the peer. `shared/certificates/`
+holds material generated 2022-08-07:
+
+| | expired |
+|---|---|
+| `seccCert.pem` | **2022-10-06** — 60 days, which is exactly what ISO 15118 asks of a SECC leaf |
+| `cpoSubCA2Cert.pem` | 2023-08-07 |
+| `cpoSubCA1Cert.pem` | 2026-08-06 |
+| `v2gRootCACert.pem` | 2047 |
+
+A fresh clone therefore cannot do TLS in either role, and the first symptom is
+`CERTIFICATE_VERIFY_FAILED: certificate has expired` raised by whichever side is verifying — which
+reads as the other implementation's problem. The remedy is already in the repository
+(`shared/certificates/generateCertificates.sh`); a line next to the TLS instructions saying *"run this
+first, the checked-in certificates are short-lived by design"* would be enough. The 60-day SECC leaf is
+the standard's requirement, not a choice of theirs — which is precisely why checked-in material cannot
+stay valid.
+
+With regenerated certificates, everything worked: TLS 1.3, `TLS_AES_256_GCM_SHA384`, mutual
+authentication, secp521r1 on both sides, 15 exchanges
+([run notes](../interop-runs/2026-08-07-edf-mutual-tls13/notes.md)). Worth saying in the same issue, so
+it reads as "your TLS path is fine, its certificates are stale".
+
+---
+
 ## Also seen, secondary — not filed here
 
 Three findings from our 2026-08-01 runs, each with its own file and each filable separately. We

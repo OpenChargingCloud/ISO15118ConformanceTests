@@ -93,7 +93,7 @@ how to read one.
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ▢ | — | — |
 | Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | ▢ | — | — |
 | Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ▢ | — | — |
-| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
 | Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
 | WPT · ACDP | ▢ codec only — no session state machine on either side | *codec-validated only — no independent stack implements session state machines for them* | | | |
@@ -177,6 +177,14 @@ our sequence guard that closed the connection instead of answering `FAILED_Seque
 the first finding against us from this counterparty, and one only a replayer could produce: every
 other peer polls only while our station says `Ongoing`. **Fixed and re-run the same day**: the refusal
 now goes out in the request's own response type, and their injector decodes it.
+
+²¹ The capability this counterparty was chosen for, reached once the stdin wall fell:
+`TLS_AES_256_GCM_SHA384` under TLS 1.3, both peers authenticated — their EV verified our station
+against its own V2G root and presented `CN=VEHICLECert`, our station required and read it back — and
+**secp521r1 on both sides**, which retires the note in footnote ⁶ that no counterparty had ever
+supplied P-521 material. 15 exchanges over it, the same route as plain TCP. Their shipped certificates
+had to be regenerated with **their own** `generateCertificates.sh` first: the SECC leaf expired in
+October 2022 (60 days, as the standard requires) and `cpoSubCA1` the day before the run.
 
 ²⁰ It used to read *"their EV quits at Authorization"*, recorded as an open question after two runs could
 not move it. Reading their state machine settled it on 2026-08-06: their EV arms a "press Enter to stop"
