@@ -1,0 +1,15 @@
+SDP: request from [fe80::78be:f0ff:fe18:d1e6%4]:15118 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::78be:f0ff:fe18:d1e6%4]:15118 with [fe80::24fd:6ff:fef3:807c%4]:55000 (TLS, TCP), 28 byte(s).
+TLS (station): presenting DC=sub, CN=tux-evse-secure-by-iot-bzh, OU=redpesk security, O=IoT.bzh, S=Breizh, C=FR (+1 chain certificate(s)), TLS 1.2, requiring a client certificate (accept-any)
+SDP: advertising [fe80::24fd:6ff:fef3:807c%4]:55000 (TLS) on evse-veth — their EV should discover this station rather than be pointed at it.
+Waiting for their injector on [::]:55000 (IPv6, dual-stack, TLS) ...
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, client certificate DC=end, CN=eMaid, OU=redpesk security, O=IoT.bzh, S=Breizh, C=FR.
+Recorded:
+  Failed TheirInjector_AgainstOurSecc_RunsToCompletion [45 s]
+ TLS (station): presenting DC=sub, CN=tux-evse-secure-by-iot-bzh, OU=redpesk security, O=IoT.bzh, S=Breizh, C=FR (+1 chain certificate(s)), TLS 1.2, requiring a client certificate (accept-any)
+ SDP: advertising [fe80::24fd:6ff:fef3:807c%4]:55000 (TLS) on evse-veth — their EV should discover this station rather than be pointed at it.
+ Waiting for their injector on [::]:55000 (IPv6, dual-stack, TLS) ...
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, client certificate DC=end, CN=eMaid, OU=redpesk security, O=IoT.bzh, S=Breizh, C=FR.
+ Recorded:
+Test Run Failed.
+     Failed: 1

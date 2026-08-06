@@ -1,0 +1,12 @@
+# gnutls-cli --list --priority "$(their evcc/evse yaml 'proto:')"
+# tux-evse ship this string in BOTH binding-simu15118-evcc.yaml and binding-simu15118-evse.yaml.
+# ISO 15118-2 prescribes TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 and
+# TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256; neither appears below.
+
+TLS_ECDHE_ECDSA_AES_256_GCM_SHA384                	0xc0, 0x2c	TLS1.2
+TLS_ECDHE_ECDSA_CHACHA20_POLY1305                 	0xcc, 0xa9	TLS1.2
+TLS_ECDHE_ECDSA_AES_256_CBC_SHA1                  	0xc0, 0x0a	TLS1.0
+TLS_ECDHE_ECDSA_AES_256_CCM                       	0xc0, 0xad	TLS1.2
+TLS_ECDHE_ECDSA_AES_128_GCM_SHA256                	0xc0, 0x2b	TLS1.2
+TLS_ECDHE_ECDSA_AES_128_CBC_SHA1                  	0xc0, 0x09	TLS1.0
+TLS_ECDHE_ECDSA_AES_128_CCM                       	0xc0, 0xac	TLS1.2

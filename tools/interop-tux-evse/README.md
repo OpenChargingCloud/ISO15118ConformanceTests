@@ -313,10 +313,26 @@ Work up, and record each one:
    pcap-iso15118 --pcap_in=afb-test/trace-logs/vw-ac-iso2.pcap --json_out=vw-ac.json --compact=basic
    ./scenario-relax.py vw-ac.json vw-ac-relaxed.json --autorun
    ```
-3. **TLS**, once the plain sessions are clean. They use GnuTLS with a Trialog-derived PKI
-   (`mkcerts -i ./temp`) and their own cipher profile string; ours is in the app's
-   [`docs/pki-model.md`](../../libs/EVSimulatorApp/docs/pki-model.md). Expect to
-   spend the time on cipher-suite and curve alignment rather than on ISO 15118.
+3. **TLS.** Ran 2026-08-06 (`←SECC`), and the expectation that the time would go on cipher-suite
+   alignment rather than ISO 15118 was right — for a sharper reason than anticipated. Their PKI is
+   `mkcerts.sh`'s (ECDSA P-256; root → `_server` sub-CA → `_client`/`_contract` ends), and the
+   station-side material is **theirs**: our SECC presents their `_server.pem`, which their EVCC
+   trusts by construction.
+
+   ```bash
+   sudo cp iso15118-simulator-rs/afb-test/certs/templ-*.cfg /usr/share/iso15118-simulator-rs/
+   bash iso15118-simulator-rs/afb-test/certs/mkcerts.sh -i ~/tux-evse/run/pki   # needs gnutls-bin
+   cd ~/tux-evse/run/pki && openssl pkcs12 -export -inkey _server_key.pem -in _server.pem \
+       -certfile _root.pem -passout pass:interop -out server.pfx
+   ```
+
+   Then `V2G_INTEROP_TLS_SERVER=<pfx>[:password]` on the reverse fixture — it derives the listener's
+   TLS, what SDP advertises, and the recording name from that one value. **Their profile contains
+   neither cipher suite ISO 15118-2 prescribes**, so a profile-pinned handshake ends in `no shared
+   cipher`; `V2G_INTEROP_TLS_SUITES=platform` unpins deliberately to reach the layers above, and
+   `V2G_INTEROP_TLS_REQUIRE_CLIENT=1` makes their car show its `CN=eMaid` certificate. Read
+   [`2026-08-06-tux-tls`](../../docs/interop-runs/2026-08-06-tux-tls/notes.md) before running it: a
+   second wall on their side stops every shipped scenario four exchanges in.
 4. **-20 / DIN** — not yet possible on their side (-20); DIN is theirs alone until our stack
    speaks it.
 

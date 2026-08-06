@@ -57,6 +57,10 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 ///         chain against it instead of accepting anything.</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS_CLIENT</c></term><description><c>&lt;pfx&gt;[:password]</c> — our TLS
 ///         client certificate, which a -20 station requires.</description></item>
+///   <item><term><c>V2G_INTEROP_TLS_SERVER</c></term><description><c>&lt;pfx&gt;[:password]</c> — the
+///         certificate <i>our station</i> presents in a reverse run, and the only way that direction can run
+///         over TLS at all (see <see cref="ServerTlsOrNull"/>). <c>V2G_INTEROP_TLS_REQUIRE_CLIENT=1</c>
+///         additionally demands the car's.</description></item>
 ///   <item><term><c>V2G_INTEROP_NO_PNC</c></term><description><c>1</c> to advertise EIM only (-20).</description></item>
 ///   <item><term><c>V2G_INTEROP_RECORD</c></term><description>a directory for the artifacts — see
 ///         <see cref="InteropRecording"/>. Unset means a run that leaves nothing behind.</description></item>
@@ -418,6 +422,105 @@ internal static class InteropEnvironment
         };
 
     }
+
+
+    /// <summary>
+    /// The <b>station</b> side of TLS, for a reverse run: <c>V2G_INTEROP_TLS_SERVER=&lt;pfx&gt;[:password]</c>
+    /// is the certificate our SECC presents to their car. Null (the default) leaves the listener plaintext.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The counterpart of <see cref="DevTlsOrNull"/>, and it arrived much later for a reason worth stating:
+    /// a forward run can accept any certificate the peer offers, so TLS costs one environment variable. In
+    /// reverse, <i>we</i> are the one being trusted, and a car checks the chain against its own anchors —
+    /// so there is no permissive dev shortcut, and the only material that can work is the counterparty's
+    /// own. This takes a path rather than generating anything: their PKI is theirs to issue.
+    /// </para>
+    /// <para>
+    /// For tux-evse that is <c>mkcerts.sh</c>'s <c>_server.pem</c> / <c>_server_key.pem</c> bundled into a
+    /// PKCS#12 — the very certificate their own EVSE binding serves, so their EVCC trusts it by
+    /// construction rather than by our arrangement.
+    /// </para>
+    /// <para>
+    /// <b>Mutual TLS is offered, not demanded</b>, unless <c>V2G_INTEROP_TLS_REQUIRE_CLIENT=1</c>: their
+    /// EVCC config carries a client chain, but a station that <i>insists</i> on one turns "their car does
+    /// not send it" into a failed handshake, which reads as a TLS defect rather than as the finding it is.
+    /// When required, any client certificate is accepted — this proves the car <i>presented</i> one, which
+    /// is the question; validating it against their root is a separate claim and would need their trust
+    /// store, not ours.
+    /// </para>
+    /// </remarks>
+    public static TlsOptions? ServerTlsOrNull(ProtocolVariant protocol)
+    {
+
+        var spec = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_SERVER");
+        if (String.IsNullOrWhiteSpace(spec))
+            return null;
+
+        var separator = spec.LastIndexOf(':');
+        var (path, password) = separator > 1
+                                   ? (spec[..separator], spec[(separator + 1)..])
+                                   : (spec, (String?) null);
+
+        var contents = X509CertificateLoader.LoadPkcs12CollectionFromFile(path, password,
+                                                                          X509KeyStorageFlags.Exportable);
+        var leaf     = contents.FirstOrDefault(c => c.HasPrivateKey)
+                           ?? throw new ArgumentException(
+                                  $"V2G_INTEROP_TLS_SERVER: no certificate in '{path}' carries a private key.");
+        var chain    = new X509Certificate2Collection(
+                           contents.Where(c => !ReferenceEquals(c, leaf)).ToArray());
+
+        var requireClient = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_REQUIRE_CLIENT") == "1";
+
+        TestContext.Out.WriteLine(
+            $"TLS (station): presenting {leaf.Subject} (+{chain.Count} chain certificate(s)), " +
+            $"{(protocol == ProtocolVariant.Iso15118_20 ? "TLS 1.3" : "TLS 1.2")}" +
+            (requireClient ? ", requiring a client certificate (accept-any)" : ""));
+
+        return new TlsOptions
+        {
+            ServerCertificate           = leaf,
+            ServerCertificateChain      = chain.Count > 0 ? chain : null,
+            RequireClientCertificate    = requireClient,
+            ClientCertificateValidation = requireClient ? (_, _, _, _) => true : null,
+            // Pinned by protocol exactly as the client side is, and for the same reason: the profile is
+            // the protocol's, not the peer's. Their GnuTLS priority string (SECURE128 minus the ancient
+            // versions) spans 1.2 and 1.3, so it is our pin that decides which one a -2 session speaks.
+            EnabledSslProtocols         = protocol == ProtocolVariant.Iso15118_20
+                                              ? SslProtocols.Tls13
+                                              : SslProtocols.Tls12,
+            CipherSuites                = UnpinCipherSuites()
+                                              ? null
+                                              : protocol == ProtocolVariant.Iso15118_20
+                                                    ? TlsProfiles.Iso20CipherSuites
+                                                    : TlsProfiles.Iso2CipherSuites,
+        };
+
+    }
+
+
+    /// <summary>
+    /// <c>V2G_INTEROP_TLS_SUITES=platform</c>: negotiate whatever the platform and the peer agree on
+    /// instead of the protocol's pinned suite list.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A deliberate deviation, spelled as one, because the unpinned state is exactly what
+    /// <c>TlsOptions.CipherSuites</c> warns about — and it exists because a run met the case the warning
+    /// does not cover: a counterparty whose profile contains <b>none</b> of the standard's suites.
+    /// </para>
+    /// <para>
+    /// tux-evse ship <c>SECURE128:-VERS-SSL3.0:-VERS-TLS1.0:-ARCFOUR-128:+PSK:+DHE-PSK</c> in both their
+    /// EVCC and EVSE configs. For ECDHE/ECDSA that GnuTLS list offers AES-GCM, AES-CCM and ChaCha20 —
+    /// and neither <c>TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256</c> nor
+    /// <c>TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256</c>, which are the two ISO 15118-2 prescribes. Pinned to
+    /// the profile, our station and their car share no suite at all and the handshake ends in
+    /// <c>no shared cipher</c> — which is the finding, not a setup mistake. Unpinning is how the run gets
+    /// past TLS to test everything above it; the conformance claim about suites is then simply not made.
+    /// </para>
+    /// </remarks>
+    public static Boolean UnpinCipherSuites()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_SUITES") == "platform";
 
 
     private static Boolean IsSelfSigned(X509Certificate2 certificate)

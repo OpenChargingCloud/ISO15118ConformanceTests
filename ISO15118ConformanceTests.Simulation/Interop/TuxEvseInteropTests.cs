@@ -16,6 +16,7 @@
  */
 
 using System.Net;
+using System.Net.Security;
 
 using NUnit.Framework;
 
@@ -152,21 +153,36 @@ public class TuxEvseInteropTests
         var (protocol, mode) = InteropEnvironment.ProtocolAndMode();
         var (protocolName, modeName) = InteropEnvironment.ProtocolAndModeNames();
 
-        var recording = InteropRecording.FromEnvironment($"tux-evse-{modeName}-reverse");
+        // Their station's PKI, ours to present: see InteropEnvironment.ServerTlsOrNull. Null = plaintext,
+        // and every value below that mentions TLS follows from this one so they cannot disagree.
+        var serverTls = InteropEnvironment.ServerTlsOrNull(protocol);
+
+        var recording = InteropRecording.FromEnvironment(
+                            $"tux-evse-{modeName}-reverse{(serverTls is null ? "" : "-tls")}");
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
 
-        using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
+        using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort), serverTls);
 
-        // Their injector is pointed at an endpoint, so this is normally unset; it is here because the
-        // fixtures differ in who is on the other end and in nothing else.
+        // Their injector discovers by SDP, and the response is where it learns *whether* to speak TLS —
+        // their EVCC branches on the security field before it opens the socket. So this flag is the same
+        // one the listener was built with: a station that advertises TLS and then answers in plaintext is
+        // discovered and fails its handshake, which reads as a peer defect.
         await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
-                                                                     tls: false, cts.Token);
+                                                                     tls: serverTls is not null, cts.Token);
 
         TestContext.Out.WriteLine($"Waiting for their injector on [::]:{listenPort} " +
-                                  $"(IPv6, dual-stack) ...");
+                                  $"(IPv6, dual-stack, {(serverTls is null ? "plain TCP" : "TLS")}) ...");
 
         using var socket = await listener.AcceptAsync(cts.Token);
+
+        // What was actually negotiated, not what was asked for: the listener offers a pinned version and
+        // suite list, and their GnuTLS profile spans more than one — so the run has to read back which
+        // pairing survived rather than report the offer. Nothing else in a recording says it.
+        if (socket is SslStream tls)
+            TestContext.Out.WriteLine(
+                $"TLS: {tls.SslProtocol}, {tls.NegotiatedCipherSuite}, " +
+                $"client certificate {(tls.RemoteCertificate is { } c ? c.Subject : "none")}.");
 
         var stream = recording?.Tap(socket) ?? socket;
 

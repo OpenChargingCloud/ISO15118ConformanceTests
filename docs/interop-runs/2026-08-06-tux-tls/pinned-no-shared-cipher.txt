@@ -1,0 +1,9 @@
+   System.Security.Authentication.AuthenticationException : Authentication failed, see inner exception.
+  ----> Interop+OpenSsl+SslException : SSL Handshake failed with OpenSSL error - SSL_ERROR_SSL.
+  ----> Interop+Crypto+OpenSslCryptographicException : error:0A0000C1:SSL routines::no shared cipher
+  Stack Trace:
+
+
+  Standard Output Messages:
+ TLS (station): presenting DC=sub, CN=tux-evse-secure-by-iot-bzh, OU=redpesk security, O=IoT.bzh, S=Breizh, C=FR (+1 chain certificate(s)), TLS 1.2
+ SDP: advertising [fe80::24fd:6ff:fef3:807c%4]:55000 (TLS) on evse-veth — their EV should discover this station rather than be pointed at it.

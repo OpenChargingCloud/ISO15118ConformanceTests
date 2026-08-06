@@ -1,0 +1,43 @@
+------BEGIN OF CONFIG-----
+------END OF CONFIG-----
+<6> INFO: running with pid 17182 [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:1498,main]
+<6> INFO: API monitor added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: Browser URL= http://localhost:1234 [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:549,http_server_create]
+<5> NOTICE: Serving rootdir=. uploaddir=. [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:559,http_server_create]
+<6> INFO: Alias for url=/devtools to path=/usr/share/afb-ui-devtools/binder [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:443,init_alias]
+<6> INFO: binding [/home/ahzf/tux-evse/cargo/release/libafb_sim15118_evcc.so] looks like an AFB binding V4 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/apis/afb-api-so-v4.c:170,afb_api_so_v4_add_config]
+<6> INFO: API iso15118-simulator added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: [API libafb_sim15118_evcc.so] Rust API uid=iso15118-simulator started [afb-evcc/src/binding.rs:138,afb_sim15118_evcc::binding::afbBindingV4entry]
+<6> INFO: binding [/home/ahzf/tux-evse/cargo/release/libafb_injector.so] looks like an AFB binding V4 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/apis/afb-api-so-v4.c:170,afb_api_so_v4_add_config]
+<5> NOTICE: [API libafb_injector.so] uid:audi-dc-iso2:1:0 scenario:app-set-protocol verb:iso2:app_proto_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] uid:audi-dc-iso2:1:0 scenario:sdp-evse verb:iso2:sdp_evse_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] uid:audi-dc-iso2:1:0 scenario:sdp-evse verb:iso2:sdp_evse_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] SCENARIO_AUTORUN=1 selected [src/binding.rs:143,afb_injector::binding::binding_init]
+<6> INFO: API iso15118-injector added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: [API iso15118-injector] api preinit: uid:iso15118-injector, name:iso15118-injector, config:{"binding-path":"/home/ahzf/tux-evse/cargo/release/libafb_injector.so"} [afb-librs/src/./apiv4-mod.rs:358,afbv4::apiv4::AfbApiControls::config]
+<5> NOTICE: [API libafb_injector.so] Rust API uid=iso15118-injector started [src/binding.rs:168,afb_injector::binding::afbBindingV4entry]
+<5> NOTICE: API iso15118-injector starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<5> NOTICE: API iso15118-simulator starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<6> INFO: API iso15118-simulator started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<4> WARNING: [API iso15118-injector] autorun started, scenario: audi-dc-iso2:1:0 [src/binding.rs:38,<afb_injector::binding::ApiInjectorCtx as afbv4::apiv4::AfbApiControls>::start]
+<5> NOTICE: [API libafb_sim15118_evcc.so] sdp-client accept anycast-ipv6 udp:15118@evcc-veth [/home/ahzf/.cargo/git/checkouts/iso15118-network-rs-2e9c5304568f4a89/f1ab338/src/ipv6-udp.rs:35,nettls::udp::SdpServer::new]
+<7> DEBUG: [API libafb_sim15118_evcc.so] iso-sdp-async: invalid v2g/sdp type expected:0x9001 received:0x9000 [afb-evcc/src/controller.rs:144,afb_sim15118_evcc::ctrl::async_sdp_cb]
+<5> NOTICE: [API libafb_sim15118_evcc.so] v2g-sdp-async: tcp[tls]://[fe, 80, 00, 00, 00, 00, 00, 00, 24, fd, 06, ff, fe, f3, 80, 7c]:64109 [afb-evcc/src/controller.rs:167,afb_sim15118_evcc::ctrl::async_sdp_cb]
+--[sdp-evse] Done {"uid":"sdp-evse","verb":"iso2:sdp_evse_req","status":"Done"}
+--[app-set-protocol] Done {"uid":"app-set-protocol","verb":"iso2:app_proto_req","status":"Done"}
+--[pkg:51] Check {"uid":"pkg:51","verb":"iso2:session_setup_req","status":"Check"}
+--[pkg:56] Check {"uid":"pkg:56","verb":"iso2:service_discovery_req","status":"Check"}
+--[pkg:61] Check {"uid":"pkg:61","verb":"iso2:payment_selection_req","status":"Check"}
+<5> NOTICE: [REQ/API iso15118-simulator] iso2-pki-sign-sign:error:no_challenge file: /home/ahzf/.cargo/git/checkouts/iso15118-encoders-rs-032a2466522d2c13/fe6c0aa/src/../capi/iso2-messages/body-encoder.rs:243:20
+<3> ERROR: [API iso15118-injector] received: {"uid":"iso2-pki-sign-sign","info":"error:no_challenge"} [src/verbs.rs:150,afb_injector::verbs::injector_async_response]
+<3> ERROR: [API iso15118-injector] expected: {"rcode":"ok","processing":"customer_interaction","tagid":"authorization_res","proto":"iso2","msgid":7} [src/verbs.rs:151,afb_injector::verbs::injector_async_response]
+--[pkg:68] SimulationStatus::Fail {"uid":"pkg:68","verb":"iso2:authorization_req","error":{"uid":"pkg:68","info":"jsonc-match failed to find key:rcode query:{\"uid\":\"iso2-pki-sign-sign\",\"info\":\"error:no_challenge\"}"}}
+<2> CRITICAL: [API iso15118-injector] binding start fail:unexpected status for uid:pkg:68 count:2 error:pkg:68:jsonc-match failed to find key:rcode query:{"uid":"iso2-pki-sign-sign","info":"error:no_challenge"} file: src/controller.rs:165:16
+<5> NOTICE: API iso15118-injector starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<6> INFO: API iso15118-injector started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<5> NOTICE: API monitor starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<6> INFO: API monitor started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<6> INFO: HTTP server starting [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:727,http_server_start]
+<3> ERROR: can't open server socket for tcp:*:1234: Address already in use [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/misc/afb-socket.c:526,afb_socket_open_scheme]
+<3> ERROR: can't create socket tcp:*:1234 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/http/afb-hsrv.c:806,hsrv_itf_connect]
+<3> ERROR: setting interface tcp:*:1234 failed [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:737,http_server_start]

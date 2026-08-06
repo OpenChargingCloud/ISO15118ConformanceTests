@@ -78,7 +78,7 @@ how to read one.
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2LoopbackTests` (EV- and SECC-triggered) | ✅ `EV→ ←SECC` [V2G2-841] | ▢ | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` | ✅ `EV→` (the PnC session above) | — | — |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` | ✅ `EV→` (the PnC session above) | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
 
@@ -177,6 +177,15 @@ our sequence guard that closed the connection instead of answering `FAILED_Seque
 the first finding against us from this counterparty, and one only a replayer could produce: every
 other peer polls only while our station says `Ongoing`. **Fixed and re-run the same day**: the refusal
 now goes out in the request's own response type, and their injector decodes it.
+
+¹⁹ Both their shipped configs pin one GnuTLS priority string, and its ECDSA half holds AES-GCM, AES-CCM,
+ChaCha20 and two SHA-1 CBC suites — **not** `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256` or its ECDH twin,
+which is what ISO 15118-2 requires and what our station pins. Handshake: `no shared cipher`. Unpinned
+(`V2G_INTEROP_TLS_SUITES=platform`, a deviation the run states rather than hides) the session runs to
+`PaymentServiceSelection` and stops **on their side**: their EVCC signs the `AuthorizationReq` whenever
+a `pki` block is configured rather than when Contract was selected, so an EIM scenario dies at
+`no_challenge` — reproduced against **their own responder**, which means no scenario they ship runs over
+TLS today. Their car does present a client certificate when asked.
 
 
 ## Run
