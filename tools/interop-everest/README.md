@@ -312,10 +312,17 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
    [`2026-08-05-everest-mcs-bpt`](../../docs/interop-runs/2026-08-05-everest-mcs-bpt/notes.md) for the
    refusal, [`2026-08-06-everest-mcs-bpt-complete`](../../docs/interop-runs/2026-08-06-everest-mcs-bpt-complete/notes.md)
    for the result.
-7. **Reverse** with `PyEvJosev`, lower value (it is Josev in a wrapper) and the one the relay cannot
-   cover, so last — **except for MCS**, where their `config-sil-mcs.yaml` configures their car with
-   `supported_d20_energy_services: MCS`. That is an EV that asks for service 8 specifically, and it is
-   the only way to put *our* MCS catalogue in front of a foreign chooser.
+7. ✅ **Reverse** with `PyEvJosev` — generally lower value (it is Josev in a wrapper), **except for MCS**,
+   which is why it was done: their `config-sil-mcs.yaml` gives their car
+   `supported_d20_energy_services: MCS`, and that is the only way to put *our* catalogue in front of a
+   foreign chooser. Done 2026-08-06: offered `{ 8, 9 }`, their EV took **8** and ran to `SessionStop` —
+   and authorized with **Plug & Charge**, which our SECC verified.
+   [`2026-08-06-everest-mcs-reverse`](../../docs/interop-runs/2026-08-06-everest-mcs-reverse/notes.md).
+
+   The relay cannot cover this direction: `PyEvJosev` finds a station only by SDP multicast on its own
+   interface, so our SECC has to run **inside WSL** on the same link — `secc --listen 55000 --protocol 20
+   --mode mcs --sdp --interface eth0`, exactly what [`reverse-iso2-dc.sh`](reverse-iso2-dc.sh) assumes.
+   Point their `Evse15118D20` at `lo` first, or it answers the SDP request before ours does.
 
 ---
 
