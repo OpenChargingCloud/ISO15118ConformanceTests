@@ -18,8 +18,6 @@
 using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Timing;
 
-using Dc20 = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
-
 namespace ISO15118ConformanceTests.Simulation.Interop;
 
 /// <summary>
@@ -44,10 +42,10 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 /// </para>
 /// <para>
 /// <b>Why it lives here and not in the app.</b> Everything that acts on the list — the selection logic,
-/// the state machine, the whole session — is the app's and is used unmodified. Only the acceptance set is
-/// the probe's, and one chosen to interrogate a single counterparty's catalogue is a test input, not a
-/// vehicle the simulator should ship. It derives from <c>Evcc20Dc</c> rather than <c>Evcc20Mcs</c> for the
-/// mundane reason that the latter is <c>sealed</c>; the two differ in exactly this list.
+/// the envelope, the state machine, the whole session — is the app's and is used unmodified. Only the
+/// ranking is the probe's, and one chosen to interrogate a single counterparty's catalogue is a test
+/// input, not a vehicle the simulator should ship. It derives from <c>Evcc20Mcs</c>, so it <b>is</b> a
+/// megawatt truck and differs from one in exactly the one line below.
 /// </para>
 /// <para>
 /// <b>Selecting service 9 used not to make the session bidirectional</b>, and the first run with this class
@@ -58,38 +56,26 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 /// bidirectional session.
 /// </para>
 /// <para>
-/// <b>Why the envelope is repeated below.</b> Deriving from <c>Evcc20Dc</c> means inheriting the ordinary
-/// DC envelope, which is exactly the defect the app fixed for <c>Evcc20Mcs</c> — and the first complete
-/// MCS_BPT run caught the same thing here instead: their <c>EvseManager</c> read back
-/// <c>dc_ev_maximum_power_limit: 50000.0</c> under service 9. The four properties mirror
-/// <c>Evcc20Mcs</c>'s so a truck asking for MCS_BPT declares megawatts in <i>both</i> directions.
-/// Duplication is the price of <c>sealed</c>; the better home is the app, either by unsealing
-/// <c>Evcc20Mcs</c> or by letting it rank the bidirectional service first.
+/// <b>The envelope used to be repeated here, and that went wrong.</b> While <c>Evcc20Mcs</c> was
+/// <c>sealed</c> this class derived from <c>Evcc20Dc</c> and copied the megawatt limits by hand — until
+/// they drifted, and the first complete MCS_BPT run caught their <c>EvseManager</c> reading back
+/// <c>dc_ev_maximum_power_limit: 50000.0</c> under service 9: a DC envelope beneath a megawatt service,
+/// the exact defect <c>Evcc20Mcs</c> had just been fixed to prevent. The class is open now, the copy is
+/// gone, and the envelope can only be wrong here if it is wrong for every megawatt truck.
 /// </para>
 /// </remarks>
 internal sealed class McsBptFirstEvcc(Stream stream, TimeProvider clock, IAsyncDelay pollDelay,
                                       TimeSpan perMessageTimeout)
-    : Evcc20Dc(stream, clock, pollDelay, perMessageTimeout)
+    : Evcc20Mcs(stream, clock, pollDelay, perMessageTimeout)
 {
 
-    /// <summary>MCS_BPT (9) first, MCS (8) behind it — <c>Evcc20Mcs</c>'s list reversed, and nothing
-    /// else changed.</summary>
+    /// <summary>MCS_BPT (9) first, MCS (8) behind it — <c>Evcc20Mcs</c>'s list reversed, and the whole of
+    /// what this class changes. The envelope, the drivable set and the state machine are inherited.</summary>
     protected override IReadOnlyList<UInt16> PreferredEnergyServiceIds => new UInt16[] { 9, 8 };
 
     // 8 stays in the list, and DrivableEnergyServiceIds stays at the base's { 2, 6, 8, 9 }: a station that
     // carries no MCS_BPT should still complete a session on whatever it does offer, so the run comes back
     // with a negotiated service id to report rather than a refusal to diagnose. The fixture's assertion,
     // not the state machine, is what decides whether that counts as an MCS_BPT result.
-
-    // Evcc20Mcs's envelope, repeated because that class is sealed (see the remarks). 1250 V × 3000 A ≈
-    // 3.75 MW; under a BPT service the base mirrors these onto the discharge half as well, so the truck
-    // declares megawatts in both directions rather than only the one it charges through.
-    protected override Dc20.RationalNumberType MaxPower   => new(3, 3750);   // 3.75 MW
-    protected override Dc20.RationalNumberType MaxCurrent => new(0, 3000);   // 3000 A
-    protected override Dc20.RationalNumberType MaxVoltage => new(0, 1250);   // 1250 V
-    protected override Dc20.RationalNumberType MinVoltage => new(0,  150);   //  150 V
-
-    protected override Dc20.RationalNumberType LoopMaxPower   => MaxPower;
-    protected override Dc20.RationalNumberType LoopMaxCurrent => MaxCurrent;
 
 }
