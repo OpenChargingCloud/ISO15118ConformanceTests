@@ -48,8 +48,9 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 ///   <item><term><c>V2G_INTEROP_MODE</c></term><description><c>ac</c> (default), <c>dc</c>, or
 ///         <c>mcs</c> — the Megawatt Charging System, which is the DC session under a different service
 ///         catalogue and implies -20 (see <see cref="Mcs"/>).</description></item>
-///   <item><term><c>V2G_INTEROP_MCS_FIRST</c></term><description><c>9</c> to rank MCS_BPT ahead of MCS
-///         in the EVCC's request (see <see cref="McsBptFirst"/>).</description></item>
+///   <item><term><c>V2G_INTEROP_BPT_FIRST</c></term><description><c>1</c> to rank the bidirectional
+///         service ahead of the unidirectional one in the EVCC's request — 5/6/9 rather than 1/2/8 (see
+///         <see cref="BptFirst"/>; formerly <c>V2G_INTEROP_MCS_FIRST=9</c>, still honoured).</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS</c></term><description><c>1</c> to run TLS, accepting any server
 ///         certificate. Development only.</description></item>
 ///   <item><term><c>V2G_INTEROP_TLS_TRUST</c></term><description>a PEM trust anchor — validate their
@@ -147,22 +148,28 @@ internal static class InteropEnvironment
 
 
     /// <summary>
-    /// MCS only: rank <b>MCS_BPT (9)</b> ahead of <b>MCS (8)</b> in what our EVCC asks for.
-    /// <c>V2G_INTEROP_MCS_FIRST=9</c>.
+    /// Ask for the <b>bidirectional</b> entry of whichever catalogue this run uses — AC_BPT (5) ahead of
+    /// AC (1), DC_BPT (6) ahead of DC (2), MCS_BPT (9) ahead of MCS (8). <c>V2G_INTEROP_BPT_FIRST=1</c>.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The counterpart of <see cref="BothOffers"/> one negotiation later, and for the same reason: a
     /// station that advertises both services never has to reveal what it does with the second one while
-    /// our EVCC keeps taking the first. EVerest's <c>config-sil-mcs.yaml</c> carries both — their
-    /// <c>EvseManager</c> adds <c>MCS_BPT</c> whenever the power supply reports itself bidirectional, and
-    /// their <c>DCSupplySimulator</c> defaults to exactly that — so 9 is one variable away and was
-    /// untested by the 2026-08-05 run for no better reason than ordering.
+    /// our EVCC keeps taking the first. EVerest's <c>EvseManager</c> adds the <c>*_BPT</c> entry whenever
+    /// the power supply reports itself bidirectional, and their <c>DCSupplySimulator</c> defaults to
+    /// exactly that — so their whole SIL has been advertising a service nothing here ever selected.
+    /// </para>
     /// <para>
-    /// See <see cref="McsBptFirstEvcc"/> for what selecting 9 does and does not make bidirectional.
+    /// <b>It used to be spelt <c>V2G_INTEROP_MCS_FIRST=9</c> and could only do MCS</b>, which is why the
+    /// run notes up to 2026-08-06 say that. The old spelling is still honoured — a run note records what
+    /// was actually typed, and rewriting those to a variable that did not exist at the time would make the
+    /// record say something that never happened. The generalisation is the app's
+    /// <c>Evcc20Base.PreferBidirectionalService</c>; there is no probe subclass any more.
     /// </para>
     /// </remarks>
-    public static Boolean McsBptFirst()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_MCS_FIRST") == "9";
+    public static Boolean BptFirst()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_BPT_FIRST") == "1" ||
+           Environment.GetEnvironmentVariable("V2G_INTEROP_MCS_FIRST") == "9";
 
 
     public static (ProtocolVariant Protocol, PowerMode Mode) ProtocolAndMode()
