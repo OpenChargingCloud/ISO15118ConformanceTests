@@ -187,7 +187,9 @@ the refused message's name, because a session that ends on our own sequence rule
 state like any other and would otherwise read as a completed charge.
 
 (Their third busy-loop is unaffected and unrelated: with the scenario aborted and the connection still
-open, the idle path spun 5.5 M times in ~40 s, 950 MB.)
+open, the idle path spun 5.5 M times in ~40 s, 950 MB. Isolated afterwards — one connection, one
+message, disconnect — and reported: `spin-repro.sh`, `spin-repro.log`,
+[`docs/reports/tux-evse-spin.md`](../../reports/tux-evse-spin.md).)
 
 Their side of the same moment is the second busy-loop: waiting for an `AuthorizationRes` that never
 came, their EVCC binding re-decoded a stale buffer — `unexpected exi message

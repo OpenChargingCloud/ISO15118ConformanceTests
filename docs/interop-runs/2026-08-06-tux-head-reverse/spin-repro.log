@@ -1,0 +1,51 @@
+# One connection, one SupportedAppProtocolReq, then close — measured 2026-08-06 against
+# iso15118-simulator-rs main @ fc51088, their responder, their shipped scenario.
+#
+# their responder is listening on [fe80::78be:f0ff:fe18:d1e6%3]:61341
+# sent one SupportedAppProtocolReq; got 12 byte(s) back; socket closed.
+# log lines: at-start=1745  at-close=332557  after-10s-idle=2485606
+# written during 10 s with NO peer connected: 2153049 lines, 365M total
+# the socket stays in CLOSE-WAIT — their side never closes it.
+#
+# First 40 lines of the repeat, verbatim:
+
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:iso2-exi-decode:fail to decode iso-2 (ExiDocument) from stream file: exi-15118/src/net-exi.rs:344:31

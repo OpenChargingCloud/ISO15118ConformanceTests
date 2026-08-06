@@ -130,18 +130,25 @@ Re-run natively at HEAD, twice against one responder instance: **the behaviour d
 connections got a SAP answer and the same clean query refusal. Whatever wedged in 2026-08-01 belonged
 to the v0.1-image/qemu rig, not to their design.
 
-What the re-run found instead is quantitative: **their binders busy-loop with no backoff, on three
-different paths.** The responder retried one refused query match **1,125,779 times in its 240 s
-lifetime** (~4,700/s, 572 MB of log) while sending nothing on the wire; the EVCC binding, waiting for
-an `AuthorizationRes` our (buggy, see below) station never sent, re-decoded a stale buffer — its own
-last outbound message — **10,939,791 times in ~70 s** (2.1 GB); and after a *completed* session with
-the connection still open, the same binding spun on `pending=None` **7,502,782 times in ~25 s**
-(1.29 GB). Excerpts with counts:
+What the re-run found instead is quantitative: **their binders spin without bound whenever a peer
+pauses or hangs up.** Three sightings came out of the interop runs — the responder retrying a refused
+query match **1,125,779 times in its 240 s lifetime** (572 MB of log) while sending nothing on the
+wire; the EVCC binding re-decoding a stale buffer, its own last outbound message, **10,939,791 times
+in ~70 s** (2.1 GB) after a response timeout; and the same binding spinning on `pending=None`
+**7,502,782 times in ~25 s** (1.29 GB) after a *completed* session whose connection stayed open.
+
+Isolated afterwards, the trigger turns out to need no ISO 15118 stack at all: **one connection, one
+`SupportedAppProtocolReq`, then disconnect** — 2,153,049 log lines in the following 10 seconds with no
+peer connected, 365 MB, and the socket left in `CLOSE-WAIT`. Their `get_data` returns `Ok(0)` at EOF
+(`iso15118-network-rs/src/ipv6-tcp.rs:66`), which is indistinguishable from an empty read, and nothing
+removes the fd from the poll set. Reproduction, measurements and the report:
+[`spin-repro.sh`](interop-runs/2026-08-06-tux-head-reverse/spin-repro.sh),
+[`docs/reports/tux-evse-spin.md`](reports/tux-evse-spin.md). Excerpts from the original sightings:
 [`their-responder.log`](interop-runs/2026-08-06-tux-head-reverse/their-responder.log),
 [`their-injector.ac.log`](interop-runs/2026-08-06-tux-head-reverse/their-injector.ac.log),
 [`their-injector.ac-basic.log`](interop-runs/2026-08-06-tux-head-reverse/their-injector.ac-basic.log).
-One defect class — retry-immediately-forever — on the failure, timeout and idle paths; worth an
-upstream report.
+One defect class — a callback that re-fires on a socket nobody drains — reached from the failure, the
+timeout and the idle path alike.
 
 ---
 

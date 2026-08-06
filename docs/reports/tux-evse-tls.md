@@ -180,14 +180,10 @@ that follows it exists, and currently cannot connect.
 
 ## Also seen, secondary
 
-- **Both binders busy-loop on failure paths with no backoff**, which is a resource bug rather than a
-  protocol one and deserves its own issue. Measured on the same HEAD build: the responder retried one
-  refused query match **1,125,779 times in 240 s** (572 MB of log) while sending nothing on the wire;
-  the EVCC binding re-decoded a stale buffer after a response timeout **10,939,791 times in ~70 s**
-  (2.1 GB), and spun on `Received iso2 message while pending=None` **7,502,782 times in ~25 s**
-  (1.29 GB) after a *completed* scenario whose connection stayed open. An unattended binder fills a
-  disk in minutes. Logs and counts:
-  [`2026-08-06-tux-head-reverse`](../interop-runs/2026-08-06-tux-head-reverse/notes.md).
+- **Both binders spin without bound when a peer pauses or disconnects** — now written up separately,
+  with a minimal reproduction, in [`tux-evse-spin.md`](tux-evse-spin.md): one connection, one
+  `SupportedAppProtocolReq`, disconnect, and their responder writes 2.15 M log lines in 10 s with no
+  peer connected. File that one first if you file only one: it is confirmable in two minutes.
 - **The responder answers only the car in its recording.** In responder mode the `query` block is
   matched field-by-field against the *incoming* request, so a foreign EV is refused at `SessionSetup`
   on its own EVCCID (`injector-binding-rs/src/verbs.rs:284`). We read this as a design property, not a
@@ -214,5 +210,6 @@ that follows it exists, and currently cannot connect.
       with is "is the omission deliberate?", not "your profile is wrong".
 - [ ] **Offer the patch for A only if they want it** — the choice between guarding on the challenge and
       keying on the payment option is theirs, and it touches `MeteringReceiptReq` too.
-- [ ] **Consider crediting the busy-loop numbers to a third issue** rather than burying them here; they
-      are the kind of thing a maintainer fixes in an afternoon when handed a measurement.
+- [x] **The busy loops went to a third issue** rather than being buried here —
+      [`tux-evse-spin.md`](tux-evse-spin.md), with a reproduction that needs no ISO 15118 stack on the
+      other end at all.
