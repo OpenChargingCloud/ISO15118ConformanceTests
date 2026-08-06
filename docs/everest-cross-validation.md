@@ -217,15 +217,21 @@ sent — they are the operator's to post, under their own name.
   handshake one **persists** — reachable from their *stock* SIL config with one `openssl s_client` line.
   `IsoMux` does **not** share it (it survived two refused handshakes and kept accepting), which narrows
   the report to the one module ([`everest-loop-shutdown.md`](reports/everest-loop-shutdown.md)).
-- **`IsoMux` never reads SAP `Priority`.** It walks the offer in array order and returns on the first
-  namespace starting with `urn:iso:std:iso:15118:-20`, so an EV ranking -2 first still lands on -20.
-  Confirmed on the wire against 2025.10.0 **and** 2026.02.1, and a third time over TLS. Whether it is a
-  defect rests on requirement text this project does not hold, so the notes say what their code does and
-  stop there.
-- **`IsoMux` serves TLS 1.2 only**, and routes on the SAP offer regardless — so a dual-stack EV gets a
-  complete **ISO 15118-20 session over TLS 1.2**, while a -20 EV that pins its own profile gets alert 70
-  and never reaches the backend at all. TLS is settled before `SupportedAppProtocol` runs, so nothing on
-  that path is in a position to object.
+- **`IsoMux` decides on *"does this EV do -20 at all"*, not on SAP `Priority`.** It walks the offer in
+  array order and returns on the first namespace starting with `urn:iso:std:iso:15118:-20`, so an EV
+  ranking -2 first still lands on -20. `Priority` is printed to their log two lines above the decision
+  and not used in it, and the branch carries their own comment — `// Check if it supports ISO-20` — so
+  this is a routing policy, not an unread field. Confirmed on the wire against 2025.10.0 **and**
+  2026.02.1, and a third time over TLS. Whether the policy conflicts with a requirement rests on text
+  this project does not hold, so the notes say what their code does and stop there.
+- **`IsoMux` terminates TLS at the -2 profile, then routes -20 traffic through it.** Not an oversight:
+  `connection/tls_connection.cpp` pins `cipher_list` to the suite ISO 15118-2 prescribes and sets
+  `ciphersuites = ""` under the comment *"disable TLS 1.3"* — two lines carried verbatim from `EvseV2G`,
+  and their TLS library caps the version on exactly that condition. The **consequence** is what this
+  column found, and it is structural: TLS is settled before `SupportedAppProtocol` runs, so the profile
+  is fixed before the protocol is known. A dual-stack EV gets a complete **ISO 15118-20 session over
+  TLS 1.2**; a -20 EV that pins its own profile gets alert 70 and never reaches the backend at all.
+  Nothing on that path is in a position to object.
 - **ISO 15118-20 Plug & Charge is not implemented in `Evse15118D20`** — `auth_services.push_back(…PnC)`
   is commented out with *"Currently Plug&Charge is not supported and ignored"*. It moved off this
   project's list and onto theirs.

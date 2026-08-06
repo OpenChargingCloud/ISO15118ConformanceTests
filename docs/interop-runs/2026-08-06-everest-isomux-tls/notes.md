@@ -36,6 +36,13 @@ $ openssl s_client -connect [fe80::…%eth0]:64110 -tls1_3
   ssl3_read_bytes:tlsv1 alert protocol version:SSL alert number 70
 ```
 
+Where the 1.2 comes from, read in their source afterwards: `IsoMux/connection/tls_connection.cpp:278`
+pins `cipher_list` to `ECDHE-ECDSA-AES128-SHA256` — the suite ISO 15118-2 prescribes — and sets
+`ciphersuites = ""` under the comment *"disable TLS 1.3"*; `lib/everest/tls/src/tls.cpp:442` caps the
+version at 1.2 on exactly that condition, also commented. Both lines are carried verbatim from `EvseV2G`.
+So the mux does not *fail* to offer 1.3 — it serves the **-2 TLS profile by construction**, which is what
+makes the rest of this a layering question rather than a missing feature.
+
 Two consequences, and the second is the interesting one:
 
 - **A conformant -20 EV cannot reach their -20 backend through the mux.** ISO 15118-20 mandates TLS 1.3;

@@ -118,7 +118,8 @@ SIL's dummy token provider swipes at plug-in.
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
 run notes — and 12 of our -20 messages decoded clean by a second independent codec.
 
-⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot produce.
+⁵ Their -20 AC SIL closes the contactor on a Control-Pilot `PowerOn` event, and in SIL that line is
+driven by their own EV module following its own session — so driving it from outside is not enough.
 
 ⁶ 59 and 68 exchanges to `SessionStop` from Windows, once the app let a session name its TLS backend.
 One bound survives and it is **theirs**: `create_certs.sh -v iso-20` emits P-256, so nothing here has
@@ -141,9 +142,10 @@ ran as a by-product of the MCS reverse session. The `EV→` result for **-2** is
 ¹¹ **Neither of their configs was changed for this**, which is the finding: their SIL had been
 advertising service 6 at every -20 DC run this project ever made, and our EV could not ask for it.
 
-¹² `IsoMux` serves **TLS 1.2 only** (a 1.3 hello gets alert 70) and routes on the SAP offer regardless —
-so a dual-stack EV gets a complete **-20 session over TLS 1.2**, and a conformant -20 EV reaches the -20
-backend not at all. It also corrected a mirror of that layering on our side.
+¹² `IsoMux` terminates TLS at the **-2 profile** — 1.2 with the suite ISO 15118-2 prescribes, pinned in
+code it shares with `EvseV2G` — and only then routes on the SAP offer. So a dual-stack EV gets a complete
+**-20 session over TLS 1.2**, and a -20 EV that pins its own profile gets alert 70. It also corrected a
+mirror of that layering on our side.
 
 ¹³ ✅ in both columns, but **disjoint halves**: Dynamic ran `←SECC` against Josev and `EV→` against
 EVerest, because our station could answer a Dynamic car long before our car could be one. Neither column
