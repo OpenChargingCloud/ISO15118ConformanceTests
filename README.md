@@ -173,9 +173,10 @@ our freshly-issued session id through every request, something the v0.1 image's 
 `basic` compaction the route runs to `SessionStop` — including the VW stopping straight from the
 charging phase, where **the recorded charger answered `FAILED_SequenceError` and ours answers `OK`**,
 a divergence kept, not corrected. Uncompacted, the VW's double `Authorization` poll reached the arm of
-our sequence guard that closes the connection instead of answering `FAILED_SequenceError` on the wire —
+our sequence guard that closed the connection instead of answering `FAILED_SequenceError` on the wire —
 the first finding against us from this counterparty, and one only a replayer could produce: every
-other peer polls only while our station says `Ongoing`.
+other peer polls only while our station says `Ongoing`. **Fixed and re-run the same day**: the refusal
+now goes out in the request's own response type, and their injector decodes it.
 
 
 ## Run

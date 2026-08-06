@@ -180,7 +180,18 @@ public class TuxEvseInteropTests
             if (outcome.SelectedEnergyServiceId is { } serviceId)
                 TestContext.Out.WriteLine($"Energy transfer service: {serviceId} — their injector's pick.");
 
-            Assert.That(outcome.IsDone, Is.True, "our SECC drove their injector's session to the terminal state");
+            Assert.Multiple(() =>
+            {
+                Assert.That(outcome.IsDone, Is.True, "our SECC drove their injector's session to the terminal state");
+
+                // A replayer sends what its car sent, not what our station's last answer invited — so it is
+                // the one peer that reaches this, and the reason our -2 guard now answers instead of closing
+                // the connection (2026-08-06: a real VW polled Authorization twice). The refusal is correct
+                // behaviour and a terminal state, which is exactly why the run has to say it happened:
+                // otherwise a session that ended on our own sequence rules reads as a completed charge.
+                Assert.That(outcome.SequenceErrorAt, Is.Null,
+                            "their injector's route stayed within what our station accepts");
+            });
         }
         finally
         {

@@ -78,9 +78,17 @@ internal static class InteropSession
     /// <see cref="PlugAndCharge"/> is <c>null</c> whenever the EV authorized by EIM — which is itself
     /// worth distinguishing from a contract that failed to verify.
     /// </para>
+    /// <para>
+    /// <see cref="SequenceErrorAt"/> exists because <see cref="IsDone"/> stopped being able to tell the two
+    /// endings apart. Our -2 station used to <i>throw</i> at an out-of-sequence request, so a refused session
+    /// arrived here as a failed test; it now answers <c>FAILED_SequenceError</c> and ends the session the way
+    /// the standard asks — which is correct on the wire and, left unreported, would turn the loudest possible
+    /// finding into a green tick. It names the refused message, or is <c>null</c> for a session that ended
+    /// the normal way. -20 has no equivalent yet: its guard still throws.
+    /// </para>
     /// </remarks>
     public sealed record SeccOutcome(Boolean IsDone, UInt16? SelectedEnergyServiceId = null,
-                                     PnCAuthResult? PlugAndCharge = null);
+                                     PnCAuthResult? PlugAndCharge = null, String? SequenceErrorAt = null);
 
 
     /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
@@ -165,7 +173,7 @@ internal static class InteropSession
         {
             var secc = new Secc2(mode, SequenceTimeout, TimeProvider.System);
             await secc.RunAsync(stream, ct);
-            return new SeccOutcome(secc.IsDone);
+            return new SeccOutcome(secc.IsDone, SequenceErrorAt: secc.SequenceErrorAt);
         }
 
         Secc20Base secc20 = (mode, mcs) switch

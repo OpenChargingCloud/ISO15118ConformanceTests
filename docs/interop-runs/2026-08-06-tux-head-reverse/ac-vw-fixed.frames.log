@@ -1,0 +1,30 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 153 byte(s), 6 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=44
+    01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040
+[1] SessionSetupReq payloadType=0x8001 bytes=22
+    01fe80010000000e8098004011d01801f7e81aae4400
+[2] ServiceDiscoveryReq payloadType=0x8001 bytes=21
+    01fe80010000000d80980237e46f42e5b08c0551b8
+[3] PaymentServiceSelectionReq payloadType=0x8001 bytes=24
+    01fe80010000001080980237e46f42e5b08c055132001280
+[4] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d80980237e46f42e5b08c055008
+[5] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d80980237e46f42e5b08c055008
+
+## station -> EV: 149 byte(s), 6 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8001 bytes=38
+    01fe80010000001e80980237e46f42e5b08c0551e0202d1114a905090ca914c410141f1f40a0
+[2] ServiceDiscoveryRes (OK) payloadType=0x8001 bytes=31
+    01fe80010000001780980237e46f42e5b08c0551c00008004011050c050248
+[3] PaymentServiceSelectionRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e80980237e46f42e5b08c05514000
+[4] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f80980237e46f42e5b08c0550100000
+[5] AuthorizationRes (FAILED_SequenceError) payloadType=0x8001 bytes=23
+    01fe80010000000f80980237e46f42e5b08c055010a000

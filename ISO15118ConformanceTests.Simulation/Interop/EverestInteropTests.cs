@@ -306,6 +306,12 @@ public class EverestInteropTests
             TestContext.Out.WriteLine($"Energy transfer service: {serviceId} ({ServiceName(serviceId)}) — " +
                                       $"their EV's pick out of our catalogue.");
 
+        // A -2 session that ends because our own guard refused a message reaches the terminal state like any
+        // other, so IsDone alone would report it as a completed charge (see SeccOutcome.SequenceErrorAt).
+        if (outcome.SequenceErrorAt is { } refused)
+            TestContext.Out.WriteLine($"Sequence error: our station refused their EV's {refused} and ended " +
+                                      $"the session with FAILED_SequenceError.");
+
         // Named as a verdict rather than a tick: a contract that arrived and failed to verify is a finding,
         // and it completes the session either way — our SECC does not refuse on a bad signature.
         if (outcome.PlugAndCharge is { } pnc)

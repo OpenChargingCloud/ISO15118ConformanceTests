@@ -160,9 +160,34 @@ The parenthesis is the finding: ISO 15118-2 answers an out-of-sequence request w
 `FAILED_SequenceError` *on the wire* and then terminates; ours names the right code in an exception
 message and sends nothing. Every previous counterparty either polls only while we say `Ongoing`
 (so the pair never desynchronizes) or is our own EV; it took a replayer, which repeats what its car
-did rather than react to what our station said, to reach that arm. **The fix belongs in the app**
-(`Secc2.Dispatch`'s wildcard arm) and is not made here; this run is the evidence
-(`ac-vw.frames.log`: 6 requests, 5 responses).
+did rather than react to what our station said, to reach that arm. Evidence: `ac-vw.frames.log` —
+6 requests, 5 responses.
+
+### Fixed the same day, and re-run against the same scenario (`ac-vw-fixed.*`)
+
+`Secc2`'s guard now builds the response that **pairs with** the refused request, carrying
+`FAILED_SequenceError`, and ends the session with it. The same VW replay, against the fixed station:
+
+```
+4  AuthorizationReq → AuthorizationRes   OK
+5  AuthorizationReq → AuthorizationRes   FAILED_SequenceError      ← was silence
+```
+
+6 requests, **6** responses. And the confirmation that matters is theirs, not ours: their injector,
+which had spun 10.9 M times on a stale buffer waiting for an answer, now reads ours and stops with
+
+```
+received: {"rcode":"sequence_error","processing":"finished","tagid":"authorization_res",...}
+expected: {"rcode":"ok",...}
+```
+
+A car can tell a refusal from a dead station again — in the counterparty's own decoder's words. The
+fixture still reports this run as a failure, and correctly: `SeccOutcome.SequenceErrorAt` now carries
+the refused message's name, because a session that ends on our own sequence rules reaches the terminal
+state like any other and would otherwise read as a completed charge.
+
+(Their third busy-loop is unaffected and unrelated: with the scenario aborted and the connection still
+open, the idle path spun 5.5 M times in ~40 s, 950 MB.)
 
 Their side of the same moment is the second busy-loop: waiting for an `AuthorizationRes` that never
 came, their EVCC binding re-decoded a stale buffer — `unexpected exi message
@@ -198,8 +223,9 @@ and the connection still open, their EVCC binding spun on `Received iso2 message
 - **Versions met** gains `main @ fc51088` from source, next to the v0.1 image.
 - The 2026-08-01 open question is closed; two of its "confirm on first contact" items are now
   measured defects (the busy-loops) worth reporting upstream.
-- One conformance gap of ours (sequence guard answers with silence) and one leniency-vs-strictness
-  divergence (any-phase `SessionStop`) are on the record with bytes.
+- One conformance gap of ours — the sequence guard answering with silence — **found, fixed and
+  re-verified on the wire the same day**, and one leniency-vs-strictness divergence (any-phase
+  `SessionStop`) on the record with bytes.
 
 ## How to reproduce
 

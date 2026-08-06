@@ -147,13 +147,20 @@ upstream report.
 The reason to point a replayer at our station is that it repeats what its car did rather than react to
 what we say, and the VW capture proved the point twice in one session:
 
-- **Our sequence guard answers with silence.** The VW polls `Authorization` twice (the real charger's
-  first answer was `Ongoing`); ours answers `Finished` immediately, so the replayed second poll is
-  out-of-sequence at our station — and `Secc2.Dispatch`'s wildcard arm **throws** (closing the
-  connection) where ISO 15118-2 answers `FAILED_SequenceError` on the wire and then terminates. The
-  exception message even names the right code. Every other counterparty polls only while we say
-  `Ongoing`, so no live session had ever reached that arm. **Open** — the fix belongs in the app,
-  not in this repository, which keeps the bytes.
+- **Our sequence guard answered with silence.** ✅ **Fixed 2026-08-06.** The VW polls `Authorization`
+  twice (the real charger's first answer was `Ongoing`); ours answers `Finished` immediately, so the
+  replayed second poll is out-of-sequence at our station — and `Secc2.Dispatch`'s wildcard arm **threw**,
+  closing the connection, where ISO 15118-2 answers `FAILED_SequenceError` on the wire and then
+  terminates. The exception message even named the right code. Every other counterparty polls only while
+  we say `Ongoing`, so no live session had ever reached that arm.
+
+  The app's guard now builds the response that *pairs with* the refused request, carrying
+  `FAILED_SequenceError`, and ends the session with it. **Re-run against the same VW scenario**
+  (`ac-vw-fixed.*`): 6 requests, **6** responses instead of 5, the last one
+  `AuthorizationRes → FAILED_SequenceError` — and their injector, which had busy-looped on a stale
+  buffer waiting for an answer, now decodes it and stops with a plain
+  `received "sequence_error", expected "ok"`. A car can tell a refusal from a dead station again, in
+  their own decoder's words.
 - **Any-phase `SessionStop`, strict station vs lenient station.** The VW ends with `SessionStopReq`
   straight from the charging phase — no `ChargingStatus`, no `PowerDelivery(stop)` — and the capture
   shows the real charger answering `FAILED_SequenceError`, while ours answers `OK` and terminates
