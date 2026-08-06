@@ -29,6 +29,14 @@ on cbV2G, the encoder our own vector corpus is generated from, so a byte agreeme
 ourselves. What EVerest gives instead is *behaviour* — sequencing, timing, state, and a station that
 enforces rules nothing here had ever had to satisfy.
 
+**The codec flips with the direction, and that decides how much reverse runs are worth.** `PyEvJosev`
+wraps `EVerest/ext-switchev-iso15118` — EVerest's fork of the same SwitchEV codebase the
+[Josev column](josev-cross-validation.md) tests, vendored at `26f7988` in 2026.02.1. So driving *their*
+station we meet cbV2G, and being driven by *their* car we meet EXIficient. A `←SECC` run here is
+therefore an independent-codec result — and also, mostly, a re-run of the Josev reverse column. That is
+why the reverse direction was spent only where it buys something neither a forward run nor a Josev run
+can, and why -2 reverse against EVerest has deliberately never been run.
+
 With one accidental exception, and it is worth the paragraph:
 
 > **An image tag is not a version.** The first three runs used

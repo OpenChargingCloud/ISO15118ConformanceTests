@@ -20,9 +20,10 @@ evidence:
 | | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | eVDriveFlow | tux-evse |
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
-| Their EXI | **EXIficient** | **cbV2G**¹ (OpenV2G in the 2023 image) | **OpenEXI**/Nagasena | replays a **captured Audi** |
+| **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G**¹ (OpenV2G in the 2023 image) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
+| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again¹⁶ | their EV — **OpenEXI** | — (they only respond) |
 | Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image |
-| Directions | `EV→ ←SECC` | `EV→ ←SECC` | `EV→ ←SECC` | `EV→` (they only respond) |
+| Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something¹⁶ | `EV→ ←SECC` | `EV→` only |
 
 The **Ours** column is our own C# stack against itself — a loopback E2E with both peers ours, which is
 what runs in the offline suite and what every counterparty column is measured against. It says the
@@ -185,6 +186,17 @@ verification is a literal `# TODO`, and nothing else touches -20 price schedules
 verifies it (`Iso20LoopbackTests`), which is self-consistency. Contrast the -2 row, where Josev's SECC
 MO-signs its own SalesTariff and our EVCC live-verified it — a genuine external oracle in that
 direction ([`2026-07-22-tariff`](docs/interop-runs/2026-07-22-tariff/)).
+¹⁶ **Why EVerest's rows are mostly `EV→` while Josev's are mostly both — their EV is Josev.**
+`PyEvJosev` wraps `EVerest/ext-switchev-iso15118`, EVerest's fork of the same SwitchEV codebase the
+Josev column tests (vendored at `26f7988` in 2026.02.1). Two consequences, and they pull in opposite
+directions. It means the **codec flips with the direction**: forward we meet their cbV2G station,
+reverse we meet EXIficient — the same encoder as the whole Josev column. And it means a green `←SECC`
+run here is largely a re-run of that column, so the reverse direction was spent only where it buys
+something no forward run and no Josev run can: **MCS**, the only session that puts *our* service
+catalogue in front of a foreign chooser, and — as a by-product of it — the first **-20 Plug & Charge**
+result against this counterparty in either direction. -2 reverse against EVerest has deliberately never
+been run. Read the two counterparty columns as one body of evidence with an overlap, not as two
+independent witnesses in the reverse direction.
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
