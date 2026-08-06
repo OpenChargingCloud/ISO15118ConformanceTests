@@ -85,7 +85,7 @@ how to read one.
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
-| DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ⛔ `←SECC` their EV quits at Authorization | — |
+| DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ◐ `EV→` to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | — | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | ▢ | — |
@@ -178,6 +178,16 @@ the first finding against us from this counterparty, and one only a replayer cou
 other peer polls only while our station says `Ongoing`. **Fixed and re-run the same day**: the refusal
 now goes out in the request's own response type, and their injector decodes it.
 
+²⁰ It used to read *"their EV quits at Authorization"*, recorded as an open question after two runs could
+not move it. Reading their state machine settled it on 2026-08-06: their EV arms a "press Enter to stop"
+listener on `sys.stdin` unconditionally, EOF returns immediately, and `process_reaction` then replaces the
+message the state machine built with `SessionStopReq` in the first state that permits it — which is the
+authorization one. The rig had started it with `docker exec -d`. **With stdin held open and nothing else
+changed, 4 exchanges became 15**, through ScheduleExchange, CableCheck, PreCharge ×3, PowerDelivery and
+into DC_ChargeLoop. It stops there on a defect of theirs: `hasattr` used as a presence test on an
+`Optional[int]` copies our legally omitted `TargetSOC` over their own default, and `None * int` ends it.
+Their EV also selects the **BPT** service on the way, so that cell is reachable now too.
+
 ¹⁹ Both their shipped configs pin one GnuTLS priority string, and its ECDSA half holds AES-GCM, AES-CCM,
 ChaCha20 and two SHA-1 CBC suites — **not** `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256` or its ECDH twin,
 which is what ISO 15118-2 requires and what our station pins. Handshake: `no shared cipher`. Unpinned
@@ -219,7 +229,7 @@ on the wire. What each of them has proven is the matrix above.
 |---|---|
 | [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) | the independent **codec** (EXIficient), the counterparty with the most history here, and the only one that serves both roles well. Every -20 energy mode any independent stack implements, over TCP and TLS, plain and Plug & Charge, in both control modes. |
 | [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) | the independent **charger**, the thing a car in the field actually meets, and the counterparty that has found the most defects in *this* project; almost all of them share one of two shapes, which that page names. [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and unsent, six structural walls named. |
-| [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) | the **second** independent codec (OpenEXI), and the highest yield per exchange here: seventeen messages found one defect of ours that every other oracle was structurally blind to, and three of theirs. The four capabilities it was chosen for all sit behind a wall in their EV. |
+| [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) | the **second** independent codec (OpenEXI), and the highest yield per exchange here: one defect of ours that every other oracle was structurally blind to, and four of theirs. The wall that held all four of its capabilities [turned out to be a closed file descriptor](docs/interop-runs/2026-08-06-edf-stdin-wall/notes.md), not a state machine. |
 | [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; as an **injector at their HEAD** it drove our SECC through the full captured-Audi DC session and a VW AC route — and reached the one arm of our state machine no self-consistent test had ever executed. Over TLS it produced the first external check of our TLS profile, and [two findings drafted for them](docs/reports/tux-evse-tls.md). |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences |
 | [`docs/reports/`](docs/reports/) | findings written up for the counterparty they belong to |

@@ -1,0 +1,480 @@
+[2026-08-06 20:47:16,549] INFO (physical_interface): 61851 state set to B.
+[2026-08-06 20:47:16,550] INFO (start_ev): Starting EV.
+[2026-08-06 20:47:16,551] INFO (physical_interface): Current duty cycle is 100.
+[2026-08-06 20:47:16,551] INFO (start_ev): Duty cycle is different from 5%.
+[2026-08-06 20:47:16,551] INFO (physical_interface): Duty cycle set to 5.
+[2026-08-06 20:47:16,551] INFO (physical_interface): Current duty cycle is 5.
+[2026-08-06 20:47:16,558] INFO (udp_client): Starting UDP client.
+[2026-08-06 20:47:16,558] INFO (udp_client): Attempting to connect to ('ff02::1', 15118, 0, 0).
+[2026-08-06 20:47:16,559] INFO (udp_client): Sent SECC discovery request. 0
+[2026-08-06 20:47:16,559] INFO (udp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,559] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,559] INFO (udp_client): TCP server is reachable at (fe80::42:acff:fe1e:2, 15118).
+[2026-08-06 20:47:16,559] INFO (udp_client): Closing connection.
+[2026-08-06 20:47:16,559] INFO (tcp_client): Starting TCP client.
+[2026-08-06 20:47:16,561] INFO (tcp_client): Connection made with ('fe80::42:acff:fe1e:2', 15118, 0, 18). Starting new communication session.
+[2026-08-06 20:47:16,562] INFO (tcp_client): 
+ TLS DISABLED 
+[2026-08-06 20:47:16,562] INFO (message_handling): Supported App Protocol message to be encoded
+[2026-08-06 20:47:16,563] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,570] INFO (tcp_client): Sent SupportedAppProtocolReq.
+[2026-08-06 20:47:16,579] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,579] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,579] INFO (tcp_client): Payload type: 32769
+[2026-08-06 20:47:16,580] DEBUG (tcp_client): Received EXI msg to be decoded: 8040 0040 (tcp_client.py:118)
+[2026-08-06 20:47:16,580] INFO (message_handling): Supported App Protocol message to be decoded
+[2026-08-06 20:47:16,626] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s0:supportedAppProtocolRes xmlns:s0="urn:iso:15118:2:2010:AppProtocol" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><ResponseCode>OK_SuccessfulNegotiation</ResponseCode><SchemaID>1</SchemaID></s0:supportedAppProtocolRes>
+[2026-08-06 20:47:16,643] INFO (tcp_client): Received SupportedAppProtocolRes.
+[2026-08-06 20:47:16,644] INFO (wait_for_supported_app_protocol_response): Successful negotiation.
+[2026-08-06 20:47:16,644] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:SessionSetupReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>3030303030303030</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVCCID>EDFVFR123456789ZZZZ8</ns0:EVCCID>
+</ns0:SessionSetupReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,644] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,644] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,647] DEBUG (tcp_client): Encoded EXI message: 808C0418181818181818180D4E5D3D30620B22A 2232B23291899199A1A9B1B9C1CAD2D2D2D1C00 (tcp_client.py:174)
+[2026-08-06 20:47:16,647] INFO (tcp_client): Sent SessionSetupReq.
+[2026-08-06 20:47:16,661] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,662] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,662] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,662] DEBUG (tcp_client): Received EXI msg to be decoded: 80900446A5E2B7CD5787988D4E5D3 D30620402D1114A905090CA914C40 (tcp_client.py:118)
+[2026-08-06 20:47:16,662] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,664] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:SessionSetupRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK_NewSessionEstablished</s2:ResponseCode><s1:EVSEID>DE*ABC*E1</s1:EVSEID></s1:SessionSetupRes>
+[2026-08-06 20:47:16,664] INFO (tcp_client): Received SessionSetupRes.
+[2026-08-06 20:47:16,665] INFO (wait_for_session_setup_response): Negotiated session id is: b'\x8dK\xc5o\x9a\xaf\x0f1'.
+[2026-08-06 20:47:16,666] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:AuthorizationSetupReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+</ns0:AuthorizationSetupReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,666] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,666] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,667] DEBUG (tcp_client): Encoded EXI message: 80080446A5E2B7CD5 787988D4E5D3D3062 (tcp_client.py:174)
+[2026-08-06 20:47:16,667] INFO (tcp_client): Sent AuthorizationSetupReq.
+[2026-08-06 20:47:16,669] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,669] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,669] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,669] DEBUG (tcp_client): Received EXI msg to be decoded: 800C0446A5E2B7CD5787 988D4E5D3D3062000400 (tcp_client.py:118)
+[2026-08-06 20:47:16,669] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,670] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:AuthorizationSetupRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:AuthorizationServices>EIM</s1:AuthorizationServices><s1:CertificateInstallationService>false</s1:CertificateInstallationService><s1:EIM_ASResAuthorizationMode/></s1:AuthorizationSetupRes>
+[2026-08-06 20:47:16,671] INFO (tcp_client): Received AuthorizationSetupRes.
+[2026-08-06 20:47:16,672] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:AuthorizationReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:SelectedAuthorizationService>EIM</ns0:SelectedAuthorizationService>
+  <ns0:EIM_AReqAuthorizationMode/>
+</ns0:AuthorizationReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,672] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,672] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,673] DEBUG (tcp_client): Encoded EXI message: 80000446A5E2B7CD57 87988D4E5D3D306200 (tcp_client.py:174)
+[2026-08-06 20:47:16,673] INFO (tcp_client): Sent AuthorizationReq.
+[2026-08-06 20:47:16,675] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,675] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,675] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,675] DEBUG (tcp_client): Received EXI msg to be decoded: 80040446A5E2B7CD578 7988D4E5D3D30620000 (tcp_client.py:118)
+[2026-08-06 20:47:16,675] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,675] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:AuthorizationRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:EVSEProcessing>Finished</s1:EVSEProcessing></s1:AuthorizationRes>
+[2026-08-06 20:47:16,676] INFO (tcp_client): Received AuthorizationRes.
+[2026-08-06 20:47:16,677] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:ServiceDiscoveryReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:SupportedServiceIDs>
+    <ns0:ServiceID>2</ns0:ServiceID>
+    <ns0:ServiceID>6</ns0:ServiceID>
+  </ns0:SupportedServiceIDs>
+</ns0:ServiceDiscoveryReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,677] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,677] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,678] DEBUG (tcp_client): Encoded EXI message: 807C0446A5E2B7CD57879 88D4E5D3D306200400C40 (tcp_client.py:174)
+[2026-08-06 20:47:16,679] INFO (tcp_client): Sent ServiceDiscoveryReq.
+[2026-08-06 20:47:16,683] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,683] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,683] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,683] DEBUG (tcp_client): Received EXI msg to be decoded: 80800446A5E2B7CD5787988D 4E5D3D306200200210018450 (tcp_client.py:118)
+[2026-08-06 20:47:16,683] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,684] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:ServiceDiscoveryRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:ServiceRenegotiationSupported>true</s1:ServiceRenegotiationSupported><s1:EnergyTransferServiceList><s1:Service><s1:ServiceID>2</s1:ServiceID><s1:FreeService>true</s1:FreeService></s1:Service><s1:Service><s1:ServiceID>6</s1:ServiceID><s1:FreeService>true</s1:FreeService></s1:Service></s1:EnergyTransferServiceList></s1:ServiceDiscoveryRes>
+[2026-08-06 20:47:16,686] INFO (tcp_client): Received ServiceDiscoveryRes.
+[2026-08-06 20:47:16,686] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:ServiceDetailReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:ServiceID>6</ns0:ServiceID>
+</ns0:ServiceDetailReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,686] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,686] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,688] DEBUG (tcp_client): Encoded EXI message: 80740446A5E2B7CD578 7988D4E5D3D30620300 (tcp_client.py:174)
+[2026-08-06 20:47:16,688] INFO (tcp_client): Sent ServiceDetailReq.
+[2026-08-06 20:47:16,691] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,691] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,691] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,691] DEBUG (tcp_client): Received EXI msg to be decoded: 80780446A5E2B7CD5787988D4E5D3D30620001800402D0DBDB9B9958DD1BDC980200D436F6E74726F6C4D6F6465601004D35BD89A5B1A5D1E539959591CD35BD9195802009 50726963696E67600080080B436F6E6E6563746F7260080350DBDB9D1C9BDB135BD91958020134D6F62696C6974794E656564734D6F6465600802541C9A58DA5B99D800280 (tcp_client.py:118)
+[2026-08-06 20:47:16,691] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,692] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:ServiceDetailRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:ServiceID>6</s1:ServiceID><s1:ServiceParameterList><s1:ParameterSet><s1:ParameterSetID>2</s1:ParameterSetID><s1:Parameter s1:Name="Connector"><s1:intValue>1</s1:intValue></s1:Parameter><s1:Parameter s1:Name="ControlMode"><s1:intValue>2</s1:intValue></s1:Parameter><s1:Parameter s1:Name="MobilityNeedsMode"><s1:intValue>1</s1:intValue></s1:Parameter><s1:Parameter s1:Name="Pricing"><s1:intValue>0</s1:intValue></s1:Parameter></s1:ParameterSet><s1:ParameterSet><s1:ParameterSetID>1</s1:ParameterSetID><s1:Parameter s1:Name="Connector"><s1:intValue>1</s1:intValue></s1:Parameter><s1:Parameter s1:Name="ControlMode"><s1:intValue>1</s1:intValue></s1:Parameter><s1:Parameter s1:Name="MobilityNeedsMode"><s1:intValue>1</s1:intValue></s1:Parameter><s1:Parameter s1:Name="Pricing"><s1:intValue>0</s1:intValue></s1:Parameter></s1:ParameterSet></s1:ServiceParameterList></s1:ServiceDetailRes>
+[2026-08-06 20:47:16,693] INFO (tcp_client): Received ServiceDetailRes.
+[2026-08-06 20:47:16,694] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:ServiceSelectionReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:SelectedEnergyTransferService>
+    <ns0:ServiceID>6</ns0:ServiceID>
+    <ns0:ParameterSetID>1</ns0:ParameterSetID>
+  </ns0:SelectedEnergyTransferService>
+</ns0:ServiceSelectionReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,694] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,695] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,696] DEBUG (tcp_client): Encoded EXI message: 80840446A5E2B7CD57879 88D4E5D3D306201800880 (tcp_client.py:174)
+[2026-08-06 20:47:16,696] INFO (tcp_client): Sent ServiceSelectionReq.
+[2026-08-06 20:47:16,697] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,698] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,698] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,698] DEBUG (tcp_client): Received EXI msg to be decoded: 80880446A5E2B7CD578 7988D4E5D3D30620000 (tcp_client.py:118)
+[2026-08-06 20:47:16,698] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,699] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:ServiceSelectionRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode></s1:ServiceSelectionRes>
+[2026-08-06 20:47:16,699] INFO (tcp_client): Received ServiceSelectionRes.
+[2026-08-06 20:47:16,701] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:DC_ChargeParameterDiscoveryReq xmlns:ns0="urn:iso:std:iso:15118:-20:DC">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:BPT_DC_CPDReqEnergyTransferMode>
+    <ns0:EVMaximumChargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">1</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">4900</ns1:Value>
+    </ns0:EVMaximumChargePower>
+    <ns0:EVMinimumChargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">245</ns1:Value>
+    </ns0:EVMinimumChargePower>
+    <ns0:EVMaximumChargeCurrent>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-2</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">15806</ns1:Value>
+    </ns0:EVMaximumChargeCurrent>
+    <ns0:EVMinimumChargeCurrent>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">681</ns1:Value>
+    </ns0:EVMinimumChargeCurrent>
+    <ns0:EVMaximumVoltage>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">360</ns1:Value>
+    </ns0:EVMaximumVoltage>
+    <ns0:EVMinimumVoltage>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">310</ns1:Value>
+    </ns0:EVMinimumVoltage>
+    <ns0:TargetSOC>80</ns0:TargetSOC>
+    <ns0:EVMaximumDischargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMaximumDischargePower>
+    <ns0:EVMinimumDischargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMinimumDischargePower>
+    <ns0:EVMaximumDischargeCurrent>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMaximumDischargeCurrent>
+    <ns0:EVMinimumDischargeCurrent>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMinimumDischargeCurrent>
+  </ns0:BPT_DC_CPDReqEnergyTransferMode>
+</ns0:DC_ChargeParameterDiscoveryReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,701] INFO (message_handling): DC message to be encoded
+[2026-08-06 20:47:16,702] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,705] DEBUG (tcp_client): Encoded EXI message: 803C0446A5E2B7CD5787988D4E5D3D30620810A42604007A8081F82F 9EC0FA1520A0800E80204005B0102803E80001F40000FA00007D0000 (tcp_client.py:174)
+[2026-08-06 20:47:16,705] INFO (tcp_client): Sent DcChargeParameterDiscoveryReq.
+[2026-08-06 20:47:16,709] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,709] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,709] INFO (tcp_client): Payload type: 32772
+[2026-08-06 20:47:16,709] DEBUG (tcp_client): Received EXI msg to be decoded: 80400446A5E2B7CD5787988D4E5D3D3062000408441382000001001 900208000004007A0182000C8481088270400000200320041000000 (tcp_client.py:118)
+[2026-08-06 20:47:16,709] INFO (message_handling): DC message to be decoded
+[2026-08-06 20:47:16,711] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s2:DC_ChargeParameterDiscoveryRes xmlns:s2="urn:iso:std:iso:15118:-20:DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s1="urn:iso:std:iso:15118:-20:CommonTypes"><s1:Header><s1:SessionID>8D4BC56F9AAF0F31</s1:SessionID><s1:TimeStamp>1786049236</s1:TimeStamp></s1:Header><s1:ResponseCode>OK</s1:ResponseCode><s2:BPT_DC_CPDResEnergyTransferMode><s2:EVSEMaximumChargePower><s1:Exponent>1</s1:Exponent><s1:Value>5000</s1:Value></s2:EVSEMaximumChargePower><s2:EVSEMinimumChargePower><s1:Exponent>0</s1:Exponent><s1:Value>0</s1:Value></s2:EVSEMinimumChargePower><s2:EVSEMaximumChargeCurrent><s1:Exponent>0</s1:Exponent><s1:Value>200</s1:Value></s2:EVSEMaximumChargeCurrent><s2:EVSEMinimumChargeCurrent><s1:Exponent>0</s1:Exponent><s1:Value>0</s1:Value></s2:EVSEMinimumChargeCurrent><s2:EVSEMaximumVoltage><s1:Exponent>0</s1:Exponent><s1:Value>500</s1:Value></s2:EVSEMaximumVoltage><s2:EVSEMinimumVoltage><s1:Exponent>0</s1:Exponent><s1:Value>50</s1:Value></s2:EVSEMinimumVoltage><s2:EVSEMaximumDischargePower><s1:Exponent>1</s1:Exponent><s1:Value>5000</s1:Value></s2:EVSEMaximumDischargePower><s2:EVSEMinimumDischargePower><s1:Exponent>0</s1:Exponent><s1:Value>0</s1:Value></s2:EVSEMinimumDischargePower><s2:EVSEMaximumDischargeCurrent><s1:Exponent>0</s1:Exponent><s1:Value>200</s1:Value></s2:EVSEMaximumDischargeCurrent><s2:EVSEMinimumDischargeCurrent><s1:Exponent>0</s1:Exponent><s1:Value>0</s1:Value></s2:EVSEMinimumDischargeCurrent></s2:BPT_DC_CPDResEnergyTransferMode></s2:DC_ChargeParameterDiscoveryRes>
+[2026-08-06 20:47:16,714] INFO (tcp_client): Received DcChargeParameterDiscoveryRes.
+[2026-08-06 20:47:16,716] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:ScheduleExchangeReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:MaximumSupportingPoints>1024</ns0:MaximumSupportingPoints>
+  <ns0:Dynamic_SEReqControlMode>
+    <ns0:DepartureTime>0</ns0:DepartureTime>
+    <ns0:MinimumSOC>0</ns0:MinimumSOC>
+    <ns0:TargetSOC>80</ns0:TargetSOC>
+    <ns0:EVTargetEnergyRequest>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">1</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">5360</ns1:Value>
+    </ns0:EVTargetEnergyRequest>
+    <ns0:EVMaximumEnergyRequest>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">1</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">6700</ns1:Value>
+    </ns0:EVMaximumEnergyRequest>
+    <ns0:EVMinimumEnergyRequest>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMinimumEnergyRequest>
+  </ns0:Dynamic_SEReqControlMode>
+</ns0:ScheduleExchangeReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,716] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,716] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,718] DEBUG (tcp_client): Encoded EXI message: 806C0446A5E2B7CD5787988D4E5D3D30627 E80000001402043C0A41021586807D00020 (tcp_client.py:174)
+[2026-08-06 20:47:16,718] INFO (tcp_client): Sent ScheduleExchangeReq.
+[2026-08-06 20:47:16,721] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,721] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,721] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,721] DEBUG (tcp_client): Received EXI msg to be decoded: 80700446A5E2B7CD578798 8D4E5D3D30620000000040 (tcp_client.py:118)
+[2026-08-06 20:47:16,721] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,722] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:ScheduleExchangeRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:EVSEProcessing>Finished</s1:EVSEProcessing><s1:GoToPause>false</s1:GoToPause><s1:Dynamic_SEResControlMode><s1:DepartureTime>0</s1:DepartureTime></s1:Dynamic_SEResControlMode></s1:ScheduleExchangeRes>
+[2026-08-06 20:47:16,723] INFO (tcp_client): Received ScheduleExchangeRes.
+[2026-08-06 20:47:16,724] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:DC_CableCheckReq xmlns:ns0="urn:iso:std:iso:15118:-20:DC">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+</ns0:DC_CableCheckReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,724] INFO (message_handling): DC message to be encoded
+[2026-08-06 20:47:16,724] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,725] DEBUG (tcp_client): Encoded EXI message: 802C0446A5E2B7CD5 787988D4E5D3D3062 (tcp_client.py:174)
+[2026-08-06 20:47:16,725] INFO (tcp_client): Sent DcCableCheckReq.
+[2026-08-06 20:47:16,725] INFO (physical_interface): Current duty cycle is 5.
+[2026-08-06 20:47:16,726] INFO (physical_interface): 61851 state set to C.
+[2026-08-06 20:47:16,726] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,727] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,727] INFO (tcp_client): Payload type: 32772
+[2026-08-06 20:47:16,727] DEBUG (tcp_client): Received EXI msg to be decoded: 80300446A5E2B7CD578 7988D4E5D3D30620000 (tcp_client.py:118)
+[2026-08-06 20:47:16,727] INFO (message_handling): DC message to be decoded
+[2026-08-06 20:47:16,727] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s2:DC_CableCheckRes xmlns:s2="urn:iso:std:iso:15118:-20:DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s1="urn:iso:std:iso:15118:-20:CommonTypes"><s1:Header><s1:SessionID>8D4BC56F9AAF0F31</s1:SessionID><s1:TimeStamp>1786049236</s1:TimeStamp></s1:Header><s1:ResponseCode>OK</s1:ResponseCode><s2:EVSEProcessing>Finished</s2:EVSEProcessing></s2:DC_CableCheckRes>
+[2026-08-06 20:47:16,728] INFO (tcp_client): Received DcCableCheckRes.
+[2026-08-06 20:47:16,729] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:DC_PreChargeReq xmlns:ns0="urn:iso:std:iso:15118:-20:DC">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVProcessing>Ongoing</ns0:EVProcessing>
+  <ns0:EVPresentVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+  </ns0:EVPresentVoltage>
+  <ns0:EVTargetVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">330</ns1:Value>
+  </ns0:EVTargetVoltage>
+</ns0:DC_PreChargeReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,729] INFO (message_handling): DC message to be encoded
+[2026-08-06 20:47:16,729] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,730] DEBUG (tcp_client): Encoded EXI message: 80440446A5E2B7CD5787988D4 E5D3D306221000000800CA020 (tcp_client.py:174)
+[2026-08-06 20:47:16,730] INFO (tcp_client): Sent DcPreChargeReq.
+[2026-08-06 20:47:16,731] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,731] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,732] INFO (tcp_client): Payload type: 32772
+[2026-08-06 20:47:16,732] DEBUG (tcp_client): Received EXI msg to be decoded: 80480446A5E2B7CD5787988 D4E5D3D30620010010C0600 (tcp_client.py:118)
+[2026-08-06 20:47:16,732] INFO (message_handling): DC message to be decoded
+[2026-08-06 20:47:16,732] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s2:DC_PreChargeRes xmlns:s2="urn:iso:std:iso:15118:-20:DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s1="urn:iso:std:iso:15118:-20:CommonTypes"><s1:Header><s1:SessionID>8D4BC56F9AAF0F31</s1:SessionID><s1:TimeStamp>1786049236</s1:TimeStamp></s1:Header><s1:ResponseCode>OK</s1:ResponseCode><s2:EVSEPresentVoltage><s1:Exponent>0</s1:Exponent><s1:Value>390</s1:Value></s2:EVSEPresentVoltage></s2:DC_PreChargeRes>
+[2026-08-06 20:47:16,733] INFO (tcp_client): Received DcPreChargeRes.
+[2026-08-06 20:47:16,733] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:DC_PreChargeReq xmlns:ns0="urn:iso:std:iso:15118:-20:DC">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVProcessing>Ongoing</ns0:EVProcessing>
+  <ns0:EVPresentVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">390</ns1:Value>
+  </ns0:EVPresentVoltage>
+  <ns0:EVTargetVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">390</ns1:Value>
+  </ns0:EVTargetVoltage>
+</ns0:DC_PreChargeReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,733] INFO (message_handling): DC message to be encoded
+[2026-08-06 20:47:16,733] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,735] DEBUG (tcp_client): Encoded EXI message: 80440446A5E2B7CD5787988D4E 5D3D3062210010C06080086030 (tcp_client.py:174)
+[2026-08-06 20:47:16,735] INFO (tcp_client): Sent DcPreChargeReq.
+[2026-08-06 20:47:16,735] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,735] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,735] INFO (tcp_client): Payload type: 32772
+[2026-08-06 20:47:16,735] DEBUG (tcp_client): Received EXI msg to be decoded: 80480446A5E2B7CD5787988 D4E5D3D30620010010C0600 (tcp_client.py:118)
+[2026-08-06 20:47:16,735] INFO (message_handling): DC message to be decoded
+[2026-08-06 20:47:16,736] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s2:DC_PreChargeRes xmlns:s2="urn:iso:std:iso:15118:-20:DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s1="urn:iso:std:iso:15118:-20:CommonTypes"><s1:Header><s1:SessionID>8D4BC56F9AAF0F31</s1:SessionID><s1:TimeStamp>1786049236</s1:TimeStamp></s1:Header><s1:ResponseCode>OK</s1:ResponseCode><s2:EVSEPresentVoltage><s1:Exponent>0</s1:Exponent><s1:Value>390</s1:Value></s2:EVSEPresentVoltage></s2:DC_PreChargeRes>
+[2026-08-06 20:47:16,736] INFO (tcp_client): Received DcPreChargeRes.
+[2026-08-06 20:47:16,737] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:DC_PreChargeReq xmlns:ns0="urn:iso:std:iso:15118:-20:DC">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVProcessing>Finished</ns0:EVProcessing>
+  <ns0:EVPresentVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">390</ns1:Value>
+  </ns0:EVPresentVoltage>
+  <ns0:EVTargetVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">390</ns1:Value>
+  </ns0:EVTargetVoltage>
+</ns0:DC_PreChargeReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,737] INFO (message_handling): DC message to be encoded
+[2026-08-06 20:47:16,737] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,738] DEBUG (tcp_client): Encoded EXI message: 80440446A5E2B7CD5787988D4E 5D3D3062010010C06080086030 (tcp_client.py:174)
+[2026-08-06 20:47:16,738] INFO (tcp_client): Sent DcPreChargeReq.
+[2026-08-06 20:47:16,739] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,739] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,739] INFO (tcp_client): Payload type: 32772
+[2026-08-06 20:47:16,739] DEBUG (tcp_client): Received EXI msg to be decoded: 80480446A5E2B7CD5787988 D4E5D3D30620010010C0600 (tcp_client.py:118)
+[2026-08-06 20:47:16,739] INFO (message_handling): DC message to be decoded
+[2026-08-06 20:47:16,739] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s2:DC_PreChargeRes xmlns:s2="urn:iso:std:iso:15118:-20:DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s1="urn:iso:std:iso:15118:-20:CommonTypes"><s1:Header><s1:SessionID>8D4BC56F9AAF0F31</s1:SessionID><s1:TimeStamp>1786049236</s1:TimeStamp></s1:Header><s1:ResponseCode>OK</s1:ResponseCode><s2:EVSEPresentVoltage><s1:Exponent>0</s1:Exponent><s1:Value>390</s1:Value></s2:EVSEPresentVoltage></s2:DC_PreChargeRes>
+[2026-08-06 20:47:16,739] INFO (tcp_client): Received DcPreChargeRes.
+[2026-08-06 20:47:16,740] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:PowerDeliveryReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVProcessing>Finished</ns0:EVProcessing>
+  <ns0:ChargeProgress>Start</ns0:ChargeProgress>
+</ns0:PowerDeliveryReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,740] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:47:16,740] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,741] DEBUG (tcp_client): Encoded EXI message: 80540446A5E2B7CD578 7988D4E5D3D30620040 (tcp_client.py:174)
+[2026-08-06 20:47:16,741] INFO (tcp_client): Sent PowerDeliveryReq.
+[2026-08-06 20:47:16,742] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,743] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,743] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:47:16,743] DEBUG (tcp_client): Received EXI msg to be decoded: 80580446A5E2B7CD578 7988D4E5D3D30620040 (tcp_client.py:118)
+[2026-08-06 20:47:16,743] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:47:16,743] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:PowerDeliveryRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>8D4BC56F9AAF0F31</s2:SessionID><s2:TimeStamp>1786049236</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode></s1:PowerDeliveryRes>
+[2026-08-06 20:47:16,744] INFO (tcp_client): Received PowerDeliveryRes.
+[2026-08-06 20:47:16,748] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:DC_ChargeLoopReq xmlns:ns0="urn:iso:std:iso:15118:-20:DC">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>8D4BC56F9AAF0F31</ns1:SessionID>
+    <ns1:TimeStamp>1786049236</ns1:TimeStamp>
+  </ns1:Header>
+  <ns1:DisplayParameters xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:PresentSOC>0</ns1:PresentSOC>
+    <ns1:MinimumSOC>0</ns1:MinimumSOC>
+    <ns1:TargetSOC>80</ns1:TargetSOC>
+    <ns1:MaximumSOC>100</ns1:MaximumSOC>
+    <ns1:ChargingComplete>false</ns1:ChargingComplete>
+    <ns1:BatteryEnergyCapacity>
+      <ns1:Exponent>3</ns1:Exponent>
+      <ns1:Value>67</ns1:Value>
+    </ns1:BatteryEnergyCapacity>
+  </ns1:DisplayParameters>
+  <ns1:MeterInfoRequested xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">false</ns1:MeterInfoRequested>
+  <ns0:EVPresentVoltage>
+    <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+    <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">390</ns1:Value>
+  </ns0:EVPresentVoltage>
+  <ns0:BPT_Dynamic_DC_CLReqControlMode>
+    <ns1:DepartureTime xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:DepartureTime>
+    <ns1:EVTargetEnergyRequest xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+      <ns1:Exponent>1</ns1:Exponent>
+      <ns1:Value>5360</ns1:Value>
+    </ns1:EVTargetEnergyRequest>
+    <ns1:EVMaximumEnergyRequest xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+      <ns1:Exponent>1</ns1:Exponent>
+      <ns1:Value>6700</ns1:Value>
+    </ns1:EVMaximumEnergyRequest>
+    <ns1:EVMinimumEnergyRequest xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+      <ns1:Exponent>-3</ns1:Exponent>
+      <ns1:Value>0</ns1:Value>
+    </ns1:EVMinimumEnergyRequest>
+    <ns0:EVMaximumChargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">1</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">4900</ns1:Value>
+    </ns0:EVMaximumChargePower>
+    <ns0:EVMinimumChargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">245</ns1:Value>
+    </ns0:EVMinimumChargePower>
+    <ns0:EVMaximumChargeCurrent>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-2</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">15806</ns1:Value>
+    </ns0:EVMaximumChargeCurrent>
+    <ns0:EVMaximumVoltage>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">360</ns1:Value>
+    </ns0:EVMaximumVoltage>
+    <ns0:EVMinimumVoltage>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">310</ns1:Value>
+    </ns0:EVMinimumVoltage>
+    <ns0:EVMaximumDischargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMaximumDischargePower>
+    <ns0:EVMinimumDischargePower>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMinimumDischargePower>
+    <ns0:EVMaximumDischargeCurrent>
+      <ns1:Exponent xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">-3</ns1:Exponent>
+      <ns1:Value xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">0</ns1:Value>
+    </ns0:EVMaximumDischargeCurrent>
+  </ns0:BPT_Dynamic_DC_CLReqControlMode>
+</ns0:DC_ChargeLoopReq>
+ (tcp_client.py:162)
+[2026-08-06 20:47:16,748] INFO (message_handling): DC message to be encoded
+[2026-08-06 20:47:16,748] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:47:16,750] DEBUG (tcp_client): Encoded EXI message: 80340446A5E2B7CD5787988D4E5D3D306200000000A006430106086202002180C00002043C0A4 1021586807D0000408521302003D4040FC17CF60800E80204005B0101F40000FA00007D000200 (tcp_client.py:174)
+[2026-08-06 20:47:16,750] INFO (tcp_client): Sent DcChargeLoopReq.
+[2026-08-06 20:47:16,755] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 18).
+[2026-08-06 20:47:16,756] INFO (message_handling): Message is valid.
+[2026-08-06 20:47:16,756] INFO (tcp_client): Payload type: 32772
+[2026-08-06 20:47:16,756] DEBUG (tcp_client): Received EXI msg to be decoded: 80380446A5E2B7CD5787988D4E5D3D30620064003C02002400C0001081 088270400000200320041001E806081088270400000200320041000640 (tcp_client.py:118)
+[2026-08-06 20:47:16,756] INFO (message_handling): DC message to be decoded
+[2026-08-06 20:47:16,757] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s2:DC_ChargeLoopRes xmlns:s2="urn:iso:std:iso:15118:-20:DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s1="urn:iso:std:iso:15118:-20:CommonTypes"><s1:Header><s1:SessionID>8D4BC56F9AAF0F31</s1:SessionID><s1:TimeStamp>1786049236</s1:TimeStamp></s1:Header><s1:ResponseCode>OK</s1:ResponseCode><s2:EVSEPresentCurrent><s1:Exponent>0</s1:Exponent><s1:Value>120</s1:Value></s2:EVSEPresentCurrent><s2:EVSEPresentVoltage><s1:Exponent>0</s1:Exponent><s1:Value>400</s1:Value></s2:EVSEPresentVoltage><s2:EVSEPowerLimitAchieved>false</s2:EVSEPowerLimitAchieved><s2:EVSECurrentLimitAchieved>false</s2:EVSECurrentLimitAchieved><s2:EVSEVoltageLimitAchieved>false</s2:EVSEVoltageLimitAchieved><s2:BPT_Dynamic_DC_CLResControlMode><s2:EVSEMaximumChargePower><s1:Exponent>1</s1:Exponent><s1:Value>5000</s1:Value></s2:EVSEMaximumChargePower><s2:EVSEMinimumChargePower><s1:Exponent>0</s1:Exponent><s1:Value>0</s1:Value></s2:EVSEMinimumChargePower><s2:EVSEMaximumChargeCurrent><s1:Exponent>0</s1:Exponent><s1:Value>200</s1:Value></s2:EVSEMaximumChargeCurrent><s2:EVSEMaximumVoltage><s1:Exponent>0</s1:Exponent><s1:Value>500</s1:Value></s2:EVSEMaximumVoltage><s2:EVSEMaximumDischargePower><s1:Exponent>1</s1:Exponent><s1:Value>5000</s1:Value></s2:EVSEMaximumDischargePower><s2:EVSEMinimumDischargePower><s1:Exponent>0</s1:Exponent><s1:Value>0</s1:Value></s2:EVSEMinimumDischargePower><s2:EVSEMaximumDischargeCurrent><s1:Exponent>0</s1:Exponent><s1:Value>200</s1:Value></s2:EVSEMaximumDischargeCurrent><s2:EVSEMinimumVoltage><s1:Exponent>0</s1:Exponent><s1:Value>50</s1:Value></s2:EVSEMinimumVoltage></s2:BPT_Dynamic_DC_CLResControlMode></s2:DC_ChargeLoopRes>
+[2026-08-06 20:47:16,759] INFO (tcp_client): Received DcChargeLoopRes.
+Fatal error: protocol.data_received() call failed.
+protocol: <evcc.tcp_client.TCPClientProtocol object at 0x72b7d804ccd0>
+transport: <_SelectorSocketTransport fd=24 read=polling write=<idle, bufsize=0>>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/asyncio/selector_events.py", line 862, in _read_ready__data_received
+    self._protocol.data_received(data)
+  File "/app/evcc/../evcc/tcp_client.py", line 83, in data_received
+    self.process_incoming_message(packet)
+  File "/app/evcc/../evcc/tcp_client.py", line 134, in process_incoming_message
+    reaction = self.get_current_state().process_payload(xml_object)
+  File "/app/evcc/../evcc/states/wait_for_dc_charge_loop_response.py", line 44, in process_payload
+    self.controller.data_model.get_bpt_dynamic_dc_clreq_control_mode()
+  File "/app/evcc/../evcc/ev_dummy_controller.py", line 277, in get_bpt_dynamic_dc_clreq_control_mode
+    request.evtarget_energy_request = float_to_dc_rational(self.get_target_energy())
+  File "/app/evcc/../evcc/ev_dummy_controller.py", line 187, in get_target_energy
+    return self.target_soc * rational_to_float(self.battery_capacity)/100 - self.current_energy
+TypeError: unsupported operand type(s) for *: 'NoneType' and 'int'
+[2026-08-06 20:47:16,761] ERROR (tcp_client): unsupported operand type(s) for *: 'NoneType' and 'int'. (tcp_client.py:96)

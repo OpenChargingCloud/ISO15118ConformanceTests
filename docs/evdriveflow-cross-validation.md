@@ -11,9 +11,10 @@ three in theirs. Read alongside [Josev](josev-cross-validation.md) (the other in
 [EVerest](everest-cross-validation.md) (the independent charger).
 
 Tooling: [`tools/interop-evdriveflow/`](../tools/interop-evdriveflow/README.md). Runs:
-[`2026-08-01-edf-iso20-dc-notls`](interop-runs/2026-08-01-edf-iso20-dc-notls/notes.md) (forward) and
+[`2026-08-01-edf-iso20-dc-notls`](interop-runs/2026-08-01-edf-iso20-dc-notls/notes.md) (forward),
 [`2026-08-01-edf-iso20-dc-dynamic-reverse`](interop-runs/2026-08-01-edf-iso20-dc-dynamic-reverse/notes.md)
-(reverse).
+(reverse) and [`2026-08-06-edf-stdin-wall`](interop-runs/2026-08-06-edf-stdin-wall/notes.md), which
+**took the wall down**.
 
 ---
 
@@ -30,8 +31,11 @@ pins -20 to TLS 1.3 with a mutual handshake, and
 until this counterparty our own tests were the only thing that had ever checked we do it right — a second
 implementation that *requires* it is an oracle rather than a second opinion from ourselves.
 
-**None of those four has been reached.** The wall is below, and it is theirs. What arrived instead was the
-codec cross-check and one finding worth the whole harness.
+**Three of those four are now reachable, and one is exercised** — since 2026-08-06, when the wall that
+held all of them turned out to be a closed file descriptor rather than a state machine. Dynamic control
+mode now runs end to end and their EV selects the bidirectional service on the way; what remains in front
+of a complete charge loop is a second, genuine defect of theirs, and mutual TLS 1.3 is one config switch
+away. The story is below, in order: the wall, why it was invisible, and what stands behind it.
 
 ---
 
@@ -129,6 +133,22 @@ is worse than none.**
 
 ## The wall, and the experiment that isolated it
 
+> **Solved on 2026-08-06 — it was `stdin`.** Their EV arms a "press Enter to stop the session" listener
+> in `TCPClientProtocol.__init__`, unconditionally, and awaits `sys.stdin.readline` in an executor. At
+> EOF that returns immediately, so `set_stop()` runs one millisecond after the connection is made and
+> `stop_session` is true before any protocol message. `process_reaction` then **replaces** whatever the
+> state machine built with a `SessionStopReq`, in the first state that allows it — and
+> `exitable_states = states[2:-3]` starts at `WaitForAuthorizationSetupResponse`. The 2026-08-01 rig
+> started their EV with `docker exec -d`, which is stdin at EOF.
+>
+> Run again with stdin held open, nothing else changed: **4 exchanges became 15**, through
+> `ScheduleExchange`, `CableCheck`, `PreCharge` ×3, `PowerDelivery` and into `DC_ChargeLoop`. Full
+> account, both logs and the A/B:
+> [`2026-08-06-edf-stdin-wall`](interop-runs/2026-08-06-edf-stdin-wall/notes.md).
+>
+> The section below is kept as it was written, because the reasoning that *narrowed* it is still worth
+> copying — and because it is a fair record of how an honest open question looked from the inside.
+
 Their EV terminates the session after `AuthorizationSetupRes`, and **the root cause inside their state
 machine has not been identified.** That is recorded as an open question rather than guessed at.
 
@@ -142,6 +162,9 @@ Re-run with an EIM-only offer, their EV received exactly the one service it is c
 **still sent `SessionStopReq`**. Two things follow: the workaround is exonerated, and the wall is not an
 offered-services problem. Further diagnosis means reading their state machine rather than running interop.
 
+> Both conclusions held. The `AuthorizationReq` their handler built was correct all along — it was
+> discarded one layer down, which is exactly why no experiment at the protocol level could move it.
+
 > A verdict worth generalising, from that same run: the fixture's assertion **passed**. Their EV sent a
 > well-formed `SessionStop(Terminate)`, our SECC reached its terminal state, `IsDone` was true, and the
 > recorder even built a `SessionTrace`. Nothing was charged. *Four exchanges against a sixteen-message
@@ -152,15 +175,17 @@ offered-services problem. Further diagnosis means reading their state machine ra
 
 ## What stays out of reach
 
-All four reasons this counterparty was picked, and one that came with the setup:
+Rewritten 2026-08-06: the authorization wall was the common cause, and it is gone.
 
-- **Mutual TLS 1.3** — the reason it was chosen. Their `SECURITY_PROTOCOL` was set to `0x10` (TLS off,
-  their own testing switch) to get a first session at all; the TLS run has not happened.
-- **Dynamic control mode** — blocked behind the authorization wall, where `ScheduleExchange` (which is
-  where the control mode is chosen) is never reached. Their charge-loop assumption (finding 2) is the
-  *next* wall after that one, not this one.
-- **DC bidirectional** — behind both.
-- **The complete forward session** — behind finding 2.
+- **Mutual TLS 1.3** — the reason it was chosen, and now **one config switch away**: their
+  `SECURITY_PROTOCOL` was set to `0x10` (TLS off, their own testing switch) to get a first session at
+  all. Not yet run.
+- **Dynamic control mode** — ✅ **reached.** `ScheduleExchange` negotiated it and the session ran into
+  the charge loop.
+- **DC bidirectional** — their EV **selects the BPT service** on the way through, so this is no longer
+  blocked either; what it needs is a run whose verdict is about BPT rather than a by-product.
+- **A complete charge loop, either direction** — the one thing still walled, now by their
+  `hasattr`-on-an-optional-field defect (below) rather than by anything of ours.
 - **SDP in the forward direction** — the relay path that makes this runnable from a Mac is exactly what
   bypasses discovery. The reverse direction did exercise it, which is the compensation.
 
@@ -174,14 +199,20 @@ mistakes one for a result.
 
 ## Current state
 
-**Two runs, one direction each, both stopped by their side** — and the column is worth more than that
-sounds. It is one of two independent codecs here, the only one that has read our -20 at session level, and
-the single richest source of defects-per-message this project has: one of ours, three of theirs, in
-seventeen exchanges total.
+**Three runs, both directions, and the wall that gated everything is down.** It is one of two independent
+codecs here, the only one that has read our -20 at session level, and the richest source of
+defects-per-message this project has: one of ours and **four** of theirs, now across 32 exchanges.
 
-Going back is cheap and the order is fixed by their own walls: the authorization termination gates
-everything, and until somebody reads their EV's state machine, the four capabilities this counterparty was
-chosen for stay unreachable.
+The fourth is the sharpest, and it is the mirror of the finding that started
+[`assumed-values-sweep.md`](assumed-values-sweep.md): their charge-loop handler guards with
+`hasattr(payload.bpt_dynamic_dc_clres_control_mode, "target_soc")` — always true on a generated
+dataclass whose field is `Optional[int]` — and copies our legally omitted `TargetSOC` over its own
+configured value. `None * int` ends the session one message later. **Their** code assumed a value the
+protocol makes optional; it took a peer that omits it to find out.
+
+What is left here is no longer diagnosis but scheduling: TLS 1.3 with mutual authentication is a config
+switch, DC-BPT is a run whose verdict is about BPT, and a complete charge loop waits on a two-line fix
+of theirs.
 
 ---
 

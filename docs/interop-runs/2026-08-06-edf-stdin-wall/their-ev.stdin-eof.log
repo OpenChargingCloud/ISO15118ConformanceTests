@@ -1,0 +1,90 @@
+[2026-08-06 20:45:42,998] INFO (physical_interface): 61851 state set to B.
+[2026-08-06 20:45:42,999] INFO (start_ev): Starting EV.
+[2026-08-06 20:45:43,000] INFO (physical_interface): Current duty cycle is 100.
+[2026-08-06 20:45:43,000] INFO (start_ev): Duty cycle is different from 5%.
+[2026-08-06 20:45:43,000] INFO (physical_interface): Duty cycle set to 5.
+[2026-08-06 20:45:43,000] INFO (physical_interface): Current duty cycle is 5.
+[2026-08-06 20:45:43,009] INFO (udp_client): Starting UDP client.
+[2026-08-06 20:45:43,010] INFO (udp_client): Attempting to connect to ('ff02::1', 15118, 0, 0).
+[2026-08-06 20:45:43,010] INFO (udp_client): Sent SECC discovery request. 0
+[2026-08-06 20:45:43,010] INFO (udp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 16).
+[2026-08-06 20:45:43,010] INFO (message_handling): Message is valid.
+[2026-08-06 20:45:43,010] INFO (udp_client): TCP server is reachable at (fe80::42:acff:fe1e:2, 15118).
+[2026-08-06 20:45:43,010] INFO (udp_client): Closing connection.
+[2026-08-06 20:45:43,011] INFO (tcp_client): Starting TCP client.
+[2026-08-06 20:45:43,013] INFO (tcp_client): Connection made with ('fe80::42:acff:fe1e:2', 15118, 0, 16). Starting new communication session.
+[2026-08-06 20:45:43,013] INFO (tcp_client): 
+ TLS DISABLED 
+[2026-08-06 20:45:43,014] INFO (message_handling): Supported App Protocol message to be encoded
+[2026-08-06 20:45:43,014] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:45:43,022] INFO (tcp_client): Sent SupportedAppProtocolReq.
+[2026-08-06 20:45:43,023] WARNING (tcp_client): Session stop has been requested. (tcp_client.py:227)
+[2026-08-06 20:45:43,030] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 16).
+[2026-08-06 20:45:43,030] INFO (message_handling): Message is valid.
+[2026-08-06 20:45:43,030] INFO (tcp_client): Payload type: 32769
+[2026-08-06 20:45:43,030] DEBUG (tcp_client): Received EXI msg to be decoded: 8040 0040 (tcp_client.py:118)
+[2026-08-06 20:45:43,030] INFO (message_handling): Supported App Protocol message to be decoded
+[2026-08-06 20:45:43,079] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s0:supportedAppProtocolRes xmlns:s0="urn:iso:15118:2:2010:AppProtocol" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><ResponseCode>OK_SuccessfulNegotiation</ResponseCode><SchemaID>1</SchemaID></s0:supportedAppProtocolRes>
+[2026-08-06 20:45:43,096] INFO (tcp_client): Received SupportedAppProtocolRes.
+[2026-08-06 20:45:43,096] INFO (wait_for_supported_app_protocol_response): Successful negotiation.
+[2026-08-06 20:45:43,121] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:SessionSetupReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>3030303030303030</ns1:SessionID>
+    <ns1:TimeStamp>1786049143</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVCCID>EDFVFR123456789ZZZZ8</ns0:EVCCID>
+</ns0:SessionSetupReq>
+ (tcp_client.py:162)
+[2026-08-06 20:45:43,149] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:45:43,149] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:45:43,151] DEBUG (tcp_client): Encoded EXI message: 808C0418181818181818180F7E4D3D30620B22A 2232B23291899199A1A9B1B9C1CAD2D2D2D1C00 (tcp_client.py:174)
+[2026-08-06 20:45:43,151] INFO (tcp_client): Sent SessionSetupReq.
+[2026-08-06 20:45:43,165] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 16).
+[2026-08-06 20:45:43,165] INFO (message_handling): Message is valid.
+[2026-08-06 20:45:43,165] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:45:43,166] DEBUG (tcp_client): Received EXI msg to be decoded: 809004488072D7AD5690BD0F7E4D3 D30620402D1114A905090CA914C40 (tcp_client.py:118)
+[2026-08-06 20:45:43,166] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:45:43,167] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:SessionSetupRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>9100E5AF5AAD217A</s2:SessionID><s2:TimeStamp>1786049143</s2:TimeStamp></s2:Header><s2:ResponseCode>OK_NewSessionEstablished</s2:ResponseCode><s1:EVSEID>DE*ABC*E1</s1:EVSEID></s1:SessionSetupRes>
+[2026-08-06 20:45:43,168] INFO (tcp_client): Received SessionSetupRes.
+[2026-08-06 20:45:43,168] INFO (wait_for_session_setup_response): Negotiated session id is: b'\x91\x00\xe5\xafZ\xad!z'.
+[2026-08-06 20:45:43,169] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:AuthorizationSetupReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>9100E5AF5AAD217A</ns1:SessionID>
+    <ns1:TimeStamp>1786049143</ns1:TimeStamp>
+  </ns1:Header>
+</ns0:AuthorizationSetupReq>
+ (tcp_client.py:162)
+[2026-08-06 20:45:43,169] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:45:43,169] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:45:43,170] DEBUG (tcp_client): Encoded EXI message: 800804488072D7AD5 690BD0F7E4D3D3062 (tcp_client.py:174)
+[2026-08-06 20:45:43,170] INFO (tcp_client): Sent AuthorizationSetupReq.
+[2026-08-06 20:45:43,172] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 16).
+[2026-08-06 20:45:43,172] INFO (message_handling): Message is valid.
+[2026-08-06 20:45:43,172] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:45:43,173] DEBUG (tcp_client): Received EXI msg to be decoded: 800C04488072D7AD5690 BD0F7E4D3D3062000400 (tcp_client.py:118)
+[2026-08-06 20:45:43,173] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:45:43,173] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:AuthorizationSetupRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>9100E5AF5AAD217A</s2:SessionID><s2:TimeStamp>1786049143</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:AuthorizationServices>EIM</s1:AuthorizationServices><s1:CertificateInstallationService>false</s1:CertificateInstallationService><s1:EIM_ASResAuthorizationMode/></s1:AuthorizationSetupRes>
+[2026-08-06 20:45:43,174] INFO (tcp_client): Received AuthorizationSetupRes.
+[2026-08-06 20:45:43,175] INFO (message_handling): Common message to be encoded
+[2026-08-06 20:45:43,175] INFO (message_handling): Message is valid against Schema XSD
+[2026-08-06 20:45:43,176] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:SessionStopReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>9100E5AF5AAD217A</ns1:SessionID>
+    <ns1:TimeStamp>1786049143</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:ChargingSession>Terminate</ns0:ChargingSession>
+</ns0:SessionStopReq>
+ (tcp_client.py:158)
+[2026-08-06 20:45:43,177] INFO (tcp_client): Sent SessionStopReq.
+[2026-08-06 20:45:43,178] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 16).
+[2026-08-06 20:45:43,178] INFO (message_handling): Message is valid.
+[2026-08-06 20:45:43,178] INFO (tcp_client): Payload type: 32770
+[2026-08-06 20:45:43,178] DEBUG (tcp_client): Received EXI msg to be decoded: 809804488072D7AD569 0BD0F7E4D3D30620000 (tcp_client.py:118)
+[2026-08-06 20:45:43,178] INFO (message_handling): Common message to be decoded
+[2026-08-06 20:45:43,178] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:SessionStopRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>9100E5AF5AAD217A</s2:SessionID><s2:TimeStamp>1786049143</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode></s1:SessionStopRes>
+[2026-08-06 20:45:43,179] INFO (tcp_client): Received SessionStopRes.
+Init event loop:  <_UnixSelectorEventLoop running=False closed=False debug=False>
+loop for UDP client socket is running..attempting to close
