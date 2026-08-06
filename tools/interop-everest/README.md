@@ -334,6 +334,13 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
    [running a reverse run recorded](#running-a-reverse-run-recorded) below.
    [`…-mcs-reverse-recorded`](../../docs/interop-runs/2026-08-06-everest-mcs-reverse-recorded/notes.md).
 
+8. ✅ **`IsoMux` over TLS** (`config-sil-dc-isomux-tls.yaml`), done 2026-08-06 — the last item that was on
+   this list. It binds its TCP port at startup, so **no SDP probe**, and it serves **TLS 1.2 only**: a -20
+   hello gets alert 70, while a both-offer negotiates 1.2 and is then routed to the **-20** backend, giving
+   a complete -20 session on a profile ISO 15118-20 does not allow. `IsoMux` also survives a refused
+   handshake, unlike `Evse15118D20`
+   ([`…-isomux-tls`](../../docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)).
+
 ---
 
 ## Reading a run

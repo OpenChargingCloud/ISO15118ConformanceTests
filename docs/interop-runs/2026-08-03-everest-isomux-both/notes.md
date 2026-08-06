@@ -116,6 +116,9 @@ V2G_INTEROP_SECC=127.0.0.1:15153 V2G_INTEROP_PROTOCOL=both V2G_INTEROP_SAP_FIRST
 
 - **Report the priority handling to EVerest**, together with the accept-loop shutdown already on the
   list — after checking the requirement text, so the report says which of the two it is.
-- **`config-sil-dc-isomux-tls.yaml`**, still untried.
+- ~~**`config-sil-dc-isomux-tls.yaml`**, still untried.~~ **Done 2026-08-06**: it confirmed the priority
+  handling a third time and added a sharper finding — the mux serves **TLS 1.2 only**, so a both-offer gets
+  a complete **-20 session over TLS 1.2**, and a conformant -20 EV cannot reach the -20 backend at all
+  ([`…-isomux-tls`](../2026-08-06-everest-isomux-tls/notes.md)).
 - **A both-offer run against a -2-only station**, which no counterparty here currently is: `EvseV2G`
   alone would answer SchemaID 2 and exercise the branch the corpus trace covers in loopback.
