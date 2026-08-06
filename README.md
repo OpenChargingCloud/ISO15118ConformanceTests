@@ -17,7 +17,7 @@ Four independent stacks sit on the other end of the live cross-checks (`JosevInt
 worth having *because* they differ — each brings a different EXI lineage and a different kind of
 evidence:
 
-| | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | eVDriveFlow | tux-evse |
+| | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | [eVDriveFlow](tools/interop-evdriveflow/README.md) | [tux-evse](tools/interop-tux-evse/README.md) |
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
 | **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G**¹ (OpenV2G in the 2023 image) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
@@ -83,41 +83,56 @@ defects it turned up live on the counterparty's own page, linked under **Deeper 
 ¹ Only the **2023.10.0** demo image was an independent-codec witness (OpenV2G). Current `EvseV2G` and
 `Evse15118D20` sit on **cbV2G**, our own corpus generator — so byte agreement there is agreement with
 ourselves, and the value of this column is behavioural.
+
 ² Their responder replays a captured car and refuses any request whose identifiers differ from the
 recording — a property of their tool, not an interop verdict.
+
 ³ Their rule *"no `Contract` without TLS"* was the first external check of that requirement against us.
 A complete charge and a PnC offer are **mutually exclusive** against their SIL: plugging the simulated
 car in is what makes the charge possible and what authorizes the session, and their `EvseManager` drops
 `Contract` for an already-authorized one.
+
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
 run notes — and 12 of our -20 messages decoded clean by a second independent codec.
+
 ⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot produce.
+
 ⁶ 59 and 68 exchanges to `SessionStop` from Windows, once the app let a session name its TLS backend.
 One bound survives and it is **theirs**: `create_certs.sh -v iso-20` emits P-256, so nothing here has
 met secp521r1 material from a counterparty.
+
 ⁷ `IsoMux` routes on *"mentions -20 anywhere"* and never reads SAP `Priority` — confirmed on the wire
 against 2025.10.0, 2026.02.1, and a third time over TLS.
+
 ⁸ The `←SECC` leg is the only one that tests **our** catalogue rather than theirs. It also needed two
 fixes of ours to be *readable* at all, one in the app and one in the fixture.
+
 ⁹ Green on the second attempt: the first was refused with `FAILED_WrongChargeParameter`, correctly, and
 that refusal is what proved the service/parameter coupling binds the EV too. Their `EvseManager` decoded
 `dc_ev_maximum_power_limit: 3750000.0` at 3000 A / 1250 V. Megawatt **power** stays out of reach — their
 MCS SIL is electrically a 22 kW charger.
+
 ¹⁰ Their `Evse15118D20` has -20 PnC commented out, so the `EV→` leg is theirs to fix; the `←SECC` leg
 ran as a by-product of the MCS reverse session. The `EV→` result for **-2** is the separate cell above.
+
 ¹¹ **Neither of their configs was changed for this**, which is the finding: their SIL had been
 advertising service 6 at every -20 DC run this project ever made, and our EV could not ask for it.
+
 ¹² `IsoMux` serves **TLS 1.2 only** (a 1.3 hello gets alert 70) and routes on the SAP offer regardless —
 so a dual-stack EV gets a complete **-20 session over TLS 1.2**, and a conformant -20 EV reaches the -20
 backend not at all. It also corrected a mirror of that layering on our side.
+
 ¹³ ✅ in both columns, but **disjoint halves**: Dynamic ran `←SECC` against Josev and `EV→` against
 EVerest, because our station could answer a Dynamic car long before our car could be one. Neither column
 covers the mode alone.
+
 ¹⁴ Our side is complete for both; **theirs is the bound**. Josev's -20 states never fill the session
 context, so a -20 resume degrades to a new session; and its EVCC drops the link after a real
 `SessionStopReq(ServiceRenegotiation)` [V2G20-1477] that our SECC answers without ending the session.
+
 ¹⁵ The one cell where `◐` is a missing **verifier**, not a missing session: their EV consumed our signed
 `AbsolutePriceSchedule` and ran on it, but Josev's EVCC-side tariff check is a literal `# TODO`.
+
 ¹⁶ **Their EV is Josev** — `PyEvJosev` wraps EVerest's fork of the same codebase the Josev column tests.
 So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a `←SECC` run here is
 largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
