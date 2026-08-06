@@ -4,6 +4,10 @@ Interop between **our** EVCC/SECC and **[tux-evse/iso15118-simulator-rs](https:/
 (Apache-2.0), a Rust ISO 15118 simulator that plays either end and is driven by scenarios generated from
 packet captures.
 
+**This file is how to run it.** For what has already run — two exchanges, one hard finding, four
+workarounds and one open question — see
+[`docs/tux-evse-cross-validation.md`](../../docs/tux-evse-cross-validation.md).
+
 Like [`../interop-josev`](../interop-josev/README.md) this is **opt-in and never part of the offline CI**.
 The automated hook is the `[Explicit] [Category("Interop")]` fixture
 [`ISO15118ConformanceTests.Simulation/Interop/TuxEvseInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/TuxEvseInteropTests.cs),

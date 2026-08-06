@@ -123,8 +123,9 @@ So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a
 largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
 -2 reverse against EVerest has deliberately never been run.
 
-**Two counterparties have a page of their own**, for opposite reasons — each the long form of its
-column: every scenario, what it caught, what it cost us, and what stays out of reach.
+**Every counterparty has a page of its own** — the long form of its column: each scenario, what it
+caught, what it cost us, and what stays out of reach. They are not the same length, because the columns
+are not, and padding the thin ones would misrepresent them.
 
 - [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) — the independent **codec**
   (EXIficient), the counterparty with the most history here, and the only one that serves both roles
@@ -135,6 +136,14 @@ column: every scenario, what it caught, what it cost us, and what stays out of r
   *this* project; almost all of them share one of two shapes, which that page names.
   [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and
   unsent, six structural walls named.
+- [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) — the **second**
+  independent codec (OpenEXI), and the highest yield per exchange here: seventeen messages found one
+  defect of ours that every other oracle was structurally blind to, and three of theirs. The four
+  capabilities it was chosen for all sit behind a wall in their EV.
+- [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) — a **replayer**, not a
+  codec: their scenarios come from packet captures, so what it offers is a real car's route and the only
+  DIN 70121 material this project has seen. As a responder it answers the car in its recording and no
+  other; the direction its design favours is untried.
 
 ## What is here
 
@@ -185,8 +194,7 @@ on the wire. What each of them has proven is the matrix above.
 
 | | |
 |---|---|
-| [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) | the Josev column in full — every scenario, every bug it caught |
-| [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) | the EVerest column in full — and the two shapes its findings share |
+| `docs/*-cross-validation.md` | one page per counterparty — its column in full, and what it cost us: [Josev](docs/josev-cross-validation.md) · [EVerest](docs/everest-cross-validation.md) · [eVDriveFlow](docs/evdriveflow-cross-validation.md) · [tux-evse](docs/tux-evse-cross-validation.md) |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences |
 | [`docs/reports/`](docs/reports/) | findings written up for the counterparty they belong to |
 | [`tools/interop-josev/`](tools/interop-josev/README.md), [`tools/interop-everest/`](tools/interop-everest/README.md) | how to bring each counterparty up and drive it |

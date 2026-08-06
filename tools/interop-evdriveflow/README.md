@@ -3,6 +3,10 @@
 Interop between **our** EVCC/SECC and **[EDF-Lab/eVDriveFlow](https://github.com/EDF-Lab/eVDriveFlow)**
 (MIT), EDF R&D's Python implementation of **ISO 15118-20 Edition 1**.
 
+**This file is how to run it.** For what has already run and what each session caught — including the
+`ResponseCode = FAILED` our EVCC used to ignore, this counterparty's largest contribution — see
+[`docs/evdriveflow-cross-validation.md`](../../docs/evdriveflow-cross-validation.md).
+
 Like the other two harnesses this is **opt-in and never part of the offline CI**. The automated hook is
 the `[Explicit] [Category("Interop")]` fixture
 [`ISO15118ConformanceTests.Simulation/Interop/EvDriveFlowInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/EvDriveFlowInteropTests.cs),
