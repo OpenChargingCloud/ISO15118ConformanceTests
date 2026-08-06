@@ -29,6 +29,14 @@ on cbV2G, the encoder our own vector corpus is generated from, so a byte agreeme
 ourselves. What EVerest gives instead is *behaviour* — sequencing, timing, state, and a station that
 enforces rules nothing here had ever had to satisfy.
 
+**The codec flips with the direction, and that decides how much reverse runs are worth.** `PyEvJosev`
+wraps `EVerest/ext-switchev-iso15118` — EVerest's fork of the same SwitchEV codebase the
+[Josev column](josev-cross-validation.md) tests, vendored at `26f7988` in 2026.02.1. So driving *their*
+station we meet cbV2G, and being driven by *their* car we meet EXIficient. A `←SECC` run here is
+therefore an independent-codec result — and also, mostly, a re-run of the Josev reverse column. That is
+why the reverse direction was spent only where it buys something neither a forward run nor a Josev run
+can, and why -2 reverse against EVerest has deliberately never been run.
+
 With one accidental exception, and it is worth the paragraph:
 
 > **An image tag is not a version.** The first three runs used
@@ -80,6 +88,11 @@ Everything below was unblocked by it.
   ran at the setpoint *our* car named (400 V/120 A), Dynamic at an operating point *their station chose*
   from the envelope we declared (500 V/125 A). The mode, in two log lines
   ([`…-iso20-dc-dynamic`](interop-runs/2026-08-03-everest-iso20-dc-dynamic/notes.md)).
+  <br>**This is the half Josev cannot give.** Every recorded Dynamic session against Josev had *their*
+  EVCC on the other side: our station could answer a Dynamic car long before our car could *be* one, so
+  "Scheduled and Dynamic" quietly meant "Scheduled both ways, Dynamic inbound". The Dynamic EVCC was
+  built on 2026-08-03 and its first outing was here — which is why the matrix reads `EV→` for EVerest
+  and `←SECC` for Josev on that row, and why neither column covers the mode alone.
 
 - **ISO 15118-20 DC over mutual TLS 1.3 (2026-08-03, re-run 2026-08-06).** 116 exchanges. The first time
   anything outside this project exercised the -20 TLS profile our own `docs/pki-model.md` pins — TLS 1.3,
@@ -93,7 +106,13 @@ Everything below was unblocked by it.
   (`PaymentDetailsRes = OK`) and **verified our signature** — established positively rather than by
   absence of error: their `publish_require_auth_pnc` sits *downstream* of `check_iso2_signature`, so the
   message existing at all is the statement, and the response codes corroborate by elimination
-  ([`…-pnc`](interop-runs/2026-08-03-everest-pnc/notes.md)).
+  ([`…-pnc`](interop-runs/2026-08-03-everest-pnc/notes.md)). Their station-side rule *"no `Contract`
+  without TLS"* was also the first external check of that spec requirement against us, and it still holds
+  on 2026.02.1.
+  <br>**The two halves of this cell exclude each other**, which is worth naming: their `EvseManager`
+  drops `Contract` from the offer for an already-authorized session, and plugging the simulated car in —
+  the thing that makes a *complete charge* possible at all — is what authorizes it. So a complete charge
+  and a PnC offer cannot be had in the same session against this SIL.
 
 - **`IsoMux`, all four offer shapes (2026-08-03), and over TLS (2026-08-06).** One endpoint answering
   both protocols; then both protocols in *one* offer, which is the case a multiplexer exists for; then
@@ -125,6 +144,10 @@ Everything below was unblocked by it.
   signature. Later re-run through the recording fixture, so the direction now leaves frames and a corpus
   trace rather than a console log
   ([`…-mcs-reverse-recorded`](interop-runs/2026-08-06-everest-mcs-reverse-recorded/notes.md)).
+  <br>**That PnC capture is deliberately not a corpus entry.** The signature is made with their EV's
+  private key, so a trace built from it could only re-check the recorded bytes against themselves —
+  `SessionTrace.Build` refuses it, correctly, and an EIM re-run supplies the trace instead. Both halves
+  are kept: one is the evidence, the other is the corpus entry.
 
 ---
 
