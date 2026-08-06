@@ -10,6 +10,29 @@ judges it — the corpus of recorded frames, the loopback E2Es, the live cross-c
 EVerest — lives beside it rather than inside it, so "does our stack interoperate" is a question this
 repository answers and the app does not have to carry. Here is the answer.
 
+## What is here
+
+```
+ISO15118ConformanceTests.slnx
+├─ ISO15118ConformanceTests.Simulation/   the conformance suite proper
+│   ├─ Interop/     live cross-checks vs Josev, EVerest, EVDriveFlow, TuxEVSE (all [Explicit])
+│   ├─ E2E/         full-stack loopback sessions (SLAC→SDP→TLS→SAP→-2/-20) to SessionStop
+│   ├─ StateMachines/, Discovery/, Framing/, Metering/, Sap/, Slac/, Timing/, Transport/
+│   ├─ Vectors/     the recorded session corpus the offline tests replay
+│   └─ Traces/      the replay and recording machinery behind it
+├─ ISO15118ConformanceTests.Pqc/          post-quantum-crypto experiment tests (ML-KEM/ML-DSA)
+└─ libs/EVSimulatorApp/                   the stack under test, as a submodule
+    └─ …/WWCP_ISO15118_EXI_Tests/         the app's codec tests — the byte-exact cbV2G and Josev
+                                          oracle, carried into this solution so the offline run
+                                          judges against a foreign encoder and not only ourselves
+```
+
+The codec, the simulation library and the CLI are **not** here — they are the app's, in
+`libs/EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read
+[`EVSimulatorApp`'s own README](libs/EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the codec works;
+this one is about how it is held to account.
+
+
 ## The interop matrix — who we test against, and what happened
 
 Four independent stacks sit on the other end of the live cross-checks (`JosevInteropTests`,
@@ -138,49 +161,6 @@ So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a
 largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
 -2 reverse against EVerest has deliberately never been run.
 
-**Every counterparty has a page of its own** — the long form of its column: each scenario, what it
-caught, what it cost us, and what stays out of reach. They are not the same length, because the columns
-are not, and padding the thin ones would misrepresent them.
-
-- [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) — the independent **codec**
-  (EXIficient), the counterparty with the most history here, and the only one that serves both roles
-  well. Every -20 energy mode any independent stack implements, over TCP and TLS, plain and Plug &
-  Charge, in both control modes.
-- [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) — the independent **charger**,
-  the thing a car in the field actually meets, and the counterparty that has found the most defects in
-  *this* project; almost all of them share one of two shapes, which that page names.
-  [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and
-  unsent, six structural walls named.
-- [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) — the **second**
-  independent codec (OpenEXI), and the highest yield per exchange here: seventeen messages found one
-  defect of ours that every other oracle was structurally blind to, and three of theirs. The four
-  capabilities it was chosen for all sit behind a wall in their EV.
-- [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) — a **replayer**, not a
-  codec: their scenarios come from packet captures, so what it offers is a real car's route and the only
-  DIN 70121 material this project has seen. As a responder it answers the car in its recording and no
-  other; the direction its design favours is untried.
-
-## What is here
-
-```
-ISO15118ConformanceTests.slnx
-├─ ISO15118ConformanceTests.Simulation/   the conformance suite proper
-│   ├─ Interop/     live cross-checks vs Josev, EVerest, EVDriveFlow, TuxEVSE (all [Explicit])
-│   ├─ E2E/         full-stack loopback sessions (SLAC→SDP→TLS→SAP→-2/-20) to SessionStop
-│   ├─ StateMachines/, Discovery/, Framing/, Metering/, Sap/, Slac/, Timing/, Transport/
-│   ├─ Vectors/     the recorded session corpus the offline tests replay
-│   └─ Traces/      the replay and recording machinery behind it
-├─ ISO15118ConformanceTests.Pqc/          post-quantum-crypto experiment tests (ML-KEM/ML-DSA)
-└─ libs/EVSimulatorApp/                   the stack under test, as a submodule
-    └─ …/WWCP_ISO15118_EXI_Tests/         the app's codec tests — the byte-exact cbV2G and Josev
-                                          oracle, carried into this solution so the offline run
-                                          judges against a foreign encoder and not only ourselves
-```
-
-The codec, the simulation library and the CLI are **not** here — they are the app's, in
-`libs/EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read
-[`EVSimulatorApp`'s own README](libs/EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the codec works;
-this one is about how it is held to account.
 
 ## Run
 
@@ -205,17 +185,25 @@ regression, and the loopback E2Es run both peers in-process. The **live** cross-
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 
+
+
 ## Deeper reading
 
 | | |
 |---|---|
-| `docs/*-cross-validation.md` | one page per counterparty — its column in full, and what it cost us: [Josev](docs/josev-cross-validation.md) · [EVerest](docs/everest-cross-validation.md) · [eVDriveFlow](docs/evdriveflow-cross-validation.md) · [tux-evse](docs/tux-evse-cross-validation.md) |
+| [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) | the independent **codec** (EXIficient), the counterparty with the most history here, and the only one that serves both roles well. Every -20 energy mode any independent stack implements, over TCP and TLS, plain and Plug & Charge, in both control modes. |
+| [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) | the independent **charger**, the thing a car in the field actually meets, and the counterparty that has found the most defects in *this* project; almost all of them share one of two shapes, which that page names. [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and unsent, six structural walls named. |
+| [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) | the **second** independent codec (OpenEXI), and the highest yield per exchange here: seventeen messages found one defect of ours that every other oracle was structurally blind to, and three of theirs. The four capabilities it was chosen for all sit behind a wall in their EV. |
+| [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; the direction its design favours is untried. |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences |
 | [`docs/reports/`](docs/reports/) | findings written up for the counterparty they belong to |
 | [`tools/interop-josev/`](tools/interop-josev/README.md), [`tools/interop-everest/`](tools/interop-everest/README.md) | how to bring each counterparty up and drive it |
 | [`docs/assumed-values-sweep.md`](docs/assumed-values-sweep.md) | where our own assumptions replaced values the protocol supplies |
 
+
 ---
 
 The stack all of this tests — the EXI codec, the state machines, the TLS/PKI, the CLI — is documented in
-**[EVSimulatorApp](libs/EVSimulatorApp)**. This repository is only the judge.
+**[EVSimulatorApp](libs/EVSimulatorApp)**.
+
+This repository is only the judge.
