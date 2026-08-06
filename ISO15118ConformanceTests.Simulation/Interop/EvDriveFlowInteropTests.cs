@@ -153,6 +153,9 @@ public class EvDriveFlowInteropTests
         // in ev_config.ini, and an IPv4 wildcard socket cannot accept that connection at all.
         using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
 
+        await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
+                                                                     tls: false, cts.Token);
+
         TestContext.Out.WriteLine($"Waiting for their EV on [::]:{listenPort} " +
                                   $"(control mode: {(preferDynamic ? "Dynamic" : "Scheduled")}) ...");
 
@@ -164,10 +167,13 @@ public class EvDriveFlowInteropTests
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
-                                                           mcs: InteropEnvironment.Mcs());
+            var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
+                                                            mcs: InteropEnvironment.Mcs());
 
-            Assert.That(isDone, Is.True, "our SECC drove their EV to the terminal session state");
+            if (outcome.SelectedEnergyServiceId is { } serviceId)
+                TestContext.Out.WriteLine($"Energy transfer service: {serviceId} — their EV's pick.");
+
+            Assert.That(outcome.IsDone, Is.True, "our SECC drove their EV to the terminal session state");
         }
         finally
         {

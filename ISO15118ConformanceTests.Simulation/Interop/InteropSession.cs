@@ -60,6 +60,29 @@ internal static class InteropSession
                                      UInt16? SelectedEnergyServiceId = null);
 
 
+    /// <summary>
+    /// The same, from the station's side of the wire — and needed for a sharper reason.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A reverse run used to come back as one <see cref="Boolean"/>, and a run that can only report
+    /// <i>whether</i> it finished cannot report <b>what</b> finished. Two facts of the 2026-08-06 MCS
+    /// reverse session were on our station and nowhere else: which entry of our catalogue their EV picked
+    /// — the whole point of that direction, and invisible on the wire because MCS is DC's message set —
+    /// and whether the signed <c>AuthorizationReq</c> their car sent actually verified. Neither is in the
+    /// counterparty's logs, because the session was not their station's. Both were read off the CLI's
+    /// console because the fixture had nowhere to put them; see that run's finding 2.
+    /// </para>
+    /// <para>
+    /// <see cref="SelectedEnergyServiceId"/> is <c>null</c> for -2, which has no service catalogue, and
+    /// <see cref="PlugAndCharge"/> is <c>null</c> whenever the EV authorized by EIM — which is itself
+    /// worth distinguishing from a contract that failed to verify.
+    /// </para>
+    /// </remarks>
+    public sealed record SeccOutcome(Boolean IsDone, UInt16? SelectedEnergyServiceId = null,
+                                     PnCAuthResult? PlugAndCharge = null);
+
+
     /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
     /// rather than Scheduled — the EV states energy needs and a departure time and lets the station steer.
     /// Ignored for -2, which has no control modes. Set by <c>V2G_INTEROP_DYNAMIC=1</c>.</param>
@@ -121,10 +144,11 @@ internal static class InteropSession
     /// in, and the one that drives schedule renegotiation. Ignored for -2, which has no control modes.</param>
     /// <param name="mcs">Advertise the <b>MCS</b> catalogue — services 8 / 9 and a megawatt envelope —
     /// rather than DC's 2 / 6. -20 DC only; set by <c>V2G_INTEROP_MODE=mcs</c>.</param>
-    /// <returns>Whether our station reached the terminal session state.</returns>
-    public static async Task<Boolean> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
-                                                   CancellationToken ct, Boolean preferDynamic = false,
-                                                   Boolean offerPlugAndCharge = true, Boolean mcs = false)
+    /// <returns>Whether our station reached the terminal session state, and what it saw on the way —
+    /// see <see cref="SeccOutcome"/>.</returns>
+    public static async Task<SeccOutcome> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
+                                                       CancellationToken ct, Boolean preferDynamic = false,
+                                                       Boolean offerPlugAndCharge = true, Boolean mcs = false)
     {
 
         if (mcs)
@@ -134,7 +158,7 @@ internal static class InteropSession
         {
             var secc = new Secc2(mode, SequenceTimeout, TimeProvider.System);
             await secc.RunAsync(stream, ct);
-            return secc.IsDone;
+            return new SeccOutcome(secc.IsDone);
         }
 
         Secc20Base secc20 = (mode, mcs) switch
@@ -148,7 +172,13 @@ internal static class InteropSession
         secc20.OfferPlugAndCharge       = offerPlugAndCharge;
 
         await secc20.RunAsync(stream, ct);
-        return secc20.IsDone;
+
+        // Zero is "no ServiceSelectionReq ever arrived", not service 0 — the state machine's own sentinel,
+        // and the CLI reads it the same way. Reported as null so a session that stopped before selection is
+        // not filed as one that selected something.
+        return new SeccOutcome(secc20.IsDone,
+                               secc20.SelectedEnergyServiceId != 0 ? secc20.SelectedEnergyServiceId : null,
+                               secc20.PnCAuth);
 
     }
 
