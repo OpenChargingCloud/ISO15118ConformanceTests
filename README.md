@@ -66,6 +66,9 @@ how to read one.
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | — | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | ▢ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
+| Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ▢ | — | — |
+| Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | ▢ | — | — |
+| Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ▢ | — | — |
 | Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
 | Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
@@ -165,6 +168,23 @@ was built on 2026-08-03 and its first outing was against EVerest, which is why t
 while Josev's reads `←SECC` — the two columns together cover the mode, and neither does alone. Same
 shape as ⁷ and the `PreferredEnergyServiceIds` defect: a capability that reads as present because both
 halves exist separately.
+¹⁴ **Two -20 session features where our side is complete and theirs is the bound**, which is why both
+cells are theirs rather than ours. *Pause/Resume:* Josev preserves the session context across
+connections in -2 and answers `OK_OldSessionJoined`, but its -20 states never fill that context, so a
+-20 resume degrades to a graceful new session. *Renegotiation:* our SECC's `ServiceRenegotiation`
+notification does make a Josev AC EVCC send a real `SessionStopReq(ServiceRenegotiation)`, and our SECC
+answers it **without ending the session** — re-entry at ServiceDiscovery, [V2G20-1477] — but Josev then
+drops the link anyway: its EVCC posts the terminating stop notification before honouring its own
+`next_state = ServiceDiscovery`, and its DC path hardcodes `Terminate`. Both halves of the -20 cycle are
+therefore guarded in-repo and only half-witnessed live
+([`2026-07-22-pause-resume`](docs/interop-runs/2026-07-22-pause-resume/), [`2026-07-22-renegotiation`](docs/interop-runs/2026-07-22-renegotiation/)).
+¹⁵ The one row where **`◐` is about a missing verifier, not a missing session.** A Josev AC EVCC
+consumed our signed `AbsolutePriceSchedule` — power-banded EUR/kWh price rule stacks, ECDSA-P521/SHA-512
+— and ran the session on it, but no independent stack *checks* that signature: Josev's EVCC-side tariff
+verification is a literal `# TODO`, and nothing else touches -20 price schedules at all. Our own EV
+verifies it (`Iso20LoopbackTests`), which is self-consistency. Contrast the -2 row, where Josev's SECC
+MO-signs its own SalesTariff and our EVCC live-verified it — a genuine external oracle in that
+direction ([`2026-07-22-tariff`](docs/interop-runs/2026-07-22-tariff/)).
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
