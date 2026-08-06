@@ -16,6 +16,7 @@
  */
 
 using System.Net;
+using System.Net.Security;
 
 using NUnit.Framework;
 
@@ -107,6 +108,8 @@ public class EverestInteropTests
 
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
                                                            InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
+
+        ReportNegotiatedTls(socket);
 
         var stream = recording?.Tap(socket) ?? socket;
 
@@ -258,6 +261,32 @@ public class EverestInteropTests
                                    weAreTheEvcc: false));
         }
 
+    }
+
+
+    /// <summary>
+    /// What the TLS handshake actually settled on, as opposed to what we asked for.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Every TLS run so far has been written up from the profile it <i>offered</i>, which is fine while the
+    /// offer is a single pinned version and merely optimistic once it is not. A both-protocol offer now
+    /// carries 1.2 and 1.3 (see <see cref="InteropEnvironment.DevTlsOrNull"/>), so the version is the
+    /// station's choice and belongs in the transcript beside the SAP result.
+    /// </para>
+    /// <para>
+    /// Silent for a plaintext run, and for a TLS backend that is not <see cref="SslStream"/> — the
+    /// BouncyCastle transport the -20 profile needs on Windows exposes no equivalent, and a line that
+    /// appears for some backends and not others is better than one that guesses.
+    /// </para>
+    /// </remarks>
+    private static void ReportNegotiatedTls(Stream socket)
+    {
+        if (socket is SslStream { IsAuthenticated: true } ssl)
+            TestContext.Out.WriteLine(
+                $"TLS: {ssl.SslProtocol}, {ssl.NegotiatedCipherSuite}" +
+                (ssl.RemoteCertificate is { } certificate ? $", server {certificate.Subject}" : "") +
+                (ssl.LocalCertificate is not null ? ", client certificate presented (mutual)" : ""));
     }
 
 

@@ -56,7 +56,7 @@ not implemented on their side
 | CertificateInstallation | ◐ our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
 | Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
 | SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1); **their EV discovers the recording fixture**⁸ | ✅ their EV found our SECC | — |
-| Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ | — | — |
+| Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
 | WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
 | MCS | — | ✅ **both directions** — ×3 forward (Scheduled ×2, Dynamic), and their EV picked service **8** out of our catalogue in reverse⁸ | — | — |
 | MCS_BPT | — | ✅ ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
@@ -136,6 +136,16 @@ bound already in the roadmap, reached one message further in and with a name on 
 car-simulator sequences give the identical result, because the confirmation their `EvseManager` waits on
 comes from their own EV module
 ([`2026-08-06-everest-bpt`](docs/interop-runs/2026-08-06-everest-bpt/notes.md)).
+¹² `IsoMux` terminates TLS at the **-2 profile — TLS 1.2 only**, confirmed with `openssl s_client`; a
+1.3 hello gets alert 70 — and then routes on the SAP offer regardless, so a dual-stack EV gets a complete
+**ISO 15118-20 session over TLS 1.2** (60 exchanges, every code `OK`) while a conformant -20 EV that pins
+1.3 cannot reach the -20 backend at all. TLS is settled before `SupportedAppProtocol` runs, so nothing in
+that path is in a position to object. Priority is ignored over TLS exactly as in plaintext (third
+confirmation), and — narrowing the report in ⁴ — `IsoMux` **kept accepting** after two refused handshakes,
+so the accept-loop shutdown is `Evse15118D20`'s alone. It also corrected our own layering: `DevTlsOrNull`
+pinned a both-protocol offer to 1.3 because `ProtocolAndMode` resolves `both` to -20, which is right for
+naming a recording and wrong for a ClientHello sent before the protocol is settled; a both-offer now offers
+both profiles ([`2026-08-06-everest-isomux-tls`](docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)).
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo

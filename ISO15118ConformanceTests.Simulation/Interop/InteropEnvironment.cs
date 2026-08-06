@@ -392,15 +392,29 @@ internal static class InteropEnvironment
             // a run: EVerest's Evse15118D20 under `enforce_tls_1_3` refuses a ClientHello that still allows
             // 1.2 ("tls_early_post_process_client_hello: unsupported protocol"), which arrives on our side as
             // an opaque "bad protocol version". A station being strict about its own profile is not a defect.
-            EnabledSslProtocols         = protocol == ProtocolVariant.Iso15118_20
-                                              ? SslProtocols.Tls13
-                                              : SslProtocols.Tls12,
+            //
+            // A *both-protocol* offer is the one case where pinning cannot be right, and a live run is how
+            // that surfaced. TLS is settled before SupportedAppProtocol runs — the handshake happens inside
+            // it — so "which protocol will this session speak" has no answer yet at the moment the profile
+            // has to be chosen. ProtocolAndMode resolves "both" to -20 because that is the offer's
+            // priority-1 entry, which is right for naming a recording and wrong for pinning a ClientHello:
+            // against EVerest's IsoMux, a TLS-1.3-only hello is refused outright with alert 70, because
+            // their multiplexer terminates TLS at the -2 profile (TLS 1.2 only, verified with openssl) no
+            // matter which backend it later routes to. So a both-offer offers both, exactly as it does one
+            // layer up, and lets the station settle it — see 2026-08-06-everest-isomux-tls.
+            EnabledSslProtocols         = OfferBothProtocols()
+                                              ? SslProtocols.Tls12 | SslProtocols.Tls13
+                                              : protocol == ProtocolVariant.Iso15118_20
+                                                    ? SslProtocols.Tls13
+                                                    : SslProtocols.Tls12,
             // …and the suites with it, because pki-model.md treats version, suites, signature algorithms
             // and curve as one unit. Pinning them here makes the run assert the profile instead of
             // inheriting it from whichever backend happened to be chosen.
-            CipherSuites                = protocol == ProtocolVariant.Iso15118_20
-                                              ? TlsProfiles.Iso20CipherSuites
-                                              : TlsProfiles.Iso2CipherSuites,
+            CipherSuites                = OfferBothProtocols()
+                                              ? [.. TlsProfiles.Iso20CipherSuites, .. TlsProfiles.Iso2CipherSuites]
+                                              : protocol == ProtocolVariant.Iso15118_20
+                                                    ? TlsProfiles.Iso20CipherSuites
+                                                    : TlsProfiles.Iso2CipherSuites,
         };
 
     }
