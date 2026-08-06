@@ -246,7 +246,8 @@ Work up, and record each one:
 2. **-2 AC** — **confirm on first contact:** their shipped scenarios are DC captures; an AC one may have
    to come from a capture of ours via `pcap-iso15118`.
 3. **TLS**, once the plain sessions are clean. They use GnuTLS with a Trialog-derived PKI
-   (`mkcerts -i ./temp`) and their own cipher profile string; ours is in `docs/pki-model.md`. Expect to
+   (`mkcerts -i ./temp`) and their own cipher profile string; ours is in the app's
+   [`docs/pki-model.md`](../../libs/EVSimulatorApp/docs/pki-model.md). Expect to
    spend the time on cipher-suite and curve alignment rather than on ISO 15118.
 4. **-20 / DIN** — not yet possible on their side.
 

@@ -4,7 +4,8 @@
 profile names, with our EVCC validating their SECC chain and their SECC validating ours. 116 exchanges,
 every response `OK`, route identical to our own recorded session; run twice.
 
-`docs/pki-model.md` has pinned -20 to a mutual TLS 1.3 handshake since it was written, and until today
+The app's `libs/EVSimulatorApp/docs/pki-model.md` has pinned -20 to a mutual TLS 1.3 handshake since it
+was written, and until today
 **our own tests were the only thing that had ever checked it.** Now something else has.
 
 | | |
@@ -36,7 +37,7 @@ Each failure moved the error one layer further in, which is the useful way to re
 `enforce_tls_1_3` refuses a ClientHello that still permits 1.2 —
 `tls_early_post_process_client_hello: unsupported protocol` on their side, an opaque *"bad protocol
 version"* on ours. Not a defect: a station being strict about its own profile. **The harness now pins
-the TLS version by protocol** — -2 to 1.2, -20 to 1.3 — which is what `docs/pki-model.md` says and what
+the TLS version by protocol** — -2 to 1.2, -20 to 1.3 — which is what the app's `pki-model.md` says and what
 `TlsOptions`' own documentation warns about leaving permissive. It also pins the **cipher suites** the
 same way, so the run asserts the profile rather than inheriting whatever backend was chosen; the final
 run above ran with `TLS_AES_256_GCM_SHA384` / `TLS_CHACHA20_POLY1305_SHA256` requested explicitly.

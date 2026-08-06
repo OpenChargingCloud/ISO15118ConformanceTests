@@ -153,6 +153,7 @@ for the record-mode adoption path into the regular vector files).
   discovery first, run our `SdpSeccDiscovery` against Josev's SDP server (real IPv6 interface) instead
   of hard-coding the endpoint.
 - **-20 TLS profile.** Mutual TLS 1.3 + secp521r1/Ed448 — use our BouncyCastle backend; align cipher
-  suites/curves with Josev's config (see the CharIN TLS guide notes in `docs/pki-model.md`).
+  suites/curves with Josev's config (see the CharIN TLS guide notes in the app's
+  [`docs/pki-model.md`](../../libs/EVSimulatorApp/docs/pki-model.md)).
 - **Timing.** These use real wall-clock delays (`TaskAsyncDelay`), unlike the loopback tests — Josev's
   timeouts are real; keep the per-message timeout generous.

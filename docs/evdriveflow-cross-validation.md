@@ -25,7 +25,8 @@ install needs a JDK. That makes it the project's **second independent codec** af
 and the first one to meet -20 at session level.
 
 It was chosen for a combination nothing else here could witness: **-20 Ed. 1 + DC bidirectional + Dynamic
-control mode + mutual TLS 1.3**. `docs/pki-model.md` pins -20 to TLS 1.3 with a mutual handshake, and
+control mode + mutual TLS 1.3**. The app's [`docs/pki-model.md`](../libs/EVSimulatorApp/docs/pki-model.md)
+pins -20 to TLS 1.3 with a mutual handshake, and
 until this counterparty our own tests were the only thing that had ever checked we do it right — a second
 implementation that *requires* it is an oracle rather than a second opinion from ourselves.
 
@@ -71,9 +72,17 @@ if (res.EVSEProcessing == Dc20.Processing.Finished) break;   // …and nothing e
 There was **no `ResponseCode` check anywhere in the -20 EVCC path**. A station could have answered FAILED
 to every message of a session and our car would have driven it to completion.
 
-**Why nothing here could have found it.** Our own SECC never answers FAILED, so no recorded session
-contains one and no replay can produce one. It took a station that says FAILED — for a reason of its own,
-in virtual mode with no hardware — to make it visible.
+**Why nothing here could have found it.** At the time, our own SECC never answered FAILED — so no recorded
+session contained one and no replay could produce one. It took a station that says FAILED — for a reason of
+its own, in virtual mode with no hardware — to make it visible.
+
+Our SECC has since gained one, on **2026-08-06**, out of the MCS_BPT work: it refuses a charge-parameter
+set that contradicts the selected service with `FAILED_WrongChargeParameter` (`Secc20Ac.cs:69`,
+`Secc20Dc.cs:106`). The argument above is unaffected, and it is worth saying why rather than quietly
+leaving the sentence in the past tense: **the corpus is what a replay reads, and none of its 16 recorded
+sessions contains a FAILED.** A guard has to be *exercised* to guard anything. That an EVSE-side refusal
+exists in the code does not put one on the wire in a recording — which is the whole reason this defect
+needed a foreign station in the first place.
 
 Fixed the same day, in **both protocols and all three languages**. `Evcc20Base.RefuseOnFailure` sits in
 the one place every -20 response passes through; `OK*` and `WARNING*` continue — a warning is explicitly

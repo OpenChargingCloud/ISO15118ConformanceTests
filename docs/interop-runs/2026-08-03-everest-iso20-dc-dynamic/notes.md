@@ -89,7 +89,7 @@ capability, not a passing test.
 ## Next
 
 - **Port Dynamic to Kotlin and Swift**, for parity with the two corrections.
-- **-20 over TLS 1.3** — the configuration their own SIL uses, and the one this project's `pki-model.md`
-  pins -20 to.
+- **-20 over TLS 1.3** — the configuration their own SIL uses, and the one the app's
+  `libs/EVSimulatorApp/docs/pki-model.md` pins -20 to.
 - **`IsoMux`**, one endpoint answering both protocols.
 - **AC**, where our Dynamic arm is implemented but has never met a station.

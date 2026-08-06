@@ -20,7 +20,8 @@ checked from their documentation and are questions for the first run, not statem
 ## Why this one, and why now
 
 It goes straight at the combination we have the least outside evidence for: **-20 Ed. 1 + DC
-bidirectional power transfer + Dynamic control mode + mutual TLS 1.3**. `docs/pki-model.md` pins -20 to
+bidirectional power transfer + Dynamic control mode + mutual TLS 1.3**. The app's
+[`docs/pki-model.md`](../../libs/EVSimulatorApp/docs/pki-model.md) pins -20 to
 TLS 1.3 with a mutual handshake, and until now our own tests have been the only thing that ever checked
 we do it right. A second implementation that *requires* it is an oracle rather than a second opinion from
 ourselves.

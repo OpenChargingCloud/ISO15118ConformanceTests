@@ -92,7 +92,8 @@ exercised as a workaround here.
   with nothing installed anywhere, and a second implementation accepts it and runs a full -20 DC session
   over TLS 1.3. The README's TLS row no longer rests on a single platform.
 - **Not settled:** this is *their* test PKI and their curve choice. The -20 profile
-  (`docs/pki-model.md`: TLS 1.3, pinned suites, secp521r1) has still never met a counterparty that
+  (`libs/EVSimulatorApp/docs/pki-model.md`: TLS 1.3, pinned suites, secp521r1) has still never met a
+  counterparty that
   generates secp521r1 material, because the one that ships an `iso-20` cert script does not.
 
 ## Artifacts

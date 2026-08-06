@@ -95,7 +95,8 @@ Everything below was unblocked by it.
   and `←SECC` for Josev on that row, and why neither column covers the mode alone.
 
 - **ISO 15118-20 DC over mutual TLS 1.3 (2026-08-03, re-run 2026-08-06).** 116 exchanges. The first time
-  anything outside this project exercised the -20 TLS profile our own `docs/pki-model.md` pins — TLS 1.3,
+  anything outside this project exercised the -20 TLS profile the app's
+  [`docs/pki-model.md`](../libs/EVSimulatorApp/docs/pki-model.md) pins — TLS 1.3,
   mutual authentication, the profile's two suites — and confirmation that our EVCC *builds and validates*
   a foreign SECC chain against a supplied anchor rather than accepting what it is handed. First proven
   from macOS; the Windows half needed `V2G_TLS_BACKEND=BouncyCastle` in the app and then ran twice
