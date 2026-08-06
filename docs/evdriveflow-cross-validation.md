@@ -212,7 +212,8 @@ protocol makes optional; it took a peer that omits it to find out.
 
 What is left here is no longer diagnosis but scheduling: TLS 1.3 with mutual authentication is a config
 switch, DC-BPT is a run whose verdict is about BPT, and a complete charge loop waits on a two-line fix
-of theirs.
+of theirs — drafted, with the stdin behaviour and the three older findings beside it, in
+[`docs/reports/evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md).
 
 ---
 

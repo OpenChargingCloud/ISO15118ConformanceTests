@@ -143,10 +143,10 @@ An interactive `docker exec -it` would do as well. What must not happen is stdin
 
 ## Next
 
-- **Report wall 2** — a two-line fix (`is not None` on both copies) and it blocks their own charge
-  loop against any station that omits the optional fields.
-- **Wall 1 is a usability report at most**, but a sharp one: their EV is unusable headless, silently,
-  and the failure looks like a protocol decision rather than a closed file descriptor. A check for
-  `sys.stdin.isatty()` before arming the listener would end it.
+- **Both walls are written up for them** in
+  [`docs/reports/evdriveflow-headless-session.md`](../../reports/evdriveflow-headless-session.md), as
+  two separate filings plus the three older findings as secondary. Wall 1 is not merely a usability
+  report: their README documents the no-GUI path *and* the press-Enter mechanism at line 224, so EOF
+  being read as a keypress breaks something they support and describe.
 - **Now reachable**, with the fifo in place: mutual TLS 1.3 (their `SECURITY_PROTOCOL` switch back to
   `0x00`), the DC-BPT cell their EV already selects, and — past wall 2 — a complete charge loop.
