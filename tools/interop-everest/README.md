@@ -3,6 +3,10 @@
 Interop between **our** EVCC/SECC and **[EVerest](https://github.com/EVerest/everest-core)** (Apache-2.0),
 the Linux Foundation Energy charging stack.
 
+**This file is how to run it.** For what has already run and what each session caught — including the
+defects it found in *this* project, which is most of them — see
+[`docs/everest-cross-validation.md`](../../docs/everest-cross-validation.md).
+
 Like the other three harnesses this is **opt-in and never part of the offline CI**. The automated hook is
 the `[Explicit] [Category("Interop")]` fixture
 [`ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs),
