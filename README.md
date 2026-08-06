@@ -17,7 +17,7 @@ Four independent stacks sit on the other end of the live cross-checks (`JosevInt
 worth having *because* they differ — each brings a different EXI lineage and a different kind of
 evidence:
 
-| | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | eVDriveFlow | tux-evse |
+| | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | [eVDriveFlow](tools/interop-evdriveflow/README.md) | [tux-evse](tools/interop-tux-evse/README.md) |
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
 | **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G**¹ (OpenV2G in the 2023 image) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
