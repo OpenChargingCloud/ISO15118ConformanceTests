@@ -1,0 +1,686 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-20-mcs-reverse",
+  "protocol": "iso15118-20",
+  "mode": "mcs",
+  "note": "live interop: EVerest\u0027s PyEvJosev against our SECC",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupReq",
+        "frame": "01fe800200000027808c0400000000000000000988cd1d30620b2ba6a4ab1899199a1a9b1b9c1c9820a121a222ac00"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupRes",
+        "frame": "01fe80020000001d8090044ee1683974bcf8dd0998cd1d30620402d1114a905090ca914c40"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupReq",
+        "frame": "01fe8002000000118008044ee1683974bcf8dd0998cd1d3062"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupRes",
+        "frame": "01fe800200000014800c044ee1683974bcf8dd0998cd1d3062000400"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationReq",
+        "frame": "01fe8002000000128000044ee1683974bcf8dd0998cd1d306200"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationRes",
+        "frame": "01fe8002000000138004044ee1683974bcf8dd09a8cd1d30620000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryReq",
+        "frame": "01fe800200000012807c044ee1683974bcf8dd09a8cd1d306280"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryRes",
+        "frame": "01fe8002000000188080044ee1683974bcf8dd09b8cd1d306200200810024450"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailReq",
+        "frame": "01fe8002000000138074044ee1683974bcf8dd09b8cd1d30620400"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailRes",
+        "frame": "01fe80020000008a8078044ee1683974bcf8dd09b8cd1d30620002000202d0dbdb9b9958dd1bdc980200d436f6e74726f6c4d6f6465600804d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e67600080100b436f6e6e6563746f7260080350dbdb9d1c9bdb135bd91958040134d6f62696c6974794e656564734d6f6465600802541c9a58da5b99d800280"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionReq",
+        "frame": "01fe8002000000158084044ee1683974bcf8dd09b8cd1d306202000880"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionRes",
+        "frame": "01fe8002000000138088044ee1683974bcf8dd09c8cd1d30620000"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryReq",
+        "frame": "01fe800400000028803c044ee1683974bcf8dd09c8cd1d30628810987504003202002b00810001408008407040005080"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryRes",
+        "frame": "01fe80040000002a8040044ee1683974bcf8dd09c8cd1d3062004418530e82000001001702e0800000400710482002580440"
+      }
+    },
+    {
+      "index": 8,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ScheduleExchangeReq",
+        "frame": "01fe800200000068806c044ee1683974bcf8dd09c8cd1d30627e84280e008300a010602803f00280000480e0418050400002a2aaa903275726e3a69736f3a7374643a69736f3a31353131383a2d32303a5072696365416c676f726974686d3a312d506f7765720000200000100000140"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ScheduleExchangeRes",
+        "frame": "01fe8002000000278070044ee1683974bcf8dd09d8cd1d30620000100200042407020019092800009008240700008a"
+      }
+    },
+    {
+      "index": 9,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044ee1683974bcf8dd09d8cd1d3062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000138030044ee1683974bcf8dd09d8cd1d30620000"
+      }
+    },
+    {
+      "index": 10,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeReq",
+        "frame": "01fe80040000001a8044044ee1683974bcf8dd09d8cd1d3062210012006080090030"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeRes",
+        "frame": "01fe8004000000178048044ee1683974bcf8dd09e8cd1d30620010010c0600"
+      }
+    },
+    {
+      "index": 11,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeReq",
+        "frame": "01fe80040000001a8044044ee1683974bcf8dd09e8cd1d3062010012006080090030"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeRes",
+        "frame": "01fe8004000000178048044ee1683974bcf8dd09f8cd1d30620010010c0600"
+      }
+    },
+    {
+      "index": 12,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd09f8cd1d30622040"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd09f8cd1d30620040"
+      }
+    },
+    {
+      "index": 13,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd09f8cd1d30622040"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0a08cd1d30620040"
+      }
+    },
+    {
+      "index": 14,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd0a08cd1d30622040"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0a08cd1d30620040"
+      }
+    },
+    {
+      "index": 15,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd0a08cd1d30622040"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0a18cd1d30620040"
+      }
+    },
+    {
+      "index": 16,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd0a18cd1d30622040"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0a18cd1d30620040"
+      }
+    },
+    {
+      "index": 17,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd0a18cd1d30622040"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0a28cd1d30620040"
+      }
+    },
+    {
+      "index": 18,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe80020000001d8054044ee1683974bcf8dd0a28cd1d306200000100420480e040032124"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0a28cd1d30620040"
+      }
+    },
+    {
+      "index": 19,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a28cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a38cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 20,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a38cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a38cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 21,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a38cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a48cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 22,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a48cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a58cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 23,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a58cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a58cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 24,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a58cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a68cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 25,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a68cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a68cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 26,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a68cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a78cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 27,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a78cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a78cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 28,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a78cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a88cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 29,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a88cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a88cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 30,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a88cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a98cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 31,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a98cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0a98cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 32,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0a98cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0aa8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 33,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0aa8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0aa8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 34,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0aa8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ab8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 35,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ab8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ab8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 36,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ab8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ac8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 37,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ac8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ad8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 38,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ad8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ad8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 39,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ad8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ae8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 40,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ae8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0ae8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 41,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0ae8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0af8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 42,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0af8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0af8cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 43,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0af8cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0b08cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 44,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000218034044ee1683974bcf8dd0b08cd1d306200f18402002400c8c800140400480194"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000001c8038044ee1683974bcf8dd0b08cd1d30620064003c02002400c00090"
+      }
+    },
+    {
+      "index": 45,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044ee1683974bcf8dd0b08cd1d30620140"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000138058044ee1683974bcf8dd0b18cd1d30620040"
+      }
+    },
+    {
+      "index": 46,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c044ee1683974bcf8dd0b18cd1d306220"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe8004000000168050044ee1683974bcf8dd0b18cd1d30620010000a00"
+      }
+    },
+    {
+      "index": 47,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c044ee1683974bcf8dd0b18cd1d306220"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe8004000000168050044ee1683974bcf8dd0b28cd1d30620010000a00"
+      }
+    },
+    {
+      "index": 48,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c044ee1683974bcf8dd0b28cd1d306220"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe8004000000168050044ee1683974bcf8dd0b28cd1d30620010000a00"
+      }
+    },
+    {
+      "index": 49,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c044ee1683974bcf8dd0b28cd1d306220"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe8004000000168050044ee1683974bcf8dd0b38cd1d30620010000a00"
+      }
+    },
+    {
+      "index": 50,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c044ee1683974bcf8dd0b38cd1d306200"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe8004000000168050044ee1683974bcf8dd0b38cd1d30620010000a00"
+      }
+    },
+    {
+      "index": 51,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionStopReq",
+        "frame": "01fe8002000000128094044ee1683974bcf8dd0b38cd1d306228"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionStopRes",
+        "frame": "01fe8002000000138098044ee1683974bcf8dd0b48cd1d30620000"
+      }
+    }
+  ]
+}

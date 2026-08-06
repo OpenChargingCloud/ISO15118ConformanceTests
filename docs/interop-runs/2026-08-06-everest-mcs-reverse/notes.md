@@ -96,3 +96,10 @@ the -20 service the EV asks for comes from Josev's `supported_energy_services`, 
 or trace: this run was driven by the CLI rather than the recording fixture, because the fixture cannot
 advertise over SDP and their EV cannot be pointed at an endpoint. Making the reverse fixture recordable
 against an SDP-discovering peer is the obvious next piece of harness work.
+
+**Done the same day** — the fixture advertises now (`V2G_INTEROP_SDP=<iface>`), and this scenario was run
+through it twice, with frames, flow reports and a corpus trace:
+[`2026-08-06-everest-mcs-reverse-recorded`](../2026-08-06-everest-mcs-reverse-recorded/notes.md). It turned
+up the fixture-side half of finding 2 above: the app could report the selected service by then, but
+`InteropSession.RunSeccAsync` still returned a bare `Boolean`, so the reverse fixture had nowhere to put it
+and would have passed an MCS run that never negotiated MCS.

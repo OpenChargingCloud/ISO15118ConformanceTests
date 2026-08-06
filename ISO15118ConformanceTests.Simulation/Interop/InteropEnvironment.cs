@@ -38,6 +38,10 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 ///         their station, for a run in which we are the car.</description></item>
 ///   <item><term><c>V2G_INTEROP_LISTEN</c></term><description>a port — our station, for a run in which
 ///         they are the car.</description></item>
+///   <item><term><c>V2G_INTEROP_SDP</c></term><description>an interface name — advertise that station over
+///         SDP as well, for a car that discovers rather than connects (see
+///         <see cref="InteropSdp"/>). The other half of <c>V2G_INTEROP_LISTEN</c>, and the reason a
+///         reverse run can now be recorded.</description></item>
 ///   <item><term><c>V2G_INTEROP_PROTOCOL</c></term><description><c>2</c> (default), <c>20</c>, or
 ///   <c>both</c> — one handshake offering -20 at priority 1 and -2 at priority 2, running whichever
 ///   the station picks (EVCC side; see <see cref="OfferBothProtocols"/>).</description></item>

@@ -213,6 +213,12 @@ public class EverestInteropTests
 
         using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
 
+        // Their EV cannot be pointed at this socket — it takes a `device` and finds a station by SDP on it
+        // — so without V2G_INTEROP_SDP this fixture waits for a car that has no way to arrive. See
+        // InteropSdp: the run it exists for is the one below.
+        await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
+                                                                     tls: false, cts.Token);
+
         TestContext.Out.WriteLine($"Waiting for their PyEvJosev on [::]:{listenPort} ...");
 
         using var socket = await listener.AcceptAsync(cts.Token);
@@ -223,10 +229,24 @@ public class EverestInteropTests
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
-                                                           mcs: InteropEnvironment.Mcs());
+            var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
+                                                            mcs: InteropEnvironment.Mcs());
 
-            Assert.That(isDone, Is.True, "our SECC drove their EV to the terminal session state");
+            ReportWhatOurStationSaw(outcome);
+
+            Assert.That(outcome.IsDone, Is.True, "our SECC drove their EV to the terminal session state");
+
+            // The forward run has asserted its negotiated service since the first MCS session; this is the
+            // same guard from the other end, and the direction that needs it more. Their EV is configured
+            // `supported_d20_energy_services: MCS` but our Secc20Mcs offers { 8, 9 } beside a state machine
+            // that would happily run a DC session too — so an EV that ignored the MCS entries and took an
+            // ordinary service completes exactly as well, and would otherwise be written up as the run in
+            // which somebody else's car chose our MCS catalogue.
+            if (InteropEnvironment.Mcs())
+                Assert.That(outcome.SelectedEnergyServiceId, Is.EqualTo(8).Or.EqualTo(9),
+                            "an MCS reverse run has to have had an MCS service (8 = MCS, 9 = MCS_BPT) " +
+                            "picked out of our catalogue; anything else means their EV asked for something " +
+                            "and our station gave it");
         }
         finally
         {
@@ -234,6 +254,34 @@ public class EverestInteropTests
                                    "live interop: EVerest's PyEvJosev against our SECC",
                                    weAreTheEvcc: false));
         }
+
+    }
+
+
+    /// <summary>
+    /// What our station learned that nothing else in the run can report.
+    /// </summary>
+    /// <remarks>
+    /// In a reverse run the session is <i>ours</i>, so their charger module never sees it and their logs
+    /// say nothing about it. Both lines below were read off the CLI's console for the 2026-08-06 MCS
+    /// reverse run because the fixture had no equivalent; that is what made the run hard to read and is
+    /// why they are printed here rather than left to the assertions.
+    /// </remarks>
+    private static void ReportWhatOurStationSaw(InteropSession.SeccOutcome outcome)
+    {
+
+        if (outcome.SelectedEnergyServiceId is { } serviceId)
+            TestContext.Out.WriteLine($"Energy transfer service: {serviceId} ({ServiceName(serviceId)}) — " +
+                                      $"their EV's pick out of our catalogue.");
+
+        // Named as a verdict rather than a tick: a contract that arrived and failed to verify is a finding,
+        // and it completes the session either way — our SECC does not refuse on a bad signature.
+        if (outcome.PlugAndCharge is { } pnc)
+            TestContext.Out.WriteLine(
+                $"Plug & Charge (inbound): contract {pnc.ContractSubject}; " +
+                $"challenge {(pnc.ChallengeOk ? "OK" : "MISMATCH")}, digest {(pnc.DigestOk ? "OK" : "FAIL")}, " +
+                $"signature {(pnc.SignatureOk ? "OK" : "FAIL")} ({pnc.SignatureMethod}" +
+                $"{(pnc.SignatureOk ? $", grammar={pnc.SignatureGrammar}" : "")}).");
 
     }
 

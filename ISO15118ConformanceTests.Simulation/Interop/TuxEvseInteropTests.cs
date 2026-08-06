@@ -158,6 +158,11 @@ public class TuxEvseInteropTests
 
         using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
 
+        // Their injector is pointed at an endpoint, so this is normally unset; it is here because the
+        // fixtures differ in who is on the other end and in nothing else.
+        await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
+                                                                     tls: false, cts.Token);
+
         TestContext.Out.WriteLine($"Waiting for their injector on [::]:{listenPort} " +
                                   $"(IPv6, dual-stack) ...");
 
@@ -169,10 +174,13 @@ public class TuxEvseInteropTests
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-            var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
-                                                           mcs: InteropEnvironment.Mcs());
+            var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
+                                                            mcs: InteropEnvironment.Mcs());
 
-            Assert.That(isDone, Is.True, "our SECC drove their injector's session to the terminal state");
+            if (outcome.SelectedEnergyServiceId is { } serviceId)
+                TestContext.Out.WriteLine($"Energy transfer service: {serviceId} — their injector's pick.");
+
+            Assert.That(outcome.IsDone, Is.True, "our SECC drove their injector's session to the terminal state");
         }
         finally
         {

@@ -55,7 +55,7 @@ not implemented on their side
 | Plug & Charge | ✅ | ✅ **reverse**: their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (forward: commented out on their side) | ▢ | — |
 | CertificateInstallation | ◐ our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
 | Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
-| SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1) | ✅ their EV found our SECC | — |
+| SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1); **their EV discovers the recording fixture**⁸ | ✅ their EV found our SECC | — |
 | Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ | — | — |
 | WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
 | MCS | — | ✅ **both directions** — ×3 forward (Scheduled ×2, Dynamic), and their EV picked service **8** out of our catalogue in reverse⁸ | — | — |
@@ -90,9 +90,14 @@ has no counterparty that generates it.
 `Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
 ⁸ The reverse leg is the one that tests *our* catalogue rather than theirs: offered `{ 8, 9 }` by
 `Secc20Mcs`, their `PyEvJosev` selected **8** and ran to completion
-([`2026-08-06-everest-mcs-reverse`](docs/interop-runs/2026-08-06-everest-mcs-reverse/notes.md)). It also
+([`2026-08-06-everest-mcs-reverse`](docs/interop-runs/2026-08-06-everest-mcs-reverse/notes.md)), then twice
+more through the recording fixture once that could advertise itself over SDP
+([`…-recorded`](docs/interop-runs/2026-08-06-everest-mcs-reverse-recorded/notes.md)) — so the reverse
+direction now leaves frames, a flow report and a corpus trace rather than a console log. It also
 took an app fix to be *readable* at all — `Secc20Base.SelectedEnergyServiceId` was `protected` while its
-EVCC counterpart was public, and in reverse the station is the only side that can report the choice.
+EVCC counterpart was public, and in reverse the station is the only side that can report the choice. The
+fixture had the same gap one layer up: `RunSeccAsync` returned a bare `Boolean`, so it would have passed an
+MCS reverse run that quietly negotiated an ordinary DC service.
 The three forward sessions validated the **catalogue** only; the envelope followed a day later under MCS_BPT
 (see ⁹), where their `EvseManager` decoded `dc_ev_maximum_power_limit: 3750000.0` at 3000 A and 1250 V.
 What no run against this counterpart can show is megawatt *power*: their MCS SIL is electrically an
@@ -113,7 +118,10 @@ logs what it received could show the second — a loopback peer clamps nothing a
 `Evse15118D20` still has it commented out on the station side, so the forward leg is theirs to fix, and
 the reverse leg had simply not been attempted. It ran as a by-product of the MCS reverse session — their
 `PyEvJosev` authorized with their own `everest-aux` MO contract and our SECC verified the signature,
-digest and challenge. The -2 direction, where *they* verify *our* signature, is the separate result in ³.
+digest and challenge; repeated through the recording fixture the same day. The -2 direction, where *they*
+verify *our* signature, is the separate result in ³. That session's capture is deliberately **not** a corpus
+entry: the signature is made with their EV's private key, so a trace built from it could only re-check the
+recorded bytes against themselves — `SessionTrace.Build` refuses it, and an EIM re-run supplies the trace.
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo

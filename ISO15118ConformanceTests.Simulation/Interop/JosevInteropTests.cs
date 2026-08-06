@@ -105,6 +105,9 @@ namespace ISO15118ConformanceTests.Simulation.Interop
 
             using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
 
+            await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
+                                                                        tls: false, cts.Token);
+
             TestContext.Out.WriteLine($"Waiting for a Josev EVCC to connect on [::]:{listenPort} ...");
 
             using var socket = await listener.AcceptAsync(cts.Token);
@@ -115,10 +118,13 @@ namespace ISO15118ConformanceTests.Simulation.Interop
             {
                 await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
-                var isDone = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
-                                                               mcs: InteropEnvironment.Mcs());
+                var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
+                                                                mcs: InteropEnvironment.Mcs());
 
-                Assert.That(isDone, Is.True, "our SECC drove Josev's EVCC to the terminal session state");
+                if (outcome.SelectedEnergyServiceId is { } serviceId)
+                    TestContext.Out.WriteLine($"Energy transfer service: {serviceId} — their EVCC's pick.");
+
+                Assert.That(outcome.IsDone, Is.True, "our SECC drove Josev's EVCC to the terminal session state");
             }
             finally
             {

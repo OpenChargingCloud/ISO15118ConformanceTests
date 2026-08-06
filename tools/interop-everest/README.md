@@ -324,6 +324,10 @@ an interface our station is not on, so their EV discovers ours instead. Ugly, an
    --mode mcs --sdp --interface eth0`, exactly what [`reverse-iso2-dc.sh`](reverse-iso2-dc.sh) assumes.
    Point their `Evse15118D20` at `lo` first, or it answers the SDP request before ours does.
 
+   ✅ **…and through the recording fixture**, since `V2G_INTEROP_SDP=<iface>` — see
+   [running a reverse run recorded](#running-a-reverse-run-recorded) below.
+   [`…-mcs-reverse-recorded`](../../docs/interop-runs/2026-08-06-everest-mcs-reverse-recorded/notes.md).
+
 ---
 
 ## Reading a run
@@ -339,6 +343,39 @@ enough to be one. See [`../../docs/interop-runs/README.md`](../../docs/interop-r
 
 Write each run up under `docs/interop-runs/<yyyy-mm-dd>-everest-<scenario>/` with their commit, ours, the
 config file used, and every divergence.
+
+### Running a reverse run *recorded*
+
+A reverse run used to have to go through the CLI, which can advertise over SDP but writes no artifacts,
+because the fixture could only bind a socket and their EV cannot be pointed at one. `V2G_INTEROP_SDP=<iface>`
+closes that: the fixture runs a `SECC_SDPServer` beside its listener, on the port it actually bound, so a
+discovered session is a recorded one. Three things to get right:
+
+1. **Run `dotnet test` inside WSL.** SDP is multicast on the EV's link and Windows is not on it. .NET 10 is
+   there; pass `--artifacts-path ~/wsl-artifacts` so the Linux build does not fight the Windows `bin/`+`obj/`
+   in the same working tree.
+2. **Fixture first, station second.** Their EV probes once, shortly after the manager boots. If nothing
+   answers that probe the session never starts, and the timeout looks exactly like a peer that never came.
+3. **Their `Evse15118D20` on `lo`**, as for the CLI, or it answers the probe before ours does.
+
+```bash
+/usr/sbin/mosquitto -p 1883 &                                    # not on PATH
+cd /mnt/d/…/ISO15118ConformanceTests
+V2G_INTEROP_LISTEN=55000 V2G_INTEROP_SDP=eth0 V2G_INTEROP_PROTOCOL=20 V2G_INTEROP_MODE=mcs \
+V2G_INTEROP_RECORD=$HOME/everest/run/mcs-reverse \
+  dotnet test ISO15118ConformanceTests.Simulation/ISO15118ConformanceTests.Simulation.csproj -c Release \
+    --artifacts-path ~/wsl-artifacts -l "console;verbosity=detailed" \
+    --filter FullyQualifiedName~TheirPyEvJosev_AgainstOurSecc &
+sleep 8 && ~/everest/dist/bin/manager --config ~/everest/configs-ours/config-mcs-reverse-ours.yaml
+```
+
+The SDP server logs each request and each answer as it happens, which is what to look at when a reverse run
+times out — it separates "their EV never probed" from "it probed and we dropped it".
+
+**A PnC session cannot become a corpus trace, and should not.** Their EV signs the `AuthorizationReq` with a
+key that is theirs, so `SessionTrace.Build` refuses the recording rather than substitute the recorded
+signature and verify nothing. Add `V2G_INTEROP_NO_PNC=1` for a second, EIM run if the run is meant to
+produce a corpus entry — keep both, they are different evidence.
 
 ## Known friction (expect these first)
 
