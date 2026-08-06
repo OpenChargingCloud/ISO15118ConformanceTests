@@ -162,3 +162,31 @@ stay codec-validated only** (record mode, byte-exact vs cbV2G): no live run is p
 only independent -20 stack available — implements no WPT/ACDP session state machines (only AC/DC), and our own
 WPT/ACDP projects are codec-only by the same token; a live run would need full session state machines built on
 both sides.
+
+---
+
+## Every claim about their side, in their source
+
+Each statement above that says something is *missing* on Josev's side was re-checked on **2026-08-06**
+against upstream **`SwitchEV/iso15118` @ `d645255`** — the commit
+[`tools/interop-josev/`](../tools/interop-josev/README.md) pins, so the same code every run above met.
+Paths are relative to `iso15118/`.
+
+| Claim | In their source |
+|---|---|
+| The -20 session context is never filled, so a -20 resume degrades | `ev_session_context` appears **17×** in `secc/states/iso15118_2_states.py` and **0×** in `iso15118_20_states.py`. The -20 resume branch compares against the *live* `comm_session.session_id` and otherwise falls through to their own *"False session ID from EV, gracefully assigning new session ID"* → `OK_NEW_SESSION_ESTABLISHED` (`secc/states/iso15118_20_states.py:152-165`) |
+| Their EVCC-side tariff check is a literal `# TODO` | `evcc/controller/simulator.py:526` — *"TODO If a SalesTariff is present and digitally signed (and TLS is used), verify each sales tariff with the mobility operator sub 2 certificate"* |
+| CertificateInstallation is implemented on neither side | `secc/states/iso15118_20_states.py:323` and `evcc/states/iso15118_20_states.py:340` — the same `NotImplementedError("CertificateInstallation not yet implemented")` |
+| Their EVCC drops the link after `SessionStopReq(ServiceRenegotiation)` | `evcc/states/iso15118_20_states.py:1153` posts the session-terminating `StopNotification(True, …)` **before** the `service_renegotiation_supported and renegotiation_requested` test at 1160 that sets `next_state = ServiceDiscovery` |
+| Their `Reference` model requires the schema-optional `Transforms` | `shared/messages/xmldsig.py:83` — `transforms: Transforms = Field(..., alias="Transforms")`, required, where xmldsig-core leaves it optional |
+
+The renegotiation row deserves one more sentence, because the finding was nearly **ours**: the branch that
+would keep the session alive is gated on `ServiceRenegotiationSupported` — a flag *our* SECC puts into
+`ServiceDiscoveryRes`. Advertise `false` there and their `Terminate` is the correct answer, and the defect
+is on this side of the wire. `Secc20Base.cs:590` sends `true`, so it is not.
+
+Worth naming why this column came through a source audit unchanged while EVerest's did not: every claim
+here is about **absent** code — a TODO, an unimplemented state, a field never written, two statements in
+the wrong order. Absence is hard to mistake for intent. The two claims that had to be corrected on the
+[EVerest page](everest-cross-validation.md) were both about code that is present, deliberate and
+commented — and on the wire, a deliberate narrowing looks exactly like a missing capability.
