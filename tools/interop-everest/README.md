@@ -205,7 +205,13 @@ Dynamic arm. The fixture asserts that the negotiated service really was 8 or 9: 
 a plain DC service when none is offered, by design, and a fallback that completed would otherwise be
 written up as an MCS result.
 
-Add **`V2G_INTEROP_MCS_FIRST=9`** to go for **MCS_BPT** instead, and the assertion narrows to exactly 9.
+Add **`V2G_INTEROP_BPT_FIRST=1`** to ask for the **bidirectional** entry of whichever catalogue the run
+uses — AC_BPT (5), DC_BPT (6) or MCS_BPT (9) — and the assertion narrows to "a bidirectional service was
+negotiated". It works on all three because it is a flag on the vehicle
+(`Evcc20Base.PreferBidirectionalService`) rather than a subclass; while it was spelt
+`V2G_INTEROP_MCS_FIRST=9` it reached MCS only, and their SIL's DC_BPT went untouched for a week of runs
+([`2026-08-06-everest-bpt`](../../docs/interop-runs/2026-08-06-everest-bpt/notes.md)). The old spelling is
+still honoured, because the run notes up to 2026-08-06 record it.
 This now runs to `SessionStop` with the discharge half declared and their station logging
 `Max discharge current 3000.000000A`. It took two app fixes to get there, both found by the run that
 failed before them: the EVCC's service ranking used to be ignored in favour of the station's catalogue

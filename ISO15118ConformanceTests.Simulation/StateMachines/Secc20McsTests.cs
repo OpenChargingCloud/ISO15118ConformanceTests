@@ -120,8 +120,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
-            // The same probe the interop fixture uses: Evcc20Mcs's list, reversed.
-            var evcc = new Interop.McsBptFirstEvcc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
+            // The same thing the interop fixture asks for: Evcc20Mcs's { 8, 9 }, ranked the other way. This
+            // used to be a harness-local `McsBptFirstEvcc` subclass with the list written out reversed;
+            // `PreferBidirectionalService` does it for every catalogue, so the subclass is gone.
+            var evcc = new Evcc20Mcs(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+                           { PreferBidirectionalService = true };
             await Task.WhenAll(evcc.RunAsync(cts.Token), seccTask);
 
             Assert.That(evcc.SelectedEnergyServiceId, Is.EqualTo(9),

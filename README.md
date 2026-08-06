@@ -51,7 +51,7 @@ not implemented on their side
 | DC, Scheduled, EIM | ✅ TCP + TLS | ✅ ×2 sessions | ◐ 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ | ✅ | ⛔ their EV quits at Authorization | — |
 | AC | ✅ TCP + TLS | ◐ to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ | ▢ (their 2026.02.1 SIL now advertises BPT) | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ | ✅ **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | — | — |
 | Plug & Charge | ✅ | ✅ **reverse**: their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (forward: commented out on their side) | ▢ | — |
 | CertificateInstallation | ◐ our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
 | Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
@@ -122,6 +122,20 @@ digest and challenge; repeated through the recording fixture the same day. The -
 verify *our* signature, is the separate result in ³. That session's capture is deliberately **not** a corpus
 entry: the signature is made with their EV's private key, so a trace built from it could only re-check the
 recorded bytes against themselves — `SessionTrace.Build` refuses it, and an EIM re-run supplies the trace.
+¹¹ **Neither config was changed for this**, which is the finding. Their `EvseManager` appends the `*_BPT`
+entry whenever its power supply reports itself bidirectional and `DCSupplySimulator` defaults to that, so
+every -20 DC run this project ever made against EVerest saw service 6 in the catalogue and took service 2.
+The blocker was ours: ranking the bidirectional entry first was a harness-local subclass of `Evcc20Mcs`,
+and since the AC/DC rankings live on `Evcc20Base` and `Evcc20Ac` is `sealed`, services 5 and 6 were
+unreachable from this repository. Now one flag — `Evcc20Base.PreferBidirectionalService`, a stable reorder
+of whatever ranking the subclass states — covers all three catalogues, and the probe subclass is gone.
+Two complete DC_BPT sessions followed, Scheduled and Dynamic, with their station decoding
+`Max discharge current 200.000000A` out of our `BPT_DC_*` request. AC_BPT (5) negotiates and their station
+accepts our `BPT_AC_*` parameters, then answers `PowerDelivery` with `FAILED_ContactorError` — the -20 AC
+bound already in the roadmap, reached one message further in and with a name on it; two different
+car-simulator sequences give the identical result, because the confirmation their `EvseManager` waits on
+comes from their own EV module
+([`2026-08-06-everest-bpt`](docs/interop-runs/2026-08-06-everest-bpt/notes.md)).
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo

@@ -21,6 +21,7 @@ using NUnit.Framework;
 
 using Vanaheimr.V2G.Simulation.Sap;
 using Vanaheimr.V2G.Simulation.StateMachines;
+using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
 using Vanaheimr.V2G.Simulation.Transport;
 
 namespace ISO15118ConformanceTests.Simulation.Interop;
@@ -131,7 +132,7 @@ public class EverestInteropTests
                                                             InteropEnvironment.PreferDynamic(),
                                                             InteropEnvironment.ContractCredentialsOrNull(),
                                                             mcs: InteropEnvironment.Mcs(),
-                                                            mcsBptFirst: InteropEnvironment.McsBptFirst());
+                                                            bptFirst: InteropEnvironment.BptFirst());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
@@ -148,21 +149,23 @@ public class EverestInteropTests
             // truck can still charge at an ordinary post. That fallback completes a session just as
             // happily, and without this line a station that ignored MCS entirely would be written up as
             // the first live MCS result.
-            //
-            // With MCS_BPT ranked first the expectation narrows to 9, for the same reason one step further
-            // in: a station that advertises only 8 lets our EVCC take it and finish, and a run that asked
-            // for the bidirectional service and quietly charged one-way under the unidirectional one is
-            // exactly the result that must not be filed as an MCS_BPT session.
             if (InteropEnvironment.Mcs())
-                Assert.That(outcome.SelectedEnergyServiceId,
-                            InteropEnvironment.McsBptFirst()
-                                ? Is.EqualTo(9)
-                                : Is.EqualTo(8).Or.EqualTo(9),
-                            InteropEnvironment.McsBptFirst()
-                                ? "MCS_BPT (9) was ranked first, so anything else means their catalogue did "
-                                + "not carry it and our EVCC fell back"
-                                : "an MCS run has to have negotiated an MCS service (8 = MCS, 9 = MCS_BPT); "
-                                + "anything else means their catalogue offered none and our EVCC fell back to DC");
+                Assert.That(outcome.SelectedEnergyServiceId, Is.EqualTo(8).Or.EqualTo(9),
+                            "an MCS run has to have negotiated an MCS service (8 = MCS, 9 = MCS_BPT); "
+                          + "anything else means their catalogue offered none and our EVCC fell back to DC");
+
+            // And the same shape one negotiation further in, for whichever catalogue the run uses: a
+            // station advertising only the unidirectional entry lets our EVCC take it and finish, so a run
+            // that asked for BPT and quietly charged one-way would otherwise be filed as a BPT result. This
+            // is the assertion the MCS arm carried as `Is.EqualTo(9)`; it is stated over
+            // IsBidirectional now, so 5 and 6 are held to it too.
+            if (InteropEnvironment.BptFirst())
+                Assert.That(outcome.SelectedEnergyServiceId is { } id && EnergyTransferService.IsBidirectional(id),
+                            Is.True,
+                            $"BPT was ranked first, so the session had to negotiate a bidirectional service "
+                          + $"(5 = AC_BPT, 6 = DC_BPT, 9 = MCS_BPT) — it negotiated "
+                          + $"{outcome.SelectedEnergyServiceId?.ToString() ?? "none"}, which means their "
+                          + $"catalogue did not carry one and our EVCC fell back");
         }
         finally
         {

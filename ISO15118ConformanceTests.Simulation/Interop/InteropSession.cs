@@ -91,44 +91,51 @@ internal static class InteropSession
     /// <c>V2G_INTEROP_CONTRACT_CERT</c>.</param>
     /// <param name="mcs">Drive the -20 DC session as <b>MCS</b>: ask for energy-transfer services 8 / 9
     /// instead of 2 / 6. Set by <c>V2G_INTEROP_MODE=mcs</c>; see <see cref="InteropEnvironment.Mcs"/>.</param>
-    /// <param name="mcsBptFirst">With <paramref name="mcs"/>: rank MCS_BPT (9) ahead of MCS (8), which is
-    /// the only way to reach the bidirectional entry of a catalogue that carries both. Set by
-    /// <c>V2G_INTEROP_MCS_FIRST=9</c>; see <see cref="McsBptFirstEvcc"/> for what it does <i>not</i>
-    /// make bidirectional.</param>
+    /// <param name="bptFirst">Rank the bidirectional entry of this run's catalogue ahead of the
+    /// unidirectional one — AC_BPT (5), DC_BPT (6) or MCS_BPT (9) — which is the only way to reach it at a
+    /// station advertising both. Set by <c>V2G_INTEROP_BPT_FIRST=1</c>.
+    /// <para>
+    /// It applies to all three catalogues, which it did not use to: while this was <c>mcsBptFirst</c> it
+    /// was refused without <paramref name="mcs"/>, so services 5 and 6 were unreachable from here and
+    /// EVerest's BPT column stayed empty while their SIL advertised it. The generalisation is the app's
+    /// <c>Evcc20Base.PreferBidirectionalService</c>.
+    /// </para></param>
     public static async Task<EvccOutcome> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
                                                        PncEvccOptions? pnc = null, Boolean mcs = false,
-                                                       Boolean mcsBptFirst = false)
+                                                       Boolean bptFirst = false)
     {
 
         if (mcs)
             RefuseImpossibleMcs(protocol, mode);
 
-        // Stated rather than implied: ranking 9 first is meaningless outside an MCS catalogue, and silently
-        // ignoring it would leave a run that was asked for MCS_BPT looking like one that got it.
-        else if (mcsBptFirst)
-            throw new ArgumentException(
-                "MCS_BPT was ranked first without an MCS session; services 8 / 9 are only asked for when "
-              + "mcs is set.", nameof(mcsBptFirst));
-
         if (protocol == ProtocolVariant.Iso15118_2)
         {
+            // -2 has no service catalogue: its energy transfer mode is chosen in ChargeParameterDiscovery
+            // and there is no bidirectional variant to rank. Refused rather than dropped, for the reason
+            // the MCS guard below has — a run configured for BPT that quietly ran unidirectionally is a
+            // result that will be written up as something it is not.
+            if (bptFirst)
+                throw new ArgumentException(
+                    "BPT was ranked first for an ISO 15118-2 session; the bidirectional services are -20 "
+                  + "catalogue entries and -2 has no catalogue.", nameof(bptFirst));
+
             var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
                            { Pnc = pnc };
             await evcc.RunAsync(ct);
             return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent);
         }
 
-        Evcc20Base evcc20 = (mode, mcs, mcsBptFirst) switch
+        Evcc20Base evcc20 = (mode, mcs) switch
         {
-            (PowerMode.Dc, true, true ) => new McsBptFirstEvcc(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
-            (PowerMode.Dc, true, false) => new Evcc20Mcs      (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
-            (PowerMode.Dc, false,    _) => new Evcc20Dc       (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
-            _                           => new Evcc20Ac       (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+            (PowerMode.Dc, true ) => new Evcc20Mcs(stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+            (PowerMode.Dc, false) => new Evcc20Dc (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
+            _                     => new Evcc20Ac (stream, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout),
         };
 
-        evcc20.PreferDynamicControlMode = preferDynamic;
-        evcc20.Pnc                      = pnc;
+        evcc20.PreferDynamicControlMode  = preferDynamic;
+        evcc20.PreferBidirectionalService = bptFirst;
+        evcc20.Pnc                       = pnc;
 
         await evcc20.RunAsync(ct);
         return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,
