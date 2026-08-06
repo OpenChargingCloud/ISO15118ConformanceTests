@@ -169,9 +169,14 @@ Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling. The W
 gone — two -20 DC sessions over mutual TLS 1.3 now run from Windows against 2026.02.1, client chain and
 all (see ⁶).
 
-**Josev has a page of its own**, because it is the counterparty with the most history here and the only
-one that serves both roles well: [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) —
-every scenario, what each one caught, and what stays out of reach.
+**Two counterparties have a page of their own**, for opposite reasons — each the long form of its column:
+every scenario, what it caught, and what stays out of reach.
+
+- [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) — the counterparty with the most
+  history here, the independent **codec** (EXIficient), and the only one that serves both roles well.
+- [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) — the independent **charger**,
+  the thing a car in the field actually meets, and the counterparty that has found the most defects in
+  *this* project. Almost all of them share one of two shapes, which that page names.
 
 ## What is here
 
@@ -223,6 +228,7 @@ on the wire. What each of them has proven is the matrix above.
 | | |
 |---|---|
 | [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) | the Josev column in full — every scenario, every bug it caught |
+| [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) | the EVerest column in full — and the two shapes its findings share |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences |
 | [`docs/reports/`](docs/reports/) | findings written up for the counterparty they belong to |
 | [`tools/interop-josev/`](tools/interop-josev/README.md), [`tools/interop-everest/`](tools/interop-everest/README.md) | how to bring each counterparty up and drive it |
