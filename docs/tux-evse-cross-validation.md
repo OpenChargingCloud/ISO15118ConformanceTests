@@ -211,6 +211,10 @@ shipped scenario of theirs runs over TLS today.
 Between the two, everything above TLS in a -2 session stayed unreachable — except that **mutual TLS
 works**: asked for a client certificate, their car presents `CN=eMaid`.
 
+Both are written up for them in [`docs/reports/tux-evse-tls.md`](reports/tux-evse-tls.md), as two
+separate filings: the signing bug is a two-line fix, the cipher-suite question may be a deliberate
+choice and is asked rather than asserted.
+
 ---
 
 ## What stays out of reach, and what would move it
