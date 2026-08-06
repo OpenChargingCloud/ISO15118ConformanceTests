@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
   "note": "What each recorded station would have reported to its backend. NOT an independent third measurement: it is the same station as the MeterInfo on the wire, so the energies cannot disagree in a way that means anything. What it does support is the one question a phone can settle without a CSMS — whether the station told the backend the same signed values it showed the car. See Ocpp/OcppTransactionRecord.cs.",
   "transactions": {
     "iso2-ac-eim": {
@@ -77,7 +77,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "3ac5b4f0c78d010993da02aef1fb6df124c411f7c5ab61d9ff3a4031320dcb6f1f0379c4a3ca9fc4e862c2d71280f6f2de8340654430cb4a8af72a6b3f061b26",
+                "signedMeterData": "baa3884f4dad3fd0d34b5198969cda918cc80129ae0afe959f9aaaf1befd9bb8fa05fca095c16ab76250620670e2f058cca597ee4281b73efe3bcea7cfe2794f",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -98,7 +98,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "a0f8d519e9ac1c313215e7420609495c63616191e6f1b6df2abdebfd9827a66e4e76f3eb7ac0ba0c2b0980eaf19b36bc2d3477a411f6500ce0b3d0a791553b9a",
+                "signedMeterData": "10a1cdfc9e397bb0560829005e44882539bc5d2bff05af54a40885e435df86b9d7b599cb4de8db1379b8965c875d9b83e3a3c6fc4fd92369fc144be01d58003f",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -119,7 +119,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "3eb06c04b57296a4df3bf4c50685c7612ea9d69d6ff21fd72f2f652c0efb3e071269d21c667241b437c3e001319e93863040d83f4347d58c8d6f64020c469962",
+                "signedMeterData": "36c1bd0a371d4ef30241113916691fd538b344356527146023f9f1319ed2314aa7466441d4db44f14d7da4e0e23003332dc090ed301053e71e407fa9f0f43311",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -527,7 +527,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "3aa584e4475b7e5b50407cec48c56d3ef5d663dd12ba569356793a65e497e3e1dd0034e3b045bd5151b32765da1219883f0a651365ee988979a16681e3e0aae1",
+                "signedMeterData": "9cc56ae8911425a8f9ab255abe0691bd24226a4347070e5633b2c02ba724cad55dd99919bc693dbea27e1360aabc4c166c3c806a9556715e281e148d29a5d698",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -548,7 +548,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "ae843341539ef8f759648b400035c3eced5dea039278d1bd54384490b748e5d78db8c5f2f585be5cc321157e0f67e8a120c30ba429b5d2ad02e6df22b0b90051",
+                "signedMeterData": "c3f24ddc3240f097aa86e938c394ace7151f346aa6a1ae6088cc6013f0e5393ac2d5ac6759ce44d486c7268a04b3fcba5033f89086e35eb6f022caca5da2a012",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -569,7 +569,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "b33e0fde6b450e1fdcd5e25a88a6f96501dba35461a1e5b63edd9faac5cd8dcea9010ce70ecc1463b0cadaaff04e1556cfa3e4385e4f1904c1bccb8b261c965d",
+                "signedMeterData": "5262c8577ab0b5b3e69ce9a28f042edd848ccd156de8490c5c16bcab9358b431923acc38b0aa7a5e44ef1d39730c92b70bb9b9a05703f56b6795ef9693ecf2da",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"

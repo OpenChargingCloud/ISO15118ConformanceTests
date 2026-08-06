@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
   "name": "iso20-ac-eim",
   "protocol": "iso15118-20",
   "mode": "ac",

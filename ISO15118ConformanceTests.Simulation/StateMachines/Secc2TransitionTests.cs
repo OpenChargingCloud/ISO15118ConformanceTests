@@ -19,6 +19,7 @@ using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118_2;
 using cloud.charging.open.protocols.ISO15118_2.Generated;
+using ISO15118ConformanceTests.Simulation.Timing;
 using Vanaheimr.V2G.Simulation.Session;
 using Vanaheimr.V2G.Simulation.StateMachines;
 using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
@@ -106,6 +107,30 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             Assert.That(stopRes.ResponseCode, Is.EqualTo(ResponseCode.OK));
             Assert.That(secc.IsDone, Is.True);
         }
+
+        /// <summary>
+        /// <c>SessionSetupRes.EVSETimeStamp</c> is the station's clock, which an EV without one of its own
+        /// takes as the time ([V2G2-748]) — not a constant.
+        /// </summary>
+        /// <remarks>
+        /// It was the literal 1600000000 (13 September 2020) in every session this station ever answered,
+        /// while the same class read the clock correctly two messages later. Nothing here could see it: our
+        /// own EV ignores the field, and a station is entitled to any time it likes, so no oracle in this
+        /// repository was ever going to object. It took a foreign decoder printing the date
+        /// (<c>docs/interop-runs/2026-08-06-tux-head-reverse/</c>).
+        /// </remarks>
+        [Test]
+        public void SessionSetupRes_CarriesTheStationsClock()
+        {
+            var at   = DateTimeOffset.FromUnixTimeSeconds(1_767_225_600);   // 2026-01-01T00:00:00Z
+            var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), new ManualTimeProvider(at));
+
+            var res = (SessionSetupResType)secc.Handle(
+                          Wrap(new byte[8], new SessionSetupReqType(new byte[] { 1 }))).Body.BodyElement!;
+
+            Assert.That(res.EVSETimeStamp, Is.EqualTo(at.ToUnixTimeSeconds()));
+        }
+
 
         [Test]
         public void OutOfOrderRequest_IsAnsweredWithSequenceErrorAndEndsTheSession()

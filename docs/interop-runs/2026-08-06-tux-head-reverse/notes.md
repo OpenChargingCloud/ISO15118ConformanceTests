@@ -226,6 +226,9 @@ and the connection still open, their EVCC binding spun on `Received iso2 message
 - One conformance gap of ours — the sequence guard answering with silence — **found, fixed and
   re-verified on the wire the same day**, and one leniency-vs-strictness divergence (any-phase
   `SessionStop`) on the record with bytes.
+- And one value their decoder simply printed: our `SessionSetupRes.EVSETimeStamp` was the constant
+  `1600000000` (13 September 2020) while the same class read its clock two messages later. Fixed; the
+  corpus regenerated, which changed exactly those five -2 `SessionSetupRes` frames.
 
 ## How to reproduce
 

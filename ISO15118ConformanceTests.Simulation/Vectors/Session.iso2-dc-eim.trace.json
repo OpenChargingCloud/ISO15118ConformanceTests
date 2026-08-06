@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "generator": "Vanaheimr.V2G.Simulation.Tests.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
   "name": "iso2-dc-eim",
   "protocol": "iso15118-2",
   "mode": "dc",
@@ -29,7 +29,7 @@
       "response": {
         "payloadType": "0x8001",
         "message": "SessionSetupResType",
-        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c410141f1f40a0"
+        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c4101e5ad940c0"
       }
     },
     {
