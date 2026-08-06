@@ -59,7 +59,7 @@ not implemented on their side
 | Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ | — | — |
 | WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
 | MCS | — | ✅ ×3 sessions (Scheduled ×2, Dynamic), service id **8** confirmed as MCS by their decoder⁸ | — | — |
-| MCS_BPT | — | ◐ service **9** selected and accepted; session then refused `FAILED_WrongChargeParameter` — our EVCC has no bidirectional request path⁹ | — | — |
+| MCS_BPT | — | ✅ ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
 
 ¹ EVerest's current `EvseV2G` sits on cbV2G — the encoder our vector corpus is generated from — so
 byte-level agreement there is not independent. The 2023.10.0 demo image ran **OpenV2G**, which *was* an
@@ -88,19 +88,22 @@ and it is about *their* material rather than ours — their `create_certs.sh -v 
 has no counterparty that generates it.
 ⁷ And the finding that goes with it: `IsoMux` routes on "mentions -20 anywhere", never reading SAP
 `Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
-⁸ The **catalogue** is what this validates, not the envelope: their MCS SIL is electrically an ordinary
-charger (22 kW HLC limits, same as their plain -20 DC config), and our own `Evcc20Mcs` declares a 50 kW
-EV envelope under the MCS service — the EV-side limits in `Evcc20Dc` are not virtual, so the megawatt
-figures exist only on our station side. Both bounds are named in the run notes.
-⁹ Their refusal is correct — a BPT service wants `BPT_*` charge parameters, and ours were charge-only —
-and it is the first external confirmation that the service/parameter coupling is enforced against an EV
-at all. What remains open is ours: no `Evcc20*` builds the `BPT_*` request types, because our
-bidirectional work was done station-side, where the EV's message decides the direction. Getting far enough
-to learn that turned up a second defect of ours and **fixed** it:
-`Evcc20Base.SelectEnergyTransferService` followed the *station's* catalogue order, so
-`PreferredEnergyServiceIds` — documented "best first" — was a filter and never a ranking. That is the same
-defect shape as ⁷ pointed at ourselves; it now walks the EV's list, the run was repeated to confirm it on
-the wire, and a loopback regression test reproduces the old behaviour.
+⁸ These three sessions validated the **catalogue** only; the envelope followed a day later under MCS_BPT
+(see ⁹), where their `EvseManager` decoded `dc_ev_maximum_power_limit: 3750000.0` at 3000 A and 1250 V.
+What no run against this counterpart can show is megawatt *power*: their MCS SIL is electrically an
+ordinary charger and clamps to 22 kW whatever is declared.
+⁹ Green on the second attempt, and the first one is why the cell is trustworthy. On 2026-08-05 the
+station refused us at `DC_ChargeParameterDiscoveryRes` with `FAILED_WrongChargeParameter` — correctly: no
+`Evcc20*` built the `BPT_*` request types, because our bidirectional work had been done station-side where
+the EV's message decides the direction. That refusal was the first external confirmation that the
+service/parameter coupling binds the EV too, and it drove the fix; on 2026-08-06 the same scenario ran
+twice to `SessionStop` and their station logged `Max discharge current 3000.000000A`
+([`2026-08-06-everest-mcs-bpt-complete`](docs/interop-runs/2026-08-06-everest-mcs-bpt-complete/notes.md)).
+Getting there turned up two further defects of ours, both fixed: `SelectEnergyTransferService` followed
+the *station's* catalogue order, so `PreferredEnergyServiceIds` — documented "best first" — was a filter
+and never a ranking (the same defect shape as ⁷, pointed at ourselves); and the harness's own MCS_BPT
+probe inherited the DC envelope, so its first session declared 50 kW under service 9. Only a station that
+logs what it received could show the second — a loopback peer clamps nothing and reports nothing.
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
