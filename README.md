@@ -154,8 +154,12 @@ image, 02/03.08) **and re-validated against 2026.02.1 built from source**
 Standing deltas on 2026.02.1: their unicast-SDP loop shutdown is fixed, while the refused-TLS-handshake
 one persists and turns out to be reachable from their *stock* SIL config by one `openssl s_client`
 line — after it, the charger answers nothing while its process stays healthy (report ready to file,
-[`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md)),
-`IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, and
+[`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md); `IsoMux` turns out
+**not** to share it, so the report is about `Evse15118D20` alone),
+`IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, their
+`PyEvJosev` manifest documents 4 of the 12 energy-service values it accepts and omits the `MCS` its own
+config uses (second report ready to file,
+[`docs/reports/pyevjosev-manifest-services.md`](docs/reports/pyevjosev-manifest-services.md)), and
 `config-sil-mcs.yaml` now exists — **which has since been run**: three complete MCS sessions, our service
 id 8 read back by their stack as MCS, the first external witness this project has ever had for MCS
 ([`2026-08-05-everest-mcs`](docs/interop-runs/2026-08-05-everest-mcs/notes.md)).
