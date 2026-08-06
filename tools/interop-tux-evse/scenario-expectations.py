@@ -81,8 +81,9 @@ def report(document, verbose=False):
     lines.append("charger chose for itself. Those mismatches are expected against our station and are not")
     lines.append("findings; read them for the shape of the difference, not for the fact of it.")
     lines.append("")
-    lines.append("Prefer their `strong` compaction mode for a run against a foreign station: `none` and")
-    lines.append("`basic` require exact matching and stop, `strong` keeps going.")
+    lines.append("No compaction mode changes this: `compact` acts at pcap-import time, and the player aborts")
+    lines.append("the whole scenario at the first expect mismatch (confirmed on the wire, 2026-08-06).")
+    lines.append("Run scenario-relax.py to reduce the expects to the protocol fields before an interop run.")
 
     return "\n".join(lines), station_specific, total
 

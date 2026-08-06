@@ -1,0 +1,151 @@
+# EXCERPT — the original is 571958834 bytes: one refused SessionSetupReq per connection, and the
+# responder retries the failed query match 1125779 times in its 240 s lifetime with no delay.
+# First 140 lines of the meaningful log, then the last 6 lines:
+------BEGIN OF CONFIG-----
+------END OF CONFIG-----
+<6> INFO: running with pid 14208 [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:1498,main]
+<6> INFO: API monitor added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: Browser URL= http://localhost:1235 [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:549,http_server_create]
+<5> NOTICE: Serving rootdir=. uploaddir=. [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:559,http_server_create]
+<6> INFO: Alias for url=/devtools to path=/usr/share/afb-ui-devtools/binder [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:443,init_alias]
+<6> INFO: binding [/home/ahzf/tux-evse/cargo/release/libafb_sim15118_evse.so] looks like an AFB binding V4 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/apis/afb-api-so-v4.c:170,afb_api_so_v4_add_config]
+<6> INFO: API iso15118-evse added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: [API iso15118-evse] api preinit: uid:iso15118-evse, name:iso15118-evse, config:{"binding-path":"/home/ahzf/tux-evse/cargo/release/libafb_sim15118_evse.so"} [afb-librs/src/./apiv4-mod.rs:358,afbv4::apiv4::AfbApiControls::config]
+<5> NOTICE: [API libafb_sim15118_evse.so] Rust API uid=iso15118-evse started [afb-evse/src/binding.rs:170,afb_sim15118_evse::binding::afbBindingV4entry]
+<6> INFO: binding [/home/ahzf/tux-evse/cargo/release/libafb_injector.so] looks like an AFB binding V4 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/apis/afb-api-so-v4.c:170,afb_api_so_v4_add_config]
+<5> NOTICE: [API libafb_injector.so] uid:evse scenario:app-set-protocol verb:iso2:app_proto_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] uid:evse scenario:sdp-evse verb:iso2:sdp_evse_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] uid:evse scenario:sdp-evse verb:iso2:sdp_evse_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<6> INFO: API iso15118-responder added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: [API libafb_injector.so] Rust API uid=iso15118-responder started [src/binding.rs:168,afb_injector::binding::afbBindingV4entry]
+<5> NOTICE: API iso15118-evse starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<5> NOTICE: API iso15118-responder starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<6> INFO: API iso15118-responder started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<5> NOTICE: [API iso15118-evse] iface:evcc-veth sdp:15118 prefix:0xfe80 [afb-evse/src/binding.rs:34,<afb_sim15118_evse::binding::ApiUserData as afbv4::apiv4::AfbApiControls>::start]
+<5> NOTICE: [API iso15118-evse] tcp-wserver listen socket:[fe80::78be:f0ff:fe18:d1e6%3]:61341 [/home/ahzf/.cargo/git/checkouts/iso15118-network-rs-2e9c5304568f4a89/f1ab338/src/ipv6-tcp.rs:162,nettls::tcp::TcpServer::new]
+<5> NOTICE: [API libafb_sim15118_evse.so] sdp-server accept anycast-ipv6 udp:15118@evcc-veth [/home/ahzf/.cargo/git/checkouts/iso15118-network-rs-2e9c5304568f4a89/f1ab338/src/ipv6-udp.rs:35,nettls::udp::SdpServer::new]
+<6> INFO: API iso15118-evse started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<5> NOTICE: API monitor starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<6> INFO: API monitor started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<6> INFO: HTTP server starting [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:727,http_server_start]
+<5> NOTICE: Listening interface *:1235 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/http/afb-hsrv.c:828,hsrv_itf_connect]
+<7> DEBUG: [API libafb_sim15118_evse.so] Protocol:urn:iso:15118:2:2013:MsgDef selected [/home/ahzf/.cargo/git/checkouts/iso15118-encoders-rs-032a2466522d2c13/fe6c0aa/src/../capi/v2g-messages/proto-apphand.rs:212,iso15118::capi::v2g_encoder::app_protocol::SupportedAppProtocolReq::match_protocol]
+<7> DEBUG: [API libafb_sim15118_evse.so] iso-app-hand: selected protocol:urn:iso:15118:2:2013:MsgDef [exi-15118/src/net-exi.rs:319,iso15118_exi::net_exi::IsoNetConfig::decode_from_stream]
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20
+<2> CRITICAL: [API iso15118-evse] responder::call_sync api:iso15118-responder verb:evse:iso2:session_setup_req jbody:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} [afb-evse/src/controller.rs:158,afb_sim15118_evse::controller::ControllerEvse::process_exi_message]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+
+# [... ~1125779 repeats of the same refusal block elided ...]
+<5> NOTICE: [API libafb_sim15118_evse.so] tcp-client:api-subcalls:{"uid":"responder-req-fail","info":"query check return invalid value:Err(id:jsonc-match invalid value received:\"[ab,cd,ef,01,02,03]\" expected:\"[00,7d,fa,07,5e,4a]\" src/verbs.rs:284:26)"} file: afb-evse/src/controller.rs:155:19
+<5> NOTICE: Received SIGTERM [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:296,on_sigterm]
+*** 
+ -- rec:{"id":"[ab,cd,ef,01,02,03]","tagid":"session_setup_req","proto":"iso2","msgid":0} 
+-- exp:{"id":"[00,7d,fa,07,5e,4a]","tagid":"session_setup_req","proto":"iso2","msgid":0}
+<5> NOTICE: [REQ/API iso15118-responder] responder-req-fail:query check return invalid value:Err(id:jsonc-match invalid value received:"[ab,cd,ef,01,02,03]" expected:"[00,7d,fa,07,5e,4a]" src/verbs.rs:284:26) file: src/verbs.rs:299:20

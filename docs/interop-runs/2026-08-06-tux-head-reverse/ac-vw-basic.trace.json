@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "tux-evse-ac-reverse",
+  "protocol": "iso15118-2",
+  "mode": "ac",
+  "note": "live interop: tux-evse/iso15118-simulator-rs (injector) against our SECC",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupReqType",
+        "frame": "01fe80010000000e8098004011d01801f7e81aae4400"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupResType",
+        "frame": "01fe80010000001e809802328eb7d8342473c911e0202d1114a905090ca914c410141f1f40a0"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryReqType",
+        "frame": "01fe80010000000d809802328eb7d8342473c911b8"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryResType",
+        "frame": "01fe800100000017809802328eb7d8342473c911c00008004011050c050248"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionReqType",
+        "frame": "01fe800100000010809802328eb7d8342473c91132001280"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionResType",
+        "frame": "01fe80010000000e809802328eb7d8342473c9114000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationReqType",
+        "frame": "01fe80010000000d809802328eb7d8342473c91008"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationResType",
+        "frame": "01fe80010000000f809802328eb7d8342473c910100000"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryReqType",
+        "frame": "01fe800100000022809802328eb7d8342473c910918002080000c60f4030210288800830ac1b020c0000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryResType",
+        "frame": "01fe800100000025809802328eb7d8342473c910a00000000000240700c50f8550a80000006207300818604000"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe800100000015809802328eb7d8342473c91150000000028a0522c0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe800100000011809802328eb7d8342473c9116000000000"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionStopReqType",
+        "frame": "01fe80010000000e809802328eb7d8342473c911f000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionStopResType",
+        "frame": "01fe80010000000e809802328eb7d8342473c9120000"
+      }
+    }
+  ]
+}

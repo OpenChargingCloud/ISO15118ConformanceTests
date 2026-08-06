@@ -4,8 +4,8 @@ Interop between **our** EVCC/SECC and **[tux-evse/iso15118-simulator-rs](https:/
 (Apache-2.0), a Rust ISO 15118 simulator that plays either end and is driven by scenarios generated from
 packet captures.
 
-**This file is how to run it.** For what has already run — two exchanges, one hard finding, four
-workarounds and one open question — see
+**This file is how to run it.** For what has already run — both directions now, five sessions at their
+HEAD on 2026-08-06 including the full captured-Audi DC route against our SECC — see
 [`docs/tux-evse-cross-validation.md`](../../docs/tux-evse-cross-validation.md).
 
 Like [`../interop-josev`](../interop-josev/README.md) this is **opt-in and never part of the offline CI**.
@@ -13,8 +13,9 @@ The automated hook is the `[Explicit] [Category("Interop")]` fixture
 [`ISO15118ConformanceTests.Simulation/Interop/TuxEvseInteropTests.cs`](../../ISO15118ConformanceTests.Simulation/Interop/TuxEvseInteropTests.cs),
 gated on environment variables — `dotnet test -c Release` skips it entirely.
 
-*Written against the repository as of 2026-08-01. Every line marked **confirm on first contact** could not
-be checked from their documentation and is a question for the first run, not a statement.*
+*Written against the repository as of 2026-08-01; revised 2026-08-06 after building and running their
+`main` from source. The published `v0.1` image still ships `iso15118-simulator-rs-0.2` and predates
+their session-id fixes and the AC captures — prefer the source build below.*
 
 ---
 
@@ -94,10 +95,19 @@ list which expectations are station-specific, so the noise is known up front:
 ./scenario-expectations.py /usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json
 ```
 
-Their `compact` mode changes how strict the replay is — `none` and `basic` require exact matching, while
-`strong` "plays unique requests once and loops until the expected answer is received". **Start with
-`strong`**: against a foreign station it is the mode that keeps going rather than stopping at the first
-legitimately different field.
+**No `compact` mode makes the player tolerant** — that hope did not survive first contact. `compact`
+acts at *pcap-import* time (which transactions the scenario contains); the player's expect check is
+`Jequal::Partial` against whatever the scenario carries, and the scenario job propagates the first
+`Fail`, aborting the whole replay (`injector-binding-rs/src/controller.rs`, confirmed on the wire
+2026-08-06: the shipped Audi scenario dies at `SessionSetupRes.id`, three messages in). A transaction
+with **no** `expect` block is not checked at all.
+
+So for a run against our station, reduce the expects to the protocol fields first — message type and
+response code stay checked, the captured charger's own values stop aborting the replay:
+
+```bash
+./scenario-relax.py audi-dc-iso2-compact.json audi-relaxed.json --autorun
+```
 
 ---
 
@@ -145,9 +155,60 @@ their side, and only inside one Linux box.
 ## Setup
 
 Nothing here is installed for you, and nothing is vendored. Their stack is ~40k lines of Rust with C
-dependencies; they recommend the packages or the container over building it.
+dependencies; they recommend the packages or the container over building it — but the published
+image is a `0.2` from 2024, and everything after it (session-id fixes, -2 PnC, the AC captures)
+lives only on `main`.
 
-### Container (least invasive, recommended)
+### Building their HEAD from source (what the 2026-08-06 runs used)
+
+Their `oci-15118/Dockerfile_almalinux_source` is the recipe; it works outside a container too
+(WSL2 Debian 13, ~10 min). Two things it does not say:
+
+- **`injector-binding-rs` is missing from it**, although every shipped scenario config loads
+  `${INJECTOR_BINDING_DIR}/libafb_injector.so`. Build it like the workspace.
+- The tux-evse crates pull `iso15118-encoders-rs` and `iso15118-network-rs` as **cargo git
+  dependencies pinned to `main`**, so one `cargo build` really is the whole family at HEAD.
+
+```bash
+# C prerequisites, each configured against the previously installed one:
+# afb-binding → rp-lib-utils → afb-libafb (their WITH_* flags) → afb-binder → iso15118-encoders
+#   cmake -DCMAKE_BUILD_TYPE=Release .. && make -j && sudo make install   (each), then ldconfig
+# Rust, sharing one CARGO_TARGET_DIR so the crates see afb-librust's rlib:
+export CARGO_TARGET_DIR=~/tux-evse/cargo
+export RUSTFLAGS="-L$CARGO_TARGET_DIR/release -Adead_code -Aunused_imports"
+(cd afb-librust             && cargo build --release)
+(cd iso15118-simulator-rs   && cargo build --release)
+(cd injector-binding-rs     && cargo build --release)
+# artifacts: $CARGO_TARGET_DIR/release/{libafb_sim15118_evcc.so,libafb_sim15118_evse.so,
+#                                        libafb_injector.so,pcap-iso15118}
+```
+
+Run their binder with `CARGO_BINDING_DIR` and `INJECTOR_BINDING_DIR` pointed at
+`$CARGO_TARGET_DIR/release` instead of the packaged `/usr/redpesk/...` paths; everything else in
+their start scripts applies unchanged. The binder wants
+`/usr/share/afb-ui-devtools/binder` to exist for its `/devtools` alias — `mkdir -p` is enough when
+the devtools RPM is not installed.
+
+### One host, two stacks: their side needs a network namespace
+
+Their `nettls` binds the SDP socket **without `SO_REUSEADDR`** and to the interface's link-local
+address; our SDP server binds `[::]:15118` wildcard. On one host those conflict **in either order**
+(wildcard-vs-specific shares a port only when both sockets set the flag). Their own demos never see
+it — two containers, or two veth ends, are two different specific addresses. Give their binder its
+own stack and the shared-host case becomes their intended two-hosts case:
+
+```bash
+sudo ip netns add tuxev
+sudo ip link add evse-veth type veth peer name evcc-veth
+sudo ip link set evcc-veth netns tuxev
+sudo ip link set evse-veth up
+sudo ip netns exec tuxev ip link set lo up
+sudo ip netns exec tuxev ip link set evcc-veth up
+# theirs: sudo ip netns exec tuxev env IFACE_SIMU=evcc-veth ... afb-binder ...
+# ours:   V2G_INTEROP_SDP=evse-veth (the fixture advertises where their multicast arrives)
+```
+
+### Container (the published image — 21+ months behind main)
 
 ```bash
 ./prepare-tux-evse.sh            # fetches their network script, shows what it will do, pulls the image
@@ -200,12 +261,14 @@ The direction that tests what we **accept**.
 It starts our SECC with `--sdp --interface <iface>` so their injector's SDP discovery finds it, then waits.
 Start their injector in the other terminal (the `podman_evcc` line above, or `binding-start-evcc`).
 
-Or through the fixture, which additionally **records the session**:
+Or through the fixture, which additionally **records the session** and, with `V2G_INTEROP_SDP`,
+answers their injector's discovery itself (this is the combination the 2026-08-06 runs used —
+relax the scenario first, see "Reading the verdict"):
 
 ```bash
-V2G_INTEROP_LISTEN=55000 V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
+V2G_INTEROP_LISTEN=55000 V2G_INTEROP_SDP=evse-veth V2G_INTEROP_PROTOCOL=2 V2G_INTEROP_MODE=dc \
 V2G_INTEROP_RECORD=/tmp/tux-run \
-V2G_INTEROP_SCENARIO=/usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json \
+V2G_INTEROP_SCENARIO=/tmp/audi-relaxed.json \
   dotnet test ../../ISO15118ConformanceTests.Simulation -c Release \
     --filter "FullyQualifiedName~TuxEvseInteropTests.TheirInjector"
 ```
@@ -240,16 +303,22 @@ its log instead. If so, use the second form above.
 
 Work up, and record each one:
 
-1. **-2 DC, EIM, no TLS** — their shipped `audi-dc-iso2-compact.json`, both directions. This is the whole
-   of what their -2 support covers, and it is a full session including cable check, pre-charge, current
-   demand and welding detection.
-2. **-2 AC** — **confirm on first contact:** their shipped scenarios are DC captures; an AC one may have
-   to come from a capture of ours via `pcap-iso15118`.
+1. **-2 DC, EIM, no TLS** — their shipped `audi-dc-iso2-compact.json`, both directions. Ran
+   2026-08-06 (reverse, expect-relaxed): the full session, cable check to welding detection.
+2. **-2 AC** — from the captures that exist **only at HEAD**: `afb-test/trace-logs/vw-ac-iso2.pcap`
+   and two Porsche Taycan pcaps, through their own converter. Ran 2026-08-06 with the VW capture:
+   `--compact=none` preserves the double Authorization poll (and found our sequence-guard gap),
+   `--compact=basic` folds it and runs to `SessionStop`.
+   ```bash
+   pcap-iso15118 --pcap_in=afb-test/trace-logs/vw-ac-iso2.pcap --json_out=vw-ac.json --compact=basic
+   ./scenario-relax.py vw-ac.json vw-ac-relaxed.json --autorun
+   ```
 3. **TLS**, once the plain sessions are clean. They use GnuTLS with a Trialog-derived PKI
    (`mkcerts -i ./temp`) and their own cipher profile string; ours is in the app's
    [`docs/pki-model.md`](../../libs/EVSimulatorApp/docs/pki-model.md). Expect to
    spend the time on cipher-suite and curve alignment rather than on ISO 15118.
-4. **-20 / DIN** — not yet possible on their side.
+4. **-20 / DIN** — not yet possible on their side (-20); DIN is theirs alone until our stack
+   speaks it.
 
 ---
 
@@ -285,8 +354,16 @@ will otherwise re-derive them.
 
 ## Known friction (expect these first)
 
-- **The `expect` blocks are another station's answers.** See "Reading the verdict" above. This is the
-  single largest source of noise in the reverse direction.
+- **The `expect` blocks are another station's answers, and a mismatch aborts the replay.** See
+  "Reading the verdict" above — `scenario-relax.py` is the way through. This is the single largest
+  obstacle in the reverse direction.
+- **Their binders busy-loop with no backoff — on failure, timeout and idle paths.** Measured
+  2026-08-06 at HEAD: the responder retried one refused query match **1.1 M times in 240 s** (572 MB
+  of log); the EVCC binding re-decoded a stale buffer **10.9 M times in ~70 s** (2.1 GB) after a
+  response timeout, and spun on `pending=None` **7.5 M times in ~25 s** (1.29 GB) after a *completed*
+  session. Always cap their binder with `timeout` or it will fill the disk.
+- **No `SO_REUSEADDR` on their SDP socket.** Same host, same interface as our SDP server cannot
+  work in either bind order — run their binder in a namespace ("One host, two stacks" above).
 - **Link-local addressing with zones.** Their whole network model is veth pairs; nothing is on loopback.
   See "Their network model" above.
 - **SDP.** Their EV side multicasts SDP before connecting; ours answers it with `--sdp --interface`.

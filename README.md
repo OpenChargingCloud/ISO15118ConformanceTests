@@ -44,9 +44,9 @@ evidence:
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
 | **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G**¹ (OpenV2G in the 2023 image) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
-| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again¹⁶ | their EV — **OpenEXI** | — (they only respond) |
-| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image |
-| Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something¹⁶ | `EV→ ←SECC` | `EV→` only |
+| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again¹⁶ | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW)¹⁷ |
+| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image · **`main` `fc51088`** (source build) |
+| Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something¹⁶ | `EV→ ←SECC` | `EV→ ←SECC` |
 
 The **Ours** column is our own C# stack against itself — a loopback E2E with both peers ours, which is
 what runs in the offline suite and what every counterparty column is measured against. It says the
@@ -72,8 +72,8 @@ how to read one.
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | — |
-| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ◐ `EV→` stops at `SessionSetup`² |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | ✅ `←SECC` a real VW's route¹⁸ |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
@@ -163,6 +163,20 @@ So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a
 largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
 -2 reverse against EVerest has deliberately never been run.
 
+¹⁷ Their injector replays the capture at us with `expect` blocks reduced to protocol fields
+(`scenario-relax.py` — message type and response code stay checked; the stock file aborts at the first
+field our station legitimately answers differently, its recorded charger's EVSE ID). 25 exchanges,
+`SessionSetup` to `SessionStop`, every code OK, at their `main` built from source — which also carries
+our freshly-issued session id through every request, something the v0.1 image's player could not.
+
+¹⁸ The AC capture exists only at their HEAD, converted by their own `pcap-iso15118`. Under their
+`basic` compaction the route runs to `SessionStop` — including the VW stopping straight from the
+charging phase, where **the recorded charger answered `FAILED_SequenceError` and ours answers `OK`**,
+a divergence kept, not corrected. Uncompacted, the VW's double `Authorization` poll reached the arm of
+our sequence guard that closes the connection instead of answering `FAILED_SequenceError` on the wire —
+the first finding against us from this counterparty, and one only a replayer could produce: every
+other peer polls only while our station says `Ongoing`.
+
 
 ## Run
 
@@ -196,7 +210,7 @@ on the wire. What each of them has proven is the matrix above.
 | [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) | the independent **codec** (EXIficient), the counterparty with the most history here, and the only one that serves both roles well. Every -20 energy mode any independent stack implements, over TCP and TLS, plain and Plug & Charge, in both control modes. |
 | [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) | the independent **charger**, the thing a car in the field actually meets, and the counterparty that has found the most defects in *this* project; almost all of them share one of two shapes, which that page names. [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and unsent, six structural walls named. |
 | [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) | the **second** independent codec (OpenEXI), and the highest yield per exchange here: seventeen messages found one defect of ours that every other oracle was structurally blind to, and three of theirs. The four capabilities it was chosen for all sit behind a wall in their EV. |
-| [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; the direction its design favours is untried. |
+| [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; as an **injector at their HEAD** it drove our SECC through the full captured-Audi DC session and a VW AC route — and reached the one arm of our state machine no self-consistent test had ever executed. |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences |
 | [`docs/reports/`](docs/reports/) | findings written up for the counterparty they belong to |
 | [`tools/interop-*/`](tools/) | how to bring each counterparty up and drive it — [Josev](tools/interop-josev/README.md) · [EVerest](tools/interop-everest/README.md) · [eVDriveFlow](tools/interop-evdriveflow/README.md) · [tux-evse](tools/interop-tux-evse/README.md) |
