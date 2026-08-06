@@ -22,44 +22,56 @@ evidence:
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
 | Their EXI | **EXIficient** | **cbV2G**¹ (OpenV2G in the 2023 image) | **OpenEXI**/Nagasena | replays a **captured Audi** |
 | Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image |
-| Directions | forward + reverse | forward | forward + reverse | forward (responder) |
+| Directions | `EV→ ←SECC` | `EV→ ←SECC` | `EV→ ←SECC` | `EV→` (they only respond) |
 
-Every row below also runs **in-repo** as a loopback E2E (both peers ours) — the matrix counts only
-what a *foreign* stack has confirmed. Sessions recorded from these runs replay offline as part of the
-suite, so the matrix does not rot silently when the code moves. Evidence per cell lives under
-[`docs/interop-runs/`](docs/interop-runs/); the run-notes README explains how to read one.
+The **Ours** column is our own C# stack against itself — a loopback E2E with both peers ours, which is
+what runs in the offline suite and what every counterparty column is measured against. It says the
+scenario exists and is guarded here; it says nothing about conformance, because both ends share our
+assumptions. That is the whole reason for the columns to its right. Sessions recorded from the live runs
+replay offline as part of the suite too, so the matrix does not rot silently when the code moves.
+Evidence per cell lives under [`docs/interop-runs/`](docs/interop-runs/); the run-notes README explains
+how to read one.
 
-✅ complete live session &nbsp;·&nbsp; ◐ partial — ran to the stated point &nbsp;·&nbsp; ⛔ blocked by a
-counterparty defect or limitation &nbsp;·&nbsp; ▢ not attempted yet &nbsp;·&nbsp; — not applicable /
-not implemented on their side
+**Status:** ✅ complete live session &nbsp;·&nbsp; ◐ partial — ran to the stated point &nbsp;·&nbsp;
+⛔ blocked by a counterparty defect or limitation &nbsp;·&nbsp; ▢ not attempted yet &nbsp;·&nbsp;
+— not applicable / not implemented on their side
+
+**Which side is ours** — the arrow points the way the session is driven, and the label names *our* role:
+
+| | |
+|---|---|
+| **`EV→`** | our C# **EVCC** drives *their* station. The "forward" direction: we are the car. |
+| **`←SECC`** | *their* EV drives our C# **SECC**. The "reverse" direction: we are the charging station. |
+| **`EV→ ←SECC`** | both, in separate sessions. |
 
 **ISO 15118-2**
 
-| Scenario | Josev | EVerest | eVDriveFlow | tux-evse |
-|---|---|---|---|---|
-| AC, EIM | ✅ both directions | ✅ ×2 sessions | — | — |
-| DC, EIM | ✅ both directions | ✅ ×2 sessions¹ | — | ◐ stops at `SessionSetup`² |
-| Plug & Charge (over TLS) | ✅ both directions, signed msgs verified both ways | ◐ chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
-| Pause / Resume | ✅ forward (`OK_OldSessionJoined`) | — | — | — |
-| Signed tariffs (SalesTariff) | ✅ both roles, incl. their MO-signed tariff verified by us | — | — | — |
-| TLS 1.2 (unilateral) | ✅ | ✅ (the PnC session above) | — | — |
+| Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|---|
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | — |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ◐ `EV→` stops at `SessionSetup`² |
+| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
+| Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
+| Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
+| Renegotiation | ✅ `Iso2LoopbackTests` (EV- and SECC-triggered) | ✅ `EV→ ←SECC` [V2G2-841] | ▢ | — | — |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` | ✅ `EV→` (the PnC session above) | — | — |
 
 **ISO 15118-20**
 
-| Scenario | Josev | EVerest | eVDriveFlow | tux-evse |
-|---|---|---|---|---|
-| DC, Scheduled, EIM | ✅ TCP + TLS | ✅ ×2 sessions | ◐ 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
-| DC, Dynamic | ✅ | ✅ | ⛔ their EV quits at Authorization | — |
-| AC | ✅ TCP + TLS | ◐ to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ | ✅ **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | — | — |
-| Plug & Charge | ✅ | ✅ **reverse**: their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (forward: commented out on their side) | ▢ | — |
-| CertificateInstallation | ◐ our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
-| Mutual TLS 1.3 | ✅ (their P-256 PKI) | ✅ full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
-| SDP discovery | ✅ both directions | ✅ multicast (unicast: fixed in 2026.02.1); **their EV discovers the recording fixture**⁸ | ✅ their EV found our SECC | — |
-| Multi-protocol SAP offer | — | ✅ IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
-| WPT · ACDP | *codec-validated only — no independent stack implements session state machines for them* | | | |
-| MCS | — | ✅ **both directions** — ×3 forward (Scheduled ×2, Dynamic), and their EV picked service **8** out of our catalogue in reverse⁸ | — | — |
-| MCS_BPT | — | ✅ ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
+| Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|---|
+| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
+| DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ⛔ `←SECC` their EV quits at Authorization | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ◐ `EV→` to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | — | — |
+| Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | ▢ | — |
+| CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | — (plain TCP only) | — |
+| SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
+| Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
+| WPT · ACDP | ▢ codec only — no session state machine on either side | *codec-validated only — no independent stack implements session state machines for them* | | | |
+| MCS | ✅ `Secc20McsTests` | — | ✅ `EV→` ×3 (Scheduled ×2, Dynamic) · `←SECC` their EV picked service **8** out of our catalogue⁸ | — | — |
+| MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ `EV→` ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
 
 ¹ EVerest's current `EvseV2G` sits on cbV2G — the encoder our vector corpus is generated from — so
 byte-level agreement there is not independent. The 2023.10.0 demo image ran **OpenV2G**, which *was* an
@@ -146,6 +158,13 @@ so the accept-loop shutdown is `Evse15118D20`'s alone. It also corrected our own
 pinned a both-protocol offer to 1.3 because `ProtocolAndMode` resolves `both` to -20, which is right for
 naming a recording and wrong for a ClientHello sent before the protocol is settled; a both-offer now offers
 both profiles ([`2026-08-06-everest-isomux-tls`](docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)).
+¹³ **The clearest case for splitting this column by direction.** Every recorded Dynamic session had
+Josev's EVCC on the other side: our station could *answer* a Dynamic car long before our car could *be*
+one, so "Scheduled and Dynamic" quietly meant "Scheduled both ways, Dynamic inbound". The Dynamic EVCC
+was built on 2026-08-03 and its first outing was against EVerest, which is why that cell reads `EV→`
+while Josev's reads `←SECC` — the two columns together cover the mode, and neither does alone. Same
+shape as ⁷ and the `PreferredEnergyServiceIds` defect: a capability that reads as present because both
+halves exist separately.
 
 **EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
