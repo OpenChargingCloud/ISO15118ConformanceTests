@@ -77,157 +77,64 @@ how to read one.
 | MCS | ✅ `Secc20McsTests` | — | ✅ `EV→` ×3 (Scheduled ×2, Dynamic) · `←SECC` their EV picked service **8** out of our catalogue⁸ | — | — |
 | MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ `EV→` ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
 
-¹ EVerest's current `EvseV2G` sits on cbV2G — the encoder our vector corpus is generated from — so
-byte-level agreement there is not independent. The 2023.10.0 demo image ran **OpenV2G**, which *was* an
-independent-codec witness; Josev (EXIficient) and eVDriveFlow (OpenEXI) are the standing independent
-lineages.
+Each note states the one fact its cell cannot hold. The reasoning, the run that produced it and the
+defects it turned up live on the counterparty's own page, linked under **Deeper reading** below.
+
+¹ Only the **2023.10.0** demo image was an independent-codec witness (OpenV2G). Current `EvseV2G` and
+`Evse15118D20` sit on **cbV2G**, our own corpus generator — so byte agreement there is agreement with
+ourselves, and the value of this column is behavioural.
 ² Their responder replays a captured car and refuses any request whose identifiers differ from the
 recording — a property of their tool, not an interop verdict.
-³ Their station-side rule "no Contract without TLS" was also the first external check of that spec
-requirement against us, and still holds on 2026.02.1. Two structural limits sit behind that cell: a
-contract/eMAID has no validator in their SIL (their PnC-capable configuration wants an OCPP 2.0.1
-CSMS), and their `EvseManager` drops `Contract` from the offer for an already-authorized session — so
-plugging the simulated car in, which is what makes a *complete charge* possible, is also what makes
-PnC unreachable. -20 PnC is a single commented-out line in their module, unchanged since 2025.10.
-⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in
-the run notes — and 12 of our -20 messages decoded clean by a second independent codec.
-⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot
-produce; not reachable from the wire.
-⁶ Complete charge over mutual TLS 1.3 on 2025.10.0 (macOS), and **×2 against 2026.02.1 driven from
-Windows** — 59 and 68 exchanges to `SessionStop`, their side logging `Handshake complete` /
-`Verify certificate result is okay`
-([`2026-08-06-everest-iso20-tls13-windows`](docs/interop-runs/2026-08-06-everest-iso20-tls13-windows/notes.md)).
-The Schannel caveat that stood here is retired at both ends: the app lets a session name its TLS backend
-(`V2G_TLS_BACKEND=BouncyCastle`), and that is the only variable the live run added. One bound survives,
-and it is about *their* material rather than ours — their `create_certs.sh -v iso-20` emits **P-256**
-(`EC_CURVE=prime256v1`, with their own `TODO` beside it), so the secp521r1 half of our -20 profile still
-has no counterparty that generates it.
-⁷ And the finding that goes with it: `IsoMux` routes on "mentions -20 anywhere", never reading SAP
-`Priority` — confirmed on the wire against 2025.10.0 **and** 2026.02.1.
-⁸ The reverse leg is the one that tests *our* catalogue rather than theirs: offered `{ 8, 9 }` by
-`Secc20Mcs`, their `PyEvJosev` selected **8** and ran to completion
-([`2026-08-06-everest-mcs-reverse`](docs/interop-runs/2026-08-06-everest-mcs-reverse/notes.md)), then twice
-more through the recording fixture once that could advertise itself over SDP
-([`…-recorded`](docs/interop-runs/2026-08-06-everest-mcs-reverse-recorded/notes.md)) — so the reverse
-direction now leaves frames, a flow report and a corpus trace rather than a console log. It also
-took an app fix to be *readable* at all — `Secc20Base.SelectedEnergyServiceId` was `protected` while its
-EVCC counterpart was public, and in reverse the station is the only side that can report the choice. The
-fixture had the same gap one layer up: `RunSeccAsync` returned a bare `Boolean`, so it would have passed an
-MCS reverse run that quietly negotiated an ordinary DC service.
-The three forward sessions validated the **catalogue** only; the envelope followed a day later under MCS_BPT
-(see ⁹), where their `EvseManager` decoded `dc_ev_maximum_power_limit: 3750000.0` at 3000 A and 1250 V.
-What no run against this counterpart can show is megawatt *power*: their MCS SIL is electrically an
-ordinary charger and clamps to 22 kW whatever is declared.
-⁹ Green on the second attempt, and the first one is why the cell is trustworthy. On 2026-08-05 the
-station refused us at `DC_ChargeParameterDiscoveryRes` with `FAILED_WrongChargeParameter` — correctly: no
-`Evcc20*` built the `BPT_*` request types, because our bidirectional work had been done station-side where
-the EV's message decides the direction. That refusal was the first external confirmation that the
-service/parameter coupling binds the EV too, and it drove the fix; on 2026-08-06 the same scenario ran
-twice to `SessionStop` and their station logged `Max discharge current 3000.000000A`
-([`2026-08-06-everest-mcs-bpt-complete`](docs/interop-runs/2026-08-06-everest-mcs-bpt-complete/notes.md)).
-Getting there turned up two further defects of ours, both fixed: `SelectEnergyTransferService` followed
-the *station's* catalogue order, so `PreferredEnergyServiceIds` — documented "best first" — was a filter
-and never a ranking (the same defect shape as ⁷, pointed at ourselves); and the harness's own MCS_BPT
-probe inherited the DC envelope, so its first session declared 50 kW under service 9. Only a station that
-logs what it received could show the second — a loopback peer clamps nothing and reports nothing.
-¹⁰ **-20** Plug & Charge against EVerest had never run in either direction until 2026-08-06: their
-`Evse15118D20` still has it commented out on the station side, so the forward leg is theirs to fix, and
-the reverse leg had simply not been attempted. It ran as a by-product of the MCS reverse session — their
-`PyEvJosev` authorized with their own `everest-aux` MO contract and our SECC verified the signature,
-digest and challenge; repeated through the recording fixture the same day. The -2 direction, where *they*
-verify *our* signature, is the separate result in ³. That session's capture is deliberately **not** a corpus
-entry: the signature is made with their EV's private key, so a trace built from it could only re-check the
-recorded bytes against themselves — `SessionTrace.Build` refuses it, and an EIM re-run supplies the trace.
-¹¹ **Neither config was changed for this**, which is the finding. Their `EvseManager` appends the `*_BPT`
-entry whenever its power supply reports itself bidirectional and `DCSupplySimulator` defaults to that, so
-every -20 DC run this project ever made against EVerest saw service 6 in the catalogue and took service 2.
-The blocker was ours: ranking the bidirectional entry first was a harness-local subclass of `Evcc20Mcs`,
-and since the AC/DC rankings live on `Evcc20Base` and `Evcc20Ac` is `sealed`, services 5 and 6 were
-unreachable from this repository. Now one flag — `Evcc20Base.PreferBidirectionalService`, a stable reorder
-of whatever ranking the subclass states — covers all three catalogues, and the probe subclass is gone.
-Two complete DC_BPT sessions followed, Scheduled and Dynamic, with their station decoding
-`Max discharge current 200.000000A` out of our `BPT_DC_*` request. AC_BPT (5) negotiates and their station
-accepts our `BPT_AC_*` parameters, then answers `PowerDelivery` with `FAILED_ContactorError` — the -20 AC
-bound already in the roadmap, reached one message further in and with a name on it; two different
-car-simulator sequences give the identical result, because the confirmation their `EvseManager` waits on
-comes from their own EV module
-([`2026-08-06-everest-bpt`](docs/interop-runs/2026-08-06-everest-bpt/notes.md)).
-¹² `IsoMux` terminates TLS at the **-2 profile — TLS 1.2 only**, confirmed with `openssl s_client`; a
-1.3 hello gets alert 70 — and then routes on the SAP offer regardless, so a dual-stack EV gets a complete
-**ISO 15118-20 session over TLS 1.2** (60 exchanges, every code `OK`) while a conformant -20 EV that pins
-1.3 cannot reach the -20 backend at all. TLS is settled before `SupportedAppProtocol` runs, so nothing in
-that path is in a position to object. Priority is ignored over TLS exactly as in plaintext (third
-confirmation), and — narrowing the report in ⁴ — `IsoMux` **kept accepting** after two refused handshakes,
-so the accept-loop shutdown is `Evse15118D20`'s alone. It also corrected our own layering: `DevTlsOrNull`
-pinned a both-protocol offer to 1.3 because `ProtocolAndMode` resolves `both` to -20, which is right for
-naming a recording and wrong for a ClientHello sent before the protocol is settled; a both-offer now offers
-both profiles ([`2026-08-06-everest-isomux-tls`](docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)).
-¹³ **The clearest case for splitting this column by direction.** Every recorded Dynamic session had
-Josev's EVCC on the other side: our station could *answer* a Dynamic car long before our car could *be*
-one, so "Scheduled and Dynamic" quietly meant "Scheduled both ways, Dynamic inbound". The Dynamic EVCC
-was built on 2026-08-03 and its first outing was against EVerest, which is why that cell reads `EV→`
-while Josev's reads `←SECC` — the two columns together cover the mode, and neither does alone. Same
-shape as ⁷ and the `PreferredEnergyServiceIds` defect: a capability that reads as present because both
-halves exist separately.
-¹⁴ **Two -20 session features where our side is complete and theirs is the bound**, which is why both
-cells are theirs rather than ours. *Pause/Resume:* Josev preserves the session context across
-connections in -2 and answers `OK_OldSessionJoined`, but its -20 states never fill that context, so a
--20 resume degrades to a graceful new session. *Renegotiation:* our SECC's `ServiceRenegotiation`
-notification does make a Josev AC EVCC send a real `SessionStopReq(ServiceRenegotiation)`, and our SECC
-answers it **without ending the session** — re-entry at ServiceDiscovery, [V2G20-1477] — but Josev then
-drops the link anyway: its EVCC posts the terminating stop notification before honouring its own
-`next_state = ServiceDiscovery`, and its DC path hardcodes `Terminate`. Both halves of the -20 cycle are
-therefore guarded in-repo and only half-witnessed live
-([`2026-07-22-pause-resume`](docs/interop-runs/2026-07-22-pause-resume/), [`2026-07-22-renegotiation`](docs/interop-runs/2026-07-22-renegotiation/)).
-¹⁵ The one row where **`◐` is about a missing verifier, not a missing session.** A Josev AC EVCC
-consumed our signed `AbsolutePriceSchedule` — power-banded EUR/kWh price rule stacks, ECDSA-P521/SHA-512
-— and ran the session on it, but no independent stack *checks* that signature: Josev's EVCC-side tariff
-verification is a literal `# TODO`, and nothing else touches -20 price schedules at all. Our own EV
-verifies it (`Iso20LoopbackTests`), which is self-consistency. Contrast the -2 row, where Josev's SECC
-MO-signs its own SalesTariff and our EVCC live-verified it — a genuine external oracle in that
-direction ([`2026-07-22-tariff`](docs/interop-runs/2026-07-22-tariff/)).
-¹⁶ **Why EVerest's rows are mostly `EV→` while Josev's are mostly both — their EV is Josev.**
-`PyEvJosev` wraps `EVerest/ext-switchev-iso15118`, EVerest's fork of the same SwitchEV codebase the
-Josev column tests (vendored at `26f7988` in 2026.02.1). Two consequences, and they pull in opposite
-directions. It means the **codec flips with the direction**: forward we meet their cbV2G station,
-reverse we meet EXIficient — the same encoder as the whole Josev column. And it means a green `←SECC`
-run here is largely a re-run of that column, so the reverse direction was spent only where it buys
-something no forward run and no Josev run can: **MCS**, the only session that puts *our* service
-catalogue in front of a foreign chooser, and — as a by-product of it — the first **-20 Plug & Charge**
-result against this counterparty in either direction. -2 reverse against EVerest has deliberately never
-been run. Read the two counterparty columns as one body of evidence with an overlap, not as two
-independent witnesses in the reverse direction.
+³ Their rule *"no `Contract` without TLS"* was the first external check of that requirement against us.
+A complete charge and a PnC offer are **mutually exclusive** against their SIL: plugging the simulated
+car in is what makes the charge possible and what authorizes the session, and their `EvseManager` drops
+`Contract` for an already-authorized one.
+⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
+run notes — and 12 of our -20 messages decoded clean by a second independent codec.
+⁵ Their -20 AC SIL waits on its own EV module's power-ready callback, which a foreign EV cannot produce.
+⁶ 59 and 68 exchanges to `SessionStop` from Windows, once the app let a session name its TLS backend.
+One bound survives and it is **theirs**: `create_certs.sh -v iso-20` emits P-256, so nothing here has
+met secp521r1 material from a counterparty.
+⁷ `IsoMux` routes on *"mentions -20 anywhere"* and never reads SAP `Priority` — confirmed on the wire
+against 2025.10.0, 2026.02.1, and a third time over TLS.
+⁸ The `←SECC` leg is the only one that tests **our** catalogue rather than theirs. It also needed two
+fixes of ours to be *readable* at all, one in the app and one in the fixture.
+⁹ Green on the second attempt: the first was refused with `FAILED_WrongChargeParameter`, correctly, and
+that refusal is what proved the service/parameter coupling binds the EV too. Their `EvseManager` decoded
+`dc_ev_maximum_power_limit: 3750000.0` at 3000 A / 1250 V. Megawatt **power** stays out of reach — their
+MCS SIL is electrically a 22 kW charger.
+¹⁰ Their `Evse15118D20` has -20 PnC commented out, so the `EV→` leg is theirs to fix; the `←SECC` leg
+ran as a by-product of the MCS reverse session. The `EV→` result for **-2** is the separate cell above.
+¹¹ **Neither of their configs was changed for this**, which is the finding: their SIL had been
+advertising service 6 at every -20 DC run this project ever made, and our EV could not ask for it.
+¹² `IsoMux` serves **TLS 1.2 only** (a 1.3 hello gets alert 70) and routes on the SAP offer regardless —
+so a dual-stack EV gets a complete **-20 session over TLS 1.2**, and a conformant -20 EV reaches the -20
+backend not at all. It also corrected a mirror of that layering on our side.
+¹³ ✅ in both columns, but **disjoint halves**: Dynamic ran `←SECC` against Josev and `EV→` against
+EVerest, because our station could answer a Dynamic car long before our car could be one. Neither column
+covers the mode alone.
+¹⁴ Our side is complete for both; **theirs is the bound**. Josev's -20 states never fill the session
+context, so a -20 resume degrades to a new session; and its EVCC drops the link after a real
+`SessionStopReq(ServiceRenegotiation)` [V2G20-1477] that our SECC answers without ending the session.
+¹⁵ The one cell where `◐` is a missing **verifier**, not a missing session: their EV consumed our signed
+`AbsolutePriceSchedule` and ran on it, but Josev's EVCC-side tariff check is a literal `# TODO`.
+¹⁶ **Their EV is Josev** — `PyEvJosev` wraps EVerest's fork of the same codebase the Josev column tests.
+So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a `←SECC` run here is
+largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
+-2 reverse against EVerest has deliberately never been run.
 
-**EVerest, current state:** the full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
-in all four offer shapes, -20 DC over mutual TLS 1.3 — is green against **everest-core 2025.10.0** (demo
-image, 02/03.08) **and re-validated against 2026.02.1 built from source**
-([`2026-08-05-everest-2026021-matrix`](docs/interop-runs/2026-08-05-everest-2026021-matrix/notes.md)).
-Standing deltas on 2026.02.1: their unicast-SDP loop shutdown is fixed, while the refused-TLS-handshake
-one persists and turns out to be reachable from their *stock* SIL config by one `openssl s_client`
-line — after it, the charger answers nothing while its process stays healthy (report ready to file,
-[`docs/reports/everest-loop-shutdown.md`](docs/reports/everest-loop-shutdown.md); `IsoMux` turns out
-**not** to share it, so the report is about `Evse15118D20` alone),
-`IsoMux` still ignores SAP `Priority`, their stock SIL -20 config went Dynamic-only, their
-`PyEvJosev` manifest documents 4 of the 12 energy-service values it accepts and omits the `MCS` its own
-config uses (second report ready to file,
-[`docs/reports/pyevjosev-manifest-services.md`](docs/reports/pyevjosev-manifest-services.md)), and
-`config-sil-mcs.yaml` now exists — **which has since been run**: three complete MCS sessions, our service
-id 8 read back by their stack as MCS, the first external witness this project has ever had for MCS
-([`2026-08-05-everest-mcs`](docs/interop-runs/2026-08-05-everest-mcs/notes.md)).
-PnC was repeated too: our signed -2 `AuthorizationReq` verifies against their station on 2026.02.1 as
-it did on 2025.10, and the wall behind it is theirs (nothing in the SIL validates a contract).
-Known bounds: -20 AC still stops at their SIL's own-EV contactor coupling. The Windows/TLS bound is
-gone — two -20 DC sessions over mutual TLS 1.3 now run from Windows against 2026.02.1, client chain and
-all (see ⁶).
+**Two counterparties have a page of their own**, for opposite reasons — each the long form of its
+column: every scenario, what it caught, what it cost us, and what stays out of reach.
 
-**Two counterparties have a page of their own**, for opposite reasons — each the long form of its column:
-every scenario, what it caught, and what stays out of reach.
-
-- [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) — the counterparty with the most
-  history here, the independent **codec** (EXIficient), and the only one that serves both roles well.
+- [`docs/josev-cross-validation.md`](docs/josev-cross-validation.md) — the independent **codec**
+  (EXIficient), the counterparty with the most history here, and the only one that serves both roles
+  well. Every -20 energy mode any independent stack implements, over TCP and TLS, plain and Plug &
+  Charge, in both control modes.
 - [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) — the independent **charger**,
   the thing a car in the field actually meets, and the counterparty that has found the most defects in
-  *this* project. Almost all of them share one of two shapes, which that page names.
+  *this* project; almost all of them share one of two shapes, which that page names.
+  [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and
+  unsent, six structural walls named.
 
 ## What is here
 
