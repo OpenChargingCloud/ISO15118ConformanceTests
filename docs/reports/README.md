@@ -18,13 +18,14 @@ was our own configuration we bent.
 | [`evdriveflow-headless-session.md`](evdriveflow-headless-session.md) | EDF Lab (eVDriveFlow) | **1**, **2**, plus three secondary | The documented no-GUI path cannot complete a session, for two independent reasons: EOF on stdin reads as "Enter pressed", and `hasattr` on an xsdata `Optional` field nulls the EV's own target SOC |
 | [`tux-evse-tls.md`](tux-evse-tls.md) | IoT.bzh (tux-evse) | **A**, **B** | Over TLS the EVCC signs every `AuthorizationReq` (so no shipped scenario runs over TLS at all), and the pinned cipher profile contains neither suite ISO 15118-2 prescribes |
 | [`tux-evse-spin.md`](tux-evse-spin.md) | IoT.bzh (tux-evse) | **C**, **D** | One connection that pauses or closes sends the binder into a 200,000-line-per-second log loop — and SIGTERM stops the logging without ending the process |
+| [`tux-evse-capture-fidelity.md`](tux-evse-capture-fidelity.md) | IoT.bzh (tux-evse) | **E**, **F** | A replayed capture never puts the car's real protocol offer on the wire — their converter parses it and drops it — and the closing SDP verb is hardcoded to the wrong API in DIN scenarios |
 | [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
 | [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
 
-**Eight filings across three projects.** The letters and numbers are per counterparty and exist to keep
-separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal handler —
-four issues, not one, and a fix for any of them does not touch the others. EDF's 1 and 2 are likewise
-independent, and fixing 1 is what reveals 2.
+**Ten filings across three projects.** The letters and numbers are per counterparty and exist to keep
+separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal handler,
+E and F what a converted capture loses — six issues, not one, and a fix for any of them does not touch
+the others. EDF's 1 and 2 are likewise independent, and fixing 1 is what reveals 2.
 
 ## What is deliberately not here
 

@@ -7,8 +7,8 @@ built from source (their `oci-15118/Dockerfile_almalinux_source` recipe, nativel
 
 **Two separate issues below, filed separately.** Issue A is a defect with a two-line fix that blocks
 their own documented TLS quick-start; issue B is a conformance question that may well be a deliberate
-choice on their side. Two more, C and D, are unrelated to TLS and live in
-[`tux-evse-spin.md`](tux-evse-spin.md).
+choice on their side. Four more — C and D, E and F — are unrelated to TLS and live in
+[`tux-evse-spin.md`](tux-evse-spin.md) and [`tux-evse-capture-fidelity.md`](tux-evse-capture-fidelity.md).
 
 Evidence in this repository: [`2026-08-06-tux-tls`](../interop-runs/2026-08-06-tux-tls/notes.md) —
 in particular [`their-pair.injector.log`](../interop-runs/2026-08-06-tux-tls/their-pair.injector.log)

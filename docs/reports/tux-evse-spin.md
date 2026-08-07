@@ -5,8 +5,9 @@ built from source, with their own shipped scenario and no third-party stack in t
 2026-08-07. Post under your own name; see *Before sending* at the bottom.
 
 Two independent observations, **C** and **D**, continuing the lettering of
-[`tux-evse-tls.md`](tux-evse-tls.md) (A and B, both about TLS and unrelated to these). They are
-separate filings: C is a loop, D is a signal handler, and a fix for one does not touch the other.
+[`tux-evse-tls.md`](tux-evse-tls.md) (A and B, both about TLS and unrelated to these); **E** and **F**
+are in [`tux-evse-capture-fidelity.md`](tux-evse-capture-fidelity.md). They are separate filings: C is
+a loop, D is a signal handler, and a fix for one does not touch the other.
 
 Evidence: [`spin-repro.sh`](../interop-runs/2026-08-06-tux-head-reverse/spin-repro.sh) (the whole
 reproduction, 40 lines), [`spin-repro.log`](../interop-runs/2026-08-06-tux-head-reverse/spin-repro.log)
