@@ -1,0 +1,13 @@
+TLS (station): presenting DC=CPO, C=FR, O=EDF, CN=SECCCert (+2 chain certificate(s)), TLS 1.3, requiring a client certificate (accept-any)
+Waiting for their EV on [::]:55000 (TLS, control mode: Dynamic) ...
+TLS: Tls13, TLS_AES_256_GCM_SHA384, client certificate DC=VEHICLE, C=FR, O=EDF, CN=VEHICLECert.
+Energy transfer service: 6 (DC_BPT) — their EV's pick out of our catalogue.
+Recorded:
+  Failed TheirEvcc_AgainstOurSecc_RunsToCompletion [43 s]
+ TLS (station): presenting DC=CPO, C=FR, O=EDF, CN=SECCCert (+2 chain certificate(s)), TLS 1.3, requiring a client certificate (accept-any)
+ Waiting for their EV on [::]:55000 (TLS, control mode: Dynamic) ...
+ TLS: Tls13, TLS_AES_256_GCM_SHA384, client certificate DC=VEHICLE, C=FR, O=EDF, CN=VEHICLECert.
+ Energy transfer service: 6 (DC_BPT) — their EV's pick out of our catalogue.
+ Recorded:
+Test Run Failed.
+     Failed: 1

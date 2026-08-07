@@ -152,6 +152,19 @@ internal static class InteropSession
     }
 
 
+    /// <summary>The ISO 15118-20 energy-transfer service ids (Table 204), so a run's own output names the
+    /// catalogue entry that was negotiated instead of leaving a bare number to be looked up.</summary>
+    /// <remarks>Here rather than in a fixture because more than one counterparty's EV selects from our
+    /// catalogue, and the table is the protocol's, not any one peer's.</remarks>
+    public static String ServiceName(UInt16 serviceId)
+        => serviceId switch
+           {
+               1 => "AC",   2 => "DC",  3 => "WPT", 4 => "DC_ACDP", 5 => "AC_BPT",
+               6 => "DC_BPT", 7 => "DC_ACDP_BPT",  8 => "MCS",      9 => "MCS_BPT",
+               _ => "unknown to Table 204 as we read it",
+           };
+
+
     /// <param name="offerPlugAndCharge">-20 only: advertise Plug &amp; Charge alongside EIM. False narrows the
     /// offer to EIM, for an EV that cannot ignore a service it does not support.</param>
     /// <param name="preferDynamic">-20 only: offer the Dynamic (ControlMode 2) parameter set first. An EV
@@ -159,11 +172,23 @@ internal static class InteropSession
     /// in, and the one that drives schedule renegotiation. Ignored for -2, which has no control modes.</param>
     /// <param name="mcs">Advertise the <b>MCS</b> catalogue — services 8 / 9 and a megawatt envelope —
     /// rather than DC's 2 / 6. -20 DC only; set by <c>V2G_INTEROP_MODE=mcs</c>.</param>
+    /// <param name="observed">Called with the outcome as it stands when this method leaves, <b>including
+    /// when it leaves by throwing</b> — so a caller can report what our station learned from a session
+    /// that did not finish.</param>
+    /// <remarks>
+    /// The counterpart of recording in a <c>finally</c>, and it arrived for the same reason: the run that
+    /// breaks is the one worth reading. A peer that dies mid-charge-loop used to take the whole verdict
+    /// with it — which service its EV had selected out of our catalogue, whether its contract signature
+    /// verified — because those live on the state machine and the exception unwound past them. That cost
+    /// the 2026-08-07 eVDriveFlow runs their headline: their EV picks <b>DC_BPT</b>, and the only way to
+    /// see it was to grep the counterparty's own log.
+    /// </remarks>
     /// <returns>Whether our station reached the terminal session state, and what it saw on the way —
     /// see <see cref="SeccOutcome"/>.</returns>
     public static async Task<SeccOutcome> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
-                                                       Boolean offerPlugAndCharge = true, Boolean mcs = false)
+                                                       Boolean offerPlugAndCharge = true, Boolean mcs = false,
+                                                       Action<SeccOutcome>? observed = null)
     {
 
         if (mcs)
@@ -172,7 +197,14 @@ internal static class InteropSession
         if (protocol == ProtocolVariant.Iso15118_2)
         {
             var secc = new Secc2(mode, SequenceTimeout, TimeProvider.System);
-            await secc.RunAsync(stream, ct);
+            try
+            {
+                await secc.RunAsync(stream, ct);
+            }
+            finally
+            {
+                observed?.Invoke(new SeccOutcome(secc.IsDone, SequenceErrorAt: secc.SequenceErrorAt));
+            }
             return new SeccOutcome(secc.IsDone, SequenceErrorAt: secc.SequenceErrorAt);
         }
 
@@ -186,14 +218,23 @@ internal static class InteropSession
         secc20.PreferDynamicControlMode = preferDynamic;
         secc20.OfferPlugAndCharge       = offerPlugAndCharge;
 
-        await secc20.RunAsync(stream, ct);
-
         // Zero is "no ServiceSelectionReq ever arrived", not service 0 — the state machine's own sentinel,
         // and the CLI reads it the same way. Reported as null so a session that stopped before selection is
         // not filed as one that selected something.
-        return new SeccOutcome(secc20.IsDone,
-                               secc20.SelectedEnergyServiceId != 0 ? secc20.SelectedEnergyServiceId : null,
-                               secc20.PnCAuth);
+        SeccOutcome SoFar() => new(secc20.IsDone,
+                                   secc20.SelectedEnergyServiceId != 0 ? secc20.SelectedEnergyServiceId : null,
+                                   secc20.PnCAuth);
+
+        try
+        {
+            await secc20.RunAsync(stream, ct);
+        }
+        finally
+        {
+            observed?.Invoke(SoFar());
+        }
+
+        return SoFar();
 
     }
 

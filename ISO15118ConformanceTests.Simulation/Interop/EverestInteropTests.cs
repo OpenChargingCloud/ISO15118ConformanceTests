@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -324,15 +324,9 @@ public class EverestInteropTests
     }
 
 
-    /// <summary>The ISO 15118-20 energy-transfer service ids (Table 204), so the run's own output says which
-    /// catalogue entry was negotiated instead of leaving a bare number to be looked up.</summary>
-    private static String ServiceName(UInt16 serviceId)
-        => serviceId switch
-           {
-               1 => "AC",   2 => "DC",  3 => "WPT", 4 => "DC_ACDP", 5 => "AC_BPT",
-               6 => "DC_BPT", 7 => "DC_ACDP_BPT",  8 => "MCS",      9 => "MCS_BPT",
-               _ => "unknown to Table 204 as we read it",
-           };
+    /// <summary>Table 204's names, shared with every other fixture whose peer selects from our catalogue —
+    /// see <see cref="InteropSession.ServiceName"/>.</summary>
+    private static String ServiceName(UInt16 serviceId) => InteropSession.ServiceName(serviceId);
 
 
     private static void Report(IReadOnlyList<String>? written)

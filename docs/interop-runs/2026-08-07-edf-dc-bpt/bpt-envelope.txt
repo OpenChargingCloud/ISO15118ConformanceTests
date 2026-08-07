@@ -1,0 +1,11 @@
+their EV's declared discharge capability (BPT_DC_CPDReq):
+  EVMaximumDischargePower                48,000
+  EVMinimumDischargePower                   500
+  EVMaximumDischargeCurrent                 137
+  EVMinimumDischargeCurrent                   1
+
+our station's discharge envelope, as their decoder read it (BPT_DC_CPDRes):
+  EVSEMaximumDischargePower              50,000
+  EVSEMinimumDischargePower                   0
+  EVSEMaximumDischargeCurrent               200
+  EVSEMinimumDischargeCurrent                 0

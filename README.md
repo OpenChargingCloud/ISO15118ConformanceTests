@@ -87,7 +87,7 @@ how to read one.
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ◐ `EV→` to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | ▢ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ▢ | — | — |
@@ -177,6 +177,15 @@ our sequence guard that closed the connection instead of answering `FAILED_Seque
 the first finding against us from this counterparty, and one only a replayer could produce: every
 other peer polls only while our station says `Ongoing`. **Fixed and re-run the same day**: the refusal
 now goes out in the request's own response type, and their injector decodes it.
+
+²² Their EV picks service **6** out of our `{2, 6}` — the choice is theirs — and
+`DC_ChargeParameterDiscovery` carried a real bidirectional envelope each way, each side's numbers read
+by the other's codec: their car **48 kW / 137 A** of discharge against our station's **50 kW / 200 A**,
+then a charge loop in `BPT_Dynamic_DC_CLReqControlMode`. No energy reverses — the session ends at their
+charge-loop defect first — so this is the negotiation, in full, and not a discharge. One deviation,
+recorded: their `ev_dummy_controller` starts at `present_soc = 0` (the GUI's field sets it), and an
+empty battery correctly declares zero discharge, so the run patches that one line to 60 in their copy.
+Both numbers are on file.
 
 ²¹ The capability this counterparty was chosen for, reached once the stdin wall fell:
 `TLS_AES_256_GCM_SHA384` under TLS 1.3, both peers authenticated — their EV verified our station

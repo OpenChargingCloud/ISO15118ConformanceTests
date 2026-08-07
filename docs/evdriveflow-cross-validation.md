@@ -31,13 +31,13 @@ pins -20 to TLS 1.3 with a mutual handshake, and
 until this counterparty our own tests were the only thing that had ever checked we do it right — a second
 implementation that *requires* it is an oracle rather than a second opinion from ourselves.
 
-**Two of those four are now done and the other two are reachable** — since 2026-08-06, when the wall
-that held all of them turned out to be a closed file descriptor rather than a state machine. Dynamic
-control mode runs end to end; **mutual TLS 1.3 ran the next day**, with `TLS_AES_256_GCM_SHA384` and
-secp521r1 on both sides — the first P-521 material any counterparty has supplied this project. Their EV
-selects the bidirectional service on the way through, so DC-BPT needs a run rather than a fix; what
-stands in front of a complete charge loop is a second, genuine defect of theirs. The story is below, in
-order: the wall, why it was invisible, and what stands behind it.
+**All four are now reached** — within two days of 2026-08-06, when the wall that held them turned out to
+be a closed file descriptor rather than a state machine. Dynamic control mode runs end to end; mutual
+TLS 1.3 followed, with `TLS_AES_256_GCM_SHA384` and **secp521r1 on both sides** — the first P-521
+material any counterparty has supplied this project; and DC_BPT after it, their car declaring 48 kW of
+discharge against our 50 kW, each envelope read by the other's codec. What stands in front of a
+*complete charge loop* is no longer a capability but a defect of theirs. The story is below, in order:
+the wall, why it was invisible, and what stands behind it.
 
 ---
 
@@ -185,8 +185,11 @@ Rewritten 2026-08-06: the authorization wall was the common cause, and it is gon
   [`2026-08-07-edf-mutual-tls13`](interop-runs/2026-08-07-edf-mutual-tls13/notes.md).
 - **Dynamic control mode** — ✅ **reached.** `ScheduleExchange` negotiated it and the session ran into
   the charge loop.
-- **DC bidirectional** — their EV **selects the BPT service** on the way through, so this is no longer
-  blocked either; what it needs is a run whose verdict is about BPT rather than a by-product.
+- **DC bidirectional** — ✅ **done, 2026-08-07.** Their EV picks service 6 out of our `{2, 6}`, and
+  `DC_ChargeParameterDiscovery` carried a real envelope each way: their car 48 kW / 137 A of discharge
+  against our 50 kW / 200 A, each read by the other's codec, then a `BPT_Dynamic` charge loop. No
+  energy reverses — their charge-loop defect ends the session first.
+  [`2026-08-07-edf-dc-bpt`](interop-runs/2026-08-07-edf-dc-bpt/notes.md).
 - **A complete charge loop, either direction** — the one thing still walled, now by their
   `hasattr`-on-an-optional-field defect (below) rather than by anything of ours.
 - **SDP in the forward direction** — the relay path that makes this runnable from a Mac is exactly what
@@ -202,9 +205,10 @@ mistakes one for a result.
 
 ## Current state
 
-**Three runs, both directions, and the wall that gated everything is down.** It is one of two independent
+**Five runs, both directions, every capability it was chosen for reached.** It is one of two independent
 codecs here, the only one that has read our -20 at session level, and the richest source of
-defects-per-message this project has: one of ours and **four** of theirs, now across 32 exchanges.
+defects-per-message this project has: one of ours and **five** of theirs — the four below plus a shipped
+PKI that expired in 2022 — across 77 exchanges.
 
 The fourth is the sharpest, and it is the mirror of the finding that started
 [`assumed-values-sweep.md`](assumed-values-sweep.md): their charge-loop handler guards with
@@ -213,10 +217,12 @@ dataclass whose field is `Optional[int]` — and copies our legally omitted `Tar
 configured value. `None * int` ends the session one message later. **Their** code assumed a value the
 protocol makes optional; it took a peer that omits it to find out.
 
-What is left here is no longer diagnosis but scheduling: TLS 1.3 with mutual authentication is a config
-switch, DC-BPT is a run whose verdict is about BPT, and a complete charge loop waits on a two-line fix
-of theirs — drafted, with the stdin behaviour and the three older findings beside it, in
-[`docs/reports/evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md).
+What is left is one thing, and it is theirs: the charge loop past the first `DC_ChargeLoopRes`, waiting
+on a two-line fix. It is drafted for them, with the stdin behaviour, the expired PKI and the three older
+findings beside it, in
+[`docs/reports/evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). With that
+fixed, this rig runs a **bidirectional Dynamic -20 session over mutual TLS 1.3 to its end** — which
+would be the most complete interop result this project has against anybody.
 
 ---
 

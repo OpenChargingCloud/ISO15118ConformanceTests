@@ -182,20 +182,27 @@ public class EvDriveFlowInteropTests
 
         var stream = recording?.Tap(socket) ?? socket;
 
+        // Reported from the finally rather than after the assertion, because their EV has stopped
+        // mid-session in every run so far and the selection is exactly what those runs are about.
+        InteropSession.SeccOutcome? seen = null;
+
         try
         {
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
 
             var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
-                                                            mcs: InteropEnvironment.Mcs());
-
-            if (outcome.SelectedEnergyServiceId is { } serviceId)
-                TestContext.Out.WriteLine($"Energy transfer service: {serviceId} — their EV's pick.");
+                                                            mcs: InteropEnvironment.Mcs(),
+                                                            observed: o => seen = o);
 
             Assert.That(outcome.IsDone, Is.True, "our SECC drove their EV to the terminal session state");
         }
         finally
         {
+            if (seen?.SelectedEnergyServiceId is { } serviceId)
+                TestContext.Out.WriteLine(
+                    $"Energy transfer service: {serviceId} ({InteropSession.ServiceName(serviceId)}) — " +
+                    $"their EV's pick out of our catalogue.");
+
             Report(recording?.Save(protocolName, modeName,
                                    $"live interop: EDF-Lab/eVDriveFlow's EV against our SECC " +
                                    $"({(preferDynamic ? "Dynamic" : "Scheduled")} control mode)",
