@@ -164,7 +164,24 @@ so the pair lands adjacent instead of alphabetical. ACDP is the only `-20` set w
 which is why it is the only set affected — and why nothing caught it: the vectors are cbV2G's, cbV2G
 numbers them the same way we do, and no other codec had ever looked.
 
-**Ours to fix**, in the app's source generator.
+> **Correction, made when the fix was attempted.** This section first said *"ours to fix"*, as though
+> it were an oversight. It is not. The grouping is written into the generator with its reasoning and
+> was verified against cbV2G's `encode_iso20_acdp_exiDocument` when it was implemented, and the app
+> already carries a stated rule for exactly this situation — *"cbV2G byte-exact match stays the
+> authoritative conformance oracle"* (`tools/exificient-ref/README.md`). So **A is the same policy as
+> B, not a different kind of thing**, and calling it a bug was wrong.
+>
+> What was done instead: the alternative is now buildable rather than only arguable. The default is
+> unchanged, and `<ExiDocumentElementOrder>ExiSorted</ExiDocumentElementOrder>` selects the
+> specification order. Building `WWCP_ISO15118_20.ACDP` with it produces
+> `ConnectReq=0, ConnectRes=1, DisconnectReq=2, DisconnectRes=3`, and the byte after the EXI header for
+> `ACDP_DisconnectReq` becomes `08` — the byte EXIficient writes for that message. Details in the app's
+> `tools/exificient-ref/README.md`; the ordering rule itself is unit-tested on a synthetic schema in
+> `GeneratorDocumentOrderTests`.
+>
+> Which order is *correct* still needs the EXI 1.0 text on the document grammar, which is not settled
+> here. What is settled is what the disagreement costs, and that either encoding is now a build
+> property away.
 
 ### B — the four WPT frames are cbV2G's grammar, not the schema's (4 frames)
 
@@ -214,11 +231,13 @@ provenance is exactly where one would expect to find one.
 
 ## Next
 
-1. **Fix A** — sort global elements by qname in the generator. Small, and it makes two ACDP messages
-   readable by any conformant peer. Belongs in `libs/EVSimulatorApp/`.
-2. **Decide B** — this is a policy question before it is a code change: stay byte-exact with cbV2G and
-   unreadable to schema-following codecs, or follow the schema and diverge from our own corpus. Worth
-   raising with EVerest too, since it is their generator's grammar.
+1. ~~Fix A~~ — **done differently, and see the correction above.** A is policy, not a defect; the
+   generator gained a switch (`ExiDocumentElementOrder`) with the cbexigen numbering still the default.
+   What remains is the decision itself, and that wants the EXI 1.0 text.
+2. **Decide A and B together** — they are one question: stay byte-exact with cbV2G and unreadable to
+   schema-following codecs, or follow the schema and diverge from our own corpus. A is now a build
+   property; B would still be a code change. Worth raising with EVerest either way, since it is their
+   generator's grammar in both cases.
 3. **Diagnose C** — no reference bytes exist, so it needs a bit-level walk against the schema.
 4. **Close the `ServiceDetailRes` and `AuthorizationReq` deltas** with the substitution experiment that
    closed the `-2` one, and explain the off-by-one against the 35-character URI. These remain the only
