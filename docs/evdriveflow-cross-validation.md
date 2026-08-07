@@ -33,9 +33,11 @@ implementation that *requires* it is an oracle rather than a second opinion from
 
 **All four are now reached** — within two days of 2026-08-06, when the wall that held them turned out to
 be a closed file descriptor rather than a state machine. Dynamic control mode runs end to end; mutual
-TLS 1.3 followed, with `TLS_AES_256_GCM_SHA384` and **secp521r1 on both sides** — the first P-521
-material any counterparty has supplied this project; and DC_BPT after it, their car declaring 48 kW of
-discharge against our 50 kW, each envelope read by the other's codec. What stands in front of a
+TLS 1.3 followed, with `TLS_AES_256_GCM_SHA384` and **secp521r1 on both sides** — which is what -20
+prescribes and, remarkably, what no counterparty here had supplied before: Josev and EVerest both ship
+P-256 test PKIs, so this is the first peer whose -20 key material is -20's rather than -2's. Then DC_BPT
+after it, their car declaring 48 kW of discharge against our 50 kW, each envelope read by the other's
+codec. What stands in front of a
 *complete charge loop* is no longer a capability but a defect of theirs. The story is below, in order:
 the wall, why it was invisible, and what stands behind it.
 
@@ -180,7 +182,9 @@ offered-services problem. Further diagnosis means reading their state machine ra
 Rewritten 2026-08-06: the authorization wall was the common cause, and it is gone.
 
 - **Mutual TLS 1.3** — ✅ **done, 2026-08-07.** TLS 1.3 with `TLS_AES_256_GCM_SHA384`, both peers
-  authenticated, **secp521r1 on both sides**, and 15 exchanges over it. Their PKI had to be regenerated
+  authenticated, and **secp521r1 on both sides** — the curve -20 prescribes, and the first time a
+  counterparty supplied it (Josev and EVerest both ship P-256; Schannel cannot do P-521 for TLS at all,
+  which is most of the reason the field drifts). 15 exchanges over it. Their PKI had to be regenerated
   with their own script first — the certificates in the repository expired in 2022.
   [`2026-08-07-edf-mutual-tls13`](interop-runs/2026-08-07-edf-mutual-tls13/notes.md).
 - **Dynamic control mode** — ✅ **reached.** `ScheduleExchange` negotiated it and the session ran into

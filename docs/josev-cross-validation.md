@@ -37,9 +37,13 @@ only one with results in both directions across the whole message set. The `[Exp
   a real EV polls CableCheck/PreCharge/PowerDelivery/WeldingDetection until each step completes). Both SECCs
   also accept `SessionStop` in any phase (graceful abort).
 - **Live over-the-wire, TLS:** the same DC session runs over **TLS 1.2 (unilateral)** and **TLS 1.3 (mutual)**
-  forward, and **TLS 1.3 mutual** reverse. Josev's PKI is **P-256** (not the -20-nominal secp521r1), so the
-  Josev-facing TLS is the .NET `SslStream` backend; our secp521r1/Ed448 BouncyCastle backend stays proven in
-  loopback. Found + fixed a client/server certificate-**chain** transmission bug (`SslStream` sent only the
+  forward, and **TLS 1.3 mutual** reverse. Josev's PKI is **P-256**, not the secp521r1 (or Ed448) that -20
+  prescribes for the PKI and the key exchange alike, so the Josev-facing TLS is the .NET `SslStream`
+  backend; our secp521r1/Ed448 BouncyCastle backend stays proven in loopback. Worth saying plainly because
+  it took a third counterparty to make it visible as a pattern: **EVerest's -20 test PKI is P-256 too**
+  (with their own `TODO`), and eVDriveFlow — which ships P-521 — was the first peer here whose -20 key
+  material matches -20 (`docs/interop-runs/2026-08-07-edf-mutual-tls13/`). Schannel's inability to use
+  P-521 for TLS is most of the reason a portable test PKI ends up non-conformant. Found + fixed a client/server certificate-**chain** transmission bug (`SslStream` sent only the
   leaf, breaking a root-only peer) via `SslStreamCertificateContext`.
 - **Live Plug & Charge over TLS — fully verified:** our SECC offers PnC + a `GenChallenge` and validates
   Josev's signed `AuthorizationReq` **end to end — `GenChallenge` echo, reference digest, and the ECDSA

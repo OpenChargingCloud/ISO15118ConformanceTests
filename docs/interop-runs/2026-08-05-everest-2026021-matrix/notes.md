@@ -125,6 +125,12 @@ Their PKI workflow is unchanged: `create_certs.sh -v iso-20` from the vendored J
   their own `create_certs.sh -v iso-20` emits P-256, so nothing here has yet met secp521r1 material from a
   counterparty.
 
+  > **Read differently since 2026-08-07.** That last sentence framed P-521 as something we were waiting
+  > to be given. It is the other way round: -20 *prescribes* secp521r1 (or Ed448), so a -20 test PKI on
+  > P-256 is the anomaly — and EVerest's and Josev's both are. eVDriveFlow supplied the conformant curve
+  > that day ([`2026-08-07-edf-mutual-tls13`](../2026-08-07-edf-mutual-tls13/notes.md)), which makes this
+  > a gap in the two other counterparties' material rather than an unmet wish of ours.
+
 So the honest TLS row reads: *station side re-validated on 2026.02.1; our client side remains
 validated on 2025.10/macOS only.*
 

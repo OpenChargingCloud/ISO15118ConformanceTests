@@ -39,10 +39,22 @@ Four things worth naming, because each has been an open bound in this project:
   `CN=VEHICLECert`; our station required a client certificate and read it back. Both directions
   authenticated, which is what -20 asks for and what nothing here had shown with a counterparty at -20
   before.
-- **secp521r1 on both sides.** Their whole PKI is P-521 — `openssl ecparam -name secp521r1` on every
-  line of their generator. The EVerest column still carries the note that *"nothing here has met
-  secp521r1 material from a counterparty"*, because `create_certs.sh` there emits P-256. That bound is
-  now gone: this is the curve ISO 15118-20 asks for, supplied by somebody else.
+- **secp521r1 on both sides — the unremarkable thing that turned out to be rare.** Their whole PKI is
+  P-521: `openssl ecparam -name secp521r1` on every line of their generator. That is simply what the
+  standard says — ISO 15118-20 prescribes `ecdsa_secp521r1_sha512` or `ed448`, for the PKI and the key
+  exchange alike (the app's [`docs/pki-model.md`](../../../libs/EVSimulatorApp/docs/pki-model.md) pins
+  the same pair) — so it should be the boring half of this run.
+
+  It is not, because **the other two -20 counterparties here both ship P-256**: Josev's PKI by choice,
+  EVerest's `create_certs.sh -v iso-20` with a `TODO` beside it. Until this run every -20 TLS session
+  this project had with anybody was carried by -2-grade key material, which is a property of their test
+  PKIs rather than of their stacks. The pull towards P-256 is real and worth naming: **Schannel cannot
+  use P-521 for TLS at all** (P-256 succeeds, P-521 fails "Authentication failed"), which is exactly why
+  the app carries a second, managed TLS backend, and why its own Windows mutual-TLS tests use P-256. A
+  test PKI that has to work on every platform ends up non-conformant almost by force.
+
+  So the finding is not "we finally saw P-521". It is **"the first counterparty whose -20 PKI is the one
+  -20 describes"** — and that says more about the state of -20 test material in the field than about us.
 
 ## The session over it
 

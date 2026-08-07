@@ -122,8 +122,11 @@ run notes — and 12 of our -20 messages decoded clean by a second independent c
 driven by their own EV module following its own session — so driving it from outside is not enough.
 
 ⁶ 59 and 68 exchanges to `SessionStop` from Windows, once the app let a session name its TLS backend.
-One bound survives and it is **theirs**: `create_certs.sh -v iso-20` emits P-256, so nothing here has
-met secp521r1 material from a counterparty.
+The session is real; **the curve is not the one -20 asks for, and that is theirs**:
+`create_certs.sh -v iso-20` emits P-256 — with their own `TODO` beside it — where ISO 15118-20
+prescribes secp521r1 or Ed448 for the PKI *and* the key exchange. Josev's -20 PKI is P-256 too. So for a
+long time this project's -20 TLS met only -2-grade material from counterparties; eVDriveFlow is the
+first that ships what the standard says (footnote ²¹).
 
 ⁷ `IsoMux` routes on *"mentions -20 anywhere"* and never reads SAP `Priority` — confirmed on the wire
 against 2025.10.0, 2026.02.1, and a third time over TLS.
@@ -190,10 +193,14 @@ Both numbers are on file.
 ²¹ The capability this counterparty was chosen for, reached once the stdin wall fell:
 `TLS_AES_256_GCM_SHA384` under TLS 1.3, both peers authenticated — their EV verified our station
 against its own V2G root and presented `CN=VEHICLECert`, our station required and read it back — and
-**secp521r1 on both sides**, which retires the note in footnote ⁶ that no counterparty had ever
-supplied P-521 material. 15 exchanges over it, the same route as plain TCP. Their shipped certificates
-had to be regenerated with **their own** `generateCertificates.sh` first: the SECC leaf expired in
-October 2022 (60 days, as the standard requires) and `cpoSubCA1` the day before the run.
+**secp521r1 on both sides**. That last part is ordinary in the standard and rare in the field: -20
+prescribes secp521r1 (or Ed448) for the PKI and the key exchange, but **both other -20 counterparties
+here ship P-256 test material** (footnote ⁶), so this is the first peer whose -20 PKI is the one -20
+describes rather than -2's. There is a platform reason for the drift worth knowing: Schannel cannot do
+P-521 for TLS at all, which is why the app carries a second, managed TLS backend — and why our own
+Windows mutual-TLS tests use P-256. 15 exchanges over it, the same route as plain TCP. Their shipped
+certificates had to be regenerated with **their own** `generateCertificates.sh` first: the SECC leaf
+expired in October 2022 (60 days, as the standard requires) and `cpoSubCA1` the day before the run.
 
 ²⁰ It used to read *"their EV quits at Authorization"*, recorded as an open question after two runs could
 not move it. Reading their state machine settled it on 2026-08-06: their EV arms a "press Enter to stop"

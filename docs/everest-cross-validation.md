@@ -261,9 +261,14 @@ Each of these is structural rather than a missing run:
   identical `FAILED_ContactorError`.
 - **Megawatt *power*.** Their MCS SIL is electrically an ordinary charger and clamps to 22 kW whatever is
   declared. The catalogue and the envelope are validated; the current is not.
-- **secp521r1 material from a counterparty.** Their `create_certs.sh -v iso-20` emits **P-256** — with
-  their own `TODO` beside it — so the secp521r1 half of our -20 TLS profile still has no external
-  generator.
+- **A conformant -20 curve, from this counterparty.** Their `create_certs.sh -v iso-20` emits **P-256** —
+  with their own `TODO` beside it — where ISO 15118-20 prescribes secp521r1 (or Ed448) for the PKI and
+  the key exchange alike. So every -20 TLS session run here against EVerest is carried by -2-grade key
+  material, which is a property of their test PKI rather than of their stack. It is not unusual:
+  Josev's -20 PKI is P-256 too, and Schannel cannot do P-521 for TLS at all, so a test PKI that must
+  work everywhere drifts to P-256 almost by force. eVDriveFlow was the first counterparty to supply what
+  -20 describes ([`2026-08-07-edf-mutual-tls13`](interop-runs/2026-08-07-edf-mutual-tls13/notes.md)),
+  which is what makes this a gap in *their* material rather than a missing capability here.
 - **CertificateInstallation.** Not implemented here at all; that result belongs to Josev.
 - **A byte-level codec diff.** At HEAD both station modules are cbV2G, which is our own oracle. The
   independent-codec evidence from this counterparty is the 2023 image's OpenV2G, and it is a working
