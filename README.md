@@ -27,6 +27,11 @@ ISO15118ConformanceTests.slnx
                                           judges against a foreign encoder and not only ourselves
 ```
 
+Two oracles judge the bytes offline, and only one of them is independent of us: **cbV2G** generated the
+vector corpus and shares a generator lineage with EVerest and tux-evse, while **EXIficient** — Josev's
+codec, and the one [`tools/interop-v2gdecoder/`](tools/interop-v2gdecoder/README.md) drives directly over
+the whole `-2` corpus — does not.
+
 The codec, the simulation library and the CLI are **not** here — they are the app's, in
 `libs/EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read
 [`EVSimulatorApp`'s own README](libs/EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the codec works;
@@ -105,7 +110,9 @@ defects it turned up live on the counterparty's own page, linked under **Deeper 
 
 ¹ Only the **2023.10.0** demo image was an independent-codec witness (OpenV2G). Current `EvseV2G` and
 `Evse15118D20` sit on **cbV2G**, our own corpus generator — so byte agreement there is agreement with
-ourselves, and the value of this column is behavioural.
+ourselves, and the value of this column is behavioural. The independent byte judgement for `-2` comes
+from elsewhere: since 2026-08-07 the whole `-2` corpus round-trips through **EXIficient**, offline and
+on demand — see [`tools/interop-v2gdecoder/`](tools/interop-v2gdecoder/README.md).
 
 ² Their responder replays a captured car and refuses any request whose identifiers differ from the
 recording — a property of their tool, not an interop verdict.

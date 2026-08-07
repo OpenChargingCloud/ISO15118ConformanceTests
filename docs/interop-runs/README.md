@@ -15,6 +15,11 @@ Each directory should contain:
 - `frames.log` — the full frame log for the session: per frame, hex + decoded message + timestamp
   + direction (EVCC→SECC / SECC→EVCC).
 
+An **offline oracle run** — no session, no wire, just our recorded bytes put through somebody else's
+codec — belongs here too and has no `frames.log`; it carries its verdict table instead. See
+[`tools/interop-v2gdecoder/`](../../tools/interop-v2gdecoder/README.md) and the run it produced,
+[`2026-08-07-v2gdecoder-oracle/`](2026-08-07-v2gdecoder-oracle/notes.md).
+
 ## Producing them
 
 The `[Explicit] [Category("Interop")]` fixtures write these artifacts themselves when
