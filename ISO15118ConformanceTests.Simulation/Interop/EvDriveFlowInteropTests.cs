@@ -180,6 +180,16 @@ public class EvDriveFlowInteropTests
                 $"TLS: {tls.SslProtocol}, {tls.NegotiatedCipherSuite}, " +
                 $"client certificate {(tls.RemoteCertificate is { } c ? c.Subject : "none")}.");
 
+        // The managed backend has no SslStream to interrogate, and this fixture will not claim to have
+        // read back what it only configured. What it can say is what that backend *can* negotiate: TLS 1.3
+        // and the -20 suite pair, by construction (BcV2GTls.Tls13Only / .CipherSuites, refused rather than
+        // downgraded). The peer's own log is the independent witness for what was actually agreed, and the
+        // client certificate is reported from the validation callback either way.
+        else if (serverTls is not null)
+            TestContext.Out.WriteLine(
+                "TLS: BouncyCastle backend — TLS 1.3 with the ISO 15118-20 suite pair by construction; " +
+                "what was negotiated is confirmed from the peer's log, not asserted here.");
+
         var stream = recording?.Tap(socket) ?? socket;
 
         // Reported from the finally rather than after the assertion, because their EV has stopped

@@ -39,7 +39,8 @@ only one with results in both directions across the whole message set. The `[Exp
 - **Live over-the-wire, TLS:** the same DC session runs over **TLS 1.2 (unilateral)** and **TLS 1.3 (mutual)**
   forward, and **TLS 1.3 mutual** reverse. Josev's PKI is **P-256**, not the secp521r1 (or Ed448) that -20
   prescribes for the PKI and the key exchange alike, so the Josev-facing TLS is the .NET `SslStream`
-  backend; our secp521r1/Ed448 BouncyCastle backend stays proven in loopback. Worth saying plainly because
+  backend; our secp521r1/Ed448 BouncyCastle backend was proven in loopback only until 2026-08-07, when
+  eVDriveFlow's P-521 PKI finally gave it a foreign peer. Worth saying plainly because
   it took a third counterparty to make it visible as a pattern: **EVerest's -20 test PKI is P-256 too**
   (with their own `TODO`), and eVDriveFlow — which ships P-521 — was the first peer here whose -20 key
   material matches -20 (`docs/interop-runs/2026-08-07-edf-mutual-tls13/`). Schannel's inability to use

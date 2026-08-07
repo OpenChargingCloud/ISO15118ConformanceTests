@@ -477,12 +477,30 @@ internal static class InteropEnvironment
             $"{(protocol == ProtocolVariant.Iso15118_20 ? "TLS 1.3" : "TLS 1.2")}" +
             (requireClient ? ", requiring a client certificate (accept-any)" : ""));
 
+        // Accept-any, and say whose certificate arrived — the peer's identity is the evidence a mutual
+        // handshake produces, and reading it here rather than off the SslStream is what makes it
+        // backend-independent: the BouncyCastle path hands the peer's DER to exactly this callback and
+        // has no SslStream to interrogate afterwards.
+        RemoteCertificateValidationCallback? acceptAnyClient = null;
+        if (requireClient)
+            acceptAnyClient = (_, certificate, _, _) =>
+            {
+                try
+                {
+                    TestContext.Progress.WriteLine(
+                        $"TLS: their client certificate is {certificate?.Subject ?? "(none)"}.");
+                }
+                catch
+                { }
+                return true;
+            };
+
         return new TlsOptions
         {
             ServerCertificate           = leaf,
             ServerCertificateChain      = chain.Count > 0 ? chain : null,
             RequireClientCertificate    = requireClient,
-            ClientCertificateValidation = requireClient ? (_, _, _, _) => true : null,
+            ClientCertificateValidation = acceptAnyClient,
             // Pinned by protocol exactly as the client side is, and for the same reason: the profile is
             // the protocol's, not the peer's. Their GnuTLS priority string (SECURE128 minus the ancient
             // versions) spans 1.2 and 1.3, so it is our pin that decides which one a -2 session speaks.

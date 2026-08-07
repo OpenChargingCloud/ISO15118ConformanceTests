@@ -121,6 +121,41 @@ bash run-tls.sh   # their EV: SECURITY_PROTOCOL=0x00, the fresh PKI copied in,
 Two of those lines are the day's earlier findings paying for themselves: without the fifo the session
 would stop at exchange 4, and without the regenerated PKI there would be no handshake to have.
 
+## The same handshake on the managed backend — and that one is the point
+
+The run above went through `SslStream`/OpenSSL, which happens to support P-521 on Linux. But the app
+carries a **second TLS backend precisely for this profile** — BouncyCastle, TLS 1.3 only, the -20 suite
+pair pinned in code, secp521r1 and Ed448 certificates — built because Schannel cannot do P-521 at all.
+Until now it had never carried a session against anybody but ourselves.
+
+Re-run with `V2G_TLS_BACKEND=BouncyCastle` and nothing else changed (`bc.flow.md`, `bc.frames.log`,
+`our-station.bouncycastle.log`, `their-ev.bouncycastle.log`):
+
+```
+ours    TLS: their client certificate is DC=VEHICLE, C=FR, O=EDF, CN=VEHICLECert.
+        TLS: BouncyCastle backend — TLS 1.3 with the ISO 15118-20 suite pair by construction
+
+theirs  TLS Session established: TLS Version: TLSv1.3
+        Cipher suite: TLS_AES_256_GCM_SHA384
+```
+
+15 exchanges again, service 6 again, ending at their charge-loop defect again. **So the -20-faithful
+backend now has an external witness**: mutual TLS 1.3, both certificates secp521r1, the profile's own
+suite — the one combination that had only ever existed in loopback, because no counterparty had the
+material for it.
+
+Two notes on what this does and does not assert:
+
+- Our side **does not read back** the negotiated version and suite on this path — BouncyCastle's
+  handshake result is not exposed through the `Stream` the transport returns, and the fixture says so
+  rather than printing what it configured. The independent statement is their EV's log, which names
+  both. What our side *can* say either way is whose certificate arrived, and it now does: the peer
+  certificate is reported from the validation callback rather than off an `SslStream`, which is why the
+  line is identical on both backends.
+- The backend pins TLS 1.3 and refuses anything else, so "TLS 1.3 was negotiated" is not a discovery
+  here — the discovery is that a foreign, standard-conformant peer **completes** that handshake, with
+  P-521 credentials in both directions.
+
 ## What this closes, and what is left
 
 - **Mutual TLS 1.3 at -20: done**, with a counterparty's own P-521 PKI.
@@ -128,6 +163,6 @@ would stop at exchange 4, and without the regenerated PKI there would be no hand
 - Still open, and still theirs: the charge loop past `DC_ChargeLoopRes` (their `hasattr` defect), and a
   run whose verdict is specifically about **DC-BPT** rather than a by-product of the service their EV
   happens to select.
-- Untried on our side: the **BouncyCastle** backend. This ran through `SslStream`/OpenSSL, which
-  negotiated the right suite and curve anyway — so the -20-faithful backend has still never been
-  exercised against a foreign peer, and now there is finally P-521 material to do it with.
+- ~~Untried on our side: the **BouncyCastle** backend.~~ **Done the same night** — see the section
+  above. Both backends now carry this session against the same peer, which also makes them comparable:
+  identical route, identical stopping point, the difference confined to the TLS layer.

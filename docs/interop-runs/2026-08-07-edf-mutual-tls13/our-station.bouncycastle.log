@@ -1,0 +1,14 @@
+TLS: their client certificate is DC=VEHICLE, C=FR, O=EDF, CN=VEHICLECert.
+TLS (station): presenting DC=CPO, C=FR, O=EDF, CN=SECCCert (+2 chain certificate(s)), TLS 1.3, requiring a client certificate (accept-any)
+Waiting for their EV on [::]:55000 (TLS, control mode: Dynamic) ...
+TLS: BouncyCastle backend — TLS 1.3 with the ISO 15118-20 suite pair by construction; what was negotiated is confirmed from the peer's log, not asserted here.
+Energy transfer service: 6 (DC_BPT) — their EV's pick out of our catalogue.
+Recorded:
+  Failed TheirEvcc_AgainstOurSecc_RunsToCompletion [49 s]
+ TLS (station): presenting DC=CPO, C=FR, O=EDF, CN=SECCCert (+2 chain certificate(s)), TLS 1.3, requiring a client certificate (accept-any)
+ Waiting for their EV on [::]:55000 (TLS, control mode: Dynamic) ...
+ TLS: BouncyCastle backend — TLS 1.3 with the ISO 15118-20 suite pair by construction; what was negotiated is confirmed from the peer's log, not asserted here.
+ Energy transfer service: 6 (DC_BPT) — their EV's pick out of our catalogue.
+ Recorded:
+Test Run Failed.
+     Failed: 1
