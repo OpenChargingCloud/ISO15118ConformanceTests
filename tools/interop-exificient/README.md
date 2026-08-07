@@ -1,6 +1,7 @@
 # interop-exificient — the second opinion for ISO 15118-20
 
-**347 frames, 332 byte-exact, 9 mismatches, 6 unreadable, 3.7 seconds.**
+**347 frames, 332 byte-exact, 9 mismatches, 6 unreadable, 3.7 seconds** — and after the fix the run
+found, **333 and five**.
 Run of 2026-08-07: [`docs/interop-runs/2026-08-07-exificient-iso20/`](../../docs/interop-runs/2026-08-07-exificient-iso20/notes.md).
 
 ## Why
@@ -74,7 +75,26 @@ the generator that produced them. Cleared up the same day, three separate causes
 - **WPT FinePositioning.** Our generator reproduced cbV2G's grammar for two optional particles instead of
   the schema's, and says so in the generated code. With both absent we write event code 1 for the
   end-element where the schema has a start-element there. Exactly the four failing messages.
-- **`AC_ChargeParameterDiscoveryRes_DER`** — still open. Its expected bytes come from our own encoder;
-  no reference encoder covers the DER extensions.
+- **`AC_ChargeParameterDiscoveryRes_DER`** — a plain defect of ours, and fixed the same day. A particle
+  with `minOccurs="2"` forces its second occurrence, so that occurrence's start-element is a one-bit
+  code with nothing to choose from; we wrote the two-bit loop code and every bit after it was one
+  position out. ISO has five such particles and all five are in sets no reference encoder covers, which
+  is why nothing had ever caught it. Unlike the two above this needed no switch — there were no
+  reference bytes to stay compatible with.
 
 Full account in the run notes.
+
+## Walking one frame
+
+`roundtrip20.py` says *whether* a frame reads. When it does not, the message is `Premature EOS`, which
+says only that EXIficient ran out of bits — not where, and the difference matters: a frame fails that
+way both when the first event code was wrong and when 240 of 241 bytes were fine.
+
+```bash
+python3 tools/interop-exificient/walk20.py <vectors.json> <FrameName> [<FrameName>...]
+```
+
+drives EXIficient's event API instead of its SAX bridge ([`Walk20.java`](Walk20.java)) and prints every
+event as it is decoded, indented by depth, then the exception and the element stack it died on. Pass a
+working sibling alongside the failing frame — a trace reads far better against one that is known good.
+This is what located cause C to a single particle.

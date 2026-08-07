@@ -1,6 +1,7 @@
 # 2026-08-07 — ISO 15118-20 gets a second opinion, and it disagrees fifteen times
 
 **Result: 347 frames, 332 byte-exact through EXIficient, 9 mismatches, 6 it cannot read. 3.7 seconds.**
+**As it stands after the day's work: 333, and the five still unread are a decision rather than a defect.**
 
 Until today `-20` had exactly one byte oracle: **libcbv2g**, which is also our vector generator and also
 what EVerest and tux-evse encode with. Every `-20` byte agreement this project could show was agreement
@@ -41,8 +42,10 @@ marks as `codec only — no independent stack implements session state machines 
 never been judged by anything except the generator that produced their expected bytes. The first time an
 independent codec looks at them, six frames do not read.
 
-**Resolved the same day — three separate causes, and two of them are ours.** See
-*The six, cleared up* below.
+**Resolved the same day — three separate causes, all three ours.** Two are decisions (we match cbV2G
+where cbV2G and the schema disagree) and one was a plain defect, now fixed: `minOccurs="2"` forces the
+second occurrence of a particle, and a forced occurrence is not a choice. See *The six, cleared up*
+below. The DER frame reads; the other five stand as they are, on purpose.
 
 ## Nine mismatches, and two are old news
 
@@ -120,6 +123,14 @@ bash tools/interop-v2gdecoder/setup.sh      # the jar; needs a JDK for the drive
 python3 tools/interop-exificient/roundtrip20.py \
     libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EXI_Tests/Vectors/Iso15118_20.*.vectors.json \
     ISO15118ConformanceTests.Simulation/Vectors/Session.iso20-*.trace.json
+```
+
+To see *where* a frame stops making sense rather than only that it does, walk it event by event:
+
+```bash
+python3 tools/interop-exificient/walk20.py \
+    libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EXI_Tests/Vectors/Iso15118_20.AC_DER_SAE.vectors.json \
+    AC_ChargeParameterDiscoveryRes_DER AC_ChargeParameterDiscoveryReq_DER
 ```
 
 ## The six, cleared up
@@ -213,42 +224,110 @@ the project's stated rule for the codec, and here cbV2G's grammar and ISO's sche
 bought byte-exactness with the stacks that share cbexigen and cost readability by everyone else. That
 trade was never visible before, because until today nobody else had read a WPT frame of ours.
 
-### C — `AC_ChargeParameterDiscoveryRes_DER`: still open, and its provenance is the lead (1 frame)
+### C — `AC_ChargeParameterDiscoveryRes_DER`: a forced occurrence is not a choice (1 frame)
 
-No cbV2G-grammar marker in its generated code, so not cause B; the AC_DER_SAE numbering is correct, so
-not cause A. What it does have is a `source` field:
+**Ours, a plain defect, and fixed.** Unlike A and B this is not a fork between two defensible readings:
+the schema and the EXI specification agree, and we were simply wrong.
+
+The lead was its provenance. No cbV2G-grammar marker in its generated code, so not cause B; the
+AC_DER_SAE numbering is correct, so not cause A. What it did have is a `source` field:
 
 ```
 AC_ChargeParameterDiscoveryRes_DER    Vanaheimr.V2G.Exi (C#)    241 B
 ```
 
-**Its expected bytes are our own encoder's output.** The corpus file's own header says *"READ THIS
-BEFORE TRUSTING A BYTE"* and gives provenance per vector; six of the sixteen AC_DER_SAE vectors are
-self-generated because no reference encoder covers the DER extensions. This is the largest of them, and
-the first independent codec ever to look at it cannot read it. Five other self-generated DER vectors
-passed, so "self-generated" is not by itself the fault — but a 241-byte vector with no external
-provenance is exactly where one would expect to find one.
+**Its expected bytes were our own encoder's output.** Six of the sixteen AC_DER_SAE vectors are
+self-generated because no reference encoder covers the DER extensions, and this is the largest of them.
+The other five passed, so "self-generated" was not by itself the fault — but a 241-byte vector with no
+external provenance is exactly where one would expect to find one.
 
-**Narrowed 2026-08-07, not solved.** What is now ruled in or out:
+#### Where it goes wrong
 
-- **The DER machinery as such is readable.** `AC_ChargeParameterDiscoveryReq_DER` (136 B) is equally
-  self-generated and round-trips fine, as do the four DER charge-loop vectors. The fault is specific to
-  the Res.
-- **Not cause A** — AC_DER_SAE's global-element numbering matches the sorted order exactly.
-- **Not cause B** — no `cbV2G's grammar for this position` marker anywhere in its generated code; that
-  construct appears only in the four WPT messages.
-- **The general width mechanism is implemented.** `DER_AC_CPDResEnergyTransferModeType` is by far the
-  most optional-heavy type in the amendment, and our generated encoder does narrow the event code as
-  particles are consumed — 2-bit runs, then a 6-production run at 3 bits (`MaximumPowerAsymmetry`,
-  `EVSEPowerRampLimitation`, `EVSEPresentActivePower`, `_L2`, `_L3`, then the next start element), then
-  narrowing again. So this is not a missing feature; if it is ours it is one run.
-- **There is no third opinion available, even in principle.** cbexigen cannot generate the DER schemas
-  at all (it crashes on the two-schema substitution head — the app's `docs/ac-der.md`), so EXIficient is
-  the only external reader these bytes will ever have.
+`Roundtrip20` only reports *that* a frame cannot be read. `Premature EOS` says EXIficient ran out of
+bits, not where — and a frame fails that way both when the first event code was wrong and everything
+after it was noise, and when 240 of 241 bytes were fine. So
+[`Walk20.java`](../../../tools/interop-exificient/Walk20.java) drives EXIficient's event API instead of
+its SAX bridge and prints every event as it is decoded. The last agreement is unambiguous:
 
-What it needs is a bit-level walk of that one message against the schema, comparing our event codes run
-by run with what the grammar prescribes. Worth doing with a clear head rather than at the end of a long
-session.
+```
+SE(CurveDataPoints)
+  SE(CurveDataPoint)                     <- first point: xValue (0,1), yValue (0,2) — correct
+  EE(CurveDataPoint)
+  SE(CurveDataPoint)                     <- second point
+    SE(xValue) SE(Exponent) CH "-64"     <- should be 0
+                SE(Value)  CH "1"        <- should be 3
+                  SE(⁂ @ 4 ` @ ؀ࠀ@ဘ ツ)  <- and from here, noise
+```
+
+`Exponent` is an 8-bit code; we wrote `1000 0000` (0 biased by −128) and EXIficient read `0100 0000`
+(−64). It is reading our bits **one position early**, from the second `CurveDataPoint` onwards. We had
+written one bit too many, and only there.
+
+The schema says why:
+
+```xml
+<xs:element name="CurveDataPoint" type="DataTupleType" minOccurs="2" maxOccurs="10"/>
+```
+
+EXI unrolls a bounded particle into one grammar state per occurrence. Below `minOccurs` the state has a
+**single** production — `SE(item)`, because ending the element there would be invalid — so its event
+code is one bit. Only at `minOccurs` and above does the state also offer the end-element, widening the
+code to two. Our generator gave every occurrence after the first the wide code. Right for
+`minOccurs≤1`; one bit too many for anything else.
+
+#### Confirmed without ISO's schemas
+
+cbexigen cannot generate the DER schemas at all, so there is no third opinion on these particular
+bytes. But the *rule* does not need ISO: ask EXIficient to encode a synthetic
+`minOccurs="2" maxOccurs="10"` schema and read the bits it produces.
+
+| document | body bits | second `SE` | list end |
+|---|---|---|---|
+| `minOccurs="1"`, 2 items | `0 0 0·00000000·0 00 0·00000000·0 01` | **2 bits** | 2-bit EE |
+| `minOccurs="2"`, 2 items | `0 0 0·00000000·0 0 0·00000000·0 01` | **1 bit** | 2-bit EE |
+| `minOccurs="2"`, 3 items | one more item at **2 bits** | | |
+| either, 10 items (`maxOccurs`) | body ends `…0` | | **1-bit EE** |
+
+Both schemas, all four lengths, fit to the bit with no slack: 120 bits exactly for the ten-item
+`minOccurs="2"` document. That also settles a second, smaller thing the generator only handled as a
+`maxOccurs=2` special case — **a list filled to its maximum ends with a one-bit end-element for any
+maximum**, because that state has nothing left to offer. The special case was the general rule.
+
+#### The blast radius, and why the corpus never saw it
+
+ISO 15118 has exactly **five** particles with `minOccurs≥2`:
+
+| particle | set | `minOccurs` / `maxOccurs` |
+|---|---|---|
+| `CurveDataPoint` | AC_DER_IEC | 2 / 10 |
+| `CurveDataPoint` | AC_DER_SAE | 2 / 10 |
+| `TxSpecData` | WPT | 2 / 255 |
+| `RxSpecData` | WPT | 2 / 255 |
+| `PulseSequenceOrder` | WPT | 2 / 255 |
+
+Not one is in `-2`, CommonMessages, AC, DC or ACDP. All five are in message sets no reference encoder
+covers: cbexigen cannot generate the DER schemas, and the cbV2G WPT corpus deliberately leaves
+`LF_SystemSetupData` absent, which is where all three WPT ones live. So **no reference bytes exist for
+any of them** — the vectors that exercise them are our own output, and the WPT ones are covered by
+self-consistency round trips, which by construction cannot catch an encoder and decoder that are wrong
+together. That is the whole reason a bug this basic survived: a corpus can only catch what something
+else also encoded.
+
+It also means there was nothing to stay byte-exact with, so unlike A and B this needed no switch.
+
+#### The fix
+
+`CodecEmitter.ForcedOccurrences` in the app: occurrences below `minOccurs` take the one-bit code, in all
+four places that emit a list (sole child, run particle, run tail, and the self-loop with a following
+particle) and in their four decode counterparts. The `maxOccurs=2` terminator special case became the
+general one. Everything with `minOccurs≤1` is emitted character for character as before — asserted, in
+`GeneratorForcedOccurrenceTests`, because the value of the vector corpus rests on those bytes not moving.
+
+Only one vector in the whole corpus changes: `AC_ChargeParameterDiscoveryRes_DER`, still 241 B, its
+`note` recording why. The suite stays green, and EXIficient now round-trips it byte-exact.
+
+**332 → 333 of 347.** The remaining five are A (one ACDP) and B (four WPT), both policy, both unchanged
+on purpose.
 
 ## Next
 
@@ -256,11 +335,18 @@ session.
    generator gained a switch (`ExiDocumentElementOrder`) with the cbexigen numbering still the default.
    What remains is the decision itself, and that wants the EXI 1.0 text.
 2. **Decide A and B together** — they are one question: stay byte-exact with cbV2G and unreadable to
-   schema-following codecs, or follow the schema and diverge from our own corpus. A is now a build
-   property; B would still be a code change. Worth raising with EVerest either way, since it is their
-   generator's grammar in both cases.
-3. **Diagnose C** — no reference bytes exist, so it needs a bit-level walk against the schema.
-4. **Close the `ServiceDetailRes` and `AuthorizationReq` deltas** with the substitution experiment that
+   schema-following codecs, or follow the schema and diverge from our own corpus. Both are now build
+   properties (`ExiDocumentElementOrder`, `ExiParticleGrammar`), both defaulting to cbV2G. Worth raising
+   with EVerest either way, since it is their generator's grammar in both cases.
+3. ~~Diagnose C~~ — **done, and fixed.** A forced occurrence (`minOccurs="2"`) took a two-bit
+   start-element code where the grammar has a one-bit one. No switch: no reference encoder has ever
+   written any of the five affected particles, so there was nothing to stay byte-exact with.
+   `AC_ChargeParameterDiscoveryRes_DER` now round-trips.
+4. **Check the other four `minOccurs≥2` particles against EXIficient** — `TxSpecData`, `RxSpecData` and
+   `PulseSequenceOrder` are only reachable behind WPT's `LF_SystemSetupData`, which no vector populates,
+   and `CurveDataPoint` in AC_DER_IEC is never given a curve. The fix is the same code path the DER SAE
+   frame proves, but a vector that actually carries one would be better than an inference.
+5. **Close the `ServiceDetailRes` and `AuthorizationReq` deltas** with the substitution experiment that
    closed the `-2` one, and explain the off-by-one against the 35-character URI. These remain the only
    mismatches still attributed to the value partition; `ACDP_ConnectRes` has moved to cause A.
 

@@ -127,6 +127,8 @@ compact form. That is now tested rather than assumed.
 - ~~The `-20` traces cannot be checked this way at all.~~ **Done the same day**, by driving EXIficient
   directly against ISO's own `-20` schemas — the class is in the same jar. 347 frames, 332 byte-exact,
   and six that a second codec cannot read, all in message sets no independent stack had ever touched.
+  One of the six was a real encoder defect and is fixed (333 now); the other five are a deliberate
+  choice to match cbV2G where cbV2G and the schema disagree.
   See [`2026-08-07-exificient-iso20`](../2026-08-07-exificient-iso20/notes.md).
 
 ## Files

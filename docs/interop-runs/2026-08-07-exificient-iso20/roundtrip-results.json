@@ -3,22 +3,14 @@
  "oracle": "EXIficient 1.0.4 (from the V2Gdecoder jar), OpenJDK 25, offline entity resolution",
  "method": "our bytes -> their decode -> their encode -> compare",
  "schemas": "ISO 15118-20, read from the app submodule",
+ "note": "Re-run the same day after the minOccurs>=2 fix (cause C in notes.md): AC_ChargeParameterDiscoveryRes_DER moved from decode-fail to ok, 332 -> 333. The five frames that still do not read are causes A and B, which are decisions, not defects.",
  "totals": {
-  "ok": 332,
+  "ok": 333,
   "mismatch": 9,
-  "decode-fail": 6,
+  "decode-fail": 5,
   "encode-fail": 0
  },
  "notMatched": [
-  {
-   "file": "Iso15118_20.AC_DER_SAE.vectors.json",
-   "frame": "AC_ChargeParameterDiscoveryRes_DER",
-   "schema": "V2G_CI_AC_DER_SAE.xsd",
-   "verdict": "decode-fail",
-   "detail": "TransformerException: java.io.EOFException: Premature EOS found while reading data.",
-   "ourHex": "8014040000000000000000080e2cfaa06200840078558091000c844001914109000020000410000401000060800040c24000080001040001004000182000103409000020000410000401000060800040c24000080001040001004000182000103421001f4020800c80104001982000c461240000908480001000020800020080003040002062000144800e601000004800010000208000200800030400020609200000800262400008000104000100400018200010310000a224800e80720024a066200360d884005c0b91001702e4400680791001a01e41000640800e60104000011001f4020800c801000407167d5030",
-   "theirHex": null
-  },
   {
    "file": "Iso15118_20.ACDP.vectors.json",
    "frame": "ACDP_ConnectRes",

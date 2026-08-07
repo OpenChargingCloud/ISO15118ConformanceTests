@@ -32,3 +32,6 @@ Thumbs.db
 # (WSL ~/cbv2g-ref-build). Nothing to ignore here, but keep local build dirs out:
 tools/**/build/
 tools/**/cmake-build-*/
+
+# walk20.py imports roundtrip20 as a module, which leaves bytecode next to it.
+tools/**/__pycache__/
