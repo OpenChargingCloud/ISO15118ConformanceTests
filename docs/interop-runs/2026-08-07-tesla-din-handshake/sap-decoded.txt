@@ -1,0 +1,7 @@
+  priority 2  schemaId 1  v2.0  urn:din:70121:2012:MsgDef
+  priority 1  schemaId 2  v0.7  urn:tesla:din:2018:MsgDef
+ Our station answered: Failed_NoNegotiation
+ The Tesla's offer, as decoded by our codec:
+   priority 2  schemaId 1  v2.0  urn:din:70121:2012:MsgDef
+   priority 1  schemaId 2  v0.7  urn:tesla:din:2018:MsgDef
+ The station answered: OK_SuccessfulNegotiation, SchemaID 1

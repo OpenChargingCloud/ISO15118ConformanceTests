@@ -30,7 +30,7 @@ What it is instead, and why it earned a harness anyway:
 | | |
 |---|---|
 | **A real car's captured route** | Their scenarios are generated from packet captures. The 2026-08-06 runs put an actual Audi's DC session and an actual VW's AC session in front of our station — messages no specification-derived test would write, including one (an early `SessionStopReq`) that a real charger answered differently than we do. |
-| **The only DIN 70121 material here** | They ship `tesla-3-din.json` and `tesla-3-din.pcap`. Nothing else in this project has met DIN. |
+| **The only DIN 70121 material here** | They ship `tesla-3-din.json` and `tesla-3-din.pcap`. Nothing else in this project has met DIN. Its session is unreadable to us; its **SupportedAppProtocol handshake is not** — that schema is protocol-independent by design, and the Tesla's offer turned out to carry a vendor-proprietary protocol at the highest priority ([2026-08-07](interop-runs/2026-08-07-tesla-din-handshake/notes.md)). |
 | **A stack that plays either end** | Responder (station) and injector (car), driven by the same scenario files. The injector is the half that works against a foreign peer. |
 
 Their published artifact is still image `registry.redpesk.bzh/tux-evse/afb-iso15118:v0.1`
@@ -232,8 +232,9 @@ choice and is asked rather than asserted.
   field. Relaxing is structurally different on that side (the `query` doubles as the answer table), so
   the forward direction stays a two-exchange handshake check until their matcher learns a wildcard —
   that is a question for upstream, not for this harness.
-- **DIN 70121.** They ship the only DIN material this project has seen. Nothing here speaks DIN yet, so
-  it is a capability question rather than a scheduling one.
+- **DIN 70121, the session.** They ship the only DIN material this project has seen, and its 2,215
+  transactions stay out of reach: nothing here has DIN schemas, so it is a capability question rather
+  than a scheduling one. **The handshake is not** — see below.
 - **A -2 TLS session past `Authorization`.** Gated on their signing bug, not on TLS: it needs either
   their fix, or a scenario that selects `contract` *and* carries a `payment_details_req`. The captured
   Audi has neither, so it would have to come from a different capture or be hand-written — and then
@@ -242,8 +243,10 @@ choice and is asked rather than asserted.
 - ~~**The Porsche AC captures**~~ — run 2026-08-07, both sides, both compaction modes
   ([`2026-08-07-tux-porsche-ac`](interop-runs/2026-08-07-tux-porsche-ac/notes.md)); they cost us a
   finding, confirmed a fix, and after the fix ran to `SessionStop` with the order matching their
-  declared flow exactly. **The Tesla DIN pcap** stays out of reach: nothing here speaks DIN
-  70121, which is a capability question rather than a scheduling one.
+  declared flow exactly. ~~**The Tesla DIN pcap**~~ — mined 2026-08-07 for the one part of it a
+  DIN-less project can read
+  ([`2026-08-07-tesla-din-handshake`](interop-runs/2026-08-07-tesla-din-handshake/notes.md)); its
+  session stays out of reach, its handshake did not.
 - **A byte-level codec verdict.** Structurally unavailable, forever: their codec and our corpus come
   from the same generator.
 

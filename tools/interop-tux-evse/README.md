@@ -368,6 +368,30 @@ will otherwise re-derive them.
 
 ---
 
+## Reading a capture without running anything ([`v2gtp-from-pcap.py`](v2gtp-from-pcap.py))
+
+Their `trace-logs/` are packet captures, and their `pcap-iso15118` turns one into a scenario. Sometimes
+the useful thing is smaller than that: the bytes, out of the pcap, per direction, with no rig and no
+counterparty process.
+
+```bash
+./v2gtp-from-pcap.py path/to/some.pcap 3      # first 3 V2GTP frames per direction, as hex
+```
+
+It parses libpcap directly — no scapy, no tshark — reassembles each TCP direction by sequence number
+and splits on the V2GTP header. About 100 lines, and worth having for one specific reason:
+
+**The `SupportedAppProtocol` handshake is readable in every capture, whatever protocol follows it.**
+That schema is its own document type and is deliberately protocol-independent — it is how the two sides
+agree which protocol to speak, so it cannot presuppose one. Our codec decodes it out of a DIN 70121
+capture as happily as out of an ISO one, which is how `tesla-3-din.pcap` stopped being unusable
+([2026-08-07](../../docs/interop-runs/2026-08-07-tesla-din-handshake/notes.md): a real Tesla offering a
+vendor-proprietary protocol at priority 1).
+
+So before writing a capture off as "a protocol we do not speak", take its first two frames.
+
+---
+
 ## Known friction (expect these first)
 
 - **The `expect` blocks are another station's answers, and a mismatch aborts the replay.** See
