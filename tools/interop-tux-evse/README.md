@@ -392,6 +392,21 @@ So before writing a capture off as "a protocol we do not speak", take its first 
 
 ---
 
+## Afterwards ([`../rig-cleanup.sh`](../rig-cleanup.sh))
+
+```bash
+sudo bash tools/rig-cleanup.sh
+```
+
+Takes down the binders, the namespace and the run output across all three live counterparties, and
+prints what it kept with what a rebuild would cost. Two details in it are load-bearing rather than
+tidiness: their binder renames its process (so `pkill -x afb-binder` never matches), and a wedged one
+does not answer SIGTERM — the cleanup escalates to `SIGKILL` for the reason written up as
+[issue D](../../docs/reports/tux-evse-spin.md). Leaving one behind holds ports 1234/1235/61341 and
+makes the next run measure garbage.
+
+---
+
 ## Known friction (expect these first)
 
 - **The `expect` blocks are another station's answers, and a mismatch aborts the replay.** See
