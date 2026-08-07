@@ -41,19 +41,16 @@ marks as `codec only — no independent stack implements session state machines 
 never been judged by anything except the generator that produced their expected bytes. The first time an
 independent codec looks at them, six frames do not read.
 
-**This is not yet a verdict on who is wrong.** Two readings fit and we have not separated them: our
-encoder writes those messages incorrectly, or EXIficient's grammar for them differs from cbexigen's.
-The frames are small enough (18–23 B for five of the six) that a bit-level comparison against the
-schema should settle it quickly, and that is the next piece of work. What is already certain is that
-the agreement these sets had was never independent.
+**Resolved the same day — three separate causes, and two of them are ours.** See
+*The six, cleared up* below.
 
 ## Nine mismatches, and two are old news
 
-| frame | ours | theirs | delta |
-|---|---:|---:|---:|
-| `ServiceDetailRes` (×7, one per trace) | 138 B | 95 B | 43 |
-| `AuthorizationReq` (PnC trace) | 913 B | 879 B | 34 |
-| `ACDP_ConnectRes` | 20 B | 18 B | 2 |
+| frame | ours | theirs | delta | |
+|---|---:|---:|---:|---|
+| `ServiceDetailRes` (×7, one per trace) | 138 B | 95 B | 43 | value partition, probably |
+| `AuthorizationReq` (PnC trace) | 913 B | 879 B | 34 | value partition, probably |
+| `ACDP_ConnectRes` | 20 B | 18 B | 2 | **not a partition difference — see cause A below** |
 
 The first two have the shape of the finding already recorded for `-2` in
 [`ExiStringTableTests`](../../../ISO15118ConformanceTests.Simulation/Interop/ExiStringTableTests.cs):
@@ -67,7 +64,9 @@ the repeated value unique at the same length and their encoder produced our leng
 delta is 34 while our canonicalization URI is 35 characters, so something is off by one and the same
 experiment has not been run. Recorded as "the same shape", not as the same finding.
 
-`ACDP_ConnectRes` — 2 bytes, diverging at offset 18 of 20 — is neither of those and is unexplained.
+`ACDP_ConnectRes` looked like a third instance and is not one: it is the other half of the element
+numbering defect, cause A below. Worth noting how it read before that was known — a small, plausible
+byte delta on a message whose grammar we had no reason to doubt.
 
 ## The afternoon this cost, and the one line that fixed it
 
@@ -123,13 +122,107 @@ python3 tools/interop-exificient/roundtrip20.py \
     ISO15118ConformanceTests.Simulation/Vectors/Session.iso20-*.trace.json
 ```
 
+## The six, cleared up
+
+Three causes, not one, and the two ACDP frames turn out to share theirs with a mismatch.
+
+### A — our global-element numbering is wrong for ACDP, and only for ACDP (2 frames)
+
+In schema-informed EXI the document grammar enumerates the schema's **global elements sorted by
+qname**. Our generated dispatch writes a "document element selector" per message, and comparing that
+numbering with the sorted one across all six `-20` sets gives:
+
+| set | ours vs EXI's order |
+|---|---|
+| CommonMessages, AC, DC, WPT, AC_DER_SAE | identical |
+| **ACDP** | **indices 1 and 2 are swapped** |
+
+```
+ours: 0 ACDP_ConnectReq   1 ACDP_DisconnectReq   2 ACDP_ConnectRes   3 ACDP_DisconnectRes …
+spec: 0 ACDP_ConnectReq   1 ACDP_ConnectRes      2 ACDP_DisconnectReq 3 ACDP_DisconnectRes …
+```
+
+Those two indices are **exactly** the two ACDP frames that did not round-trip. The consequences follow
+mechanically and match the observations to the byte:
+
+- we write `ACDP_DisconnectReq` with selector 1; a conformant decoder reads element 1 =
+  `ACDP_ConnectRes`, whose type has more content than we wrote → **`Premature EOS`**;
+- we write `ACDP_ConnectRes` with selector 2; it is read as `ACDP_DisconnectReq`, a shorter type →
+  decodes, re-encodes to **18 B against our 20** → the mismatch reported above. So that mismatch was
+  never a value-partition difference at all.
+
+The reason our order ties differently is visible in ISO's schema:
+
+```xml
+<xs:element name="ACDP_DisconnectReq" type="ACDP_ConnectReqType"/>
+<!--  <xs:complexType name="ACDP_DisconnectReqType"> … -->   <!-- commented out by ISO -->
+```
+
+`ACDP_DisconnectReq` and `ACDP_DisconnectRes` have no types of their own; they reuse
+`ACDP_ConnectReqType` and `ACDP_ConnectResType`. Our numbering groups the elements that share a type,
+so the pair lands adjacent instead of alphabetical. ACDP is the only `-20` set with an aliased type,
+which is why it is the only set affected — and why nothing caught it: the vectors are cbV2G's, cbV2G
+numbers them the same way we do, and no other codec had ever looked.
+
+**Ours to fix**, in the app's source generator.
+
+### B — the four WPT frames are cbV2G's grammar, not the schema's (4 frames)
+
+Our own generated code says so, in as many words:
+
+```csharp
+if (msg.VendorSpecificDataContainer.Count > 2)
+    throw new ArgumentOutOfRangeException(nameof(msg),
+        "VendorSpecificDataContainer: cbV2G's grammar for this position caps this list at 2 items.");
+…
+    throw new ArgumentException("WPT_LF_DataPackageList cannot be encoded while
+        VendorSpecificDataContainer is empty: cbV2G's grammar for this position only reaches it
+        after at least one list item.", nameof(msg));
+```
+
+The schema says something else: `VendorSpecificDataContainer` is `minOccurs="0" maxOccurs="16"` and
+`WPT_LF_DataPackageList` is an independent `minOccurs="0"`. So at the position where both are absent,
+the schema grammar offers three events — `SE(VendorSpecificDataContainer)=0`,
+`SE(WPT_LF_DataPackageList)=1`, `EE=2` — and we write **1 for the end-element**, because our state
+there only knows two. EXIficient reads that 1 as a start element, looks for content that is not
+there, and reports `Premature EOS`.
+
+`grep` puts the blast radius at exactly those two comments, sixteen times each, across exactly the
+four `WPT_FinePositioning*` messages — the four that failed. The working sibling
+`WPT_AlignmentCheckReq` has the ordinary loop to 16 and round-trips fine.
+
+**Ours to fix as well** — but deliberately incurred, not an oversight: matching cbV2G byte-for-byte is
+the project's stated rule for the codec, and here cbV2G's grammar and ISO's schema disagree. The rule
+bought byte-exactness with the stacks that share cbexigen and cost readability by everyone else. That
+trade was never visible before, because until today nobody else had read a WPT frame of ours.
+
+### C — `AC_ChargeParameterDiscoveryRes_DER`: still open, and its provenance is the lead (1 frame)
+
+No cbV2G-grammar marker in its generated code, so not cause B; the AC_DER_SAE numbering is correct, so
+not cause A. What it does have is a `source` field:
+
+```
+AC_ChargeParameterDiscoveryRes_DER    Vanaheimr.V2G.Exi (C#)    241 B
+```
+
+**Its expected bytes are our own encoder's output.** The corpus file's own header says *"READ THIS
+BEFORE TRUSTING A BYTE"* and gives provenance per vector; six of the sixteen AC_DER_SAE vectors are
+self-generated because no reference encoder covers the DER extensions. This is the largest of them, and
+the first independent codec ever to look at it cannot read it. Five other self-generated DER vectors
+passed, so "self-generated" is not by itself the fault — but a 241-byte vector with no external
+provenance is exactly where one would expect to find one.
+
 ## Next
 
-1. **The six unreadable frames.** Five are under 25 bytes; a bit-level walk against the schema will say
-   whether the fault is ours or EXIficient's. This is the piece with real conformance weight.
-2. **Close the `ServiceDetailRes` and `AuthorizationReq` deltas** with the substitution experiment that
-   closed the `-2` one, and explain the off-by-one against the 35-character URI.
-3. **`ACDP_ConnectRes`** — two bytes, unexplained.
+1. **Fix A** — sort global elements by qname in the generator. Small, and it makes two ACDP messages
+   readable by any conformant peer. Belongs in `libs/EVSimulatorApp/`.
+2. **Decide B** — this is a policy question before it is a code change: stay byte-exact with cbV2G and
+   unreadable to schema-following codecs, or follow the schema and diverge from our own corpus. Worth
+   raising with EVerest too, since it is their generator's grammar.
+3. **Diagnose C** — no reference bytes exist, so it needs a bit-level walk against the schema.
+4. **Close the `ServiceDetailRes` and `AuthorizationReq` deltas** with the substitution experiment that
+   closed the `-2` one, and explain the off-by-one against the 35-character URI. These remain the only
+   mismatches still attributed to the value partition; `ACDP_ConnectRes` has moved to cause A.
 
 ## Files
 

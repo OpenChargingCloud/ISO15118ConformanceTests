@@ -16,6 +16,10 @@
  *     in :  <name> \t <absolute schema path> \t <hex>
  *     out:  <name> \t <ok|mismatch|decode-fail|encode-fail> \t <hex or -> \t <detail or ->
  *
+ * If the third field starts with '<' it is XML, and the job is encode-only: the result is EXIficient's
+ * bytes for that document, verdict `encoded`. That is how a frame our codec writes and theirs cannot
+ * read gets pinned down — hand them the message we meant and compare what they produce.
+ *
  * Build:  javac -cp <decoder.jar> -d <outdir> Roundtrip20.java
  * Run:    java -cp <decoder.jar>:<outdir> Roundtrip20 <jobs.tsv> <results.tsv>
  */
@@ -85,6 +89,15 @@ public class Roundtrip20 {
                     grammars = CACHE.get(schemaPath);
                 } catch (Exception e) {
                     emit(out, name, "decode-fail", null, "schema: " + brief(e));
+                    continue;
+                }
+
+                if (hex.startsWith("<")) {          // encode-only probe, see the header comment
+                    try {
+                        emit(out, name, "encoded", hex(encode(hex, grammars)), null);
+                    } catch (Exception e) {
+                        emit(out, name, "encode-fail", null, brief(e));
+                    }
                     continue;
                 }
 

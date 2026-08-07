@@ -63,8 +63,18 @@ Nine mismatches, of which seven and one have the shape of the EXI value-partitio
 recorded for `-2` in `Interop/ExiStringTableTests.cs`, and one (`ACDP_ConnectRes`, two bytes) is
 unexplained.
 
-**Six frames EXIficient cannot read at all** — four WPT, one ACDP, one AC_DER_SAE. Those are precisely
-the message sets the interop matrix marks as *codec only — no independent stack implements session
-state machines for them*, so their expected bytes had never been judged by anything but the generator
-that produced them. Whether the fault is ours or EXIficient's is **not yet established**; five of the
-six are under 25 bytes, so a bit-level walk against the schema should settle it.
+**Six frames EXIficient could not read at all** — four WPT, one ACDP, one AC_DER_SAE — all in message
+sets the interop matrix marks *codec only*, whose expected bytes had never been judged by anything but
+the generator that produced them. Cleared up the same day, three separate causes and two of them ours:
+
+- **ACDP element numbering.** We number the schema's global elements so that the two sharing an aliased
+  type land adjacent; EXI requires sorting by qname. Indices 1 and 2 are swapped, and those are exactly
+  the two ACDP frames that failed — one unreadable, one silently decoded as a different message. ACDP is
+  the only `-20` set with an aliased type, and cbV2G numbers them the same way we do, so nothing caught it.
+- **WPT FinePositioning.** Our generator reproduced cbV2G's grammar for two optional particles instead of
+  the schema's, and says so in the generated code. With both absent we write event code 1 for the
+  end-element where the schema has a start-element there. Exactly the four failing messages.
+- **`AC_ChargeParameterDiscoveryRes_DER`** — still open. Its expected bytes come from our own encoder;
+  no reference encoder covers the DER extensions.
+
+Full account in the run notes.
