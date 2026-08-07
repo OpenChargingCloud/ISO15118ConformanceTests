@@ -7,7 +7,8 @@ built from source (their `oci-15118/Dockerfile_almalinux_source` recipe, nativel
 
 **Two separate issues below, filed separately.** Issue A is a defect with a two-line fix that blocks
 their own documented TLS quick-start; issue B is a conformance question that may well be a deliberate
-choice on their side. A third, unrelated to TLS, is in *Also seen*.
+choice on their side. Two more, C and D, are unrelated to TLS and live in
+[`tux-evse-spin.md`](tux-evse-spin.md).
 
 Evidence in this repository: [`2026-08-06-tux-tls`](../interop-runs/2026-08-06-tux-tls/notes.md) —
 in particular [`their-pair.injector.log`](../interop-runs/2026-08-06-tux-tls/their-pair.injector.log)
@@ -180,15 +181,39 @@ that follows it exists, and currently cannot connect.
 
 ## Also seen, secondary
 
-- **Both binders spin without bound when a peer pauses or disconnects** — now written up separately,
-  with a minimal reproduction, in [`tux-evse-spin.md`](tux-evse-spin.md): one connection, one
+- **Both binders spin without bound when a peer pauses or disconnects**, and a wedged binder does not
+  answer SIGTERM — written up separately as issues **C** and **D** in
+  [`tux-evse-spin.md`](tux-evse-spin.md), with a minimal reproduction: one connection, one
   `SupportedAppProtocolReq`, disconnect, and their responder writes 2.15 M log lines in 10 s with no
-  peer connected. File that one first if you file only one: it is confirmable in two minutes.
+  peer connected. File C first if you file only one: it is confirmable in two minutes.
 - **The responder answers only the car in its recording.** In responder mode the `query` block is
   matched field-by-field against the *incoming* request, so a foreign EV is refused at `SessionSetup`
   on its own EVCCID (`injector-binding-rs/src/verbs.rs:284`). We read this as a design property, not a
   defect — but a wildcard, or a documented note that the responder is for replaying its own capture,
   would make it obvious sooner. **Question rather than report.**
+- **And the mirror of it in injector mode, which is the one that costs a tester an afternoon.** Each
+  response is compared against an `expect` block lifted from the capture, `Jequal::Partial` (every
+  expected field must match, `src/verbs.rs`, `injector_async_response`), and a single mismatch aborts
+  the whole scenario (`src/controller.rs`, `job_scenario_exec` propagates the first `Fail`). Against
+  any station that is not the recorded charger, a shipped scenario therefore dies at the first field
+  that station legitimately chooses for itself — for us `SessionSetupRes.id`, three messages in. None
+  of the three `--compact` modes relaxes the matching (`pcap-15118/src/pcap-import.rs`: `CompactMode`
+  is `None | Reduced | Minimal`); they reduce *repetition*, not *strictness*.
+
+  This is what stands between your captures and their most valuable use — replaying a real car at
+  somebody else's station. Our workaround keeps the check rather than deleting it: reduce each
+  `expect` to `rcode`/`tagid`/`proto`/`msgid`/`stamp`, so the injector still verifies **which** message
+  came back and **with which response code**, and stops treating the captured charger's identity,
+  schedules and measurements as requirements. (Removing the block entirely would be worse: a
+  transaction with no `expect` is not checked at all — `expects.count() == 0` short-circuits to
+  `Done`.) With that, the captured Audi ran 25 exchanges to `SessionStopRes` against our station, and
+  both Porsche AC captures ran to completion.
+
+  A fourth compaction mode that did this — call it `--compact=protocol` — would make every capture you
+  ship usable as a conformance scenario for any stack. We are happy to hand over the 120-line script we
+  used if it is a useful starting point; it is
+  [`scenario-relax.py`](../../tools/interop-tux-evse/scenario-relax.py), Apache-2.0 like the rest of
+  this repository. **Question rather than report**, but the one we would most like an answer to.
 - **Minor, no issue filed:** `binding-start-evse.sh` hardcodes `export IFACE_SIMU=evse-veth` while
   `binding-start-evcc.sh` guards the same line with `if test -z`; the SDP socket binds without
   `SO_REUSEADDR`, so two simulators cannot share a host without network namespaces; and `autorun: 0`
@@ -210,6 +235,10 @@ that follows it exists, and currently cannot connect.
       with is "is the omission deliberate?", not "your profile is wrong".
 - [ ] **Offer the patch for A only if they want it** — the choice between guarding on the challenge and
       keying on the payment option is theirs, and it touches `MeteringReceiptReq` too.
-- [x] **The busy loops went to a third issue** rather than being buried here —
+- [x] **The busy loops went to their own issues** rather than being buried here — C and D in
       [`tux-evse-spin.md`](tux-evse-spin.md), with a reproduction that needs no ISO 15118 stack on the
       other end at all.
+- [ ] **Decide whether to offer `scenario-relax.py` in the same message or a separate one.** It is the
+      only item here that asks them for a feature rather than reporting something broken, and it reads
+      better as its own conversation — "here is what we did to replay your captures, would you want it
+      upstream?" — than as a postscript to two bug reports.

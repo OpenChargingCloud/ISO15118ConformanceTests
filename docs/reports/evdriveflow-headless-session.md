@@ -1,18 +1,25 @@
 # Draft report to EDF Lab (eVDriveFlow) — the documented no-GUI path cannot complete a session, for two independent reasons
 
 Status: **draft, not sent.** Found 2026-08-06 against `EDF-Lab/eVDriveFlow` @ **`60249c3`**, their
-published code **unpatched**, driven by a third-party ISO 15118-20 SECC. Post under your own name; see
-*Before sending* at the bottom.
+published code **unpatched**, driven by a third-party ISO 15118-20 SECC; confirmed again 2026-08-07
+over mutual TLS 1.3 and in a DC_BPT session. Post under your own name; see *Before sending* at the
+bottom.
 
 Both issues below are on the path their README describes at line 224 — *"To execute without GUI, run
 `start_ev.py`. To stop the session from EV side press Enter in the execution terminal."* — and they are
 independent: fixing the first reveals the second. **File them separately.**
 
+Read the short section [*What worked*](#what-worked) before the issues if you are sending this to a
+maintainer cold. Three runs of theirs went further than anything else this project has talked to at
+-20, and the two defects below are the only things between their EV and a complete charge loop.
+
 Evidence in this repository: [`2026-08-06-edf-stdin-wall`](../interop-runs/2026-08-06-edf-stdin-wall/notes.md),
 with both of their EV's own logs side by side
 ([`their-ev.stdin-eof.log`](../interop-runs/2026-08-06-edf-stdin-wall/their-ev.stdin-eof.log),
 [`their-ev.stdin-open.log`](../interop-runs/2026-08-06-edf-stdin-wall/their-ev.stdin-open.log)) and the
-rig that produced them.
+rig that produced them; then
+[`2026-08-07-edf-mutual-tls13`](../interop-runs/2026-08-07-edf-mutual-tls13/notes.md) and
+[`2026-08-07-edf-dc-bpt`](../interop-runs/2026-08-07-edf-dc-bpt/notes.md).
 
 ---
 
@@ -152,6 +159,10 @@ if mode is not None:
 `hasattr` on generated dataclasses is worth a grep beyond this file: the same pattern would silently
 null any other configured value the peer leaves out.
 
+**This is the one fix worth doing first.** It is the last thing standing between their EV and a
+complete charge loop, and it is the same two lines over plain TCP, over mutual TLS 1.3, and in a
+DC_BPT session: three runs, three transports and service catalogues, one `None * int`.
+
 ---
 
 ## Also seen — the shipped certificates expired in 2022
@@ -181,6 +192,40 @@ it reads as "your TLS path is fine, its certificates are stale".
 
 ---
 
+<a id="what-worked"></a>
+
+## What worked — worth saying first, and not as politeness
+
+Three separate things this project had never obtained from any other counterparty at ISO 15118-20, all
+from their unpatched stack:
+
+- **A second independent codec.** Their OpenEXI/Nagasena path decoded every one of our -20 messages,
+  in both directions, across every run — including the DC_BPT envelope. Ours is cbV2G-derived, so the
+  two share no ancestry. This project has exactly two such codecs.
+- **A mutual TLS 1.3 handshake at -20, verified by somebody else's implementation** rather than by our
+  own two sides agreeing with each other: `TLS_AES_256_GCM_SHA384`, both directions authenticated.
+- **The first -20 PKI we have met that is the one -20 describes.** Their generator uses
+  `secp521r1` on every line, which is simply what the standard prescribes
+  (`ecdsa_secp521r1_sha512` or Ed448). We expected that to be the boring half of the run. It was not:
+  the other two -20 stacks we test against both ship **P-256** test material — one by choice, one with
+  a `TODO` beside it — so until this run every -20 TLS session this project had ever completed was
+  carried by -2-grade keys. There is a real pull towards P-256 (Windows' Schannel cannot do P-521 for
+  TLS at all, so a test PKI that must work everywhere ends up non-conformant almost by force), which
+  makes theirs the exception rather than the default.
+
+We mention the last one because the expired-certificate note above could otherwise read as criticism of
+their PKI. It is the opposite: **the PKI is right, and only its clock ran out** — and the 60-day SECC
+leaf that expired first is the standard's own requirement, which is exactly why checked-in material
+cannot stay valid.
+
+And a fourth, smaller: in the DC_BPT run their EV picked service **6 (DC_BPT)** out of a catalogue that
+also offered the unidirectional entry, and exchanged a real bidirectional power envelope — 48 kW / 137 A
+of discharge against our station's 50 kW / 200 A, each side's numbers read by the other's decoder
+([run notes](../interop-runs/2026-08-07-edf-dc-bpt/notes.md)). That is a working bidirectional
+negotiation, and it too ends at issue 2.
+
+---
+
 ## Also seen, secondary — not filed here
 
 Three findings from our 2026-08-01 runs, each with its own file and each filable separately. We
@@ -206,15 +251,23 @@ lay behind them.
 ## Before sending
 
 - [x] **Reproduce it yourself.** Both issues were reproduced on the unpatched published commit, in an
-      A/B run whose only difference is what `start_ev.py` gets on file descriptor 0.
+      A/B run whose only difference is what `start_ev.py` gets on file descriptor 0. Issue 2 confirmed
+      again 2026-08-07 over mutual TLS 1.3 and in a DC_BPT session — same two lines, three transports.
+- [x] **Lead with what worked**, not with politeness at the end — [*What worked*](#what-worked) is
+      above the fold for that reason, and every claim in it has a run behind it.
 - [ ] **File issues 1 and 2 separately**, and consider the three secondary ones as a third filing —
       two of them are the same `hasattr`/`None` shape on the SECC side and might be fixed in one pass.
+      If they can only take one: **issue 2**. It is the last thing between their EV and a complete
+      charge loop.
 - [ ] **Say what was on the other end.** A third-party ISO 15118-20 SECC in Dynamic control mode, EIM,
-      plain TCP — not a fuzzer, and not your own stack talking to itself. That is the part that tells a
-      maintainer these are interop defects rather than exotic inputs.
+      over plain TCP and then over mutual TLS 1.3 — not a fuzzer, and not your own stack talking to
+      itself. That is the part that tells a maintainer these are interop defects rather than exotic
+      inputs.
 - [ ] **Offer the patches only if they want them.** Issue 1 has two reasonable shapes (check the return
       value vs. gate on `isatty`), and issue 2 touches a pattern that may appear elsewhere in the tree —
       both are their call.
-- [ ] **Thank them for the codec.** Their OpenEXI/Nagasena path decoded every one of our -20 messages
-      without complaint across both directions; it is one of only two independent codecs this project
-      has, and that is worth saying in the same breath as the defects.
+- [ ] **Decide whether the P-256 comparison goes in.** Naming what two other projects ship is fair
+      — it is public code and it is the reason the observation is interesting — but it is somebody
+      else's shortcoming appearing in a report to a third party. Saying "the first -20 PKI we have met
+      that uses the curve -20 prescribes" makes the same point without the comparison, if you would
+      rather not.

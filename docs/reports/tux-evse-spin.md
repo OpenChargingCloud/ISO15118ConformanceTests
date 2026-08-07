@@ -1,17 +1,21 @@
 # Draft report to IoT.bzh (tux-evse) — one connection that closes makes the binder log 200,000 lines a second
 
 Status: **draft, not sent.** Reproduced 2026-08-06 on `iso15118-simulator-rs` **`main` @ `fc51088`**
-built from source, with their own shipped scenario and no third-party stack in the loop. Post under
-your own name; see *Before sending* at the bottom.
+built from source, with their own shipped scenario and no third-party stack in the loop; re-measured
+2026-08-07. Post under your own name; see *Before sending* at the bottom.
 
-This is the third finding from these runs; the two about TLS are in
-[`tux-evse-tls.md`](tux-evse-tls.md) and are unrelated to this one.
+Two independent observations, **C** and **D**, continuing the lettering of
+[`tux-evse-tls.md`](tux-evse-tls.md) (A and B, both about TLS and unrelated to these). They are
+separate filings: C is a loop, D is a signal handler, and a fix for one does not touch the other.
 
 Evidence: [`spin-repro.sh`](../interop-runs/2026-08-06-tux-head-reverse/spin-repro.sh) (the whole
-reproduction, 40 lines) and [`spin-repro.log`](../interop-runs/2026-08-06-tux-head-reverse/spin-repro.log)
-(measurements plus the repeated line verbatim).
+reproduction, 40 lines), [`spin-repro.log`](../interop-runs/2026-08-06-tux-head-reverse/spin-repro.log)
+(measurements plus the repeated line verbatim), and the four-run natural experiment in
+[`2026-08-07-tux-porsche-ac`](../interop-runs/2026-08-07-tux-porsche-ac/notes.md).
 
 ---
+
+# Issue C — a peer that disconnects (or simply pauses) sends the binder into an unbounded log loop
 
 **Title:** A peer that disconnects (or simply pauses) sends `afb-evse` into an unbounded log loop —
 365 MB in 11 s — and the socket is never closed
@@ -57,17 +61,35 @@ the state; a pause is enough. The disconnect is what makes it permanent.
 - **The trigger is ordinary.** Any peer that pauses between messages, times out, or hangs up — a car
   unplugged mid-session, a test client that finishes, a crashed EVCC — reaches it. We first met it
   three different ways before isolating this one.
-- **A wedged binder does not answer SIGTERM.** `pkill afb-evse` leaves it running; only `SIGKILL`
-  stops it. Combined with the leaked `CLOSE-WAIT` socket and the still-bound ports, a stuck instance
-  blocks the next run of your own test suite until someone notices.
-  Measured more precisely on 2026-08-07: SIGTERM *does* stop the logging — the file stops growing at
-  once — but the process stays. So `timeout 20 afb-binder …` looks like it worked, writes nothing
-  further, and then holds the shell that started it open indefinitely; ours sat for ten minutes before
-  it was killed by hand. That reads as two separate problems: the loop, and a signal handler that
-  quiets the binder without ending it. `timeout -k` is the workaround on our side.
+- **A wedged binder does not answer SIGTERM** — filed as issue D below, because it is a different
+  mechanism and makes this one much harder to contain. Combined with the leaked `CLOSE-WAIT` socket and
+  the still-bound ports, a stuck instance blocks the next run of your own test suite until someone
+  notices.
 
 One rig note that may save you a minute: the binder renames its process to whatever `--name` says, so
 it is `afb-evse` / `afb-evcc` in `ps`, not `afb-binder`.
+
+## The same loop, from the other side — and a natural experiment
+
+The isolated reproduction above uses the **responder** (`afb-evse`) and a `socat` peer. The
+**injector** (`afb-evcc`) does it too, and four runs on 2026-08-07 happened to separate the trigger
+cleanly. Same binary, same rig, same two captures, same hour — the only difference is how the session
+ended:
+
+| run | how it ended | transactions left unplayed | injector log |
+|---|---|---|---|
+| driverside, folded | `SessionStop`, scenario exhausted | 0 | **20 KB** |
+| otherside, folded | `SessionStop`, scenario exhausted | 0 | **20 KB** |
+| driverside, unfolded | our station refused a message and closed | ~250 | **394 MB** |
+| otherside, unfolded | our station refused a message and closed | ~250 | **389 MB** |
+
+Both spins ran at ~20 MB/s, matching the 2.4 GB in 120 s measured the first time. What the two clean
+runs show is that **a session which ends normally does not trigger it at all**, even though the socket
+is closed in that case too. So the trigger is not "the peer closed" on its own — it is a close (or a
+pause) *with work still queued*, which is the ordinary shape of every failure a test rig produces.
+
+We think that is useful because it narrows where to look without a debugger: whatever consumes the
+transaction queue keeps consuming it after the connection is gone.
 
 ## Where we would look
 
@@ -130,15 +152,65 @@ The scenario file is irrelevant to the loop — only the first exchange happens 
 
 ---
 
+# Issue D — SIGTERM stops the logging but does not end the binder
+
+**Title:** `afb-evse` / `afb-evcc` ignores SIGTERM once wedged — the log stops growing, so it looks
+like the process exited, and it does not
+
+**Version:** as above.
+
+## Summary
+
+Independent of the loop, and the reason the loop is hard to contain. Sending SIGTERM to a wedged
+binder — which is what `timeout(1)`, `pkill`, `systemd` stop and a Ctrl-C in a runner script all do —
+produces a **half-stop**:
+
+- the log stops growing, immediately and permanently;
+- the process stays alive, holding its ports and its `CLOSE-WAIT` socket;
+- anything waiting on it waits forever. `timeout 20 afb-binder …` returns nothing at 20 s.
+
+Measured 2026-08-07: a binder capped at 20 s sat for **ten minutes** past the cap before it was killed
+by hand with SIGKILL. Nothing in the log marks the moment SIGTERM arrived, which is what makes it
+confusing rather than merely annoying — the last line is an ordinary decode failure, so the file looks
+exactly like a process that exited cleanly at the cap.
+
+## Why we think it is worth fixing
+
+The two together are worse than either alone. The loop is loud and obvious; the signal handling is what
+turns "my test rig capped it" into "my test rig hung", and it defeats the one workaround anybody
+reaches for first. It also means a stuck instance cannot be cleaned up by an ordinary service manager.
+
+## How to reproduce
+
+Run the reproduction for issue C, then:
+
+```bash
+timeout 20 <the afb-binder command>      # returns at 20 s? it does not
+# in another shell, while it is spinning:
+kill -TERM <pid>; sleep 5; ps -p <pid>   # still there; the log has stopped
+kill -KILL <pid>                         # only this ends it
+```
+
+Our workaround is `timeout -k 5 <cap>`, which escalates to SIGKILL five seconds after the cap. That is
+a rig fix, not a fix.
+
+---
+
 ## Before sending
 
 - [x] **Reproduce it yourself.** Done, with nothing of ours involved: their binder, their scenario,
       `socat` as the peer. The first three sightings were incidental to interop runs; this one is
-      deliberate and minimal.
-- [ ] **File it separately from the TLS issues.** Different subsystem, different fix, and it is the one
-      a maintainer can confirm in two minutes.
+      deliberate and minimal. Issue D measured separately on 2026-08-07.
+- [x] **Separate the two observations**, C and D — done above, and they are separate filings. Both are
+      separate again from the TLS issues in [`tux-evse-tls.md`](tux-evse-tls.md): different subsystem,
+      different fix, and C is the one a maintainer can confirm in two minutes.
+- [x] **Check the four-run table before quoting it** — the numbers are in
+      [`2026-08-07-tux-porsche-ac/notes.md`](../interop-runs/2026-08-07-tux-porsche-ac/notes.md) and
+      the sizes in the collected excerpts.
 - [ ] **Lead with the reproduction, not the byte counts.** "One connection, one message, disconnect"
       is the part that makes it real; 365 MB is only the consequence.
 - [ ] **Offer the `Ok(0)` patch only if they want it.** Whether EOF should surface as an error, a
       dedicated stream status, or a callback-level close is their architecture's call, and it touches
       both the TCP and the TLS connection types.
+- [ ] **Post under your own name, in your own words.** Worth keeping: this was met four separate ways
+      before it was isolated, which is the honest reason to think it is not an exotic corner.
