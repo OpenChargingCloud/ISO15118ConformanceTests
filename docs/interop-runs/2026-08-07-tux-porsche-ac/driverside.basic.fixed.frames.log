@@ -1,0 +1,46 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 281 byte(s), 10 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=44
+    01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040
+[1] SessionSetupReq payloadType=0x8001 bytes=22
+    01fe80010000000e8098004011d01800621c00704400
+[2] ServiceDiscoveryReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098020482d0fff7503c5c51b8
+[3] PaymentServiceSelectionReq payloadType=0x8001 bytes=24
+    01fe8001000000108098020482d0fff7503c5c5132001280
+[4] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098020482d0fff7503c5c5008
+[5] ChargeParameterDiscoveryReq payloadType=0x8001 bytes=39
+    01fe80010000001f8098020482d0fff7503c5c50903a084c301281081502804186400810602800
+[6] PowerDeliveryReq payloadType=0x8001 bytes=43
+    01fe8001000000238098020482d0fff7503c5c5150000000018a140ac210eba0c50a33610bc640628000b0
+[7] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098020482d0fff7503c5c50b0
+[8] PowerDeliveryReq payloadType=0x8001 bytes=24
+    01fe8001000000108098020482d0fff7503c5c5151000600
+[9] SessionStopReq payloadType=0x8001 bytes=22
+    01fe80010000000e8098020482d0fff7503c5c51f000
+
+## station -> EV: 280 byte(s), 10 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8001 bytes=38
+    01fe80010000001e8098020482d0fff7503c5c51e0202d1114a905090ca914c414bb9ada60c0
+[2] ServiceDiscoveryRes (OK) payloadType=0x8001 bytes=31
+    01fe8001000000178098020482d0fff7503c5c51c00008004011050c050248
+[3] PaymentServiceSelectionRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e8098020482d0fff7503c5c514000
+[4] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098020482d0fff7503c5c50100000
+[5] ChargeParameterDiscoveryRes (OK) payloadType=0x8001 bytes=45
+    01fe8001000000258098020482d0fff7503c5c50a00000000000240700c50a0560a80000006207300818604000
+[6] PowerDeliveryRes (OK) payloadType=0x8001 bytes=25
+    01fe8001000000118098020482d0fff7503c5c516000000000
+[7] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098020482d0fff7503c5c50c0002d1114a905090ca914c40018000000
+[8] PowerDeliveryRes (OK) payloadType=0x8001 bytes=25
+    01fe8001000000118098020482d0fff7503c5c516000000000
+[9] SessionStopRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e8098020482d0fff7503c5c520000

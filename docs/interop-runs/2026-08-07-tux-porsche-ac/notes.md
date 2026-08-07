@@ -71,8 +71,44 @@ Two things surfaced behind it, neither caused by this change:
   not 550). C# still checks the rule head-on; neither port has a metering test of its own. Written
   into both comments rather than quietly dropped.
 
-**Not re-run against their injector.** The station's side is proven offline; the end-to-end
-confirmation needs the rig back up, and the rig is down.
+### Re-run against their injector — the same two captures, the same day
+
+The rig back up, the fixture rebuilt at 11,040 W, both folded scenarios replayed. Artifacts carry
+`.fixed.` in the name and sit beside the ones that found the fault, so before and after read together.
+
+Both sessions now run to the end — **10 exchanges, every response `OK`**, where before they stopped at
+seven:
+
+```
+5  ChargeParameterDiscoveryReq → ChargeParameterDiscoveryRes  OK
+6  PowerDeliveryReq            → PowerDeliveryRes             OK    ← was FAILED_ChargingProfileInvalid
+7  ChargingStatusReq           → ChargingStatusRes            OK    ← the charge loop, first time on AC
+8  PowerDeliveryReq            → PowerDeliveryRes             OK
+9  SessionStopReq              → SessionStopRes               OK
+```
+
+Their injector's own TAP output agrees, on both captures, with nothing to interpret:
+
+```
+1..12 # porsche-taycan-4s-driverside-ac-iso2:1:0
+ok 0007 - iso2:power_delivery_req(pkg:78/1)      # Checked     ← the transaction that failed
+ok 0008 - iso2:charging_status_req(pkg:86/247)   # Checked
+ok 0010 - iso2:session_stop_req(pkg:1340/1)      # Checked
+```
+
+Two things fall out of it that were not the point.
+
+**Their spin did not happen.** 20 KB of injector log against 2.4 GB. The loop needs a closed socket
+*and* a queue of unplayed transactions; a session that ends properly has neither. That is a cleaner
+confirmation of the [diagnosis we sent them](../../reports/tux-evse-spin.md) than the reproduction was
+— it shows the trigger by removing it.
+
+**`charging_status_req` is now in `TuxEvseScenario.Vocabulary`**, and it got there the way that table's
+rule demands: *their* tools produced the spelling. Their `pcap-iso15118` emitted it converting these
+captures, and their injector printed it back in the TAP line above. Until this run no AC session had
+ever reached the charge loop against us, so the verb had never been seen — and while it was missing,
+the flow comparison counted our own `ChargingStatusReq` as a divergence. Both reports now end with
+**"The order matches the declared flow exactly."**
 
 ## The sequence guard, on two more real routes
 

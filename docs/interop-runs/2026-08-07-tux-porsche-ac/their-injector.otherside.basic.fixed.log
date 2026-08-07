@@ -1,0 +1,53 @@
+------BEGIN OF CONFIG-----
+------END OF CONFIG-----
+<6> INFO: running with pid 30692 [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:1498,main]
+<6> INFO: API monitor added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: Browser URL= http://localhost:1234 [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:549,http_server_create]
+<5> NOTICE: Serving rootdir=. uploaddir=. [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:559,http_server_create]
+<6> INFO: Alias for url=/devtools to path=/usr/share/afb-ui-devtools/binder [/home/ahzf/tux-evse/src/afb-binder/src/main-afb-binder.c:443,init_alias]
+<6> INFO: binding [/home/ahzf/tux-evse/cargo/release/libafb_sim15118_evcc.so] looks like an AFB binding V4 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/apis/afb-api-so-v4.c:170,afb_api_so_v4_add_config]
+<6> INFO: API iso15118-simulator added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: [API libafb_sim15118_evcc.so] Rust API uid=iso15118-simulator started [afb-evcc/src/binding.rs:138,afb_sim15118_evcc::binding::afbBindingV4entry]
+<6> INFO: binding [/home/ahzf/tux-evse/cargo/release/libafb_injector.so] looks like an AFB binding V4 [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/apis/afb-api-so-v4.c:170,afb_api_so_v4_add_config]
+<5> NOTICE: [API libafb_injector.so] uid:porsche-taycan-4s-otherside-ac-iso2:1:0 scenario:app-set-protocol verb:iso2:app_proto_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] uid:porsche-taycan-4s-otherside-ac-iso2:1:0 scenario:sdp-evse verb:iso2:sdp_evse_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] uid:porsche-taycan-4s-otherside-ac-iso2:1:0 scenario:sdp-evse verb:iso2:sdp_evse_req ignored (injector_only==true) [src/verbs.rs:421,afb_injector::verbs::create_transaction_group]
+<5> NOTICE: [API libafb_injector.so] SCENARIO_AUTORUN=1 selected [src/binding.rs:143,afb_injector::binding::binding_init]
+<6> INFO: API iso15118-injector added [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:528,afb_apiset_add]
+<5> NOTICE: [API iso15118-injector] api preinit: uid:iso15118-injector, name:iso15118-injector, config:{"binding-path":"/home/ahzf/tux-evse/cargo/release/libafb_injector.so"} [afb-librs/src/./apiv4-mod.rs:358,afbv4::apiv4::AfbApiControls::config]
+<5> NOTICE: [API libafb_injector.so] Rust API uid=iso15118-injector started [src/binding.rs:168,afb_injector::binding::afbBindingV4entry]
+<5> NOTICE: API iso15118-injector starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<5> NOTICE: API iso15118-simulator starting... [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:822,start_api]
+<6> INFO: API iso15118-simulator started [/home/ahzf/tux-evse/src/afb-libafb/src/libafb/core/afb-apiset.c:839,start_api]
+<4> WARNING: [API iso15118-injector] autorun started, scenario: porsche-taycan-4s-otherside-ac-iso2:1:0 [src/binding.rs:38,<afb_injector::binding::ApiInjectorCtx as afbv4::apiv4::AfbApiControls>::start]
+<5> NOTICE: [API libafb_sim15118_evcc.so] sdp-client accept anycast-ipv6 udp:15118@evcc-veth [/home/ahzf/.cargo/git/checkouts/iso15118-network-rs-2e9c5304568f4a89/f1ab338/src/ipv6-udp.rs:35,nettls::udp::SdpServer::new]
+<7> DEBUG: [API libafb_sim15118_evcc.so] iso-sdp-async: invalid v2g/sdp type expected:0x9001 received:0x9000 [afb-evcc/src/controller.rs:144,afb_sim15118_evcc::ctrl::async_sdp_cb]
+<5> NOTICE: [API libafb_sim15118_evcc.so] v2g-sdp-async: tcp[none]://[fe, 80, 00, 00, 00, 00, 00, 00, a0, 15, 10, ff, fe, 2a, 9f, 78]:55000 [afb-evcc/src/controller.rs:167,afb_sim15118_evcc::ctrl::async_sdp_cb]
+--[sdp-evse] Done {"uid":"sdp-evse","verb":"iso2:sdp_evse_req","status":"Done"}
+--[app-set-protocol] Done {"uid":"app-set-protocol","verb":"iso2:app_proto_req","status":"Done"}
+--[pkg:45] Check {"uid":"pkg:45","verb":"iso2:session_setup_req","status":"Check"}
+--[pkg:50] Check {"uid":"pkg:50","verb":"iso2:service_discovery_req","status":"Check"}
+--[pkg:55] Check {"uid":"pkg:55","verb":"iso2:payment_selection_req","status":"Check"}
+--[pkg:60] Check {"uid":"pkg:60","verb":"iso2:authorization_req","status":"Check"}
+--[pkg:70] Check {"uid":"pkg:70","verb":"iso2:param_discovery_req","status":"Check"}
+--[pkg:75] Check {"uid":"pkg:75","verb":"iso2:power_delivery_req","status":"Check"}
+--[pkg:81] Check {"uid":"pkg:81","verb":"iso2:charging_status_req","status":"Check"}
+--[pkg:2199] Check {"uid":"pkg:2199","verb":"iso2:power_delivery_req","status":"Check"}
+--[pkg:2204] Check {"uid":"pkg:2204","verb":"iso2:session_stop_req","status":"Check"}
+--[sdp-evse] Done {"uid":"sdp-evse","verb":"iso2:sdp_evse_req","status":"Done"}
+[
+  "1..12 # porsche-taycan-4s-otherside-ac-iso2:1:0",
+  "ok 0000 - iso2:sdp_evse_req(sdp-evse)  # Done",
+  "ok 0001 - iso2:app_proto_req(app-set-protocol)  # Done",
+  "ok 0002 - iso2:session_setup_req(pkg:45/1)  # Checked",
+  "ok 0003 - iso2:service_discovery_req(pkg:50/1)  # Checked",
+  "ok 0004 - iso2:payment_selection_req(pkg:55/1)  # Checked",
+  "ok 0005 - iso2:authorization_req(pkg:60/2)  # Checked",
+  "ok 0006 - iso2:param_discovery_req(pkg:70/1)  # Checked",
+  "ok 0007 - iso2:power_delivery_req(pkg:75/1)  # Checked",
+  "ok 0008 - iso2:charging_status_req(pkg:81/420)  # Checked",
+  "ok 0009 - iso2:power_delivery_req(pkg:2199/1)  # Checked",
+  "ok 0010 - iso2:session_stop_req(pkg:2204/1)  # Checked",
+  "ok 0011 - iso2:sdp_evse_req(sdp-evse)  # Done"
+]
+<5> NOTICE: [API iso15118-injector] scenario=porsche-taycan-4s-otherside-ac-iso2:1:0 exit [src/binding.rs:52,<afb_injector::binding::ApiInjectorCtx as afbv4::apiv4::AfbApiControls>::start]

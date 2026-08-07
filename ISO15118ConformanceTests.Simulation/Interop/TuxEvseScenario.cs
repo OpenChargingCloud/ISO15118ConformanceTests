@@ -71,9 +71,17 @@ internal sealed class TuxEvseScenario
     /// <para>
     /// A verb that is not in this table is reported as unknown rather than guessed at. The messages -2 has
     /// that this table does not — PaymentDetails, CertificateInstallation, CertificateUpdate,
-    /// ChargingStatus, MeteringReceipt, ServiceDetail — are absent because their shipped scenario is a DC
+    /// MeteringReceipt, ServiceDetail — are absent because their shipped scenario is a DC
     /// EIM session and does not contain them, so their spelling for those is unknown. Filling them in from
     /// a pattern would be inventing a counterparty's vocabulary and then testing against the invention.
+    /// </para>
+    /// <para>
+    /// <c>charging_status_req</c> was in that list until 2026-08-07 and left it the way the rule says it
+    /// must: <b>their</b> tools produced the spelling, not ours. Their <c>pcap-iso15118</c> emitted it
+    /// converting the Porsche AC captures, and their injector printed it back in its own TAP output
+    /// (<c>ok 0008 - iso2:charging_status_req</c>). Before that no AC session had ever reached the charge
+    /// loop against us, so the verb had never been seen — and while it was missing, every AC flow report
+    /// counted the station's own <c>ChargingStatusReq</c> as a divergence from the scenario.
     /// </para>
     /// </remarks>
     public static readonly IReadOnlyDictionary<String, String> Vocabulary = new Dictionary<String, String>
@@ -87,6 +95,7 @@ internal sealed class TuxEvseScenario
         ["cable_check_req"]       = "CableCheckReq",
         ["pre_charge_req"]        = "PreChargeReq",
         ["power_delivery_req"]    = "PowerDeliveryReq",
+        ["charging_status_req"]   = "ChargingStatusReq",
         ["current_demand_req"]    = "CurrentDemandReq",
         ["welding_detection_req"] = "WeldingDetectionReq",
         ["session_stop_req"]      = "SessionStopReq",
