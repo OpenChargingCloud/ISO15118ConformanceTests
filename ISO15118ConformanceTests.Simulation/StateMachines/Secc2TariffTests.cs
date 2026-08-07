@@ -154,5 +154,59 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 Assert.That(reply.Header.Signature, Is.Null);
             });
         }
+
+
+        /// <summary>
+        /// The plain offer covers what an ordinary European charge point delivers, so a real car's
+        /// ChargingProfile is accepted rather than refused just short of the target.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A regression test for a real finding, and for the least dramatic kind of interop failure
+        /// there is. The offer used to be a round 11,000 W; both sides of a captured Porsche Taycan 4S
+        /// ask for 11,040 W — 3 × 230 V × 16 A — and [V2G2-761] refused the whole profile over 40 W,
+        /// at <c>PowerDelivery</c>, the last message before charging would have begun
+        /// (2026-08-07, <c>docs/interop-runs/2026-08-07-tux-porsche-ac</c>).
+        /// </para>
+        /// <para>
+        /// Both halves matter. The first is the finding; the second keeps the enforcement honest,
+        /// because an offer raised far enough to accept anything would make the check decorative.
+        /// </para>
+        /// </remarks>
+        [Test]
+        public void PlainOffer_AcceptsARealThreePhase16AProfile_AndStillRefusesOneWattMore()
+        {
+            var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);
+            var reply = RunToChargeParams(secc);
+            var offer = (SAScheduleListType)((ChargeParameterDiscoveryResType)reply.Body.BodyElement!).SASchedules!;
+
+            Assert.That(offer.SAScheduleTuple[0].PMaxSchedule.PMaxScheduleEntry[0].PMax.ToDecimal(),
+                        Is.EqualTo(11_040m),
+                        "3 x 230 V x 16 A — the number a car recorded at a real charge point asks for");
+
+            // One watt above the offer is still refused, or the check would mean nothing. Refused
+            // first because a refusal does not advance the phase — an accepted one does.
+            var greedy = new ChargingProfileType(new[]
+            {
+                new ProfileEntryType(0, PhysicalValue.Of(11_041, UnitSymbol.W), null),
+            });
+            var refused = (PowerDeliveryResType)secc.Handle(
+                Msg(new PowerDeliveryReqType(ChargeProgress.Start, 1, greedy, null))).Body.BodyElement!;
+
+            Assert.That(refused.ResponseCode, Is.EqualTo(ResponseCode.FAILED_ChargingProfileInvalid));
+
+            var real = new ChargingProfileType(new[]
+            {
+                new ProfileEntryType(0, PhysicalValue.Of(11_040, UnitSymbol.W), null),
+            });
+            var accepted = (PowerDeliveryResType)secc.Handle(
+                Msg(new PowerDeliveryReqType(ChargeProgress.Start, 1, real, null))).Body.BodyElement!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(accepted.ResponseCode, Is.EqualTo(ResponseCode.OK));
+                Assert.That(secc.ChargingProfileCheck!.WithinPMax, Is.True);
+            });
+        }
     }
 }

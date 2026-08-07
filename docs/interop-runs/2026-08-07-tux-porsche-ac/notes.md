@@ -10,7 +10,7 @@ folded (`--compact=basic`) and unfolded (`--compact=none`).
 | Counterparty | [tux-evse/iso15118-simulator-rs](https://github.com/tux-evse/iso15118-simulator-rs) `main` @ `fc51088`, source build |
 | Ours | conformance suite @ `0a6d2e6`, `EVSimulatorApp` @ `d7a5ee4` |
 | Direction | `←SECC`, ISO 15118-2 **AC**, EIM, plain TCP |
-| Outcome | **One finding against us** — our AC schedule is 40 W below what a 3×16 A charge point offers, so a real car's profile is refused — and the sequence-guard fix confirmed on a second and third real route |
+| Outcome | **One finding against us** — our AC schedule was 40 W below what a 3×16 A charge point offers, so a real car's profile was refused (fixed the same day, see below) — and the sequence-guard fix confirmed on a second and third real route |
 
 Artifacts: `{driverside,otherside}.{basic,none}.{flow.md,frames.log}`, `charging-profiles.txt`,
 `our-station.*.log`, `their-injector.*.log`.
@@ -44,12 +44,35 @@ enforce it; the car may ask for what its charger offered. But for a station whos
 testing, a rounded PMax manufactures a failure no real charger would produce, and it does so at the
 worst possible moment — after everything else has gone right.
 
-**Open**, and the fix is one constant in the app (`Secc2.PlainSchedule`, 11,000 → 11,040 W, or a value
-with headroom). It moves the recorded corpus, since `ChargeParameterDiscoveryRes` carries the offer, so
-it wants deciding rather than doing quietly.
-
 The VW capture in the [earlier run](../2026-08-06-tux-head-reverse/notes.md) asked for 4,100 W and
 passed the same check, which is why this waited for the second and third car to surface.
+
+### Fixed the same day — and what the fix moved
+
+`Secc2` now offers 11,040 W, in the plain schedule **and** in tuple 1 of the tariff offer: a car that
+is not price-aware picks tuple 1 and would have met the same wall there. A regression test pins both
+halves — the Taycan's exact figure is accepted, one watt more is still refused, or raising the offer
+would only have made the enforcement decorative.
+
+The recorded corpus moved with it, and the diff is worth reading because it is small and entirely
+predictable: two frames per -2 trace (the offer in `ChargeParameterDiscoveryRes`, the profile in
+`PowerDeliveryReq`, in all five -2 sessions), and the AC energies **183 / 366 / 549 → 184 / 368 /
+552 Wh** on the wire and in the OCPP record. Everything else that moved is randomised ECDSA.
+
+Two things surfaced behind it, neither caused by this change:
+
+- **`Bridge.events.json` had been stale since the EVSETimeStamp corpus move.** It is generated from
+  these traces, but it lives in the app and nothing in the offline conformance run replays it, so the
+  app's own `EveryEventIsUnchanged` went red unnoticed on 2026-08-06. Same for all six vendored demo
+  traces under `app/src/vendor/traces/`. Both regenerated here.
+- **The ports lost their only per-sample-rounding check.** 11,040 / 60 is exactly 184 Wh, so the -2 AC
+  trace no longer distinguishes rounding per sample from integrating and rounding once — which is
+  precisely what the Kotlin and Swift trace-test comments were built around (183.33 → 183 three times,
+  not 550). C# still checks the rule head-on; neither port has a metering test of its own. Written
+  into both comments rather than quietly dropped.
+
+**Not re-run against their injector.** The station's side is proven offline; the end-to-end
+confirmation needs the rig back up, and the rig is down.
 
 ## The sequence guard, on two more real routes
 

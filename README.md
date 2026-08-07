@@ -72,7 +72,7 @@ how to read one.
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | ✅ `←SECC` a real VW's route¹⁸ · ◐ two Porsche routes, refused 40 W short²³ |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | ✅ `←SECC` a real VW's route¹⁸ · ◐ two Porsche routes, 40 W short — fixed, not re-run²³ |
 | DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
@@ -182,13 +182,14 @@ other peer polls only while our station says `Ongoing`. **Fixed and re-run the s
 now goes out in the request's own response type, and their injector decodes it.
 
 ²³ Both Taycan captures ask for **11,040 W** in their `ChargingProfile` — 3 × 230 V × 16 A, the
-ubiquitous European AC charge point — and our station offers a rounded **11,000 W**, so [V2G2-761]
-refuses `PowerDelivery` by 0.4 %. Correct by the letter on both sides, and a bad trade for a station
+ubiquitous European AC charge point — and our station offered a rounded **11,000 W**, so [V2G2-761]
+refused `PowerDelivery` by 0.4 %. Correct by the letter on both sides, and a bad trade for a station
 built to test interoperability: it manufactures a failure no real charger would produce, at the last
-message before charging. **Open** — one constant in the app, and it moves the recorded corpus. The
-unfolded runs of the same captures are the second and third real car to poll `Authorization` twice, and
-both confirm the 2026-08-06 fix: the refusal goes out as `FAILED_SequenceError` instead of a closed
-socket.
+message before charging. **Fixed the same day**: the offer is now the physical number, in the plain
+schedule and in tuple 1 of the tariff offer, and the recorded corpus moved with it — the offer, the
+profile, and the AC energies (549 → 552 Wh). The unfolded runs of the same captures are the second and
+third real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the refusal goes out
+as `FAILED_SequenceError` instead of a closed socket.
 
 ²² Their EV picks service **6** out of our `{2, 6}` — the choice is theirs — and
 `DC_ChargeParameterDiscovery` carried a real bidirectional envelope each way, each side's numbers read

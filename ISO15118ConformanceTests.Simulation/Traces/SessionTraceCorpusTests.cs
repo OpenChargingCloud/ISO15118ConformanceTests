@@ -1006,7 +1006,7 @@ public class SessionTraceCorpusTests
                         "an EIM session at an unmetered station shows the car no signed reading");
             Assert.That(ocpp.MeterValues, Is.Not.Empty,
                         "…and the backend was told nothing either, so the record proves nothing");
-            Assert.That(ocpp.MeterValues[^1].SampledValue[0].Value, Is.EqualTo("549"),
+            Assert.That(ocpp.MeterValues[^1].SampledValue[0].Value, Is.EqualTo("552"),
                         "the backend's final figure is the one the driver would be billed on");
         });
 

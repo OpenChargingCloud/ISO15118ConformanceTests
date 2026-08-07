@@ -81,7 +81,7 @@
       "response": {
         "payloadType": "0x8001",
         "message": "ChargeParameterDiscoveryResType",
-        "frame": "01fe8001000000258098020282c3034383c40450a00000000000240700c50f8550a80000006207300818604000"
+        "frame": "01fe8001000000258098020282c3034383c40450a00000000000240700c50a0560a80000006207300818604000"
       }
     },
     {
@@ -89,7 +89,7 @@
       "request": {
         "payloadType": "0x8001",
         "message": "PowerDeliveryReqType",
-        "frame": "01fe8001000000168098020282c3034383c4045150000000018a1f0aa2c0"
+        "frame": "01fe8001000000168098020282c3034383c4045150000000018a140ac2c0"
       },
       "response": {
         "payloadType": "0x8001",
