@@ -36,6 +36,15 @@ fi
 echo "== jar:     $(ls -l "$JAR" | awk '{print $5" bytes"}')"
 echo "== schemas: $(ls -1 "$REPO/schemas"/*.xsd | wc -l) XSDs — SAP, ISO 15118-2:2013, DIN 70121"
 
+# V2Gdecoder resolves grammars from ./schemas in the working directory, and the two sets are separate
+# directories in their tree. Stage the DIN one under the name the tool looks for, because pointing the
+# ISO-2 set at a DIN frame does not fail -- it decodes as a plausible, wrong ISO-2 message.
+# This is what din-corpus.py's --schemas defaults to.
+rm -rf "$HOME_DIR/din/schemas"
+mkdir -p "$HOME_DIR/din"
+cp -r "$REPO/schemas_din" "$HOME_DIR/din/schemas"
+echo "== din:     $HOME_DIR/din/schemas staged from schemas_din"
+
 # Smoke test with a frame from their own README, so a failure here is theirs and not ours.
 # cd matters: V2Gdecoder resolves ./schemas relative to the working directory, not to the jar.
 echo "== smoke test"
