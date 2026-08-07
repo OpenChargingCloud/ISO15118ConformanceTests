@@ -46,6 +46,27 @@ JVM starts per frame, ~1 s each.
 This is a tool, not part of `dotnet test`: the offline run must stay green without Java or network. What
 the runs *found* is checked in as ordinary offline tests — `Interop/ExiStringTableTests.cs`.
 
+## DIN 70121
+
+`din-corpus.py` builds a corpus out of a captured DIN session and judges it the same way. We speak no
+DIN, so this is not a test of our codec — it is how a capture of a protocol we cannot read becomes
+usable material anyway: ground truth for a future codec, and frames from real equipment to run our
+protocol-independent V2GTP framing over.
+
+```bash
+python3 tools/interop-v2gdecoder/din-corpus.py <capture>.pcap \
+    --out ISO15118ConformanceTests.Simulation/Vectors/Din.tesla-session.corpus.json --roundtrip
+```
+
+It groups identical frames first — a real session is mostly its charge loop, and the Tesla capture's
+4,428 frames are 101 distinct ones — so the decode pass costs a hundred JVM starts and not nine
+thousand.
+
+**Pin the schema set; never let it detect one.** V2Gdecoder resolves grammars from `./schemas` in the
+working directory, so `--schemas` must point at a directory holding the DIN XSDs under that name. With
+the ISO-2 set instead, a DIN `SessionSetupReq` does not fail — it decodes as an ISO-2
+`WeldingDetectionReq` full of plausible nonsense.
+
 ## Scope, and one trap
 
 V2Gdecoder ships schemas for SupportedAppProtocol, ISO 15118-2:2013 and DIN 70121. **Not -20** —
@@ -58,9 +79,12 @@ with `WARNING: sun.reflect.Reflection.getCallerClass is not supported`, and a pa
 payload has to be recognised by shape; `Oracle._extract` does that, and the first version of this tool
 reported 39 spurious encode failures before it did.
 
-Their decoder is also *fuzzy*: it tries grammars until one parses. On a 3-byte
-`supportedAppProtocolRes` that misfires — it reads our frame as a `MsgDataTypes` `Entry` and re-encodes
-56 bytes that its own decoder then cannot read. A tool artefact, and the only one seen in 147 frames.
+Their decoder is also *fuzzy*, and this is the trap that matters. `dataprocess.fuzzyExiDecoded` tries
+MsgDef, then AppProtocol, then xmldsig, and **returns the first that does not throw** — nothing checks
+that the answer fits. Seen twice: a 3-byte `supportedAppProtocolRes` read as a `MsgDataTypes` `Entry`,
+and a 64-byte DIN `ChargeParameterDiscoveryRes` read as a 1-byte xmldsig `SignatureValue` because their
+DIN grammar cannot decode it. Neither reports an error. Treat any decode whose root element is not the
+one you expected as a failure, which is what both scripts here do.
 
 ## What the first run found — 2026-08-07
 

@@ -1,0 +1,109 @@
+{
+ "note": "The one frame V2Gdecoder could not decode, read instead by tux-evse pcap-iso15118 (cbexigen, DIN-capable). Their converter pairs request and response, so the station answer is the expect block. Frame: direction 61341->49153, index 7 of Din.tesla-session.corpus.json.",
+ "decoder": "tux-evse/iso15118-simulator-rs pcap-iso15118, --compact=none",
+ "transaction": {
+  "uid": "pkg:67",
+  "verb": "din:param_discovery_req",
+  "delay": 322,
+  "query": {
+   "transfer_mode": "dc_extended",
+   "dc_evparam": {
+    "status": {
+     "ready": true,
+     "error": "no_error",
+     "evress_soc": 57
+    },
+    "max_voltage": {
+     "value": 4230,
+     "multiplier": -1,
+     "unit": "volt"
+    },
+    "max_current": {
+     "value": 5490,
+     "multiplier": -1,
+     "unit": "ampere"
+    },
+    "max_power": {
+     "value": 2320,
+     "multiplier": 2,
+     "unit": "watt"
+    }
+   },
+   "tagid": "param_discovery_req",
+   "proto": "din",
+   "msgid": 17
+  },
+  "ruid": "pkg:69",
+  "expect": {
+   "rcode": "ok",
+   "tuples": [
+    {
+     "id": 1,
+     "pmax": {
+      "id": 1,
+      "entries": [
+       {
+        "value": 10000,
+        "relative_time_interval": {
+         "start": 0,
+         "duration": 86400
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "evse_dc_charge_param": {
+    "status": {
+     "error": "ready",
+     "notification": "none",
+     "delay": 0,
+     "isolation_status": "invalid"
+    },
+    "max_voltage": {
+     "value": 900,
+     "multiplier": 0,
+     "unit": "volt"
+    },
+    "min_voltage": {
+     "value": 180,
+     "multiplier": 0,
+     "unit": "volt"
+    },
+    "max_current": {
+     "value": 25,
+     "multiplier": 0,
+     "unit": "ampere"
+    },
+    "min_current": {
+     "value": 0,
+     "multiplier": 0,
+     "unit": "ampere"
+    },
+    "current_ripple": {
+     "value": 0,
+     "multiplier": 0,
+     "unit": "ampere"
+    },
+    "max_power": {
+     "value": 10000,
+     "multiplier": 0,
+     "unit": "watt"
+    },
+    "regul_tolerance": {
+     "value": 1,
+     "multiplier": 0,
+     "unit": "ampere"
+    },
+    "energy_to_deliver": {
+     "value": 10000,
+     "multiplier": 0,
+     "unit": "wh"
+    }
+   },
+   "tagid": "param_discovery_res",
+   "proto": "din",
+   "msgid": 18
+  }
+ }
+}

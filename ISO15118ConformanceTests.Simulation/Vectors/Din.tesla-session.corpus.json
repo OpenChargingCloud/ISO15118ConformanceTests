@@ -1,0 +1,823 @@
+{
+ "schemaVersion": 1,
+ "source": "tesla-3-din.pcap",
+ "protocol": "din-70121",
+ "note": "Captured session, not our output. We speak no DIN; decoded by V2Gdecoder (RISE-V2G + EXIficient) against its schemas_din set.",
+ "totalFrames": 4428,
+ "distinctFrames": 101,
+ "verdicts": {
+  "ok": 100,
+  "mismatch": 1
+ },
+ "frames": [
+  {
+   "frame": "01fe8001000000428000dbab9371d3234b71d1b981899189d191818991d26b9b3a232b30020000040401b75726e3a7465736c613a64696e3a323031383a4d736744656600001c0100080",
+   "direction": "49153->61341",
+   "firstIndex": 0,
+   "count": 1,
+   "message": "supportedAppProtocolReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000015809a02000000000000000011d01b71109c77351400",
+   "direction": "49153->61341",
+   "firstIndex": 1,
+   "count": 1,
+   "message": "SessionSetupReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000e809a02202c9fff3e37b3d3d19400",
+   "direction": "49153->61341",
+   "firstIndex": 2,
+   "count": 1,
+   "message": "ServiceDiscoveryReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000010809a02202c9fff3e37b3d3d1b2001280",
+   "direction": "49153->61341",
+   "firstIndex": 3,
+   "count": 1,
+   "message": "ServicePaymentSelectionReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000e809a02202c9fff3e37b3d3d0b800",
+   "direction": "49153->61341",
+   "firstIndex": 4,
+   "count": 3,
+   "message": "ContractAuthenticationReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000001f809a02202c9fff3e37b3d3d07191400e4080c3c8a80a0e12024040a10c4240",
+   "direction": "49153->61341",
+   "firstIndex": 7,
+   "count": 1,
+   "message": "ChargeParameterDiscoveryReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000010809a02202c9fff3e37b3d3d011400e40",
+   "direction": "49153->61341",
+   "firstIndex": 8,
+   "count": 383,
+   "message": "CableCheckReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000018809a02202c9fff3e37b3d3d151400e408143d070080c0000",
+   "direction": "49153->61341",
+   "firstIndex": 391,
+   "count": 1,
+   "message": "PreChargeReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000018809a02202c9fff3e37b3d3d151400e408143a870080c0000",
+   "direction": "49153->61341",
+   "firstIndex": 392,
+   "count": 3,
+   "message": "PreChargeReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000012809a02202c9fff3e37b3d3d13222801c8800",
+   "direction": "49153->61341",
+   "firstIndex": 395,
+   "count": 1,
+   "message": "PowerDeliveryReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c0000205086210080c3c8a80a0e12024221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 396,
+   "count": 1,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000026809a02202c9fff3e37b3d3d0d1400e4080c1680205086210080c2f8040a0e0a0221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 397,
+   "count": 1,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000028809a02202c9fff3e37b3d3d0d1400e4080c3c0040205086210080c350080a0e11802221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 398,
+   "count": 12,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000028809a02202c9fff3e37b3d3d0d1400e4080c370040205086210080c300080a0e10402221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 410,
+   "count": 1486,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c230040205086210080c3c0040a0e0c8221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1635,
+   "count": 28,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c230040205086210080c3c0040a0e0b4221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1646,
+   "count": 1,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c208040205086210080c398040a0e0b4221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1647,
+   "count": 6,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000026809a02202c9fff3e37b3d3d0d1400e4080c1e00205086210080c370040a0e0b4221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1648,
+   "count": 4,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c208040205086210080c370040a0e0b4221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1652,
+   "count": 1,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e8080c230040205086210080c3c0040a0e0c8221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1675,
+   "count": 28,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000028809a02202c9fff3e37b3d3d0d1400e8080c370040205086210080c300080a0e10402221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 1703,
+   "count": 142,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000028809a02202c9fff3e37b3d3d0d1400e4080c348040205086210080c2d8080a0e10402221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 2106,
+   "count": 12,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c280040205086210080c210080a0e0dc221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 2118,
+   "count": 76,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c280040205086210080c210080a0e0c8221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 2130,
+   "count": 6,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c258040205086210080c3e8040a0e0c8221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 2132,
+   "count": 11,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000027809a02202c9fff3e37b3d3d0d1400e4080c280040205086210080c3e8040a0e0c8221028431080",
+   "direction": "49153->61341",
+   "firstIndex": 2143,
+   "count": 1,
+   "message": "CurrentDemandReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000012809a02202c9fff3e37b3d3d13022801c8800",
+   "direction": "49153->61341",
+   "firstIndex": 2212,
+   "count": 1,
+   "message": "PowerDeliveryReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000d809a02202c9fff3e37b3d3d1f0",
+   "direction": "49153->61341",
+   "firstIndex": 2213,
+   "count": 1,
+   "message": "SessionStopReq",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000480400040",
+   "direction": "61341->49153",
+   "firstIndex": 0,
+   "count": 1,
+   "message": "supportedAppProtocolRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000001f809a02202c9fff3e37b3d3d1e0203d1114a9413960a914c4c8ccd0d4a8c480",
+   "direction": "61341->49153",
+   "firstIndex": 1,
+   "count": 1,
+   "message": "SessionSetupRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000013809a02202c9fff3e37b3d3d1a00120024100c4",
+   "direction": "61341->49153",
+   "firstIndex": 2,
+   "count": 1,
+   "message": "ServiceDiscoveryRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000e809a02202c9fff3e37b3d3d1c000",
+   "direction": "61341->49153",
+   "firstIndex": 3,
+   "count": 1,
+   "message": "ServicePaymentSelectionRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000f809a02202c9fff3e37b3d3d0c00200",
+   "direction": "61341->49153",
+   "firstIndex": 4,
+   "count": 2,
+   "message": "ContractAuthenticationRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000f809a02202c9fff3e37b3d3d0c00000",
+   "direction": "61341->49153",
+   "firstIndex": 6,
+   "count": 1,
+   "message": "ContractAuthenticationRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000040809a02202c9fff3e37b3d3d0800000040020000405182824138550008000018180c80c1c241380c142101c0c0c0000c142d0040606002060600003090904e000",
+   "direction": "61341->49153",
+   "firstIndex": 7,
+   "count": 1,
+   "message": "grammar-miss(SignatureValue)",
+   "verdict": "mismatch",
+   "theirHex": "809a0220"
+  },
+  {
+   "frame": "01fe800100000013809a02202c9fff3e37b3d3d020000080000400",
+   "direction": "61341->49153",
+   "firstIndex": 8,
+   "count": 36,
+   "message": "CableCheckRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000013809a02202c9fff3e37b3d3d020004080000400",
+   "direction": "61341->49153",
+   "firstIndex": 44,
+   "count": 346,
+   "message": "CableCheckRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000013809a02202c9fff3e37b3d3d020004080000000",
+   "direction": "61341->49153",
+   "firstIndex": 390,
+   "count": 1,
+   "message": "CableCheckRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000017809a02202c9fff3e37b3d3d16000408000010284393800",
+   "direction": "61341->49153",
+   "firstIndex": 391,
+   "count": 4,
+   "message": "PreChargeRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000012809a02202c9fff3e37b3d3d1400420400000",
+   "direction": "61341->49153",
+   "firstIndex": 395,
+   "count": 2,
+   "message": "PowerDeliveryRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028439381018000000060a1080e0303019018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 396,
+   "count": 2,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028490e81018008000060a1080e0303019018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 398,
+   "count": 6,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010287f1301018000000060a1080e0303019018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 404,
+   "count": 2,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010287f1301018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 406,
+   "count": 20,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010287c8e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 426,
+   "count": 178,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010287d0e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 604,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010287e0e01018008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 627,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028400e81018078000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 649,
+   "count": 25,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028418e810180e8000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 674,
+   "count": 25,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028428e81018128000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 699,
+   "count": 21,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028440e81018190000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 720,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028450e810181f8000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 743,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028460e81018260000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 765,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028478e810182c0000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 788,
+   "count": 24,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028490e81018330000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 812,
+   "count": 24,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010284a0e81018390000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 836,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010284b0e810183d8000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 858,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e000408000010284c0e8101843808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 881,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e000408000010284d8e810184a008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 903,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e000408000010284f0e8101850808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 925,
+   "count": 25,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028508e8101857008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 950,
+   "count": 45,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028518e810185d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 995,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028530e8101863808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1018,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028540e8101867808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1040,
+   "count": 25,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028550e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1065,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028558e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1087,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028560e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1110,
+   "count": 46,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028568e810186e008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1156,
+   "count": 45,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028568e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1201,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028570e810186e008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1223,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028570e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1246,
+   "count": 45,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028578e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1291,
+   "count": 69,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028580e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1360,
+   "count": 44,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028580e810186e008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1383,
+   "count": 48,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028588e810186e008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1452,
+   "count": 48,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028588e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1477,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028590e810186d808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1522,
+   "count": 44,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028590e810186e008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1543,
+   "count": 66,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028590e810186e008000060a1080e030300f018386e19800",
+   "direction": "61341->49153",
+   "firstIndex": 1632,
+   "count": 1,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028598e810186d808000060a1080e030300f018386e19800",
+   "direction": "61341->49153",
+   "firstIndex": 1633,
+   "count": 66,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028528e8101845808000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1699,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028528e8101846008000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1722,
+   "count": 21,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010287e0e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1743,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028768e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1765,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028758e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1787,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028748e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1810,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028738e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1832,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028730e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1855,
+   "count": 45,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028728e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1900,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028720e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1922,
+   "count": 44,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028718e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 1966,
+   "count": 45,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028710e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 2011,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028708e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 2033,
+   "count": 45,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e00040800001028700e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 2078,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010286f8e01018000000060a1080e0303017018384827000",
+   "direction": "61341->49153",
+   "firstIndex": 2100,
+   "count": 2,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010286f8e01018000000060a1080e0303016018385c24800",
+   "direction": "61341->49153",
+   "firstIndex": 2102,
+   "count": 12,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe800100000029809a02202c9fff3e37b3d3d0e000408000010286f8e01018000000060a1080e030301101838691c000",
+   "direction": "61341->49153",
+   "firstIndex": 2114,
+   "count": 31,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e00040800001028520e810186e008000060a1080e030301101838691c000",
+   "direction": "61341->49153",
+   "firstIndex": 2145,
+   "count": 23,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e000408000010284d8e810184f808000060a1080e030301101838691c000",
+   "direction": "61341->49153",
+   "firstIndex": 2168,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000002a809a02202c9fff3e37b3d3d0e000408000010284e0e810184f808000060a1080e030301101838691c000",
+   "direction": "61341->49153",
+   "firstIndex": 2190,
+   "count": 22,
+   "message": "CurrentDemandRes",
+   "verdict": "ok"
+  },
+  {
+   "frame": "01fe80010000000e809a02202c9fff3e37b3d3d20000",
+   "direction": "61341->49153",
+   "firstIndex": 2213,
+   "count": 1,
+   "message": "SessionStopRes",
+   "verdict": "ok"
+  }
+ ]
+}

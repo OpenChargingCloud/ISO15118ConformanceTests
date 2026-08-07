@@ -105,3 +105,11 @@ scenario file exists and could drive their injector against a DIN station; there
 
 That remains a capability question, and this run does not change it. What it changes is the sentence
 around it: **the capture is no longer unused.**
+
+> **Later the same day.** Less of it is out of reach than this section assumed. The *codec* still is —
+> we decode none of it ourselves — but the session no longer had to be read by us to be usable. Once
+> V2Gdecoder was in the rig with its `schemas_din` set, the 4,428 frames collapsed to 101 distinct ones
+> and 100 of them round-tripped through EXIficient byte-exact; the 101st is a defect in that tool, and
+> tux-evse's converter reads it. The frames are now checked in as
+> `Vectors/Din.tesla-session.corpus.json` and our V2GTP framer is tested against them.
+> See [`2026-08-07-tesla-din-corpus`](../2026-08-07-tesla-din-corpus/notes.md).
