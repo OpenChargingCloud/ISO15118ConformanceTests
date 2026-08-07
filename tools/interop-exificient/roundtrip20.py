@@ -50,7 +50,6 @@ from pathlib import Path
 
 V2GTP_HEADER_BYTES = 8
 JAR = Path.home() / "v2gdec" / "decoder.jar"
-CLI = "com.siemens.ct.exi.main.cmd.EXIficientCMD"
 
 # V2GTP payload type -> schema. This is the dispatch the wire itself provides: a -20 session carries
 # three different message sets over one connection and tells the peer which is which.
@@ -74,13 +73,20 @@ BY_VECTOR_FILE = {
 
 
 class Exificient:
-    """EXIficient's command line, one conversion per JVM. It works on files, not stdin."""
+    """One JVM for the whole corpus, via the Roundtrip20 driver next to this file.
+
+    The obvious alternative — EXIficient's own CLI, one conversion per invocation — rebuilds the
+    schema model every time, which on this rig fails intermittently often enough that a full run
+    never finished. Building each grammar once removes ~99% of that exposure along with most of the
+    wall clock. `Roundtrip20.java` documents the rest.
+    """
 
     def __init__(self, schema_root: Path, work: Path):
         self.work = work
         self.retries = 0
         work.mkdir(parents=True, exist_ok=True)
         self.schema_root = self._stage(schema_root, work / "schemas")
+        self.classes = self._compile(work / "classes")
 
     @staticmethod
     def _stage(source_root: Path, staged_root: Path) -> Path:
@@ -104,67 +110,47 @@ class Exificient:
             shutil.copytree(source, staged_root / Path(relative).parent, dirs_exist_ok=True)
         return staged_root
 
-    #: The one failure that is known to be environmental, and the only one worth retrying — see _run.
-    SCHEMA_FLAKE = "building XML Schema Model"
-    ATTEMPTS = 12
+    def _compile(self, classes: Path) -> Path:
+        """Build the driver. Needs a JDK — a JRE alone is not enough, and this rig had six of those
+        and no compiler until one was installed."""
+        classes.mkdir(parents=True, exist_ok=True)
+        source = Path(__file__).resolve().parent / "Roundtrip20.java"
+        proc = subprocess.run(
+            ["javac", "-nowarn", "-cp", str(JAR), "-d", str(classes), str(source)],
+            capture_output=True, text=True, timeout=300,
+        )
+        if proc.returncode != 0:
+            raise SystemExit("javac failed — is a JDK installed?\n" + (proc.stderr or "")[:2000])
+        return classes
 
-    def _run(self, mode: str, schema: str, src: Path, dst: Path) -> tuple[bool, str]:
-        """One conversion, retried past a failure that this rig produces and the codec does not.
+    def run(self, jobs: list[tuple[str, str, str]]) -> dict[str, tuple[str, str, str]]:
+        """Runs every (name, schema, hex) in one JVM. Returns name -> (verdict, theirHex, detail)."""
+        jobs_file, results_file = self.work / "jobs.tsv", self.work / "results.tsv"
+        jobs_file.write_text(
+            "".join(f"{name}\t{self.schema_root / schema}\t{hexstr}\n" for name, schema, hexstr in jobs),
+            encoding="utf-8")
+        results_file.unlink(missing_ok=True)
 
-        Some invocations die before decoding anything, with Xerces reporting that it could not read
-        `xmldsig-core-schema.xsd` — an import sitting next to the schema that imports it, byte-identical
-        to its source, well-formed, and readable by the shell at that moment. It is not deterministic
-        and it is not the codec: the same command against the same file failed 0 times in 30 in one
-        window and 10 times in 10 twenty minutes later.
+        proc = subprocess.run(
+            ["java", "-cp", f"{JAR}:{self.classes}", "Roundtrip20",
+             str(jobs_file), str(results_file)],
+            capture_output=True, text=True, timeout=3600,
+        )
+        for line in (proc.stderr or "").splitlines():
+            if "schema models built" in line:
+                print("   " + line.strip())
+                self.retries = int(line.rsplit("retries: ", 1)[1].rstrip(")"))
+        if not results_file.exists():
+            raise SystemExit("driver produced nothing:\n" + (proc.stderr or proc.stdout)[:2000])
 
-        What it is not, all measured rather than assumed: memory, file descriptors, JVMs left running,
-        a full `/tmp`, a private `java.io.tmpdir`, invocation rate, a corrupted copy off the Windows
-        mount (digests match, and the source reads identically 20 times in a row). One measurement did
-        suggest that running from the schema's own directory with a bare filename fixed it — 0/30
-        against 21/30 for an absolute path — and a later run of that exact shape failed 10 out of 10.
-        So the working directory is *not* the explanation, and this is left running that way only
-        because it costs nothing and matches how V2Gdecoder is documented to be started.
-
-        The diagnosis stops there. It is a JVM-on-WSL question, not a V2G one, and the verdict does not
-        need it answered: a real codec failure is deterministic and reports something else, so retrying
-        **only** this error separates the two. `retries` in the totals is how much noise a run hit; a
-        frame that exhausts every attempt is reported as a failure like any other.
-        """
-        schema_dir = (self.schema_root / schema).parent
-        last = "no output"
-        for attempt in range(self.ATTEMPTS):
-            dst.unlink(missing_ok=True)
-            proc = subprocess.run(
-                ["java", "-cp", str(JAR), CLI, mode,
-                 "-schema", Path(schema).name,          # bare name, resolved from cwd
-                 "-i", str(src), "-o", str(dst)],       # in/out stay absolute
-                cwd=str(schema_dir),
-                capture_output=True, text=True, timeout=180,
-            )
-            if dst.exists() and dst.stat().st_size > 0:
-                self.retries += attempt
-                return True, ""
-
-            noise = (proc.stdout + "\n" + proc.stderr).strip().splitlines()
-            last = (next((l.strip() for l in noise if "ERROR" in l or "Exception" in l),
-                         None) or "no output")[:180]
-            if self.SCHEMA_FLAKE not in last:
-                break   # a real decode/encode failure: do not retry it
-
-        self.retries += attempt
-        return False, last
-
-    def decode(self, exi: bytes, schema: str) -> tuple[bool, str]:
-        src, dst = self.work / "in.exi", self.work / "out.xml"
-        src.write_bytes(exi)
-        ok, why = self._run("-decode", schema, src, dst)
-        return (True, dst.read_text(encoding="utf-8")) if ok else (False, why)
-
-    def encode(self, xml: str, schema: str) -> tuple[bool, bytes]:
-        src, dst = self.work / "in.xml", self.work / "back.exi"
-        src.write_text(xml, encoding="utf-8")
-        ok, why = self._run("-encode", schema, src, dst)
-        return (True, dst.read_bytes()) if ok else (False, why)
+        out = {}
+        for line in results_file.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            name, verdict, their_hex, detail = line.split("\t", 3)
+            out[name] = (verdict, "" if their_hex == "-" else their_hex,
+                         "" if detail == "-" else detail)
+        return out
 
 
 def frames_of(path: Path) -> tuple[str, list[tuple[str, str, str]]]:
@@ -220,43 +206,40 @@ def main() -> int:
         raise SystemExit(f"no jar at {JAR} — run tools/interop-v2gdecoder/setup.sh")
 
     exi = Exificient(schema_root, Path.home() / "v2gdec" / "exificient-work")
-    results, totals = [], {"ok": 0, "mismatch": 0, "decode-fail": 0, "encode-fail": 0}
 
+    # Collect the whole corpus first: one JVM does all of it, and a frame's name has to be unique
+    # across files for the results to be matched back.
+    per_file, jobs = [], []
     for path in args.files:
         label, frames = frames_of(path)
         if not frames:
-            print(f"\n== {path.name}: SKIPPED — {label} is not ISO 15118-20")
+            print(f"== {path.name}: SKIPPED — {label} is not ISO 15118-20")
             continue
+        per_file.append((path, label, frames))
+        jobs += [(f"{path.name}#{name}", schema, our_hex) for name, our_hex, schema in frames]
+
+    print(f"== {len(jobs)} frames across {len(per_file)} files, one JVM")
+    verdicts = exi.run(jobs)
+
+    results, totals = [], {"ok": 0, "mismatch": 0, "decode-fail": 0, "encode-fail": 0}
+    for path, label, frames in per_file:
         print(f"\n== {path.name}  ({label}, {len(frames)} frames)")
-
         for name, our_hex, schema in frames:
-            ours = bytes.fromhex(our_hex)
+            verdict, their_hex, detail = verdicts.get(
+                f"{path.name}#{name}", ("decode-fail", "", "no result from the driver"))
 
-            ok, payload = exi.decode(ours, schema)
-            if not ok:
-                verdict, detail, theirs = "decode-fail", payload, None
-            else:
-                ok, back = exi.encode(payload, schema)
-                if not ok:
-                    verdict, detail, theirs = "encode-fail", back, None
-                elif back == ours:
-                    verdict, detail, theirs = "ok", "", None
-                else:
-                    verdict = "mismatch"
-                    detail = f"ours {len(ours)} B, theirs {len(back)} B"
-                    theirs = back.hex()
-
-            totals[verdict] += 1
+            totals[verdict] = totals.get(verdict, 0) + 1
             results.append({"file": path.name, "frame": name, "schema": Path(schema).name,
                             "verdict": verdict, "detail": detail,
-                            "ourHex": our_hex if verdict != "ok" else None, "theirHex": theirs})
+                            "ourHex": our_hex if verdict != "ok" else None,
+                            "theirHex": their_hex or None})
 
             mark = {"ok": "  ok  ", "mismatch": " DIFF ",
-                    "decode-fail": " DEC! ", "encode-fail": " ENC! "}[verdict]
+                    "decode-fail": " DEC! ", "encode-fail": " ENC! "}.get(verdict, " ???? ")
             print(f"   [{mark}] {name}" + (f"   {detail}" if detail else ""))
 
     print("\n== totals: " + ", ".join(f"{k}={v}" for k, v in totals.items())
-          + f", retries={exi.retries}")
+          + f", schema-load retries={exi.retries}")
 
     if args.json:
         args.json.write_text(json.dumps({"totals": totals, "retries": exi.retries,

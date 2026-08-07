@@ -29,8 +29,10 @@ ISO15118ConformanceTests.slnx
 
 Two oracles judge the bytes offline, and only one of them is independent of us: **cbV2G** generated the
 vector corpus and shares a generator lineage with EVerest and tux-evse, while **EXIficient** — Josev's
-codec, and the one [`tools/interop-v2gdecoder/`](tools/interop-v2gdecoder/README.md) drives directly over
-the whole `-2` corpus — does not.
+codec — does not. Since 2026-08-07 it is driven over both halves of the corpus:
+[`tools/interop-v2gdecoder/`](tools/interop-v2gdecoder/README.md) for `-2` and DIN,
+[`tools/interop-exificient/`](tools/interop-exificient/README.md) for `-20`, where it found six frames a
+second codec cannot read at all.
 
 The codec, the simulation library and the CLI are **not** here — they are the app's, in
 `libs/EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read

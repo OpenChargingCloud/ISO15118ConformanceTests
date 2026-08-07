@@ -52,6 +52,11 @@ echo "=== v2gdecoder oracle: the derived schema directories"
 # tools/interop-v2gdecoder/setup.sh recreates the one staged directory that is meant to exist.
 rm -rf "$RIG_HOME"/v2gdec/p[0-9] "$RIG_HOME"/v2gdec/din "$RIG_HOME"/v2gdec/din2
 rm -f  "$RIG_HOME"/v2gdec/*.json "$RIG_HOME"/v2gdec/*.py
+# The -20 oracle's scratch: staged ISO schemas, the compiled driver, and a run's job/result files.
+# roundtrip20.py rebuilds all of it, and the staged schemas are ISO's — no reason to leave copies.
+rm -rf "$RIG_HOME"/v2gdec/exificient-work "$RIG_HOME"/v2gdec/classes \
+       "$RIG_HOME"/v2gdec/iso20 "$RIG_HOME"/v2gdec/isolate "$RIG_HOME"/v2gdec/exhaust* \
+       "$RIG_HOME"/v2gdec/rate "$RIG_HOME"/v2gdec/rel "$RIG_HOME"/v2gdec/access
 # fuzzy-probe.sh is the script that *builds* those rigged directories, so it goes with them. The rest
 # are staged copies of files that live in this repository — driving WSL from Windows means writing a
 # script to /tmp and stripping its CRLFs first, and the copies outlive the run. Named individually

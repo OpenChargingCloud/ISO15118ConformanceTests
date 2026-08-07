@@ -124,12 +124,10 @@ compact form. That is now tested rather than assumed.
   choice. It does not change interoperability in either direction, which is measured above.
 - DIN 70121 is in V2Gdecoder's scope and untested by us: we have no DIN corpus beyond the Tesla
   handshake, which is SAP only.
-- The `-20` traces cannot be checked this way at all. That half of the codec still has cbV2G as its only
-  byte oracle. **Attempted the same day and not concluded:** EXIficient can be driven directly against
-  ISO's own `-20` schemas — the class is in the same jar — and frames that complete come back
-  byte-exact, with no mismatch ever observed. The run does not finish reliably on this rig for a reason
-  that is not about V2G. See [`tools/interop-exificient/`](../../../tools/interop-exificient/README.md),
-  which states what was excluded and what would fix it.
+- ~~The `-20` traces cannot be checked this way at all.~~ **Done the same day**, by driving EXIficient
+  directly against ISO's own `-20` schemas — the class is in the same jar. 347 frames, 332 byte-exact,
+  and six that a second codec cannot read, all in message sets no independent stack had ever touched.
+  See [`2026-08-07-exificient-iso20`](../2026-08-07-exificient-iso20/notes.md).
 
 ## Files
 
