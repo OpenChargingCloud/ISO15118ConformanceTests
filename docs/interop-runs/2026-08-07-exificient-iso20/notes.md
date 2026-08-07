@@ -229,6 +229,27 @@ the first independent codec ever to look at it cannot read it. Five other self-g
 passed, so "self-generated" is not by itself the fault — but a 241-byte vector with no external
 provenance is exactly where one would expect to find one.
 
+**Narrowed 2026-08-07, not solved.** What is now ruled in or out:
+
+- **The DER machinery as such is readable.** `AC_ChargeParameterDiscoveryReq_DER` (136 B) is equally
+  self-generated and round-trips fine, as do the four DER charge-loop vectors. The fault is specific to
+  the Res.
+- **Not cause A** — AC_DER_SAE's global-element numbering matches the sorted order exactly.
+- **Not cause B** — no `cbV2G's grammar for this position` marker anywhere in its generated code; that
+  construct appears only in the four WPT messages.
+- **The general width mechanism is implemented.** `DER_AC_CPDResEnergyTransferModeType` is by far the
+  most optional-heavy type in the amendment, and our generated encoder does narrow the event code as
+  particles are consumed — 2-bit runs, then a 6-production run at 3 bits (`MaximumPowerAsymmetry`,
+  `EVSEPowerRampLimitation`, `EVSEPresentActivePower`, `_L2`, `_L3`, then the next start element), then
+  narrowing again. So this is not a missing feature; if it is ours it is one run.
+- **There is no third opinion available, even in principle.** cbexigen cannot generate the DER schemas
+  at all (it crashes on the two-schema substitution head — the app's `docs/ac-der.md`), so EXIficient is
+  the only external reader these bytes will ever have.
+
+What it needs is a bit-level walk of that one message against the schema, comparing our event codes run
+by run with what the grammar prescribes. Worth doing with a clear head rather than at the end of a long
+session.
+
 ## Next
 
 1. ~~Fix A~~ — **done differently, and see the correction above.** A is policy, not a defect; the
