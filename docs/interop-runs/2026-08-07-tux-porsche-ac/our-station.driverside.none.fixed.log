@@ -1,0 +1,5 @@
+  Failed TheirInjector_AgainstOurSecc_RunsToCompletion [3 s]
+  Error Message:
+Assert.That(outcome.SequenceErrorAt, Is.Null)
+  Expected: null
+  But was:  "AuthorizationReq"

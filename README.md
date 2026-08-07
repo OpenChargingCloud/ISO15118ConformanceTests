@@ -193,7 +193,9 @@ exchanges, every response `OK`, their injector's own TAP reporting 12/12, and bo
 loop, which is how `charging_status_req` finally entered the verb table — from **their** converter and
 **their** TAP output, not from a guess. The unfolded runs of the same captures are the second and third
 real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the refusal goes out as
-`FAILED_SequenceError` instead of a closed socket.
+`FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
+the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
+cannot reach it, and "changed nothing" is now a measurement instead of a claim.
 
 ²² Their EV picks service **6** out of our `{2, 6}` — the choice is theirs — and
 `DC_ChargeParameterDiscovery` carried a real bidirectional envelope each way, each side's numbers read

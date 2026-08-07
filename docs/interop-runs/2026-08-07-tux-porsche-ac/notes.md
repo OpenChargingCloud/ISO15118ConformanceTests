@@ -71,10 +71,11 @@ Two things surfaced behind it, neither caused by this change:
   not 550). C# still checks the rule head-on; neither port has a metering test of its own. Written
   into both comments rather than quietly dropped.
 
-### Re-run against their injector — the same two captures, the same day
+### Re-run against their injector — the same captures, the same day
 
-The rig back up, the fixture rebuilt at 11,040 W, both folded scenarios replayed. Artifacts carry
-`.fixed.` in the name and sit beside the ones that found the fault, so before and after read together.
+The rig back up, the fixture rebuilt at 11,040 W, and all four scenarios replayed — folded first, then
+unfolded. Artifacts carry `.fixed.` in the name and sit beside the ones that found the fault, so before
+and after read together.
 
 Both sessions now run to the end — **10 exchanges, every response `OK`**, where before they stopped at
 seven:
@@ -109,6 +110,32 @@ captures, and their injector printed it back in the TAP line above. Until this r
 ever reached the charge loop against us, so the verb had never been seen — and while it was missing,
 the flow comparison counted our own `ChargingStatusReq` as a divergence. Both reports now end with
 **"The order matches the declared flow exactly."**
+
+#### Unfolded, re-run too — and unchanged, which is the answer
+
+Both `--compact=none` scenarios were replayed against the same fixed station, and both end exactly
+where they did before: **6 exchanges, `AuthorizationRes(FAILED_SequenceError)` at the second poll**,
+their injector reporting `received:"sequence_error" expected:"ok"`. Nothing else was possible — the
+session dies four messages before `PowerDelivery`, so a schedule fix cannot reach it. Worth running
+rather than reasoning about: "the fix changed nothing here" is a claim, and now it is a measurement.
+
+The widened verb table does change what the report *says*, and for the better. The charge loop the
+session never reached is now named among what it missed:
+
+```
+-   ChargeParameterDiscoveryReq   (in the scenario, never on the wire)
+-   PowerDeliveryReq              (in the scenario, never on the wire)
+-   ChargingStatusReq             (in the scenario, never on the wire)   ← invisible before
+-   PowerDeliveryReq              (in the scenario, never on the wire)
+-   SessionStopReq                (in the scenario, never on the wire)
+```
+
+**And a rig hazard, found the hard way.** Their binder spins as before — 394 MB and 389 MB under a 20 s
+cap, the same ~20 MB/s as the first run's 2.4 GB under 120 s. What is new is that **`timeout`'s SIGTERM
+stops the spin but does not end the process**: the driverside binder sat there holding the runner open
+for ten minutes until it was SIGKILLed by hand. `run-injector.sh` now passes `timeout -k 5`. This is
+worth adding to [the spin report](../../reports/tux-evse-spin.md) before it goes to IoT.bzh — a binder
+that ignores SIGTERM is a second, independent problem from the loop itself.
 
 ## The sequence guard, on two more real routes
 

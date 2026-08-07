@@ -60,6 +60,11 @@ the state; a pause is enough. The disconnect is what makes it permanent.
 - **A wedged binder does not answer SIGTERM.** `pkill afb-evse` leaves it running; only `SIGKILL`
   stops it. Combined with the leaked `CLOSE-WAIT` socket and the still-bound ports, a stuck instance
   blocks the next run of your own test suite until someone notices.
+  Measured more precisely on 2026-08-07: SIGTERM *does* stop the logging — the file stops growing at
+  once — but the process stays. So `timeout 20 afb-binder …` looks like it worked, writes nothing
+  further, and then holds the shell that started it open indefinitely; ours sat for ten minutes before
+  it was killed by hand. That reads as two separate problems: the loop, and a signal handler that
+  quiets the binder without ending it. `timeout -k` is the workaround on our side.
 
 One rig note that may save you a minute: the binder renames its process to whatever `--name` says, so
 it is `afb-evse` / `afb-evcc` in `ps`, not `afb-binder`.
