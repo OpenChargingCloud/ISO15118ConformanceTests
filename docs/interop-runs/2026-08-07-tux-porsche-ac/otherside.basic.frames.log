@@ -1,0 +1,34 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 214 byte(s), 7 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=44
+    01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040
+[1] SessionSetupReq payloadType=0x8001 bytes=22
+    01fe80010000000e8098004011d01800621c00704400
+[2] ServiceDiscoveryReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021d078eabe7e423c0d1b8
+[3] PaymentServiceSelectionReq payloadType=0x8001 bytes=24
+    01fe8001000000108098021d078eabe7e423c0d132001280
+[4] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021d078eabe7e423c0d008
+[5] ChargeParameterDiscoveryReq payloadType=0x8001 bytes=39
+    01fe80010000001f8098021d078eabe7e423c0d0903a084c301281081502804186400810602800
+[6] PowerDeliveryReq payloadType=0x8001 bytes=43
+    01fe8001000000238098021d078eabe7e423c0d150000000018a140ac2110ba0c50a33610bd640628000b0
+
+## station -> EV: 196 byte(s), 7 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8001 bytes=38
+    01fe80010000001e8098021d078eabe7e423c0d1e0202d1114a905090ca914c41ffb9a9a60c0
+[2] ServiceDiscoveryRes (OK) payloadType=0x8001 bytes=31
+    01fe8001000000178098021d078eabe7e423c0d1c00008004011050c050248
+[3] PaymentServiceSelectionRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e8098021d078eabe7e423c0d14000
+[4] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098021d078eabe7e423c0d0100000
+[5] ChargeParameterDiscoveryRes (OK) payloadType=0x8001 bytes=45
+    01fe8001000000258098021d078eabe7e423c0d0a00000000000240700c50f8550a80000006207300818604000
+[6] PowerDeliveryRes (FAILED_ChargingProfileInvalid) payloadType=0x8001 bytes=25
+    01fe8001000000118098021d078eabe7e423c0d16260000000

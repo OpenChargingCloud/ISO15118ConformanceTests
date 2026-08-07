@@ -1,0 +1,27 @@
+== Porsche Taycan 4S, driver side
+   schedule_id: 1  progress: start
+   profile entry: start=    0  power_max=  11,040 watt
+   profile entry: start=11911  power_max=   6,947 watt
+   profile entry: start=12860  power_max=       0 watt
+   EV ea_mount       37,000 wh
+   EV max_voltage       260 volt
+   EV max_current        20 ampere
+   EV min_current         2 ampere
+== Porsche Taycan 4S, other side
+   schedule_id: 1  progress: start
+   profile entry: start=    0  power_max=  11,040 watt
+   profile entry: start=11912  power_max=   6,947 watt
+   profile entry: start=12861  power_max=       0 watt
+   EV ea_mount       37,000 wh
+   EV max_voltage       260 volt
+   EV max_current        20 ampere
+   EV min_current         2 ampere
+== VW (for comparison)
+   schedule_id: 1  progress: start
+   profile entry: start=    0  power_max=   4,100 watt
+   EV ea_mount          500 wh
+   EV max_voltage       413 volt
+   EV max_current       350 ampere
+   EV min_current         0 ampere
+
+our station offers (Secc2.PlainSchedule): one tuple, PMax 11,000 W for 3600 s

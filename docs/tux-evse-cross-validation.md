@@ -58,6 +58,7 @@ sibling crates cargo-pinned to `main` (the exact revisions are in the
 | `←SECC` AC, VW capture `basic`-compacted | their own compaction folds the poll | **The rest of the route to `SessionStopRes`, session `Done`** — and one divergence worth keeping: the VW sends `SessionStopReq` straight from the charging phase; the **captured charger refused it as `FAILED_SequenceError`, ours answers `OK`** |
 | `←SECC` DC **over TLS**, their PKI | their `mkcerts.sh` material, our station presenting their `_server.pem` | Pinned to the ISO 15118-2 suites: **no handshake is possible — their profile has neither** (below). Unpinned: TLS 1.2 / ECDHE-ECDSA-AES256-GCM-SHA384, SDP announced TLS and their EVCC honoured it, four exchanges — then **their** EVCC stopped, and their own responder reproduces it |
 | `←SECC` DC over **mutual** TLS | same, with a client certificate demanded | Their car presents `CN=eMaid` on request — the first client certificate a counterparty has shown our station in a **-2** session |
+| `←SECC` AC ×2, **Porsche Taycan 4S** (both sides) | their `pcap-iso15118` on the two Taycan captures, folded and unfolded | **A finding against us**: the car's profile asks for 11,040 W — 3 × 230 V × 16 A — against our rounded 11,000 W offer, so [V2G2-761] refuses `PowerDelivery`. Unfolded, both routes confirm the sequence-guard fix on a second and third real car |
 
 The reverse direction — the one their design is *for* — is no longer untried. It produced, in one
 afternoon: external confirmation of our full -2 DC EIM and AC EIM station paths against real cars'
@@ -238,8 +239,10 @@ choice and is asked rather than asserted.
   Audi has neither, so it would have to come from a different capture or be hand-written — and then
   our SECC could verify a real contract signature, since their `_contract` certificate chains to the
   root we would already be serving from.
-- **The Porsche AC captures and the Tesla DIN pcap** — same pipeline as the VW run
-  (`pcap-iso15118` → relax → fixture), unblocked the day the stack speaks what they captured.
+- ~~**The Porsche AC captures**~~ — run 2026-08-07, both sides, both compaction modes
+  ([`2026-08-07-tux-porsche-ac`](interop-runs/2026-08-07-tux-porsche-ac/notes.md)); they cost us a
+  finding and confirmed a fix. **The Tesla DIN pcap** stays out of reach: nothing here speaks DIN
+  70121, which is a capability question rather than a scheduling one.
 - **A byte-level codec verdict.** Structurally unavailable, forever: their codec and our corpus come
   from the same generator.
 
