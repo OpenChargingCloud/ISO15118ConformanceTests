@@ -59,12 +59,28 @@ then **silently dropped**, not reported:
 ```python
 valid_services = [service for service in services if service in supported_services]
 if not valid_services:
-    raise NoSupportedEnergyServices(...)
+    raise NoSupportedEnergyServices(
+        f"No supported energy services configured. Supported energy services are "
+        f"{supported_services} and could be configured in evcc_config.json"
+    )
+return [ServiceV20[name] for name in valid_services if name in ServiceV20.__members__]
 ```
 
 A list with at least one recognised entry passes, and the unrecognised ones vanish without a log line.
-`"DC,MSC"` quietly becomes `DC`. That makes the manifest description the only place a user can learn the
-correct spelling — which is exactly the thing that is incomplete.
+`"DC,MSC"` quietly becomes `DC`.
+
+And there is a small irony in the two lines above, which is really the whole report in miniature:
+**the correct list does exist in the code — but only on the path where everything was wrong.** Get every
+entry wrong and the exception prints all twelve. Get one of two wrong and you are told nothing, and the
+run proceeds with silently fewer services than you asked for. The louder failure is the more helpful
+one.
+
+(Also worth a glance while you are there: the `return` applies a *second* filter, on
+`ServiceV20.__members__`, equally silently. We have not seen it drop anything — the two lists look
+consistent today — but it is the same shape one line further down.)
+
+That leaves the manifest description as the only place a user can learn the correct spelling before
+running anything — which is exactly the thing that is incomplete.
 
 Practically, the failure mode is the milder one but still costs time: a value absent from the manifest
 reads as unsupported, so the natural conclusion is that `PyEvJosev` cannot request an MCS session. It can;
@@ -106,7 +122,8 @@ in `ext-switchev-iso15118` rather than here.
 
 - [x] **Verify it against the shipped tree**, not a memory: manifest lines 55–61, `utils.py`
       `load_requested_energy_services`, `config-sil-mcs.yaml:19`, all read from
-      everest-core 2026.02.1 as built.
+      everest-core 2026.02.1 as built. **Re-read 2026-08-07** — every quotation above is verbatim,
+      including the twelve values and the two filters.
 - [x] **Confirm the config actually works**, so the report cannot be read as "MCS is broken" — it is not,
       the documentation is incomplete. A complete MCS session on that config is recorded in the run notes
       linked above.

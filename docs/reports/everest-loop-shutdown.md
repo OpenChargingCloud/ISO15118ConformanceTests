@@ -11,6 +11,28 @@ The original 2025.10.0 sightings are in
 [`2026-08-03-everest-iso20-dc-tls13`](../interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md) and
 [`2026-08-03-everest-iso20-dc-full-charge`](../interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md).
 
+A second report for the same project, unrelated and much smaller, is in
+[`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md). **File them separately.**
+
+## Before the defect — what everest-core has been worth to us
+
+Not politeness, and worth a paragraph because it is the reason this report exists at all rather than a
+bug filed by a stranger.
+
+**everest-core has found more defects in this project than every other counterparty combined**, across
+nineteen runs. Almost all of them share one shape: a value we had taken from our own assumption where
+the protocol supplies one — an unbounded "Ongoing" poll, an energy transfer mode we hard-coded instead
+of reading from `ServiceDiscoveryRes`, a preference list we treated as a filter rather than a ranking,
+an EV-side power envelope written as literals. Their SIL is single-phase, their station enforces the
+service/parameter coupling, their `EvseManager` logs what it actually received — so every one of those
+surfaced as a refusal or a wrong number rather than as a green test.
+
+None of that is reachable against a loopback peer: our own station answers in kind, advertises exactly
+what our EV asks for, and enforces nothing. It took a real charger to find them, and this is the one.
+
+That is also the honest framing for what follows: we ran everest-core hard enough to hit this, and we
+hit it the same way a car in the field would.
+
 ---
 
 **Title:** `Evse15118D20`: a TLS handshake that fails in `SSL_accept()` shuts down
@@ -106,12 +128,32 @@ try {
 The accept path's failure is raised inside a poll handler — `handle_data`, registered at
 `connection_ssl.cpp:459` — so it surfaces at `poll_manager.poll()` and hits the `break` above.
 
+(All five line references above were re-checked against the 2026.02.1 tree on 2026-08-07 and still
+point where they say.)
+
 Observed, same build, minutes apart:
 
 | what happened | their log | loop afterwards |
 |---|---|---|
 | valid mutual handshake, client disconnects mid-session | `Shutting down session because of: Failed to SSL_read_ex(): 6` → `Closing TLS connection` → `TLS connection closed gracefully` | **alive** — SDP answers, port 50000 served again |
 | handshake fails during `SSL_accept` | `Shutdown loop() because of: Failed to SSL_accept(): 1: …` | **gone** — SDP silent, socket still bound |
+
+## A second contrast, from a module of your own
+
+Added 2026-08-06. `IsoMux` was given the same treatment — a TLS 1.3 hello it refuses (it serves the -2
+profile, so it answers `alert 70`), and then a second refused handshake from `openssl` — and **it kept
+accepting**: the TLS 1.2 probe afterwards completed normally, and two full ISO 15118-20 sessions ran to
+`SessionStop` in the same process ([run notes](../interop-runs/2026-08-06-everest-isomux-tls/notes.md)).
+
+It is a different TLS termination (`lib/everest/tls`), so this is not a fix to copy across. What it
+gives is a second data point in the same tree: **the project's other TLS-terminating server survives
+what this one dies on**, and nothing about the deployment makes surviving it impractical.
+
+Worth saying because of where it leaves the exposure. Behind `IsoMux` this defect is unreachable — not
+because it is handled, but because the mux never lets a TLS 1.3 hello through to the backend at all,
+which is [its own separate finding](../interop-runs/2026-08-06-everest-isomux-tls/notes.md). Where the
+defect bites is `Evse15118D20` **addressed directly**, which is exactly what your shipped
+`config-sil-dc-d20.yaml` does, and what the reproduction below uses.
 
 ## Reproduction — one command, no ISO 15118 stack needed
 
@@ -187,10 +229,17 @@ We would happily send a PR for either, if you agree with the shape:
 
 - [x] **Reproduce it yourself.** Done 2026-08-05 on 2026.02.1: 3/3, including their unmodified stock
       config, plus the contrast case showing the session path handling the same error class correctly.
+- [x] **Re-check every line reference against the tree**, rather than trusting a five-day-old note —
+      done 2026-08-07 against the built 2026.02.1 source: all five still point where they say.
+- [x] **Lead with what the project has been worth to us.** Above, and every claim in it has runs
+      behind it. A report that opens with "your charger can be bricked" reads differently when the
+      sender has been on the receiving end of the same courtesy nineteen times.
 - [ ] **File one issue, this one.** The other observations from these runs are deliberately not in
       here: `IsoMux` ignoring SAP `Priority` (rests on requirement text we do not hold), -20 PnC being
       commented out (their own documented TODO), their SECC sending only its leaf (arguably
-      deployment). Each is written up in the run notes and can go separately.
+      deployment), and the mux's TLS-1.2-only termination in front of a -20 backend (a layering
+      question, and a bigger conversation than this). Each is written up in the run notes and can go
+      separately. The `PyEvJosev` manifest one already has its own draft.
 - [ ] **Post under your own name, in your own words.** Keep a sentence on how it was hit in practice —
       a third-party EVCC against `Evse15118D20`, not a fuzzer — because that tells a maintainer whether
       the scenario is realistic. It is the difference between "hardening" and "a car in the field can

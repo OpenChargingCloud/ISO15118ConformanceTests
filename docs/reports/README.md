@@ -18,8 +18,8 @@ was our own configuration we bent.
 | [`evdriveflow-headless-session.md`](evdriveflow-headless-session.md) | EDF Lab (eVDriveFlow) | **1**, **2**, plus three secondary | The documented no-GUI path cannot complete a session, for two independent reasons: EOF on stdin reads as "Enter pressed", and `hasattr` on an xsdata `Optional` field nulls the EV's own target SOC |
 | [`tux-evse-tls.md`](tux-evse-tls.md) | IoT.bzh (tux-evse) | **A**, **B** | Over TLS the EVCC signs every `AuthorizationReq` (so no shipped scenario runs over TLS at all), and the pinned cipher profile contains neither suite ISO 15118-2 prescribes |
 | [`tux-evse-spin.md`](tux-evse-spin.md) | IoT.bzh (tux-evse) | **C**, **D** | One connection that pauses or closes sends the binder into a 200,000-line-per-second log loop — and SIGTERM stops the logging without ending the process |
-| [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life |
-| [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible |
+| [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
+| [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
 
 **Eight filings across three projects.** The letters and numbers are per counterparty and exist to keep
 separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal handler —
@@ -47,6 +47,9 @@ The checklists are not decoration. The recurring items:
 - **Reproduce it yourself** — every report has this ticked, and each says with what: their binder and
   their scenario, their EV and their PKI, their manifest and their config. A finding that needs our
   stack on the other end to appear is a weaker finding, and where that is the case it says so.
+- **Re-read the citations before sending**, against the tree rather than against the draft. Every
+  `file.cpp:line` in these reports was checked again on 2026-08-07; a line number that has drifted is
+  the fastest way to have a real finding dismissed.
 - **File separately what will be fixed separately.** Filing two issues together invites one answer.
 - **Ask before asserting** where the thing may be a decision rather than an oversight.
 - **Offer patches only if they want them.** Every suggested fix here has at least two reasonable
