@@ -69,6 +69,14 @@ failed=""
 for r in $remotes; do
 
     if [ "$mode" = delete ]; then
+        # Ask first here too. A branch merged on GitHub is already gone, and asking git to delete it
+        # prints two error lines before this reports the truth -- which reads like a failure in a
+        # step that in fact succeeded before it started.
+        if [ -z "$(git ls-remote --heads "$r" "$ref" 2>/dev/null)" ]; then
+            echo "  $r: already gone"
+            echo
+            continue
+        fi
         git push "$r" --delete "$ref" 2>&1 | sed 's/^/    /'
         if [ -z "$(git ls-remote --heads "$r" "$ref" 2>/dev/null)" ]; then
             echo "  $r: gone"
