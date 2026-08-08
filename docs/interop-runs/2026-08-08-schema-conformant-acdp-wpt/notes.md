@@ -109,9 +109,13 @@ schema above through `Roundtrip20`'s XML probe and read the two bits after the o
 
 ## Next
 
-- **File both with libcbv2g.** They are now defect reports, not differences of opinion: A departs from
-  EXI 1.0 §8.5.1, and B contradicts the generator's own input schema. B is the more serious of the two
-  for their users, since it makes valid documents unencodable.
+- **File them with libcbv2g** — [`docs/reports/libcbv2g-grammar-deviations.md`](../../reports/libcbv2g-grammar-deviations.md),
+  drafted and verified against current upstream `HEAD`, waiting only on a human to post. It grew a
+  third issue on the way: reading the generated state machine line by line showed that **every**
+  `minOccurs="2"` repeating particle gets a loop state whose only other branch is
+  `EXI_ERROR__UNKNOWN_EVENT_CODE`, so three WPT types cannot be encoded at all. That is why our corpus
+  has no reference bytes behind `LF_SystemSetupData` — and, indirectly, why our own defect in the same
+  construct went unseen for a year.
 - ~~**The value partition**~~ — **done the same day.** All eight are the string table, shown by
   substitution: [`2026-08-08-value-partition`](../2026-08-08-value-partition/notes.md). The
   off-by-one was real (an identifier costs bits of its own), and a repeated certificate turns out to be

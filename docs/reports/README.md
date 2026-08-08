@@ -22,14 +22,16 @@ was our own configuration we bent.
 | [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
 | [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
 | [`v2gdecoder-fuzzy-grammar.md`](v2gdecoder-fuzzy-grammar.md) | FlUxIuS (V2Gdecoder) | **A**, **B** | A frame valid under two grammars is decoded by whichever sits first in the array, silently — and their DIN grammar rejects a real `ChargeParameterDiscoveryRes`, which the same fallback then answers for |
-| [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) | EVerest (libcbv2g / cbexigen) | **A**, **B** | The document grammar groups global elements sharing a type, so two ACDP messages swap identity and one decodes cleanly as the other — and the WPT mid-sequence particle grammar contradicts its own input schema, making two valid documents unencodable |
+| [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document grammar groups global elements sharing a type, so two ACDP messages swap identity and one decodes cleanly as the other; the WPT mid-sequence particle grammar contradicts its own input schema; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all |
 
-**Fourteen filings across five projects.** The letters and numbers are per counterparty and exist to
+**Fifteen filings across five projects.** The letters and numbers are per counterparty and exist to
 keep separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal
 handler, E and F what a converted capture loses — six issues, not one, and a fix for any of them does
 not touch the others. EDF's 1 and 2 are likewise independent, and fixing 1 is what reveals 2.
 V2Gdecoder's A and B are the same shape again: independent, and the first is what makes the second
-expensive to find. libcbv2g's A and B are two different grammars in the same generator.
+expensive to find. libcbv2g's are three different grammars in the same generator, and its C is the one
+finding in this directory that is not a difference of opinion at all — three types that no caller can
+encode.
 
 The libcbv2g report is the only one where **we changed our own stack because of what we found**: this
 project reproduced both of those grammars deliberately, for byte-compatibility with the reference
