@@ -6,9 +6,12 @@ ISO 15118-20 schemas as published by ISO, cross-read with **EXIficient 1.0.4** o
 source citation below was re-read against that checkout on 2026-08-08. Post under your own name; see
 *Before sending* at the bottom.
 
-Three observations, **A**, **B** and **C**, in ascending order of severity. They are separate filings —
-three different generated grammars, three independent fixes — reported together only because one run
-turned up all three.
+Three observations, **A**, **B** and **C**. They are separate filings — three different generated
+grammars, three independent fixes — reported together because one run turned up all three and because
+**B hides C**: an encoder cannot reach C without first losing data to B.
+
+If only one of them gets attention, make it **B**. A and C fail loudly; B returns success and drops a
+field.
 
 ## First, what works
 
@@ -133,13 +136,30 @@ Two documents ISO permits therefore cannot be encoded:
 2. **`WPT_LF_DataPackageList` without a preceding container.** Id 178 offers only the list and the
    end-element.
 
-## The visible symptom
+## The visible symptom on the wire
 
 One event code. With both particles absent, the generated encoder writes **1** for the end-element
 where the schema grammar has **2**. A schema-informed processor reads that `1` as a start-element,
 looks for content that is not there, and reports `Premature EOS` — which is what happened to all four of
 our `WPT_FinePositioning*` frames and to nothing else. The sibling `WPT_AlignmentCheckReq`, an ordinary
 bounded list with nothing after it, round-trips byte-exact.
+
+## The worse symptom, which is silent
+
+Consequence 2 above is not a byte difference. Set `LF_SystemSetupData` on a
+`WPT_FinePositioningSetupRes`, leave `VendorSpecificDataContainer` empty, and call
+`encode_iso20_wpt_exiDocument`:
+
+```
+control, field absent      -> encoded  (0)  23 B
+LF_SystemSetupData set     -> encoded  (0)  23 B     <- byte-identical to not setting it
+```
+
+The encoder **returns success and drops the field**. Same length as the message that never carried it.
+A caller has no way to know: no error, no truncation, nothing short. Reproduce with
+[`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md) in this repository.
+
+Of the three issues here this is the one we would fix first. A and C are loud; this one is not.
 
 ## Suggested fix
 
@@ -198,6 +218,32 @@ emitted the two-bit loop code for them. It made one of our DER frames unreadable
 unrolling of a bounded repeat with a non-trivial minimum seems to be a place where it is easy to be
 wrong in more than one direction.
 
+## Confirmed by running it, not only by reading it
+
+[`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md) in this repository builds
+against `03350be048b3` and drives `encode_iso20_wpt_exiDocument` with minimal valid documents — two
+entries each, the schema's own minimum:
+
+```
+no LF branch      must encode   -> encoded              (0)  28 B
+receiver-2        claim: fails  -> UNKNOWN_EVENT_CODE (-150)  50 B
+transmitter-2     claim: fails  -> UNKNOWN_EVENT_CODE (-150)  53 B
+package-spec-2    claim: fails  -> UNKNOWN_EVENT_CODE (-150)  53 B
+```
+
+The control encodes; the three cases do not. All three types, confirmed at runtime.
+
+### B masks C, which is why nobody has hit it
+
+Worth stating because it cost us a false negative: the probe's first run reported all three cases
+**encoding cleanly**, and issue C looked wrong. It is not — issue B was swallowing them. With an empty
+`VendorSpecificDataContainer` the encoder never descends into `LF_SystemSetupData` at all (see B), so C
+cannot fire. Give the container one item, and it fires immediately.
+
+So the two defects have to be fixed in that order, and C is unreachable in any code path that has not
+already lost data to B. That is presumably why an encoder that cannot emit three types has gone
+unnoticed.
+
 ## Not a schema problem
 
 We can encode this construct, and an independent codec agrees with the result: on 2026-08-08 we added
@@ -248,6 +294,11 @@ production at all, which is also why their event code is one bit rather than two
 - [x] **Name every type C affects**, so the issue does not invite a partial fix. Traced 2026-08-08:
       the receiver has the same dead end at id 90, and `WPT_TxRxPackageSpecDataType` has it at *both*
       of its states. Three types, one generator behaviour.
+- [x] **Run the claims, do not only read them.** `tools/cbv2g-defect-probe/` builds against the cited
+      commit and drives the public API. It confirmed C for all three types — and caught that B masks C,
+      which the source reading had missed and which is now the report's strongest point. It also showed
+      B to be silent data loss rather than a byte difference, which changed which issue we would fix
+      first.
 - [ ] **Decide how much generated C to paste.** The excerpts above are minimal on purpose; a
       maintainer may prefer a link to the generator input instead, since the C is machine-written.
 - [ ] **Post under your own name, in your own words.**
