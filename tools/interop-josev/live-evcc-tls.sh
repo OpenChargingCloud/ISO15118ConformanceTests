@@ -19,5 +19,5 @@ cli_dll="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/b
 # The CLI's own --sdp discovery works live since the MulticastLoopback fix (2026-07-23);
 # with --tls-backend set it requests security=TLS in the SDP_Request.
 args=(--sdp --interface "$iface" --protocol 20 --mode dc --tls-backend dotnet)
-[ -n "$client_cert" ] && args+=(--client-cert "$client_cert" --client-cert-pass 12345)
+[ -n "$client_cert" ] && args+=(--vehicle-cert "$client_cert" --vehicle-cert-pass 12345)
 exec dotnet "$cli_dll" "${args[@]}"
