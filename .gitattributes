@@ -1,3 +1,8 @@
 # Shell scripts run under WSL bash — CRLF breaks them ("$'\r': command not found").
 # Pin them to LF regardless of core.autocrlf on Windows checkouts.
 *.sh text eol=lf
+
+# The checked-in W3C Recommendation must stay byte-for-byte what w3.org served: the licence permits
+# redistributing the *unmodified* document, and SHA256SUMS is what makes that checkable rather than
+# claimed. No line-ending translation on any of it, in either direction.
+tools/exi-spec-ref/** -text

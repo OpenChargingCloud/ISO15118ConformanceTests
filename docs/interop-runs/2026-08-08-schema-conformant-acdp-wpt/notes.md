@@ -23,7 +23,10 @@ The claim yesterday was that this "needs the EXI 1.0 text on the document gramma
 here". It is settled. §8.5.1 builds the `DocContent` grammar with one `SE` production per global
 element, over the qnames "sorted lexicographically, first by local-name, then by uri"
 ([W3C, EXI 1.0 Second Edition, §8.5.1](https://www.w3.org/TR/exi/#informedDocGrammars)) — with no
-provision for elements that share a named type.
+provision for elements that share a named type. The Recommendation is checked in at
+[`tools/exi-spec-ref/`](../../../tools/exi-spec-ref/README.md), so the citation can be read without a
+download; that directory also lists the other sections this project turns out to depend on, including
+one that states cause C outright.
 
 Checked against an implementation as well, on a schema containing nothing but the ACDP shape: three
 global elements, the first and third sharing a type, the second sorting between them.

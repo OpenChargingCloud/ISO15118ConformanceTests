@@ -44,3 +44,11 @@ checking them against each other — which is the same argument the cross-emitte
 One vector carries a context string (`"foo"`) and shares its key and message with the empty-context
 vector directly above it. That pair is what makes ISO 15118-20's empty context a *demonstrated*
 choice rather than an assumed default.
+
+## Related: `../exi-spec-ref/`
+
+That directory does the opposite of this one — it checks the W3C EXI Recommendation *in* rather than
+fetching it — and says why. The short version: this repository has already lost an afternoon to
+`w3.org` throttling a fetch that a schema build depended on, so the one document that settles our
+wire-format arguments is not left to a download. RFC 8032 stays fetched: `rfc-editor.org` has never
+been the problem, and what is checked in here — the extracted vectors — is what the tests actually read.
