@@ -17,6 +17,7 @@
   <Folder Name="/EVSimulatorApp/">
     <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/WWCP_ISO15118_Session.csproj" />
     <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/WWCP_ISO15118_EVCC.csproj" />
+    <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SharedCC/WWCP_ISO15118_SharedCC.csproj" />
     <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/WWCP_ISO15118_SECC.csproj" />
     <Project Path="libs/EVSimulatorApp/simulation/EVSimulatorApp.Ocpp/EVSimulatorApp.Ocpp.csproj" />
     <Project Path="libs/EVSimulatorApp/experiments/Vanaheimr.V2G.Experiments.Pqc/Vanaheimr.V2G.Experiments.Pqc.csproj" />
