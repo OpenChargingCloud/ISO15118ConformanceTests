@@ -37,16 +37,37 @@ the truth rather than a coincidence.
 
 That is the finding worth keeping: **the semantics were assumed, and are now measured.**
 
-## What this does not cover
+## The reverse direction, same day
 
-The validator also runs at message level, on the station side, over the contract chain and the OEM
-provisioning chain. Those paths were exercised the same day against an openssl hierarchy — accepted
-under the right root, rejected under an unrelated one, reported as "not checked" without roots — but
-**never against a foreign peer's chain.** Doing that needs the reverse direction: their EV
-(`PyEvJosev`) sending our SECC a contract chain. Not attempted here.
+The gap this section used to record — message-level validation never having met a foreign chain — is
+closed. `PyEvJosev` drove our SECC (`--listen 55000 --protocol 20 --mode dc --sdp --interface eth0`,
+`config-mcs-reverse-ours.yaml`, our station built and run inside WSL so SDP reaches it), and sent a
+signed `-20 AuthorizationReq` carrying its real contract certificate.
 
-So the honest state after this run is: TLS-level chain validation is cross-checked against an
-independent hierarchy; message-level chain validation is only self-checked.
+Their contract branch has a **root of its own**, separate from the V2G one, as the CharIN CP
+prescribes: `MORootCA → PKI-Ext_CRT_MO_SUB1_VALID → PKI-Ext_CRT_MO_SUB2_VALID → UKSWI123456789A`
+(the leaf's CN is the eMAID).
+
+| `--trust-roots` | Our station's verdict |
+|---|---|
+| their MO root + both MO Sub-CAs | `signature OK …; chain valid (anchored at CN=MORootCA)` |
+| their MO root **alone** | `signature OK …; chain valid (anchored at CN=MORootCA)` |
+| their **V2G** root — a real root, wrong branch | `signature OK …; chain REJECTED — unable to get local issuer certificate` |
+
+**Their EV sends its SubCertificates; their station does not send its Sub-CAs.** Same vendor, two
+opposite behaviours, and the message-level one is the complete one — root-alone is enough here and
+was not enough at TLS. Worth knowing before assuming either shape.
+
+**The third row is the point of the whole exercise.** The signature verified and the chain did not,
+and the output says both. Before today our station would have printed exactly the first half and
+stopped — "digest OK, signature OK" against a leaf nobody vouched for. That is the difference between
+proving a message is well-formed and deciding a contract is good, and it is now visible in one line.
+
+So after these two runs: chain validation is cross-checked against an independent hierarchy at
+**both** levels, in both directions, with a working negative control on each.
+
+Still self-checked only: the **OEM provisioning** chain. Their EV does not request
+CertificateInstallation in this configuration, so that path has met no foreign material.
 
 ## Rig notes
 
@@ -61,7 +82,24 @@ run normally. The accept-path defect that kills the whole event loop is an `Evse
 
 ## Next
 
-- The reverse direction, for the message-level chains.
-- `--trust-roots` needs to say in its own help text that a station sending a bare leaf requires the
-  intermediates in the bundle. Nothing in the flag's name suggests that, and the first run above is
-  what the surprise looks like.
+- ~~The reverse direction, for the message-level chains.~~ **Done the same day, above.**
+- ~~`--trust-roots` needs to say in its own help text that a station sending a bare leaf requires the
+  intermediates in the bundle.~~ **Done** — and the flag turned out to be absent from both `--help`
+  texts entirely, which three earlier sweeps had reported as fixed.
+- The **OEM provisioning** chain is the one path still judged only by material we minted. It needs a
+  peer that asks for CertificateInstallation; `PyEvJosev` in this configuration does not.
+
+## Driving WSL from the agent shell — two traps, one of them new
+
+Both cost time here and both produce "nothing happened" rather than an error.
+
+**Command substitution inside `wsl -- bash -lc '…'` is evaluated by the *outer* Git Bash**, single
+quotes notwithstanding: `$(pwd)` in the payload returned the Windows working directory, and `$C` from
+an assignment on the same line arrived empty, so `openssl -in $C/x.pem` looked for `/x.pem`. The
+existing note about "variable assignments arrive empty" understates it — it is all `$` expansion, and
+the fix is to put the work in a **script file** and run that. `MSYS_NO_PATHCONV=1` is still needed on
+the outer invocation, or `/mnt/c/...` becomes `C:/Program Files/Git/mnt/c/...`.
+
+**`pgrep -f <pattern>` matches the shell that is running the check**, so "is it still up?" answers yes
+forever while the process is long gone. `pgrep -c <name>` or a separate call gives the truth. This is
+the read-side twin of the known `pkill -f` self-kill.
