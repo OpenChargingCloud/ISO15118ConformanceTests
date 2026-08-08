@@ -9,7 +9,9 @@
 # Usage: live-evcc-tariff.sh [interface]     (default: eth0)
 set -uo pipefail
 IFACE="${1:-eth0}"
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/josev-secc-tariff.log
 EVCC_LOG=/tmp/our-evcc-tariff.log

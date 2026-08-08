@@ -16,7 +16,9 @@ PROTO="${1:-2}"
 MODE=ac
 CFGDIR=/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc
 CFG=$([ "$PROTO" = "2" ] && echo "$CFGDIR/iso15118_2/evcc_config_eim_ac.json" || echo "$CFGDIR/iso15118_20/evcc_config_ac.json")
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/secc-reneg-$PROTO.log
 EVCC_LOG=/tmp/evcc-reneg-$PROTO.log

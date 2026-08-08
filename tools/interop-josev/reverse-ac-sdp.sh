@@ -2,7 +2,9 @@
 # Live ISO 15118-20 **AC** interop, plain TCP + EIM, with our SECC using --sdp (no responder shim):
 # Josev EVCC (AC, useTls=false) SDP-discovers our SECC and runs a -20 AC session.
 set -uo pipefail
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/secc-ac.log
 EVCC_LOG=/tmp/evcc-ac.log
