@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2026 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of ISO15118ConformanceTests
  *
@@ -18,6 +18,7 @@
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.SECC;
+using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 
 namespace ISO15118ConformanceTests.Simulation.Cli
@@ -43,7 +44,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
                 Assert.That(a.OfferBoth,  Is.True, "a station takes whatever drives up");
                 Assert.That(a.Protocol,   Is.EqualTo(ProtocolVariant.Iso15118_20), "-20 is the top preference");
                 Assert.That(a.ListenPort, Is.EqualTo(15118), "the IANA-registered V2G port");
-                Assert.That(a.TlsBackend, Is.EqualTo(TlsBackend.None));
+                Assert.That(a.TlsStack, Is.EqualTo(TlsStack.None));
             });
         }
 
@@ -83,15 +84,15 @@ namespace ISO15118ConformanceTests.Simulation.Cli
 
         [Test]
         public void TlsShorthand_SelectsDotnetBackend()
-            => Assert.That(SeccOptions.Parse(["--listen", "5555", "--tls"]).TlsBackend, Is.EqualTo(TlsBackend.Dotnet));
+            => Assert.That(SeccOptions.Parse(["--listen", "5555", "--tls"]).TlsStack, Is.EqualTo(TlsStack.Dotnet));
 
-        [TestCase("dotnet",       TlsBackend.Dotnet)]
-        [TestCase("bc",           TlsBackend.BouncyCastle)]
-        [TestCase("bouncycastle", TlsBackend.BouncyCastle)]
-        public void TlsBackend_Parses(string value, TlsBackend expected)
+        [TestCase("dotnet",       TlsStack.Dotnet)]
+        [TestCase("bc",           TlsStack.BouncyCastle)]
+        [TestCase("bouncycastle", TlsStack.BouncyCastle)]
+        public void TlsBackend_Parses(string value, TlsStack expected)
         {
             var a = SeccOptions.Parse(["--listen", "5555", "--tls-backend", value, "--pki-dir", "/tmp/pki"]);
-            Assert.That(a.TlsBackend, Is.EqualTo(expected));
+            Assert.That(a.TlsStack, Is.EqualTo(expected));
         }
 
         [Test]

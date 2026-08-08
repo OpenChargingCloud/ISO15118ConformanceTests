@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2026 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of ISO15118ConformanceTests
  *
@@ -18,6 +18,7 @@
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.EVCC;
+using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 
 namespace ISO15118ConformanceTests.Simulation.Cli
@@ -42,7 +43,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             {
                 Assert.That(a.OfferBoth,  Is.True, "offer what you speak, let the station choose");
                 Assert.That(a.Protocol,   Is.EqualTo(ProtocolVariant.Iso15118_20), "-20 at priority 1");
-                Assert.That(a.TlsBackend, Is.EqualTo(TlsBackend.None));
+                Assert.That(a.TlsStack, Is.EqualTo(TlsStack.None));
             });
         }
 
@@ -84,22 +85,84 @@ namespace ISO15118ConformanceTests.Simulation.Cli
 
         [Test]
         public void TlsShorthand_SelectsDotnetBackend()
-            => Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--tls"]).TlsBackend,
-                           Is.EqualTo(TlsBackend.Dotnet));
+            => Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--tls"]).TlsStack,
+                           Is.EqualTo(TlsStack.Dotnet));
 
-        [TestCase("dotnet",       TlsBackend.Dotnet)]
-        [TestCase("bc",           TlsBackend.BouncyCastle)]
-        [TestCase("bouncycastle", TlsBackend.BouncyCastle)]
-        public void TlsBackend_Parses(string value, TlsBackend expected)
+        [TestCase("dotnet",       TlsStack.Dotnet)]
+        [TestCase("bc",           TlsStack.BouncyCastle)]
+        [TestCase("bouncycastle", TlsStack.BouncyCastle)]
+        public void TlsBackend_Parses(string value, TlsStack expected)
         {
             var a = EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--tls-backend", value, "--pki-dir", "/tmp/pki"]);
-            Assert.That(a.TlsBackend, Is.EqualTo(expected));
+            Assert.That(a.TlsStack, Is.EqualTo(expected));
         }
 
         [Test]
-        public void BouncyCastleBackend_WithoutPkiDir_Throws()
+        public void BouncyCastleBackend_WithoutAnyCredentials_Throws()
             => Assert.That(() => EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--tls-backend", "bc"]),
-                           Throws.ArgumentException.With.Message.Contains("--pki-dir"));
+                           Throws.ArgumentException.With.Message.Contains("--pki-dir")
+                                                   .And.Message.Contains("--vehicle-cert"));
+
+        /// <summary>
+        /// The managed backend has two ways to learn who the car is: the dev hierarchy the station minted
+        /// (<c>--pki-dir</c>), or a Vehicle chain the caller brings (<c>--vehicle-cert</c>). Either alone is
+        /// enough — the second is what makes a run against a foreign station's PKI possible at all.
+        /// </summary>
+        [Test]
+        public void BouncyCastleBackend_AcceptsEitherCredentialSource()
+        {
+            Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--tls-backend", "bc", "--pki-dir", "/tmp/pki"]).PkiDir,
+                        Is.EqualTo("/tmp/pki"));
+
+            var withVehicle = EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--tls-backend", "bc",
+                                                 "--vehicle-cert", VehicleCert]);
+            Assert.That(withVehicle.VehicleCertPath, Is.EqualTo(VehicleCert));
+        }
+
+        /// <summary>
+        /// <c>--client-cert</c> is the older spelling of <c>--vehicle-cert</c>. Two live harnesses and two
+        /// recorded run scripts pass it, so it has to keep working and keep meaning the same thing.
+        /// </summary>
+        [Test]
+        public void ClientCert_IsTheOlderSpellingOfVehicleCert()
+        {
+            var a = EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--client-cert", VehicleCert, "--client-cert-pass", "pw"]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(a.VehicleCertPath, Is.EqualTo(VehicleCert));
+                Assert.That(a.VehicleCertPass, Is.EqualTo("pw"));
+            });
+        }
+
+        /// <summary>The car's three certificates are three separate options, not one reused.</summary>
+        [Test]
+        public void VehicleContractAndOem_AreDistinctOptions()
+        {
+            var a = EvccOptions.Parse(["--connect", "127.0.0.1:5555",
+                                       "--vehicle-cert",  VehicleCert,
+                                       "--contract-cert", "contract.p12",
+                                       "--oem-cert",      VehicleCert]);
+            Assert.Multiple(() =>
+            {
+                Assert.That(a.VehicleCertPath,  Is.EqualTo(VehicleCert));
+                Assert.That(a.ContractCertPath, Is.EqualTo("contract.p12"));
+                Assert.That(a.OemCertPath,      Is.EqualTo(VehicleCert));
+            });
+        }
+
+        /// <summary>
+        /// A mistyped certificate path used to surface only after the socket was open, as a station that
+        /// appeared to hang up. Existence is checked while the message can still name the flag.
+        /// </summary>
+        [TestCase("--vehicle-cert")]
+        [TestCase("--oem-cert")]
+        public void MissingCertificateFile_IsRefusedByFlagName(string flag)
+            => Assert.That(() => EvccOptions.Parse(["--connect", "127.0.0.1:5555", flag, "/no/such/file.p12"]),
+                           Throws.ArgumentException.With.Message.Contains(flag)
+                                                   .And.Message.Contains("no such file"));
+
+        /// <summary>Any existing file will do — these tests check parsing, not certificate contents.</summary>
+        private static readonly string VehicleCert = typeof(EvccOptionsTests).Assembly.Location;
 
         [Test]
         public void Slac_Parses_AndRequiresPeer()
