@@ -238,7 +238,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 if (!SupportedAppProtocolCodec.TryEncodeResponse(res, buffer, out int n))
                     throw new InvalidOperationException("encode failed");
 
-                await V2GTPStream.WriteRawFrameAsync(seccStream, V2GTP.PayloadType_AppProtocol,
+                await V2GTPStream.WriteRawFrameAsync(seccStream, V2GTPCodec.PayloadType_AppProtocol,
                                                       buffer.AsMemory(0, n), cts.Token);
                 await Task.Delay(200, cts.Token);
             }, cts.Token);

@@ -129,16 +129,16 @@ namespace ISO15118ConformanceTests.Simulation.Interop
             {
                 var bytes = Convert.FromHexString(entry.frame);
 
-                Assert.That(bytes, Has.Length.GreaterThan(V2GTP.HeaderSize),
+                Assert.That(bytes, Has.Length.GreaterThan(V2GTPCodec.HeaderSize),
                     $"{entry.message}: a frame must carry a payload");
-                Assert.That(V2GTP.TryReadHeader(bytes, out var payloadType, out var payloadLength), Is.True,
+                Assert.That(V2GTPCodec.TryReadHeader(bytes, out var payloadType, out var payloadLength), Is.True,
                     $"{entry.message} @{entry.direction}[{entry.firstIndex}]: header must parse");
-                Assert.That(payloadLength, Is.EqualTo((uint)(bytes.Length - V2GTP.HeaderSize)),
+                Assert.That(payloadLength, Is.EqualTo((uint)(bytes.Length - V2GTPCodec.HeaderSize)),
                     $"{entry.message}: the declared length must be the length that follows");
 
                 // DIN and ISO 15118-2 share the mainstream payload type; the handshake has its own.
                 Assert.That(payloadType,
-                    Is.EqualTo(V2GTP.PayloadType_DinIso2Main).Or.EqualTo(V2GTP.PayloadType_AppProtocol),
+                    Is.EqualTo(V2GTPCodec.PayloadType_DinIso2Main).Or.EqualTo(V2GTPCodec.PayloadType_AppProtocol),
                     $"{entry.message}: unexpected payload type 0x{payloadType:x4}");
             }
         }
@@ -165,7 +165,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
                 Assert.That(frame, Is.EqualTo(expected[i]),
                     $"frame {i} ({corpus.frames[i].message}) came back changed or misaligned");
                 Assert.That(payloadType,
-                    Is.EqualTo(V2GTP.PayloadType_DinIso2Main).Or.EqualTo(V2GTP.PayloadType_AppProtocol));
+                    Is.EqualTo(V2GTPCodec.PayloadType_DinIso2Main).Or.EqualTo(V2GTPCodec.PayloadType_AppProtocol));
             }
 
             Assert.That(stream.Position, Is.EqualTo(stream.Length),

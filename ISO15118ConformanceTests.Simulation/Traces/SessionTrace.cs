@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -174,7 +174,7 @@ public sealed record SessionTrace(
             .Select((request, i) => new TraceExchange(
                 i,
                 // The SupportedAppProtocol handshake shares payload id 0x8001 with the -2 messages and is
-                // told apart by session phase, never by payload type (see V2GTP.PayloadType_AppProtocol).
+                // told apart by session phase, never by payload type (see V2GTPCodec.PayloadType_AppProtocol).
                 // Phase, here, is position: SAP is always the first exchange.
                 Describe(request,      isSap: i == 0),
                 Describe(responses[i], isSap: i == 0)))
@@ -210,15 +210,15 @@ public sealed record SessionTrace(
         while (offset < bytes.Length)
         {
 
-            if (!V2GTP.TryReadHeader(bytes.AsSpan(offset), out _, out var payloadLength))
+            if (!V2GTPCodec.TryReadHeader(bytes.AsSpan(offset), out _, out var payloadLength))
                 throw new InvalidDataException(
                     $"trace ({direction}): no valid V2GTP header at offset {offset} of {bytes.Length}.");
 
-            var total = V2GTP.HeaderSize + checked((int) payloadLength);
+            var total = V2GTPCodec.HeaderSize + checked((int) payloadLength);
             if (offset + total > bytes.Length)
                 throw new InvalidDataException(
                     $"trace ({direction}): the frame at offset {offset} declares {payloadLength} payload byte(s), " +
-                    $"but only {bytes.Length - offset - V2GTP.HeaderSize} remain — a truncated recording.");
+                    $"but only {bytes.Length - offset - V2GTPCodec.HeaderSize} remain — a truncated recording.");
 
             frames.Add(bytes[offset..(offset + total)]);
             offset += total;
@@ -232,7 +232,7 @@ public sealed record SessionTrace(
 
     private static TraceFrame Describe(byte[] frame, bool isSap)
     {
-        V2GTP.TryReadHeader(frame, out var payloadType, out _);
+        V2GTPCodec.TryReadHeader(frame, out var payloadType, out _);
 
         // The SAP frames are not V2G messages and have no header to carry a signature; asking would
         // mean decoding them with the wrong codec.

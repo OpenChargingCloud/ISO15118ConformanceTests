@@ -202,7 +202,7 @@ public class TeslaDinHandshakeTests
                     "dead station");
 
         var reply = (SupportedAppProtocolRes) SupportedAppProtocolCodec.DecodeAny(
-                        answered.AsSpan(V2GTP.HeaderSize), out _);
+                        answered.AsSpan(V2GTPCodec.HeaderSize), out _);
 
         TestContext.Out.WriteLine($"Our station answered: {reply.Code}");
 
@@ -243,7 +243,7 @@ public class TeslaDinHandshakeTests
         Assert.That(SupportedAppProtocolCodec.TryEncodeRequest(offer, buf, out var n), Is.True);
 
         var wire = new MemoryStream();
-        await V2GTPStream.WriteRawFrameAsync(wire, V2GTP.PayloadType_AppProtocol, buf.AsMemory(0, n));
+        await V2GTPStream.WriteRawFrameAsync(wire, V2GTPCodec.PayloadType_AppProtocol, buf.AsMemory(0, n));
         var requestLength = (int) wire.Length;
         wire.Position = 0;
 
@@ -251,7 +251,7 @@ public class TeslaDinHandshakeTests
                           [new SapOffer(ProtocolVariant.Iso15118_2, PowerMode.Dc)]);
 
         var reply = (SupportedAppProtocolRes) SupportedAppProtocolCodec.DecodeAny(
-                        wire.ToArray()[requestLength..].AsSpan(V2GTP.HeaderSize), out _);
+                        wire.ToArray()[requestLength..].AsSpan(V2GTPCodec.HeaderSize), out _);
 
         Assert.Multiple(() =>
         {
