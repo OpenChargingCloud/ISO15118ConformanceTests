@@ -97,7 +97,7 @@ how to read one.
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | ▢ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
-| Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ▢ | — | — |
+| Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ◐ `EV→` **their station resumed it** (`OK_OldSessionJoined`, mutual TLS); **our EVCC** then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`²⁵ | — | — |
 | Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | ▢ | — | — |
 | Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ▢ | — | — |
 | Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
@@ -214,6 +214,14 @@ charge-loop defect first — so this is the negotiation, in full, and not a disc
 recorded: their `ev_dummy_controller` starts at `present_soc = 0` (the GUI's field sets it), and an
 empty battery correctly declares zero discharge, so the run patches that one line to 60 in their copy.
 Both numbers are on file.
+
+²⁵ **Ours to fix.** Their resume is gated on mutual TLS — `d20/state/session_setup.cpp` matches
+`SHA-512(session_id ‖ vehicle_cert_hash)` from the verified TLS peer certificate, and `ConnectionPlain`
+returns none — so no earlier EIM run could have reached it. With their minted vehicle credential it
+resumed on the first attempt. What failed is ours: a resumed `-20` session skips authorization and goes
+straight to `{AC,DC}_ChargeParameterDiscovery`, and our EVCC replays its full opening sequence anyway.
+Our SECC has the mirror gap — it rejoins on the session ID alone, binding nothing. See
+[`2026-08-08-everest-pause-resume-tls`](docs/interop-runs/2026-08-08-everest-pause-resume-tls/notes.md).
 
 ²⁴ Still no session state machine anywhere but ours — but "codec only" no longer means "judged only by
 its own generator". Since 2026-08-07 every WPT and ACDP frame in the corpus is decoded and re-encoded by

@@ -52,10 +52,19 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 | | Counterparty | Note |
 |---|---|---|
-| **Pause / Resume, -20** | EVerest | ▢ — and now specified. Their resume needs **mutual TLS**: it matches `SHA-512(session_id ‖ vehicle_cert_hash)` and takes the hash from the verified TLS peer certificate, so `ConnectionPlain` can never reach the branch (`everest-core` @ `b61bb12`; see the [EVerest page](everest-cross-validation.md)). The run is `config-sil-dc-tls.yaml`, our EVCC with a client certificate, `--pause` then `--resume <hex>` **re-presenting the same certificate** — a plain-TCP attempt is guaranteed to answer `OK_NewSessionEstablished` and would prove nothing. `-2` is `—` in the matrix, not `▢`. |
+| **Pause / Resume, -20** | EVerest | ~~▢~~ **run 2026-08-08 — and it is ours that failed.** Their station resumed on the first attempt (`OK_OldSessionJoined`, over mutual TLS with their minted vehicle credential); our EVCC then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`, because a resumed `-20` session skips authorization and opens at `{AC,DC}_ChargeParameterDiscovery`. Moved to *our stack*, below. `-2` is `—` in the matrix, not `▢`. |
 | **Signed tariffs, -20** | EVerest | ▢ |
 | **Renegotiation, -2 and -20** | EVerest | ▢ both protocols. |
 | **Plug & Charge, -20** | eVDriveFlow | ▢ — but first establish whether they do contract certificates at all; their documentation does not mention them. |
+
+## Ours to fix
+
+- **Our EVCC cannot resume an ISO 15118-20 session.** After `OK_OldSessionJoined` it replays its full
+  opening sequence, including `AuthorizationSetupReq`; EVerest's station has already moved to
+  `{AC,DC}_ChargeParameterDiscovery` by then and answers `FAILED_SequenceError`. Demonstrated live on
+  2026-08-08 ([run notes](interop-runs/2026-08-08-everest-pause-resume-tls/notes.md)). App-side work in
+  `Evcc20Base`, and it needs a loopback regression test — **our own SECC accepts the wrong sequence**,
+  so the existing E2E cannot catch it.
 
 ## Open questions about our own stack
 
