@@ -251,6 +251,17 @@ sent — they are the operator's to post, under their own name.
 
 Each of these is structural rather than a missing run:
 
+- **ISO 15118-20 pause/resume without mutual TLS.** Not a gap in their implementation — a precondition
+  of it. `d20/state/session_setup.cpp` rejoins a paused session only when
+  `SHA-512(session_id ‖ vehicle_cert_hash)` matches what it stored, and that hash comes from the TLS
+  peer certificate: `ConnectionSSL` fills it after a handshake that verified one
+  (`connection_ssl.cpp:484-499`), while `ConnectionPlain::get_vehicle_cert_hash()` returns
+  `std::nullopt` unconditionally (`connection_plain.hpp:24`). Over plain TCP the resume branch is
+  therefore unreachable by construction and every `SessionSetupReq` is answered
+  `OK_NewSessionEstablished`. Read against `everest-core` @ `b61bb12` on 2026-08-08. **That is why the
+  matrix cell is `▢`**: every `-20` run against them so far was EIM over TCP, and the runs over TLS were
+  not pause/resume runs. The run that would close it is specified in
+  [`docs/open-work.md`](open-work.md) — and it raises a question about *our* SECC, which binds nothing.
 - **A complete Plug & Charge *charge*, in either protocol.** The signature is the part that is ours and it
   verifies; the authorization backend is the part that is theirs and their SIL does not have one
   (`NO_CONNECTOR_AVAILABLE`). `config-sil-ocpp201-pnc.yaml` is the configuration that would, and it needs

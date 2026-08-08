@@ -52,10 +52,25 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 | | Counterparty | Note |
 |---|---|---|
-| **Pause / Resume, -2 and -20** | EVerest | ▢ both protocols. Never attempted. |
+| **Pause / Resume, -20** | EVerest | ▢ — and now specified. Their resume needs **mutual TLS**: it matches `SHA-512(session_id ‖ vehicle_cert_hash)` and takes the hash from the verified TLS peer certificate, so `ConnectionPlain` can never reach the branch (`everest-core` @ `b61bb12`; see the [EVerest page](everest-cross-validation.md)). The run is `config-sil-dc-tls.yaml`, our EVCC with a client certificate, `--pause` then `--resume <hex>` **re-presenting the same certificate** — a plain-TCP attempt is guaranteed to answer `OK_NewSessionEstablished` and would prove nothing. `-2` is `—` in the matrix, not `▢`. |
 | **Signed tariffs, -20** | EVerest | ▢ |
 | **Renegotiation, -2 and -20** | EVerest | ▢ both protocols. |
 | **Plug & Charge, -20** | eVDriveFlow | ▢ — but first establish whether they do contract certificates at all; their documentation does not mention them. |
+
+## Open questions about our own stack
+
+Not gaps in coverage — things a counterparty's behaviour raised about us, which are not settled.
+
+- **Does an ISO 15118-20 resume have to be bound to the vehicle certificate?** EVerest binds it:
+  `SHA-512(session_id ‖ vehicle_cert_hash)`, computed from the verified TLS peer certificate, and a
+  mismatch silently starts a new session. **Our SECC binds nothing** — `Secc20Base.SessionSetup`
+  rejoins on the session ID alone, and the code comment says so: *"same OldSessionJoined mechanic as
+  -2"*. If the binding is required, ours accepts a resume it should refuse, and anyone who learns a
+  session ID can claim a paused session. If it is not required, EVerest is stricter than the standard
+  and interop suffers in the other direction.
+  **This is not resolvable from what is in this repository:** the `-20` standard text is not here (only
+  ISO's schemas, which carry no requirement prose), and neither implementation is evidence about the
+  other. It needs somebody with the document. Recorded rather than guessed.
 
 ## Structural — will not close without someone else building something
 
