@@ -1,0 +1,6 @@
+Trust roots: DC=OEM, C=DE, O=EVerest, CN=OEMSubCA1, DC=OEM, C=DE, O=EVerest, CN=OEMSubCA2
+SECC listening on [::]:55000 (protocol -20, DC, TLS None)...
+SDP: advertising [fe80::215:5dff:fe6b:526%2]:55000 (NoTLS) on eth0...
+CertificateInstallation: OEM DC=OEM, C=DE, O=EVerest, CN=OEMProvCert; digest OK, signature OK (grammar=xmldsig-standalone), contract issued (OEM key not P-521 — blob undecryptable for EV); OEM chain REJECTED — unable to get local issuer certificate.
+
+✗ Session aborted: V2GTP frame: connection closed before a full 8-byte header arrived.

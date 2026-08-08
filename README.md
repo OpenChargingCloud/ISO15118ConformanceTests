@@ -101,7 +101,7 @@ how to read one.
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ◐ `EV→` to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | ▢ | — |
-| CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | — | — | — |
+| CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
 | Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | ▢ | — | — |
 | Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ▢ | — | — |
@@ -232,6 +232,18 @@ the resumed one — the five skipped messages, counted by the counterparty
 ([re-run](docs/interop-runs/2026-08-08-everest-pause-resume-tls-rerun/notes.md)). The station's binding
 is still only checked by them; ours computes the same construction but the two are never compared,
 because in this direction only their SECC's value is consulted.
+
+²⁶ The last chain our validator knew only from material we minted ourselves. Their `PyEvJosev` with
+`is_cert_install_needed: true` sends a signed `CertificateInstallationReq` carrying
+`OEMRootCA → OEMSubCA1 → OEMSubCA2 → OEMProvCert` — a **third** self-signed root in their PKI, after the
+V2G one their TLS uses and the MO one their contract chain is anchored at. Their OEM root **alone**
+suffices, because their car ships its Sub-CAs in the message; their two Sub-CAs **without** the root do
+not, `CustomRootTrust` refusing a non-self-signed anchor at message level exactly as it does at TLS; and
+their **V2G** root — which their own request names in `RootCertificateIDList` — is refused while the
+signature still verifies. That field is the car saying which roots it can check, not which root vouches
+for it. The wall after that is Josev's, in this fork as in SwitchEV's, and the contract key we wrap
+stays self-checked: their P-256 OEM leaf cannot join `-20`'s secp521r1 ECDH
+([`2026-08-08-everest-oem-provisioning-chain`](docs/interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)).
 
 ²⁴ Still no session state machine anywhere but ours — but "codec only" no longer means "judged only by
 its own generator". Since 2026-08-07 every WPT and ACDP frame in the corpus is decoded and re-encoded by
