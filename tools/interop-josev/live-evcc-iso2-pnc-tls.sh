@@ -13,7 +13,7 @@ IFACE="${1:-eth0}"
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/bin/Release/net10.0/WWCP_ISO15118_EVCC.dll"
 SECC_LOG=/tmp/josev-secc-iso2-pnc.log
 EVCC_LOG=/tmp/our-evcc-iso2-pnc.log
 
@@ -30,8 +30,8 @@ docker run -d --rm --name josev-secc --network host -e NETWORK_INTERFACE="$IFACE
 sleep 8
 
 echo ">>> our EVCC: -2 AC, --sdp discovery (TLS requested), Contract payment (contract.p12) — signed AuthorizationReq"
-dotnet "$DLL" evcc --sdp --interface "$IFACE" --protocol 2 --mode ac --tls-backend dotnet \
-    --contract-cert /tmp/contract.p12 --contract-cert-pass 12345 >"$EVCC_LOG" 2>&1
+dotnet "$DLL" --sdp --interface "$IFACE" --protocol 2 --mode ac --tls-backend dotnet \
+   --contract-cert /tmp/contract.p12 --contract-cert-pass 12345 >"$EVCC_LOG" 2>&1
 rc=$?
 sleep 1
 docker logs josev-secc >"$SECC_LOG" 2>&1

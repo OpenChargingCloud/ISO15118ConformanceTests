@@ -23,7 +23,7 @@ TARIFF=$([ "$PROTO" = "2" ] && echo /tmp/tariff2.p12 || echo /tmp/tariff20.p12)
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net10.0/WWCP_ISO15118_SECC.dll"
 SECC_LOG=/tmp/secc-tariff-$PROTO.log
 EVCC_LOG=/tmp/evcc-tariff-$PROTO.log
 
@@ -33,8 +33,8 @@ pkill -9 -f sdp-responder 2>/dev/null; sleep 1
 
 docker run -d --rm --name redis-interop --network host redis:6.2.6-alpine >/dev/null
 echo ">>> our SECC :55000  -$PROTO $MODE, plain TCP, --sdp --tariff-cert $TARIFF"
-dotnet "$DLL" secc --listen 55000 --protocol "$PROTO" --mode "$MODE" --sdp --interface eth0 \
-    --tariff-cert "$TARIFF" --tariff-cert-pass 12345 >"$SECC_LOG" 2>&1 &
+dotnet "$DLL" --listen 55000 --protocol "$PROTO" --mode "$MODE" --sdp --interface eth0 \
+   --tariff-cert "$TARIFF" --tariff-cert-pass 12345 >"$SECC_LOG" 2>&1 &
 PID=$!; sleep 3
 grep -iE "advertising|Tariff:" "$SECC_LOG"
 

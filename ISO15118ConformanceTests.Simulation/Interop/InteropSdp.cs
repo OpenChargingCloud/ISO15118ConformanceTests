@@ -22,7 +22,7 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.NetworkInterfaces;
 using cloud.charging.open.protocols.ISO15118.SDP.Server;
 
-using cloud.charging.open.protocols.ISO15118.Cli;
+using cloud.charging.open.protocols.ISO15118.SECC;
 using cloud.charging.open.protocols.ISO15118.Discovery;
 
 namespace ISO15118ConformanceTests.Simulation.Interop;
@@ -46,7 +46,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 /// this repository that could advertise. It came back as two console logs:
 /// <c>docs/interop-runs/2026-08-06-everest-mcs-reverse/</c> closes by saying it left no frame log and no
 /// trace, and that making the fixture SDP-capable was the obvious next piece of harness work. The
-/// recording lives in <see cref="InteropRecording"/>, the advertising lived in <c>Program.cs</c>, and no
+/// recording lives in <see cref="InteropRecording"/>, the advertising lived in the station program, and no
 /// run could have both. This is that piece: the fixture now advertises, so a discovered session is a
 /// recorded one.
 /// </para>
@@ -97,10 +97,10 @@ internal static class InteropSdp
         // The CLI's mapping, not a copy of it. The subtlety worth not re-deriving is
         // SECC_SDPServerOptions.RejectNoTlsRequests, whose TLS-deployment default (true) makes a plaintext
         // station drop a plaintext EV's SDP_Request without a word — discovery that looks broken for a
-        // reason nothing prints. Program.BuildSeccSdpOptions gets that right and SeccSdpOptionsTests holds
+        // reason nothing prints. Program.BuildSdpOptions gets that right and SeccSdpOptionsTests holds
         // it there, so the fixture and `secc --sdp` advertise identically by construction and a run through
         // one is comparable with a run through the other.
-        var server = new SECC_SDPServer(Program.BuildSeccSdpOptions(iface, tcpPort, noTls: !tls));
+        var server = new SECC_SDPServer(Program.BuildSdpOptions(iface, tcpPort, noTls: !tls));
 
         // Whether their EV probed at all is the first question of every reverse run that times out, and
         // until now it could only be answered with tcpdump. Progress rather than Out: these arrive on the
@@ -121,7 +121,7 @@ internal static class InteropSdp
         await advertiser.StartAsync(ct);
 
         // iface.LinkLocalIPAddress already carries the scope id on Linux; re-derive it so the line shows
-        // the scope exactly once — the same reason Program.StartSeccSdpAsync does.
+        // the scope exactly once — the same reason Program.StartSdpAsync does.
         var scoped = new IPAddress(iface.LinkLocalIPAddress.GetAddressBytes(), iface.Index);
 
         TestContext.Out.WriteLine($"SDP: advertising [{scoped}]:{tcpPort} " +

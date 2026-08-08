@@ -44,7 +44,8 @@ in-process. Four assemblies, 1 236 tests.
 ## Ground rules
 
 - **The stack is not here.** The codec, the session state machines (`WWCP_ISO15118_Session/`) and the
-  CLI (`WWCP_ISO15118_CLI/`) all live in `libs/EVSimulatorApp/libs/WWCP_ISO15118/` — change them there.
+  two runnable peers (`WWCP_ISO15118_SECC/`, `WWCP_ISO15118_EVCC/` — one program per role, each with
+  its own solution and README) all live in `libs/EVSimulatorApp/libs/WWCP_ISO15118/` — change them there.
   `libs/EVSimulatorApp/` above it is the apps and the language ports; the one thing of ours still in it
   is `simulation/EVSimulatorApp.Ocpp/`, a stub of a *different* protocol that reaches the stations
   through `ISessionBackend`. This repository holds tests, recorded traces, and run notes.

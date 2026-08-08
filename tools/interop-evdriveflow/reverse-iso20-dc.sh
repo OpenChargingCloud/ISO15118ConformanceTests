@@ -13,7 +13,7 @@ iface="${1:-enp0s3}"
 port="${2:-55000}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
+cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC"
 log="${V2G_INTEROP_LOG:-/tmp/edf-reverse-secc.log}"
 
 if ! ip link show "$iface" >/dev/null 2>&1; then
@@ -27,7 +27,7 @@ trap cleanup EXIT
 
 echo ">>> our SECC on :$port  — ISO 15118-20 DC, EIM, plain TCP, Dynamic control mode, SDP on $iface"
 dotnet run --project "$cli" -c Release -- \
-    secc --listen "$port" --protocol 20 --mode dc --dynamic --sdp --interface "$iface" >"$log" 2>&1 &
+    --listen "$port" --protocol 20 --mode dc --dynamic --sdp --interface "$iface" >"$log" 2>&1 &
 SECC_PID=$!
 
 sleep 3

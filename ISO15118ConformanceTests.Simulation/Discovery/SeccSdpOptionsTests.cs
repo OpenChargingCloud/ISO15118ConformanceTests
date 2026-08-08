@@ -22,12 +22,12 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.NetworkInterfaces;
 using cloud.charging.open.protocols.ISO15118.SDP.Messages;
 
-using cloud.charging.open.protocols.ISO15118.Cli;
+using cloud.charging.open.protocols.ISO15118.SECC;
 
 namespace ISO15118ConformanceTests.Simulation.Discovery
 {
     /// <summary>
-    /// Regression coverage for the CLI's SECC SDP-server option mapping (<see cref="Program.BuildSeccSdpOptions"/>).
+    /// Regression coverage for the station program's SDP-server option mapping (<see cref="Program.BuildSdpOptions"/>).
     /// The key invariant: a <b>plaintext</b> SECC must NOT reject no-TLS SDP_Requests, otherwise <c>--sdp</c>
     /// discovery silently fails for a plaintext EVCC (this was the real cause behind the "SDP multicast" shim —
     /// the WWCP <c>SECC_SDPServerOptions.RejectNoTlsRequests</c> default is <c>true</c>).
@@ -41,7 +41,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
         [Test]
         public void PlaintextSecc_OffersNoTls_AndAnswersNoTlsRequests()
         {
-            var opt = Program.BuildSeccSdpOptions(Iface, 55000, noTls: true);
+            var opt = Program.BuildSdpOptions(Iface, 55000, noTls: true);
 
             Assert.Multiple(() =>
             {
@@ -55,7 +55,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
         [Test]
         public void TlsSecc_OffersTls_AndRejectsNoTlsDowngradeRequests()
         {
-            var opt = Program.BuildSeccSdpOptions(Iface, 55000, noTls: false);
+            var opt = Program.BuildSdpOptions(Iface, 55000, noTls: false);
 
             Assert.Multiple(() =>
             {

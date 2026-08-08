@@ -116,10 +116,10 @@ matching write-up under `docs/interop-runs/2026-07-22-*/`):
 
 ### Our EVCC → Josev SECC
 1. Start Josev SECC (see setup); note its `host:port`.
-2. Point our EVCC at it, either via the CLI:
+2. Point our EVCC at it, either with the vehicle program:
    ```bash
-   dotnet run --project ../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI -- \
-       evcc --connect <josev-host:port> --protocol 2 --mode ac
+   dotnet run --project ../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC -- \
+       --connect <josev-host:port> --protocol 2 --mode ac
    ```
    or via the interop test:
    ```bash

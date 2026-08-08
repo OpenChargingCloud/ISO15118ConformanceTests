@@ -17,7 +17,7 @@ iface="${1:-enp0s3}"
 endpoint="${2:-}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
+cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC"
 
 # Only when we have to discover. With an endpoint in hand the interface is irrelevant — that is the
 # whole point of the relay path in README.md, and it is what lets this run from a machine that has no
@@ -44,11 +44,11 @@ EOF
 if [ -n "$endpoint" ]; then
     echo ">>> our EVCC -> $endpoint  (ISO 15118-20 DC, EIM, plain TCP)"
     exec dotnet run --project "$cli" -c Release -- \
-        evcc --connect "$endpoint" --protocol 20 --mode dc
+        --connect "$endpoint" --protocol 20 --mode dc
 else
     echo ">>> our EVCC, SDP-discovering their station on $iface  (ISO 15118-20 DC, EIM, plain TCP)"
     echo "    (if nothing is discovered, take the endpoint from evse_config.ini and pass it as the"
     echo "     second argument: '[<their-link-local>%$iface]:49152')"
     exec dotnet run --project "$cli" -c Release -- \
-        evcc --sdp --interface "$iface" --protocol 20 --mode dc
+        --sdp --interface "$iface" --protocol 20 --mode dc
 fi

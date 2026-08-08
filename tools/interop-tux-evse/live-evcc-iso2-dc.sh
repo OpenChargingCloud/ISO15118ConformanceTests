@@ -18,7 +18,7 @@ iface="${1:-evcc-veth}"
 endpoint="${2:-}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
+cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC"
 
 # Only when we have to discover. With an endpoint in hand the interface is irrelevant — that is the
 # whole point of the relay path in README.md, and it is what lets this run from a machine that has no
@@ -36,8 +36,8 @@ cat <<EOF
     podman run --rm --name podman_evse --network=host --cap-add=NET_ADMIN -it \\
       registry.redpesk.bzh/tux-evse/afb-iso15118:v0.1 bash -c \\
       "binding-start-evse \\
-         --simulation_conf /usr/share/iso15118-simulator-rs/binding-simu15118-evse-no-tls.yaml \\
-         --scenario_file  /usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json --no-clean"
+        --simulation_conf /usr/share/iso15118-simulator-rs/binding-simu15118-evse-no-tls.yaml \\
+        --scenario_file  /usr/share/iso15118-simulator-rs/audi-dc-iso2-compact.json --no-clean"
 
     Its transaction log is at http://localhost:1235/devtools/ .
 
@@ -48,11 +48,11 @@ if [ -n "$endpoint" ]; then
     # rather than silently connected to a scope-0 address that cannot reach a link-local peer.
     echo ">>> our EVCC -> $endpoint  (ISO 15118-2 DC, EIM, plain TCP)"
     exec dotnet run --project "$cli" -c Release -- \
-        evcc --connect "$endpoint" --protocol 2 --mode dc
+        --connect "$endpoint" --protocol 2 --mode dc
 else
     echo ">>> our EVCC, SDP-discovering their responder on $iface  (ISO 15118-2 DC, EIM, plain TCP)"
     echo "    (if their responder does not answer SDP — its shipped scenario marks the SDP transaction"
     echo "     'injector_only' — take the TCP endpoint from its log and pass it as the second argument.)"
     exec dotnet run --project "$cli" -c Release -- \
-        evcc --sdp --interface "$iface" --protocol 2 --mode dc
+        --sdp --interface "$iface" --protocol 2 --mode dc
 fi

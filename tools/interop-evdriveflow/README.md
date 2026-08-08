@@ -114,9 +114,9 @@ do TLS 1.3 on macOS at all, and their certificates come from their own `generate
 than from our PKI builder:
 
 ```bash
-dotnet run --project ../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI -c Release -- \
-    evcc --connect '[fe80::…%enp0s3]:49152' --protocol 20 --mode dc \
-         --tls-backend bc --pki-dir <dir>
+dotnet run --project ../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC -c Release -- \
+    --connect '[fe80::…%enp0s3]:49152' --protocol 20 --mode dc \
+    --tls-backend bc --pki-dir <dir>
 ```
 
 **Confirm on first contact:** which curve and suite their GnuTLS/Python side actually negotiates, whether

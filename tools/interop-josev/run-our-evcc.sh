@@ -8,8 +8,8 @@ protocol="${2:-2}"
 mode="${3:-ac}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
+cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC"
 
 echo "our EVCC -> Josev SECC $endpoint  (protocol -$protocol, $mode)"
 exec dotnet run --project "$cli" -c Release -- \
-    evcc --connect "$endpoint" --protocol "$protocol" --mode "$mode"
+    --connect "$endpoint" --protocol "$protocol" --mode "$mode"
