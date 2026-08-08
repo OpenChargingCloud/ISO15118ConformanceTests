@@ -34,10 +34,11 @@ codec — does not. Since 2026-08-07 it is driven over both halves of the corpus
 [`tools/interop-exificient/`](tools/interop-exificient/README.md) for `-20`, where it found six frames a
 second codec cannot read at all.
 
-The codec, the simulation library and the CLI are **not** here — they are the app's, in
-`libs/EVSimulatorApp/` (`simulation/`, `experiments/`, `libs/WWCP_ISO15118/`). Read
-[`EVSimulatorApp`'s own README](libs/EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the codec works;
-this one is about how it is held to account.
+The implementation is **not** here. Since 2026-08-08 the codec *and* the session state machines and the
+CLI live together in `libs/EVSimulatorApp/libs/WWCP_ISO15118/` — that submodule is the ISO 15118 stack,
+`libs/EVSimulatorApp/` above it is the apps and the language ports, and this repository is the evidence.
+Read [`WWCP_ISO15118`'s own README](libs/EVSimulatorApp/libs/WWCP_ISO15118/README.md) for how the stack
+works; this one is about how it is held to account.
 
 
 ## The interop matrix — who we test against, and what happened

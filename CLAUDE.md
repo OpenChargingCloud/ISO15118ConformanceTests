@@ -41,9 +41,13 @@ the loopback E2Es run both peers in-process.
 
 ## Ground rules
 
-- The codec, the simulation library and the CLI are the app's — change them in `libs/EVSimulatorApp/`,
-  not here. This repository holds tests, recorded traces, and run notes.
+- **The stack is not here.** The codec, the session state machines (`WWCP_ISO15118_Session/`) and the
+  CLI (`WWCP_ISO15118_CLI/`) all live in `libs/EVSimulatorApp/libs/WWCP_ISO15118/` — change them there.
+  `libs/EVSimulatorApp/` above it is the apps and the language ports; the one thing of ours still in it
+  is `simulation/EVSimulatorApp.Ocpp/`, a stub of a *different* protocol that reaches the stations
+  through `ISessionBackend`. This repository holds tests, recorded traces, and run notes.
+  (The state machines moved out of the app on 2026-08-08 — anything that says `simulation/` is stale.)
 - Live interop tests are `[Explicit]` and stay out of the offline run — they need the other stack on
   the wire.
 - Never change wire semantics speculatively — only on a concrete byte diff against a reference
-  encoder. That oracle corpus and the rule live with the codec, in the app.
+  encoder. That oracle corpus and the rule live with the codec.
