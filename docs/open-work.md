@@ -65,24 +65,22 @@ Both halves of our ISO 15118-20 pause/resume were built by analogy to `-2`, and 
 dropped a behaviour `-2` requires. Settled against the requirement text on 2026-08-08; see
 [`normative-basis.md`](normative-basis.md) for the clauses and for what may be cited from where.
 
-- **Our EVCC cannot resume an ISO 15118-20 session.** After `OK_OldSessionJoined` it replays its full
-  opening sequence, including `AuthorizationSetupReq`; EVerest's station has already moved to
-  `{AC,DC}_ChargeParameterDiscovery` by then and answers `FAILED_SequenceError`. Demonstrated live on
-  2026-08-08 ([run notes](interop-runs/2026-08-08-everest-pause-resume-tls/notes.md)) and **required by
-  `[V2G20-1032]`** — the allowed next request after a resumed `SessionSetupRes` is
-  `ChargeParameterDiscoveryReq`, per `[V2G20-1843]` with `[V2G20-2097]`/`[V2G20-2098]`/`[V2G20-5046]`.
-  Service discovery, detail and selection are skipped along with authorization; only one next message is
-  allowed and none of them is it. App-side work in `Evcc20Base`, and it needs a loopback regression test
-  — **our own SECC accepts the wrong sequence**, so the existing E2E cannot catch it.
-- **Our SECC accepts an ISO 15118-20 resume from any EVCC.** `Secc20Base.SessionSetup` rejoins on the
-  session ID alone. `[V2G20-2545]` makes the check that the resume came from the same EVCC a **shall**,
-  leaving only the *method* to the operator, and the standard's own notes spell out the consequence of
-  omitting it: a second EV that reuses another's SessionID inherits that EV's authorization, PnC or EIM
-  alike. So anyone who learns a paused session ID can claim it, and ours will hand it over. EVerest's
-  `SHA-512(SessionID ‖ SHA-512(vehicle cert))` is the standard's own worked example (8.3.4.1.4.3,
-  *should*-level) — one valid method, not the required one; a TLS-less deployment needs some other.
-  Two further pieces are missing with it: the EVCC-side mirror check `[V2G20-2539]`, and the purge on a
-  failed resume (`[V2G20-2613]`/`[V2G20-2614]`, `[V2G20-2615]`–`[V2G20-2617]`).
+- ~~**Our EVCC cannot resume an ISO 15118-20 session.**~~ **Fixed 2026-08-08**, app branch
+  `iso20-resume-conformance`. `Evcc20Base` now opens a resumed session at `ChargeParameterDiscovery`,
+  skipping authorization *and* service negotiation (`[V2G20-1032]`, `[V2G20-1843]` with
+  `[V2G20-2097]`/`[V2G20-2098]`/`[V2G20-5046]`), and `Secc20Base` enforces the same sequence — which it
+  could not do while it shared the bug. Three loopback tests in
+  [`Iso20LoopbackTests`](../ISO15118ConformanceTests.Simulation/E2E/Iso20LoopbackTests.cs); the first was
+  verified to fail when the EVCC branch is reverted.
+- ~~**Our SECC accepts an ISO 15118-20 resume from any EVCC.**~~ **Fixed 2026-08-08**, same branch.
+  `SessionBinding20` implements the standard's worked example — `SHA-512(SessionID ‖ SHA-512(vehicle
+  leaf))` from the TLS handshake `[V2G20-2677]` requires anyway — and a failed check becomes a new
+  session under a fresh id (`[V2G20-2626]`/`[V2G20-2627]`) rather than a distinguishable refusal. Fails
+  closed: no certificate, no resume. The EVCC-side mirror `[V2G20-2539]` and the purge paths
+  (`[V2G20-2615]`–`[V2G20-2617]`) went in with it; the car deliberately fails *open* where it cannot
+  check, for the reason documented at `Evcc20Base.ResumeBinding`.
+- **Still open — re-run the EVerest pause/resume**, which becomes the first live `-20` pause/resume that
+  completes end to end. Nothing blocks it but the rig.
 - **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
   the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
   (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather

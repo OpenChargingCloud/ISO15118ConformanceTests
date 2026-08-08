@@ -127,10 +127,10 @@ right when written and is now superseded. What it establishes behaviourally stil
 
 ## Next
 
-- **Fix our EVCC**: on `OK_OldSessionJoined`, open at `{AC,DC}_ChargeParameterDiscovery` — skipping
-  authorization *and* service negotiation. App-side work in `Evcc20Base`, and it wants a loopback
-  regression test: our own SECC currently accepts the wrong sequence, so the loopback E2E cannot catch it
-  as it stands.
-- **Fix our SECC too** — `[V2G20-2545]`. The EVCC-side mirror check `[V2G20-2539]` and the purge paths
-  (`[V2G20-2613]`/`[V2G20-2614]`, `[V2G20-2615]`–`[V2G20-2617]`) are missing with it.
-- **Then re-run this**, which becomes the first live `-20` pause/resume that completes end to end.
+- ~~Fix our EVCC~~ / ~~fix our SECC~~ — **both done the same day**, app branch
+  `iso20-resume-conformance`: the EVCC opens a resumed session at `{AC,DC}_ChargeParameterDiscovery`, the
+  SECC enforces that sequence and verifies the resume against the vehicle certificate before granting it.
+  Three loopback tests, one of them checked to fail when the fix is reverted. See
+  [`docs/open-work.md`](../../open-work.md).
+- **Re-run this**, which becomes the first live `-20` pause/resume that completes end to end. That is now
+  the only thing left of this run, and nothing blocks it but the rig.
