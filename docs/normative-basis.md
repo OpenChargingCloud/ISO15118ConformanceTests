@@ -118,4 +118,9 @@ than the field. The standard settles which side is deviating:
 
 So the profile is the standard's, not ours. A counterparty whose `iso-20` certificate script emits
 secp256r1 material is the one outside the profile — which reframes an open worry as a finding about
-somebody else's test PKI. It has not been filed; see [`open-work.md`](open-work.md).
+somebody else's test PKI. **Filed 2026-08-08:**
+[`reports/josev-iso20-pki-curve.md`](reports/josev-iso20-pki-curve.md), and it is the clearest case this
+section has produced of why the documents were worth having. The finding is not "we read Table 7
+differently from you": their generator's `-20` branch carries its own
+`# TODO Check correct version for ISO 15118-20` beside `EC_CURVE=prime256v1`, so the citation is not
+what decides the point — it is what let the report say which value belongs there instead.

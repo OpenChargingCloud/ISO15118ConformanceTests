@@ -299,6 +299,12 @@ Each of these is structural rather than a missing run:
   work everywhere drifts to P-256 almost by force. eVDriveFlow was the first counterparty to supply what
   -20 describes ([`2026-08-07-edf-mutual-tls13`](interop-runs/2026-08-07-edf-mutual-tls13/notes.md)),
   which is what makes this a gap in *their* material rather than a missing capability here.
+  <br>**Filed 2026-08-08**, once the script rather than one certificate had been read:
+  [`josev-iso20-pki-curve.md`](reports/josev-iso20-pki-curve.md). It is Josev's `create_certs.sh`, which
+  this counterparty carries as a fork — so the report goes to both. And the sharp end of it is not TLS
+  strength: `-20` contract provisioning wraps the contract key by ECDH on secp521r1 or x448, so a P-256
+  provisioning certificate cannot complete that exchange in any implementation. We measured that too,
+  the same day, against their car.
 - **A CertificateInstallation their car can *finish*.** Their EV does send a real one — the OEM run
   above — but the *response* handler it is Josev-derived from is `raise NotImplementedError`, so the
   session dies on our answer. Their P-256 OEM leaf could not have unwrapped the contract key anyway.
