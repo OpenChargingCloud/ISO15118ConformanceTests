@@ -27,7 +27,7 @@ Nothing here can be moved by work on our side. Each has a filed or drafted repor
 
 | | Counterparty | State | Waiting on |
 |---|---|---|---|
-| **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their -20 session context stays empty, so a resume degrades to a graceful new session. The only hard ⛔ against the counterparty with an independent codec, and the cause is named but not proven the way eVDriveFlow's stdin wall was. |
+| **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its `-20` states never fill — so `OK_OldSessionJoined` is unreachable. Six-line fix, mirroring their own working `-2` branch. Filed: [`josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md). |
 | **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). |
 | **AC, -20** | EVerest | ◐ | Their SIL's own-EV contactor coupling; the session reaches `ScheduleExchange` and stops there. |
 | **AC_BPT** | EVerest | ◐ | Negotiated, then the same contactor wall. |
@@ -69,7 +69,7 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Not in the matrix at all
 
-- **Fifteen filings across five projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Sixteen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - **A methodological item, from the EVerest MQTT run:** *"Run every future session twice, in every

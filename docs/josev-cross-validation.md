@@ -180,6 +180,9 @@ Paths are relative to `iso15118/`.
 | Claim | In their source |
 |---|---|
 | The -20 session context is never filled, so a -20 resume degrades | `ev_session_context` appears **17×** in `secc/states/iso15118_2_states.py` and **0×** in `iso15118_20_states.py`. The -20 resume branch compares against the *live* `comm_session.session_id` and otherwise falls through to their own *"False session ID from EV, gracefully assigning new session ID"* → `OK_NEW_SESSION_ESTABLISHED` (`secc/states/iso15118_20_states.py:152-165`) |
+
+**Filed** as [`reports/josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md) on 2026-08-08, after re-reading the two branches against `d645255`: their own preservation path *does* run for a `-20` session and hands the next connection an empty context, which is the strongest single line of evidence and comes from their log rather than ours. EVerest's vendored fork (`26f7988`) has the same shape.
+
 | Their EVCC-side tariff check is a literal `# TODO` | `evcc/controller/simulator.py:526` — *"TODO If a SalesTariff is present and digitally signed (and TLS is used), verify each sales tariff with the mobility operator sub 2 certificate"* |
 | CertificateInstallation is implemented on neither side | `secc/states/iso15118_20_states.py:323` and `evcc/states/iso15118_20_states.py:340` — the same `NotImplementedError("CertificateInstallation not yet implemented")` |
 | Their EVCC drops the link after `SessionStopReq(ServiceRenegotiation)` | `evcc/states/iso15118_20_states.py:1153` posts the session-terminating `StopNotification(True, …)` **before** the `service_renegotiation_supported and renegotiation_requested` test at 1160 that sets `next_state = ServiceDiscovery` |
