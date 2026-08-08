@@ -120,18 +120,27 @@ namespace ISO15118ConformanceTests.Simulation.Cli
         }
 
         /// <summary>
-        /// <c>--client-cert</c> is the older spelling of <c>--vehicle-cert</c>. Two live harnesses and two
-        /// recorded run scripts pass it, so it has to keep working and keep meaning the same thing.
+        /// <c>--client-cert</c> was the older spelling of <c>--vehicle-cert</c> and is gone. It named the
+        /// wrong thing — "client" is a TLS role, while what the file holds is the car's identity in the V2G
+        /// PKI, which -20 also binds a resumed session to. Refused rather than quietly ignored, so a stale
+        /// script fails at the first argument instead of running without the certificate it meant to send.
         /// </summary>
         [Test]
-        public void ClientCert_IsTheOlderSpellingOfVehicleCert()
+        public void ClientCert_IsGone()
+            => Assert.That(() => EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--client-cert", VehicleCert]),
+                           Throws.ArgumentException.With.Message.Contains("unknown argument"));
+
+        /// <summary>Trust roots may be one certificate or a directory of them — a station accepting cars
+        /// from several counterparties needs every one of their roots at once.</summary>
+        [Test]
+        public void TrustRoots_TakesAFileOrADirectory()
         {
-            var a = EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--client-cert", VehicleCert, "--client-cert-pass", "pw"]);
-            Assert.Multiple(() =>
-            {
-                Assert.That(a.VehicleCertPath, Is.EqualTo(VehicleCert));
-                Assert.That(a.VehicleCertPass, Is.EqualTo("pw"));
-            });
+            Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--trust-roots", VehicleCert]).TrustRootsPath,
+                        Is.EqualTo(VehicleCert));
+
+            var dir = Path.GetDirectoryName(VehicleCert)!;
+            Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--trust-roots", dir]).TrustRootsPath,
+                        Is.EqualTo(dir));
         }
 
         /// <summary>The car's three certificates are three separate options, not one reused.</summary>

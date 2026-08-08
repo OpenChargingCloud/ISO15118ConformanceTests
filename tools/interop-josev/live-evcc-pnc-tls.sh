@@ -37,7 +37,7 @@ grep -iE "SECC.*ready|SDP server" "$SECC_LOG" | head -2
 
 echo ">>> our EVCC: --sdp discovery (TLS requested), mutual TLS 1.3 + signed PnC AuthorizationReq (contract.p12)"
 dotnet "$DLL" --sdp --interface "$IFACE" --protocol 20 --mode dc --tls-backend dotnet \
-   --client-cert /tmp/oem.p12 --client-cert-pass 12345 \
+   --vehicle-cert /tmp/oem.p12 --vehicle-cert-pass 12345 \
    --contract-cert /tmp/contract.p12 --contract-cert-pass 12345 >"$EVCC_LOG" 2>&1
 rc=$?
 sleep 1

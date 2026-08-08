@@ -142,6 +142,28 @@ namespace ISO15118ConformanceTests.Simulation.Cli
                             $"the station should not accept the car's {flag}");
         }
 
+        /// <summary>
+        /// The station validates three of the car's chains against these roots — its TLS chain, its
+        /// contract chain and its OEM provisioning chain. A file or a directory, and it has to exist:
+        /// a mistyped trust store that silently trusted nothing would look exactly like a car with a
+        /// bad certificate.
+        /// </summary>
+        [Test]
+        public void TrustRoots_TakesAFileOrADirectory_AndMustExist()
+        {
+            var file = typeof(SeccOptionsTests).Assembly.Location;
+            var dir  = Path.GetDirectoryName(file)!;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(SeccOptions.Parse(["--trust-roots", file]).TrustRootsPath, Is.EqualTo(file));
+                Assert.That(SeccOptions.Parse(["--trust-roots", dir]).TrustRootsPath,  Is.EqualTo(dir));
+            });
+
+            Assert.That(() => SeccOptions.Parse(["--trust-roots", "/no/such/place"]),
+                        Throws.ArgumentException.With.Message.Contains("--trust-roots"));
+        }
+
         [Test]
         public void UnknownArgument_Throws()
             => Assert.That(() => SeccOptions.Parse(["--listen", "5555", "--bogus"]),
