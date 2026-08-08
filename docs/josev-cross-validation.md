@@ -131,6 +131,14 @@ only one with results in both directions across the whole message set. The `[Exp
   EXIficient's (1476 B, real-material digest + signature verify), and Josev's pydantic `Reference` model
   requires the schema-optional `Transforms` (our res now includes the EXI-C14N transform). See
   [`2026-07-22-iso20-certinstall-sdp`](interop-runs/2026-07-22-iso20-certinstall-sdp/).
+  <br>**The EVerest fork does the same thing, and that says something about both.** On 2026-08-08
+  `PyEvJosev` sent the same request against a different PKI, and stopped at the same
+  `NotImplementedError` — the gap is upstream, not a packaging choice. What the second run added is the
+  half this one could not have: the OEM chain **validated to a foreign root**, which was not yet a thing
+  our station could do in July
+  ([`…-everest-oem-provisioning-chain`](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)).
+  What stays self-checked in both is the key wrap: SwitchEV's provisioning leaf is P-256 and EVerest's
+  is too, so neither car could unwrap a secp521r1-wrapped contract key even with the handler written.
 
 - **Live SDP discovery (no shim):** `secc --sdp --interface <nic>` now drives a real Josev EVCC end to end —
   the WWCP `SECC_SDPServer` binds `[::]:15118`, joins `FF02::1`, and answers the EVCC's `SDP_Request` with our

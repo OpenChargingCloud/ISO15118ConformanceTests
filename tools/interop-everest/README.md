@@ -301,6 +301,26 @@ require) can be assembled and started on its own. The SIL configs wire a whole c
 EV half cannot be cut out, the fallback is to run the full SIL config with `EvseV2G`'s `device` pointed at
 an interface our station is not on, so their EV discovers ours instead. Ugly, and it works.
 
+### Their OEM provisioning chain → our SECC  ([`oem-certinstall-chain.sh`](oem-certinstall-chain.sh))
+
+```bash
+./oem-certinstall-chain.sh "$CERTS/ca/oem/OEM_ROOT_CA.pem" oemroot     # valid, anchored at OEMRootCA
+./oem-certinstall-chain.sh "$BUNDLE/oem-subs-only.pem"     oemsubs     # refused: a Sub-CA is not an anchor
+./oem-certinstall-chain.sh "$CERTS/ca/v2g/V2G_ROOT_CA.pem" v2groot     # refused: real root, wrong branch
+```
+
+`is_cert_install_needed: true` in `PyEvJosev`'s `config_module` turns their car into one that asks for a
+contract certificate, and it then sends its OEM provisioning chain signed. Everything else is the reverse
+setup above — their station on `lo`, their car on `eth0`, our SECC inside WSL with `--sdp`.
+
+**Two things to do first, or it fails before the session starts.** Their `-20` cert-install path loads
+`ca/oem/OEM_SUB_CA{1,2}.**der**` and this dist's store carried only the `.pem` — their own
+`pki/create_certs.sh` writes both, so copy them from `pki/iso15118_20/certs/ca/oem/` or convert in place.
+And their EVCC's *response* handler is `raise NotImplementedError` (it is Josev-derived): the session
+ends the moment our answer arrives, which is expected, not a failure of the run. The verdict is printed
+before the response is sent —
+[`2026-08-08-everest-oem-provisioning-chain`](../../docs/interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md).
+
 ### Scenario order
 
 1. ✅ **-2 DC, EIM, `tls_security: allow`** — forward. Done 2026-08-02: a complete charge, 36/36 `OK`.

@@ -157,6 +157,25 @@ Everything below was unblocked by it.
   `SessionTrace.Build` refuses it, correctly, and an EIM re-run supplies the trace instead. Both halves
   are kept: one is the evidence, the other is the corpus entry.
 
+- **Chain validation, both levels, both directions (2026-08-08).** The X.509 chain check added that day
+  had only ever seen certificates this project minted; these two runs are the first foreign hierarchy.
+  Forward, our EVCC validated their station's TLS chain — and their station sends a **bare leaf**, so
+  their V2G root alone cannot build a path and rejecting it is right; with the CPO Sub-CAs in the bundle
+  it anchors at `CN=V2GRootCA`. Reverse, their EV's signed `-20 AuthorizationReq` carried its real
+  contract chain, anchored at a **`MORootCA` of its own** — and there the root alone *is* enough,
+  because their car ships its Sub-CAs. Same vendor, opposite shapes. The negative control is the one
+  worth keeping: pointed at their **V2G** root, our station printed `signature OK … chain REJECTED`,
+  which is exactly the distinction that did not exist here the day before
+  ([`…-chain-validation`](interop-runs/2026-08-08-everest-chain-validation/notes.md)).
+
+- **The OEM provisioning chain (2026-08-08).** `PyEvJosev` with `is_cert_install_needed: true` — a key
+  in its own manifest — sends a signed `CertificateInstallationReq` carrying
+  `OEMRootCA → OEMSubCA1 → OEMSubCA2 → OEMProvCert`, their **third** self-signed root. Root alone
+  suffices (their car ships the intermediates), Sub-CAs without the root do not, and their V2G root is
+  refused — although their own request *names* that root in `RootCertificateIDList`, which is the car
+  declaring what it can verify, not what vouches for it. That closed the last validator path judged only
+  by our own material ([`…-oem-provisioning-chain`](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)).
+
 ---
 
 ## What it found in **us** — and the shape they share
@@ -280,7 +299,11 @@ Each of these is structural rather than a missing run:
   work everywhere drifts to P-256 almost by force. eVDriveFlow was the first counterparty to supply what
   -20 describes ([`2026-08-07-edf-mutual-tls13`](interop-runs/2026-08-07-edf-mutual-tls13/notes.md)),
   which is what makes this a gap in *their* material rather than a missing capability here.
-- **CertificateInstallation.** Not implemented here at all; that result belongs to Josev.
+- **A CertificateInstallation their car can *finish*.** Their EV does send a real one — the OEM run
+  above — but the *response* handler it is Josev-derived from is `raise NotImplementedError`, so the
+  session dies on our answer. Their P-256 OEM leaf could not have unwrapped the contract key anyway.
+  Two independent stacks have now sent the request and neither can consume the reply, which makes the
+  wrap itself structurally uncheckable rather than merely untested.
 - **A byte-level codec diff.** At HEAD both station modules are cbV2G, which is our own oracle. The
   independent-codec evidence from this counterparty is the 2023 image's OpenV2G, and it is a working
   decoder in both directions rather than an octet comparison.

@@ -32,7 +32,7 @@ Nothing here can be moved by work on our side. Each has a filed or drafted repor
 | **AC, -20** | EVerest | ◐ | Their SIL's own-EV contactor coupling; the session reaches `ScheduleExchange` and stops there. |
 | **AC_BPT** | EVerest | ◐ | Negotiated, then the same contactor wall. |
 | **TLS 1.2 unilateral, -2** | tux-evse | ⛔ pinned | Their configs offer neither suite ISO 15118-2 prescribes. Filed: [`tux-evse-tls.md`](reports/tux-evse-tls.md). |
-| **CertificateInstallation, -20** | Josev | ◐ | Our signed response is verified; their implementation then ends at its own `NotImplementedError`. |
+| **CertificateInstallation, -20** | Josev · EVerest | ◐ | Both send a real signed request — SwitchEV's on 2026-07-22, EVerest's `PyEvJosev` on 2026-08-08 with its own OEM root. Our response is decoded and validated, and then each ends at the same `NotImplementedError`: the fork inherited the gap. Nothing to file that the upstream code does not already say out loud. |
 
 ## Never verified by anything but us
 
@@ -110,6 +110,11 @@ defect with an owner.
 - **WPT and ACDP session state machines.** No independent stack implements them, so `▢ codec only` is
   the ceiling. What *did* change on 2026-08-08: the bytes are now judged by EXIficient rather than only
   by the generator that produced them, which is the strongest form available without a second stack.
+- **The `-20` contract-key wrap.** Its *chain* stopped being self-checked on 2026-08-08 (EVerest's OEM
+  root, above). The wrap itself — ephemeral secp521r1 ECDH → ConcatKDF-SHA512 → AES-256-GCM — is
+  round-trip-tested by us and by nobody else, and cannot become otherwise here: both Josev forks send the
+  request and neither implements the response, and their provisioning leaves are P-256, which cannot join
+  the key agreement even if they did. Needs a stack that implements `-20` provisioning; none does.
 - **MCS and MCS_BPT beyond EVerest.** Only one counterparty implements them at all.
 - **Multi-protocol SAP offer beyond EVerest.** Same.
 
@@ -126,8 +131,15 @@ defect with an owner.
   `TLS_AES_256_GCM_SHA384`/`TLS_CHACHA20_POLY1305_SHA256` as suites — not TLS 1.3's own
   mandatory-to-implement `TLS_AES_128_GCM_SHA256`. This converts the *"not settled"* note in the
   [2026-08-06 TLS run](interop-runs/2026-08-06-everest-iso20-tls13-windows/notes.md) into a finding about
-  somebody else's test PKI rather than a worry that we are stricter than the field. **Confirm what their
-  script actually emits before writing anything** — the run note records only that it is not secp521r1.
+  somebody else's test PKI rather than a worry that we are stricter than the field. ~~**Confirm what their
+  script actually emits before writing anything.**~~ **Confirmed for EVerest on 2026-08-08:** every
+  certificate their `pki/create_certs.sh` writes into `iso15118_20/certs/` is 256-bit — five branches,
+  roots, Sub-CAs and leaves alike — and the script picks `prime256v1` for `-20` with
+  `# TODO Check correct version for ISO 15118-20` beside it, one line below the same choice made
+  correctly for `-2`
+  ([measurement](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)). A generator's own
+  `TODO` is the strongest evidence a report of this kind can carry. Josev's `-20` PKI is P-256 too;
+  that half is still read off certificates rather than off its script.
 - **Kotlin and Swift parity** — Dynamic control mode and energy-transfer-mode selection exist in the C#
   EVCC and not in the ports. That is app-side work, in `libs/EVSimulatorApp`, not here.
 
