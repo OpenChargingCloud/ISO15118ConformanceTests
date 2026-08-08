@@ -365,9 +365,15 @@ on purpose.
    `PulseSequenceOrder` are only reachable behind WPT's `LF_SystemSetupData`, which no vector populates,
    and `CurveDataPoint` in AC_DER_IEC is never given a curve. The fix is the same code path the DER SAE
    frame proves, but a vector that actually carries one would be better than an inference.
-5. **Close the `ServiceDetailRes` and `AuthorizationReq` deltas** with the substitution experiment that
-   closed the `-2` one, and explain the off-by-one against the 35-character URI. These remain the only
-   mismatches still attributed to the value partition; `ACDP_ConnectRes` has moved to cause A.
+5. ~~**Close the `ServiceDetailRes` and `AuthorizationReq` deltas**~~ — **done 2026-08-08, and the
+   off-by-one was real**: a compact identifier costs bits of its own, so a 35-character URI saves 34
+   bytes. The `-2` case came out even by luck. See
+   [`2026-08-08-value-partition-20`](../2026-08-08-value-partition-20/notes.md), which also found that a
+   repeated *certificate* is worth nothing at all — `base64Binary` never enters the string table.
+   `ACDP_ConnectRes` had already moved to cause A, so the eight that remain are all one thing, and now
+   all measured.
+
+**Nothing on this list is open except item 4.**
 
 ## Files
 

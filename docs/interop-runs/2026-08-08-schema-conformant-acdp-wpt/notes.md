@@ -109,6 +109,8 @@ schema above through `Roundtrip20`'s XML probe and read the two bits after the o
 - **File both with libcbv2g.** They are now defect reports, not differences of opinion: A departs from
   EXI 1.0 §8.5.1, and B contradicts the generator's own input schema. B is the more serious of the two
   for their users, since it makes valid documents unencodable.
-- **The value partition** is the only cause left in the `-20` corpus, and the `-2` substitution
-  experiment that closed it there has still not been run here. The 34-byte delta against a 35-character
-  URI is off by one and unexplained.
+- ~~**The value partition**~~ — **done the same day.** All eight are the string table, shown by
+  substitution: [`2026-08-08-value-partition-20`](../2026-08-08-value-partition-20/notes.md). The
+  off-by-one was real (an identifier costs bits of its own), and a repeated certificate turns out to be
+  worth nothing, because `base64Binary` never enters the table. The `-20` corpus now has no unexplained
+  frame in it.

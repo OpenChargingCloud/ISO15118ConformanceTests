@@ -20,6 +20,11 @@
  * bytes for that document, verdict `encoded`. That is how a frame our codec writes and theirs cannot
  * read gets pinned down — hand them the message we meant and compare what they produce.
  *
+ * If it starts with '?' the rest is hex and the job is decode-only: the result is the XML EXIficient
+ * read out of it, on one line, verdict `decoded`. The complement of the above — show me the message
+ * they think we sent. Used by `valuepartition20.py` to get at the document a mismatching frame
+ * contains, so the repeated string in it can be substituted and the difference attributed.
+ *
  * Build:  javac -cp <decoder.jar> -d <outdir> Roundtrip20.java
  * Run:    java -cp <decoder.jar>:<outdir> Roundtrip20 <jobs.tsv> <results.tsv>
  */
@@ -97,6 +102,15 @@ public class Roundtrip20 {
                         emit(out, name, "encoded", hex(encode(hex, grammars)), null);
                     } catch (Exception e) {
                         emit(out, name, "encode-fail", null, brief(e));
+                    }
+                    continue;
+                }
+
+                if (hex.startsWith("?")) {          // decode-only probe, see the header comment
+                    try {
+                        emit(out, name, "decoded", decode(unhex(hex.substring(1)), grammars), null);
+                    } catch (Exception e) {
+                        emit(out, name, "decode-fail", null, brief(e));
                     }
                     continue;
                 }
