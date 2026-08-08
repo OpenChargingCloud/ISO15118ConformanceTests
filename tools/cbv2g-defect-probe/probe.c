@@ -36,6 +36,9 @@
 
 #include <cbv2g/iso_20/iso20_WPT_Datatypes.h>
 #include <cbv2g/iso_20/iso20_WPT_Encoder.h>
+#include <cbv2g/iso_20/iso20_ACDP_Datatypes.h>
+#include <cbv2g/iso_20/iso20_ACDP_Encoder.h>
+#include <cbv2g/iso_20/iso20_ACDP_Decoder.h>
 #include <cbv2g/common/exi_bitstream.h>
 #include <cbv2g/common/exi_error_codes.h>
 
@@ -143,6 +146,80 @@ static void fill_transmitter(struct iso20_wpt_WPT_LF_SystemSetupDataType* s, int
     }
 }
 
+/* ---- Issue A: the ACDP document element code -----------------------------------------------
+ *
+ * A is not a failure — it is a different byte — so it needs a different kind of evidence. What this
+ * part does is produce cbV2G's *own* bytes for the two affected messages and name which element code
+ * went into them, so the report does not have to point at our encoder for any of it. Feed the hex to
+ * a schema-informed processor (tools/interop-exificient/) and it will name a different message.
+ *
+ * Also decodes each one back through cbV2G's own decoder, which reads it correctly — the point being
+ * that the pair is perfectly self-consistent, and that self-consistency is exactly what cannot detect
+ * this class of defect.
+ */
+
+static void set_header_acdp(struct iso20_acdp_MessageHeaderType* h) {
+    memset(h, 0, sizeof(*h));
+    h->SessionID.bytesLen = 8;
+    h->TimeStamp          = 1700000000u;
+    h->Signature_isUsed   = 0u;
+}
+
+static void print_hex(const uint8_t* bytes, size_t len) {
+    for (size_t i = 0; i < len; i++) printf("%02x", bytes[i]);
+}
+
+/** Encodes one ACDP message, prints its hex and its document element code, then decodes it back with
+ *  cbV2G and reports which element cbV2G itself thinks it is. */
+static void acdp_case(const char* name, int is_connect_res) {
+    struct iso20_acdp_exiDocument doc;
+    uint8_t buffer[512];
+    exi_bitstream_t stream;
+    size_t pos = 0, written;
+
+    memset(&doc, 0, sizeof(doc));
+    if (is_connect_res) {
+        doc.ACDP_ConnectRes_isUsed = 1u;
+        struct iso20_acdp_ACDP_ConnectResType* r = &doc.ACDP_ConnectRes;
+        set_header_acdp(&r->Header);
+        r->ResponseCode   = iso20_acdp_responseCodeType_OK;
+        r->EVSEProcessing = iso20_acdp_processingType_Finished;
+        r->EVSEElectricalChargingDeviceStatus = iso20_acdp_electricalChargingDeviceStatusType_State_C;
+        r->EVSEMechanicalChargingDeviceStatus = iso20_acdp_mechanicalChargingDeviceStatusType_EndPosition;
+    } else {
+        doc.ACDP_DisconnectReq_isUsed = 1u;
+        struct iso20_acdp_ACDP_ConnectReqType* q = &doc.ACDP_DisconnectReq;
+        set_header_acdp(&q->Header);
+        q->EVElectricalChargingDeviceStatus = iso20_acdp_electricalChargingDeviceStatusType_State_A;
+    }
+
+    exi_bitstream_init(&stream, buffer, sizeof(buffer), pos, NULL);
+    if (encode_iso20_acdp_exiDocument(&stream, &doc) != EXI_ERROR__NO_ERROR) {
+        printf("  %-20s encode failed\n", name);
+        return;
+    }
+    written = exi_bitstream_get_length(&stream);
+
+    /* The document element code is the six bits after the one-byte EXI header. */
+    unsigned code = (unsigned) ((buffer[1] >> 2) & 0x3Fu);
+
+    printf("  %-20s cbV2G writes element code %u   ", name, code);
+    print_hex(buffer, written);
+    printf("  (%zu B)\n", written);
+
+    struct iso20_acdp_exiDocument back;
+    memset(&back, 0, sizeof(back));
+    exi_bitstream_init(&stream, buffer, written, (pos = 0), NULL);
+    if (decode_iso20_acdp_exiDocument(&stream, &back) == EXI_ERROR__NO_ERROR) {
+        const char* seen = back.ACDP_ConnectRes_isUsed    ? "ACDP_ConnectRes"
+                         : back.ACDP_DisconnectReq_isUsed ? "ACDP_DisconnectReq"
+                         : back.ACDP_ConnectReq_isUsed    ? "ACDP_ConnectReq"
+                         : back.ACDP_DisconnectRes_isUsed ? "ACDP_DisconnectRes"
+                         : "something else";
+        printf("  %-20s cbV2G reads it back as %s\n", "", seen);
+    }
+}
+
 int main(void) {
     struct iso20_wpt_exiDocument doc;
     size_t n, baseline;
@@ -200,6 +277,15 @@ int main(void) {
         report(cases[i].name, "claim: fails", err, n);
         if (err != EXI_ERROR__UNKNOWN_EVENT_CODE) contradicted++;
     }
+
+    /* ---- Part 3: issue A, cbV2G's own ACDP bytes ------------------------------------------- */
+
+    printf("\nPart 3 — ACDP document element codes, from cbV2G's encoder\n");
+    printf("         EXI 1.0 Second Edition 8.5.1 sorts global elements by qname:\n");
+    printf("         ConnectReq=0, ConnectRes=1, DisconnectReq=2, DisconnectRes=3\n");
+    acdp_case("ACDP_ConnectRes", 1);
+    acdp_case("ACDP_DisconnectReq", 0);
+    printf("         Hand either hex to a schema-informed processor and it will name the other message.\n");
 
     printf("\n  %d result(s) contradicted the report\n", contradicted);
     return contradicted == 0 ? 0 : 1;

@@ -45,7 +45,12 @@ cc -std=c99 -O1 -Wall -Wextra -Wno-unused-parameter \
    "$SRC/lib/cbv2g/common/exi_basetypes_encoder.c" \
    "$SRC/lib/cbv2g/common/exi_bitstream.c" \
    "$SRC/lib/cbv2g/common/exi_header.c" \
+   "$SRC/lib/cbv2g/common/exi_basetypes_decoder.c" \
+   "$SRC/lib/cbv2g/common/exi_types_decoder.c" \
    "$SRC/lib/cbv2g/iso_20/iso20_WPT_Datatypes.c" \
-   "$SRC/lib/cbv2g/iso_20/iso20_WPT_Encoder.c"
+   "$SRC/lib/cbv2g/iso_20/iso20_WPT_Encoder.c" \
+   "$SRC/lib/cbv2g/iso_20/iso20_ACDP_Datatypes.c" \
+   "$SRC/lib/cbv2g/iso_20/iso20_ACDP_Encoder.c" \
+   "$SRC/lib/cbv2g/iso_20/iso20_ACDP_Decoder.c"
 
 "$WORK/probe"

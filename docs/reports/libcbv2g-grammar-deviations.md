@@ -66,16 +66,32 @@ the Connect types:
 <!--  <xs:complexType name="ACDP_DisconnectReqType"> … -->   <!-- commented out in ISO's schema -->
 ```
 
-## Why this one is worth your time
+## Why this one is worth your time — shown with your own bytes
 
-Swapping two document element codes does not fail symmetrically:
+Swapping two document element codes does not fail symmetrically. Here are the two messages as
+**libcbv2g itself encodes them** (from `tools/cbv2g-defect-probe/` in this repository, so nothing of
+ours is in the input), each then handed to EXIficient:
 
-- an `ACDP_DisconnectReq` written with code 1 is read as `ACDP_ConnectRes`, whose type has more content
-  than was written → `Premature EOS`, loud and obvious;
-- an `ACDP_ConnectRes` written with code 2 is read as `ACDP_DisconnectReq`, a shorter type → it
-  **decodes cleanly, as the wrong message**, and re-encodes two bytes shorter. Nothing reports anything.
+```
+ACDP_ConnectRes     cbV2G writes code 2   8008040000000000000000080e2cfaa062000108   (20 B)
+                    cbV2G reads it back as ACDP_ConnectRes
+                    EXIficient reads it as ACDP_DisconnectReq        <- clean decode, wrong message
 
-The second is the one to worry about. A peer would act on a disconnect request it was never sent.
+ACDP_DisconnectReq  cbV2G writes code 1   8004040000000000000000080e2cfaa06200       (18 B)
+                    cbV2G reads it back as ACDP_DisconnectReq
+                    EXIficient: Premature EOS                        <- loud failure
+```
+
+The second row is the harmless one: `ACDP_DisconnectReq`'s code 1 is read as `ACDP_ConnectRes`, a type
+with more content than was written, so the decoder runs out of bits and says so.
+
+**The first row is the one to worry about.** `ACDP_ConnectRes` written with code 2 is read as
+`ACDP_DisconnectReq`, a shorter type, so it decodes cleanly — as a different message, with nothing
+anywhere to report it. A peer would act on a disconnect request it was never sent.
+
+Note the middle line of each: cbV2G reads its own bytes back correctly. The encoder and decoder agree
+with each other perfectly, which is precisely why this cannot be found by round-tripping and was not
+found for as long as cbexigen-derived stacks only talked to each other.
 
 ## Reproduced without ISO's schemas
 
@@ -299,6 +315,10 @@ production at all, which is also why their event code is one bit rather than two
       which the source reading had missed and which is now the report's strongest point. It also showed
       B to be silent data loss rather than a byte difference, which changed which issue we would fix
       first.
+- [x] **Make A stand on their bytes, not ours.** The probe now emits cbV2G's own `ACDP_ConnectRes` and
+      `ACDP_DisconnectReq` and shows cbV2G decoding both correctly; handing the same octets to
+      EXIficient produces the silent misdecode and the `Premature EOS`. Nothing of ours is in the
+      input any more.
 - [ ] **Decide how much generated C to paste.** The excerpts above are minimal on purpose; a
       maintainer may prefer a link to the generator input instead, since the C is machine-written.
 - [ ] **Post under your own name, in your own words.**
