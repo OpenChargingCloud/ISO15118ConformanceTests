@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -19,7 +19,7 @@ using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.AppProtocol;
 using cloud.charging.open.protocols.ISO15118_2.Generated;
-using Vanaheimr.V2G.Simulation.Framing;
+using cloud.charging.open.protocols.ISO15118.Framing;
 using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
 namespace ISO15118ConformanceTests.Simulation.Framing

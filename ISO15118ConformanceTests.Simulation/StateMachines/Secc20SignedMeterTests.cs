@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -20,8 +20,8 @@ using System.Security.Cryptography;
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated;
-using Vanaheimr.V2G.Simulation.Metering;
-using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
+using cloud.charging.open.protocols.ISO15118.Metering;
+using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 
 using Ac20 = cloud.charging.open.protocols.ISO15118_20.AC.Generated;
 using Dc20 = cloud.charging.open.protocols.ISO15118_20.DC.Generated;

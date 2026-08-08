@@ -16,7 +16,7 @@ PROTO="${1:-2}"
 IFACE="${2:-eth0}"
 MODE=$([ "$PROTO" = "2" ] && echo ac || echo dc)
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/josev-secc-pause.log
 EVCC_LOG=/tmp/our-evcc-pause.log
 

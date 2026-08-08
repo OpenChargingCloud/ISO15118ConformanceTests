@@ -14,7 +14,7 @@ set -euo pipefail
 client_cert="${1:-}"
 iface="${2:-eth0}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli_dll="$here/../../libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+cli_dll="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 
 # The CLI's own --sdp discovery works live since the MulticastLoopback fix (2026-07-23);
 # with --tls-backend set it requests security=TLS in the SDP_Request.

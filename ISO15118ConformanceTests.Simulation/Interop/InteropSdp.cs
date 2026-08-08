@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -22,8 +22,8 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.NetworkInterfaces;
 using cloud.charging.open.protocols.ISO15118.SDP.Server;
 
-using Vanaheimr.V2G.Simulation.Cli;
-using Vanaheimr.V2G.Simulation.Discovery;
+using cloud.charging.open.protocols.ISO15118.Cli;
+using cloud.charging.open.protocols.ISO15118.Discovery;
 
 namespace ISO15118ConformanceTests.Simulation.Interop;
 

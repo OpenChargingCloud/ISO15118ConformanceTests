@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -26,7 +26,7 @@ using cloud.charging.open.protocols.ISO15118.SLAC.Avln;
 using cloud.charging.open.protocols.ISO15118.SLAC.StateMachine;
 using cloud.charging.open.protocols.ISO15118.SLAC.Transport;
 
-using Vanaheimr.V2G.Simulation.Slac;
+using cloud.charging.open.protocols.ISO15118.Slac;
 
 namespace ISO15118ConformanceTests.Simulation.Slac
 {

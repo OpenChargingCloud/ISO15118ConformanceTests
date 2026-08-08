@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -20,8 +20,8 @@ using System.Net.Security;
 
 using NUnit.Framework;
 
-using Vanaheimr.V2G.Simulation.Sap;
-using Vanaheimr.V2G.Simulation.Transport;
+using cloud.charging.open.protocols.ISO15118.Sap;
+using cloud.charging.open.protocols.ISO15118.Transport;
 
 namespace ISO15118ConformanceTests.Simulation.Interop;
 
