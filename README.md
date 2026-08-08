@@ -1,9 +1,10 @@
 # ISO/IEC 15118 Conformance & Interoperability Test Suite
 
-The conformance and interoperability tests for the [EVSimulatorApp](libs/EVSimulatorApp) ISO 15118 stack —
-its EXI codec, its EV↔EVSE state machines, its TLS and PKI, its Plug & Charge. The app is carried
-here as a submodule; this repository is the harness that proves it behaves the way the standard and
-the independent stacks in the field expect.
+The conformance and interoperability tests for the
+[WWCP_ISO15118](libs/EVSimulatorApp/libs/WWCP_ISO15118) ISO 15118 stack — its EXI codec, its EV↔EVSE
+state machines, its TLS and PKI, its Plug & Charge. It is carried here as a submodule of a submodule,
+inside [EVSimulatorApp](libs/EVSimulatorApp); this repository is the harness that proves it behaves
+the way the standard and the independent stacks in the field expect.
 
 The point of separating the two: the app can be built and shipped on its own, and the thing that
 judges it — the corpus of recorded frames, the loopback E2Es, the live cross-checks against Josev and
@@ -317,6 +318,7 @@ on the wire. What each of them has proven is the matrix above.
 ---
 
 The stack all of this tests — the EXI codec, the state machines, the TLS/PKI, the CLI — is documented in
-**[EVSimulatorApp](libs/EVSimulatorApp)**.
+**[WWCP_ISO15118](libs/EVSimulatorApp/libs/WWCP_ISO15118)**, and the apps built on it in
+**[EVSimulatorApp](libs/EVSimulatorApp)** one level above it.
 
 This repository is only the judge.
