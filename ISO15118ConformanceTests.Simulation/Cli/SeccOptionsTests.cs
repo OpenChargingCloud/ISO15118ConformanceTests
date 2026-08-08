@@ -47,6 +47,16 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             });
         }
 
+        /// <summary>
+        /// The mode is the one thing here that is <em>not</em> negotiated — the connector decides it, and
+        /// both sides must be told the same or the session fails on a message set the other did not
+        /// expect. So the default is load-bearing in a way the protocol default is not, and it is DC
+        /// because that is what this station is usually pointed at.
+        /// </summary>
+        [Test]
+        public void Default_ModeIsDc()
+            => Assert.That(SeccOptions.Parse([]).Mode, Is.EqualTo(PowerMode.Dc));
+
         [TestCase("2",    ProtocolVariant.Iso15118_2,  false)]
         [TestCase("20",   ProtocolVariant.Iso15118_20, false)]
         [TestCase("both", ProtocolVariant.Iso15118_20, true)]
