@@ -1,8 +1,19 @@
 # cbv2g-defect-probe — running the claims in the libcbv2g report instead of reading them
 
 ```bash
-bash tools/cbv2g-defect-probe/build.sh
+bash tools/cbv2g-defect-probe/build.sh                          # the commit the report cites
+CBV2G_PROBE_REF=main bash tools/cbv2g-defect-probe/build.sh     # ...have they fixed it yet?
 ```
+
+Also wired up as an `[Explicit]` test, so the question can be asked without remembering this file:
+
+```bash
+CBV2G_PROBE_REF=main dotnet test --filter FullyQualifiedName~CbV2GDefectProbe
+```
+
+**Exit 0 means the defects are still there.** Read that twice: against `main` a *failure* is the good
+news — something was fixed upstream and part of the filing can be closed. This is the one check in the
+repository that is meant to stop passing.
 
 Compiles [`probe.c`](probe.c) against **libcbv2g `03350be048b3`** — the commit the report cites, and
 still upstream `HEAD` — and exercises the two WPT defects in

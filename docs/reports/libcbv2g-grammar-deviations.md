@@ -319,6 +319,10 @@ production at all, which is also why their event code is one bit rather than two
       `ACDP_DisconnectReq` and shows cbV2G decoding both correctly; handing the same octets to
       EXIficient produces the silent misdecode and the `Premature EOS`. Nothing of ours is in the
       input any more.
+- [x] **Make the claims re-checkable after posting.** `tools/cbv2g-defect-probe/` takes
+      `CBV2G_PROBE_REF`, and `CbV2GDefectProbeTests` runs it as an `[Explicit]` test, so
+      *"is it fixed yet?"* is one command against `main` rather than a re-reading of this file. The
+      check is written to **stop passing** when it is fixed.
 - [ ] **Decide how much generated C to paste.** The excerpts above are minimal on purpose; a
       maintainer may prefer a link to the generator input instead, since the C is machine-written.
 - [ ] **Post under your own name, in your own words.**
