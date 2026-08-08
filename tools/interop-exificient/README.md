@@ -1,7 +1,8 @@
 # interop-exificient — the second opinion for ISO 15118-20
 
-**347 frames, 339 byte-exact, 8 mismatches, nothing unreadable, 3.7 seconds.**
-The first run was 332 / 9 / **6**; all six causes are settled.
+**353 frames, 345 byte-exact, 8 mismatches, nothing unreadable, 3.7 seconds.**
+The first run was 347 frames at 332 / 9 / **6**; all six causes are settled, and the corpus has since
+grown by the six frames that would have caught one of them.
 Runs: [`2026-08-07-exificient-iso20`](../../docs/interop-runs/2026-08-07-exificient-iso20/notes.md) —
 what it found; [`2026-08-08-schema-conformant-acdp-wpt`](../../docs/interop-runs/2026-08-08-schema-conformant-acdp-wpt/notes.md) —
 what was decided about it.

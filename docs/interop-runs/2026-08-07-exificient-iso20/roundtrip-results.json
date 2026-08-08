@@ -3,9 +3,9 @@
  "oracle": "EXIficient 1.0.4 (from the V2Gdecoder jar), OpenJDK 25, offline entity resolution",
  "method": "our bytes -> their decode -> their encode -> compare",
  "schemas": "ISO 15118-20, read from the app submodule",
- "note": "Three re-runs the same week, as each cause was settled. First run: ok=332, mismatch=9, decode-fail=6. After the minOccurs>=2 fix (cause C, a defect): 333/9/5. After ACDP and WPT were switched to the schema-conformant grammar on 2026-08-08 (causes A and B, decisions): 339/8/0. Every frame in the -20 corpus is now readable by a codec that shares no line with ours, and the eight remaining mismatches all have the one cause recorded for -2 in ExiStringTableTests -- EXIficient uses the EXI value partition for a repeated string where our encoder is deliberately miss-only.",
+ "note": "Re-run as each cause was settled, and once more as the corpus grew. First run: 347 frames, ok=332, mismatch=9, decode-fail=6. After the minOccurs>=2 fix (cause C): 333/9/5. After ACDP and WPT were switched to the schema-conformant grammar (causes A and B): 339/8/0. After six vectors were added on 2026-08-08 to cover the four minOccurs>=2 particles no vector had ever populated -- CurveDataPoint in AC_DER_IEC, and TxSpecData, RxSpecData and PulseSequenceOrder behind WPT's LF_SystemSetupData -- 353 frames, 345/8/0. The eight mismatches are the value partition, measured frame by frame in docs/interop-runs/2026-08-08-value-partition/.",
  "totals": {
-  "ok": 339,
+  "ok": 345,
   "mismatch": 8,
   "decode-fail": 0,
   "encode-fail": 0

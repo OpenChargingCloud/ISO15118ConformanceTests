@@ -2,10 +2,11 @@
 
 **Result: 347 frames, 332 byte-exact through EXIficient, 9 mismatches, 6 it cannot read. 3.7 seconds.**
 
-**Where it ended up: 339 byte-exact, 8 mismatches, nothing unreadable.** All three causes below are
-settled — one was a defect and is fixed, two were decisions and were taken on 2026-08-08
-([notes](../2026-08-08-schema-conformant-acdp-wpt/notes.md)). The eight remaining mismatches all have
-the single value-partition cause already recorded for `-2`.
+**Where it ended up: 345 of 353 byte-exact, 8 mismatches, nothing unreadable.** All three causes below
+are settled — one was a defect and is fixed, two were decisions and were taken on 2026-08-08
+([notes](../2026-08-08-schema-conformant-acdp-wpt/notes.md)). The corpus grew by six frames the same
+day, to cover the particles that had made cause C invisible. The eight remaining mismatches are the
+value partition, and are [measured rather than attributed](../2026-08-08-value-partition/notes.md).
 
 Until today `-20` had exactly one byte oracle: **libcbv2g**, which is also our vector generator and also
 what EVerest and tux-evse encode with. Every `-20` byte agreement this project could show was agreement
@@ -361,10 +362,13 @@ on purpose.
    start-element code where the grammar has a one-bit one. No switch: no reference encoder has ever
    written any of the five affected particles, so there was nothing to stay byte-exact with.
    `AC_ChargeParameterDiscoveryRes_DER` now round-trips.
-4. **Check the other four `minOccurs≥2` particles against EXIficient** — `TxSpecData`, `RxSpecData` and
-   `PulseSequenceOrder` are only reachable behind WPT's `LF_SystemSetupData`, which no vector populates,
-   and `CurveDataPoint` in AC_DER_IEC is never given a curve. The fix is the same code path the DER SAE
-   frame proves, but a vector that actually carries one would be better than an inference.
+4. ~~**Check the other four `minOccurs≥2` particles against EXIficient**~~ — **done 2026-08-08.** Six
+   vectors added: a volt-var curve in AC_DER_IEC, and WPT's transmitter and receiver branches behind
+   `LF_SystemSetupData`, which between them carry `TxSpecData`, `RxSpecData` and `PulseSequenceOrder`.
+   Two lengths each — at exactly `minOccurs`, where every occurrence is forced, and one past it, which
+   is the transition that was wrong. All six round-trip through EXIficient byte-exact, taking the
+   corpus to **345 of 353**. All five `minOccurs≥2` particles in ISO 15118 now have a vector an
+   independent codec agrees with, rather than an inference from a shared code path.
 5. ~~**Close the `ServiceDetailRes` and `AuthorizationReq` deltas**~~ — **done 2026-08-08, and the
    off-by-one was real**: a compact identifier costs bits of its own, so a 35-character URI saves 34
    bytes. The `-2` case came out even by luck. See

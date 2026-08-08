@@ -152,7 +152,7 @@ python3 tools/interop-exificient/valuepartition.py
 
 | | `-2` | `-20` |
 |---|---:|---:|
-| byte-exact | 183 of 186 | 339 of 347 |
+| byte-exact | 183 of 186 | 345 of 353 |
 | length differences, now all measured | 2 | 8 |
 | unreadable by an independent codec | 0 | 0 |
 | unexplained | **1** | **0** |
