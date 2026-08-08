@@ -79,8 +79,14 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   closed: no certificate, no resume. The EVCC-side mirror `[V2G20-2539]` and the purge paths
   (`[V2G20-2615]`–`[V2G20-2617]`) went in with it; the car deliberately fails *open* where it cannot
   check, for the reason documented at `Evcc20Base.ResumeBinding`.
-- **Still open — re-run the EVerest pause/resume**, which becomes the first live `-20` pause/resume that
-  completes end to end. Nothing blocks it but the rig.
+- ~~Re-run the EVerest pause/resume~~ **done** — both halves complete, and their own message log shows
+  the five skipped messages
+  ([re-run notes](interop-runs/2026-08-08-everest-pause-resume-tls-rerun/notes.md)). The matrix cell is
+  `✅`. **One part of the fix remains unverified by anyone but us:** the session binding. This direction
+  only consults *their* SECC's value, so ours was never compared against it; the cross-check needs their
+  EVCC against our SECC, and their EVCC is Josev-derived, whose `-20` resume cannot reach
+  `OK_OldSessionJoined` at all. Blocked on [our own filing](reports/josev-iso20-pause-resume.md) being
+  acted on — which puts it in *Blocked on the counterparty*, above, in spirit if not in the table.
 - **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
   the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
   (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather

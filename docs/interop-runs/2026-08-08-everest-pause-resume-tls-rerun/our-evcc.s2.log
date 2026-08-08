@@ -1,0 +1,4 @@
+WARNING: accepting any TLS server certificate — dev CLI only, never against a real SECC.
+Presenting client certificate for mutual TLS: DC=OEM, C=DE, O=Pionix, CN=WMIV1234567890ABCDEX (+2 intermediate(s))
+  52 exchanges, 1398 bytes on the wire (request side), auth: eim, session setup: OK_OldSessionJoined.
+✓ Session complete in 5364 ms.
