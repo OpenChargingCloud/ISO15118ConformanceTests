@@ -23,9 +23,12 @@ ISO15118ConformanceTests.slnx
 │   └─ Traces/      the replay and recording machinery behind it
 ├─ ISO15118ConformanceTests.Pqc/          post-quantum-crypto experiment tests (ML-KEM/ML-DSA)
 └─ libs/EVSimulatorApp/                   the stack under test, as a submodule
-    └─ …/WWCP_ISO15118_EXI_Tests/         the app's codec tests — the byte-exact cbV2G and Josev
-                                          oracle, carried into this solution so the offline run
-                                          judges against a foreign encoder and not only ourselves
+    ├─ …/WWCP_ISO15118_EXI_Tests/         the stack's codec tests — the byte-exact cbV2G and Josev
+    │                                     oracle, carried into this solution so the offline run
+    │                                     judges against a foreign encoder and not only ourselves
+    └─ …/WWCP_ISO15118_Session_Tests/     and its transport unit tests, carried for the same reason:
+                                          the offline gate runs here, so a test that runs only in
+                                          the app's solution is one this repository cannot vouch for
 ```
 
 Two oracles judge the bytes offline, and only one of them is independent of us: **cbV2G** generated the
@@ -294,7 +297,8 @@ holding the `iso-2/`, `iso-20/` and `amd1/` directories the script would otherwi
 The offline run (`dotnet test`) needs no C toolchain, no Java and no network: the record-mode
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
-regression, and the loopback E2Es run both peers in-process. The **live** cross-checks against a
+regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
+loopback E2Es run both peers in-process. 1 236 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 

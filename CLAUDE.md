@@ -35,9 +35,11 @@ fresh clone has only the placeholder `README.md` in each `Schemas/` and the buil
 `SCHEMA_CACHE=<dir>` lays out a copy you already have instead of fetching.
 
 Must pass green without a C toolchain, Java, or network — the record-mode cross-checks replay Josev's
-captured frames (`WWCP_ISO15118_EXI_Tests`, the app's codec tests, carried in this solution), the
-session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our own wire output, and
-the loopback E2Es run both peers in-process.
+captured frames (`WWCP_ISO15118_EXI_Tests`, the stack's codec tests, carried in this solution), the
+session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our own wire output,
+`WWCP_ISO15118_Session_Tests` unit-tests the transport's own decisions (carried here for the same
+reason as the codec tests: the offline gate is this solution), and the loopback E2Es run both peers
+in-process. Four assemblies, 1 236 tests.
 
 ## Ground rules
 

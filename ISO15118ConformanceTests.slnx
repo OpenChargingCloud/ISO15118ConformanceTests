@@ -7,6 +7,12 @@
          is the app's, but a foreign encoder as oracle is the one thing the loopback E2Es and our own
          session corpus cannot be — so the offline judgement runs them here too. -->
     <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EXI_Tests/WWCP_ISO15118_EXI_Tests.csproj" />
+    <!-- The transport's own unit tests — backend selection and the TlsOptions → BcTlsOptions bridge.
+         They travelled with the session code on 2026-08-08 and landed in a solution this one does not
+         include, so for a day the offline gate did not run them. Carried here for the same reason as
+         the codec tests above: `dotnet test` from this repository is what decides the stack is green,
+         and a test that only runs in the app's solution is a test this repository cannot vouch for. -->
+    <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session_Tests/WWCP_ISO15118_Session_Tests.csproj" />
   </Folder>
   <Folder Name="/EVSimulatorApp/">
     <Project Path="libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/WWCP_ISO15118_Session.csproj" />
