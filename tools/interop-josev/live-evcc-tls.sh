@@ -14,10 +14,10 @@ set -euo pipefail
 client_cert="${1:-}"
 iface="${2:-eth0}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli_dll="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+cli_dll="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/bin/Release/net10.0/WWCP_ISO15118_EVCC.dll"
 
 # The CLI's own --sdp discovery works live since the MulticastLoopback fix (2026-07-23);
 # with --tls-backend set it requests security=TLS in the SDP_Request.
-args=(evcc --sdp --interface "$iface" --protocol 20 --mode dc --tls-backend dotnet)
+args=(--sdp --interface "$iface" --protocol 20 --mode dc --tls-backend dotnet)
 [ -n "$client_cert" ] && args+=(--client-cert "$client_cert" --client-cert-pass 12345)
 exec dotnet "$cli_dll" "${args[@]}"

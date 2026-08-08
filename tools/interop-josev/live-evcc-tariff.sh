@@ -12,7 +12,7 @@ IFACE="${1:-eth0}"
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/bin/Release/net10.0/WWCP_ISO15118_EVCC.dll"
 SECC_LOG=/tmp/josev-secc-tariff.log
 EVCC_LOG=/tmp/our-evcc-tariff.log
 
@@ -28,7 +28,7 @@ docker run -d --rm --name josev-secc --network host -e NETWORK_INTERFACE="$IFACE
 sleep 8
 
 echo ">>> our EVCC: --sdp discovery, evaluates the offer and sends a shaped ChargingProfile"
-dotnet "$DLL" evcc --sdp --interface "$IFACE" --protocol 2 --mode ac >"$EVCC_LOG" 2>&1
+dotnet "$DLL" --sdp --interface "$IFACE" --protocol 2 --mode ac >"$EVCC_LOG" 2>&1
 rc=$?
 sleep 1
 docker logs josev-secc >"$SECC_LOG" 2>&1

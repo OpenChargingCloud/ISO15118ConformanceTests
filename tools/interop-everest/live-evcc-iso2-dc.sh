@@ -21,7 +21,7 @@ protocol="${3:-2}"
 mode="${4:-dc}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
+cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC"
 
 # Only when we have to discover. With an endpoint in hand the interface is irrelevant — that is the
 # whole point of the relay path in README.md, and it is what lets this run from a machine that has no
@@ -49,9 +49,9 @@ EOF
 if [ -n "$endpoint" ]; then
     echo ">>> our EVCC -> $endpoint  (ISO 15118-$protocol $mode, EIM, plain TCP)"
     exec dotnet run --project "$cli" -c Release -- \
-        evcc --connect "$endpoint" --protocol "$protocol" --mode "$mode"
+        --connect "$endpoint" --protocol "$protocol" --mode "$mode"
 else
     echo ">>> our EVCC, SDP-discovering their charger on $iface  (ISO 15118-$protocol $mode, EIM, plain TCP)"
     exec dotnet run --project "$cli" -c Release -- \
-        evcc --sdp --interface "$iface" --protocol "$protocol" --mode "$mode"
+        --sdp --interface "$iface" --protocol "$protocol" --mode "$mode"
 fi

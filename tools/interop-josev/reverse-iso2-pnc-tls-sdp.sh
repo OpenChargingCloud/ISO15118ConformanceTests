@@ -13,7 +13,7 @@ set -uo pipefail
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net10.0/WWCP_ISO15118_SECC.dll"
 CFG=/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_2/evcc_config_pnc_ac.json
 SECC_LOG=/tmp/secc-iso2-pnc.log
 EVCC_LOG=/tmp/evcc-iso2-pnc.log
@@ -24,9 +24,9 @@ pkill -9 -f sdp-responder 2>/dev/null; sleep 1
 
 docker run -d --rm --name redis-interop --network host redis:6.2.6-alpine >/dev/null
 echo ">>> our SECC :55000  -2 AC, TLS (secc.p12), --sdp — offers Contract + ExternalPayment"
-dotnet "$DLL" secc --listen 55000 --protocol 2 --mode ac --tls \
-    --server-cert /tmp/secc.p12 --server-cert-pass 12345 \
-    --sdp --interface eth0 >"$SECC_LOG" 2>&1 &
+dotnet "$DLL" --listen 55000 --protocol 2 --mode ac --tls \
+   --server-cert /tmp/secc.p12 --server-cert-pass 12345 \
+   --sdp --interface eth0 >"$SECC_LOG" 2>&1 &
 PID=$!; sleep 3
 grep -i advertising "$SECC_LOG"
 

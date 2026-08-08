@@ -24,7 +24,8 @@
          metering comparison (docs/CONCEPT.md §4.3) and is a stub of a different protocol. It reaches the
          state machines through ISessionBackend, never the other way round. -->
     <ProjectReference Include="..\libs\EVSimulatorApp\simulation\EVSimulatorApp.Ocpp\EVSimulatorApp.Ocpp.csproj" />
-    <ProjectReference Include="..\libs\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_CLI\WWCP_ISO15118_CLI.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_EVCC\WWCP_ISO15118_EVCC.csproj" />
+    <ProjectReference Include="..\libs\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_SECC\WWCP_ISO15118_SECC.csproj" />
     <!-- Test-only: the WWCP V2G PKI builder (submodule) generates a real strict-20 certificate
          hierarchy for the mutual-TLS E2E tests. Shipping code stays certificate-agnostic. -->
     <ProjectReference Include="..\libs\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_PKI\WWCP_ISO15118_PKIBuilder\WWCP_ISO15118_PKIBuilder.csproj" />

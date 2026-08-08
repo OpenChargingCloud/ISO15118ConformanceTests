@@ -18,7 +18,7 @@ MODE=$([ "$PROTO" = "2" ] && echo ac || echo dc)
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/bin/Release/net10.0/WWCP_ISO15118_EVCC.dll"
 SECC_LOG=/tmp/josev-secc-pause.log
 EVCC_LOG=/tmp/our-evcc-pause.log
 
@@ -34,14 +34,14 @@ docker run -d --rm --name josev-secc --network host -e NETWORK_INTERFACE="$IFACE
 sleep 8
 
 echo ">>> session 1: --sdp discovery — run to PAUSE"
-dotnet "$DLL" evcc --sdp --interface "$IFACE" --protocol "$PROTO" --mode "$MODE" --pause >"$EVCC_LOG" 2>&1
+dotnet "$DLL" --sdp --interface "$IFACE" --protocol "$PROTO" --mode "$MODE" --pause >"$EVCC_LOG" 2>&1
 echo ">>> session 1 exited ($?)"
 sid=$(grep -oE 'Paused session id: [0-9A-F]+' "$EVCC_LOG" | awk '{print $4}')
 [ -n "$sid" ] || { echo "!! no paused session id"; tail -5 "$EVCC_LOG"; exit 1; }
 echo ">>> paused with session id $sid; session 2 re-discovers via --sdp (Josev moved ports) — RESUME"
 sleep 3
 
-dotnet "$DLL" evcc --sdp --interface "$IFACE" --protocol "$PROTO" --mode "$MODE" --resume "$sid" >>"$EVCC_LOG" 2>&1
+dotnet "$DLL" --sdp --interface "$IFACE" --protocol "$PROTO" --mode "$MODE" --resume "$sid" >>"$EVCC_LOG" 2>&1
 rc=$?
 sleep 1
 docker logs josev-secc >"$SECC_LOG" 2>&1

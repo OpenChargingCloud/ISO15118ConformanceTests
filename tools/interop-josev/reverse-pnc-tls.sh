@@ -6,7 +6,7 @@ set -uo pipefail
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-CLI="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
+CLI="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC"
 SECC_LOG=/tmp/secc-pnc2.log
 SDP_LOG=/tmp/sdp-pnc2.log
 EVCC_LOG=/tmp/evcc-pnc2.log
@@ -17,22 +17,22 @@ cleanup() {
   [ -n "${SECC_PID:-}" ] && kill "$SECC_PID" 2>/dev/null
   [ -n "${SDP_PID:-}" ] && kill "$SDP_PID" 2>/dev/null
   docker rm -f josev-evcc redis-interop 2>/dev/null
-  pkill -f "WWCP_ISO15118_CLI.*secc" 2>/dev/null
+  pkill -f "WWCP_ISO15118_SECC" 2>/dev/null
 }
 trap cleanup EXIT
 cleanup
 
 echo ">>> building CLI under WSL"
 dotnet build "$CLI" -c Release --nologo >/tmp/cli-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/cli-build.log; exit 1; }
-DLL="$CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
+DLL="$CLI/bin/Release/net10.0/WWCP_ISO15118_SECC.dll"
 ls -la "$DLL" || exit 1
 
 echo ">>> starting redis (host net)"
 docker run -d --rm --name redis-interop --network host redis:6.2.6-alpine >/dev/null
 
 echo ">>> starting our SECC on :$PORT (TLS, require client cert)"
-dotnet "$DLL" secc --listen "$PORT" --protocol 20 --mode dc \
-    --tls-backend dotnet --server-cert /tmp/secc.p12 --server-cert-pass 12345 --require-client-cert \
+dotnet "$DLL" --listen "$PORT" --protocol 20 --mode dc \
+   --tls-backend dotnet --server-cert /tmp/secc.p12 --server-cert-pass 12345 --require-client-cert \
     >"$SECC_LOG" 2>&1 &
 SECC_PID=$!
 sleep 3
