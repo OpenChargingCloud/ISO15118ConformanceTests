@@ -1096,7 +1096,7 @@ public class SessionTraceCorpusTests
         if (!Iso2Codec.TryEncode(shaved, payload, out var n))
             throw new InvalidOperationException("re-encoding the shaved response failed");
 
-        var result = new byte[V2GTP.HeaderSize + n];
+        var result = new byte[V2GTPCodec.HeaderSize + n];
         if (!V2GTPDispatcher.TryEncode(set, payload.AsSpan(0, n), result, out var written))
             throw new InvalidOperationException("re-framing the shaved response failed");
 

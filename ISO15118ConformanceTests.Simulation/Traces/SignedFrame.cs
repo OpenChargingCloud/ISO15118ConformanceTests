@@ -286,7 +286,7 @@ internal static class SignedFrame
         if (ok < 0)
             throw new InvalidOperationException($"re-encoding a {message.GetType().Name} failed.");
 
-        var frame = new byte[V2GTP.HeaderSize + ok];
+        var frame = new byte[V2GTPCodec.HeaderSize + ok];
         if (!V2GTPDispatcher.TryEncode(set, buffer.AsSpan(0, ok), frame, out var written))
             throw new InvalidOperationException($"re-framing a {message.GetType().Name} failed.");
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -68,7 +68,7 @@ internal static class SessionFlow
         for (var i = 0; i < frames.Count; i++)
         {
             var frame = frames[i];
-            V2GTP.TryReadHeader(frame, out var payloadType, out _);
+            V2GTPCodec.TryReadHeader(frame, out var payloadType, out _);
             var (message, responseCode) = FrameLabel.Describe(frame, isSap: firstIsSap && i == 0);
             steps.Add(new FlowStep(i, $"0x{payloadType:X4}", FrameLabel.Canonical(message), responseCode,
                                    frame.Length));

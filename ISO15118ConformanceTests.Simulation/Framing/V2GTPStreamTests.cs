@@ -47,12 +47,12 @@ namespace ISO15118ConformanceTests.Simulation.Framing
             Assert.That(SupportedAppProtocolCodec.TryEncodeRequest(req, payload, out int n), Is.True);
 
             using var stream = new MemoryStream();
-            await V2GTPStream.WriteRawFrameAsync(stream, V2GTP.PayloadType_AppProtocol, payload.AsMemory(0, n));
+            await V2GTPStream.WriteRawFrameAsync(stream, V2GTPCodec.PayloadType_AppProtocol, payload.AsMemory(0, n));
             stream.Position = 0;
 
             var (frame, payloadType) = await V2GTPStream.ReadRawFrameAsync(stream);
             Assert.That(payloadType, Is.EqualTo((ushort) 0x8001));
-            var message = SupportedAppProtocolCodec.DecodeAny(frame.AsSpan(V2GTP.HeaderSize), out _);
+            var message = SupportedAppProtocolCodec.DecodeAny(frame.AsSpan(V2GTPCodec.HeaderSize), out _);
             Assert.That(message, Is.InstanceOf<SupportedAppProtocolReq>());
         }
 
@@ -90,7 +90,7 @@ namespace ISO15118ConformanceTests.Simulation.Framing
             await V2GTPStream.WriteFrameAsync(full, MessageSet.AppProtocol, payload);
 
             // Truncate to the header plus half the declared payload.
-            using var truncated = new MemoryStream(full.ToArray().AsSpan(0, V2GTP.HeaderSize + 2).ToArray());
+            using var truncated = new MemoryStream(full.ToArray().AsSpan(0, V2GTPCodec.HeaderSize + 2).ToArray());
             Assert.That(async () => await V2GTPStream.ReadFrameAsync(truncated),
                 Throws.InstanceOf<InvalidDataException>().With.Message.Contain("payload"));
         }
@@ -114,7 +114,7 @@ namespace ISO15118ConformanceTests.Simulation.Framing
         /// a silently truncated frame instead of a refusal, and that is worse than a crash.
         /// <para>
         /// A receive limit, not a wire change: the largest frame in any recorded session is 921
-        /// bytes. See <see cref="V2GTP.MaximumPayloadBytes"/>.
+        /// bytes. See <see cref="V2GTPCodec.MaximumPayloadBytes"/>.
         /// </para>
         /// </remarks>
         [Test]
@@ -122,8 +122,8 @@ namespace ISO15118ConformanceTests.Simulation.Framing
         [TestCase(0xFFFFFFFFu)]
         public void ReadRawFrameAsync_RefusesAnAbsurdDeclaredLengthRatherThanAllocatingForIt(uint declared)
         {
-            var header = new byte[V2GTP.HeaderSize];
-            V2GTP.WriteHeader(header, V2GTP.PayloadType_DinIso2Main, declared);
+            var header = new byte[V2GTPCodec.HeaderSize];
+            V2GTPCodec.WriteHeader(header, V2GTPCodec.PayloadType_DinIso2Main, declared);
 
             using var stream = new MemoryStream(header);
 
@@ -135,10 +135,10 @@ namespace ISO15118ConformanceTests.Simulation.Framing
         [Test]
         public async Task ReadRawFrameAsync_AcceptsAFrameAtTheLargestRecordedSize()
         {
-            var payload = new byte[921 - V2GTP.HeaderSize];   // the -20 AuthorizationReq with a chain
+            var payload = new byte[921 - V2GTPCodec.HeaderSize];   // the -20 AuthorizationReq with a chain
 
             using var stream = new MemoryStream();
-            await V2GTPStream.WriteRawFrameAsync(stream, V2GTP.PayloadType_Iso20Main, payload);
+            await V2GTPStream.WriteRawFrameAsync(stream, V2GTPCodec.PayloadType_Iso20Main, payload);
             stream.Position = 0;
 
             var (frame, _) = await V2GTPStream.ReadRawFrameAsync(stream);

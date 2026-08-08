@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -87,15 +87,15 @@ public sealed class TraceReplayStream(SessionTrace trace) : Stream
         while (true)
         {
 
-            if (pending.Count < V2GTP.HeaderSize)
+            if (pending.Count < V2GTPCodec.HeaderSize)
                 return;
 
-            if (!V2GTP.TryReadHeader(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(pending),
+            if (!V2GTPCodec.TryReadHeader(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(pending),
                                      out _, out var payloadLength))
                 throw new TraceMismatch(
                     $"exchange {Replayed}: the bytes written are not a V2GTP frame (bad version/type bytes).");
 
-            var total = V2GTP.HeaderSize + checked((int) payloadLength);
+            var total = V2GTPCodec.HeaderSize + checked((int) payloadLength);
             if (pending.Count < total)
                 return;
 
@@ -167,9 +167,9 @@ public sealed class TraceReplayStream(SessionTrace trace) : Stream
         while (at < expected.Length && at < actual.Length && expected[at] == actual[at])
             at++;
 
-        var where = at < V2GTP.HeaderSize
+        var where = at < V2GTPCodec.HeaderSize
                         ? $"byte {at}, inside the 8-byte V2GTP header"
-                        : $"byte {at} (EXI payload offset {at - V2GTP.HeaderSize})";
+                        : $"byte {at} (EXI payload offset {at - V2GTPCodec.HeaderSize})";
 
         static string Window(byte[] bytes, int at) =>
             bytes.Length <= at

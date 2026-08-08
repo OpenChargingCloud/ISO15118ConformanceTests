@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -231,15 +231,15 @@ internal sealed class InteropRecording
         while (offset < bytes.Length)
         {
 
-            if (!V2GTP.TryReadHeader(bytes.AsSpan(offset), out _, out var payloadLength))
+            if (!V2GTPCodec.TryReadHeader(bytes.AsSpan(offset), out _, out var payloadLength))
                 break;
 
             // Guarded before the cast: a peer-declared length is not ours to trust, and a hostile or
             // simply broken 0xFFFFFFFF would otherwise become a negative int and index backwards.
-            if (payloadLength > V2GTP.MaximumPayloadBytes)
+            if (payloadLength > V2GTPCodec.MaximumPayloadBytes)
                 break;
 
-            var total = V2GTP.HeaderSize + (Int32) payloadLength;
+            var total = V2GTPCodec.HeaderSize + (Int32) payloadLength;
             if (offset + total > bytes.Length)
                 break;
 
