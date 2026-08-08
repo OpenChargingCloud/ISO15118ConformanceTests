@@ -107,7 +107,31 @@ else:
 Offered rather than asserted: `EVSessionContext15118` carries `-2` fields (`auth_options`,
 `charge_service`, `sa_schedule_tuple_id`) that have `-20` counterparts with different shapes, so how
 much of the *rest* of the context `-20` should preserve is a design question we cannot answer from
-outside. Rejoining the session ID is the part the standard requires and the part that is missing.
+outside. Rejoining the session ID is the part the standard requires and the part that is missing:
+`[V2G20-2622]` and `[V2G20-2623]` oblige the SECC to continue the session and answer
+`OK_OldSessionJoined` once the resumption check has succeeded.
+
+## Two things `-20` does differently from `-2`, worth knowing before fixing this
+
+Not defects being reported — the issue above is one comparison against the wrong object. But mirroring
+the `-2` branch verbatim will not by itself make a `-20` resume work end to end, because `-20` changed
+the surrounding rules in both directions:
+
+- **`-20` requires a check `-2` does not have.** `[V2G20-2545]` obliges the SECC to verify that the
+  resumption request came from the same EVCC, with the method left to the operator; 8.3.4.1.4.3 gives the
+  standard's own example, `SHA-512(SessionID ‖ SHA-512(vehicle certificate))` from the TLS handshake, and
+  `[V2G20-2626]`/`[V2G20-2627]` say a failed check becomes a new session. `-2` compares the session ID
+  and nothing else (`[V2G2-753]`/`[V2G2-754]`) — which is why the `-2` branch you already have is right
+  as it stands, and why copying it into `-20` leaves an authorization-inheriting hole. We hold the same
+  hole in our own SECC; it is on our list too, found the same way.
+- **`-20` skips what `-2` replays.** After a resume the allowed next request is
+  `ChargeParameterDiscoveryReq` (`[V2G20-1032]`, `[V2G20-1843]`) — authorization and service negotiation
+  are not repeated, since the earlier authorization stays valid for the whole service session
+  (`[V2G20-1844]`). `-2` requires the opposite: the same parameters supplied again on both sides
+  (`[V2G2-740]`, `[V2G2-741]`). **Worth checking what your `-20` states expect after a resumed
+  `SessionSetupRes`** — we have not read that path, so this is a pointer, not a claim.
+
+Requirement IDs are from ISO/FDIS 15118-20:2022 and ISO/DIS 15118-2:2022; we do not reproduce the text.
 
 ## Also affects EVerest's fork
 
@@ -132,6 +156,13 @@ fix here is worth carrying downstream.
 - [x] **Check the downstream fork**, so the issue can say who else is affected.
 - [x] **Keep the fix offered, not asserted** — how much of the context `-20` should carry beyond the
       session ID is theirs to decide.
+- [x] **Cite the requirements, never the text.** Added 2026-08-08, once the documents were to hand:
+      `[V2G20-2622]`/`[V2G20-2623]` for the obligation being missed, and the `-2`/`-20` divergence that
+      makes a verbatim mirror of the `-2` branch insufficient.
+- [ ] **Decide whether the `-20` vs `-2` section belongs in this issue at all.** It is genuinely useful
+      to whoever picks the fix up, and it is also the sort of thing that turns a tight one-comparison
+      report into a discussion. Splitting it into a follow-up comment after the issue is accepted is a
+      reasonable alternative.
 - [ ] **Re-check against current `master` before posting.** The observation is from 2026-07-22 and the
       source read from `d645255`; confirm the branches still look like this, and say which commit you
       checked.

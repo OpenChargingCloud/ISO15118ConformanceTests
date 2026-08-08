@@ -59,27 +59,45 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
+Both halves of our ISO 15118-20 pause/resume were built by analogy to `-2`, and the code comment in
+`Secc20Base.SessionSetup` names the assumption out loud: *"same OldSessionJoined mechanic as -2"*.
+**That assumption is wrong in both directions** — `-20` added an obligation `-2` does not have, and
+dropped a behaviour `-2` requires. Settled against the requirement text on 2026-08-08; see
+[`normative-basis.md`](normative-basis.md) for the clauses and for what may be cited from where.
+
 - **Our EVCC cannot resume an ISO 15118-20 session.** After `OK_OldSessionJoined` it replays its full
   opening sequence, including `AuthorizationSetupReq`; EVerest's station has already moved to
   `{AC,DC}_ChargeParameterDiscovery` by then and answers `FAILED_SequenceError`. Demonstrated live on
-  2026-08-08 ([run notes](interop-runs/2026-08-08-everest-pause-resume-tls/notes.md)). App-side work in
-  `Evcc20Base`, and it needs a loopback regression test — **our own SECC accepts the wrong sequence**,
-  so the existing E2E cannot catch it.
+  2026-08-08 ([run notes](interop-runs/2026-08-08-everest-pause-resume-tls/notes.md)) and **required by
+  `[V2G20-1032]`** — the allowed next request after a resumed `SessionSetupRes` is
+  `ChargeParameterDiscoveryReq`, per `[V2G20-1843]` with `[V2G20-2097]`/`[V2G20-2098]`/`[V2G20-5046]`.
+  Service discovery, detail and selection are skipped along with authorization; only one next message is
+  allowed and none of them is it. App-side work in `Evcc20Base`, and it needs a loopback regression test
+  — **our own SECC accepts the wrong sequence**, so the existing E2E cannot catch it.
+- **Our SECC accepts an ISO 15118-20 resume from any EVCC.** `Secc20Base.SessionSetup` rejoins on the
+  session ID alone. `[V2G20-2545]` makes the check that the resume came from the same EVCC a **shall**,
+  leaving only the *method* to the operator, and the standard's own notes spell out the consequence of
+  omitting it: a second EV that reuses another's SessionID inherits that EV's authorization, PnC or EIM
+  alike. So anyone who learns a paused session ID can claim it, and ours will hand it over. EVerest's
+  `SHA-512(SessionID ‖ SHA-512(vehicle cert))` is the standard's own worked example (8.3.4.1.4.3,
+  *should*-level) — one valid method, not the required one; a TLS-less deployment needs some other.
+  Two further pieces are missing with it: the EVCC-side mirror check `[V2G20-2539]`, and the purge on a
+  failed resume (`[V2G20-2613]`/`[V2G20-2614]`, `[V2G20-2615]`–`[V2G20-2617]`).
+- **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
+  the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
+  (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather
+  than violated. Carries the `-2` document caveat in [`normative-basis.md`](normative-basis.md) — the
+  text to hand is the 2022 DIS revision, while our stack targets ISO 15118-2:2014.
 
 ## Open questions about our own stack
 
 Not gaps in coverage — things a counterparty's behaviour raised about us, which are not settled.
 
-- **Does an ISO 15118-20 resume have to be bound to the vehicle certificate?** EVerest binds it:
-  `SHA-512(session_id ‖ vehicle_cert_hash)`, computed from the verified TLS peer certificate, and a
-  mismatch silently starts a new session. **Our SECC binds nothing** — `Secc20Base.SessionSetup`
-  rejoins on the session ID alone, and the code comment says so: *"same OldSessionJoined mechanic as
-  -2"*. If the binding is required, ours accepts a resume it should refuse, and anyone who learns a
-  session ID can claim a paused session. If it is not required, EVerest is stricter than the standard
-  and interop suffers in the other direction.
-  **This is not resolvable from what is in this repository:** the `-20` standard text is not here (only
-  ISO's schemas, which carry no requirement prose), and neither implementation is evidence about the
-  other. It needs somebody with the document. Recorded rather than guessed.
+**Currently none**, which is worth writing down rather than leaving as an empty heading. The last entry
+was the ISO 15118-20 vehicle-certificate binding, open from the 2026-08-08 EVerest run until the
+requirement text settled it the same day; it moved up to *Ours to fix* — the check is required, the
+method is not. Everything a counterparty's behaviour has raised about us is now either fixed, or a known
+defect with an owner.
 
 ## Structural — will not close without someone else building something
 
@@ -98,6 +116,14 @@ Not gaps in coverage — things a counterparty's behaviour raised about us, whic
   This is the largest single block of finished work waiting on a human.
 - **A methodological item, from the EVerest MQTT run:** *"Run every future session twice, in every
   harness. One session is not a test of a station."* Not systematically applied.
+- **A candidate seventeenth filing, unwritten:** counterparty `iso-20` certificate scripts that emit
+  secp256r1 material. The `-20` profile is secp521r1/ECDSA with Ed448 alongside (`[V2G20-2674]`,
+  `[V2G20-2319]`), and its TLS tables admit only `secp521r1`/`x448` as named groups and
+  `TLS_AES_256_GCM_SHA384`/`TLS_CHACHA20_POLY1305_SHA256` as suites — not TLS 1.3's own
+  mandatory-to-implement `TLS_AES_128_GCM_SHA256`. This converts the *"not settled"* note in the
+  [2026-08-06 TLS run](interop-runs/2026-08-06-everest-iso20-tls13-windows/notes.md) into a finding about
+  somebody else's test PKI rather than a worry that we are stricter than the field. **Confirm what their
+  script actually emits before writing anything** — the run note records only that it is not secp521r1.
 - **Kotlin and Swift parity** — Dynamic control mode and energy-transfer-mode selection exist in the C#
   EVCC and not in the ports. That is app-side work, in `libs/EVSimulatorApp`, not here.
 

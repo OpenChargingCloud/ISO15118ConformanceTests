@@ -1,3 +1,10 @@
+# Licensed standards, kept locally and never redistributed.
+# The ISO 15118 documents are ISO's copyright and are licensed per copy -- the same reason
+# libs/EVSimulatorApp/libs/WWCP_ISO15118/**/Schemas/ carries only a placeholder README and the
+# build fetches the schemas under ISO's Customer Licence Agreement. Findings derived from these
+# documents belong in docs/ as clause references and requirement IDs; the text itself does not.
+onlyLocalDoNotCommit/
+
 # Build output
 [Bb]in/
 [Oo]bj/

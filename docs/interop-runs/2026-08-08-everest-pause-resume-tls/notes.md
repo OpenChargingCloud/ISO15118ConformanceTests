@@ -99,12 +99,38 @@ bash run-pause-resume-tls.sh        # restarts the station, then both halves aga
 
 Artifacts: `our-evcc.s1.log`, `our-evcc.s2.log`, `their-charger.log`.
 
+## Addendum, same day: the standard decides it
+
+Written a few hours after the run, once the requirement text was to hand. **Both hedges above are
+resolved, and both resolve against us.** Clauses and the rules for citing them are in
+[`docs/normative-basis.md`](../../normative-basis.md); the text itself stays out of this repository.
+
+- **The sequence.** `[V2G20-1032]` names `ChargeParameterDiscoveryReq` as the allowed next request after
+  a resumed `SessionSetupRes`, and `[V2G20-1843]` binds the EVCC to `[V2G20-2097]`/`[V2G20-2098]`/
+  `[V2G20-5046]` — the AC, DC and WPT forms of exactly that message. Authorization is not repeated
+  because the earlier authorization stays valid for the whole service session (`[V2G20-1844]`). EVerest's
+  jump to `DC_ChargeParameterDiscovery` is the standard's; **our EVCC violates `[V2G20-1032]`.** Note it
+  is broader than "skip AuthorizationSetup": service discovery, detail and selection go too — one next
+  message is allowed and none of those is it.
+- **The binding.** `[V2G20-2545]` makes checking that the resume came from the same EVCC a **shall**,
+  with the method left to the operator. 8.3.4.1.4.3 is the standard's own worked example and is precisely
+  what EVerest implements, at *should* level — `SHA-512(SessionID ‖ SHA-512(vehicle cert))`. Their fall
+  back to a fresh session on mismatch is `[V2G20-2626]`/`[V2G20-2627]`, also conformant.
+  **Our SECC does none of it**, so it hands a paused session to whoever names its ID.
+- **Why we got it wrong** is now legible. `-2` requires the *opposite* on both counts: `[V2G2-753]`/
+  `[V2G2-754]` compare the session ID and nothing else, and `[V2G2-740]`/`[V2G2-741]` require the
+  parameter exchange to be replayed rather than skipped. Our `-20` code was written by analogy to `-2`
+  and the comment at `Secc20Base.cs:436` says so in as many words. The analogy is the defect.
+
+One correction to the run, therefore: the sentence above that this "is not proof about the standard" was
+right when written and is now superseded. What it establishes behaviourally still stands on its own.
+
 ## Next
 
-- **Fix our EVCC**: on `OK_OldSessionJoined`, skip `AuthorizationSetup` and open at
-  `{AC,DC}_ChargeParameterDiscovery`. That is app-side work in `Evcc20Base`, and it wants a loopback
-  regression test — our own SECC currently accepts the wrong sequence, so the loopback E2E cannot catch
-  it as it stands.
+- **Fix our EVCC**: on `OK_OldSessionJoined`, open at `{AC,DC}_ChargeParameterDiscovery` — skipping
+  authorization *and* service negotiation. App-side work in `Evcc20Base`, and it wants a loopback
+  regression test: our own SECC currently accepts the wrong sequence, so the loopback E2E cannot catch it
+  as it stands.
+- **Fix our SECC too** — `[V2G20-2545]`. The EVCC-side mirror check `[V2G20-2539]` and the purge paths
+  (`[V2G20-2613]`/`[V2G20-2614]`, `[V2G20-2615]`–`[V2G20-2617]`) are missing with it.
 - **Then re-run this**, which becomes the first live `-20` pause/resume that completes end to end.
-- **The SECC half** — the vehicle-certificate binding — stays an open question in `docs/open-work.md`
-  until somebody reads the standard.

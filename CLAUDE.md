@@ -14,6 +14,10 @@ holds the app to account against independent stacks — Josev, EVerest, EVDriveF
   independent codec), EVerest (the independent charger, and what it found in us), eVDriveFlow (the
   second codec, and the FAILED-response finding), tux-evse (the replayer).
 - **Per-run write-ups and frame logs:** `docs/interop-runs/`.
+- **What the standard actually requires:** `docs/normative-basis.md` — which requirement text is
+  available (locally, never in the repo), how much weight each document carries, and the rule for
+  citing it: clause IDs and paraphrase, never ISO prose. Consult it before recording anything as
+  "not decidable" — several such notes were decidable and are now decided.
 - **The stack under test:** `libs/EVSimulatorApp/` — its own README documents the codec and the simulation.
 
 ## Build & test
