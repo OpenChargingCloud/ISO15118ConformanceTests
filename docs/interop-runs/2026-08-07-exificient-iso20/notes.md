@@ -368,7 +368,7 @@ on purpose.
 5. ~~**Close the `ServiceDetailRes` and `AuthorizationReq` deltas**~~ — **done 2026-08-08, and the
    off-by-one was real**: a compact identifier costs bits of its own, so a 35-character URI saves 34
    bytes. The `-2` case came out even by luck. See
-   [`2026-08-08-value-partition-20`](../2026-08-08-value-partition-20/notes.md), which also found that a
+   [`2026-08-08-value-partition`](../2026-08-08-value-partition/notes.md), which also found that a
    repeated *certificate* is worth nothing at all — `base64Binary` never enters the string table.
    `ACDP_ConnectRes` had already moved to cause A, so the eight that remain are all one thing, and now
    all measured.

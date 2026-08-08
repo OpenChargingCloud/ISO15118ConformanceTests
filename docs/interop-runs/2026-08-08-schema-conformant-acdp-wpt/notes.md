@@ -110,7 +110,7 @@ schema above through `Roundtrip20`'s XML probe and read the two bits after the o
   EXI 1.0 §8.5.1, and B contradicts the generator's own input schema. B is the more serious of the two
   for their users, since it makes valid documents unencodable.
 - ~~**The value partition**~~ — **done the same day.** All eight are the string table, shown by
-  substitution: [`2026-08-08-value-partition-20`](../2026-08-08-value-partition-20/notes.md). The
+  substitution: [`2026-08-08-value-partition`](../2026-08-08-value-partition/notes.md). The
   off-by-one was real (an identifier costs bits of its own), and a repeated certificate turns out to be
   worth nothing, because `base64Binary` never enters the table. The `-20` corpus now has no unexplained
   frame in it.

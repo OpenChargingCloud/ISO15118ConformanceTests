@@ -159,6 +159,29 @@ namespace ISO15118ConformanceTests.Simulation.Interop
         /// <summary>
         /// The other direction is already covered by the corpus, but the cost is worth stating: the
         /// literal we write instead of an identifier is the entire difference, to the byte.
+        ///
+        /// <para>
+        /// <b>Right, and for a reason this test did not state until 2026-08-08.</b> Two things came out
+        /// of running the substitution over both corpora
+        /// (<c>tools/interop-exificient/valuepartition.py</c>; see
+        /// <c>docs/interop-runs/2026-08-08-value-partition/</c>).
+        /// </para>
+        ///
+        /// <para>
+        /// First, <c>MeteringReceiptReq</c> repeats a <i>second</i> value — the 8-byte SessionID — and
+        /// it is worth exactly <b>zero</b>. <c>sessionIDType</c> is <c>xs:hexBinary</c>, and EXI's value
+        /// partitions hold string values: a Binary datatype never enters the table, for anyone. Had it
+        /// been a string, the assertion below would have been wrong. It passes because of a property of
+        /// the schema, not because the URI is the only repeat in the document.
+        /// </para>
+        ///
+        /// <para>
+        /// Second, the equality is <b>not a rule</b>. The same URI, in the same position of the same
+        /// signature block, is worth 35 bytes here and 34 in ISO 15118-20 — see
+        /// <see cref="ExiStringTable20Tests"/>. A compact identifier costs bits of its own, and whether
+        /// that surfaces as a whole byte depends on where the run lands before the frame is padded.
+        /// This test pins two measured numbers; it does not license the arithmetic elsewhere.
+        /// </para>
         /// </summary>
         [Test]
         [TestCase(OurAuthorizationReq,   TheirAuthorizationReq)]
@@ -167,7 +190,26 @@ namespace ISO15118ConformanceTests.Simulation.Interop
         {
             Assert.That(Hex(ourHex).Length - Hex(theirHex).Length,
                 Is.EqualTo(RepeatedAlgorithm.Length),
-                $"we spend {RepeatedAlgorithm.Length} bytes re-writing '{RepeatedAlgorithm}'");
+                $"we spend {RepeatedAlgorithm.Length} bytes re-writing '{RepeatedAlgorithm}' — measured, " +
+                 "not derived: the same repeat is worth 34 bytes in the -20 corpus");
+        }
+
+
+        /// <summary>
+        /// The SessionID `MeteringReceiptReq` repeats, which costs neither encoder anything. Stated as
+        /// its own test because the sibling assertion above depends on it being free, and because the
+        /// same rule is what makes a repeated *certificate* free in ISO 15118-20 — the largest values
+        /// the protocol carries are outside the string table entirely.
+        /// </summary>
+        [Test]
+        public void TheRepeatedSessionIdIsFree_BecauseBinaryValuesNeverEnterTheTable()
+        {
+            const string sessionId = "0A0B0C0D0E0F1011";   // hexBinary, repeated in the receipt
+
+            Assert.That(Hex(OurMeteringReceiptReq).Length - Hex(TheirMeteringReceiptReq).Length,
+                Is.EqualTo(RepeatedAlgorithm.Length),
+                $"if '{sessionId}' were a string value its repeat would show up here as well, and the " +
+                $"difference would be {RepeatedAlgorithm.Length + sessionId.Length}");
         }
 
 

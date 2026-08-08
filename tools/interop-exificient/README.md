@@ -112,11 +112,11 @@ This is what located cause C to a single particle.
 ## Attributing a length difference
 
 ```bash
-python3 tools/interop-exificient/valuepartition20.py
+python3 tools/interop-exificient/valuepartition.py
 ```
 
 A frame that *reads* but comes back a different length is a different question, and "it must be the
-string table" is an attribution, not a measurement. [`valuepartition20.py`](valuepartition20.py) turns
+string table" is an attribution, not a measurement. [`valuepartition.py`](valuepartition.py) turns
 it into one: our encoder never emits a partition hit, so replacing a repeated value with a different
 value of the **same length** cannot change our output and removes theirs. Their encoding must then land
 on our length exactly, or the remainder is something else.
@@ -125,4 +125,4 @@ It measures each repeat on its own as well as all of them together, which is how
 that the arithmetic had hidden — a compact identifier costs bits of its own (so a 35-character URI
 saves 34 bytes, the "off by one" the run notes could not explain), and a repeated *certificate* is
 worth nothing at all, because `base64Binary` is not a string value and never enters the table. See
-[`2026-08-08-value-partition-20`](../../docs/interop-runs/2026-08-08-value-partition-20/notes.md).
+[`2026-08-08-value-partition`](../../docs/interop-runs/2026-08-08-value-partition/notes.md).

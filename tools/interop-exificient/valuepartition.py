@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""Attribute the -20 length mismatches to the EXI value partition, by substitution rather than by eye.
+"""Attribute a length mismatch to the EXI value partition, by substitution rather than by eye.
 
 The claim
 ---------
-Every frame in the -20 corpus that EXIficient re-encodes to a *different* length is said to differ for
-one reason: EXI keeps a string table (§7.3.3), and a value written a second time can be sent as a
-compact identifier instead of a literal. EXIficient does that; our encoder is deliberately miss-only
-and writes the literal again. If that is the whole story, the difference must equal exactly what those
-repeats cost us.
+Every frame that EXIficient re-encodes to a *different* length is said to differ for one reason: EXI
+keeps a string table (§7.3.3), and a value written a second time can be sent as a compact identifier
+instead of a literal. EXIficient does that; our encoder is deliberately miss-only and writes the
+literal again. If that is the whole story, the difference must equal exactly what those repeats cost
+us.
 
-"Must equal" is testable, and inference is not good enough — the same claim was made for `-2` and only
-became a finding once it was measured. This does for -20 what
-`ISO15118ConformanceTests.Simulation/Interop/ExiStringTableTests.cs` records for -2.
+"Must equal" is testable, and inference is not good enough. Both corpora had the claim recorded
+against them without a measurement — `-2` in
+`ISO15118ConformanceTests.Simulation/Interop/ExiStringTableTests.cs` with an arithmetic that happened
+to come out even, and `-20` with one that did not and was written up as an unexplained off-by-one.
+This covers both: the method is protocol-independent, and running it over `-2` is what shows whether
+that even arithmetic was a rule or a coincidence.
 
 The experiment
 --------------
@@ -33,14 +36,15 @@ frame we started from:
 
 Usage
 -----
-    python3 valuepartition20.py [--repo <path>]
+    python3 valuepartition.py [--repo <path>] [--protocol iso15118-2|iso15118-20]
 
-Reads the -20 session traces, finds the frames whose length EXIficient changes, and reports the
-arithmetic for each. Needs the same rig as `roundtrip20.py`.
+Reads the session traces, finds the frames whose length EXIficient changes, and reports the arithmetic
+for each. Needs the same rig as `roundtrip20.py`.
 """
 
 import argparse
 import json
+import shutil
 import string
 import sys
 import xml.etree.ElementTree as ET
@@ -50,10 +54,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from roundtrip20 import BY_PAYLOAD_TYPE, JAR, Exificient, V2GTP_HEADER_BYTES   # noqa: E402
 
 
-def frames_of(path: Path):
-    """Every -20 frame in a session trace, as (label, schema, hex)."""
+APP_PROTOCOL_SCHEMA = "WWCP_ISO15118_EXI/Schemas/V2G_CI_AppProtocol.xsd"
+ISO2_SCHEMA         = "WWCP_ISO15118_2/Schemas/V2G_CI_MsgDef.xsd"
+
+
+def schema_for(protocol: str, item: dict) -> str | None:
+    """Which XSD a frame belongs to.
+
+    `-20` says it on the wire: three message sets share one connection and the V2GTP payload type is
+    what tells the peer which is which. `-2` does not — everything is payload type `0x8001`, including
+    the SupportedAppProtocol handshake that precedes the protocol it negotiates — so the message name
+    is the only thing to go on. That is a property of the standard, not of this corpus: a `-2` decoder
+    has to try both grammars, which is exactly the ambiguity filed against V2Gdecoder as its issue A.
+    """
+    if protocol == "iso15118-20":
+        return BY_PAYLOAD_TYPE.get(str(item.get("payloadType", "")).lower())
+    if protocol == "iso15118-2":
+        name = item.get("message", "")
+        return APP_PROTOCOL_SCHEMA if name.startswith("SupportedAppProtocol") else ISO2_SCHEMA
+    return None
+
+
+def frames_of(path: Path, protocols: set[str]):
+    """Every frame in a session trace, as (label, schema, hex)."""
     doc = json.loads(path.read_text(encoding="utf-8-sig"))
-    if doc.get("protocol") != "iso15118-20":
+    protocol = doc.get("protocol", "")
+    if protocol not in protocols:
         return []
     out = []
     for exchange in doc["exchanges"]:
@@ -61,7 +87,7 @@ def frames_of(path: Path):
             item = exchange.get(side)
             if not item or not item.get("frame"):
                 continue
-            schema = BY_PAYLOAD_TYPE.get(str(item.get("payloadType", "")).lower())
+            schema = schema_for(protocol, item)
             if schema is None:
                 continue
             out.append((f"{path.name}#{exchange['index']:02d}.{side[:3]} {item.get('message', '?')}",
@@ -127,18 +153,31 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo", type=Path, default=Path.cwd())
+    ap.add_argument("--protocol", action="append", choices=["iso15118-2", "iso15118-20"],
+                    help="restrict to one protocol; repeatable, default both")
     args = ap.parse_args()
 
+    protocols = set(args.protocol or ["iso15118-2", "iso15118-20"])
     schema_root = args.repo / "libs" / "EVSimulatorApp" / "libs" / "WWCP_ISO15118"
     if not JAR.exists():
         raise SystemExit(f"no jar at {JAR} — run tools/interop-v2gdecoder/setup.sh")
 
     traces = sorted((args.repo / "ISO15118ConformanceTests.Simulation" / "Vectors")
-                    .glob("Session.iso20-*.trace.json"))
-    frames = [f for t in traces for f in frames_of(t)]
-    print(f"== {len(frames)} -20 frames across {len(traces)} traces")
+                    .glob("Session.*.trace.json"))
+    frames = [f for t in traces for f in frames_of(t, protocols)]
+    used = sorted({t.name for t in traces if frames_of(t, protocols)})
+    print(f"== {len(frames)} frames across {len(used)} traces ({', '.join(sorted(protocols))})")
 
     exi = Exificient(schema_root, Path.home() / "v2gdec" / "exificient-work")
+
+    # roundtrip20's staging knows the -20 sets and AppProtocol; -2 has its own directory and is only
+    # reachable from here, so stage it alongside rather than teach the -20 runner about it.
+    iso2_source = schema_root / Path(ISO2_SCHEMA).parent
+    iso2_staged = exi.schema_root / Path(ISO2_SCHEMA).parent
+    if "iso15118-2" in protocols and not iso2_staged.exists():
+        if not iso2_source.is_dir():
+            raise SystemExit(f"-2 schemas not present — run download-schemas.sh:\n  {iso2_source}")
+        shutil.copytree(iso2_source, iso2_staged)
 
     # Round 1: which frames does their encoder shorten, and what did they read?
     verdicts = exi.run([(label, schema, hexstr) for label, schema, hexstr in frames])

@@ -38,7 +38,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
     /// </para>
     ///
     /// <para>
-    /// <c>tools/interop-exificient/valuepartition20.py</c> settles it by substitution. Our encoder
+    /// <c>tools/interop-exificient/valuepartition.py</c> settles it by substitution. Our encoder
     /// never emits a hit, so replacing a repeated value with a different value of the same length
     /// cannot change our output; it removes theirs. Do that and their encoding must land on our length
     /// exactly, or the remainder is something else. It lands exactly, for all eight frames.
@@ -52,10 +52,12 @@ namespace ISO15118ConformanceTests.Simulation.Interop
     /// <i>The identifier is not free.</i> `ServiceDetailRes` repeats four parameter names, and they are
     /// worth 17, 11, 9 and 6 bytes to EXIficient — the last one a byte less than its own length, which
     /// is where the arithmetic stops being exact: a compact identifier occupies bits of its own, and
-    /// whether that shows up as a whole byte depends on where the run lands. The `-2` case happened to
-    /// come out even, which is why the naive sum worked there and had to be abandoned here. The
-    /// `AuthorizationReq` URI is worth 34, not 35, for the same reason — that is the "off by one", and
-    /// it is not an anomaly.
+    /// whether that shows up as a whole byte depends on where the run lands before the frame is padded.
+    /// The `AuthorizationReq` URI is worth 34, not 35, for the same reason — that is the "off by one",
+    /// and it is not an anomaly. Running the same substitution over `-2` afterwards confirmed the other
+    /// side of it: there the identical URI, in the identical signature block, really is worth 35. Not
+    /// a contradiction and not luck — the saving is a bit count, and the byte it rounds to is a
+    /// property of everything else in the message. The rule is to measure it.
     /// </para>
     ///
     /// <para>
@@ -65,6 +67,12 @@ namespace ISO15118ConformanceTests.Simulation.Interop
     /// encoded as a Binary datatype, so a repeated certificate can never become an identifier for
     /// anyone. It is worth stating positively: the largest values ISO 15118 puts on the wire cost our
     /// miss-only encoder nothing at all. What it costs us is repeated short strings.
+    /// </para>
+    ///
+    /// <para>
+    /// The same rule holds in `-2` through a different type — `MeteringReceiptReq` repeats its
+    /// `xs:hexBinary` SessionID for nothing; see
+    /// <see cref="ExiStringTableTests.TheRepeatedSessionIdIsFree_BecauseBinaryValuesNeverEnterTheTable"/>.
     /// </para>
     /// </summary>
     [TestFixture]
@@ -197,7 +205,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
         /// trace (`Session.iso20-dc-pnc.trace.json`, exchange 3) and in the run's own
         /// `roundtrip-results.json`, and duplicating 1.8 kB of hex into a test file to restate a
         /// subtraction would not make the claim any truer. The measurement that does is
-        /// `valuepartition20.py`, which is a rig tool by necessity.
+        /// `valuepartition.py`, which is a rig tool by necessity.
         /// </para>
         /// </summary>
         [Test]

@@ -1,7 +1,8 @@
-# 2026-08-08 — the last eight, measured instead of attributed
+# 2026-08-08 — the last ten, measured instead of attributed
 
-**Result: all eight remaining `-20` length differences are the EXI value partition, shown by
-substitution rather than by arithmetic. Nothing in the corpus is now unexplained.**
+**Result: every length difference in both corpora — eight in `-20`, two in `-2` — is the EXI value
+partition, shown by substitution rather than by arithmetic. Neither corpus now has an unexplained
+frame in it.**
 
 After the [ACDP and WPT decision](../2026-08-08-schema-conformant-acdp-wpt/notes.md) the `-20` corpus
 stood at 339 of 347 byte-exact, with eight frames EXIficient re-encodes shorter than we write them.
@@ -14,10 +15,10 @@ That is now measured. The one turned out to be real, and so did something nobody
 
 | | |
 |---|---|
-| Tool | [`tools/interop-exificient/valuepartition20.py`](../../../tools/interop-exificient/valuepartition20.py) |
+| Tool | [`tools/interop-exificient/valuepartition.py`](../../../tools/interop-exificient/valuepartition.py) |
 | Method | substitute every repeat with a same-length unique value; their encoding must land on our length |
-| Corpus | the 7 `-20` session traces, 240 frames, 8 of them mismatching |
-| Offline guard | [`Interop/ExiStringTable20Tests.cs`](../../../ISO15118ConformanceTests.Simulation/Interop/ExiStringTable20Tests.cs) |
+| Corpus | 12 session traces, 370 frames — 240 `-20` and 130 `-2` — 10 of them mismatching |
+| Offline guard | [`ExiStringTable20Tests.cs`](../../../ISO15118ConformanceTests.Simulation/Interop/ExiStringTable20Tests.cs), alongside the existing [`ExiStringTableTests.cs`](../../../ISO15118ConformanceTests.Simulation/Interop/ExiStringTableTests.cs) |
 
 ## Why substitution and not arithmetic
 
@@ -82,6 +83,44 @@ nothing.** Certificates and chains, which dominate every Plug & Charge message, 
 table entirely. What miss-only costs us is repeated *short strings* — and the worst case in the whole
 corpus is 43 bytes on a 138-byte message.
 
+## And then the same method over `-2`, which corrected me
+
+`-2` had had this experiment run on it before, on 2026-08-07, and its result is what
+[`ExiStringTableTests`](../../../ISO15118ConformanceTests.Simulation/Interop/ExiStringTableTests.cs)
+records: the URI repeat is worth exactly 35 bytes in both signed frames. After the `-20` result above I
+wrote that the `-2` arithmetic had "come out even by luck" and proposed re-running it to see whether
+the one-byte effect was hiding there too. It was not:
+
+```
+-- Session.iso2-ac-pnc.trace.json#05.req AuthorizationReqType
+     repeated x2,  35 chars: http://www.w3.org/TR/canonical-exi/
+     ours 307 B, theirs 272 B, delta 35            ->  ACCOUNTED FOR
+
+-- Session.iso2-ac-pnc.trace.json#09.req MeteringReceiptReqType
+     repeated x2,  35 chars: http://www.w3.org/TR/canonical-exi/  -> worth 35 B to them
+     repeated x2,  16 chars: 0A0B0C0D0E0F1011                     -> worth  0 B to them
+     ours 317 B, theirs 282 B, delta 35            ->  ACCOUNTED FOR
+```
+
+Both accounted for, and the 35 is real — the same URI, in the same position in the same signature
+block, is worth 35 bytes under `-2` and 34 under `-20`. Nothing is inconsistent about that: the saving
+is the literal's cost minus the identifier's, both counted in bits, and the frame is padded to a byte
+at the end. Which side of a byte boundary that lands on is a property of everything else in the
+message. **So the rule is not "a repeat is worth its length" and not "its length minus one" — it is
+"measure it".**
+
+### The binary rule, confirmed in a second protocol and a second type
+
+`MeteringReceiptReqType` repeats the 8-byte SessionID as well, and it is worth **zero** — for the same
+reason the `-20` certificate is, but through a different XSD type: `sessionIDType` is `xs:hexBinary`
+where `certificateType` is `xs:base64Binary`. Both are Binary datatypes in EXI and neither enters the
+string table.
+
+That also means the existing `-2` test was right for a reason it did not state. Its assertion — the
+delta equals the URI's 35 characters — holds for `MeteringReceiptReqType` *because* the second repeat
+in that frame contributes nothing. Had `sessionIDType` been a string, the assertion would have been
+wrong and the naive arithmetic would have been caught a day earlier. The remark has been added there.
+
 ## One measurement error, caught and corrected
 
 The first run of this reported `RESIDUE -2 B` on `AuthorizationReq` — their substituted encoding two
@@ -106,23 +145,30 @@ this run no `-20` frame from a foreign encoder had ever exercised that path.
 ## Reproducing
 
 ```bash
-python3 tools/interop-exificient/valuepartition20.py
+python3 tools/interop-exificient/valuepartition.py
 ```
 
-## Where the `-20` corpus stands
+## Where both corpora stand
 
-| | |
-|---|---:|
-| byte-exact | 339 of 347 |
-| length differences, all explained | 8 |
-| unreadable by an independent codec | 0 |
-| unexplained | **0** |
+| | `-2` | `-20` |
+|---|---:|---:|
+| byte-exact | 183 of 186 | 339 of 347 |
+| length differences, now all measured | 2 | 8 |
+| unreadable by an independent codec | 0 | 0 |
+| unexplained | **1** | **0** |
+
+The one left in `-2` is not a length difference and not ours: `80 40 80` is a three-byte
+`supportedAppProtocolRes` that V2Gdecoder resolves against the wrong grammar because
+`fuzzyExiDecoded` returns whichever one does not throw first. That is
+[issue A in the report to FlUxIuS](../../reports/v2gdecoder-fuzzy-grammar.md), filed and outside this
+experiment — the frame never reaches the value partition at all.
+
+Scope worth stating plainly: this run covers the **session traces** of both protocols, 370 frames,
+because that is where repeated values occur. The `-2` figure above is the full 2026-08-07 corpus
+(traces *and* vectors) for comparison; the two frames it measured are the two length differences in it.
 
 ## Next
 
-- **The same question for `-2`.** `ExiStringTableTests` pins two frames and the naive arithmetic worked
-  there; after today that looks like luck rather than a rule. Running `valuepartition20.py`'s method
-  over the `-2` corpus would either confirm the two numbers or find the same one-byte effect hiding in
-  them.
-- **Nothing else.** For the first time since this oracle was set up, the `-20` corpus has no open
+- ~~**The same question for `-2`**~~ — done, above, and it corrected the guess that prompted it.
+- **Nothing else.** For the first time since this oracle was set up, neither corpus has an open
   question in it.
