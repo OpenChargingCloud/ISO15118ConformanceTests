@@ -6,7 +6,9 @@
 # Usage: reverse-bpt-sdp.sh [dc|ac]   (default: dc)
 set -uo pipefail
 MODE="${1:-dc}"
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 CFG="/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_20/evcc_config_${MODE}_bpt.json"
 SECC_LOG=/tmp/secc-${MODE}-bpt.log

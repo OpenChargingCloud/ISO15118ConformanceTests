@@ -10,7 +10,9 @@
 # Prereq: /tmp/secc.p12 (Josev SECC leaf+key+CPO Sub-CAs, pw 12345) — the EVCC validates our TLS server
 # cert against its V2G root, so we present the chain it trusts. -2 TLS is unilateral (no client cert).
 set -uo pipefail
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 CFG=/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_2/evcc_config_pnc_ac.json
 SECC_LOG=/tmp/secc-iso2-pnc.log

@@ -4,7 +4,9 @@
 # captured in both logs (our SECC may abort with a sequence guard if the message is not yet handled — the
 # probe's value is Josev's EXI log of the req it encodes, esp. WHAT its signature covers).
 set -uo pipefail
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/secc-certinstall-probe.log
 EVCC_LOG=/tmp/evcc-certinstall-probe.log

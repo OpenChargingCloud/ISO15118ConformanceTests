@@ -15,7 +15,9 @@ set -uo pipefail
 PROTO="${1:-2}"
 IFACE="${2:-eth0}"
 MODE=$([ "$PROTO" = "2" ] && echo ac || echo dc)
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/josev-secc-pause.log
 EVCC_LOG=/tmp/our-evcc-pause.log

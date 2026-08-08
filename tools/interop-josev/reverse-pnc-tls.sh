@@ -3,7 +3,9 @@
 # PnC SignedInfo signature via the standalone-xmldsig grammar fallback (expect: signature OK, grammar=xmldsig-standalone).
 set -uo pipefail
 
-REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
+# The repository root, two levels up from this script -- not a path on one particular machine.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$here/../.." && pwd)"
 CLI="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
 SECC_LOG=/tmp/secc-pnc2.log
 SDP_LOG=/tmp/sdp-pnc2.log
