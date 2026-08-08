@@ -1,7 +1,11 @@
 # 2026-08-07 — ISO 15118-20 gets a second opinion, and it disagrees fifteen times
 
 **Result: 347 frames, 332 byte-exact through EXIficient, 9 mismatches, 6 it cannot read. 3.7 seconds.**
-**As it stands after the day's work: 333, and the five still unread are a decision rather than a defect.**
+
+**Where it ended up: 339 byte-exact, 8 mismatches, nothing unreadable.** All three causes below are
+settled — one was a defect and is fixed, two were decisions and were taken on 2026-08-08
+([notes](../2026-08-08-schema-conformant-acdp-wpt/notes.md)). The eight remaining mismatches all have
+the single value-partition cause already recorded for `-2`.
 
 Until today `-20` had exactly one byte oracle: **libcbv2g**, which is also our vector generator and also
 what EVerest and tux-evse encode with. Every `-20` byte agreement this project could show was agreement
@@ -69,7 +73,8 @@ experiment has not been run. Recorded as "the same shape", not as the same findi
 
 `ACDP_ConnectRes` looked like a third instance and is not one: it is the other half of the element
 numbering defect, cause A below. Worth noting how it read before that was known — a small, plausible
-byte delta on a message whose grammar we had no reason to doubt.
+byte delta on a message whose grammar we had no reason to doubt. It disappeared the moment A was
+decided, which is the confirmation: **eight mismatches now, and all eight are the value partition.**
 
 ## The afternoon this cost, and the one line that fixed it
 
@@ -194,6 +199,15 @@ numbers them the same way we do, and no other codec had ever looked.
 > here. What is settled is what the disagreement costs, and that either encoding is now a build
 > property away.
 
+> **Settled the next day, and the correction above was itself half wrong.** A and B are indeed the same
+> *kind* of question — but neither is a matter of taste. EXI 1.0 Second Edition §8.5.1 gives the
+> `DocContent` grammar one `SE` production per global element qname, "sorted lexicographically, first by
+> local-name, then by uri", with no exception for elements sharing a type. Confirmed independently by
+> having EXIficient encode a three-element schema in exactly the ACDP shape: indices 0/1/2, where our
+> grouping gives 0/2/1. cbexigen departs from the specification here; we were copying the departure.
+> **Decided 2026-08-08 to follow the specification** — see
+> [`2026-08-08-schema-conformant-acdp-wpt`](../2026-08-08-schema-conformant-acdp-wpt/notes.md).
+
 ### B — the four WPT frames are cbV2G's grammar, not the schema's (4 frames)
 
 Our own generated code says so, in as many words:
@@ -223,6 +237,12 @@ four `WPT_FinePositioning*` messages — the four that failed. The working sibli
 the project's stated rule for the codec, and here cbV2G's grammar and ISO's schema disagree. The rule
 bought byte-exactness with the stacks that share cbexigen and cost readability by everyone else. That
 trade was never visible before, because until today nobody else had read a WPT frame of ours.
+
+> **Decided 2026-08-08: follow the schema.** Note what this one costs beyond readability — cbexigen's
+> grammar cannot express two perfectly valid documents at all (a third list item, and the suffix
+> without a preceding item), so reproducing it made our encoder refuse messages ISO permits. Switched
+> together with A; see
+> [`2026-08-08-schema-conformant-acdp-wpt`](../2026-08-08-schema-conformant-acdp-wpt/notes.md).
 
 ### C — `AC_ChargeParameterDiscoveryRes_DER`: a forced occurrence is not a choice (1 frame)
 
@@ -331,13 +351,12 @@ on purpose.
 
 ## Next
 
-1. ~~Fix A~~ — **done differently, and see the correction above.** A is policy, not a defect; the
-   generator gained a switch (`ExiDocumentElementOrder`) with the cbexigen numbering still the default.
-   What remains is the decision itself, and that wants the EXI 1.0 text.
-2. **Decide A and B together** — they are one question: stay byte-exact with cbV2G and unreadable to
-   schema-following codecs, or follow the schema and diverge from our own corpus. Both are now build
-   properties (`ExiDocumentElementOrder`, `ExiParticleGrammar`), both defaulting to cbV2G. Worth raising
-   with EVerest either way, since it is their generator's grammar in both cases.
+1. ~~Fix A~~ — **done as a switch first, then decided.** See both corrections above: A is the same kind
+   of question as B, and the EXI 1.0 text settles it against cbexigen.
+2. ~~**Decide A and B together**~~ — **done 2026-08-08: follow the schema.** Both are build properties
+   (`ExiDocumentElementOrder`, `ExiParticleGrammar`), and the ISO codecs now set them in
+   `Directory.Build.props`; the cbexigen bytes remain one property away. Still worth raising with
+   EVerest, and now as two concrete defect reports rather than as a difference of opinion.
 3. ~~Diagnose C~~ — **done, and fixed.** A forced occurrence (`minOccurs="2"`) took a two-bit
    start-element code where the grammar has a one-bit one. No switch: no reference encoder has ever
    written any of the five affected particles, so there was nothing to stay byte-exact with.

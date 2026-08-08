@@ -103,7 +103,7 @@ how to read one.
 | Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
 | Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
-| WPT · ACDP | ▢ codec only — no session state machine on either side | *codec-validated only — no independent stack implements session state machines for them* | | | |
+| WPT · ACDP | ▢ codec only — but the codec is now independently judged²² | *no independent stack implements session state machines for them; the bytes are read by EXIficient* | | | |
 | MCS | ✅ `Secc20McsTests` | — | ✅ `EV→` ×3 (Scheduled ×2, Dynamic) · `←SECC` their EV picked service **8** out of our catalogue⁸ | — | — |
 | MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ `EV→` ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
 
@@ -214,6 +214,16 @@ charge-loop defect first — so this is the negotiation, in full, and not a disc
 recorded: their `ev_dummy_controller` starts at `present_soc = 0` (the GUI's field sets it), and an
 empty battery correctly declares zero discharge, so the run patches that one line to 60 in their copy.
 Both numbers are on file.
+
+²² Still no session state machine anywhere but ours — but "codec only" no longer means "judged only by
+its own generator". Since 2026-08-07 every WPT and ACDP frame in the corpus is decoded and re-encoded by
+**EXIficient**, which shares no line with cbexigen, and since 2026-08-08 they agree to the octet. Getting
+there cost two deliberate changes: these were the only message sets where this codec had been
+reproducing cbexigen's grammar rather than ISO's, and where the two disagree we now follow the schema —
+[`2026-08-08-schema-conformant-acdp-wpt`](docs/interop-runs/2026-08-08-schema-conformant-acdp-wpt/notes.md).
+The failure that decision turned up is the reason it was not close: our `ACDP_ConnectRes` decoded
+**cleanly, as `ACDP_DisconnectReq`** — the wrong message, with nothing to report it. Both deviations are
+drafted for libcbv2g in [`docs/reports/`](docs/reports/libcbv2g-grammar-deviations.md).
 
 ²¹ The capability this counterparty was chosen for, reached once the stdin wall fell:
 `TLS_AES_256_GCM_SHA384` under TLS 1.3, both peers authenticated — their EV verified our station

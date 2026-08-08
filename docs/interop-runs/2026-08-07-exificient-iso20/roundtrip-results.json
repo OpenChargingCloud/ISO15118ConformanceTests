@@ -3,68 +3,14 @@
  "oracle": "EXIficient 1.0.4 (from the V2Gdecoder jar), OpenJDK 25, offline entity resolution",
  "method": "our bytes -> their decode -> their encode -> compare",
  "schemas": "ISO 15118-20, read from the app submodule",
- "note": "Re-run the same day after the minOccurs>=2 fix (cause C in notes.md): AC_ChargeParameterDiscoveryRes_DER moved from decode-fail to ok, 332 -> 333. The five frames that still do not read are causes A and B, which are decisions, not defects.",
+ "note": "Three re-runs the same week, as each cause was settled. First run: ok=332, mismatch=9, decode-fail=6. After the minOccurs>=2 fix (cause C, a defect): 333/9/5. After ACDP and WPT were switched to the schema-conformant grammar on 2026-08-08 (causes A and B, decisions): 339/8/0. Every frame in the -20 corpus is now readable by a codec that shares no line with ours, and the eight remaining mismatches all have the one cause recorded for -2 in ExiStringTableTests -- EXIficient uses the EXI value partition for a repeated string where our encoder is deliberately miss-only.",
  "totals": {
-  "ok": 333,
-  "mismatch": 9,
-  "decode-fail": 5,
+  "ok": 339,
+  "mismatch": 8,
+  "decode-fail": 0,
   "encode-fail": 0
  },
  "notMatched": [
-  {
-   "file": "Iso15118_20.ACDP.vectors.json",
-   "frame": "ACDP_ConnectRes",
-   "schema": "V2G_CI_ACDP.xsd",
-   "verdict": "mismatch",
-   "detail": "ours 20 B, theirs 18 B",
-   "ourHex": "8008040000000000000000080e2cfaa062000108",
-   "theirHex": "8008040000000000000000080e2cfaa06200"
-  },
-  {
-   "file": "Iso15118_20.ACDP.vectors.json",
-   "frame": "ACDP_DisconnectReq",
-   "schema": "V2G_CI_ACDP.xsd",
-   "verdict": "decode-fail",
-   "detail": "TransformerException: java.io.EOFException: Premature EOS found while reading data.",
-   "ourHex": "8004040000000000000000080e2cfaa06200",
-   "theirHex": null
-  },
-  {
-   "file": "Iso15118_20.WPT.vectors.json",
-   "frame": "WPT_FinePositioningSetupReq",
-   "schema": "V2G_CI_WPT.xsd",
-   "verdict": "decode-fail",
-   "detail": "TransformerException: java.io.EOFException: Premature EOS found while reading data.",
-   "ourHex": "8084040000000000000000080e2cfaa062000824040020",
-   "theirHex": null
-  },
-  {
-   "file": "Iso15118_20.WPT.vectors.json",
-   "frame": "WPT_FinePositioningSetupRes",
-   "schema": "V2G_CI_WPT.xsd",
-   "verdict": "decode-fail",
-   "detail": "TransformerException: java.io.EOFException: Premature EOS found while reading data.",
-   "ourHex": "8088040000000000000000080e2cfaa062000082404002",
-   "theirHex": null
-  },
-  {
-   "file": "Iso15118_20.WPT.vectors.json",
-   "frame": "WPT_FinePositioningReq",
-   "schema": "V2G_CI_WPT.xsd",
-   "verdict": "decode-fail",
-   "detail": "TransformerException: java.io.EOFException: Premature EOS found while reading data.",
-   "ourHex": "807c040000000000000000080e2cfaa0620120",
-   "theirHex": null
-  },
-  {
-   "file": "Iso15118_20.WPT.vectors.json",
-   "frame": "WPT_FinePositioningRes",
-   "schema": "V2G_CI_WPT.xsd",
-   "verdict": "decode-fail",
-   "detail": "TransformerException: java.io.EOFException: Premature EOS found while reading data.",
-   "ourHex": "8080040000000000000000080e2cfaa0620002",
-   "theirHex": null
-  },
   {
    "file": "Session.iso20-ac-eim-dynamic.trace.json",
    "frame": "05.res ServiceDetailRes",

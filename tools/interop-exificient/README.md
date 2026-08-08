@@ -1,8 +1,10 @@
 # interop-exificient — the second opinion for ISO 15118-20
 
-**347 frames, 332 byte-exact, 9 mismatches, 6 unreadable, 3.7 seconds** — and after the fix the run
-found, **333 and five**.
-Run of 2026-08-07: [`docs/interop-runs/2026-08-07-exificient-iso20/`](../../docs/interop-runs/2026-08-07-exificient-iso20/notes.md).
+**347 frames, 339 byte-exact, 8 mismatches, nothing unreadable, 3.7 seconds.**
+The first run was 332 / 9 / **6**; all six causes are settled.
+Runs: [`2026-08-07-exificient-iso20`](../../docs/interop-runs/2026-08-07-exificient-iso20/notes.md) —
+what it found; [`2026-08-08-schema-conformant-acdp-wpt`](../../docs/interop-runs/2026-08-08-schema-conformant-acdp-wpt/notes.md) —
+what was decided about it.
 
 ## Why
 
@@ -61,12 +63,12 @@ The full account is in the run notes. In short: 332 frames round-tripped byte-ex
 modes, AC and DC, EIM and Plug & Charge, five complete sessions, signed messages and certificate chains.
 
 Nine mismatches, of which seven and one have the shape of the EXI value-partition difference already
-recorded for `-2` in `Interop/ExiStringTableTests.cs`, and one (`ACDP_ConnectRes`, two bytes) is
-unexplained.
+recorded for `-2` in `Interop/ExiStringTableTests.cs`, and one (`ACDP_ConnectRes`, two bytes) was
+unexplained — it turned out to be the other half of the first cause below, and cleared with it.
 
 **Six frames EXIficient could not read at all** — four WPT, one ACDP, one AC_DER_SAE — all in message
 sets the interop matrix marks *codec only*, whose expected bytes had never been judged by anything but
-the generator that produced them. Cleared up the same day, three separate causes and two of them ours:
+the generator that produced them. Cleared up the same day, three separate causes and all three ours:
 
 - **ACDP element numbering.** We number the schema's global elements so that the two sharing an aliased
   type land adjacent; EXI requires sorting by qname. Indices 1 and 2 are swapped, and those are exactly
@@ -81,6 +83,14 @@ the generator that produced them. Cleared up the same day, three separate causes
   position out. ISO has five such particles and all five are in sets no reference encoder covers, which
   is why nothing had ever caught it. Unlike the two above this needed no switch — there were no
   reference bytes to stay compatible with.
+
+**The first two were decided on 2026-08-08: follow the schema.** EXI 1.0 §8.5.1 sorts global elements
+by qname with no exception for a shared type, and cbexigen's WPT grammar contradicts its own input
+schema badly enough that valid documents cannot be encoded at all. `Directory.Build.props` in the app
+now sets both properties; six vectors moved and say so in their corpus headers; both findings are
+drafted for libcbv2g in [`docs/reports/`](../../docs/reports/libcbv2g-grammar-deviations.md). **The
+corpus went to 339 / 8 / 0 — nothing in `-20` is unreadable any more, and all eight remaining
+mismatches are the one value-partition cause.**
 
 Full account in the run notes.
 
