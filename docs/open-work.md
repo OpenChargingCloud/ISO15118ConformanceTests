@@ -120,26 +120,23 @@ defect with an owner.
 
 ## Not in the matrix at all
 
-- **Sixteen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Seventeen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - **A methodological item, from the EVerest MQTT run:** *"Run every future session twice, in every
   harness. One session is not a test of a station."* Not systematically applied.
-- **A candidate seventeenth filing, unwritten:** counterparty `iso-20` certificate scripts that emit
-  secp256r1 material. The `-20` profile is secp521r1/ECDSA with Ed448 alongside (`[V2G20-2674]`,
-  `[V2G20-2319]`), and its TLS tables admit only `secp521r1`/`x448` as named groups and
-  `TLS_AES_256_GCM_SHA384`/`TLS_CHACHA20_POLY1305_SHA256` as suites — not TLS 1.3's own
-  mandatory-to-implement `TLS_AES_128_GCM_SHA256`. This converts the *"not settled"* note in the
-  [2026-08-06 TLS run](interop-runs/2026-08-06-everest-iso20-tls13-windows/notes.md) into a finding about
-  somebody else's test PKI rather than a worry that we are stricter than the field. ~~**Confirm what their
-  script actually emits before writing anything.**~~ **Confirmed for EVerest on 2026-08-08:** every
-  certificate their `pki/create_certs.sh` writes into `iso15118_20/certs/` is 256-bit — five branches,
-  roots, Sub-CAs and leaves alike — and the script picks `prime256v1` for `-20` with
-  `# TODO Check correct version for ISO 15118-20` beside it, one line below the same choice made
-  correctly for `-2`
-  ([measurement](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)). A generator's own
-  `TODO` is the strongest evidence a report of this kind can carry. Josev's `-20` PKI is P-256 too;
-  that half is still read off certificates rather than off its script.
+- ~~**A candidate seventeenth filing, unwritten:** counterparty `iso-20` certificate scripts that emit
+  secp256r1 material.~~ **Written 2026-08-08:**
+  [`josev-iso20-pki-curve.md`](reports/josev-iso20-pki-curve.md). It turned out to be one script in two
+  homes rather than a habit across counterparties — `create_certs.sh` in `SwitchEV/iso15118` and in
+  EVerest's fork of it, whose `iso-20` branch selects the same `prime256v1` as `-2` under its own
+  `# TODO Check correct version for ISO 15118-20`. Measured across all five branches of the generated
+  set, and the report leads with the consequence rather than the table: `-20` contract provisioning
+  cannot complete with that key material at all, the schema's key-wrap curve choice being `SECP521` or
+  `X448` and nothing else
+  ([measurement](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)). The requirement side
+  — `[V2G20-2674]`, `[V2G20-2319]`, `[V2G20-2320]`, Tables 6 to 8 — is in
+  [`normative-basis.md`](normative-basis.md), which is what made it filable at all.
 - **Kotlin and Swift parity** — Dynamic control mode and energy-transfer-mode selection exist in the C#
   EVCC and not in the ports. That is app-side work, in `libs/EVSimulatorApp`, not here.
 

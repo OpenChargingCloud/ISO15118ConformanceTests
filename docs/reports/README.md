@@ -20,12 +20,17 @@ was our own configuration we bent.
 | [`tux-evse-spin.md`](tux-evse-spin.md) | IoT.bzh (tux-evse) | **C**, **D** | One connection that pauses or closes sends the binder into a 200,000-line-per-second log loop — and SIGTERM stops the logging without ending the process |
 | [`tux-evse-capture-fidelity.md`](tux-evse-capture-fidelity.md) | IoT.bzh (tux-evse) | **E**, **F** | A replayed capture never puts the car's real protocol offer on the wire — their converter parses it and drops it — and the closing SDP verb is hardcoded to the wrong API in DIN scenarios |
 | [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
+| [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) | EVerest (`ext-switchev-iso15118`) **and** SwitchEV (iso15118) | one, filed twice | `create_certs.sh` branches on `-v iso-2\|iso-20` and the `-20` branch selects the same `prime256v1` as `-2`, under its own `TODO` — so `-20` contract provisioning cannot complete at all, the schema's key-wrap curve choice being secp521r1 or x448 and nothing else |
 | [`josev-iso20-pause-resume.md`](josev-iso20-pause-resume.md) | SwitchEV (iso15118) | one | Pause/resume works in ISO 15118-2 and cannot work in -20: the `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its states never fill — so `OK_OldSessionJoined` is unreachable and every resume degrades to a new session |
 | [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
 | [`v2gdecoder-fuzzy-grammar.md`](v2gdecoder-fuzzy-grammar.md) | FlUxIuS (V2Gdecoder) | **A**, **B** | A frame valid under two grammars is decoded by whichever sits first in the array, silently — and their DIN grammar rejects a real `ChargeParameterDiscoveryRes`, which the same fallback then answers for |
 | [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) + [`libcbv2g/`](libcbv2g/) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document grammar groups global elements sharing a type, so two ACDP messages swap identity and one decodes cleanly as the other; the WPT mid-sequence particle grammar returns success while **silently dropping** a set field; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all — reproduced by [`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md) |
 
-**Sixteen filings across six projects.** The letters and numbers are per counterparty and exist to
+**Seventeen filings across six projects**, and the newest is the first that has to be sent **twice**:
+`create_certs.sh` lives in `SwitchEV/iso15118` and in EVerest's fork of it, byte-identical in the
+relevant block and 100 lines apart everywhere else, so one merge will not reach the other tree.
+
+The letters and numbers are per counterparty and exist to
 keep separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal
 handler, E and F what a converted capture loses — six issues, not one, and a fix for any of them does
 not touch the others. EDF's 1 and 2 are likewise independent, and fixing 1 is what reveals 2.
