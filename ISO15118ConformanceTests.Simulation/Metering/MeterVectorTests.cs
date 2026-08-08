@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -22,7 +22,7 @@ using System.Text.Json;
 
 using NUnit.Framework;
 
-using Vanaheimr.V2G.Simulation.Metering;
+using cloud.charging.open.protocols.ISO15118.Metering;
 
 namespace ISO15118ConformanceTests.Simulation.Metering;
 

@@ -22,14 +22,14 @@ using System.Security.Cryptography;
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118_2.Generated;
-using Vanaheimr.V2G.Simulation.Metering;
+using cloud.charging.open.protocols.ISO15118.Metering;
 using EVSimulatorApp.Ocpp;
-using Vanaheimr.V2G.Simulation.Sap;
-using Vanaheimr.V2G.Simulation.StateMachines;
-using Vanaheimr.V2G.Simulation.StateMachines.Iso2;
-using Vanaheimr.V2G.Simulation.StateMachines.Iso20;
+using cloud.charging.open.protocols.ISO15118.Sap;
+using cloud.charging.open.protocols.ISO15118.StateMachines;
+using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
+using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.Timing;
-using Vanaheimr.V2G.Simulation.Transport;
+using cloud.charging.open.protocols.ISO15118.Transport;
 using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
 namespace ISO15118ConformanceTests.Simulation.Traces;

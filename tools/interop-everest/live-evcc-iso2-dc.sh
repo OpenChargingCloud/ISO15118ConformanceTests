@@ -21,7 +21,7 @@ protocol="${3:-2}"
 mode="${4:-dc}"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cli="$here/../../libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli"
+cli="$here/../../libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
 
 # Only when we have to discover. With an endpoint in hand the interface is irrelevant — that is the
 # whole point of the relay path in README.md, and it is what lets this run from a machine that has no

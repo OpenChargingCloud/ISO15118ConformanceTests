@@ -3,7 +3,7 @@
 # Josev EVCC (AC, useTls=false) SDP-discovers our SECC and runs a -20 AC session.
 set -uo pipefail
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 SECC_LOG=/tmp/secc-ac.log
 EVCC_LOG=/tmp/evcc-ac.log
 AC_CFG=/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_20/evcc_config_ac.json

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -27,7 +27,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
     /// <summary>
     /// Deterministic, socket-free coverage of the SDP wire format we rely on: SDP_Request / SDP_Response
     /// encode → V2GTP-wrap → parse → decode round-trips (the real UDP/multicast exchange runs only in
-    /// real/CLI runs, see <see cref="Vanaheimr.V2G.Simulation.Discovery.SdpSeccDiscovery"/>).
+    /// real/CLI runs, see <see cref="cloud.charging.open.protocols.ISO15118.Discovery.SdpSeccDiscovery"/>).
     /// </summary>
     [TestFixture]
     public class SdpMessageRoundTripTests

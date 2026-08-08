@@ -15,7 +15,7 @@ case "$VARIANT" in
   *) echo "usage: $0 [dc|ac|dc-bpt|ac-bpt]" >&2; exit 2;;
 esac
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-DLL="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 CFG="/venv/lib/python3.10/site-packages/iso15118/shared/examples/evcc/iso15118_20/$CFGNAME"
 SECC_LOG=/tmp/secc-${VARIANT}-dynamic.log
 EVCC_LOG=/tmp/evcc-${VARIANT}-dynamic.log

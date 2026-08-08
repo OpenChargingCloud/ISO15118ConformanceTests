@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2025 GraphDefined GmbH <achim.friedland@graphdefined.com>
  * This file is part of WWCP ISO/IEC 15118 <https://github.com/OpenChargingCloud/WWCP_ISO15118>
  *
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-using Vanaheimr.V2G.Simulation.Timing;
+using cloud.charging.open.protocols.ISO15118.Timing;
 
 namespace ISO15118ConformanceTests.Simulation.Timing
 {

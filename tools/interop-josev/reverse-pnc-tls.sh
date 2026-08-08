@@ -4,7 +4,7 @@
 set -uo pipefail
 
 REPO=/mnt/c/Users/achim/Desktop/Coding/OpenChargingCloud/Vanaheimr.V2G.Exi
-CLI="$REPO/libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation.Cli"
+CLI="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_CLI"
 SECC_LOG=/tmp/secc-pnc2.log
 SDP_LOG=/tmp/sdp-pnc2.log
 EVCC_LOG=/tmp/evcc-pnc2.log
@@ -15,14 +15,14 @@ cleanup() {
   [ -n "${SECC_PID:-}" ] && kill "$SECC_PID" 2>/dev/null
   [ -n "${SDP_PID:-}" ] && kill "$SDP_PID" 2>/dev/null
   docker rm -f josev-evcc redis-interop 2>/dev/null
-  pkill -f "Vanaheimr.V2G.Simulation.Cli.*secc" 2>/dev/null
+  pkill -f "WWCP_ISO15118_CLI.*secc" 2>/dev/null
 }
 trap cleanup EXIT
 cleanup
 
 echo ">>> building CLI under WSL"
 dotnet build "$CLI" -c Release --nologo >/tmp/cli-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/cli-build.log; exit 1; }
-DLL="$CLI/bin/Release/net10.0/Vanaheimr.V2G.Simulation.Cli.dll"
+DLL="$CLI/bin/Release/net10.0/WWCP_ISO15118_CLI.dll"
 ls -la "$DLL" || exit 1
 
 echo ">>> starting redis (host net)"
