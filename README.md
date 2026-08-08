@@ -103,7 +103,7 @@ how to read one.
 | Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
 | Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
-| WPT · ACDP | ▢ codec only — but the codec is now independently judged²² | *no independent stack implements session state machines for them; the bytes are read by EXIficient* | | | |
+| WPT · ACDP | ▢ codec only — but the codec is now independently judged²⁴ | *no independent stack implements session state machines for them; the bytes are read by EXIficient* | | | |
 | MCS | ✅ `Secc20McsTests` | — | ✅ `EV→` ×3 (Scheduled ×2, Dynamic) · `←SECC` their EV picked service **8** out of our catalogue⁸ | — | — |
 | MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ `EV→` ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
 
@@ -215,7 +215,7 @@ recorded: their `ev_dummy_controller` starts at `present_soc = 0` (the GUI's fie
 empty battery correctly declares zero discharge, so the run patches that one line to 60 in their copy.
 Both numbers are on file.
 
-²² Still no session state machine anywhere but ours — but "codec only" no longer means "judged only by
+²⁴ Still no session state machine anywhere but ours — but "codec only" no longer means "judged only by
 its own generator". Since 2026-08-07 every WPT and ACDP frame in the corpus is decoded and re-encoded by
 **EXIficient**, which shares no line with cbexigen, and since 2026-08-08 they agree to the octet. Getting
 there cost two deliberate changes: these were the only message sets where this codec had been
@@ -293,8 +293,9 @@ on the wire. What each of them has proven is the matrix above.
 | [`docs/everest-cross-validation.md`](docs/everest-cross-validation.md) | the independent **charger**, the thing a car in the field actually meets, and the counterparty that has found the most defects in *this* project; almost all of them share one of two shapes, which that page names. [No unattempted cell left](docs/everest-cross-validation.md#current-state), two reports drafted and unsent, six structural walls named. |
 | [`docs/evdriveflow-cross-validation.md`](docs/evdriveflow-cross-validation.md) | the **second** independent codec (OpenEXI), and the highest yield per exchange here: one defect of ours that every other oracle was structurally blind to, and four of theirs. The wall that held all four of its capabilities [turned out to be a closed file descriptor](docs/interop-runs/2026-08-06-edf-stdin-wall/notes.md), not a state machine. |
 | [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; as an **injector at their HEAD** it drove our SECC through the full captured-Audi DC session and a VW AC route — and reached the one arm of our state machine no self-consistent test had ever executed. Over TLS it produced the first external check of our TLS profile, and [two findings drafted for them](docs/reports/tux-evse-tls.md). Their Tesla DIN capture is unreadable to us past the handshake — and the handshake alone [carried a vendor-proprietary protocol at priority 1](docs/interop-runs/2026-08-07-tesla-din-handshake/notes.md), an offer shape nothing here could have written for itself. |
-| [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences |
-| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **ten issues across three projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
+| [`docs/open-work.md`](docs/open-work.md) | the inverse of the matrix above: every cell that is not `✅`, why, and who it waits on. **The to-do list.** |
+| [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences. **History, not a to-do list** — each note's `Next` section is a snapshot from that day, and later runs close items without editing it |
+| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **fifteen filings across five projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
 | [`tools/interop-*/`](tools/) | how to bring each counterparty up and drive it — [Josev](tools/interop-josev/README.md) · [EVerest](tools/interop-everest/README.md) · [eVDriveFlow](tools/interop-evdriveflow/README.md) · [tux-evse](tools/interop-tux-evse/README.md) |
 | [`docs/assumed-values-sweep.md`](docs/assumed-values-sweep.md) | where our own assumptions replaced values the protocol supplies |
 

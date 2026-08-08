@@ -7,6 +7,9 @@ holds the app to account against independent stacks — Josev, EVerest, EVDriveF
 ## Orientation
 
 - **What is proven, and how:** `README.md` — the interop matrix, per counterparty and scenario.
+  **What is not:** `docs/open-work.md`, derived from that matrix. Read it before proposing work —
+  the `## Next` sections in `docs/interop-runs/` are per-run snapshots, not a to-do list, and a
+  later run closes an item without editing the earlier note.
   Each column has a long form of its own, `docs/<counterparty>-cross-validation.md`: Josev (the
   independent codec), EVerest (the independent charger, and what it found in us), eVDriveFlow (the
   second codec, and the FAILED-response finding), tux-evse (the replayer).
