@@ -46,7 +46,9 @@ Our EVCC polled until the fixture's own 3-minute budget ran out.
 while ((await Send<AuthorizationResType>(authReq, ct, authSignature))
            .EVSEProcessing != EVSEProcessing.Finished)
 ```
-(`libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/StateMachines/Iso2/Evcc2.cs`)
+(`libs/EVSimulatorApp/simulation/Vanaheimr.V2G.Simulation/StateMachines/Iso2/Evcc2.cs` — where it
+was on the day; since 2026-08-08 that file is
+`libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/StateMachines/Iso2/Evcc2.cs`)
 
 No counter, no deadline. The same shape appears at two more places in the same file — the
 charge-parameter-discovery and cable-check/pre-charge polls — and the -20 EVCC's poll loops are built

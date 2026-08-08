@@ -90,7 +90,7 @@ Same scenario, with every `expect` reduced to its **protocol fields** — `rcode
 still verifies *which* message came back and *with which response code*, and stops comparing the
 captured ABB charger's identity, schedules and measurements against a station that is not that
 charger. 161 station-specific fields stripped; the tool for it is now
-[`tools/interop-tux-evse/scenario-relax.py`](../../tools/interop-tux-evse/scenario-relax.py).
+[`tools/interop-tux-evse/scenario-relax.py`](../../../tools/interop-tux-evse/scenario-relax.py).
 
 **The full session ran.** 25 request/response pairs, every one of their checks `Check` (matched),
 every response code OK, and the recorded order against the declared flow:
