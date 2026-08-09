@@ -109,7 +109,8 @@ public class EverestInteropTests
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
                                                            InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
 
-        ReportNegotiatedTls(socket);
+        var transport = InteropEnvironment.ReportTransport(socket, protocol,
+                                                           InteropEnvironment.OfferBothProtocols());
 
         var stream = recording?.Tap(socket) ?? socket;
 
@@ -120,7 +121,7 @@ public class EverestInteropTests
                 // The IsoMux case, from the EV side: both protocols in one offer, the station picks,
                 // and the state machine is chosen after the handshake rather than before it.
                 var offers   = InteropEnvironment.BothOffers(mode);
-                var accepted = await SapHandshake.RunEvccSideAsync(stream, offers, cts.Token);
+                var accepted = await SapHandshake.RunEvccSideAsync(stream, offers, cts.Token, transport: transport);
                 protocol = accepted.Protocol;
 
                 String Name(ProtocolVariant p) => p == ProtocolVariant.Iso15118_20 ? "-20" : "-2";
@@ -129,7 +130,7 @@ public class EverestInteropTests
                     $"the station picked {Name(protocol)}.");
             }
             else
-                await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode);
+                await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode, transport: transport);
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
@@ -229,11 +230,13 @@ public class EverestInteropTests
 
         using var socket = await listener.AcceptAsync(cts.Token);
 
+        var transport = InteropEnvironment.ReportTransport(socket, protocol);
+
         var stream = recording?.Tap(socket) ?? socket;
 
         try
         {
-            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
+            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, transport: transport);
 
             var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
                                                             mcs: InteropEnvironment.Mcs());
@@ -280,15 +283,6 @@ public class EverestInteropTests
     /// appears for some backends and not others is better than one that guesses.
     /// </para>
     /// </remarks>
-    private static void ReportNegotiatedTls(Stream socket)
-    {
-        if (socket is SslStream { IsAuthenticated: true } ssl)
-            TestContext.Out.WriteLine(
-                $"TLS: {ssl.SslProtocol}, {ssl.NegotiatedCipherSuite}" +
-                (ssl.RemoteCertificate is { } certificate ? $", server {certificate.Subject}" : "") +
-                (ssl.LocalCertificate is not null ? ", client certificate presented (mutual)" : ""));
-    }
-
 
     /// <summary>
     /// What our station learned that nothing else in the run can report.

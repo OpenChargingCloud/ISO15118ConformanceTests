@@ -94,11 +94,13 @@ public class EvDriveFlowInteropTests
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
                                                            InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
 
+        var transport = InteropEnvironment.ReportTransport(socket, protocol);
+
         var stream = recording?.Tap(socket) ?? socket;
 
         try
         {
-            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
+            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, transport: transport);
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
@@ -172,6 +174,8 @@ public class EvDriveFlowInteropTests
 
         using var socket = await listener.AcceptAsync(cts.Token);
 
+        var transport = InteropEnvironment.ReportTransport(socket, protocol);
+
         // Read back rather than assumed: their EV brings a secp521r1 PKI, which is the curve ISO 15118-20
         // asks for and the one no counterparty had supplied before — so what was actually negotiated is
         // the result of this run, not a detail of it.
@@ -198,7 +202,7 @@ public class EvDriveFlowInteropTests
 
         try
         {
-            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
+            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, transport: transport);
 
             var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
                                                             mcs: InteropEnvironment.Mcs(),

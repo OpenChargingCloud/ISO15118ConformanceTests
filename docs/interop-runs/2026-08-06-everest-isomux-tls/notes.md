@@ -68,8 +68,12 @@ August. Behind the mux, that strictness is unreachable in either direction.
 > backend is unreachable by any conformant EVCC** and reachable only by one that is not.
 >
 > Which our EVCC was. The offer that produced both `-20` sessions above kept its `-20` entry on a TLS 1.2
-> connection, and `[V2G20-1237]` forbids exactly that — our half of the same finding, now in
-> [`open-work.md`](../../open-work.md). The ClientHello was right; the step after it was not.
+> connection, and `[V2G20-1237]` forbids exactly that — our half of the same finding. The ClientHello was
+> right; the step after it was not. **Fixed 2026-08-10**, with the station-side mirror `[V2G20-2356]`:
+> `SapHandshake` drops what may not be offered, refuses to select what may not be selected, and the
+> fixture that produced this run now prints the clause into the transcript when it proceeds anyway
+> ([`open-work.md`](../../open-work.md)). Re-running this scenario today would therefore log the reason
+> instead of reading as a clean success — which is the whole of what went wrong here.
 >
 > Finding 3 below went the same way and got its own filing the same day, the **twentieth**:
 > `[V2G2-169]` and `[V2G20-169]` both make selecting by the EV's ranking a *shall*

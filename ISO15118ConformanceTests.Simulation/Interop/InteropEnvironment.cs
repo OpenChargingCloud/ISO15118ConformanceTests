@@ -544,4 +544,49 @@ internal static class InteropEnvironment
     private static Boolean IsSelfSigned(X509Certificate2 certificate)
         => certificate.SubjectName.RawData.AsSpan().SequenceEqual(certificate.IssuerName.RawData);
 
+
+    /// <summary>
+    /// Writes what the handshake actually settled on into the run output, and — where an ISO 15118-20
+    /// offer is about to go out over a connection that may not carry it — says that too.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>This line is the fix.</b> On 2026-08-06 this fixture offered both protocols over a connection
+    /// that had negotiated TLS 1.2, EVerest's <c>IsoMux</c> selected the <c>-20</c> entry, and 60 exchanges
+    /// later the run was written up as a success. `[V2G20-1237]` forbids the car to offer `-20` there and
+    /// `[V2G20-2356]` forbids the station to select it; the station's half is filed
+    /// (<c>docs/reports/everest-isomux-iso20-over-tls12.md</c>) and the car's was ours. Nothing in the
+    /// transcript said so, which is why it took two days and the arrival of the requirement text to notice.
+    /// </para>
+    /// <para>
+    /// It <b>reports and proceeds</b> rather than refusing, and returns <see cref="TransportSecurity.Unknown"/>
+    /// to stand the rule down in the handshake. Most of this matrix runs <c>-20</c> over plain TCP on
+    /// purpose and a fixture that refused would delete it — the defect was never the plain-TCP run, it was
+    /// the silence. The two runnable peers (<c>evcc</c>, <c>secc</c>) do the same thing for the same reason.
+    /// </para>
+    /// </remarks>
+    public static TransportSecurity ReportTransport(Stream socket, ProtocolVariant protocol, Boolean offersIso20 = false)
+    {
+
+        if (socket is SslStream { IsAuthenticated: true } ssl)
+            TestContext.Out.WriteLine(
+                $"TLS: {ssl.SslProtocol}, {ssl.NegotiatedCipherSuite}" +
+                (ssl.RemoteCertificate is { } certificate ? $", server {certificate.Subject}" : "") +
+                (ssl.LocalCertificate is not null ? ", client certificate presented (mutual)" : ""));
+
+        var transport = Iso20Transport.Of(socket);
+
+        if ((protocol == ProtocolVariant.Iso15118_20 || offersIso20) && !Iso20Transport.MayCarryIso20(transport))
+        {
+            TestContext.Out.WriteLine(
+                $"SAP: ISO 15118-20 on {Iso20Transport.Describe(transport)} — [V2G20-1237] (car) and "
+              + "[V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. "
+              + "This run does it anyway, deliberately; the claim it supports is not a conformance claim.");
+            return TransportSecurity.Unknown;
+        }
+
+        return transport;
+
+    }
+
 }
