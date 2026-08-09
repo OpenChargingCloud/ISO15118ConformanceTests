@@ -112,6 +112,26 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   TCP on purpose, and a hard block would delete it. What the fix is, then, is a check plus an explicit
   opt-out, not a refusal. Also worth stating that our **SECC** has the mirror-image gap — it will select
   `-20` on any transport — and it is the same size.
+- **Our `-20` service-catalogue check is narrower than the two requirements it satisfies.** The
+  refusals added on 2026-08-09 (`Secc20Base.SvcDetailStep` / `SvcSelectionStep`) turned out to be
+  obliged rather than merely sensible — `[V2G20-425]`/`[V2G20-464]` for `FAILED_ServiceIDInvalid`,
+  `[V2G20-433]`/`[V2G20-467]` for `FAILED_ServiceSelectionInvalid`, with `[V2G20-1216]` as the EVCC's
+  mirror — and reading them turned up two places where ours does less than they ask. Both are recorded
+  at the code, which is where the next reader meets them; they are here because a comment is not a
+  backlog.
+  - **The parameter set is not checked.** `[V2G20-433]` speaks of a *`ServiceID`, `ParameterSetID`
+    pair* the SECC never offered; `Advertised(ushort)` compares the id alone. So an advertised service
+    carrying a parameter set this station never put in its `ServiceDetailRes` is accepted. Fixing it
+    means the station remembering what it offered per service, which `SvcDetail` currently builds and
+    discards.
+  - **`FAILED_NoEnergyTransferServiceSelected` is never sent.** `[V2G20-1618]` wants it where the
+    `SelectedServiceList` names no energy transfer service at all — distinct from naming a wrong one,
+    and today indistinguishable from it here.
+  <br>Neither is reachable from a conformant EV, and no counterparty has produced either: they are
+  guard gaps, found by reading rather than by a run, which is the honest reason they are minor. Whoever
+  takes them should extend
+  [`Secc20ServiceCatalogueTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Secc20ServiceCatalogueTests.cs),
+  whose positive half already walks the advertised catalogue and would host both cases.
 - **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
   the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
   (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather
