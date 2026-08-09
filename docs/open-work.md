@@ -23,14 +23,16 @@ and this file is stale.
 
 ## Blocked on the counterparty
 
-Nothing here can be moved by work on our side. Each has a filed or drafted report.
+Nothing here can be moved by work on our side, **except** the two EVerest AC rows — those are ours to
+unblock and are here because they read as counterparty walls and are not. Every other row has a filed
+or drafted report.
 
 | | Counterparty | State | Waiting on |
 |---|---|---|---|
 | **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its `-20` states never fill — so `OK_OldSessionJoined` is unreachable. Six-line fix, mirroring their own working `-2` branch. Filed: [`josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md). |
 | **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). |
-| **AC, -20** | EVerest | ◐ | Their SIL's own-EV contactor coupling; the session reaches `ScheduleExchange` and stops there. |
-| **AC_BPT** | EVerest | ◐ | Negotiated, then the same contactor wall. |
+| **AC, -20** | EVerest | ◐ | Their SIL's own-EV contactor coupling — a property of driving their harness with a foreign EV, **not** a defect, and so nothing to file. Reading their source to explain it turned up one that is: [`everest-iso20-ac-contactor-latch.md`](reports/everest-iso20-ac-contactor-latch.md), on the same code path and not the cause of this wall. Moving this cell needs their EV-side hardware simulation driven, which is ours to build. |
+| **AC_BPT** | EVerest | ◐ | Negotiated, then the same wall, for the same reason. |
 | **TLS 1.2 unilateral, -2** | tux-evse | ⛔ pinned | Their configs offer neither suite ISO 15118-2 prescribes. Filed: [`tux-evse-tls.md`](reports/tux-evse-tls.md). |
 | **CertificateInstallation, -20** | Josev · EVerest | ◐ | Both send a real signed request — SwitchEV's on 2026-07-22, EVerest's `PyEvJosev` on 2026-08-08 with its own OEM root. Our response is decoded and validated, and then each ends at the same `NotImplementedError`: the fork inherited the gap. Nothing to file that the upstream code does not already say out loud. |
 
@@ -134,9 +136,14 @@ defect with an owner.
 
 ## Not in the matrix at all
 
-- **Seventeen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Eighteen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
+- **The eighteenth needs one thing that is ours, not a person's:** the contactor report has never been
+  seen happen. Driving an AC `-20` session to `PowerDeliveryReq(Start)` and issuing
+  `ac_contactor_closed(false)` inside the 3 s window would turn "we read your source" into "we observed
+  your station answer `OK`", which is a different report. It is also the same capability the two AC
+  matrix cells above are waiting on, so it buys both.
 - **A methodological item, from the EVerest MQTT run:** *"Run every future session twice, in every
   harness. One session is not a test of a station."* Not systematically applied.
 - ~~**A candidate seventeenth filing, unwritten:** counterparty `iso-20` certificate scripts that emit

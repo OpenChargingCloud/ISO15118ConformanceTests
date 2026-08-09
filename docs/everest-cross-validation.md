@@ -299,6 +299,15 @@ Each of these is structural rather than a missing run:
 - **ISO 15118-20 AC past `PowerDelivery(Start)`.** Their SIL expects *their own* EV module to close the
   contactor, so driving the CP line is not enough. Two different car-simulator sequences give the
   identical `FAILED_ContactorError`.
+  <br>**Reading their source to explain that wall, on 2026-08-09, turned up a defect beside it** —
+  `d20::state::PowerDelivery` assigns the `ClosedContactor` event **pointer** to its `bool`, so a
+  board-support module reporting the contactor *open* latches it closed, cancels the timeout that would
+  have refused, and answers `PowerDeliveryRes(OK)`. Filed:
+  [`everest-iso20-ac-contactor-latch.md`](reports/everest-iso20-ac-contactor-latch.md), with a probe
+  that compiles against their header under their own `-Werror`. Worth keeping the two apart: **the wall
+  is ours to get past and the defect is theirs to fix**, they sit on the same code path, and neither
+  causes the other — our runs never produce a `ClosedContactor` event at all, which is precisely why we
+  hit the timeout branch and not this one.
 - **Megawatt *power*.** Their MCS SIL is electrically an ordinary charger and clamps to 22 kW whatever is
   declared. The catalogue and the envelope are validated; the current is not.
 - **A conformant -20 curve, from this counterparty.** Their `create_certs.sh -v iso-20` emits **P-256** —
