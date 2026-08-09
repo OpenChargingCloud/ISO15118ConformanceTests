@@ -1,0 +1,7 @@
+Trust roots: DC=V2G, C=DE, O=EVerest, CN=V2GRootCA
+Presenting server certificate: DC=sub, CN=tux-evse-secure-by-iot-bzh, OU=redpesk security, O=IoT.bzh, S=Breizh, C=FR (+1 intermediate(s)); requiring a client certificate (mutual TLS, dev: accept-any)
+SECC listening on [::]:55000 (protocol -2, DC, TLS Dotnet)...
+SDP: advertising [fe80::a012:46ff:fe4e:d516%19]:55000 (TLS) on evse-veth...
+TLS client: chain REJECTED — self-signed certificate in certificate chain
+
+✗ Session aborted: The remote certificate was rejected by the provided RemoteCertificateValidationCallback.

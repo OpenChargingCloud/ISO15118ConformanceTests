@@ -223,6 +223,27 @@ Both are written up for them in [`docs/reports/tux-evse-tls.md`](reports/tux-evs
 separate filings: the signing bug is a two-line fix, the cipher-suite question may be a deliberate
 choice and is asked rather than asserted.
 
+**And that client certificate turned out to be the most useful one this project has been handed.**
+On 2026-08-09 our station validated their chain against their own roots
+([`…-tux-chain-validation`](interop-runs/2026-08-09-tux-chain-validation/notes.md)). Two properties of
+theirs make it the counterparty that tests what the other three could not:
+
+- **Their hierarchy is two deep** — `_root → _server → _client`, one intermediate where ISO and CharIN
+  describe two, and `_server` is a CA certificate that also serves as a station's TLS leaf. Every other
+  chain this validator has judged was three deep.
+- **Their EVCC sends its own root**, inside `_client_chain.pem`. So when the trust store holds only the
+  intermediate, nothing is missing from the path and the refusal is specifically *"this chain ends in a
+  self-signed certificate nobody configured"* — where every other counterparty's negative control fails
+  earlier, for want of an issuer. A stack that walked the presented chain to its end and called the last
+  self-signed certificate a root would have accepted all three runs, including the two that must fail.
+
+No conformance claim about cipher suites is made in that run either: the station program, unlike the
+recording fixture, does not pin them, which is why it needed no deviation to reach their profile at all.
+
+One rig hazard was measured there rather than inferred: **their `run-injector-tls.sh` caps the binder
+with `timeout` and no `-k`**, and a refused handshake is exactly the disconnect case that sends it into
+the known log spin — 1.18 GB and seven minutes before it was killed by hand. Cap it from outside.
+
 ---
 
 ## What stays out of reach, and what would move it
