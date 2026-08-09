@@ -95,10 +95,37 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             Assert.That(a.TlsStack, Is.EqualTo(expected));
         }
 
+        /// <summary>
+        /// The backend needs a server identity and does not care which kind, but it must have one: with
+        /// neither flag the station would come up with nothing to present and fail at the first handshake.
+        /// </summary>
         [Test]
-        public void BouncyCastleBackend_WithoutPkiDir_Throws()
+        public void BouncyCastleBackend_WithNeitherIdentity_Throws()
             => Assert.That(() => SeccOptions.Parse(["--listen", "5555", "--tls-backend", "bc"]),
-                           Throws.ArgumentException.With.Message.Contains("--pki-dir"));
+                           Throws.ArgumentException.With.Message.Contains("--pki-dir")
+                                 .And.Message.Contains("--server-cert"));
+
+        /// <summary>
+        /// <c>--server-cert</c> is the second way in, and the one that lets this backend meet a peer whose
+        /// PKI is not ours — until 2026-08-09 it was rejected here, which is why the BouncyCastle chain
+        /// path had only ever judged certificates this project minted.
+        /// </summary>
+        [Test]
+        public void BouncyCastleBackend_TakesAServerCertificateInsteadOfAPkiDir()
+        {
+            var a = SeccOptions.Parse(["--listen", "5555", "--tls-backend", "bc",
+                                       "--server-cert", "secc.pfx", "--server-cert-pass", "interop",
+                                       "--require-client-cert"]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(a.TlsStack,          Is.EqualTo(TlsStack.BouncyCastle));
+                Assert.That(a.ServerCertPath,    Is.EqualTo("secc.pfx"));
+                Assert.That(a.ServerCertPass,    Is.EqualTo("interop"));
+                Assert.That(a.RequireClientCert, Is.True);
+                Assert.That(a.PkiDir,            Is.Null, "no dev hierarchy is minted on this path");
+            });
+        }
 
         [Test]
         public void Slac_Parses_AndRequiresListenPort()
