@@ -124,6 +124,11 @@ defect with an owner.
   round-trip-tested by us and by nobody else, and cannot become otherwise here: both Josev forks send the
   request and neither implements the response, and their provisioning leaves are P-256, which cannot join
   the key agreement even if they did. Needs a stack that implements `-20` provisioning; none does.
+  <br>**This is now the only part of the chain-and-certificate work with no external witness.** The
+  BouncyCastle station path was listed here beside it until 2026-08-09, when it turned out to be a
+  missing `--server-cert` rather than a structural limit
+  ([`…-edf-bouncycastle-chain`](interop-runs/2026-08-09-edf-bouncycastle-chain/notes.md)). Worth the
+  reminder that "structural" is a claim about the world and deserves the same scepticism as any other.
 - **MCS and MCS_BPT beyond EVerest.** Only one counterparty implements them at all.
 - **Multi-protocol SAP offer beyond EVerest.** Same.
 

@@ -109,13 +109,15 @@ was a different counterparty whose chain has a different shape.
   load-bearing one is `RootOnlyTrust_NeedsThePeersIntermediates`: root-only trust validates a leaf **if
   and only if** the peer's intermediates are handed over.
 
-## Still out of reach here
+## ~~Still out of reach here~~ — closed the same day
 
-`--tls-backend bc` at the **station** cannot be pointed at a foreign PKI: `SeccPki.Generate` mints its
-own hierarchy and pins the expected vehicle leaf, so there is no way to serve eVDriveFlow's SECC chain
-over it or to accept their car. The BouncyCastle chain path is therefore still judged only by material
-we minted — on the EVCC side `--vehicle-cert` does load real credentials, so the forward direction
-could close it. Not attempted today.
+`--tls-backend bc` at the **station** could not be pointed at a foreign PKI: `SeccPki.Generate` mints
+its own hierarchy and pins the expected vehicle leaf, so there was no way to serve eVDriveFlow's SECC
+chain over it or to accept their car.
+
+**That was a missing option, not a missing capability.** `--server-cert` now works on that backend too,
+and the same peer, the same roots and the same verdict came back through BouncyCastle's own certificate
+path a few hours later — [`…-edf-bouncycastle-chain`](../2026-08-09-edf-bouncycastle-chain/notes.md).
 
 ## Rig notes
 
