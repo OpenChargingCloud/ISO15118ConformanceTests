@@ -275,15 +275,43 @@ The script also logs every V2G message their charger publishes — a station-sid
 Trust the message **names**, not the bytes: the responses they publish carry the preceding *request's*
 V2GTP length, so each one is truncated or padded with stale buffer. Requests are byte-exact.
 
-**The topic scheme**, since their documentation does not carry it:
+**The topic scheme**, since their documentation does not carry it — and **it changed between the
+versions this harness has used**, in both directions. Check which you are on before concluding that a
+publish did nothing:
 
-| | |
-|---|---|
-| published variable | `everest/<module_id>/<impl_id>/var` — `{"data": <value>, "name": "<var>"}` |
-| command call | `everest/<module_id>/<impl_id>/cmd` — `{"data": {"args": {…}, "id": "<uuid>", "origin": "<caller>"}, "name": "<cmd>", "type": "call"}` |
+| | 2023.10.0 (`manager:main`) | **2026.02.1** |
+|---|---|---|
+| variable | `everest/<mod>/<impl>/var` | `everest/modules/<mod>/impl/<impl>/var/<name>` |
+| command | `everest/<mod>/<impl>/cmd`<br>`{"name":"<cmd>","type":"call","data":{"args":{…},"id":"…","origin":"…"}}` | `everest/modules/<mod>/impl/<impl>/cmd/<cmd>`<br>`{"msg_type":"Cmd","data":{"args":{…},"id":"…","origin":"…"}}` |
+
+The 2026.02.1 forms are read off their framework rather than guessed: topic at
+`lib/everest/framework/lib/everest.cpp:877` with `config.cpp:445-448`, payload at `everest.cpp:408`
+wrapped by `types.cpp:177-179`. The command name moved **into the topic** and the envelope key from
+`type`/`name` to `msg_type` — so a publish in the old shape is not rejected, it is simply never
+subscribed, which looks exactly like a working script with nothing to say.
 
 Module ids are the **keys in the config file**, not the module types. `mosquitto_sub -v -t 'everest/#'`
 against their broker is the fastest way to learn any wiring this README does not cover.
+
+### Reporting a contactor state  ([`contactor-report.sh`](contactor-report.sh))
+
+`ac_contactor_closed(bool)` is a command on their `ISO15118_charger` interface, called in a running
+station by `EvseManager` from Control-Pilot events. A foreign EV produces no CP events, so `-20` AC
+stops at `PowerDelivery(Start)` with `FAILED_ContactorError` after their 3 s timeout. This publishes the
+same command their own `EvseManager` publishes.
+
+```bash
+bash contactor-report.sh --status false --watch charger.log   # fires when the window opens
+bash contactor-report.sh --status true  --now
+```
+
+`--watch` polls for their *"Waiting for contactor is closed"* line, which is the 3 s window opening.
+Deliberately polled and not `tail -F | grep -m1`: grep exits on the match, `tail` takes `SIGPIPE`, and
+under `set -o pipefail` that reads as failure — the first version announced *"trigger never appeared"*
+21 ms after the trigger appeared.
+
+It found [a defect in their `-20` state machine](../../docs/reports/everest-iso20-ac-contactor-latch.md):
+a contactor reported **open** is charged through.
 
 ### Their PyEvJosev → our SECC  ([`reverse-iso2-dc.sh`](reverse-iso2-dc.sh))
 

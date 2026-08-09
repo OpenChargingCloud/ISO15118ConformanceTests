@@ -139,11 +139,13 @@ defect with an owner.
 - **Eighteen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
-- **The eighteenth needs one thing that is ours, not a person's:** the contactor report has never been
-  seen happen. Driving an AC `-20` session to `PowerDeliveryReq(Start)` and issuing
-  `ac_contactor_closed(false)` inside the 3 s window would turn "we read your source" into "we observed
-  your station answer `OK`", which is a different report. It is also the same capability the two AC
-  matrix cells above are waiting on, so it buys both.
+- ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
+  **Done 2026-08-09**, hours after it was written: `ac_contactor_closed(false)` published on their own
+  interface inside the 3 s window, `PowerDeliveryRes(OK)` ~95 ms later and three charge loops after
+  that, 2 of 2, against a control that fails at 3.000 s
+  ([run notes](interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)). It did **not** buy
+  the two AC matrix cells, which was the hope: injecting a contactor report is not the same capability
+  as driving their EV-side hardware, and `cphold` still walls at `FAILED_ContactorError`.
 - **A methodological item, from the EVerest MQTT run:** *"Run every future session twice, in every
   harness. One session is not a test of a station."* Not systematically applied.
 - ~~**A candidate seventeenth filing, unwritten:** counterparty `iso-20` certificate scripts that emit
