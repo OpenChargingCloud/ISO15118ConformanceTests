@@ -87,6 +87,15 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   EVCC against our SECC, and their EVCC is Josev-derived, whose `-20` resume cannot reach
   `OK_OldSessionJoined` at all. Blocked on [our own filing](reports/josev-iso20-pause-resume.md) being
   acted on — which puts it in *Blocked on the counterparty*, above, in spirit if not in the table.
+- ~~**Our TLS chain validation ignored what the peer sent.**~~ **Fixed 2026-08-09.** Both .NET call
+  sites dropped the validation callback's `X509Chain` argument, whose `ChainPolicy.ExtraStore` carries
+  the certificates the peer put on the wire, and validated the bare leaf — so a peer sending a complete
+  chain was indistinguishable from one sending none. `TrustRoots.PeerIntermediates` now supplies them
+  (the BouncyCastle path always did). **It cost a wrong finding about a counterparty**, corrected in
+  the same run note; the lesson worth keeping is in there and not here.
+  [`2026-08-09-edf-chain-validation`](interop-runs/2026-08-09-edf-chain-validation/notes.md);
+  five tests in `ISO15118ConformanceTests.Simulation/Security/ChainValidationTests.cs`, the validator's
+  first coverage of any kind.
 - **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
   the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
   (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather

@@ -1,0 +1,4 @@
+Trust roots: DC=V2G, C=DE, O=EVerest, CN=CPOSubCA1, DC=V2G, C=DE, O=EVerest, CN=CPOSubCA2
+TLS station: chain REJECTED — unable to get local issuer certificate
+
+✗ Session aborted: The remote certificate was rejected by the provided RemoteCertificateValidationCallback.

@@ -1,5 +1,21 @@
 # Chain validation against EVerest's real V2G hierarchy — 2026-08-08
 
+> ## Corrected 2026-08-09 — the first row below was a defect of ours
+>
+> This note says EVerest's station sends only its leaf. **It does not.** `openssl s_client -showcerts`
+> reads back three certificates — `SECCCert`, `CPOSubCA2`, `CPOSubCA1`. The reason our EVCC could not
+> build a chain to their root is that both .NET TLS call sites discarded the intermediates the peer
+> sent: the validation callback's `X509Chain` argument was ignored and only the bare leaf reached the
+> validator. Re-run with that fixed, their **V2G root alone is enough** and anchors at `CN=V2GRootCA`.
+>
+> The third row survives unchanged — a non-self-signed certificate in the trust store is never an
+> anchor — and the second was right for the wrong reason: the bundle worked because it carried
+> intermediates our code refused to read off the wire.
+>
+> The rest of the note is left as written, because how the mistake read at the time is part of the
+> record. The measurement, the fix and what it cost:
+> [`2026-08-09-edf-chain-validation`](../2026-08-09-edf-chain-validation/notes.md).
+
 The chain validator added the same day had only ever seen certificates this project minted itself:
 the PKI builder's, and an openssl hierarchy written for its tests. Both send their full chain, and
 both were built by the same hand that wrote the validator. This is the first foreign one.
