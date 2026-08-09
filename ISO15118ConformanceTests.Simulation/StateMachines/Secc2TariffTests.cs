@@ -116,9 +116,10 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         {
             using var tariffKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System) { TariffSignKey = tariffKey };
-            RunToChargeParams(secc);
+            var offer = (SAScheduleListType) ((ChargeParameterDiscoveryResType)
+                            RunToChargeParams(secc).Body.BodyElement!).SASchedules!;
 
-            // Tuple 2 caps the first 30 min at 7.4 kW — 11 kW at t=0 violates it.
+            // Tuple 2 caps the first 30 min at 7,360 W — 11 kW at t=0 violates it.
             var greedy = new ChargingProfileType(new[]
             {
                 new ProfileEntryType(0, PhysicalValue.Of(11_000, UnitSymbol.W), null),
@@ -128,17 +129,31 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             Assert.That(bad.ResponseCode, Is.EqualTo(ResponseCode.FAILED_ChargingProfileInvalid));
             Assert.That(secc.ChargingProfileCheck!.WithinPMax, Is.False);
 
-            // A profile shaped to the PMax steps (7.4 kW, then 22 kW) is accepted.
+            // A profile shaped to the PMax steps is accepted — and the steps are read back off the offer
+            // rather than retyped, which is the whole lesson of the figures they carry. 7,400 and 22,000
+            // stood here as literals until 2026-08-09; the second was a [V2G2-761] refusal waiting for a
+            // car that asks for its physical 22,080 W, and a test spelling out the same rounded numbers as
+            // the station could never have noticed.
+            var steps = PMaxSteps(offer, tupleId: 2);
+            Assert.That(steps, Is.EqualTo(new[] { 7_360m, 22_080m }),
+                        "the offered PMax steps are 32 A on one phase and on three, at the 230 V the same "
+                      + "response advertises — not the round numbers they resemble");
+
             var shaped = new ChargingProfileType(new[]
             {
-                new ProfileEntryType(0,    PhysicalValue.Of(7_400,  UnitSymbol.W), null),
-                new ProfileEntryType(1800, PhysicalValue.Of(22_000, UnitSymbol.W), null),
+                new ProfileEntryType(0,    PhysicalValue.Of(steps[0], UnitSymbol.W), null),
+                new ProfileEntryType(1800, PhysicalValue.Of(steps[1], UnitSymbol.W), null),
             });
             var good = (PowerDeliveryResType)secc.Handle(
                 Msg(new PowerDeliveryReqType(ChargeProgress.Start, 2, shaped, null))).Body.BodyElement!;
             Assert.That(good.ResponseCode, Is.EqualTo(ResponseCode.OK));
             Assert.That(secc.ChargingProfileCheck!.WithinPMax, Is.True);
         }
+
+        /// <summary>The PMax values of one offered tuple, in order — what an EV shapes its profile to.</summary>
+        private static decimal[] PMaxSteps(SAScheduleListType offer, byte tupleId)
+            => offer.SAScheduleTuple.Single(t => t.SAScheduleTupleID == tupleId)
+                    .PMaxSchedule.PMaxScheduleEntry.Select(e => e.PMax.ToDecimal()).ToArray();
 
         [Test]
         public void NoTariffKey_KeepsPlainSingleTupleOffer_Unsigned()

@@ -21,9 +21,15 @@ offered `{ 8, 9 }` by our `Secc20Mcs`, an independent EV picked 8 and drove the 
 |---|---|
 | Counterparty | [EVerest](https://github.com/EVerest/everest-core) **2026.02.1** (`b61bb12b8`), native build |
 | Their EV | `PyEvJosev` on the vendored Josev, `supported_d20_energy_services: MCS` |
-| Ours | `Vanaheimr.V2G.Exi` @ `claude/cli-mcs-mode`, `Secc20Mcs` via the CLI |
+| Ours | `Vanaheimr.V2G.Exi` @ `1b5d8ae`, `Secc20Mcs` via the CLI |
 | Config | [`config-mcs-reverse-ours.yaml`](config-mcs-reverse-ours.yaml) — their `config-sil-mcs.yaml` plus four lines |
 | Command | `secc --listen 55000 --protocol 20 --mode mcs --sdp --interface eth0` |
+
+This note pinned the branch `claude/cli-mcs-mode` rather than a commit until 2026-08-09, and by then the
+branch was gone — which is exactly the failure a run note is supposed to be immune to. `1b5d8ae` is that
+branch's tip, recovered as the second parent of its merge (`7eb0464`, 2026-08-06 08:50), so it is
+**reconstructed rather than recorded**. It is the right commit and it is not a contemporaneous
+observation; the distinction is the same one this directory makes everywhere else.
 
 ## Finding 1 — Plug & Charge, verified, in the direction that had never shown it
 
