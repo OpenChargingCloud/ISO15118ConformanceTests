@@ -100,6 +100,33 @@ Worth stating explicitly, because assuming otherwise is how our `-20` implementa
 - **Two values must be adjusted on resume:** `DepartureTime` reduced by the elapsed time (`[V2G2-742]`)
   and `EAmount` reduced by the energy already delivered (`[V2G2-743]`).
 
+### What a `FAILED_*` response does to the session — the two differ
+
+Looked up on 2026-08-09 to settle whether our two stations should be made to behave alike. They should
+not: each already follows its own document, and the asymmetry that looked accidental is the standards'.
+
+- **`-20`: fatal, both sides terminate.** §8.6 *Message sequencing and error handling* states it in the
+  ResponseCode description — a `FAILED`/`FAILED_*` value is a fatal error, and SECC and EVCC terminate
+  the communication session after sending or receiving it. Worth noting for anyone going to check:
+  **that sentence carries no requirement ID of its own**; the neighbouring `[V2G20-734]`/`[V2G20-735]`
+  follow it and say something else. It is plain normative text in the type description.
+- **`-2`: nothing of the kind.** §8.8.2 *Basic Definitions for Error Handling* has the parallel
+  description **without** the fatal/terminate sentence, and its requirements stop well short of it:
+  `[V2G2-734]` on OK the EVCC processes the other parameters, `[V2G2-735]` on `FAILED` the EVCC ignores
+  them, `[V2G2-736]` the SECC fills the mandatory fields with schema-conformant values regardless.
+  `[V2G2-457]`–`[V2G2-465]` say *when* each code is sent, not what happens to the session afterwards.
+  Nothing obliges either side to end it.
+
+So `Secc20Base` ending the session on any failure is conformant, and `Secc2` keeping the phase — so a car
+that corrects its tuple choice still charges — is permitted. Unifying them would make one side worse: the
+`-20` direction contradicts §8.6 outright, and the `-2` direction removes a permitted behaviour for no
+requirement. Recorded in both state machines rather than tidied.
+
+Carries the **`-2` caveat** above: the text to hand is the 2022 DIS revision and our `-2` stack targets
+ISO 15118-2:2014. The risk here is lower than usual — this is basic error-handling wording rather than a
+changed obligation — but an argument from *absence* in a revision is weaker than one from presence, and
+this is an argument from absence.
+
 ### The ISO 15118-20 TLS profile
 
 Our profile (`libs/EVSimulatorApp/docs/pki-model.md`: TLS 1.3, pinned suites, secp521r1) had never met a
