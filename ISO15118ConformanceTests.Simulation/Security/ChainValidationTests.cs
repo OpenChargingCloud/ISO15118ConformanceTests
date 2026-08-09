@@ -135,6 +135,40 @@ namespace ISO15118ConformanceTests.Simulation.Security
             });
         }
 
+        /// <summary>
+        /// A peer that hands over its own root does not thereby become trusted — the property every
+        /// negative control in every chain run depends on, and the one no counterparty could demonstrate
+        /// until tux-evse, whose `_client_chain.pem` carries leaf, Sub-CA <em>and</em> root.
+        /// </summary>
+        /// <remarks>
+        /// Nothing is missing here, which is what separates it from the other negative cases: the chain
+        /// builds all the way to a self-signed certificate and is refused for being one nobody configured,
+        /// not for running out of issuers. A validator that walked the presented chain to its end and
+        /// stopped at "self-signed, therefore a root" would accept this.
+        /// <para>
+        /// Asserted on the <em>outcome</em> and never on <see cref="ChainResult.Reason"/>: that text comes
+        /// from the platform and is both OS-dependent — OpenSSL says "self-signed certificate in
+        /// certificate chain" where Windows says the chain terminated in an untrusted root — and
+        /// localised, so on a German Windows it arrives in German. Run notes quote it; tests must not
+        /// depend on it.
+        /// </para>
+        /// </remarks>
+        [Test]
+        public void APeerSuppliedRoot_DoesNotBecomeAnAnchor()
+        {
+            // The store holds the intermediates only; the peer supplies everything, root included.
+            var subCasOnly = new V2GChainValidator([.. new[] { _subCa1, _subCa2 }]);
+
+            var result = subCasOnly.Validate(_leaf, [_subCa2.RawData, _subCa1.RawData, _root.RawData]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Ok, Is.False, "a root arriving from the peer is not a root we trust");
+                Assert.That(result.Anchor, Is.Null, "a refused chain reports no anchor");
+                Assert.That(result.Reason, Is.Not.Empty, "and it says why, in the platform's own words");
+            });
+        }
+
         /// <summary>A real root of the wrong branch is refused, which is what a negative control needs.</summary>
         [Test]
         public void AnUnrelatedRoot_IsRefused()
