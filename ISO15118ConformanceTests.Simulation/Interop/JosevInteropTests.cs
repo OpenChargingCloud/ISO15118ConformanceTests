@@ -114,11 +114,13 @@ namespace ISO15118ConformanceTests.Simulation.Interop
 
             using var socket = await listener.AcceptAsync(cts.Token);
 
+            var transport = InteropEnvironment.ReportTransport(socket, protocol);
+
             var stream = recording?.Tap(socket) ?? socket;
 
             try
             {
-                await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
+                await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, transport: transport);
 
                 var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
                                                                 mcs: InteropEnvironment.Mcs());

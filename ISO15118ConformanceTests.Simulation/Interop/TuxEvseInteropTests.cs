@@ -178,6 +178,8 @@ public class TuxEvseInteropTests
 
         using var socket = await listener.AcceptAsync(cts.Token);
 
+        var transport = InteropEnvironment.ReportTransport(socket, protocol);
+
         // What was actually negotiated, not what was asked for: the listener offers a pinned version and
         // suite list, and their GnuTLS profile spans more than one — so the run has to read back which
         // pairing survived rather than report the offer. Nothing else in a recording says it.
@@ -190,7 +192,7 @@ public class TuxEvseInteropTests
 
         try
         {
-            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token);
+            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, transport: transport);
 
             var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token,
                                                             mcs: InteropEnvironment.Mcs());
