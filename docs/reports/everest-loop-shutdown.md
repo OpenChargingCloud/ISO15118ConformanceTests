@@ -11,7 +11,9 @@ The original 2025.10.0 sightings are in
 [`2026-08-03-everest-iso20-dc-tls13`](../interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md) and
 [`2026-08-03-everest-iso20-dc-full-charge`](../interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md).
 
-A second report for the same project, unrelated and much smaller, is in
+Three other reports for the same project, all unrelated to this one, are in
+[`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md),
+[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md) and
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md). **File them separately.**
 
 ## Before the defect — what everest-core has been worth to us
@@ -20,7 +22,7 @@ Not politeness, and worth a paragraph because it is the reason this report exist
 bug filed by a stranger.
 
 **everest-core has found more defects in this project than every other counterparty combined**, across
-nineteen runs. Almost all of them share one shape: a value we had taken from our own assumption where
+twenty-four runs. Almost all of them share one shape: a value we had taken from our own assumption where
 the protocol supplies one — an unbounded "Ongoing" poll, an energy transfer mode we hard-coded instead
 of reading from `ServiceDiscoveryRes`, a preference list we treated as a filter rather than a ranking,
 an EV-side power envelope written as literals. Their SIL is single-phase, their station enforces the
@@ -151,7 +153,7 @@ what this one dies on**, and nothing about the deployment makes surviving it imp
 
 Worth saying because of where it leaves the exposure. Behind `IsoMux` this defect is unreachable — not
 because it is handled, but because the mux never lets a TLS 1.3 hello through to the backend at all,
-which is [its own separate finding](../interop-runs/2026-08-06-everest-isomux-tls/notes.md). Where the
+which is [its own separate report](everest-isomux-iso20-over-tls12.md). Where the
 defect bites is `Evse15118D20` **addressed directly**, which is exactly what your shipped
 `config-sil-dc-d20.yaml` does, and what the reproduction below uses.
 
@@ -233,13 +235,15 @@ We would happily send a PR for either, if you agree with the shape:
       done 2026-08-07 against the built 2026.02.1 source: all five still point where they say.
 - [x] **Lead with what the project has been worth to us.** Above, and every claim in it has runs
       behind it. A report that opens with "your charger can be bricked" reads differently when the
-      sender has been on the receiving end of the same courtesy nineteen times.
+      sender has been on the receiving end of the same courtesy two dozen times.
 - [ ] **File one issue, this one.** The other observations from these runs are deliberately not in
-      here: `IsoMux` ignoring SAP `Priority` (rests on requirement text we do not hold), -20 PnC being
-      commented out (their own documented TODO), their SECC sending only its leaf (arguably
-      deployment), and the mux's TLS-1.2-only termination in front of a -20 backend (a layering
-      question, and a bigger conversation than this). Each is written up in the run notes and can go
-      separately. The `PyEvJosev` manifest one already has its own draft.
+      here: `IsoMux` ignoring SAP `Priority`, -20 PnC being commented out (their own documented TODO),
+      and their SECC sending only its leaf (arguably deployment). Each is written up in the run notes
+      and can go separately. The `PyEvJosev` manifest one already has its own draft — and the mux's
+      TLS-1.2-only termination in front of a -20 backend, listed here as *"a layering question"* until
+      the requirement text settled it, now has its own too
+      ([`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md)). `Priority` is
+      decided as well (`[V2G2-169]`) and is the next one to write.
 - [ ] **Post under your own name, in your own words.** Keep a sentence on how it was hit in practice —
       a third-party EVCC against `Evse15118D20`, not a fuzzer — because that tells a maintainer whether
       the scenario is realistic. It is the difference between "hardening" and "a car in the field can

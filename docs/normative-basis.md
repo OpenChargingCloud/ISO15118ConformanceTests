@@ -151,3 +151,47 @@ section has produced of why the documents were worth having. The finding is not 
 differently from you": their generator's `-20` branch carries its own
 `# TODO Check correct version for ISO 15118-20` beside `EC_CURVE=prime256v1`, so the citation is not
 what decides the point — it is what let the report say which value belongs there instead.
+
+### Which TLS version may carry ISO 15118-20 — and which may not
+
+Looked up on 2026-08-09 to settle a run from 2026-08-06 that the notes had closed as *"a layering
+question"*: EVerest's `IsoMux` serves TLS 1.2 only and then routes on the `SupportedAppProtocolReq`, so
+a dual-stack EV completed a whole `-20` session on TLS 1.2. It is decided, and the standard says it
+three times.
+
+- **The SECC must not select it.** `[V2G20-2356]` — a *shall not*: the station may not choose `-20` out
+  of the `SupportedAppProtocolReq` when the connection carrying it is plain TCP, or TLS at 1.2 or below.
+- **The EVCC must not offer it.** `[V2G20-1237]`, the mirror: over the same set of connections the car
+  may not put `-20` into the offer at all.
+- **And both at once, from the SDP direction.** `[V2G20-1805]`: where the TLS connection `7.7.3` calls
+  for was not established, `-20` is neither offered by the EVCC nor chosen by the SECC.
+- **Table 5** is what all three point at. It pairs TLS versions with the protocols they may carry, and
+  `-20` appears in the 1.3 row only.
+- **Serving TLS 1.2 is not itself a defect.** `[V2G20-2359]` permits it explicitly for backwards
+  compatibility, and `[V2G20-2062]`–`[V2G20-2066]` describe the dual-version ClientHello a
+  backward-compatible EVCC sends and how the SECC settles the version. What is forbidden is carrying
+  `-20` on the result.
+- **A conformant `-20` EVCC always offers 1.3.** `[V2G20-2365]` — include `0x0304` in
+  `supported_versions` — with `[V2G20-1264]` requiring mutual TLS 1.3 of every `-20` entity.
+
+**Filed 2026-08-09:**
+[`reports/everest-isomux-iso20-over-tls12.md`](reports/everest-isomux-iso20-over-tls12.md) — and the
+same lookup produced an item of **ours**, because the offer that reached their mux was our EVCC's and
+`[V2G20-1237]` is the half addressed to us ([`open-work.md`](open-work.md)). Worth recording as a
+pattern this section keeps producing: reading the requirement to decide whether a counterparty is wrong
+is also the cheapest way to find out that we are.
+
+### The SECC follows the EV's protocol ranking
+
+`[V2G2-169]` — a *shall*: from its own list of supported protocols the SECC selects the one the EVCC
+indicated with the highest priority. So a station that routes on *"does this EV mention `-20` at all"*
+and never reads `Priority` — which EVerest's `IsoMux` does, confirmed on the wire three times across
+two releases — is not merely surprising, it is on the wrong side of a requirement. The run notes had
+said *"whether that is a defect depends on a requirement we have not checked"* since 2026-08-03; this
+is the check.
+
+Carries the **`-2` caveat** above, and here it was worth doing something about rather than only
+declaring. The 2019 *ISO 15118 Manual* was written against ISO 15118-2:**2014** and describes the same
+rule in its walk-through of the handshake — so the obligation is not an invention of the 2022 revision.
+The manual is never a citation for a conformance claim; this is the other thing it is good for, which
+is deciding whether a requirement in the revision to hand predates it.

@@ -98,6 +98,20 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   [`2026-08-09-edf-chain-validation`](interop-runs/2026-08-09-edf-chain-validation/notes.md);
   five tests in `ISO15118ConformanceTests.Simulation/Security/ChainValidationTests.cs`, the validator's
   first coverage of any kind.
+- **Our EVCC offers ISO 15118-20 without regard to the TLS version underneath it.** `[V2G20-1237]`
+  forbids offering `-20` in the `SupportedAppProtocolReq` when the established connection is TLS 1.2 or
+  lower, or plain TCP; `[V2G20-2356]` is the SECC's mirror and `[V2G20-1805]` states both at once. On
+  2026-08-06 our multi-protocol offer went out over a TLS 1.2 connection with the `-20` entry still in
+  it, and EVerest's `IsoMux` selected it — their half is
+  [the nineteenth filing](reports/everest-isomux-iso20-over-tls12.md), ours is this line.
+  <br>The ClientHello was right (`[V2G20-2365]` and `[V2G20-2062]` both ask a backward-compatible EVCC
+  to offer 1.3 *and* 1.2, and `[V2G20-2064]` to continue on whichever the station picked) — exactly one
+  step afterwards is wrong. `SapHandshake.RunEvccSideAsync` takes a `Stream` and the offer list, so the
+  filter belongs in the caller, where the negotiated version is known.
+  <br>**The plain-TCP half is deliberate and must stay reachable:** most of this matrix runs `-20` over
+  TCP on purpose, and a hard block would delete it. What the fix is, then, is a check plus an explicit
+  opt-out, not a refusal. Also worth stating that our **SECC** has the mirror-image gap — it will select
+  `-20` on any transport — and it is the same size.
 - **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
   the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
   (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather
@@ -136,7 +150,7 @@ defect with an owner.
 
 ## Not in the matrix at all
 
-- **Eighteen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Nineteen filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~

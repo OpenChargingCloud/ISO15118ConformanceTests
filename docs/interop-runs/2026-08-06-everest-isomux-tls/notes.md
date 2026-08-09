@@ -57,6 +57,24 @@ backend whose profile the connection no longer satisfies. Their `Evse15118D20` a
 about this — under `enforce_tls_1_3` it refuses a hello that still allows 1.2, which cost us a run in
 August. Behind the mux, that strictness is unreachable in either direction.
 
+> **Decided and filed 2026-08-09.** *"A layering gap, not a bug in any single message"* was as far as this
+> could be taken without the requirement text, which arrived two days later. It is `[V2G20-2356]`, a
+> *shall not* addressed to the SECC — with the connection at TLS 1.2 or below it must not select `-20`
+> from the `SupportedAppProtocolReq` — restated as `[V2G20-1237]` for the EVCC and as `[V2G20-1805]` for
+> both, all three pointing at Table 5, where `-20` sits in the 1.3 row only.
+> [`reports/everest-isomux-iso20-over-tls12.md`](../../reports/everest-isomux-iso20-over-tls12.md) is the
+> nineteenth filing, and it leads with the consequence rather than the clause: a `-20`-only EV gets alert
+> 70 and a backward-compatible one must drop `-20` from its offer on the 1.2 connection, so **their `-20`
+> backend is unreachable by any conformant EVCC** and reachable only by one that is not.
+>
+> Which our EVCC was. The offer that produced both `-20` sessions above kept its `-20` entry on a TLS 1.2
+> connection, and `[V2G20-1237]` forbids exactly that — our half of the same finding, now in
+> [`open-work.md`](../../open-work.md). The ClientHello was right; the step after it was not.
+>
+> Finding 3 below went the same way: `[V2G2-169]` makes selecting by the EV's ranking a *shall*, so that
+> one is decided too. It is a separate fix in the same function and is deliberately **not** folded into
+> the filing.
+
 ## Finding 2 — the accept-loop defect is **not** in `IsoMux`
 
 Worth recording because it narrows the report that is waiting to be filed
