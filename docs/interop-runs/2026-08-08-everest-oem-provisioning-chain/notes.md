@@ -35,8 +35,10 @@ the chain verdict moves:
 can only have arrived in the message — `load_cert_chain(leaf, sub_ca2, sub_ca1)` in their
 `iso15118_20_states.py`, and the fragment our station digested is the whole chain. That is now three
 observations of the same vendor: their EV sends intermediates for its contract chain and for its OEM
-chain, their station sends a bare leaf at TLS. Root-alone is sufficient against their car and
-insufficient against their station.
+chain — and, measured on 2026-08-09, **their station sends its full chain too**. The claim that stood
+here on the day, that it serves a bare leaf at TLS, was
+[our own defect](../2026-08-09-edf-chain-validation/notes.md) and not their behaviour. Root-alone is
+sufficient against everything this counterparty presents.
 
 **Row 2 repeats at message level what the earlier run measured at TLS**, and it was worth repeating,
 because the two go through different code: `X509Chain` with `CustomRootTrust` refuses to treat a

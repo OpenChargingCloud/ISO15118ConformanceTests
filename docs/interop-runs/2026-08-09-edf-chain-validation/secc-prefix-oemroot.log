@@ -1,0 +1,6 @@
+Trust roots: DC=OEM, C=FR, O=EDF, CN=OEMRootCA
+Presenting server certificate: DC=CPO, C=FR, O=EDF, CN=SECCCert (+2 intermediate(s)); requiring a client certificate (mutual TLS, dev: accept-any)
+SECC listening on [::]:55000 (protocol -20, DC, TLS Dotnet)...
+TLS client: chain REJECTED — unable to get local issuer certificate
+
+✗ Session aborted: The remote certificate was rejected by the provided RemoteCertificateValidationCallback.

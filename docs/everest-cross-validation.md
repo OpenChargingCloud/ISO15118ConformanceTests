@@ -159,9 +159,10 @@ Everything below was unblocked by it.
 
 - **Chain validation, both levels, both directions (2026-08-08).** The X.509 chain check added that day
   had only ever seen certificates this project minted; these two runs are the first foreign hierarchy.
-  Forward, our EVCC validated their station's TLS chain — and their station sends a **bare leaf**, so
-  their V2G root alone cannot build a path and rejecting it is right; with the CPO Sub-CAs in the bundle
-  it anchors at `CN=V2GRootCA`. Reverse, their EV's signed `-20 AuthorizationReq` carried its real
+  Forward, our EVCC validated their station's TLS chain against their V2G root. **The first reading of
+  that run was wrong and is corrected below** — root-alone was refused, we wrote it up as their station
+  sending a bare leaf, and it was our own code dropping the intermediates instead. Reverse, their EV's
+  signed `-20 AuthorizationReq` carried its real
   contract chain, anchored at a **`MORootCA` of its own** — and there the root alone *is* enough,
   because their car ships its Sub-CAs. Same vendor, opposite shapes. The negative control is the one
   worth keeping: pointed at their **V2G** root, our station printed `signature OK … chain REJECTED`,
@@ -175,6 +176,15 @@ Everything below was unblocked by it.
   refused — although their own request *names* that root in `RootCertificateIDList`, which is the car
   declaring what it can verify, not what vouches for it. That closed the last validator path judged only
   by our own material ([`…-oem-provisioning-chain`](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)).
+
+- **The correction, one day later (2026-08-09).** Their station **does** send its full chain —
+  `openssl s_client -showcerts` reads back `SECCCert`, `CPOSubCA2`, `CPOSubCA1`, and with our TLS call
+  sites fixed to pass the peer's intermediates to the validator, their **V2G root alone** anchors at
+  `CN=V2GRootCA`. What was written up as a property of `EvseV2G` was a defect of ours that produced the
+  same symptom for every peer. It went unquestioned because it agreed with a note this repository
+  already carried about `Evse15118D20`; what broke it was eVDriveFlow, whose car has a differently
+  shaped chain ([`…-edf-chain-validation`](interop-runs/2026-08-09-edf-chain-validation/notes.md)).
+  The other two rows of that run survive.
 
 ---
 

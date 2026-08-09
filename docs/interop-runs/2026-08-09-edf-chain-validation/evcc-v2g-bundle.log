@@ -1,0 +1,4 @@
+Trust roots: DC=V2G, C=DE, O=EVerest, CN=V2GRootCA, DC=V2G, C=DE, O=EVerest, CN=CPOSubCA1, DC=V2G, C=DE, O=EVerest, CN=CPOSubCA2
+TLS station: chain valid, anchored at DC=V2G, C=DE, O=EVerest, CN=V2GRootCA.
+
+✗ Session aborted: the station answered PaymentServiceSelectionResType with FAILED_PaymentSelectionInvalid; the session ends here.

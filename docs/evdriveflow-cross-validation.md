@@ -62,6 +62,20 @@ the wall, why it was invisible, and what stands behind it.
   reverse direction had been documented as needing SDP on a shared L2; it does, but the station itself
   does not have to be there.
 
+- **Chain validation, and it found a defect of ours nobody else could have (2026-08-09).** Our station
+  validated their car's TLS client chain against their roots: **their OEM root alone** anchors at
+  `CN=OEMRootCA`, their two VEHICLE Sub-CAs without the root are refused, and their **V2G** root — a
+  real root of the same vendor, wrong branch — is refused too. First **secp521r1** chain the validator
+  has judged, and the first counterparty here whose car hangs off an **OEM root separate from the V2G
+  one**, as the CharIN PKI describes; Josev's own `CertPath` enum anchors its vehicle branch at the V2G
+  root instead, so this shape had never appeared.
+
+  That difference is what caught the bug. Both .NET TLS call sites had been discarding the intermediates
+  the peer sends, so *every* peer was judged on its bare leaf — and against EVerest the day before, the
+  resulting rejection had been written up as a property of their station. Their car's chain, and the
+  same run against a pre-fix binary, made the real cause visible
+  ([`…-edf-chain-validation`](interop-runs/2026-08-09-edf-chain-validation/notes.md)).
+
 ---
 
 ## What it found in **us** — the response code that was never read
