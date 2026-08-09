@@ -236,6 +236,74 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
         }
 
 
+        // ── the constant-voltage taper ─────────────────────────────────────────
+
+        [Test]
+        public void BelowTheKnee_TheCarAsksForEverything()
+        {
+            var b = new EvBattery(60, 50) { RequestedPowerW = 50_000 };
+            Assert.That(b.PowerFactor, Is.EqualTo(1.0).Within(0.0001));
+        }
+
+        [TestCase(80.0, 1.00)]
+        [TestCase(85.0, 0.75)]
+        [TestCase(90.0, 0.50)]
+        [TestCase(95.0, 0.25)]
+        public void AboveTheKnee_ItFallsAwayLinearly(double soc, double expected)
+        {
+            var b = new EvBattery(60, soc) { RequestedPowerW = 50_000 };
+            Assert.That(b.PowerFactor, Is.EqualTo(expected).Within(0.0001));
+        }
+
+        /// <summary>
+        /// The floor is what makes the pack reachable at all: a taper going to zero at exactly 100 % would
+        /// approach capacity in ever smaller steps, and with the meter's whole-watt-hour rounding the
+        /// session would stall short of full and end only at the iteration ceiling.
+        /// </summary>
+        [Test]
+        public void AtTheTop_ItStopsFallingSoTheLastWattHoursStillArrive()
+        {
+            var b = new EvBattery(60, 99.999) { RequestedPowerW = 50_000 };
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(b.PowerFactor, Is.EqualTo(0.05).Within(0.0001), "the termination current, not zero");
+                Assert.That(b.PowerFactor, Is.GreaterThan(0));
+            });
+        }
+
+        [Test]
+        public void TheKneeCanBeMovedOrTurnedOff()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(new EvBattery(60, 95) { TaperFromSoC = 100 }.PowerFactor,
+                            Is.EqualTo(1.0).Within(0.0001), "100 % charges flat, as this did before the taper");
+                Assert.That(new EvBattery(60, 60) { TaperFromSoC = 50 }.PowerFactor,
+                            Is.EqualTo(0.8).Within(0.0001), "a knee at 50 % is four fifths of the way at 60 %");
+            });
+        }
+
+        /// <summary>
+        /// What the taper is for, as the loop sees it: the same top-up asks for a quarter of the current at
+        /// 95 % that it does at 75 %. Measured end to end in loopback, 75 % → 100 % of a 60 kWh pack at
+        /// 50 kW takes 61 simulated minutes with the taper and 19 without.
+        /// </summary>
+        [Test]
+        public void TheLoopAsksForLess_AsThePackFills()
+        {
+            var early = ProbeWith(new EvBattery(60, 75) { RequestedPowerW = 50_000 });
+            var late  = ProbeWith(new EvBattery(60, 95) { RequestedPowerW = 50_000 });
+
+            Assert.Multiple(() =>
+            {
+                Assert.That((double) early.TargetCurrent, Is.EqualTo(125).Within(1.0), "50 kW at 400 V");
+                Assert.That((double) late.TargetCurrent,  Is.EqualTo(31).Within(1.0),  "a quarter of it at 95 %");
+                Assert.That((double) late.LoopPower,      Is.EqualTo(12_500).Within(1.0));
+            });
+        }
+
+
         // ── watts as a -20 rational ────────────────────────────────────────────
 
         [TestCase(9_000.0,    9_000.0, TestName = "Watts_9kW")]
