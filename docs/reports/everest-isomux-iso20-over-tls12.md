@@ -205,8 +205,9 @@ Stated plainly because the run above needed it. The offer that produced the two 
 came from our EVCC, and it violated `[V2G20-1237]`: it advertised both TLS versions in the ClientHello
 (right — that is what `[V2G20-2062]` and `[V2G20-2365]` ask of a backward-compatible EVCC), let the
 station settle on 1.2 (right, `[V2G20-2064]`), and then offered `-20` in the `SupportedAppProtocolReq`
-anyway (wrong). It is ours to fix and it is recorded as such in our
-[`open-work.md`](../open-work.md).
+anyway (wrong). **Fixed on 2026-08-10**, along with the mirror-image gap on our own station, which would
+have selected `-20` there exactly as yours did — see [`open-work.md`](../open-work.md). We would rather
+send this having done our half.
 
 We do not think it weakens the report, and we would rather you judge that than discover it. Two reasons:
 

@@ -94,11 +94,13 @@ public class EvDriveFlowInteropTests
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
                                                            InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
 
+        var transport = InteropEnvironment.ReportTransport(socket, protocol);
+
         var stream = recording?.Tap(socket) ?? socket;
 
         try
         {
-            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token);
+            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, transport: transport);
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
