@@ -105,6 +105,66 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         }
 
         /// <summary>
+        /// <c>[V2G20-433]</c> is about the <i>pair</i>: an advertised service carrying a parameter set this
+        /// station never offered for it is refused too. Service 2 offers sets 1 and 2 and nothing else.
+        /// </summary>
+        /// <remarks>
+        /// This is the half the check missed until 2026-08-10 — <c>Advertised</c> compared the id alone, so
+        /// a car could select service 2 with parameter set 7 and be told <c>OK</c> for a control mode the
+        /// station never described. Reading the requirement to correct a stale comment is what turned it up;
+        /// nothing on the wire ever produced it, and this test is the reason it stays fixed.
+        /// </remarks>
+        [TestCase((ushort) 7,  TestName = "ServiceSelection_refuses_aParameterSetFromNoCatalogue")]
+        [TestCase((ushort) 0,  TestName = "ServiceSelection_refuses_theZeroParameterSet")]
+        public void ServiceSelection_RefusesAParameterSetNeverOffered(ushort parameterSetId)
+        {
+            var secc = Dc();
+            RunToDiscovery(secc);
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDetailReq(Common, 2));
+
+            var res = (ServiceSelectionRes) secc.Handle(
+                          MessageSet.Iso20CommonMessages,
+                          new ServiceSelectionReq(Common, new SelectedServiceType(2, parameterSetId), null)).Response;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(res.ResponseCode, Is.EqualTo(ResponseCode.FAILED_ServiceSelectionInvalid));
+                Assert.That(secc.SelectedEnergyServiceId, Is.EqualTo((ushort) 0));
+            });
+        }
+
+        /// <summary>
+        /// And a service whose detail was never asked for cannot be selected either — even when the service
+        /// itself is advertised and the parameter set exists for its sibling. The ParameterSetIDs live only
+        /// in a <c>ServiceDetailRes</c>, so a car naming a pair it was never sent is naming a value it
+        /// invented, which is what <c>[V2G20-1216]</c> forbids it to do.
+        /// </summary>
+        /// <remarks>
+        /// Written first as "straight from discovery to selection" and that is <b>not</b> this check: the
+        /// sequence guard refuses a <c>ServiceSelectionReq</c> in phase <c>ServiceDetail</c> with
+        /// <c>FAILED_SequenceError</c> before the catalogue is consulted at all. Asking detail for the
+        /// <i>other</i> advertised service is what reaches this code — same phase, same station, one pair
+        /// offered and a different one named.
+        /// </remarks>
+        [Test]
+        public void ServiceSelection_RefusesAPairFromAServiceWhoseDetailWasNeverAsked()
+        {
+            var secc    = Dc();
+            var offered = RunToDiscovery(secc).EnergyTransferServiceList.Service.Select(s => s.ServiceID).ToArray();
+
+            Assert.That(offered, Is.SupersetOf(new ushort[] { 2, 6 }), "test assumes DC and DC_BPT are advertised");
+
+            // Detail for 6 (DC_BPT), selection of 2 (DC): both advertised, and set 1 was described for 6 only.
+            secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDetailReq(Common, 6));
+
+            var res = (ServiceSelectionRes) secc.Handle(
+                          MessageSet.Iso20CommonMessages,
+                          new ServiceSelectionReq(Common, new SelectedServiceType(2, 1), null)).Response;
+
+            Assert.That(res.ResponseCode, Is.EqualTo(ResponseCode.FAILED_ServiceSelectionInvalid));
+        }
+
+        /// <summary>
         /// The refusal ends the session, and that is this station's blanket rule for every failure rather
         /// than anything chosen here (<c>Secc20Base.Handle</c>: <c>Phase = IsFailure(response) ? Done</c>).
         /// </summary>

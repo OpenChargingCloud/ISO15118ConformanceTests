@@ -116,26 +116,29 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   (`evcc`, `secc`, and the interop fixture that made the mistake) now work the transport out and **say
   so in the transcript** when they proceed anyway. The defect was never the plain-TCP run; it was that
   nothing said a word when the same offer went out over TLS 1.2 against a real station.
-- **Our `-20` service-catalogue check is narrower than the two requirements it satisfies.** The
-  refusals added on 2026-08-09 (`Secc20Base.SvcDetailStep` / `SvcSelectionStep`) turned out to be
-  obliged rather than merely sensible — `[V2G20-425]`/`[V2G20-464]` for `FAILED_ServiceIDInvalid`,
-  `[V2G20-433]`/`[V2G20-467]` for `FAILED_ServiceSelectionInvalid`, with `[V2G20-1216]` as the EVCC's
-  mirror — and reading them turned up two places where ours does less than they ask. Both are recorded
-  at the code, which is where the next reader meets them; they are here because a comment is not a
-  backlog.
-  - **The parameter set is not checked.** `[V2G20-433]` speaks of a *`ServiceID`, `ParameterSetID`
-    pair* the SECC never offered; `Advertised(ushort)` compares the id alone. So an advertised service
-    carrying a parameter set this station never put in its `ServiceDetailRes` is accepted. Fixing it
-    means the station remembering what it offered per service, which `SvcDetail` currently builds and
-    discards.
-  - **`FAILED_NoEnergyTransferServiceSelected` is never sent.** `[V2G20-1618]` wants it where the
-    `SelectedServiceList` names no energy transfer service at all — distinct from naming a wrong one,
-    and today indistinguishable from it here.
-  <br>Neither is reachable from a conformant EV, and no counterparty has produced either: they are
-  guard gaps, found by reading rather than by a run, which is the honest reason they are minor. Whoever
-  takes them should extend
-  [`Secc20ServiceCatalogueTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Secc20ServiceCatalogueTests.cs),
-  whose positive half already walks the advertised catalogue and would host both cases.
+- ~~**Our `-20` service-catalogue check is narrower than the two requirements it satisfies.**~~
+  **One fixed 2026-08-10, the other withdrawn as not a gap.** The refusals added on 2026-08-09
+  (`Secc20Base.SvcDetailStep` / `SvcSelectionStep`) turned out to be obliged rather than merely sensible
+  — `[V2G20-425]`/`[V2G20-464]` for `FAILED_ServiceIDInvalid`, `[V2G20-433]`/`[V2G20-467]` for
+  `FAILED_ServiceSelectionInvalid`, with `[V2G20-1216]` as the EVCC's mirror.
+  - **The parameter set is now checked.** `[V2G20-433]` speaks of a *`ServiceID`, `ParameterSetID`
+    pair* the SECC never offered, and `Advertised(ushort)` compared the id alone. `Secc20Base` records
+    every pair as its `ServiceDetailRes` goes out and holds the selection against that, which also
+    refuses a service whose detail was never asked for — the ParameterSetIDs exist nowhere else, so a
+    car naming one it was not given is naming a value it invented. Three tests in
+    [`Secc20ServiceCatalogueTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Secc20ServiceCatalogueTests.cs);
+    all three fail when the pair check is removed.
+  - **`FAILED_NoEnergyTransferServiceSelected` was not a gap.** `[V2G20-1618]` wants it where the
+    selection names no energy transfer service at all, and **this station cannot receive that request**:
+    the schema makes `SelectedEnergyTransferService` a mandatory single element, and the only way to
+    name a non-energy-transfer service is a VAS id, while `SvcDiscovery` sends `VASList: null`. An id
+    that is neither is unadvertised, which is `[V2G20-467]`'s case and already answered. Writing the
+    branch would have been unreachable code that reads as coverage. Recorded at `SvcSelectionStep` with
+    the condition that would make it live: this station advertising a value-added service.
+  <br>Worth keeping the shape of this entry rather than deleting it. Both items came from *reading a
+  requirement to correct a stale comment*, neither was ever produced on the wire, and one of the two
+  evaporated on contact with the schema. That ratio is the argument for checking before writing code,
+  not against reading requirements.
 - **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
   the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
   (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather
