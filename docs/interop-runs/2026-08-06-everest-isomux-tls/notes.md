@@ -71,9 +71,11 @@ August. Behind the mux, that strictness is unreachable in either direction.
 > connection, and `[V2G20-1237]` forbids exactly that — our half of the same finding, now in
 > [`open-work.md`](../../open-work.md). The ClientHello was right; the step after it was not.
 >
-> Finding 3 below went the same way: `[V2G2-169]` makes selecting by the EV's ranking a *shall*, so that
-> one is decided too. It is a separate fix in the same function and is deliberately **not** folded into
-> the filing.
+> Finding 3 below went the same way and got its own filing the same day, the **twentieth**:
+> `[V2G2-169]` and `[V2G20-169]` both make selecting by the EV's ranking a *shall*
+> ([`reports/everest-isomux-sap-priority.md`](../../reports/everest-isomux-sap-priority.md)). Same `if`,
+> two reports, deliberately — different defects, different fixes, and one of them has an answer a
+> maintainer could reasonably give that the other does not.
 
 ## Finding 2 — the accept-loop defect is **not** in `IsoMux`
 

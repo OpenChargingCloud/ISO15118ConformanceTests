@@ -252,11 +252,15 @@ sent — they are the operator's to post, under their own name.
   ranking -2 first still lands on -20. `Priority` is printed to their log two lines above the decision
   and not used in it, and the branch carries their own comment — `// Check if it supports ISO-20` — so
   this is a routing policy, not an unread field. Confirmed on the wire against 2025.10.0 **and**
-  2026.02.1, and a third time over TLS. **Decided 2026-08-09**: `[V2G2-169]` makes selecting the
-  highest-priority protocol the EV indicated a *shall*, so the policy conflicts with a requirement
-  after all. It carries the `-2` document caveat in [`normative-basis.md`](normative-basis.md) — but
-  the 2019 manual, written against the 2014 edition, describes the same rule, which is the check that
-  matters here. Not filed yet; it is the same function as the report below and belongs in its own issue.
+  2026.02.1, and a third time over TLS — the same 79-byte request and the same 12-byte answer all three
+  times. **Decided and filed 2026-08-09**:
+  [`everest-isomux-sap-priority.md`](reports/everest-isomux-sap-priority.md). `[V2G2-169]` and
+  `[V2G20-169]` both make selecting the EV's highest-ranked protocol a *shall*, so the policy conflicts
+  with a requirement after all — and the `-2` caveat is answered rather than declared here, the `-20`
+  clause and the 2019 manual (written to the 2014 edition) saying the same thing
+  ([`normative-basis.md`](normative-basis.md)). What decides the report is neither: **both modules
+  behind the mux read `Priority` correctly**, each citing the requirement in a comment, so the router in
+  front of them is the whole defect.
 - **`IsoMux` terminates TLS at the -2 profile, then routes -20 traffic through it.** Not an oversight:
   `connection/tls_connection.cpp` pins `cipher_list` to the suite ISO 15118-2 prescribes and sets
   `ciphersuites = ""` under the comment *"disable TLS 1.3"* — two lines carried verbatim from `EvseV2G`,

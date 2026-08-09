@@ -11,9 +11,10 @@ The original 2025.10.0 sightings are in
 [`2026-08-03-everest-iso20-dc-tls13`](../interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md) and
 [`2026-08-03-everest-iso20-dc-full-charge`](../interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md).
 
-Three other reports for the same project, all unrelated to this one, are in
+Four other reports for the same project, all unrelated to this one, are in
 [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md),
-[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md) and
+[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md),
+[`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md) and
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md). **File them separately.**
 
 ## Before the defect — what everest-core has been worth to us
@@ -237,13 +238,14 @@ We would happily send a PR for either, if you agree with the shape:
       behind it. A report that opens with "your charger can be bricked" reads differently when the
       sender has been on the receiving end of the same courtesy two dozen times.
 - [ ] **File one issue, this one.** The other observations from these runs are deliberately not in
-      here: `IsoMux` ignoring SAP `Priority`, -20 PnC being commented out (their own documented TODO),
-      and their SECC sending only its leaf (arguably deployment). Each is written up in the run notes
-      and can go separately. The `PyEvJosev` manifest one already has its own draft — and the mux's
-      TLS-1.2-only termination in front of a -20 backend, listed here as *"a layering question"* until
-      the requirement text settled it, now has its own too
-      ([`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md)). `Priority` is
-      decided as well (`[V2G2-169]`) and is the next one to write.
+      here: -20 PnC being commented out (their own documented TODO) and their SECC sending only its
+      leaf (arguably deployment), both written up in the run notes and able to go separately. The two
+      that were listed here as unfilable — the mux's TLS-1.2-only termination in front of a -20
+      backend (*"a layering question"*) and `IsoMux` ignoring SAP `Priority` (*"rests on requirement
+      text we do not hold"*) — both have their own drafts since 2026-08-09, when that text arrived:
+      [`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md) and
+      [`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md). The `PyEvJosev` manifest one
+      has its own too.
 - [ ] **Post under your own name, in your own words.** Keep a sentence on how it was hit in practice —
       a third-party EVCC against `Evse15118D20`, not a fuzzer — because that tells a maintainer whether
       the scenario is realistic. It is the difference between "hardening" and "a car in the field can

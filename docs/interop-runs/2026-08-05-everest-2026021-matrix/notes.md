@@ -87,6 +87,12 @@ unchanged at the tag and at `main` (checked both): first entry whose namespace s
 `urn:iso:std:iso:15118:-20` wins, `Priority` is never read. Our EVCC followed the station's answer and
 completed in -20, so interop is unaffected; the EV's ranking is not.
 
+**Filed 2026-08-09** as the twentieth, once the requirement text settled that it is a defect
+(`[V2G2-169]`, `[V2G20-169]`):
+[`reports/everest-isomux-sap-priority.md`](../../reports/everest-isomux-sap-priority.md). This run is
+its middle reproduction — same request bytes, same answer bytes as 2025.10.0 and as the TLS run a day
+later.
+
 ## Finding 3 — stock `config-sil-dc-d20.yaml` is now Dynamic-only
 
 2025.10's SIL config enabled both control modes on `Evse15118D20`; 2026.02.1's sets neither, and the
