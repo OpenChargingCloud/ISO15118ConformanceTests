@@ -170,7 +170,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
             var selection = secc.Requests.OfType<ServiceSelectionReq>().Single();
             var cpd       = secc.Requests.OfType<Dc20.DC_ChargeParameterDiscoveryReq>().Single();
-            var loop      = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().First();
+            var loops     = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().ToArray();
 
             Assert.Multiple(() =>
             {
@@ -182,10 +182,14 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 Assert.That(((Dc20.BPT_DC_CPDReqEnergyTransferModeType) cpd.DC_CPDReqEnergyTransferMode).EVMaximumDischargePower,
                             Is.Not.Null, "…and named a discharge envelope");
 
-                Assert.That(loop.CLReqControlMode, Is.InstanceOf<Dc20.BPT_Scheduled_DC_CLReqControlModeType>(),
-                            "the charge loop asked in Scheduled *and* bidirectional");
-                Assert.That(((Dc20.BPT_Scheduled_DC_CLReqControlModeType) loop.CLReqControlMode).EVMaximumDischargePower,
-                            Is.Not.Null, "…and named a discharge limit, which BPT_Scheduled leaves optional");
+                Assert.That(loops, Is.Not.Empty);
+                for (var i = 0; i < loops.Length; i++)
+                {
+                    Assert.That(loops[i].CLReqControlMode, Is.InstanceOf<Dc20.BPT_Scheduled_DC_CLReqControlModeType>(),
+                                $"charge loop {i} asked in Scheduled *and* bidirectional");
+                    Assert.That(((Dc20.BPT_Scheduled_DC_CLReqControlModeType) loops[i].CLReqControlMode).EVMaximumDischargePower,
+                                Is.Not.Null, $"…and charge loop {i} named a discharge limit, which BPT_Scheduled leaves optional");
+                }
             });
         }
 
@@ -203,15 +207,17 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                                        LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true },
                 cts.Token);
 
-            var cpd  = secc.Requests.OfType<Dc20.DC_ChargeParameterDiscoveryReq>().Single();
-            var loop = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().First();
+            var cpd   = secc.Requests.OfType<Dc20.DC_ChargeParameterDiscoveryReq>().Single();
+            var loops = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().ToArray();
 
             Assert.Multiple(() =>
             {
                 Assert.That(secc.IsDone, Is.True);
                 Assert.That(cpd.DC_CPDReqEnergyTransferMode, Is.InstanceOf<Dc20.BPT_DC_CPDReqEnergyTransferModeType>());
-                Assert.That(loop.CLReqControlMode, Is.InstanceOf<Dc20.BPT_Dynamic_DC_CLReqControlModeType>(),
-                            "the charge loop asked in Dynamic *and* bidirectional");
+                Assert.That(loops, Is.Not.Empty);
+                Assert.That(loops.Select(l => l.CLReqControlMode),
+                            Is.All.InstanceOf<Dc20.BPT_Dynamic_DC_CLReqControlModeType>(),
+                            "every charge loop asked in Dynamic *and* bidirectional");
             });
         }
 
@@ -256,14 +262,17 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
             var selection = secc.Requests.OfType<ServiceSelectionReq>().Single();
             var cpd       = secc.Requests.OfType<Ac20.AC_ChargeParameterDiscoveryReq>().Single();
-            var loop      = secc.Requests.OfType<Ac20.AC_ChargeLoopReq>().First();
+            var loops     = secc.Requests.OfType<Ac20.AC_ChargeLoopReq>().ToArray();
 
             Assert.Multiple(() =>
             {
                 Assert.That(secc.IsDone, Is.True);
                 Assert.That(selection.SelectedEnergyTransferService.ServiceID, Is.EqualTo(EnergyTransferService.AC_BPT));
                 Assert.That(cpd.AC_CPDReqEnergyTransferMode, Is.InstanceOf<Ac20.BPT_AC_CPDReqEnergyTransferModeType>());
-                Assert.That(loop.CLReqControlMode, Is.InstanceOf<Ac20.BPT_Scheduled_AC_CLReqControlModeType>());
+                Assert.That(loops, Is.Not.Empty);
+                Assert.That(loops.Select(l => l.CLReqControlMode),
+                            Is.All.InstanceOf<Ac20.BPT_Scheduled_AC_CLReqControlModeType>(),
+                            "every charge loop asked in Scheduled *and* bidirectional");
             });
         }
 
@@ -284,7 +293,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
             var selection = secc.Requests.OfType<ServiceSelectionReq>().Single();
             var cpd       = secc.Requests.OfType<Dc20.DC_ChargeParameterDiscoveryReq>().Single();
-            var loop      = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().First();
+            var loops     = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().ToArray();
 
             Assert.Multiple(() =>
             {
@@ -292,7 +301,10 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 Assert.That(selection.SelectedEnergyTransferService.ServiceID, Is.EqualTo(EnergyTransferService.DC));
                 Assert.That(cpd.DC_CPDReqEnergyTransferMode, Is.Not.InstanceOf<Dc20.BPT_DC_CPDReqEnergyTransferModeType>(),
                             "a plain DC session must not declare a discharge envelope");
-                Assert.That(loop.CLReqControlMode, Is.Not.InstanceOf<Dc20.BPT_Scheduled_DC_CLReqControlModeType>());
+                Assert.That(loops, Is.Not.Empty);
+                Assert.That(loops.Select(l => l.CLReqControlMode),
+                            Is.All.Not.InstanceOf<Dc20.BPT_Scheduled_DC_CLReqControlModeType>(),
+                            "no charge loop may turn bidirectional mid-session either");
             });
         }
 
