@@ -394,6 +394,79 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             });
         }
 
+
+        // ── the goals as energy, which is how -20 asks for them ────────────────
+        // The session-level side of this is EnergyGoalBindingTests; here are the edges a session does not
+        // reach, because a loop that has met its goal stops rather than sending one more request.
+
+        /// <summary>The nearest goal wins, and "full" is the goal behind every other one.</summary>
+        [Test]
+        public void EnergyNeeded_IsWhicheverGoalIsNearest()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(new EvBattery(60, 20).EnergyNeededWh,
+                            Is.EqualTo(48_000).Within(0.5), "no goal named: what it takes to fill it");
+                Assert.That(new EvBattery(60, 20) { TargetSoC = 50 }.EnergyNeededWh,
+                            Is.EqualTo(18_000).Within(0.5), "20 % to 50 % of 60 kWh");
+                Assert.That(new EvBattery(60, 20) { TargetEnergyWh = 5_000 }.EnergyNeededWh,
+                            Is.EqualTo(5_000).Within(0.5), "an amount to deliver, none of it delivered yet");
+                Assert.That(new EvBattery(60, 20) { TargetSoC = 50, TargetEnergyWh = 5_000 }.EnergyNeededWh,
+                            Is.EqualTo(5_000).Within(0.5), "both named: the one that ends the session first");
+            });
+        }
+
+        /// <summary>
+        /// A target above what the pack can take is not a request for more than it can take. Worth pinning
+        /// separately: the figure goes on the wire as <c>EVMaximumEnergyRequest</c>'s sibling, and a
+        /// station planning against a number larger than the battery would be planning for a stop that
+        /// never comes.
+        /// </summary>
+        [Test]
+        public void EnergyNeeded_NeverExceedsWhatThePackCanTake()
+        {
+            var b = new EvBattery(60, 20) { TargetEnergyWh = 500_000 };
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(b.EnergyNeededWh,     Is.EqualTo(48_000).Within(0.5));
+                Assert.That(b.EnergyAcceptableWh, Is.EqualTo(48_000).Within(0.5));
+            });
+        }
+
+        /// <summary>Met goals ask for nothing, rather than for a negative amount.</summary>
+        [Test]
+        public void EnergyNeeded_IsZeroOnceTheGoalIsMet()
+        {
+            var b = new EvBattery(60, 20) { TargetSoC = 25 };
+            b.Add(6_000);   // straight past 25 % to 30 %
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(b.EnergyNeededWh, Is.EqualTo(0).Within(0.5));
+                Assert.That(b.EnergyAcceptableWh, Is.EqualTo(42_000).Within(0.5), "still room, just not wanted");
+            });
+        }
+
+        /// <summary>
+        /// The minimum, which is the one goal that is not a stop condition and still has to be declared:
+        /// a station steering a Dynamic session is owed the figure even though the car will drive off
+        /// without it if it must.
+        /// </summary>
+        [Test]
+        public void MinimumNeeded_IsTheShortfall_AndZeroWhenNoneWasAsked()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(new EvBattery(60, 20) { MinimumSoC = 30 }.MinimumNeededWh,
+                            Is.EqualTo(6_000).Within(0.5), "ten points of a 60 kWh pack");
+                Assert.That(new EvBattery(60, 40) { MinimumSoC = 30 }.MinimumNeededWh,
+                            Is.EqualTo(0).Within(0.5), "already past it");
+                Assert.That(new EvBattery(60, 20).MinimumNeededWh,
+                            Is.EqualTo(0).Within(0.5), "none asked for");
+            });
+        }
+
     }
 
 }
