@@ -131,9 +131,16 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         /// version passed every signature check in this file while reporting a constant, and it only
         /// became visible once the vehicle grew a counter to compare against.
         /// <para>
-        /// AC announces 22 kW and DC 400 V x 120 A, over one <c>ChargeLoopSample.Period</c> — so a
-        /// minute of each is 367 Wh and 800 Wh. The AC figure is rounded up from 366.67, which is
-        /// worth having in a test: it is the only place the rounding rule is visible.
+        /// The AC station meters what the vehicle says it is drawing, and this driver's Scheduled request
+        /// reports 20 kW; DC serves the 120 A it asks for at 400 V. Over one <c>ChargeLoopSample.Period</c>
+        /// that is 333 Wh and 800 Wh. The AC figure is rounded down from 333.33, which is worth having in a
+        /// test: it is the only place the rounding rule is visible.
+        /// </para>
+        /// <para>
+        /// It read 367 — a flat 22 kW — until the station started reading the request's
+        /// <c>EVPresentActivePower</c> (2026-08-09, the <c>--power</c> binding). A station that meters its
+        /// own advertised figure whatever the car draws is the "fitted, signs correctly, never advances"
+        /// failure one step milder: it advances, just not with the session.
         /// </para>
         /// </remarks>
         [Test]
@@ -145,8 +152,8 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             Assert.Multiple(() =>
             {
                 Assert.That(acLoop.MeterInfo!.MeterID, Is.EqualTo("VAN*M1"));
-                Assert.That(acLoop.MeterInfo!.ChargedEnergyReadingWh, Is.EqualTo(367),
-                            "22 kW for one sample period, rounded from 366.67");
+                Assert.That(acLoop.MeterInfo!.ChargedEnergyReadingWh, Is.EqualTo(333),
+                            "the 20 kW the vehicle reported drawing, for one sample period, rounded from 333.33");
                 Assert.That(acLoop.MeterInfo!.MeterSignature, Has.Length.EqualTo(64));
 
                 Assert.That(dcLoop.MeterInfo!.MeterID, Is.EqualTo("VAN*M1"));
