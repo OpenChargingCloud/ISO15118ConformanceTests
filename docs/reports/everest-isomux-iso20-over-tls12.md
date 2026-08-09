@@ -11,10 +11,12 @@ refused TLS 1.3 transcript (`refused-tls13.log`), your own `their-charger.log`, 
 plain-TCP predecessor, which found the routing rule itself, is
 [`2026-08-03-everest-isomux-both`](../interop-runs/2026-08-03-everest-isomux-both/notes.md).
 
-Three other reports for the same project are in
+Four other reports for the same project are in
+[`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md) — **same module, same function,
+different fix** —
 [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
 [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) and
-[`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md), and a fourth goes to your fork of
+[`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md), and a fifth goes to your fork of
 Josev's certificate script ([`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md)). **File them
 separately.** The framing in the first of those — what everest-core has been worth to this project,
 and why a report from us is not a bug filed by a stranger — applies here unchanged and is not repeated.
@@ -252,15 +254,18 @@ Two changes; the first is small and, alone, removes a path that currently works.
    manifest should say that TLS on the mux implies ISO 15118-2. That is a legitimate answer and it is
    still a change — the current behaviour neither serves `-20` properly nor refuses it.
 
-## Also seen, in the same function, filed separately
+## Also in the same function — filed separately, and please read it separately
 
 `v2g_sniff_apphandshake()` never reads `Priority`. It walks the offer in the order received and returns
 on the first `-20` entry, so an EV that ranks `-2` above `-20` gets `-20` anyway — visible in the
 `both-2first` log excerpt at the top, where both entries are logged and the `-2` entry is the
-priority-1 one. `[V2G2-169]` makes selecting by the EV's ranking a *shall*. Reproduced three times,
-across 2025.10.0 and 2026.02.1, over plain TCP and over TLS.
+priority-1 one. `[V2G2-169]` and `[V2G20-169]` make selecting by the EV's ranking a *shall*, and both
+modules behind your mux already implement it. Reproduced three times, across 2025.10.0 and 2026.02.1,
+over plain TCP and over TLS: [`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md).
 
-It is a different fix in the same file and belongs in its own issue, so it is not folded in here.
+Different defect, different fix, and a different severity — that one costs no interop at all. The
+routing decision they land in is the same one, so you will meet both in the same `if`; that is the only
+reason it is mentioned here.
 
 ---
 

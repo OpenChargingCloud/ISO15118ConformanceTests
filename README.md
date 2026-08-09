@@ -146,8 +146,11 @@ long time this project's -20 TLS met only -2-grade material from counterparties;
 first that ships what the standard says (footnote ²¹).
 
 ⁷ `IsoMux` routes on *"mentions -20 anywhere"* and never reads SAP `Priority` — confirmed on the wire
-against 2025.10.0, 2026.02.1, and a third time over TLS. `[V2G2-169]` makes selecting by the EV's
-ranking a *shall*, so it is a defect and not only a surprise (settled 2026-08-09; not filed yet).
+against 2025.10.0, 2026.02.1, and a third time over TLS, with the same request and answer bytes every
+time. `[V2G2-169]` and `[V2G20-169]` make selecting by the EV's ranking a *shall*, so it is a defect and
+not only a surprise: the **twentieth filing**,
+[`everest-isomux-sap-priority.md`](docs/reports/everest-isomux-sap-priority.md). Both modules behind
+their mux already implement the rule.
 
 ⁸ The `←SECC` leg is the only one that tests **our** catalogue rather than theirs. It also needed two
 fixes of ours to be *readable* at all, one in the app and one in the fixture.
@@ -333,7 +336,7 @@ on the wire. What each of them has proven is the matrix above.
 | [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; as an **injector at their HEAD** it drove our SECC through the full captured-Audi DC session and a VW AC route — and reached the one arm of our state machine no self-consistent test had ever executed. Over TLS it produced the first external check of our TLS profile, and [two findings drafted for them](docs/reports/tux-evse-tls.md). Their Tesla DIN capture is unreadable to us past the handshake — and the handshake alone [carried a vendor-proprietary protocol at priority 1](docs/interop-runs/2026-08-07-tesla-din-handshake/notes.md), an offer shape nothing here could have written for itself. |
 | [`docs/open-work.md`](docs/open-work.md) | the inverse of the matrix above: every cell that is not `✅`, why, and who it waits on. **The to-do list.** |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences. **History, not a to-do list** — each note's `Next` section is a snapshot from that day, and later runs close items without editing it |
-| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **nineteen filings across six projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
+| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **twenty filings across six projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
 | [`tools/interop-*/`](tools/) | how to bring each counterparty up and drive it — [Josev](tools/interop-josev/README.md) · [EVerest](tools/interop-everest/README.md) · [eVDriveFlow](tools/interop-evdriveflow/README.md) · [tux-evse](tools/interop-tux-evse/README.md) |
 | [`docs/assumed-values-sweep.md`](docs/assumed-values-sweep.md) | where our own assumptions replaced values the protocol supplies |
 

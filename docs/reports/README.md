@@ -21,6 +21,7 @@ was our own configuration we bent.
 | [`tux-evse-capture-fidelity.md`](tux-evse-capture-fidelity.md) | IoT.bzh (tux-evse) | **E**, **F** | A replayed capture never puts the car's real protocol offer on the wire — their converter parses it and drops it — and the closing SDP verb is hardcoded to the wrong API in DIN scenarios |
 | [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
 | [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) | EVerest (libiso15118) | one | The `-20` AC `PowerDelivery` state assigns a **pointer** to its `bool ac_connector_closed`, so a board-support module reporting the contactor **open** latches it closed, cancels the timeout that would have refused, and answers `PowerDeliveryRes(OK)` — the mechanism by [`tools/everest-contactor-probe/`](../../tools/everest-contactor-probe/README.md), the behaviour [against their running station](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md), 2 of 2 with a control |
+| [`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md) | EVerest (`IsoMux`) | one | The multiplexer routes on the **first** `-20` entry in the offer and never reads `Priority`, so a car that ranks ISO 15118-2 above `-20` is put on `-20` regardless — `[V2G2-169]` and `[V2G20-169]` both make the ranking binding, and **both backends behind the mux already implement it**, each citing the requirement in a comment. Byte-identical request and response across three runs, two releases, TCP and TLS |
 | [`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md) | EVerest (`IsoMux`) | one | The multiplexer serves TLS 1.2 and nothing higher, then routes the SAP offer to whichever backend it names — so a dual-stack EV gets a complete **ISO 15118-20 session over TLS 1.2**, which `[V2G20-2356]` forbids the station to select, while a `-20` EV that pins its own profile gets alert 70. Between the two, the `-20` backend is reachable **only** by an EV that breaks the mirror requirement — and ours did, which the report says before it says anything else |
 | [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) | EVerest (`ext-switchev-iso15118`) **and** SwitchEV (iso15118) | one, filed twice | `create_certs.sh` branches on `-v iso-2\|iso-20` and the `-20` branch selects the same `prime256v1` as `-2`, under its own `TODO` — so `-20` contract provisioning cannot complete at all, the schema's key-wrap curve choice being secp521r1 or x448 and nothing else |
 | [`josev-iso20-pause-resume.md`](josev-iso20-pause-resume.md) | SwitchEV (iso15118) | one | Pause/resume works in ISO 15118-2 and cannot work in -20: the `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its states never fill — so `OK_OldSessionJoined` is unreachable and every resume degrades to a new session |
@@ -28,7 +29,7 @@ was our own configuration we bent.
 | [`v2gdecoder-fuzzy-grammar.md`](v2gdecoder-fuzzy-grammar.md) | FlUxIuS (V2Gdecoder) | **A**, **B** | A frame valid under two grammars is decoded by whichever sits first in the array, silently — and their DIN grammar rejects a real `ChargeParameterDiscoveryRes`, which the same fallback then answers for |
 | [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) + [`libcbv2g/`](libcbv2g/) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document grammar groups global elements sharing a type, so two ACDP messages swap identity and one decodes cleanly as the other; the WPT mid-sequence particle grammar returns success while **silently dropping** a set field; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all — reproduced by [`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md) |
 
-**Nineteen filings across six projects**, and two of them now have to be sent **twice**.
+**Twenty filings across six projects**, and two of them now have to be sent **twice**.
 `create_certs.sh` lives in `SwitchEV/iso15118` and in EVerest's fork of it, byte-identical in the
 relevant block and 100 lines apart everywhere else, so one merge will not reach the other tree. The
 contactor one is the same trap in a tidier form: `power_delivery.cpp` is byte-identical — 5663 bytes,
@@ -55,6 +56,20 @@ and the notes closed it as *"a layering question, and a bigger conversation than
 unfiled, on the grounds that we did not hold the requirement text. That changed on 2026-08-08
 ([`normative-basis.md`](../normative-basis.md)), and two observations parked as questions turned out to
 be a `shall not` and, next door in the same function, a `shall`.
+
+The **twentieth** is that second one: `IsoMux` never reads SAP `Priority`. It had been written down
+three times and filed none, under a note that said the requirement had not been checked — the check now
+comes back `[V2G2-169]`, and `[V2G20-169]` beside it, which happens to be the one case in this
+directory where the `-2` document caveat could be answered rather than merely declared: three
+independent places say it, one of them written against the 2014 edition.
+
+The two are separate reports on purpose even though the same `if` decides both, and that pair is the
+clearest illustration of why this directory splits things. They are different defects — one is *"do not
+route `-20` here"*, the other *"route the entry the car ranked first"* — with different fixes, different
+severities (one makes a backend unreachable, the other is a conformance point that costs no interop),
+and different answers available to a maintainer: the first might reasonably be *"the mux is not meant
+for that"*, the second cannot be, because the two modules behind the mux both implement the rule
+already. Filed together, one reply would have covered both and the weaker answer would have decided it.
 
 The letters and numbers are per counterparty and exist to
 keep separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal

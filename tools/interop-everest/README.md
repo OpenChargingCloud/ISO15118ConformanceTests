@@ -359,9 +359,18 @@ before the response is sent —
 4. **TLS** (`config-sil-dc-tls.yaml`), with `tls_key_logging: true`, now that there is a full plaintext
    session to compare against.
 5. ✅ **IsoMux**, the closest thing to a real charger's behaviour: one endpoint answering both. Done
-   2026-08-03 — it binds its own TCP port at startup (61342, no SDP step needed), terminates the
-   SupportedAppProtocol handshake itself and routes on the offered namespace. Its backends sit on `lo`
-   with `enable_sdp_server: false`, and `Evse15118D20` behind it still claims `[::1]:50000`.
+   2026-08-03 — it binds its own TCP port at startup (61342, no SDP step needed) and routes on the
+   offered namespace. Its backends sit on `lo` with `enable_sdp_server: false`, and `Evse15118D20`
+   behind it still claims `[::1]:50000`.
+   <br>**Correction, 2026-08-09:** it does **not** terminate the SupportedAppProtocol handshake, as this
+   list said until today. `v2g_sniff_apphandshake()` decodes the request only to decide a route; the
+   buffered request is then written through to the backend, which answers
+   (`IsoMux/connection/connection.cpp:462`, `.../tls_connection.cpp:334`, both under their own comment
+   *"still in buffer, we need to forward it"*). The distinction decides who is answerable for the
+   SchemaID, which is what the **twentieth filing** turns on:
+   [`everest-isomux-sap-priority.md`](../../docs/reports/everest-isomux-sap-priority.md) — the router
+   picks the backend on the first `-20` entry it sees and never reads `Priority`, while both backends
+   read it correctly.
 6. ✅ **MCS** — the first live counterpart our MCS support ever had. Done 2026-08-05 against
    `config-sil-mcs.yaml`: three complete sessions, service id 8 read back as MCS by their stack.
    ✅ **MCS_BPT (9)** followed on 2026-08-06 (`V2G_INTEROP_MCS_FIRST=9`): two complete sessions with the

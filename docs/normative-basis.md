@@ -183,15 +183,29 @@ is also the cheapest way to find out that we are.
 
 ### The SECC follows the EV's protocol ranking
 
-`[V2G2-169]` — a *shall*: from its own list of supported protocols the SECC selects the one the EVCC
-indicated with the highest priority. So a station that routes on *"does this EV mention `-20` at all"*
-and never reads `Priority` — which EVerest's `IsoMux` does, confirmed on the wire three times across
-two releases — is not merely surprising, it is on the wrong side of a requirement. The run notes had
-said *"whether that is a defect depends on a requirement we have not checked"* since 2026-08-03; this
-is the check.
+A *shall*, and **both documents carry it under the same number in their own series**:
 
-Carries the **`-2` caveat** above, and here it was worth doing something about rather than only
-declaring. The 2019 *ISO 15118 Manual* was written against ISO 15118-2:**2014** and describes the same
-rule in its walk-through of the handshake — so the obligation is not an invention of the 2022 revision.
-The manual is never a citation for a conformance claim; this is the other thing it is good for, which
-is deciding whether a requirement in the revision to hand predates it.
+- **`[V2G2-169]`** and **`[V2G20-169]`** — from its own list of supported protocols, the SECC selects
+  the one the EVCC ranked highest, and the response names that entry's SchemaID.
+- **`[V2G2-167]`** and **`[V2G20-167]`** define the field: `1` highest, `20` lowest, at most 20 entries.
+
+So the station's own capability is a filter and the EV's `Priority` is the ranking applied inside it.
+A station that routes on *"does this EV mention `-20` at all"* and never reads `Priority` — which
+EVerest's `IsoMux` does, confirmed on the wire three times across two releases — is not merely
+surprising, it is on the wrong side of a requirement. The run notes had said *"whether that is a defect
+depends on a requirement we have not checked"* since 2026-08-03; this is the check. **Filed 2026-08-09:**
+[`reports/everest-isomux-sap-priority.md`](reports/everest-isomux-sap-priority.md).
+
+Worth keeping for the method rather than the result. The `-2` half carries the **`-2` caveat** above,
+and here it was worth doing something about rather than only declaring — three things, each
+independent:
+
+1. `[V2G20-169]` is in the `-20` FDIS, which needs no caveat and binds the same station.
+2. The 2019 *ISO 15118 Manual*, written against ISO 15118-2:**2014**, describes the same rule in its
+   walk-through of the handshake. The manual is never a citation for a conformance claim; **this** is
+   what it is good for — deciding whether a requirement in the revision to hand predates it.
+3. `-20`'s own worked example in `8.2.4` shows the SECC answering the SchemaID of the priority-1 entry
+   where array order and priority order deliberately differ.
+
+An argument that would have rested on one draft revision rests on three places instead, one of them
+contemporaneous with the edition actually being implemented.
