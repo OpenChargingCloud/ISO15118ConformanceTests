@@ -7,8 +7,8 @@ independent *codec*; EVerest is the independent *charger* — the thing a car in
 and it has found more defects in this project than any other counterparty, all of one shape.
 
 Tooling and the per-session ritual: [`tools/interop-everest/`](../tools/interop-everest/README.md).
-Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (nineteen directories, all
-prefixed `*-everest-*`).
+Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (twenty-four directories, all
+prefixed `*-everest-*`; counted 2026-08-09).
 
 ---
 
@@ -252,8 +252,11 @@ sent — they are the operator's to post, under their own name.
   ranking -2 first still lands on -20. `Priority` is printed to their log two lines above the decision
   and not used in it, and the branch carries their own comment — `// Check if it supports ISO-20` — so
   this is a routing policy, not an unread field. Confirmed on the wire against 2025.10.0 **and**
-  2026.02.1, and a third time over TLS. Whether the policy conflicts with a requirement rests on text
-  this project does not hold, so the notes say what their code does and stop there.
+  2026.02.1, and a third time over TLS. **Decided 2026-08-09**: `[V2G2-169]` makes selecting the
+  highest-priority protocol the EV indicated a *shall*, so the policy conflicts with a requirement
+  after all. It carries the `-2` document caveat in [`normative-basis.md`](normative-basis.md) — but
+  the 2019 manual, written against the 2014 edition, describes the same rule, which is the check that
+  matters here. Not filed yet; it is the same function as the report below and belongs in its own issue.
 - **`IsoMux` terminates TLS at the -2 profile, then routes -20 traffic through it.** Not an oversight:
   `connection/tls_connection.cpp` pins `cipher_list` to the suite ISO 15118-2 prescribes and sets
   `ciphersuites = ""` under the comment *"disable TLS 1.3"* — two lines carried verbatim from `EvseV2G`,
@@ -262,6 +265,11 @@ sent — they are the operator's to post, under their own name.
   is fixed before the protocol is known. A dual-stack EV gets a complete **ISO 15118-20 session over
   TLS 1.2**; a -20 EV that pins its own profile gets alert 70 and never reaches the backend at all.
   Nothing on that path is in a position to object.
+  **Filed 2026-08-09:** [`everest-isomux-iso20-over-tls12.md`](reports/everest-isomux-iso20-over-tls12.md).
+  `[V2G20-2356]` forbids an SECC to select -20 on a connection at TLS 1.2 or below, and the two halves
+  above together mean the -20 backend is reachable *only* by an EV that breaks the mirror requirement
+  `[V2G20-1237]` — which ours did, and which is now an item of our own in
+  [`open-work.md`](open-work.md).
 - **ISO 15118-20 Plug & Charge is not implemented in `Evse15118D20`** — `auth_services.push_back(…PnC)`
   is commented out with *"Currently Plug&Charge is not supported and ignored"*. It moved off this
   project's list and onto theirs.

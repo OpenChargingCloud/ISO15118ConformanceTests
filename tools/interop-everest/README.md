@@ -391,7 +391,9 @@ before the response is sent —
    hello gets alert 70, while a both-offer negotiates 1.2 and is then routed to the **-20** backend, giving
    a complete -20 session on a profile ISO 15118-20 does not allow. `IsoMux` also survives a refused
    handshake, unlike `Evse15118D20`
-   ([`…-isomux-tls`](../../docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)).
+   ([`…-isomux-tls`](../../docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)). The profile half is
+   the **nineteenth filing** since 2026-08-09, `[V2G20-2356]` having settled that a station must not
+   select -20 there: [`everest-isomux-iso20-over-tls12.md`](../../docs/reports/everest-isomux-iso20-over-tls12.md).
 
 ---
 
