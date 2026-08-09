@@ -38,11 +38,22 @@ PUB="${MOSQUITTO_PUB:-mosquitto_pub}"
 TRIGGER="${TRIGGER_LINE:-Waiting for contactor is closed}"
 TIMEOUT="${WATCH_TIMEOUT:-120}"
 
+# Every value-taking option checks that its value is there before reading it. Under `set -u`, a bare
+# `--status` at the end makes `$2` an unbound variable and the script dies on that instead of on the
+# usage message twenty lines down — which would make that message unreachable, in a script whose whole
+# reason for existing is a guard that cannot be taken.
+need_value() {
+    [ $# -ge 2 ] || {
+        echo "$1 needs a value (true|false for --status, a log path for --watch)" >&2
+        exit 2
+    }
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        --status) STATUS="$2"; shift 2 ;;
-        --watch)  WATCH="$2";  shift 2 ;;
-        --now)    NOW=1;       shift ;;
+        --status) need_value "$@"; STATUS="$2"; shift 2 ;;
+        --watch)  need_value "$@"; WATCH="$2";  shift 2 ;;
+        --now)    NOW=1;                        shift   ;;
         *) echo "unknown argument: $1" >&2; exit 2 ;;
     esac
 done
@@ -82,8 +93,13 @@ echo "$(date -u +%H:%M:%S.%3N) watching $WATCH for: $TRIGGER"
 from=$(( $(wc -l < "$WATCH" 2>/dev/null || echo 0) + 1 ))
 deadline=$(( SECONDS + TIMEOUT ))
 
+# -F and --: the trigger is a literal log line, and TRIGGER_LINE exists to be overridden. Without -F
+# a bracketed EVerest level like "[ERRO] Shutdown loop()" is a character class and matches nothing —
+# and the watcher then waits out its timeout and reports "trigger never appeared", which is precisely
+# the looks-like-it-worked failure this script has already produced once (see the run notes). Without
+# -- a trigger starting with a dash is read as options and grep exits 2.
 while [ "$SECONDS" -lt "$deadline" ]; do
-    if tail -n "+$from" "$WATCH" 2>/dev/null | grep -q "$TRIGGER"; then
+    if tail -n "+$from" "$WATCH" 2>/dev/null | grep -qF -- "$TRIGGER"; then
         fire
         exit 0
     fi
