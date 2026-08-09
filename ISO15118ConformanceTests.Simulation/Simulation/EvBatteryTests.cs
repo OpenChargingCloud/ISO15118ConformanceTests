@@ -50,6 +50,16 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             }
 
             public static decimal WattsAsDecimal(double watts) => Dc20Rational.ToDecimal(Watts(watts));
+
+            /// <summary>The <em>encoding</em>, not the amount — the pair that actually goes on the wire.
+            /// See <see cref="Watts_EncodesAsValueAndExponent"/> for why the distinction earned a probe
+            /// of its own.</summary>
+            public static (short Value, sbyte Exponent) WattsEncoded(double watts)
+            {
+                var r = Watts(watts);
+                return (r.Value, r.Exponent);
+            }
+
             public decimal TargetCurrent => Dc20Rational.ToDecimal(LoopTargetCurrent);
             public decimal LoopPower     => Dc20Rational.ToDecimal(LoopMaxPower);
             public sbyte   DeclaredSoC   => DeclaredTargetSoC;
@@ -341,6 +351,34 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
         [Test]
         public void Watts_Saturates_TheOtherWayToo()
             => Assert.That((double) Probe.WattsAsDecimal(-1e12), Is.EqualTo(-32_767e3).Within(1.0));
+
+        /// <summary>
+        /// The same conversion read as an <em>encoding</em> rather than as an amount: which (value,
+        /// exponent) pair goes on the wire, not what it decodes back to.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Everything above this asserts the decoded number, and every one of them passes for either
+        /// encoding of it — which is how the method's own doc comment claimed for months that 9 kW went out
+        /// as 9×10³ while the code sent 9 000×10⁰. Three readers in a row reproduced the error from the
+        /// source, including the review bot that was fixing it and the author of this test; nobody ran it.
+        /// </para>
+        /// <para>
+        /// It is not a conformance question — both forms are schema-valid and decode identically, and a
+        /// counterparty must accept either. It is a question of whether this repository can say what its
+        /// own encoder emits, which is the one thing it exists to be able to say.
+        /// </para>
+        /// </remarks>
+        [TestCase(     9_000.0,  (short)  9_000, (sbyte) 0, TestName = "Encoding_9kW_staysAtExponentZero")]
+        [TestCase(     9_500.0,  (short)  9_500, (sbyte) 0, TestName = "Encoding_9k5W_isNotNormalisedEither")]
+        [TestCase(    32_767.0,  (short) 32_767, (sbyte) 0, TestName = "Encoding_atTheLimit_stillFits")]
+        [TestCase(    32_768.0,  (short)  3_277, (sbyte) 1, TestName = "Encoding_oneAboveIt_shiftsAndRounds")]
+        [TestCase(    50_000.0,  (short)  5_000, (sbyte) 1, TestName = "Encoding_50kW")]
+        [TestCase( 3_750_000.0,  (short)  3_750, (sbyte) 3, TestName = "Encoding_MCS_3M75W")]
+        [TestCase(         0.0,  (short)      0, (sbyte) 0, TestName = "Encoding_zero")]
+        [TestCase(        1e12,  (short) 32_767, (sbyte) 3, TestName = "Encoding_saturates")]
+        public void Watts_EncodesAsValueAndExponent(double watts, short value, sbyte exponent)
+            => Assert.That(Probe.WattsEncoded(watts), Is.EqualTo((value, exponent)));
 
 
         // ── what the loop derives from the battery ─────────────────────────────
