@@ -1,15 +1,18 @@
 # Draft report to EVerest — `-20` AC treats "contactor did **not** close" as "closed"
 
-Status: **draft, not sent.** Established by reading `everest-core` **2026.02.1** (`b61bb12`) on
-2026-08-09 and by a probe that compiles against your own header with your own warning set. Post it
-under your own name; see *Before sending* at the bottom, where the one unticked item that matters is
-named plainly: **this was not observed on the wire.**
+Status: **draft, not sent.** Read out of `everest-core` **2026.02.1** (`b61bb12`) on 2026-08-09 and
+then **reproduced against a running station the same day, 2 of 2, with a control** —
+[`2026-08-09-everest-ac-contactor-injection`](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md).
+Post it under your own name; see *Before sending* at the bottom.
 
-Probe: [`tools/everest-contactor-probe/`](../../tools/everest-contactor-probe/) — exit 0 means the
-defect is still there.
+Two ways to check it, neither of which needs our stack:
 
 ```bash
+# the mechanism, against your header with your warning set — exit 0 means it is still there
 EVEREST_CORE=/path/to/everest-core bash tools/everest-contactor-probe/build.sh
+
+# the behaviour, against your running SIL — publishes one command on your own interface
+bash tools/interop-everest/contactor-report.sh --status false --watch charger.log
 ```
 
 Two other reports for the same project are in [`everest-loop-shutdown.md`](everest-loop-shutdown.md)
@@ -30,6 +33,21 @@ charger answers `PowerDeliveryRes(OK)`
 `32f5a223989b4657…` — so this has two homes and one of them is presumably canonical. See the checklist.
 
 ## Summary
+
+Told that the AC contactor did **not** close, your `-20` station charges anyway. Four sessions on your
+stock SIL, one variable between them:
+
+| CP held at C | `ac_contactor_closed` | `PowerDeliveryRes` | after the wait began |
+|---|---|---|---|
+| no | — | `FAILED_ContactorError` | 3.000 s — the timeout |
+| yes | — | `FAILED_ContactorError` | 3.032 s — the timeout |
+| no | **`false`** | **`OK`** → 3× `AC_ChargeLoop` → `SessionStop` | **99 ms** |
+| no | **`false`** | **`OK`** → 3× `AC_ChargeLoop` → `SessionStop` | **95 ms** |
+
+The latency is the tell: a `false` does not merely fail to hold the session, it *ends the wait early* —
+`stop_timeout(CONTACTOR)` runs on the event that reported the failure.
+
+Here is why.
 
 `PowerDelivery::feed` handles the `ClosedContactor` control event like this:
 
@@ -159,30 +177,46 @@ Worth mentioning because it says something about where to look for siblings: `-W
 here, and the same shape — `x = ptr` where `x` is `bool` and `ptr` came out of a
 `get_control_event<T>()` — is mechanically greppable across the other states.
 
-## Reproduction
+## Reproduction — on a running station
 
-No charging session and no EV. The probe compiles against **your** `control_event.hpp`, so the class
-under test is yours rather than a retyped copy, and uses your warning set:
+Your stock `config-sil-ac-d20.yaml` shape, plain TCP, EIM. Plug the simulated car in but **do not**
+hold CP at state C, so the contactor never really closes and the window is the full 3 s. Then publish
+one command on your own interface, in the framework's own wire format, while `PowerDelivery` waits:
+
+```bash
+bash tools/interop-everest/contactor-report.sh --status false --watch charger.log
+# everest/modules/iso15118_charger/impl/charger/cmd/ac_contactor_closed
+# {"msg_type":"Cmd","data":{"id":"…","args":{"status":false},"origin":"…"}}
+```
+
+Nothing is patched, rebuilt or reconfigured, and the state machine has no way to tell our publisher
+from your `EvseManager`. Second run, station clock UTC+2, injector UTC:
+
+```
+14:15:36.186  iso15118_charge  :: Waiting for contactor is closed     <- window opens
+14:15:36.187  evse_manager:Ev  :: CAR ISO AC HLC Close contactor
+12:15:36.220  contactor-report -> ac_contactor_closed(false)          <- = 14:15:36.220
+14:15:36.281  evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes       <- 61 ms after it
+14:15:36.286  evse_manager:Ev  :: CAR ISO V2G AcChargeLoopReq         <- so the code was OK
+```
+
+Drop the injection line and the same session ends `FAILED_ContactorError` at 3.000 s.
+
+## Reproduction — the mechanism alone, no station
+
+The probe compiles against **your** `control_event.hpp`, so the class under test is yours rather than
+a retyped copy, and uses your warning set:
 
 ```bash
 EVEREST_CORE=/path/to/everest-core bash tools/everest-contactor-probe/build.sh
 ```
 
 ```
-everest-core: /home/ahzf/everest/everest-core
-commit:       b61bb12  2026.02.1
-
 compiled clean under -Wall -Wextra -Werror
-
-EVerest libiso15118 — PowerDelivery::feed, ClosedContactor{false}
 
   as written    ac_connector_closed = control_data    -> true  (contactor treated as CLOSED)
   as intended   ac_connector_closed = *control_data   -> false (contactor open, as reported)
 ```
-
-To see it in a running station rather than in isolation, drive an AC `-20` session to
-`PowerDeliveryReq(Start)` and issue `ac_contactor_closed(false)` on the `Evse15118D20` charger
-interface within the 3 s window. We have not done this — see the checklist.
 
 ## Suggested direction
 
@@ -201,26 +235,29 @@ you want one, but you may prefer one of these instead, and the choice is yours:
 
 ## Also seen, not reported
 
-Our `-20` AC and AC_BPT runs against your SIL never reach the code path above at all: they end at
+Our `-20` AC and AC_BPT runs against your SIL cannot reach the window on their own: they end at
 `FAILED_ContactorError` from the **timeout**, because in that topology no `ClosedContactor` event
-arrives in either direction — the contactor confirmation your `EvseManager` waits on comes from your
-own EV module, which in our setup has no session. Four runs, two different car-simulator sequences,
-2026-08-03 through 2026-08-06. That is a property of driving your SIL with a third-party EV and we do
-not report it as a defect; it is written up in
+arrives at all — the contactor confirmation your `EvseManager` waits on comes from your own EV module,
+which in our setup has no session. Six runs now, three different car-simulator sequences, 2026-08-03
+through 2026-08-09. That is a property of driving your SIL with a third-party EV and we do **not**
+report it as a defect: it is written up in
 [`2026-08-03-everest-ac`](../interop-runs/2026-08-03-everest-ac/notes.md) and
 [`2026-08-06-everest-bpt`](../interop-runs/2026-08-06-everest-bpt/notes.md). It is, however, how we came
-to read this file.
+to read this file — and it is what makes the injection above a clean measurement, since with the
+contactor never really closing, the only thing that can end the 3 s wait early is what we sent.
+
+One session on 2026-08-09 did complete with CP held and nothing injected, and re-running the same
+configuration gave the timeout again. 1 of 2, unexplained, and no claim is made from it — noted here
+only so that it is not discovered later and mistaken for something we hid.
 
 ---
 
 ## Before sending
 
-- [ ] **Reproduce it on a running station, not only in the type system.** This is the weak point of the
-      report and the reason it should not go out as-is. What exists is a source reading plus a probe
-      that proves the conversion; what is missing is an AC `-20` session where
-      `ac_contactor_closed(false)` lands in the wait window and the station is observed answering `OK`
-      and entering `AC_ChargeLoop`. Until that is done, say "reading your source" and not "we observed"
-      — a maintainer can check the former in a minute and will resent being told the latter.
+- [x] **Reproduce it on a running station, not only in the type system.** Done 2026-08-09: 2 of 2, with
+      a control that fails the way it should, on their stock AC `-20` configuration
+      ([run notes](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)). This was the
+      report's weak point and it is closed; what it says now is *observed*, not *read*.
 - [ ] **Decide which repository it belongs in.** The file is byte-identical in `EVerest/everest-core`
       at `lib/everest/iso15118/` and in standalone `EVerest/libiso15118` @ `main`. One is presumably
       generated from the other; we could not tell which from the outside, and filing into the mirror

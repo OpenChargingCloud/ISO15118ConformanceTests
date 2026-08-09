@@ -1,0 +1,4 @@
+12:10:03.356 watching /home/ahzf/everest/run/contactor-inject.charger.log for: Waiting for contactor is closed
+12:10:06.933 -> ac_contactor_closed(false)
+12:10:06.935    everest/modules/iso15118_charger/impl/charger/cmd/ac_contactor_closed
+12:10:06.939 published

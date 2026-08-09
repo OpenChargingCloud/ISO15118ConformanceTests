@@ -20,7 +20,7 @@ was our own configuration we bent.
 | [`tux-evse-spin.md`](tux-evse-spin.md) | IoT.bzh (tux-evse) | **C**, **D** | One connection that pauses or closes sends the binder into a 200,000-line-per-second log loop — and SIGTERM stops the logging without ending the process |
 | [`tux-evse-capture-fidelity.md`](tux-evse-capture-fidelity.md) | IoT.bzh (tux-evse) | **E**, **F** | A replayed capture never puts the car's real protocol offer on the wire — their converter parses it and drops it — and the closing SDP verb is hardcoded to the wrong API in DIN scenarios |
 | [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
-| [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) | EVerest (libiso15118) | one | The `-20` AC `PowerDelivery` state assigns a **pointer** to its `bool ac_connector_closed`, so a board-support module reporting the contactor **open** latches it closed, cancels the timeout that would have refused, and answers `PowerDeliveryRes(OK)` — reproduced by [`tools/everest-contactor-probe/`](../../tools/everest-contactor-probe/README.md) |
+| [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) | EVerest (libiso15118) | one | The `-20` AC `PowerDelivery` state assigns a **pointer** to its `bool ac_connector_closed`, so a board-support module reporting the contactor **open** latches it closed, cancels the timeout that would have refused, and answers `PowerDeliveryRes(OK)` — the mechanism by [`tools/everest-contactor-probe/`](../../tools/everest-contactor-probe/README.md), the behaviour [against their running station](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md), 2 of 2 with a control |
 | [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) | EVerest (`ext-switchev-iso15118`) **and** SwitchEV (iso15118) | one, filed twice | `create_certs.sh` branches on `-v iso-2\|iso-20` and the `-20` branch selects the same `prime256v1` as `-2`, under its own `TODO` — so `-20` contract provisioning cannot complete at all, the schema's key-wrap curve choice being secp521r1 or x448 and nothing else |
 | [`josev-iso20-pause-resume.md`](josev-iso20-pause-resume.md) | SwitchEV (iso15118) | one | Pause/resume works in ISO 15118-2 and cannot work in -20: the `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its states never fill — so `OK_OldSessionJoined` is unreachable and every resume degrades to a new session |
 | [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
@@ -34,12 +34,13 @@ contactor one is the same trap in a tidier form: `power_delivery.cpp` is byte-id
 same SHA-256 — in `EVerest/everest-core` at `lib/everest/iso15118/` and in standalone
 `EVerest/libiso15118`, and which of the two is generated from the other could not be told from outside.
 
-The newest is also the only one in this directory that **has not been seen happen**. It is a source
-reading plus a probe that proves the conversion, and its checklist says so first and in those words. It
-is here rather than in *deliberately not here* because the defect itself is not a matter of opinion —
-the value is discarded, the guard is dead code, and their own `-2` module does the same thing correctly
-ten lines of the same idea away. What is missing is the wire evidence, and a report that blurs the two
-is the fastest way to have a real finding dismissed.
+The newest went out of that pattern and came back into it within a day. It was written from a source
+reading plus a probe, with *"this was not observed on the wire"* as the first item on its checklist;
+the reproduction landed the same afternoon — 2 of 2 against their stock SIL, with a control that fails
+the way it should — and the item is ticked. Worth recording because the intermediate state was the
+right one to be in: the defect was not a matter of opinion even then, but a report that had blurred
+"we read your source" into "we observed your station" would have been the fastest way to have a real
+finding dismissed.
 
 The letters and numbers are per counterparty and exist to
 keep separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal

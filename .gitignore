@@ -44,3 +44,9 @@ tools/**/cmake-build-*/
 
 # walk20.py imports roundtrip20 as a module, which leaves bytecode next to it.
 tools/**/__pycache__/
+
+# EVerest's own session logs. Evse15118D20 writes one YAML per session into its working directory,
+# named strftime("%y%m%d_%H-%M-%S.yaml") (session_logger.cpp:27,128) -- so an interop run driven from
+# this tree leaves a handful in the root. They are their artifact, not ours: the run notes carry the
+# frames we recorded ourselves, and these would be a second, unreviewed copy of somebody else's log.
+[0-9][0-9][01][0-9][0-3][0-9]_[0-2][0-9]-[0-5][0-9]-[0-5][0-9].yaml
