@@ -1,0 +1,5 @@
+06:34:23 watching everest/iso15118_charger/charger/var
+06:34:23      and everest/modules/iso15118_charger/impl/charger/var
+06:34:23      and everest/modules/iso15118_charger/impl/charger/var/require_auth_eim
+06:35:09 everest/modules/iso15118_charger/impl/charger/var/require_auth_eim: {"data":{"data":null},"msg_type":"Var"}
+06:35:09 -> TOKEN1 to everest/modules/token_provider/impl/main/var/provided_token

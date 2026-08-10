@@ -186,6 +186,11 @@ Two notes for anyone repeating it:
 
 ### Noticed in passing: `mqtt-authorize.sh` cannot work on 2026.02.1
 
+> **Fixed and verified later the same day** —
+> [`2026-08-10-everest-mqtt-authorize-2026021`](../2026-08-10-everest-mqtt-authorize-2026021/notes.md),
+> with a control run that shows the version below authorizing nothing against the same station. The
+> paragraph stands as written because it is what was known at this point.
+
 Not used in this run — the plug-in did the authorizing — but the same topic change disables it.
 [`tools/interop-everest/mqtt-authorize.sh`](../../../tools/interop-everest/mqtt-authorize.sh)
 subscribes to two exact topics, `everest/<charger>/charger/var` and

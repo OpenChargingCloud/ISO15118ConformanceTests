@@ -186,6 +186,20 @@ Everything below was unblocked by it.
   shaped chain ([`…-edf-chain-validation`](interop-runs/2026-08-09-edf-chain-validation/notes.md)).
   The other two rows of that run survive.
 
+- **`session_logging` measured on 2026.02.1 (2026-08-10).** A second complete -2 DC charge, run for one
+  purpose: to put their published station-side record beside our own recording of the same session, on
+  the current release rather than the 2023 image. 43 of 43 requests byte-exact, 43 of 43 responses
+  carrying the *preceding request's* length, and 42 of them the V2GTP version byte `0x00`
+  ([`…-session-log-lengths`](interop-runs/2026-08-10-everest-session-log-lengths/notes.md)).
+
+- **The MQTT authorization path, repaired and controlled (2026-08-10).** Driving a session with no
+  hardware had stopped working when the variable name moved into the topic — quietly, as such things
+  do. Both versions of `mqtt-authorize.sh` against the same station, ten minutes apart: the old one
+  authorizes nothing and the EV polls `AuthorizationReq` 401 times, the new one is authorized on the
+  fourth ([`…-mqtt-authorize-2026021`](interop-runs/2026-08-10-everest-mqtt-authorize-2026021/notes.md)).
+  Their `Auth` cannot tell our token from their own `DummyTokenProvider`'s, and nothing of theirs is
+  patched to make that true.
+
 ---
 
 ## What it found in **us** — and the shape they share

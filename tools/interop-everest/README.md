@@ -271,12 +271,17 @@ Timing matters and the trigger gets it right for free: `connection_timeout` (10 
 withdraws the authorization if no transaction starts, so a token published before the EV connects is
 already gone by the time it polls.
 
-> ⚠️ **The script has not been carried forward to 2026.02.1, and cannot work there as written.** Its two
-> subscriptions are exact topics ending in `…/var`; on 2026.02.1 the variable name is a further level
-> (`…/var/require_auth_eim`), and MQTT filters are level-exact without a wildcard, so it matches
-> nothing and writes an empty log. The publish side needs the new shape and the new
-> `{"msg_type":"Var","data":{…}}` envelope too. Use `sil-car.sh` on 2026.02.1, whose plug-in makes
-> their own `DummyTokenProvider` do the authorizing — that is what every run since 2026-08-05 has done.
+**It speaks all three versions, and it had to be taught the third.** On 2026.02.1 the variable name
+became a topic level of its own, the payload gained a `msg_type` envelope with two levels of `data`,
+and `ProvidedIdToken.id_token` became an object — any one of which turns the script into a silent
+no-op. Carried forward and verified on 2026-08-10 with a control that shows the previous version
+authorizing nothing against the same station:
+[`2026-08-10-everest-mqtt-authorize-2026021`](../../docs/interop-runs/2026-08-10-everest-mqtt-authorize-2026021/notes.md)
+— 4 `AuthorizationReq` with the new script, 401 and no token at all with the old one.
+
+That run also recorded a second thing to know when driving a session with no car: **2026.02.1 answers
+`CableCheckRes` = `Ongoing` indefinitely**, where the 2023 demo image answered `FAILED` after 34 tries.
+A harness that waits for `FAILED` to conclude "no hardware" waits forever.
 
 The script also logs every V2G message their charger publishes — a station-side record of the session.
 Trust the message **names**, not the bytes: the responses they publish carry the preceding *request's*
