@@ -1,0 +1,44 @@
+parsed 16 generated files, 976 functions with a grammar, 4792 grammar states, 3826 declared particles
+
+### dead-end: 8
+  iso20_WPT_Decoder.c:4275  decode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=74
+      START (PulseSequenceOrder)
+  iso20_WPT_Decoder.c:4302  decode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=75
+      LOOP (PulseSequenceOrder)
+  iso20_WPT_Decoder.c:4556  decode_iso20_wpt_WPT_LF_TransmitterDataType  ID=82
+      LOOP (TxSpecData)
+  iso20_WPT_Decoder.c:5208  decode_iso20_wpt_WPT_LF_ReceiverDataType  ID=90
+      LOOP (RxSpecData)
+  iso20_WPT_Encoder.c:3946  encode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=74
+      START (PulseSequenceOrder)
+  iso20_WPT_Encoder.c:3966  encode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=75
+      LOOP (PulseSequenceOrder)
+  iso20_WPT_Encoder.c:4149  encode_iso20_wpt_WPT_LF_TransmitterDataType  ID=82
+      LOOP (TxSpecData)
+  iso20_WPT_Encoder.c:4622  encode_iso20_wpt_WPT_LF_ReceiverDataType  ID=90
+      LOOP (RxSpecData)
+
+### unreachable-particle: 8
+  iso20_WPT_Decoder.c:4263  decode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=-1
+      particle 'PulseSeparationTime' (unsignedShort, 1..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Decoder.c:4263  decode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=-1
+      particle 'PulseDuration' (unsignedShort, 1..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Decoder.c:4263  decode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=-1
+      particle 'PackageSeparationTime' (unsignedShort, 1..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Decoder.c:4437  decode_iso20_wpt_WPT_LF_TransmitterDataType  ID=-1
+      particle 'TxPackageSpecData' (WPT_TxRxPackageSpecDataType, 0..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Encoder.c:3936  encode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=-1
+      particle 'PulseSeparationTime' (unsignedShort, 1..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Encoder.c:3936  encode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=-1
+      particle 'PulseDuration' (unsignedShort, 1..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Encoder.c:3936  encode_iso20_wpt_WPT_TxRxPackageSpecDataType  ID=-1
+      particle 'PackageSeparationTime' (unsignedShort, 1..1) is in the content model and no state reachable from the start offers it
+  iso20_WPT_Encoder.c:4078  encode_iso20_wpt_WPT_LF_TransmitterDataType  ID=-1
+      particle 'TxPackageSpecData' (WPT_TxRxPackageSpecDataType, 0..1) is in the content model and no state reachable from the start offers it
+
+### event-codes: 0
+
+### code-width: 0
+
+### asymmetry: 0
+

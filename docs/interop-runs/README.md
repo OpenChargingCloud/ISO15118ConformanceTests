@@ -20,6 +20,11 @@ codec — belongs here too and has no `frames.log`; it carries its verdict table
 [`tools/interop-v2gdecoder/`](../../tools/interop-v2gdecoder/README.md) and the run it produced,
 [`2026-08-07-v2gdecoder-oracle/`](2026-08-07-v2gdecoder-oracle/notes.md).
 
+So does a **static sweep** — no session and no bytes either, just a counterparty's source held against
+a rule. It carries the tool's output as its artifacts, and its `notes.md` says what the sweep could
+*not* decide, since that is the whole risk with reading code instead of traffic. See
+[`2026-08-11-libcbv2g-grammar-sweep/`](2026-08-11-libcbv2g-grammar-sweep/notes.md).
+
 ## Producing them
 
 The `[Explicit] [Category("Interop")]` fixtures write these artifacts themselves when
