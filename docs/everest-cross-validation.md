@@ -272,7 +272,9 @@ sent — they are the operator's to post, under their own name.
   both require the stapling; `[V2G20-2372]` makes a `-20` EV always ask for it; and `[V2G2-873]` makes a
   conformant `-2` EV **close the connection** when it asked and got nothing — so TLS, and therefore
   Plug & Charge, is unreachable for an EV that enforces it. Measured off their own MQTT reply with no
-  EV and no session
+  EV and no session, **with a control**: two OCSP responses installed through their own
+  `update_ocsp_cache`, written to their own cache by their own handler, station restarted — same
+  warning, same reply, nothing reaches the TLS server
   ([`…-ocsp-stapling`](interop-runs/2026-08-10-everest-ocsp-stapling/notes.md)). Filed 2026-08-10:
   [`everest-evse-security-ocsp-dropped.md`](reports/everest-evse-security-ocsp-dropped.md).
   `IsoMux` reaches the same place by a different route — it asks with `include_ocsp = false` — and

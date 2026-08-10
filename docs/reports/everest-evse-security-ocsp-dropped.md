@@ -2,7 +2,8 @@
 
 Status: **draft, not sent.** Measured 2026-08-10 against everest-core **2026.02.1** (`b61bb12b8`) built
 from source: their own MQTT reply, their own boot warning, their own test PKI, no EV and no session
-required. Post it under your own name; see *Before sending* at the bottom.
+required — and a control in which OCSP responses are installed through their own `update_ocsp_cache`
+and change nothing. Post it under your own name; see *Before sending* at the bottom.
 
 Evidence in this repository:
 [`2026-08-10-everest-ocsp-stapling`](../interop-runs/2026-08-10-everest-ocsp-stapling/notes.md) — the
@@ -83,6 +84,28 @@ certificate in the chain file** when `include_ocsp` is set — `ocsp_path` unset
 cached, an empty-hash entry where the hierarchy cannot place the certificate, with the comment *"Always
 add to preserve file order"* — and `:1633-1634` assigns the vector to `info.ocsp`. A correct reply
 would have carried three entries. The list was built and then lost.
+
+### And it is not because our test rig has no OCSP data
+
+The first thing worth ruling out, so it is ruled out twice.
+
+The JSON already says it: the key is **absent**, not `[]`. An optional set to an empty vector would
+have serialized as `"ocsp": []`, so nothing ever set the optional — whatever is or is not on disk.
+
+Then we provisioned some, through your own interface rather than by placing files:
+
+1. `get_v2g_ocsp_request_data` — which certificates want a response. Two: your own test PKI's
+   `SECCCert` carries no responder URL, and your code says so (*"could not find responder URL for
+   certificate: SECCCert"*).
+2. `update_ocsp_cache(certificate_hash_data, ocsp_response)` for both. Your handler writes the string
+   to the cache file without parsing it (`evse_security.cpp:1075-1135`), so this needed no responder
+   and forged no response.
+3. Your code created `client/cso/ocsp/`, named the files and stored the hash data itself — two
+   `_ocsp.der` and two `_ocsp.hash`.
+4. Restart.
+
+Same warning, and the reply still carries `certificate_count: 3` and no `ocsp` key. Two OCSP responses
+in the cache your own API filled, and not one of them reaches the TLS server.
 
 ## Where it comes from
 
@@ -210,12 +233,11 @@ and pass. The defect lives exactly at the seam between two components that are e
       `tls.cpp:1026`, `:1034`, `:1039`, `:1084`, `:1089`;
       `status_request.cpp:168`, `:250`, `:269`; `tests/tls_connection_test.cpp:42` — read from the
       built 2026.02.1 source on 2026-08-10.
-- [x] **Rule out the rig.** Our test PKI carries no OCSP data at all, and that is *not* the cause: with
-      `include_ocsp` set, the reply should still have carried three entries with `ocsp_path` unset. Say
-      this in the issue, because it is the first thing a maintainer will suspect.
-- [ ] **Provision one OCSP response and show the warning survive.** Not done. It would turn "the drop
-      is unconditional in the source" into "the drop is unconditional, measured" — strictly stronger,
-      and the only part of this report that is still a code reading rather than an observation.
+- [x] **Rule out the rig, twice.** From the JSON — the key is absent rather than `[]`, so the optional
+      was never set — and then by measurement: two OCSP responses installed through your own
+      `update_ocsp_cache`, written to your own cache by your own handler, station restarted, same
+      warning, same reply with no `ocsp`. Say this in the issue; it is the first thing a maintainer
+      will suspect. The test PKI was handed back as found.
 - [ ] **Lead with `[V2G2-873]`, not with the missing line.** A dropped struct member reads as tidiness
       until you say that a conformant EV closes the connection over it.
 - [ ] **Decide how to raise the `IsoMux` half.** Same symptom, different cause; possibly the same
