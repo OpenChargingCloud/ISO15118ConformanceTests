@@ -194,10 +194,19 @@ internal static class InteropSession
     /// </remarks>
     /// <returns>Whether our station reached the terminal session state, and what it saw on the way —
     /// see <see cref="SeccOutcome"/>.</returns>
+    /// <param name="requestRenegotiation">Put an `[V2G20-1477]` <c>ServiceRenegotiation</c> notification
+    /// into the first charge-loop response (-20) or an `[V2G2-841]` <c>ReNegotiation</c> into the first
+    /// charging-status response (-2), once. Set by <c>V2G_INTEROP_RENEG=1</c>.
+    /// <para>
+    /// The station half has existed since 2026-07-22 and was reachable only from the CLI, which writes no
+    /// artifacts — so the one live renegotiation session this project has against a foreign EV is a pair
+    /// of console logs. This is the knob that makes such a run recordable.
+    /// </para></param>
     public static async Task<SeccOutcome> RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
                                                        Boolean offerPlugAndCharge = true, Boolean mcs = false,
-                                                       Action<SeccOutcome>? observed = null)
+                                                       Action<SeccOutcome>? observed = null,
+                                                       Boolean requestRenegotiation = false)
     {
 
         if (mcs)
@@ -205,7 +214,8 @@ internal static class InteropSession
 
         if (protocol == ProtocolVariant.Iso15118_2)
         {
-            var secc = new Secc2(mode, SequenceTimeout, TimeProvider.System);
+            var secc = new Secc2(mode, SequenceTimeout, TimeProvider.System)
+                           { RequestRenegotiation = requestRenegotiation };
             try
             {
                 await secc.RunAsync(stream, ct);
@@ -226,6 +236,7 @@ internal static class InteropSession
 
         secc20.PreferDynamicControlMode = preferDynamic;
         secc20.OfferPlugAndCharge       = offerPlugAndCharge;
+        secc20.RequestRenegotiation     = requestRenegotiation;
 
         // Zero is "no ServiceSelectionReq ever arrived", not service 0 — the state machine's own sentinel,
         // and the CLI reads it the same way. Reported as null so a session that stopped before selection is

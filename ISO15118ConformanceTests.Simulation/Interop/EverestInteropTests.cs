@@ -248,9 +248,16 @@ public class EverestInteropTests
             await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, transport: transport);
 
             var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
-                                                            mcs: InteropEnvironment.Mcs());
+                                                            mcs: InteropEnvironment.Mcs(),
+                                                            requestRenegotiation: InteropEnvironment.RequestRenegotiation());
 
             ReportWhatOurStationSaw(outcome);
+
+            if (InteropEnvironment.RequestRenegotiation())
+                TestContext.Out.WriteLine(
+                    "Renegotiation: our station signalled it once mid-charge " +
+                    (protocol == ProtocolVariant.Iso15118_20 ? "([V2G20-1477])" : "([V2G2-841])") +
+                    " — what their EV did with it is in the frame log, not in this line.");
 
             Assert.That(outcome.IsDone, Is.True, "our SECC drove their EV to the terminal session state");
 

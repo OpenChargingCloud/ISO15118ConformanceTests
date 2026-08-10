@@ -184,10 +184,13 @@ against a Josev EVCC. §1 is what the AC run demonstrated.
       `:1244-1253`, `:1255-1265`, `:1934-1940`.
 - [ ] **Lead with their own error message.** *"Field `next_v2gtp_msg` is None but must be set because
       next state is not Terminate"* is the whole issue in one line, and it is theirs.
-- [ ] **Re-run it before sending.** The live observation is from 2026-07-22 against `d645255`; the code
-      is unchanged on `master`, but a fresh session against the current commit would make the report
-      current rather than historical. EVerest's `PyEvJosev` is the same code in a wrapper and is the
-      cheaper way to do it.
+- [x] **Re-run it before sending — done 2026-08-10, and it went further than a re-run.** EVerest's
+      `PyEvJosev` (this same code at `26f7988`) against our station, **DC** this time: their EV carried
+      `ServiceRenegotiation` through to the wire, our SECC answered `OK` and stayed open as
+      `[V2G20-1477]` requires, and their EV closed the TCP connection. So §1 is neither AC-specific nor
+      confined to upstream — and the same session is the first sighting of §2's fix *working*, since a
+      DC `SessionStopReq` that is not a `Terminate` is a frame upstream cannot produce
+      ([`…-iso20-renegotiation-reverse`](../interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md)).
 - [ ] **File §1 upstream and in the fork; file §2 upstream only**, and say in the upstream issue that the
       fork already carries the fix.
 - [ ] **Do not overstate §2.** Source reading, not observed — our run was AC.
