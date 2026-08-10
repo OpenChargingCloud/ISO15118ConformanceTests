@@ -168,6 +168,22 @@ truncated to the request's size, or the response followed by whatever the shared
 Only visible because we had our own recording of the same session to compare against — their telemetry
 on its own looks entirely plausible.
 
+> **Filed 2026-08-10** as the twenty-third:
+> [`reports/everest-evsev2g-session-log-responses.md`](../../reports/everest-evsev2g-session-log-responses.md).
+> Reading the 2026.02.1 source found the mechanism unchanged and named it exactly:
+> `publish_var_V2G_Message()` sizes both the hex and the base64 from `conn->payload_len`, which is
+> written **only** by `v2g_incoming_v2gtp()` from the request's header — and both response publish
+> sites run *before* `v2g_outgoing_v2gtp()`, which is what computes the response's own length from the
+> stream and fixes the header up. The second site says so in the comment on the following line:
+> `/* Write header and send next res-msg */`.
+>
+> Two things the filing adds that this note did not have. The switch that turns the telemetry on is
+> `EvseManager`'s **`session_logging`** — the option an operator sets in order to obtain a faithful
+> record — and several of their own shipped configurations set it. And the *name* attached to each
+> record is correct, because it comes from the message type rather than the buffer; right name, wrong
+> bytes is why it survived. Unticked on that report: the byte table below is from the 2023 demo image,
+> and a re-measurement on 2026.02.1 has not been done.
+
 ## Two operational traps, both mine, both worth writing down
 
 **1. `pkill -f 'bin/manager'` orphans the modules.** EVerest's modules are separate processes; killing
