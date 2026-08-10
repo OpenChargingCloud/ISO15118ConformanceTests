@@ -1,0 +1,29 @@
+# A/B against the same IsoMux, six seconds apart.
+#   A: a complete 8-byte V2GTP header (payload length 0), then silence
+#   B: SIX bytes of the same header, then silence
+# Only B fails the read. Everything after the read is identical.
+
+2026-08-10 15:41:06.449818 [INFO] iso_mux:IsoMux :: Incoming connection on eth0 from [a00:deb0:0:0:fe80::]:57008
+2026-08-10 15:41:06.450075 [INFO] iso_mux:IsoMux :: Handling SupportedAppProtocolReq
+2026-08-10 15:41:06.450132 [ERRO] iso_mux:IsoMux :: decode_appHandExiDocument() failed
+2026-08-10 15:41:06.450249 [INFO] iso_mux:IsoMux :: Connected to proxy module for ISO-2/DIN
+2026-08-10 15:41:06.450270 [INFO] iso_mux:IsoMux :: Multiplexer: Proxy TCP->TCP
+2026-08-10 15:41:06.450315 [INFO] iso_mux:IsoMux :: Multiplexer: Closing TCP connection
+2026-08-10 15:41:06.450310 [INFO] iso15118_2:Evse :: Incoming connection on lo from [a00:e2ac::]:58028
+2026-08-10 15:41:06.450589 [INFO] iso15118_2:Evse :: Handling SupportedAppProtocolReq
+2026-08-10 15:41:06.450598 [ERRO] iso15118_2:Evse :: decode_appHandExiDocument() failed
+2026-08-10 15:41:06.450608 [INFO] iso15118_2:Evse :: v2g_handle_connection exited with -1
+2026-08-10 15:41:06.450615 [INFO] iso15118_2:Evse :: Closing TCP connection
+2026-08-10 15:41:12.961256 [INFO] iso_mux:IsoMux :: Incoming connection on eth0 from [a00:deb2:0:0:fe80::]:57010
+2026-08-10 15:41:12.961627 [ERRO] iso_mux:IsoMux :: connection_read(header) too short: expected 8, got 6
+2026-08-10 15:41:12.961665 [ERRO] iso_mux:IsoMux :: v2g_incoming_v2gtp() failed
+2026-08-10 15:41:12.961693 [INFO] iso_mux:IsoMux :: Handling SupportedAppProtocolReq
+2026-08-10 15:41:12.961706 [ERRO] iso_mux:IsoMux :: decode_appHandExiDocument() failed
+2026-08-10 15:41:12.961853 [INFO] iso_mux:IsoMux :: Connected to proxy module for ISO-2/DIN
+2026-08-10 15:41:12.961882 [INFO] iso_mux:IsoMux :: Multiplexer: Proxy TCP->TCP
+2026-08-10 15:41:12.961913 [INFO] iso15118_2:Evse :: Incoming connection on lo from [a00:e2b0::]:58032
+2026-08-10 15:41:12.961958 [INFO] iso_mux:IsoMux :: Multiplexer: Closing TCP connection
+2026-08-10 15:41:12.962254 [INFO] iso15118_2:Evse :: Handling SupportedAppProtocolReq
+2026-08-10 15:41:12.962265 [ERRO] iso15118_2:Evse :: decode_appHandExiDocument() failed
+2026-08-10 15:41:12.962277 [INFO] iso15118_2:Evse :: v2g_handle_connection exited with -1
+2026-08-10 15:41:12.962287 [INFO] iso15118_2:Evse :: Closing TCP connection

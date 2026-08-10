@@ -200,6 +200,13 @@ Everything below was unblocked by it.
   Their `Auth` cannot tell our token from their own `DummyTokenProvider`'s, and nothing of theirs is
   patched to make that true.
 
+- **Two probes and a control against `IsoMux` (2026-08-10).** Six bytes of a V2GTP header against
+  eight, six seconds apart, no EV involved. It turned a line that had been sitting unexplained in a
+  2026-08-03 station log into a reproduction: the multiplexer announces the read failure and then makes
+  its backend decision anyway
+  ([`…-isomux-shortread`](interop-runs/2026-08-10-everest-isomux-shortread/notes.md)). The same lesson
+  as the OCSP run, one line further down the same log file.
+
 - **A warning in their boot log, chased to the end (2026-08-10).** Not a session at all — the shortest
   thing in this list and one of the larger findings. `<n> certificates != <n> OCSP responses` at
   startup, with the two numbers left literal, turned out to mean that no EVerest station staples an
@@ -260,9 +267,19 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **eight** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **nine** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **`IsoMux` reports that it could not read the message, and then handles it.** A failed
+  `v2g_incoming_v2gtp()` is logged and not acted on, so a short or malformed V2GTP header still reaches
+  `v2g_sniff_apphandshake`, still yields an `iso20` verdict, and the connection is still proxied — to
+  the `-2` backend, which meets the same bytes and closes. In the same seven lines the retry loop turns
+  on `rv == 1`, the value that means *the peer closed*. `EvseV2G`, from which the function was forked,
+  has the `goto error_out` it lost. Sat unread in a station log from 2026-08-03 for a week;
+  reproduced deliberately on 2026-08-10 with a control connection differing by two bytes
+  ([`…-isomux-shortread`](interop-runs/2026-08-10-everest-isomux-shortread/notes.md)). Filed:
+  [`everest-isomux-continues-after-read-failure.md`](reports/everest-isomux-continues-after-read-failure.md).
+  **Third finding in this module**, alongside the SAP-priority and TLS-1.2 ones.
 - **No EVerest station staples an OCSP response, and one missing line is why.** `EvseV2G` asks
   libevse-security for the OCSP data belonging to its certificate chain (`include_ocsp = true`);
   libevse-security assembles one entry per certificate; and `to_everest(CertificateInfo)` copies six of
