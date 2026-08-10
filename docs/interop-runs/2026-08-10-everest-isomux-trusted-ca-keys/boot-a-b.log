@@ -1,0 +1,10 @@
+# One station process, one PKI, two TLS servers, four milliseconds apart.
+# IsoMux loses its trust anchors and disables trusted_ca_keys; EvseV2G behind it does not.
+# Extracted from ../2026-08-10-everest-isomux-shortread/their-charger.log (config-mux-ours.yaml).
+
+2026-08-10 15:41:01.165210 [INFO] iso_mux:IsoMux :: TLS server on eth0 is listening on port [fe80::215:5dff:fe6b:3d4%2]:64110
+2026-08-10 15:41:01.165348 [INFO] iso15118_2:Evse :: TLS server on lo is listening on port [::1%0]:64109
+2026-08-10 15:41:01.256959 [WARN] iso_mux:IsoMux :: <n> certificates != <n> OCSP responses
+2026-08-10 15:41:01.257062 [WARN] iso_mux:IsoMux :: No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+2026-08-10 15:41:01.257087 [WARN] iso_mux:IsoMux :: trusted_ca_keys support disabled
+2026-08-10 15:41:01.261130 [WARN] iso15118_2:Evse :: <n> certificates != <n> OCSP responses

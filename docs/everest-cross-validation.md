@@ -267,9 +267,21 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **nine** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **ten** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **`IsoMux`'s TLS server boots with `trusted_ca_keys support disabled`.** It asks libevse-security for
+  its certificate through `get_leaf_certificate_info`, which carries `include_root = false`, so it has
+  no root to put in `trust_anchor_pem`; its chain is then neither verified nor registered, and the
+  extension handler is left with an empty list. `EvseV2G`, in the same process on the same PKI 4 ms
+  later, logs neither warning — it asks the other way. `[V2G2-651]` obliges **every** EVCC to send that
+  extension and `[V2G2-871]` obliges the station to present a chain rooted where the EV said it trusts;
+  with one V2G root nothing shows, with two the mux serves the first and an EV holding the other
+  abandons the handshake per `[V2G2-924]`. Two log lines from 2026-08-06, unread until 2026-08-10
+  ([`…-isomux-trusted-ca-keys`](interop-runs/2026-08-10-everest-isomux-trusted-ca-keys/notes.md)).
+  Filed: [`everest-isomux-trusted-ca-keys.md`](reports/everest-isomux-trusted-ca-keys.md). **The
+  failing case has not been run** — it needs two roots and an EV that sends the extension; ours does
+  not.
 - **`IsoMux` reports that it could not read the message, and then handles it.** A failed
   `v2g_incoming_v2gtp()` is logged and not acted on, so a short or malformed V2GTP header still reaches
   `v2g_sniff_apphandshake`, still yields an `iso20` verdict, and the connection is still proxied — to

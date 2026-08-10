@@ -293,3 +293,26 @@ Worth keeping for the method. The citation was owed for one afternoon and paid t
 paying it cost a claim rather than confirming one. That is the second time in three days that reading
 the requirement text moved a finding — the other was `[V2G20-1618]`, withdrawn as unimplementable —
 and both times the direction was *away* from a defect we had asserted.
+
+### `trusted_ca_keys`, and the selection duty it carries
+
+Read on 2026-08-10 to decide whether `IsoMux` booting with *"trusted_ca_keys support disabled"* is a
+defect or a shrug. It is a defect, and the chain of `-2` requirements is short and unambiguous. Carries
+the `-2` document caveat above.
+
+- **`[V2G2-651]`** — the EVCC **shall** put a `trusted_ca_keys` extension (IETF RFC 6066) in its client
+  hello, listing the V2G root certificates it holds. Unconditional: every conformant EV asks.
+- **`[V2G2-871]`** — a station outside a private environment owes the EV a chain up to a root, and that
+  root **shall be one the EV named**. This is the duty the extension exists to discharge.
+- **`[V2G2-923]`** — the escape hatch, and it is narrow: only where the station *cannot* match may it
+  present a chain to some other root.
+- **`[V2G2-924]`** with **`[V2G2-875]`** — an EV handed a chain that does not trace to a root it trusts
+  shall treat it as unvalidated unless it validates out of band, and abandon the TLS setup. So the
+  station's failure to select is the EV's reason to leave.
+- **`[V2G2-878]`** — up to ten concurrently valid V2G root certificates per root CA. The multi-root
+  case the extension addresses is expressly provided for, not exotic.
+
+The practical reading, which is what made the finding filable: with a single root a station that
+ignores the extension is indistinguishable from one that honours it, because there is nothing to
+choose. The requirement bites exactly where an operator holds two — mid-rotation, or serving two roots
+— and that is the configuration nobody tests.
