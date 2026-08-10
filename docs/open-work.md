@@ -59,7 +59,7 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 | **Pause / Resume, -20** | EVerest | ~~▢~~ **run 2026-08-08 — and it is ours that failed.** Their station resumed on the first attempt (`OK_OldSessionJoined`, over mutual TLS with their minted vehicle credential); our EVCC then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`, because a resumed `-20` session skips authorization and opens at `{AC,DC}_ChargeParameterDiscovery`. Moved to *our stack*, below. `-2` is `—` in the matrix, not `▢`. |
 | **Signed tariffs, -20** | EVerest | ▢ |
 | **Renegotiation, -2 and -20** | EVerest | ~~▢ both~~ **-20 run 2026-08-10** — their `PyEvJosev` EV took our station's `ServiceRenegotiation` notification, stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)`; our SECC answered `OK` and stayed open, and their EV closed the connection. Same defect as Josev's, now seen in **DC** and against the fork `26f7988` ([run](interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md), [filing](reports/josev-iso20-renegotiation.md)). `-2` is still `▢`. |
-| **Plug & Charge, -20** | eVDriveFlow | ▢ — but first establish whether they do contract certificates at all; their documentation does not mention them. |
+| ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
 
 ## Ours to fix
 
@@ -255,6 +255,24 @@ also below.
 
 - **tux-evse, everything -20.** Their stack speaks ISO 15118-2 and DIN 70121. The whole `-20` column
   is `—` and stays that way.
+- **eVDriveFlow, Plug & Charge.** Established 2026-08-11 rather than assumed: **they implement none.**
+  No `CertificateInstallation` handler in either role's state machine, and the Plug & Charge vocabulary
+  lives only in the xsdata-generated bindings, ISO's schema and the Sphinx output of both — plus two
+  Table 214 timeout keys with no handler behind them. Their README's *Supported features* does not
+  claim it and `PnC` appears nowhere in their documentation; both halves ship
+  `authorization_services = [EIM]`. The bytes already in this repository agree, which is why it took no
+  run: their `AuthorizationSetupRes` is 20 payload bytes against our PnC-offering 38, with nowhere for
+  a `GenChallenge`.
+  <br>This is what closing a `▢` by **answering its condition** looks like rather than by testing:
+  the entry had said *"first establish whether they do contract certificates at all"*, and the answer
+  moves the cell here instead of onto a to-do list. `CertificateInstallation` for this counterparty was
+  already `—` for the same reason.
+  <br>The audit also found a latent defect and deliberately did **not** file it: their SECC hardcodes
+  the EIM authorization mode whatever the configurable `authorization_services` says, which
+  `[V2G20-1219]` and `[V2G20-2568]` each forbid — but it is unreachable in the shipped configuration,
+  they claim no PnC, and reaching it means configuring their station rather than observing it. It is a
+  note on [the existing filing](reports/evdriveflow-authorization-setup.md), where the paired EVCC
+  handler already is. [`…-edf-pnc-source-audit`](interop-runs/2026-08-11-edf-pnc-source-audit/notes.md).
 - **WPT and ACDP session state machines.** No independent stack implements them, so `▢ codec only` is
   the ceiling. What *did* change on 2026-08-08: the bytes are now judged by EXIficient rather than only
   by the generator that produced them, which is the strongest form available without a second stack.

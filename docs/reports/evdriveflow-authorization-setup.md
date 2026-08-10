@@ -108,6 +108,39 @@ state machine is intact and emits `SessionStopReq`, so the flow has four exchang
 connection inside the handler: three exchanges, no `SessionStopReq`, and none of the *"stop has been
 requested"* lines every stdin-wall run carries.
 
+## The offer that breaks your EV is one your own station can emit
+
+Not a second issue, and not something we have observed — a note for whoever fixes the loop above, so
+that both halves get looked at in one pass. **Your SECC will produce exactly the message your EVCC
+raises on, if anyone sets the field that says so.**
+
+```python
+# secc/states/process_authorization_setup_request.py:28-31
+response.authorization_services = self.controller.data_model.authorization_services
+response.certificate_installation_service = self.controller.data_model.certificate_installation_service
+# TODO: given the services in authorization services, the response shall be eim or pnc
+response.eim_asres_authorization_mode = ""
+```
+
+`EVSEDataModel.authorization_services` (`secc/evse_controller.py:41`) is a declared
+`List[AuthorizationType]`, and `AuthorizationType` has a `PnC` member. The **mode** is not configurable
+and is always the EIM one. So a station configured `[EIM, PnC]` answers `OK`, advertises both, and sends
+`EIM_ASResAuthorizationMode` — the offer that raises at
+`wait_for_authorization_setup_response.py:36`, from your own tree.
+
+The two elements are an `xs:choice`, so the effect is more than a wrong label: with the EIM branch
+chosen there is **no `GenChallenge`**, and an EV could not build `PnC_AReqAuthorizationMode` even if it
+wanted to. `[V2G20-1219]` and `[V2G20-2568]` each state the duty independently — offer "PnC" in
+`AuthorizationServices` and the response shall carry `PnC_ASResAuthorizationMode`. Your line satisfies
+the mirror, `[V2G20-1220]` / `[V2G20-2567]`, which holds only while PnC is absent.
+
+**Two honest caveats.** The shipped default is `[EIM]` (`secc/evse_dummy_controller.py:104`), where the
+line is correct, so nothing reachable out of the box is affected — and we have not run it, because
+reaching it means us configuring your station rather than observing it. It is a reading of
+`60249c3`, offered because the fix for the EVCC loop and the fix for this are one conversation:
+whatever the tree decides an unimplemented authorization service means, both ends should say it the
+same way.
+
 ---
 
 ## Before sending
@@ -126,8 +159,14 @@ requested"* lines every stdin-wall run carries.
       for that, and the termination it showed turned out to be issue 1 rather than anything here.
 - [ ] **Keep the stdin section.** It is the part that stops this being read as a duplicate of issue 1,
       and it is the part our own notes needed five days to get right.
-- [ ] **Check whether `main` has moved.** `60249c3` is from 2023-04-17 — the project may be dormant,
-      which changes the pitch and possibly whether an issue or a PR is the right vehicle. Same caveat
-      as issue 3.
+- [x] **Check whether `main` has moved.** Checked 2026-08-11: `60249c3` **is** `origin/main`, and there
+      has been no commit for two years and four months. The project is dormant on its default branch,
+      which changes the pitch — expect a slow response, and a PR is more likely to be useful than an
+      issue. Same caveat as issue 3.
+- [x] **Say whether they claim the feature at all.** They do not: the README's *Supported features* list
+      is DC BPT with dynamic control, mutual TLS 1.3 and SECC-set departure time, and `PnC` appears
+      nowhere in `README.md` or `doc/source`. That is why the SECC note above is written as a note and
+      not as a second issue — audited in
+      [`2026-08-11-edf-pnc-source-audit`](../interop-runs/2026-08-11-edf-pnc-source-audit/notes.md).
 - [ ] **File one issue, this one.** Issues 1, 2 and 3 are the other two reports.
 - [ ] **Post under your own name, in your own words.**
