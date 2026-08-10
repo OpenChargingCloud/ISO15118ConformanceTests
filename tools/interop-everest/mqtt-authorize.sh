@@ -18,65 +18,100 @@
 #
 # Run it against the MQTT broker EVerest is using, before starting the session:
 #
-#   docker cp mqtt-authorize.sh mqtt:/tmp/
-#   docker exec -d mqtt sh -c "/tmp/mqtt-authorize.sh > /tmp/auth.log 2>&1"
+#   2026.02.1, native:  sh mqtt-authorize.sh > /tmp/auth.log 2>&1 &
+#   older, in Docker:   docker cp mqtt-authorize.sh mqtt:/tmp/
+#                       docker exec -d mqtt sh -c "/tmp/mqtt-authorize.sh > /tmp/auth.log 2>&1"
 #
-# ── The topic shape changed between the images we use ────────────────────────────────────────────
+# ── Three wire shapes, because both the topic and the payload have moved ─────────────────────────
 #
 #   2023.10.0  (manager:main)                everest/<module_id>/<impl_id>/var
 #   2025.10.0  (manager:2025.10.0-patches)   everest/modules/<module_id>/impl/<impl_id>/var
+#   2026.02.1  (source build)                everest/modules/<module_id>/impl/<impl_id>/var/<name>
 #
-# Both are subscribed, and the token is published back on whichever shape the trigger arrived on, so
-# the same script drives either image. This is worth the six lines: carrying only the old form made
-# the script **silently do nothing** against 2025.10 — it matched no message, wrote an empty log, and
-# looked exactly like a script that was working and simply had nothing to say. The plug-in flow of
-# sil-car.sh had been doing the authorizing all along
-# (docs/interop-runs/2026-08-03-everest-pnc/notes.md).
+# All three are subscribed, and the token is published back in whichever shape the trigger arrived in,
+# so the same script drives any of them. This is worth the extra lines twice over: carrying only the
+# oldest form made the script **silently do nothing** against 2025.10 — it matched no message, wrote an
+# empty log, and looked exactly like a script that was working and simply had nothing to say, while the
+# plug-in flow of sil-car.sh did the authorizing all along
+# (docs/interop-runs/2026-08-03-everest-pnc/notes.md). The 2026.02.1 shape would have done it again:
+# MQTT filters are level-exact without a wildcard, so a filter ending in .../var matches nothing once
+# the variable name is a level of its own.
 #
-# So: an empty log means no message ever arrived on either topic. Check the module id against the
-# config file, and check the shape against the image — do not assume it is working.
+# So: an empty log means no message ever arrived on any of the three topics. Check the module id
+# against the config file, and check the shape against the version — do not assume it is working.
 #
-#   2026.02.1  NOT SUPPORTED BY THIS SCRIPT. The variable name became a further topic level,
-#              everest/modules/<module_id>/impl/<impl_id>/var/<name>, which neither filter below
-#              matches (MQTT filters are level-exact without a wildcard), and the payload gained a
-#              {"msg_type":"Var","data":{...}} envelope. It would write an empty log and look like it
-#              was working. Use sil-car.sh there — its plug-in makes their DummyTokenProvider
-#              authorize — and see docs/interop-runs/2026-08-10-everest-session-log-lengths/notes.md.
+# What changed in the payload, from their framework (lib/everest/framework/lib/everest.cpp:462-500 for
+# the publish, message_handler.cpp:289-408 for the receive):
 #
-# The payload is {"data": <value>, "name": "<var>"} either way. The variable is spelled
-# Require_Auth_EIM in the older image and require_auth_eim in the newer, hence the case-tolerant match.
+#   2023.10.0 / 2025.10.0   {"data": <value>, "name": "<var>"}
+#   2026.02.1               {"msg_type": "Var", "data": {"data": <value>}}
+#
+# Two levels of "data" in the newer one, and no name — it is in the topic. A payload without msg_type
+# is routed to *external* MQTT handlers rather than to variable subscribers, so publishing the old
+# shape on the new topic is not an error either: it is another silent no-op.
+#
+# The variable is spelled Require_Auth_EIM in the oldest image and require_auth_eim since, hence the
+# case-tolerant match on the payload; on 2026.02.1 the name is matched on the topic instead, because
+# the payload of a "null"-typed variable carries nothing to match.
+#
+# ProvidedIdToken moved too (types/authorization.yaml): id_token is now an IdToken *object*
+# {"value": …, "type": …} rather than a bare string beside an id_token_type. The type sets
+# additionalProperties: false and the framework validates on receive, so the old shape on 2026.02.1 is
+# dropped with "Ignoring incoming var ... because not matching manifest schema". The new token below is
+# what their own DummyTokenProvider publishes (modules/Testing/DummyTokenProvider/main/
+# auth_token_providerImpl.cpp:16-24), minus parent_id_token, which Auth does not need here.
+#
+# Verified against a running 2026.02.1 station on 2026-08-10:
+# docs/interop-runs/2026-08-10-everest-mqtt-authorize-2026021/notes.md.
 
 CHARGER=${CHARGER_MODULE:-iso15118_charger}
 PROVIDER=${TOKEN_PROVIDER_MODULE:-token_provider}
 TOKEN_ID=${TOKEN_ID:-TOKEN1}
+CONNECTOR=${CONNECTOR_ID:-1}
 BROKER=${MQTT_HOST:-localhost}
 
 CHARGER_TOPIC_FLAT="everest/$CHARGER/charger/var"                 # 2023.10.0
 CHARGER_TOPIC_MODULES="everest/modules/$CHARGER/impl/charger/var" # 2025.10.0
+CHARGER_TOPIC_NAMED="$CHARGER_TOPIC_MODULES/require_auth_eim"     # 2026.02.1
 
-TOKEN="{\"data\":{\"id_token\":\"$TOKEN_ID\",\"authorization_type\":\"RFID\",\"id_token_type\":\"ISO14443\",\"prevalidated\":false,\"connectors\":[1]},\"name\":\"provided_token\"}"
+TOKEN_OLD="{\"data\":{\"id_token\":\"$TOKEN_ID\",\"authorization_type\":\"RFID\",\"id_token_type\":\"ISO14443\",\"prevalidated\":false,\"connectors\":[$CONNECTOR]},\"name\":\"provided_token\"}"
+TOKEN_NEW="{\"msg_type\":\"Var\",\"data\":{\"data\":{\"id_token\":{\"value\":\"$TOKEN_ID\",\"type\":\"ISO14443\"},\"authorization_type\":\"RFID\",\"prevalidated\":false,\"connectors\":[$CONNECTOR]}}}"
 
 echo "$(date -u +%H:%M:%S) watching $CHARGER_TOPIC_FLAT"
 echo "$(date -u +%H:%M:%S)      and $CHARGER_TOPIC_MODULES"
+echo "$(date -u +%H:%M:%S)      and $CHARGER_TOPIC_NAMED"
 
-# -v so each line is "<topic> <payload>": the topic is what tells us which shape this image speaks.
+# -v so each line is "<topic> <payload>": the topic is what tells us which shape this station speaks.
 mosquitto_sub -h "$BROKER" -v \
               -t "$CHARGER_TOPIC_FLAT" \
-              -t "$CHARGER_TOPIC_MODULES" | while read -r line; do
+              -t "$CHARGER_TOPIC_MODULES" \
+              -t "$CHARGER_TOPIC_NAMED" | while read -r line; do
 
   topic=${line%% *}
   payload=${line#* }
 
   echo "$(date -u +%H:%M:%S) $topic: $payload"
 
-  case "$payload" in
-    *equire_[Aa]uth_[Ee][Ii][Mm]*)
-      case "$topic" in
-        everest/modules/*) provider_topic="everest/modules/$PROVIDER/impl/main/var" ;;
-        *)                 provider_topic="everest/$PROVIDER/main/var" ;;
+  # 2026.02.1 puts the name in the topic; before that it was in the payload.
+  case "$topic" in
+    */var/require_auth_eim)
+      provider_topic="everest/modules/$PROVIDER/impl/main/var/provided_token"
+      token="$TOKEN_NEW"
+      ;;
+    *)
+      case "$payload" in
+        *equire_[Aa]uth_[Ee][Ii][Mm]*)
+          token="$TOKEN_OLD"
+          case "$topic" in
+            everest/modules/*) provider_topic="everest/modules/$PROVIDER/impl/main/var" ;;
+            *)                 provider_topic="everest/$PROVIDER/main/var" ;;
+          esac
+          ;;
+        *) continue ;;
       esac
-      echo "$(date -u +%H:%M:%S) -> $TOKEN_ID to $provider_topic"
-      mosquitto_pub -h "$BROKER" -t "$provider_topic" -m "$TOKEN"
       ;;
   esac
+
+  echo "$(date -u +%H:%M:%S) -> $TOKEN_ID to $provider_topic"
+  mosquitto_pub -h "$BROKER" -t "$provider_topic" -m "$token"
 done
