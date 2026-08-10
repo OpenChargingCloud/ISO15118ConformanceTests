@@ -9,8 +9,11 @@ maintainer's afternoon, and — for three of the four — one shape: *a decision
 module does not have, or has and does not read.* Split them again if your tracker prefers it; each
 section below stands alone, and each carries its own evidence and its own fix.
 
-Three other reports go to everest-core and are **separate on purpose** — different modules, different
+Four other reports go to everest-core and are **separate on purpose** — different modules, different
 people would review them:
+[`everest-d20-client-auth.md`](everest-d20-client-auth.md) (libiso15118 — **its §1 lands on
+`[V2G20-2356]` as §2 here does**, but in the `-20` backend's own TLS server, with no multiplexer in
+front of it, so a fix here does not reach it),
 [`everest-loop-shutdown.md`](everest-loop-shutdown.md) (`Evse15118D20`),
 [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) (libiso15118),
 [`everest-evsev2g-session-log-responses.md`](everest-evsev2g-session-log-responses.md) and

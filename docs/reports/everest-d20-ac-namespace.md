@@ -8,9 +8,11 @@ Evidence in this repository:
 [`2026-08-10-everest-d20-ac-namespace`](../interop-runs/2026-08-10-everest-d20-ac-namespace/notes.md)
 — the run notes and four station logs, one per arm.
 
-Four other reports go to everest-core:
+Five other reports go to everest-core:
 [`everest-isomux.md`](everest-isomux.md) (four findings in the multiplexer — **§1 there is this
 finding's sibling**, the same requirement failed from the other side),
+[`everest-d20-client-auth.md`](everest-d20-client-auth.md) — **the same module and the same handshake**,
+two issues about what its TLS server asks the EV for —
 [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
 [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) — **also libiso15118, so
 the same reviewer** — and

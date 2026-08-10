@@ -346,3 +346,46 @@ the filter one by an offer no conformant station could accept.
 The `-20` AC and DC namespaces are separate `ProtocolNamespace` values because they select different
 **message sets**, so the answer is a commitment to a schema rather than a preference — which is why the
 filter half is not cosmetic.
+
+### Who has to ask for the vehicle certificate, and what else the `CertificateRequest` carries
+
+Looked up on 2026-08-10, when an EVerest `-20` station turned out to demand a client certificate from an
+EV that offered TLS 1.3 and to demand nothing from an EV that offered only TLS 1.2
+([`…-d20-client-auth`](interop-runs/2026-08-10-everest-d20-client-auth/notes.md)). The question to settle
+was whether mutual authentication in `-20` is a property of TLS 1.3 — in which case a TLS 1.2 connection
+simply is not a `-20` connection and the station is merely lax — or a duty on the SECC in its own right.
+It is the latter, and it is unconditional.
+
+- **`[V2G20-2400]`** — the SECC **shall** request the EVCC's certificate via the `CertificateRequest`
+  message. No TLS-version qualifier, no public/private split, no PnC condition. NOTE 23 beside it says
+  what it buys: a session in which each side verifies the other.
+- **`[V2G20-1264]`** — mutual authentication with TLS 1.3 shall be supported by every V2G entity. This
+  is the *support* obligation; `[V2G20-2400]` is the *behaviour* one, and only the second is violated by
+  a station that quietly skips the request.
+- **`[V2G20-2356]`** stays the reason the `-20` answer on such a connection is separately wrong, with
+  **`[V2G20-2359]`** the reason the TLS 1.2 *listener* is not: serving 1.2 for backwards compatibility is
+  explicitly permitted, carrying `-20` on the result is not.
+
+And the request has required contents, which is the part that is easy to miss:
+
+- **`[V2G20-2401]`** (public SECC) / **`[V2G20-2402]`** (private, not in CPM4PE) — send the V2G and/or
+  OEM root CA certificates the SECC holds, in the `certificate_authorities` extension.
+  **`[V2G20-2403]`** fixes which RDNs each `DistinguishedName` carries and in what order.
+  **`[V2G20-2404]`** is the only exemption and it is narrow: an *empty* authorities element, when the
+  SECC holds no roots at all. **`[V2G20-2405]`** is the CPM4PE case, **`[V2G20-2406]`**/**`[V2G20-2407]`**
+  say what must *not* be in it (`oid_filters`, `status_request`).
+- **`[V2G20-1667]`** — the SECC shall include the signature algorithms in **Table 8**'s order, and
+  **`[V2G20-1668]`** makes Table 8 its preference when choosing among the EV's.
+  **`[V2G20-2460]`** is the same rule for named groups against **Table 7**, and **`[V2G20-2461]`** ties
+  the two together. Both sit beside **`[V2G20-2458]`**/**`[V2G20-1856]`**, the Table 6 cipher-suite pair
+  already recorded above under *The ISO 15118-20 TLS profile*.
+
+So the `-20` TLS profile is four lists, not one: suites, groups, signature algorithms, and the trust
+anchors named in the `CertificateRequest`. The station measured on 2026-08-10 implements the first
+exactly and leaves the other three at its TLS library's defaults — which is worth recording as a
+**shape** rather than a one-off. A profile expressed as several tables in several subclauses gets
+implemented at the table someone read; the tables are not adjacent in the document either. When judging
+an implementation against Table 6, check for the other three before concluding the profile is applied.
+
+All `-20` identifiers, so no document caveat. **Filed 2026-08-10:**
+[`reports/everest-d20-client-auth.md`](reports/everest-d20-client-auth.md), as two issues.

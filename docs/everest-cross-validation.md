@@ -7,8 +7,8 @@ independent *codec*; EVerest is the independent *charger* — the thing a car in
 and it has found more defects in this project than any other counterparty, all of one shape.
 
 Tooling and the per-session ritual: [`tools/interop-everest/`](../tools/interop-everest/README.md).
-Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (twenty-four directories, all
-prefixed `*-everest-*`; counted 2026-08-09).
+Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-one directories, all
+prefixed `*-everest-*`; counted 2026-08-10).
 
 ---
 
@@ -267,9 +267,26 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **eight** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **nine** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **`Evse15118D20` lets the EV decide whether the EV is authenticated.** Their `-20` TLS server sets
+  `SSL_VERIFY_NONE` on the context and raises it to `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT`
+  inside the `ClientHello` callback — but only when the offered `supported_versions` list contains TLS
+  1.3. Offer TLS 1.2 alone and no `CertificateRequest` is ever sent; `[V2G20-2400]` puts it on the SECC
+  unconditionally. Two arms, one variable, no client PKI and no EV needed: `-tls1_3` is refused with
+  *"peer did not return a certificate"*, `-tls1_2` reaches **`Handshake complete!`**. Then our own
+  recorded `supportedAppProtocolReq(-20:DC)` gets `OK_SuccessfulNegotiation` and `SessionSetupReq` gets a
+  session id, so an anonymous peer sits at `AuthorizationSetup` on a `-20` station — which is
+  `[V2G20-2356]` a second time, in a module with no multiplexer in front of it. Downstream,
+  `vehicle_cert_hash` is never computed, so `session_setup.cpp:99` can never take the resume branch:
+  pause/resume on such a connection silently cannot work. **Second finding in the same function**: the
+  handshake carries no `certificate_authorities` (`[V2G20-2401]`), OpenSSL's default signature-algorithm
+  list rather than Table 8 (`[V2G20-1667]`) and a named group outside Table 7 (`[V2G20-2460]`) — while
+  `:224` sets exactly the Table 6 cipher suites in Table 6's order, so the profile was consulted once and
+  not carried across
+  ([`…-d20-client-auth`](interop-runs/2026-08-10-everest-d20-client-auth/notes.md)). Filed:
+  [`everest-d20-client-auth.md`](reports/everest-d20-client-auth.md).
 - **A DC-only `Evse15118D20` accepts the `-20` **AC** message set.** Offered `-20:AC` and nothing else,
   a station with no AC hardware anywhere in its module graph answers `OK_SuccessfulNegotiation` and
   commits the session to the AC schema; `handle_request` puts both namespaces in one priority map and

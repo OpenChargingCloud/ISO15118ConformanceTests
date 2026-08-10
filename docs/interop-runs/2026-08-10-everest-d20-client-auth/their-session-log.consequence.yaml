@@ -1,0 +1,40 @@
+- type: INFO
+  timestamp_offset: 0
+  timestamp: "16:21:48.0784"
+  info: "Transition (entered SupportedAppProtocol)"
+- type: INFO
+  timestamp_offset: 529
+  timestamp: "16:21:49.0313"
+  info: "Accepted connection on port 50000"
+- type: EXI
+  timestamp_offset: 985
+  timestamp: "16:21:50.0299"
+  direction: FROM_EV
+  sdp_payload_type: 32769
+  data: "8000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040"
+- type: INFO
+  timestamp_offset: 0
+  timestamp: "16:21:50.0299"
+  info: "Transition (SupportedAppProtocol -> SessionSetup)"
+- type: EXI
+  timestamp_offset: 0
+  timestamp: "16:21:50.0299"
+  direction: TO_EV
+  sdp_payload_type: 32769
+  data: "80400040"
+- type: EXI
+  timestamp_offset: 2003
+  timestamp: "16:21:52.0303"
+  direction: FROM_EV
+  sdp_payload_type: 32770
+  data: "808c040000000000000000080f2d6ca0620422ab21a1981880"
+- type: INFO
+  timestamp_offset: 0
+  timestamp: "16:21:52.0303"
+  info: "Transition (SessionSetup -> AuthorizationSetup)"
+- type: EXI
+  timestamp_offset: 0
+  timestamp: "16:21:52.0303"
+  direction: TO_EV
+  sdp_payload_type: 32770
+  data: "8090046d38567069692acb0a0f5e7d3062040451114a9413960a914c4c8ccd0d4a8c40"

@@ -16,13 +16,19 @@ Three other reports for the same project, all unrelated to this one, are in
 [`everest-isomux.md`](everest-isomux.md) (four findings in that one module, merged) and
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md). **File them separately.**
 
+A fourth is **not** unrelated: [`everest-d20-client-auth.md`](everest-d20-client-auth.md) reproduced
+this defect again on 2026.02.1 as a side effect on 2026-08-10 — its control arm is a TLS 1.3
+`s_client` with no client certificate, the station refuses it correctly, and the accept loop dies with
+it. That is why every arm of that run needed a fresh station, and it is an independent sighting of the
+refused-handshake trigger below.
+
 ## Before the defect — what everest-core has been worth to us
 
 Not politeness, and worth a paragraph because it is the reason this report exists at all rather than a
 bug filed by a stranger.
 
 **everest-core has found more defects in this project than every other counterparty combined**, across
-twenty-four runs. Almost all of them share one shape: a value we had taken from our own assumption where
+thirty-one runs. Almost all of them share one shape: a value we had taken from our own assumption where
 the protocol supplies one — an unbounded "Ongoing" poll, an energy transfer mode we hard-coded instead
 of reading from `ServiceDiscoveryRes`, a preference list we treated as a filter rather than a ranking,
 an EV-side power envelope written as literals. Their SIL is single-phase, their station enforces the
