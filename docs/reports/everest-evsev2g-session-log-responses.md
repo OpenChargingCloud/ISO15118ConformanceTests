@@ -15,11 +15,10 @@ the wire, recorded independently by us). The first sighting is in
 [`2026-08-02-everest-iso2-dc-mqtt-auth`](../interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md),
 its second finding.
 
-Four other reports for the same project are in
+Three other reports for the same project are in
 [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
-[`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md),
-[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md) and
-[`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md), plus
+[`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) and
+[`everest-isomux.md`](everest-isomux.md) (four findings in that one module, merged), plus
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) and one to your fork of Josev's
 certificate script ([`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md)). **File them separately.**
 The framing in `everest-loop-shutdown.md` — what everest-core has been worth to this project, and why a

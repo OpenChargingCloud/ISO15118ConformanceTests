@@ -175,7 +175,7 @@ three times.
   `supported_versions` — with `[V2G20-1264]` requiring mutual TLS 1.3 of every `-20` entity.
 
 **Filed 2026-08-09:**
-[`reports/everest-isomux-iso20-over-tls12.md`](reports/everest-isomux-iso20-over-tls12.md) — and the
+[`reports/everest-isomux.md`](reports/everest-isomux.md) — and the
 same lookup produced an item of **ours**, because the offer that reached their mux was our EVCC's and
 `[V2G20-1237]` is the half addressed to us ([`open-work.md`](open-work.md)). Worth recording as a
 pattern this section keeps producing: reading the requirement to decide whether a counterparty is wrong
@@ -194,7 +194,7 @@ A station that routes on *"does this EV mention `-20` at all"* and never reads `
 EVerest's `IsoMux` does, confirmed on the wire three times across two releases — is not merely
 surprising, it is on the wrong side of a requirement. The run notes had said *"whether that is a defect
 depends on a requirement we have not checked"* since 2026-08-03; this is the check. **Filed 2026-08-09:**
-[`reports/everest-isomux-sap-priority.md`](reports/everest-isomux-sap-priority.md).
+[`reports/everest-isomux.md`](reports/everest-isomux.md).
 
 Worth keeping for the method rather than the result. The `-2` half carries the **`-2` caveat** above,
 and here it was worth doing something about rather than only declaring — three things, each

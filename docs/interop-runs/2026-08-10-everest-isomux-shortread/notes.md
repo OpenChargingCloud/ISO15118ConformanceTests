@@ -16,7 +16,7 @@ that shows what the error path costs, and names the four lines that cause it.
 | Ours | nothing — two `socat` connections and their own log |
 | Outcome | **a failed header read does not stop the handshake; the backend choice is made on unread bytes** |
 | Artifacts | [`probe-a-b.log`](probe-a-b.log) (the two probes, side by side), [`their-charger.log`](their-charger.log) |
-| Filed | [`everest-isomux-continues-after-read-failure.md`](../../reports/everest-isomux-continues-after-read-failure.md) — the twenty-fifth |
+| Filed | [`everest-isomux.md`](../../reports/everest-isomux.md) — the twenty-fifth |
 
 ## The A/B
 

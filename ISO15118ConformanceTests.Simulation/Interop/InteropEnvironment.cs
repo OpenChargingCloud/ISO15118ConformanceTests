@@ -555,7 +555,7 @@ internal static class InteropEnvironment
     /// that had negotiated TLS 1.2, EVerest's <c>IsoMux</c> selected the <c>-20</c> entry, and 60 exchanges
     /// later the run was written up as a success. `[V2G20-1237]` forbids the car to offer `-20` there and
     /// `[V2G20-2356]` forbids the station to select it; the station's half is filed
-    /// (<c>docs/reports/everest-isomux-iso20-over-tls12.md</c>) and the car's was ours. Nothing in the
+    /// (<c>docs/reports/everest-isomux.md</c>, §2) and the car's was ours. Nothing in the
     /// transcript said so, which is why it took two days and the arrival of the requirement text to notice.
     /// </para>
     /// <para>

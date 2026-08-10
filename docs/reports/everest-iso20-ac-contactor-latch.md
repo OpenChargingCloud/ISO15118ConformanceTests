@@ -15,10 +15,9 @@ EVEREST_CORE=/path/to/everest-core bash tools/everest-contactor-probe/build.sh
 bash tools/interop-everest/contactor-report.sh --status false --watch charger.log
 ```
 
-Four other reports for the same project are in [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
-[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md),
-[`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md) and
-[`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md), and a fifth goes to your fork
+Three other reports for the same project are in [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
+[`everest-isomux.md`](everest-isomux.md) (four findings in that one module, merged) and
+[`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md), and a fourth goes to your fork
 of Josev's certificate script ([`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md)). **File them
 separately.** The framing in the first of those — what everest-core has been worth to this project,
 and why a report from us is not a bug filed by a stranger — applies here unchanged and is not repeated.

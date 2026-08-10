@@ -89,7 +89,7 @@ completed in -20, so interop is unaffected; the EV's ranking is not.
 
 **Filed 2026-08-09** as the twentieth, once the requirement text settled that it is a defect
 (`[V2G2-169]`, `[V2G20-169]`):
-[`reports/everest-isomux-sap-priority.md`](../../reports/everest-isomux-sap-priority.md). This run is
+[`reports/everest-isomux.md`](../../reports/everest-isomux.md). This run is
 its middle reproduction — same request bytes, same answer bytes as 2025.10.0 and as the TLS run a day
 later.
 

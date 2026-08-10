@@ -385,7 +385,7 @@ before the response is sent —
    (`IsoMux/connection/connection.cpp:462`, `.../tls_connection.cpp:334`, both under their own comment
    *"still in buffer, we need to forward it"*). The distinction decides who is answerable for the
    SchemaID, which is what the **twentieth filing** turns on:
-   [`everest-isomux-sap-priority.md`](../../docs/reports/everest-isomux-sap-priority.md) — the router
+   [`everest-isomux.md`](../../docs/reports/everest-isomux.md) — the router
    picks the backend on the first `-20` entry it sees and never reads `Priority`, while both backends
    read it correctly.
 6. ✅ **MCS** — the first live counterpart our MCS support ever had. Done 2026-08-05 against
@@ -419,7 +419,7 @@ before the response is sent —
    handshake, unlike `Evse15118D20`
    ([`…-isomux-tls`](../../docs/interop-runs/2026-08-06-everest-isomux-tls/notes.md)). The profile half is
    the **nineteenth filing** since 2026-08-09, `[V2G20-2356]` having settled that a station must not
-   select -20 there: [`everest-isomux-iso20-over-tls12.md`](../../docs/reports/everest-isomux-iso20-over-tls12.md).
+   select -20 there: [`everest-isomux.md`](../../docs/reports/everest-isomux.md).
 
 ---
 

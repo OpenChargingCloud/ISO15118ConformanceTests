@@ -162,7 +162,7 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   lower, or plain TCP; `[V2G20-2356]` is the SECC's mirror and `[V2G20-1805]` states both at once, all
   three pointing at Table 5. On 2026-08-06 our multi-protocol offer went out over a TLS 1.2 connection
   with the `-20` entry still in it, and EVerest's `IsoMux` selected it — their half is
-  [the nineteenth filing](reports/everest-isomux-iso20-over-tls12.md), ours was this line.
+  [the nineteenth filing](reports/everest-isomux.md), ours was this line.
   <br>`SapHandshake` now takes a `TransportSecurity`, drops `-20` from an offer that may not carry it,
   aborts rather than sending an empty request when nothing else was offered, and on the station side
   will not select `-20` there however the car ranked it. Fourteen tests in
@@ -249,7 +249,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Twenty-six filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Twenty-three filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~

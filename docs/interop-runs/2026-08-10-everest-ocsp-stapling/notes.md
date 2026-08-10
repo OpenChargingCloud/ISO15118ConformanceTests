@@ -135,7 +135,7 @@ Both, and the -2 side is the sharper one.
   duty to answer with one response per certificate of the chain it presents, `[V2G20-2391]` extends it
   to a private station supporting PnC, and `[V2G20-1021]` caps reuse at a week. This reaches `EvseV2G`
   through `IsoMux`, which terminates TLS itself for both protocols — the finding behind
-  [the nineteenth filing](../../reports/everest-isomux-iso20-over-tls12.md).
+  [the nineteenth filing](../../reports/everest-isomux.md).
 
 The practical consequence, stated once: **a strictly conformant ISO 15118-2 EVCC that requests OCSP and
 meets a V2G-rooted EVerest station closes the connection**, so TLS — and therefore Plug & Charge — is
