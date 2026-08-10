@@ -136,6 +136,11 @@ We are citing requirement identifiers and paraphrasing what they oblige, not quo
    `*_limit_achieved` in particular has its own requirement family and its own consequence — a station
    that is at its limit and says otherwise is a different bug from one that reports no meter.
 4. **`ac_charge_loop.cpp:157` needs the same**, and we could not measure it.
+5. **Unrelated, one line, while you are in `session/`:** `iso.cpp:194` logs *"Sequence Timeout 40secs is
+   reached"* and the constant it fires on is `TIMEOUT_SEQUENCE = 1000 * 60` (`d20/timeout.hpp:30`). The
+   **timer is right** — 60 s is what the standard asks — and the **message is wrong**, which costs an
+   operator the same way `EvseV2G`'s `<n> certificates != <n> OCSP responses` does. Not worth its own
+   issue; worth a line in whichever patch touches that file next.
 
 ## Not part of this
 
