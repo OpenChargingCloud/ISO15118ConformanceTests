@@ -215,9 +215,17 @@ their CurrentDemandRes       × 3  : EVSEMaximumCurrentLimit 55.2 A           �
 
 We are well inside what they advertised at `ChargeParameterDiscovery`. What we ignore is the limit they
 **revise in the charge loop** — and our `-2` EVCC reads no field of `CurrentDemandRes` at all beyond the
-response code, because `Evcc2.CurrentDemand()` builds its target from a constant. Recorded as ours in
-[`open-work.md`](../../open-work.md); our own SECC sends that field as `null`, which is why no test here
-could have found it.
+response code, because `Evcc2.CurrentDemand()` builds its target from a constant. Fixed the same day,
+both halves; our own SECC sent that field as `null`, which is why no test here could have found it.
+
+**And the requirement text, read that evening, says the car was not obliged to.** `[V2G20-2188]` puts
+the duty of respecting the communicated limits on the **SECC**, its NOTE calls `EVTargetCurrent` a
+target rather than an upper limitation, and `[V2G20-2654]` expressly provides for a station lowering
+its loop limits below what it announced — which is exactly the 200 A → 55.2 A above. So **their station
+behaved correctly and so, strictly, did ours**; what ours did was ignore information a real car uses,
+which their own code calls a *broken EV implementation* in the comment above the clamp. The fix stands
+on that ground rather than on a clause: [`normative-basis.md`](../../normative-basis.md),
+[`open-work.md`](../../open-work.md).
 
 ## What this settles
 

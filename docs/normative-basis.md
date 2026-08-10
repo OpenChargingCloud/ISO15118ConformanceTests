@@ -250,3 +250,46 @@ required, in both protocols, and one of them makes the request mandatory too.
 The pair worth carrying away is `[V2G20-2372]` with `[V2G2-873]`: one makes the request unconditional,
 the other makes silence a reason to hang up. A station that never staples is therefore not merely
 missing an optional hardening step — it is unreachable over TLS for an EV that enforces either.
+
+### The DC charge-loop limits — and who has to respect them
+
+Chased on 2026-08-10 to settle a debt this file was carrying: an EVerest station lowered its stated
+current limit from 200 A to 55.2 A mid-session while our `-2` EVCC went on asking for 120 A, and the
+entry in [`open-work.md`](open-work.md) recorded the requirement side as *not cited yet*. It is cited
+now, and it **changes the verdict** rather than confirming it.
+
+**No requirement in either document obliges the EV to hold its target inside the station's stated
+maximum.** The `-20` text says the opposite, in as many words as a standard uses:
+
+- **`[V2G20-2188]`** — while trying to reach an `EVTargetVoltage` or `EVTargetCurrent` setpoint, **the
+  SECC** shall not initiate any EVSE behaviour that would violate the communicated applicable limits.
+  The duty is the station's.
+- Its **NOTE 1** removes the remaining doubt: those two elements are to be read as *targets* and not as
+  a replacement for upper limitation, and the limits live in other elements. A setpoint above the
+  ceiling is a setpoint the station is required to serve *up to the ceiling*, not a violation by the car.
+- **`[V2G20-2183]`–`[V2G20-2187]`** frame the same division: the EV names one of the two setpoints and
+  keeps it logically consistent with what it reports; the SECC adjusts the output towards it as rapidly
+  as it can.
+- **`[V2G20-2654]`** — a station's DC loop limits shall be **less than or equal to** what it stated in
+  the `DC_ChargeParameterDiscovery` pair (`[V2G20-2655]` is the minimum-value mirror). So an EVSE that
+  drops from 200 A to 55.2 A mid-session is doing exactly what the standard provides for.
+
+**ISO 15118-2 has no EV-side obligation either, and no `[V2G20-2188]` equivalent.** What it has is the
+element semantics — `[V2G2-258]` and `[V2G2-260]` bind Tables 55 and 56 for `CurrentDemandReq`/`Res`,
+`[V2G2-373]` binds Table 101 for `DC_EVSEChargeParameter` — where `EVTargetCurrent` is *the current the
+EV requests* and `EVSEMaximumCurrentLimit` is *what the EVSE can deliver*. The physical side is
+delegated to IEC 61851-23, which `-2` references for the EVSE's output and, in `[V2G2-644]`, for
+overcurrent protection. The `-2` DC-specific requirements at 8.7.4.4 are about CP states and nothing
+else. Carries the `-2` document caveat above.
+
+**What this leaves standing, and what it retires.** It retires the description of our own EVCC as
+having violated something: it had not. What stands is that our car ignored information a real one uses
+— EVerest's `EvseManager` clamps such a request under a comment naming it a *broken EV implementation*
+— and that the fix's **station** half is the one with a requirement behind it: a station that states a
+ceiling and then serves past it is the case `[V2G20-2188]` forbids, and ours now clamps to what it
+announces.
+
+Worth keeping for the method. The citation was owed for one afternoon and paid the same day, and
+paying it cost a claim rather than confirming one. That is the second time in three days that reading
+the requirement text moved a finding — the other was `[V2G20-1618]`, withdrawn as unimplementable —
+and both times the direction was *away* from a defect we had asserted.
