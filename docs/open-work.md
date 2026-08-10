@@ -62,9 +62,11 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 ## Ours to fix
 
 - ~~**Our `-2` DC charge loop is open-loop: it never reads the limits the station revises in every
-  `CurrentDemandRes`.**~~ **Fixed 2026-08-10**, stack branch `iso2-running-limits`, both halves. Found
-  from their `EvseManager` warning *"EV ignores new EVSE max limits. Setting target current to new EVSE
-  max limits"* — 47 times across our recorded EVerest runs. Decoded from
+  `CurrentDemandRes`.**~~ **Fixed 2026-08-10**, stack branch `iso2-running-limits`, both halves — and
+  then **downgraded from a conformance defect to a behavioural one** the same evening, when the
+  requirement side was finally read. Found from their `EvseManager` warning *"EV ignores new EVSE max
+  limits. Setting target current to new EVSE max limits"* — 47 times across our recorded EVerest runs.
+  Decoded from
   [`frames.log`](interop-runs/2026-08-10-everest-session-log-lengths/frames.log) of the full charge the
   same day:
 
@@ -102,11 +104,20 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   [`Iso2RunningLimitTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso2RunningLimitTests.cs);
   **two of the four fail** when the clamp is removed, which is how it was checked. The other two pin the
   station half and the unchanged default, and the fixture says which is which. Suite green at 1 366.
-  <br>**The requirement side is still not cited.** The obligation lives in the `-2` element table for
-  `CurrentDemandRes` rather than in a numbered `[V2G2-…]` we have read cleanly; the copy to hand
-  extracts that table too poorly to quote an identifier from, and the `-2` document caveat in
-  [`normative-basis.md`](normative-basis.md) would apply on top. The measurement did not depend on it,
-  and neither does the fix — but the citation is the one thing here that is owed and unpaid.
+  <br>**The requirement side, cited the same evening — and it cost the claim rather than confirming
+  it.** There is **no obligation on the EV** to hold its target inside the station's stated maximum, in
+  either document. `[V2G20-2188]` puts that duty on the **SECC** — it must not violate the communicated
+  limits while chasing the setpoint — and its NOTE says outright that `EVTargetVoltage`/`EVTargetCurrent`
+  are targets rather than upper limitations. `[V2G20-2654]` even provides for a station lowering its
+  loop limits below what it announced, which is precisely EVerest's 200 A → 55.2 A. `-2` has neither an
+  EV-side obligation nor a `[V2G20-2188]` equivalent; it defines the semantics and delegates the
+  physical side to IEC 61851-23. Written up in
+  [`normative-basis.md`](normative-basis.md).
+  <br>So **our car did not violate anything.** What it did was ignore information a real car uses —
+  their `EvseManager` clamps such a request under a comment calling it a *broken EV implementation* —
+  and the fix stands on that ground rather than on a clause. The half that *does* have a requirement
+  behind it is the station one: a station stating a ceiling and serving past it is the case
+  `[V2G20-2188]` forbids, and ours now clamps to what it announces.
 
 Both halves of our ISO 15118-20 pause/resume were built by analogy to `-2`, and the code comment in
 `Secc20Base.SessionSetup` names the assumption out loud: *"same OldSessionJoined mechanic as -2"*.
