@@ -154,7 +154,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
             Assert.That(offered, Is.SupersetOf(new ushort[] { 2, 6 }), "test assumes DC and DC_BPT are advertised");
 
-            // Detail for 6 (DC_BPT), selection of 2 (DC): both advertised, and set 1 was described for 6 only.
+            // Detail for 6 (DC_BPT), selection of 2 (DC). Both are advertised, and set 1 is not 6's property —
+            // SvcDetail offers sets 1 and 2 for whichever service is asked about, so 2 would have carried it
+            // too. What makes the pair (2, 1) refusable is that 2's detail was never requested, so that pair
+            // was never put on the wire this session. The check is about what was provided, not about what
+            // could have been.
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDetailReq(Common, 6));
 
             var res = (ServiceSelectionRes) secc.Handle(
