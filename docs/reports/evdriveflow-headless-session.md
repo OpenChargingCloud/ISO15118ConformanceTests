@@ -232,15 +232,18 @@ Three findings from our 2026-08-01 runs, each with its own file and each filable
 worked two of them around **inside a throwaway container**, never in our own stack, purely to see what
 lay behind them.
 
-- **`secc/states/process_service_discovery_request.py`** reads `payload.supported_service_ids.service_id`
-  unconditionally. `SupportedServiceIDs` is optional and omitting it means *"no filter, list
-  everything"*; an EV that omits it — legally — takes your SECC down with
-  `AttributeError: 'NoneType' object has no attribute 'service_id'`. **Same shape as issue 2, on the
-  station side.**
-- **`secc/states/process_dc_charge_loop_request.py:128`** reads
-  `payload.dynamic_dc_clreq_control_mode.evmaximum_charge_current` without checking which control mode
-  the request carries. A **Scheduled** charge loop — which your own `ScheduleExchange` had just
-  answered `OK` — raises `AttributeError` there.
+- ~~**`secc/states/process_service_discovery_request.py`** reads `payload.supported_service_ids.service_id`
+  unconditionally.~~ **Written up separately on 2026-08-10** and no longer secondary:
+  [`evdriveflow-service-discovery-filter.md`](evdriveflow-service-discovery-filter.md), EDF's issue 3.
+  It needs no misbehaviour from the other side — every EV that does not pre-filter hits it — and
+  counting the family it belongs to is what made it worth its own file.
+- ~~**`secc/states/process_dc_charge_loop_request.py:128`** ... a **Scheduled** charge loop raises
+  `AttributeError` there.~~ **Overstated, corrected 2026-08-10.** The line is real, but their station
+  advertises `ControlMode = 2` (Dynamic) in the only parameter set it offers for either service
+  (`evse_dummy_controller.py:109-114`), so a conformant EV never selects Scheduled and never sends one.
+  Reaching that line takes a car that ignored the catalogue it was given — which ours did in August,
+  before it was taught to read parameter sets. What remains is that malformed input crashes instead of
+  being refused, which is not something this project files against anyone.
 - **`evcc/states/wait_for_authorization_setup_response.py`** walks the offered authorization services
   and `raise NotImplementedError` on the first one it does not support, even when the one it *does*
   support is the next entry in the same list. A station offering PnC alongside EIM is the ordinary
