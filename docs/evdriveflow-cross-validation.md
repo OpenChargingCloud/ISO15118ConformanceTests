@@ -132,10 +132,17 @@ Three, all reported in the run notes with the code that causes them:
 1. **An optional element dereferenced.** `process_service_discovery_request.py` reads
    `payload.supported_service_ids.service_id` unconditionally; in -20 that element is `minOccurs="0"`, and
    omitting it means *"no filter, list everything"*. Our EVCC omits it — legally — and their session dies
-   with `AttributeError: 'NoneType' object has no attribute 'service_id'`.
-2. **The charge loop assumes Dynamic control mode.** `process_dc_charge_loop_request.py` reads
-   `payload.dynamic_dc_clreq_control_mode` without checking. Ours sends the **Scheduled** variant — which
-   their own `ScheduleExchange` had just answered `OK` — so the inconsistency is internal to their side.
+   with `AttributeError: 'NoneType' object has no attribute 'service_id'`. **Filed 2026-08-10** as their
+   issue 3: [`reports/evdriveflow-service-discovery-filter.md`](reports/evdriveflow-service-discovery-filter.md),
+   which also counts the family it belongs to — seven `hasattr`-on-an-`Optional` sites in four files, on
+   both sides.
+2. ~~**The charge loop assumes Dynamic control mode.**~~ **Overstated, corrected 2026-08-10.**
+   `process_dc_charge_loop_request.py` does read `payload.dynamic_dc_clreq_control_mode` without
+   checking, and ours did send the Scheduled variant — but their station advertises `ControlMode = 2`
+   (Dynamic) in the only parameter set it offers for either service
+   (`evse_dummy_controller.py:109-114`), so a conformant EV never selects Scheduled. **We reached that
+   line because our own EVCC ignored the catalogue**, which was fixed the same month. The inconsistency
+   is not internal to their side; it was ours, and this entry claimed otherwise for nine days.
 3. **An EVSE offering PnC *and* EIM breaks their EV.** Their
    `wait_for_authorization_setup_response.py` walks the offered list and raises `NotImplementedError` on
    the first entry it does not support, even though EIM — which it does support — is the very next entry.
@@ -254,7 +261,7 @@ met.
 | Claim | In their source |
 |---|---|
 | An optional element is dereferenced | `secc/states/process_service_discovery_request.py:31` — `if 6 in payload.supported_service_ids.service_id:`, unguarded. **Their own generated model** declares it `Optional[ServiceIdlistType]` (`shared/xml_classes/common_messages/v2_g_ci_common_messages.py:827`), so both halves of the defect sit in their tree |
-| The charge loop assumes Dynamic control mode | `secc/states/process_dc_charge_loop_request.py:128,149,161` read `payload.dynamic_dc_clreq_control_mode`; `scheduled_dc_clreq_control_mode` appears **0×** in the file. The one branch is `if self.session_parameters.dc_bpt_selected == True:` — BPT or not, never control mode |
+| The charge loop assumes Dynamic control mode | `secc/states/process_dc_charge_loop_request.py:128,149,161` read `payload.dynamic_dc_clreq_control_mode`; `scheduled_dc_clreq_control_mode` appears **0×** in the file. The one branch is `if self.session_parameters.dc_bpt_selected == True:` — BPT or not, never control mode. **All still true and no longer a finding:** their catalogue advertises Dynamic only (`evse_dummy_controller.py:109-114`, `ControlMode int_value=2`, one parameter set per service), so nothing conformant reaches those lines |
 | An EVSE offering PnC *and* EIM breaks their EV | `evcc/states/wait_for_authorization_setup_response.py:30-37`. The loop has **no `break`**, so this is order-independent: `[EIM, PnC]` matches on the first pass and still raises on the second — stronger than the write-up above states |
 | TLS is on by default, off by a testing switch | `shared/global_values.py:37` — `SECURITY_PROTOCOL = 0x00  # Use 0x00 to enable TLS or 0x10 to disable TLS [Testing purposes]` |
 | Their EXI is OpenEXI/Nagasena | `shared/lib/nagasena.jar`, `nagasena-rta.jar` — which is why the install needs a JDK |
