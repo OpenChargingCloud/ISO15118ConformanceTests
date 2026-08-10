@@ -200,6 +200,15 @@ Everything below was unblocked by it.
   Their `Auth` cannot tell our token from their own `DummyTokenProvider`'s, and nothing of theirs is
   patched to make that true.
 
+- **A warning in their boot log, chased to the end (2026-08-10).** Not a session at all — the shortest
+  thing in this list and one of the larger findings. `<n> certificates != <n> OCSP responses` at
+  startup, with the two numbers left literal, turned out to mean that no EVerest station staples an
+  OCSP response at all. The measurement is one MQTT command and its reply
+  ([`…-ocsp-stapling`](interop-runs/2026-08-10-everest-ocsp-stapling/notes.md)); the cause is one
+  member missing from one conversion function; the requirement is in both protocols. Worth recording
+  as a method as much as a result: **every unexplained line in a counterparty's log is a candidate,**
+  and this one had been in our recorded logs since 2026-08-03 without anyone reading it.
+
 ---
 
 ## What it found in **us** — and the shape they share
@@ -251,9 +260,23 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **seven** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **eight** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **No EVerest station staples an OCSP response, and one missing line is why.** `EvseV2G` asks
+  libevse-security for the OCSP data belonging to its certificate chain (`include_ocsp = true`);
+  libevse-security assembles one entry per certificate; and `to_everest(CertificateInfo)` copies six of
+  the seven members, forgetting `ocsp`. The TLS server then sees `3 certificates != 0 OCSP responses`,
+  caches **nothing** — all-or-nothing, not even the certificates that do have a response — and the
+  handshake extension is omitted for want of anything to put in it. `[V2G2-871]` and `[V2G20-2388]`
+  both require the stapling; `[V2G20-2372]` makes a `-20` EV always ask for it; and `[V2G2-873]` makes a
+  conformant `-2` EV **close the connection** when it asked and got nothing — so TLS, and therefore
+  Plug & Charge, is unreachable for an EV that enforces it. Measured off their own MQTT reply with no
+  EV and no session
+  ([`…-ocsp-stapling`](interop-runs/2026-08-10-everest-ocsp-stapling/notes.md)). Filed 2026-08-10:
+  [`everest-evse-security-ocsp-dropped.md`](reports/everest-evse-security-ocsp-dropped.md).
+  `IsoMux` reaches the same place by a different route — it asks with `include_ocsp = false` — and
+  `Evse15118D20` has no OCSP code at all, so a fix to the conversion alone does not finish the job.
 - **`session_logging` publishes every response with the preceding request's length.** Their MQTT
   message stream is an attractive station-side record of a session, and we used it as one on
   2026-08-02; requests are byte-exact, responses are truncated or padded with stale buffer, under the

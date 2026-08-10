@@ -209,3 +209,44 @@ independent:
 
 An argument that would have rested on one draft revision rests on three places instead, one of them
 contemporaneous with the edition actually being implemented.
+
+### OCSP stapling in the TLS handshake — required by both protocols
+
+Chased on 2026-08-10, when a warning in EVerest's own boot log turned out to mean that no EVerest
+station staples an OCSP response at all
+([`2026-08-10-everest-ocsp-stapling`](interop-runs/2026-08-10-everest-ocsp-stapling/notes.md)).
+The question the run had to settle was whether stapling is *required* or merely available. It is
+required, in both protocols, and one of them makes the request mandatory too.
+
+**ISO 15118-2**, with the `-2` caveat above — these identifiers are read from the 2022 DIS revision:
+
+- **`[V2G2-871]`** — a SECC outside a private environment owes the EV its certificate and a chain up to
+  a root, and — once the EV has asked for OCSP data — **one OCSP response per certificate it puts into
+  the handshake**, in the IETF RFC 6961 form, i.e. the `status_request_v2` extension.
+- **`[V2G2-872]`** — the carve-out: a SECC in a *private* environment shall not send one, and sends its
+  private root instead.
+- **`[V2G2-873]`** — what a conformant EVCC does when it asked and received none: for a chain linked to
+  a **V2G root** it shall **close the connection**; for a single self-signed leaf that is already one
+  of its own roots it ignores the omission.
+- **`[V2G2-875]`** — the EVCC shall verify the chain *and the OCSP responses*, and abort the TLS setup
+  if any of that verification fails.
+- **`[V2G2-649]`**, **`[V2G2-876]`** — the SECC should refresh the cached response at least weekly, and
+  a Sub-CA response's validity is bounded.
+
+**ISO 15118-20**, which needs no caveat:
+
+- **`[V2G20-2372]`** — the EVCC **shall** include the `status_request` extension in its `ClientHello`,
+  with **`[V2G20-2373]`** a zero-length `responder_id_list`. So under `-20` the question is always
+  asked; there is no configuration in which it is not.
+- **`[V2G20-2388]`** — because the EV asked, a *public* SECC owes **one OCSP response per certificate**
+  of the chain it presents in the `ServerHello`; **`[V2G20-2391]`** places the same duty on a *private*
+  SECC that supports PnC.
+- **`[V2G20-2389]`/`[V2G20-2390]`** and **`[V2G20-2392]`/`[V2G20-2393]`** — the OCSP signer chains
+  follow the certificate profiles matching whichever curve set was negotiated.
+- **`[V2G20-1021]`** — the validity of the response the SECC provides is limited to one week.
+- **`[V2G20-2327]`**, **`[V2G20-2330]`**, **`[V2G20-2332]`**, **`[V2G20-2334]`** — the OCSP signer
+  certificate profiles, per credential family.
+
+The pair worth carrying away is `[V2G20-2372]` with `[V2G2-873]`: one makes the request unconditional,
+the other makes silence a reason to hang up. A station that never staples is therefore not merely
+missing an optional hardening step — it is unreachable over TLS for an EV that enforces either.
