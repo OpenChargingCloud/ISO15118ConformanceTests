@@ -16,7 +16,8 @@ causes it can be read directly.
 | Config | `config-dc2-ours.yaml`, `tls_security: allow`, their own unmodified test PKI |
 | Ours | nothing — the measurement is their MQTT traffic and their log |
 | Outcome | **`ocsp` absent from a reply that requested it; no OCSP entry cached; no staple possible** |
-| Artifacts | [`their-evse-security-mqtt.log`](their-evse-security-mqtt.log), [`their-charger.log`](their-charger.log), [`their-cert-layout.txt`](their-cert-layout.txt) |
+| Control | OCSP responses installed through **their own** `update_ocsp_cache`, station restarted — **nothing changes** |
+| Artifacts | [`their-evse-security-mqtt.log`](their-evse-security-mqtt.log), [`their-charger.log`](their-charger.log), [`their-cert-layout.txt`](their-cert-layout.txt), and for the control [`their-ocsp-request-data.json`](their-ocsp-request-data.json), [`provisioned-cache.txt`](provisioned-cache.txt), [`their-charger.after-provisioning.log`](their-charger.after-provisioning.log), [`their-evse-security-mqtt.after-provisioning.log`](their-evse-security-mqtt.after-provisioning.log) |
 | Filed | [`everest-evse-security-ocsp-dropped.md`](../../reports/everest-evse-security-ocsp-dropped.md) — the twenty-fourth |
 
 ## What the station says about itself
@@ -147,8 +148,60 @@ unreachable for it. Every EV that has met this station so far, ours included, do
   `status_request_v2` in `lib/everest/tls/extensions/`, with unit tests that populate
   `ocsp_response_files` by hand (`tests/tls_connection_test.cpp:42`). The tests pass because they set
   the field the module boundary drops — the gap is precisely at the seam neither side tests.
-- **Not caused by our rig having no OCSP data.** It has none, and that is beside the point: the reply
-  should still have carried three entries with `ocsp_path` unset. The drop is unconditional.
+- **Not caused by our rig having no OCSP data.** Argued from the JSON first, then measured. The
+  argument: the key is *absent*, not `[]`, and an optional set to an empty vector would have serialized
+  as `"ocsp": []` — so nothing ever set it, whatever was on disk. The measurement is below.
+
+## The control: provision OCSP responses through their own API, change nothing
+
+Their station has an interface for exactly this, and an OCPP-connected one uses it on a timer. So the
+data went in the way a real deployment's would, with nothing patched and nothing hand-placed.
+
+**Step 1 — ask them which certificates want a response.** `get_v2g_ocsp_request_data`, over MQTT
+([`their-ocsp-request-data.json`](their-ocsp-request-data.json)) — two entries, because their own test
+PKI's `SECCCert` carries no responder URL and their code says so out loud:
+
+```
+[WARN] evse_security :: Could not retrieve OCSP Responder URL from certificate
+[WARN] evse_security :: When generating an OCSP request, could not find responder URL for certificate: SECCCert
+```
+
+**Step 2 — hand each one a response.** `update_ocsp_cache(certificate_hash_data, ocsp_response)` for
+both, with a placeholder string as the response: their handler writes it to the cache file without
+parsing it (`evse_security.cpp:1075-1135`), so no OCSP responder was needed and no real response was
+forged.
+
+```
+[INFO] evse_security :: Updating OCSP cache
+[INFO] evse_security :: Updating OCSP cache
+```
+
+**Step 3 — their code writes the cache** ([`provisioned-cache.txt`](provisioned-cache.txt)). The
+directory did not exist before; they created it, named the files, and stored the hash data themselves:
+
+```
+client/cso/ocsp/M08_D10_Y2026_H13_M25_S33_i1_r530732214_ocsp.der
+client/cso/ocsp/M08_D10_Y2026_H13_M25_S33_i1_r530732214_ocsp.hash
+client/cso/ocsp/M08_D10_Y2026_H13_M25_S33_i2_r615549393_ocsp.der
+client/cso/ocsp/M08_D10_Y2026_H13_M25_S33_i2_r615549393_ocsp.hash
+```
+
+**Step 4 — restart the station and look again.** Nothing moves
+([`their-charger.after-provisioning.log`](their-charger.after-provisioning.log),
+[`their-evse-security-mqtt.after-provisioning.log`](their-evse-security-mqtt.after-provisioning.log)):
+
+```
+[WARN] iso15118_charge :: <n> certificates != <n> OCSP responses
+```
+
+and the reply to `get_all_valid_certificates_info` still carries `certificate_count: 3` and **no `ocsp`
+key**. Two OCSP responses sit in the cache their own API put them in, and not one of them reaches the
+TLS server.
+
+That closes the last reading-rather-than-observation in this finding: the drop is unconditional,
+measured, on their own data path.
+
+*Their test PKI was handed back as found — the `ocsp/` directory is ours and was removed afterwards.*
 
 ## A second, different cause with the same symptom
 

@@ -1,0 +1,32 @@
+{
+    "data": {
+        "data": {
+            "id": "ocspprobe-1",
+            "origin": "evse_security",
+            "retval": {
+                "ocsp_request_data_list": [
+                    {
+                        "certificate_hash_data": {
+                            "hash_algorithm": "SHA256",
+                            "issuer_key_hash": "bdf9ac65d666da2348ed498e5c05bc4113f3b50f649cde5537bcc411383d28dd",
+                            "issuer_name_hash": "13dac2b50f31854dfa3cf8d41b6f7a2dca4ee20096ef3ba25afe2287ad376e16",
+                            "serial_number": "303b"
+                        },
+                        "responder_url": "https://www.example.com/"
+                    },
+                    {
+                        "certificate_hash_data": {
+                            "hash_algorithm": "SHA256",
+                            "issuer_key_hash": "dc24ba021a083b786b7d2cacc19269bd9e9a43b795abffd60c9cfd56546955f5",
+                            "issuer_name_hash": "7f89f3934f0d724ed37e98825f85cb96bb8620f1352550eab3638bff72db293d",
+                            "serial_number": "303a"
+                        },
+                        "responder_url": "https://www.example.com/"
+                    }
+                ]
+            }
+        },
+        "type": "result"
+    },
+    "msg_type": "CmdResult"
+}
