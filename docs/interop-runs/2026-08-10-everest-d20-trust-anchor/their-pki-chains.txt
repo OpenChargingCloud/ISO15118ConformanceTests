@@ -1,0 +1,37 @@
+# Their unmodified test PKI, the two client credentials used in this run.
+# Read with: openssl crl2pkcs7 -nocrl -certfile <f> | openssl pkcs7 -print_certs -noout
+
+== client/oem/OEM_LEAF.pem
+   subject=CN=OEMProvCert, O=EVerest, C=DE, DC=OEM
+   issuer=CN=OEMSubCA2, O=EVerest, C=DE, DC=OEM
+   
+== ca/oem/INTERMEDIATE_OEM_CA.pem
+   subject=CN=OEMSubCA2, O=EVerest, C=DE, DC=OEM
+   issuer=CN=OEMSubCA1, O=EVerest, C=DE, DC=OEM
+   
+   subject=CN=OEMSubCA1, O=EVerest, C=DE, DC=OEM
+   issuer=CN=OEMRootCA, O=EVerest, C=DE, DC=OEM
+   
+== ca/oem/OEM_ROOT_CA.pem
+   subject=CN=OEMRootCA, O=EVerest, C=DE, DC=OEM
+   issuer=CN=OEMRootCA, O=EVerest, C=DE, DC=OEM
+   
+== client/mo/MO_LEAF.pem
+   subject=CN=UKSWI123456789A, O=EVerest, C=DE, DC=MO
+   issuer=CN=PKI-Ext_CRT_MO_SUB2_VALID, O=EVerest, C=DE, DC=MO
+   
+== ca/mo/INTERMEDIATE_MO_CA_CERTS.pem
+   subject=CN=PKI-Ext_CRT_MO_SUB2_VALID, O=EVerest, C=DE, DC=MO
+   issuer=CN=PKI-Ext_CRT_MO_SUB1_VALID, O=EVerest, C=DE, DC=MO
+   
+   subject=CN=PKI-Ext_CRT_MO_SUB1_VALID, O=EVerest, C=DE, DC=MO
+   issuer=CN=MORootCA, O=EVerest, C=DE, DC=MO
+   
+== ca/mo/MO_ROOT_CA.pem
+   subject=CN=MORootCA, O=EVerest, C=DE, DC=MO
+   issuer=CN=MORootCA, O=EVerest, C=DE, DC=MO
+   
+== ca/v2g/V2G_ROOT_CA.pem
+   subject=CN=V2GRootCA, O=EVerest, C=DE, DC=V2G
+   issuer=CN=V2GRootCA, O=EVerest, C=DE, DC=V2G
+   

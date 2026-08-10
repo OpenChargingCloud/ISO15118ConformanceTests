@@ -1,0 +1,54 @@
+2026-08-10 18:52:04.082370 [INFO] manager          ::   ________      __                _   
+2026-08-10 18:52:04.082565 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-10 18:52:04.082574 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-10 18:52:04.082581 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-10 18:52:04.082587 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-10 18:52:04.082592 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-10 18:52:04.082598 [INFO] manager          :: 
+2026-08-10 18:52:04.082604 [INFO] manager          :: everest-framework 0.25.0-dev 2026.02.1
+2026-08-10 18:52:04.082610 [INFO] manager          :: everest-core 2026.02.1-dev 2026.02.1
+2026-08-10 18:52:04.082617 [INFO] manager          :: 
+2026-08-10 18:52:04.082623 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-08-10 18:52:04.106852 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-10 18:52:04.106912 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-ours/config-d20-tls-ours.yaml
+2026-08-10 18:52:04.245763 [INFO] manager          :: Config loading completed in 163ms
+2026-08-10 18:52:04.248437 [INFO] manager          :: Starting 18 modules
+2026-08-10 18:52:06.494747 [INFO] energy_manager:  :: Module energy_manager initialized [2202ms]
+2026-08-10 18:52:06.498121 [INFO] auth:Auth        :: Module auth initialized [2211ms]
+2026-08-10 18:52:06.510852 [INFO] api_sink:Energy  :: Module api_sink initialized [2230ms]
+2026-08-10 18:52:06.514306 [INFO] api:API          :: Module api initialized [2237ms]
+2026-08-10 18:52:06.534538 [INFO] imd:IMDSimulato  :: Module imd initialized [2209ms]
+2026-08-10 18:52:06.535687 [INFO] evse_security:E  :: Module evse_security initialized [2214ms]
+2026-08-10 18:52:06.536145 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2231ms]
+2026-08-10 18:52:06.536304 [INFO] grid_connection  :: Module grid_connection_point initialized [2214ms]
+2026-08-10 18:52:06.537785 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2238ms]
+2026-08-10 18:52:06.539083 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-10 18:52:06.539211 [INFO] error_history:E  :: Checking database
+2026-08-10 18:52:06.540601 [INFO] error_history:E  :: Module error_history initialized [2244ms]
+2026-08-10 18:52:06.550506 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2229ms]
+2026-08-10 18:52:06.564012 [INFO] token_validator  :: Module token_validator initialized [2206ms]
+2026-08-10 18:52:06.564153 [INFO] powersupply_dc:  :: Module powersupply_dc initialized [2219ms]
+2026-08-10 18:52:06.564864 [INFO] token_provider:  :: Module token_provider initialized [2211ms]
+2026-08-10 18:52:06.567863 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2225ms]
+2026-08-10 18:52:06.580014 [INFO] slac:SlacSimula  :: Module slac initialized [2232ms]
+2026-08-10 18:52:06.580223 [INFO] yeti_driver:Yet  :: Module yeti_driver initialized [2219ms]
+2026-08-10 18:52:07.162076 [INFO] iso15118_car     :: Module iso15118_car initialized [2221ms]
+2026-08-10 18:52:07.205862 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-10 18:52:07.207376 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [3137ms] 🚙🚙🚙
+2026-08-10 18:52:07.358858 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-08-10 18:52:07.721673 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-10 18:52:07.810684 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-10 18:52:07.815792 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-10 18:52:07.815878 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-08-10 18:52:07.898673 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-10 18:52:07.943614 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-08-10 18:52:07.985894 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-10 18:52:07.986037 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-10 18:52:08.193794 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-08-10 18:52:08.327096 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-10 18:52:12.061350 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fe6b:3d4%eth0
+2026-08-10 18:52:12.065482 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:fe6b:3d4%eth0]:50000
+2026-08-10 18:52:12.065702 [INFO] iso15118_charge  :: Created logfile at: /home/ahzf/everest/./260810_16-52-12.yaml
+2026-08-10 18:52:12.592933 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:fe6b:3d4%eth0]:36918
+2026-08-10 18:52:12.593373 [INFO] iso15118_charge  :: Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+2026-08-10 18:52:12.595626 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Shutdown loop() because of: Failed to SSL_accept(): 1: C0F6FFEB1A780000:error:0A000086:SSL routines:tls_process_client_certificate:certificate verify failed:../ssl/statem/statem_srvr.c:3764:

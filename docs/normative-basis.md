@@ -406,8 +406,45 @@ And the request has required contents, which is the part that is easy to miss:
   the two together. Both sit beside **`[V2G20-2458]`**/**`[V2G20-1856]`**, the Table 6 cipher-suite pair
   already recorded above under *The ISO 15118-20 TLS profile*.
 
-So the `-20` TLS profile is four lists, not one: suites, groups, signature algorithms, and the trust
-anchors named in the `CertificateRequest`. The station measured on 2026-08-10 implements the first
+### Which credential the EV puts in the TLS handshake, and which root certifies it
+
+Looked up on 2026-08-10, when an EVerest `-20` station refused a **vehicle** certificate from its own
+test PKI and accepted a **contract** certificate from the same tree, logging the second as
+*"Vehicle Cert is available"*
+([`…-d20-trust-anchor`](interop-runs/2026-08-10-everest-d20-trust-anchor/notes.md)). The question was
+whether the two are interchangeable at the TLS layer. They are not, and the document separates them in
+its own overview before any requirement does.
+
+- **`[V2G20-2339]`** — the EVCC shall hold a **vehicle certificate**, and it is what establishes the TLS
+  session. **`[V2G20-2260]`** says the same thing for the 802.1X/RADIUS path.
+- **`[V2G20-2331]`** — a vehicle certificate's chain is anchored at an **OEM root CA**, with a **V2G
+  root CA** as the permitted alternative. Those two, and no others.
+- **`[V2G20-2401]`/`[V2G20-2402]`** — accordingly, the anchors an SECC advertises in
+  `certificate_authorities` are its **V2G root and/or OEM root** certificates. **MO appears in
+  neither.**
+- **Clause 7.3.1** draws the whole map in one paragraph: SECC certificates authenticate the *station* at
+  the TLS layer; **contract** certificates authenticate at the **application** layer; V2G roots certify
+  SECC and contract certificates; and **OEM roots with vehicle certificates are the pair the SECC uses
+  at the TLS layer to authenticate the EVCC**. OEM *provisioning* certificates are named separately
+  again, for installing and updating contract certificates.
+- **`[V2G20-2677]`** is why a wrong anchor propagates: the pause/resume binding is computed over the
+  **vehicle** certificate from the handshake, so whatever the station accepted there becomes the
+  identity a resumed session is bound to.
+
+The distinction to carry away: **a contract certificate says *who pays*, a vehicle certificate says
+*which car*.** A station that accepts the first where the second belongs is not merely permissive — it
+is answering a different question from the one the handshake asks. **Filed 2026-08-10:**
+[`reports/everest-d20-trust-anchor.md`](reports/everest-d20-trust-anchor.md).
+
+And a note on where such a defect can live: this one is not fixable in the `-20` stack alone.
+everest-core's `CaCertificateType` has `V2G`, `MO`, `CSMS`, `MF` and no `OEM`, so the correct anchor
+cannot be *requested*. When a requirement names a credential class an implementation's type system does
+not have, the nearest available value is what gets used — and it will look deliberate in the code.
+
+### The ISO 15118-20 TLS profile is four lists, not one
+
+Suites (Table 6), named groups (Table 7), signature algorithms (Table 8), and the trust anchors named in
+the `CertificateRequest` (`[V2G20-2401]`). The station measured on 2026-08-10 implements the first
 exactly and leaves the other three at its TLS library's defaults — which is worth recording as a
 **shape** rather than a one-off. A profile expressed as several tables in several subclauses gets
 implemented at the table someone read; the tables are not adjacent in the document either. When judging
