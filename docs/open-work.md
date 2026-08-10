@@ -139,11 +139,25 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   requirement to correct a stale comment*, neither was ever produced on the wire, and one of the two
   evaporated on contact with the schema. That ratio is the argument for checking before writing code,
   not against reading requirements.
-- **Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
-  the energy already delivered. Our `-2` EVCC sends a constant 22 kWh
-  (`Iso2/Evcc2.cs:536`). `DepartureTime` is omitted entirely, which makes `[V2G2-742]` vacuous rather
-  than violated. Carries the `-2` document caveat in [`normative-basis.md`](normative-basis.md) — the
-  text to hand is the 2022 DIS revision, while our stack targets ISO 15118-2:2014.
+- ~~**Minor, in a `✅` cell:** on an ISO 15118-2 resume, `[V2G2-743]` requires `EAmount` to be reduced by
+  the energy already delivered.~~ **Fixed 2026-08-10**, and it was not where this entry said it was.
+  The state machine had already stopped sending a constant: since the energy-goal binding, `EAmount` is
+  the pack's `EnergyNeededWh`, which shrinks as the pack charges. What was wrong was one line in the
+  **CLI** — `Battery = BuildBattery(args)` ran per connection, so the resumed session met a *fresh* pack
+  and asked for the full original amount again with the real one already part-charged. The car now keeps
+  one pack across the pause, which is what a car does.
+  <br>Behind that, the batteryless fallback really did send 22 kWh twice. `ResumableSession` carries a
+  `DeliveredWh` and `Evcc2.AlreadyChargedWh` takes it off the literal — read **only** when there is no
+  battery, since a carried pack already accounts for it and subtracting twice is the obvious way to get
+  this wrong.
+  <br>Three tests in
+  [`Iso2ResumeEnergyTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso2ResumeEnergyTests.cs),
+  and **one of the three** fails when the fix is removed — said out loud in the fixture, because the
+  other two pin an invariant that was already true and neither covers the CLI line that was the actual
+  defect. `DepartureTime` is still omitted entirely, which leaves `[V2G2-742]` vacuous rather than
+  violated, unchanged and deliberate.
+  <br>Carries the `-2` document caveat in [`normative-basis.md`](normative-basis.md) — the text to hand
+  is the 2022 DIS revision, while our stack targets ISO 15118-2:2014.
 
 ## Open questions about our own stack
 
