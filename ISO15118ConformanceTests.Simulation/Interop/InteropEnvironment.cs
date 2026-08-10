@@ -114,6 +114,18 @@ internal static class InteropEnvironment
         => Environment.GetEnvironmentVariable("V2G_INTEROP_DYNAMIC") == "1";
 
 
+    /// <summary>Our <b>station</b> asks the EV to renegotiate, once, mid-charge — `[V2G2-841]` for -2,
+    /// `[V2G20-1477]` for -20. <c>V2G_INTEROP_RENEG=1</c>.</summary>
+    /// <remarks>
+    /// A reverse-run knob: it only means anything when their EV is on the other end. The station side has
+    /// existed since 2026-07-22 but only the CLI could reach it, and the CLI writes no artifacts — so the
+    /// one live renegotiation against a foreign EV is a pair of console logs rather than a recorded
+    /// session. This makes such a run recordable like every other.
+    /// </remarks>
+    public static Boolean RequestRenegotiation()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_RENEG") == "1";
+
+
     /// <summary>-20 only: our EV sets <c>MeterInfoRequested</c> in every charge-loop request.
     /// <c>V2G_INTEROP_METER=1</c>.</summary>
     /// <remarks>

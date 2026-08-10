@@ -1,0 +1,87 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+Test run for /home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_EXI_Tests/release/WWCP_ISO15118_EXI_Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_EXI_Tests/release/WWCP_ISO15118_EXI_Tests.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_EXI_Tests/release/WWCP_ISO15118_EXI_Tests.dll
+   NUnit3TestExecutor discovered 0 of 0 NUnit test cases using Current Discovery mode, Explicit run
+NUnit Adapter 4.6.0.0: Test execution complete
+No test matches the given testcase filter `FullyQualifiedName~EverestInteropTests.TheirPyEvJosev` in /home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_EXI_Tests/release/WWCP_ISO15118_EXI_Tests.dll
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Pqc/release/ISO15118ConformanceTests.Pqc.dll (.NETCoreApp,Version=v10.0)
+Test run for /home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_Session_Tests/release/WWCP_ISO15118_Session_Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_Session_Tests/release/WWCP_ISO15118_Session_Tests.dll
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Pqc/release/ISO15118ConformanceTests.Pqc.dll
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_Session_Tests/release/WWCP_ISO15118_Session_Tests.dll
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Pqc/release/ISO15118ConformanceTests.Pqc.dll
+   NUnit3TestExecutor discovered 0 of 0 NUnit test cases using Current Discovery mode, Explicit run
+   NUnit3TestExecutor discovered 0 of 0 NUnit test cases using Current Discovery mode, Explicit run
+NUnit Adapter 4.6.0.0: Test execution complete
+NUnit Adapter 4.6.0.0: Test execution complete
+No test matches the given testcase filter `FullyQualifiedName~EverestInteropTests.TheirPyEvJosev` in /home/ahzf/wsl-artifacts/bin/WWCP_ISO15118_Session_Tests/release/WWCP_ISO15118_Session_Tests.dll
+No test matches the given testcase filter `FullyQualifiedName~EverestInteropTests.TheirPyEvJosev` in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Pqc/release/ISO15118ConformanceTests.Pqc.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fe6b:3d4%2]:55718 — ISO_15118_2, NoTLS, TCP
+SDP: answered [fe80::215:5dff:fe6b:3d4%2]:55718 with [fe80::215:5dff:fe6b:3d4%2]:15118 (NoTLS, TCP), 28 byte(s).
+SDP: advertising [fe80::215:5dff:fe6b:3d4%2]:15118 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their PyEvJosev on [::]:15118 ...
+SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+Recorded:
+  /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.ev-to-station.bin
+  /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.station-to-ev.bin
+  /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.frames.log
+  /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.flow.md
+  /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.trace-not-built.txt
+NUnit Adapter 4.6.0.0: Test execution complete
+  Failed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [26 s]
+  Error Message:
+   System.IO.InvalidDataException : V2GTP frame: connection closed before a full 8-byte header arrived.
+  ----> System.IO.EndOfStreamException : Unable to read beyond the end of the stream.
+  Stack Trace:
+     at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadRawFrameAsync(Stream stream, CancellationToken ct) in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 63
+   at cloud.charging.open.protocols.ISO15118.StateMachines.Iso20.Secc20Base.ReadFrame20Async(Stream stream, CancellationToken ct) in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/StateMachines/Iso20/Secc20Base.cs:line 480
+   at cloud.charging.open.protocols.ISO15118.StateMachines.Iso20.Secc20Base.RunAsync(Stream stream, CancellationToken ct) in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/StateMachines/Iso20/Secc20Base.cs:line 461
+   at ISO15118ConformanceTests.Simulation.Interop.InteropSession.RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode, CancellationToken ct, Boolean preferDynamic, Boolean offerPlugAndCharge, Boolean mcs, Action`1 observed, Boolean requestRenegotiation) in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/ISO15118ConformanceTests.Simulation/Interop/InteropSession.cs:line 250
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion() in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 250
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion() in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 278
+   at NUnit.Framework.Internal.TaskAwaitAdapter.GenericAdapter`1.BlockUntilCompleted()
+   at NUnit.Framework.Internal.MessagePumpStrategy.NoMessagePumpStrategy.WaitForCompletion(AwaitAdapter awaiter)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await[TResult](Func`1 invoke)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await(Func`1 invoke)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.RunTestMethod(TestExecutionContext context)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.Execute(TestExecutionContext context)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.<>c__DisplayClass3_0.<PerformWork>b__0()
+   at NUnit.Framework.Internal.ContextUtils.<>c__DisplayClass1_0`1.<DoIsolated>b__0(Object _)
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated(ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated[T](Func`1 func)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.PerformWork()
+--EndOfStreamException
+   at System.IO.Stream.ReadAtLeastAsyncCore(Memory`1 buffer, Int32 minimumBytes, Boolean throwOnEndOfStream, CancellationToken cancellationToken)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadRawFrameAsync(Stream stream, CancellationToken ct) in /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 59
+  Standard Output Messages:
+ SDP: advertising [fe80::215:5dff:fe6b:3d4%2]:15118 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their PyEvJosev on [::]:15118 ...
+ SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+ Recorded:
+   /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.ev-to-station.bin
+   /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.station-to-ev.bin
+   /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.frames.log
+   /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.flow.md
+   /home/ahzf/everest/renegrun/record/everest-iso15118-20-dc-reverse.trace-not-built.txt
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 27.6109 Seconds

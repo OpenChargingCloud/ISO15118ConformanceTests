@@ -58,7 +58,7 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 |---|---|---|
 | **Pause / Resume, -20** | EVerest | ~~▢~~ **run 2026-08-08 — and it is ours that failed.** Their station resumed on the first attempt (`OK_OldSessionJoined`, over mutual TLS with their minted vehicle credential); our EVCC then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`, because a resumed `-20` session skips authorization and opens at `{AC,DC}_ChargeParameterDiscovery`. Moved to *our stack*, below. `-2` is `—` in the matrix, not `▢`. |
 | **Signed tariffs, -20** | EVerest | ▢ |
-| **Renegotiation, -2 and -20** | EVerest | ▢ both protocols. |
+| **Renegotiation, -2 and -20** | EVerest | ~~▢ both~~ **-20 run 2026-08-10** — their `PyEvJosev` EV took our station's `ServiceRenegotiation` notification, stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)`; our SECC answered `OK` and stayed open, and their EV closed the connection. Same defect as Josev's, now seen in **DC** and against the fork `26f7988` ([run](interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md), [filing](reports/josev-iso20-renegotiation.md)). `-2` is still `▢`. |
 | **Plug & Charge, -20** | eVDriveFlow | ▢ — but first establish whether they do contract certificates at all; their documentation does not mention them. |
 
 ## Ours to fix
