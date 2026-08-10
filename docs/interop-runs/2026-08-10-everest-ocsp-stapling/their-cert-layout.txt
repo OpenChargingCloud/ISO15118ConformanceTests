@@ -1,0 +1,13 @@
+# certificates in the station's V2G leaf chain, and the OCSP directory that is not there
+
+$ ls /etc/everest/certs/client/cso
+CPO_CERT_CHAIN.pem
+SECC_LEAF.key
+SECC_LEAF_PASSWORD.txt
+SECC_LEAF.pem
+
+$ grep -c "BEGIN CERTIFICATE" CPO_CERT_CHAIN.pem
+3
+
+$ ls /etc/everest/certs/client/cso/ocsp
+ls: cannot access '/home/ahzf/everest/dist/etc/everest/certs/client/cso/ocsp': No such file or directory
