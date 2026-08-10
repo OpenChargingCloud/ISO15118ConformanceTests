@@ -23,7 +23,10 @@ codec — belongs here too and has no `frames.log`; it carries its verdict table
 So does a **static sweep** — no session and no bytes either, just a counterparty's source held against
 a rule. It carries the tool's output as its artifacts, and its `notes.md` says what the sweep could
 *not* decide, since that is the whole risk with reading code instead of traffic. See
-[`2026-08-11-libcbv2g-grammar-sweep/`](2026-08-11-libcbv2g-grammar-sweep/notes.md).
+[`2026-08-11-libcbv2g-grammar-sweep/`](2026-08-11-libcbv2g-grammar-sweep/notes.md), and
+[`2026-08-11-edf-pnc-source-audit/`](2026-08-11-edf-pnc-source-audit/notes.md) for the variant that
+corroborates a source reading against frame logs **already** in this directory — the cheapest run there
+is, and an argument for keeping the bytes rather than only the verdicts.
 
 ## Producing them
 

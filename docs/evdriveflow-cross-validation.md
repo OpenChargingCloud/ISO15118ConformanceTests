@@ -236,6 +236,27 @@ Rewritten 2026-08-06: the authorization wall was the common cause, and it is gon
   `hasattr`-on-an-optional-field defect (below) rather than by anything of ours.
 - **SDP in the forward direction** — the relay path that makes this runnable from a Mac is exactly what
   bypasses discovery. The reverse direction did exercise it, which is the compensation.
+- **Plug & Charge** — ⛔ **structural, established 2026-08-11: they implement none.** This entry used to
+  be a `▢` with a condition attached — *first find out whether they do contract certificates at all* —
+  and the condition turned out to be the whole question. Neither role has a `CertificateInstallation`
+  handler; `ContractCertificateChain`, `PnC_AReqAuthorizationMode`, `SignedInstallationData` and
+  `OEMProvisioningCert` occur only in the xsdata-generated bindings, ISO's schema and the Sphinx output
+  of both, plus two Table 214 timeout keys with nothing to time. Their README does not claim it and
+  `PnC` appears nowhere in their documentation. **It took no run**: their `AuthorizationSetupRes` was
+  already in this repository at 20 payload bytes against our PnC-offering 38, with nowhere to put a
+  `GenChallenge` and none in it.
+  [`2026-08-11-edf-pnc-source-audit`](interop-runs/2026-08-11-edf-pnc-source-audit/notes.md).
+  <br>The audit found one latent defect and left it unfiled on purpose: their SECC sets the EIM
+  authorization mode unconditionally, whatever the configurable `authorization_services` holds, which
+  `[V2G20-1219]` and `[V2G20-2568]` each forbid — but the shipped default is `[EIM]`, where the line is
+  right, and reaching it means configuring their station rather than observing it. It is a note on the
+  filing that already covers the paired EVCC handler, and it is worth reading beside it: **the offer
+  their EV raises on is one their own station will emit if anyone sets the field.**
+  <br>Their `origin/main` is still `60249c3` on 2026-08-11 — no commit in two years and four months,
+  which also ticks the *has `main` moved?* item that had been open on that filing.
+- **Pause / Resume** — `secc/tcp_server.py:130-137` raises `NotImplementedError` for a `PauseSession`
+  reaction on the send path. The matrix cell was already `—`; since 2026-08-11 the source says why
+  rather than the absence of a run.
 
 Their container also needs an IPv6 network to start at all (`netifaces.ifaddresses(iface)[AF_INET6][0]`
 raises `KeyError` on the default bridge), and their conda environment is linux-64 pinned, so the harness
@@ -270,8 +291,9 @@ would be the most complete interop result this project has against anybody.
 
 ## Every claim about their side, in their source
 
-Re-checked on **2026-08-06** against `EDF-Lab/eVDriveFlow` @ **`60249c3`** — the commit every run above
-met.
+Re-checked on **2026-08-06**, and the last three rows added **2026-08-11**, against
+`EDF-Lab/eVDriveFlow` @ **`60249c3`** — the commit every run above met, and still `origin/main` with no
+upstream commit since 2023-04-17.
 
 | Claim | In their source |
 |---|---|
@@ -282,6 +304,9 @@ met.
 | Their EXI is OpenEXI/Nagasena | `shared/lib/nagasena.jar`, `nagasena-rta.jar` — which is why the install needs a JDK |
 | Their EV has no fixed-endpoint option | `evcc/ev_session_handler.py:50` builds the TCP client from `udp_protocol.tcp_server_address` / `tcp_server_port` — strictly what discovery returned, with no override |
 | The configured ports | `secc/evse_config.ini:3` (`tcp_port = 49152`), `evcc/ev_config.ini:3,5` (`udp_port = 49153`, `tcp_port = 49154`) |
+| **They implement no Plug & Charge** | Neither `evcc/states/` (16 handlers) nor `secc/states/` (17) has a `CertificateInstallation` one. `ContractCertificateChain`, `PnC_AReqAuthorizationMode`, `SignedInstallationData` and `OEMProvisioningCert` occur **only** in `shared/xml_classes/…` (xsdata output), `shared/xsd_files/…` (ISO's schema) and `doc/build/…` (Sphinx over the bindings); `CertificateInstallationReq` adds two Table 214 timeout keys at `shared/global_values.py:51,57` and nothing else. Both dummy controllers ship `authorization_services = [AuthorizationType.EIM]` (`evcc/ev_dummy_controller.py:111`, `secc/evse_dummy_controller.py:104`) and the SECC ships `certificate_installation_service = False` (`:105`). Checked 2026-08-11 |
+| **Their SECC's authorization mode ignores its own service list** | `secc/states/process_authorization_setup_request.py:28-31` — the list comes from `data_model.authorization_services`, then `response.eim_asres_authorization_mode = ""` unconditionally, under their own `# TODO: given the services in authorization services, the response shall be eim or pnc`. `EVSEDataModel.authorization_services` (`secc/evse_controller.py:41`) is a declared `List[AuthorizationType]` and `AuthorizationType` has `PnC`, so the field is settable and unhonoured. `[V2G20-1219]` and `[V2G20-2568]` each require `PnC_ASResAuthorizationMode` once PnC is offered. **Unreachable in the shipped default**, hence a note on the filing rather than a finding |
+| **Their SECC cannot pause a session** | `secc/tcp_server.py:130-137` — `isinstance(reaction, PauseSession)` raises `NotImplementedError` on the send path, before any of the `TerminateSession` / `SendMessage` branches |
 
 Not checkable from the source: **why their EV terminates after `AuthorizationSetupRes`**. The wall above
 is recorded as an open question, and reading their state machine — rather than running more interop — is
