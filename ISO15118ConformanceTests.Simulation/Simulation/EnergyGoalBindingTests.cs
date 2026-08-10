@@ -129,9 +129,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
                                            s => new Evcc20Dc(s, TimeProvider.System, new ImmediateAsyncDelay(),
                                                              LoopbackTimeouts.PerMessage));
 
-            var loop = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>()
-                           .Select(r => (Dc20.Scheduled_DC_CLReqControlModeType) r.CLReqControlMode)
-                           .First();
+            var loop = FirstRecorded(secc,
+                           secc.Requests.OfType<Dc20.DC_ChargeLoopReq>()
+                               .Select(r => (Dc20.Scheduled_DC_CLReqControlModeType) r.CLReqControlMode),
+                           "Scheduled DC_ChargeLoopReq");
 
             Assert.Multiple(() =>
             {
@@ -203,8 +204,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
                                                              LoopbackTimeouts.PerMessage),
                                            PowerMode.Ac);
 
-            var first = secc.Requests.OfType<Ac20.AC_ChargeLoopReq>()
-                            .Select(r => (Ac20.Scheduled_AC_CLReqControlModeType) r.CLReqControlMode).First();
+            var first = FirstRecorded(secc,
+                            secc.Requests.OfType<Ac20.AC_ChargeLoopReq>()
+                                .Select(r => (Ac20.Scheduled_AC_CLReqControlModeType) r.CLReqControlMode),
+                            "Scheduled AC_ChargeLoopReq");
 
             Assert.Multiple(() =>
             {
@@ -228,8 +231,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
         {
             var secc = await RunIso2Async(PowerMode.Dc, Pack());
 
-            var dc = secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
-                         .Select(r => r.EVChargeParameter).OfType<DC_EVChargeParameterType>().First();
+            var dc = FirstRecorded(secc,
+                         secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
+                             .Select(r => r.EVChargeParameter).OfType<DC_EVChargeParameterType>(),
+                         "DC ChargeParameterDiscoveryReq");
 
             Assert.Multiple(() =>
             {
@@ -275,8 +280,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             });
 
             static AC_EVChargeParameterType FirstAc(RecordingSecc2 secc)
-                => secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
-                       .Select(r => r.EVChargeParameter).OfType<AC_EVChargeParameterType>().First();
+                => FirstRecorded(secc,
+                       secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
+                           .Select(r => r.EVChargeParameter).OfType<AC_EVChargeParameterType>(),
+                       "AC ChargeParameterDiscoveryReq");
         }
 
         /// <summary>The -2 DC baseline: absent, absent, 50 %.</summary>
@@ -285,8 +292,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
         {
             var secc = await RunIso2Async(PowerMode.Dc, null);
 
-            var dc = secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
-                         .Select(r => r.EVChargeParameter).OfType<DC_EVChargeParameterType>().First();
+            var dc = FirstRecorded(secc,
+                         secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
+                             .Select(r => r.EVChargeParameter).OfType<DC_EVChargeParameterType>(),
+                         "DC ChargeParameterDiscoveryReq");
 
             Assert.Multiple(() =>
             {
@@ -299,10 +308,48 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
 
         // ── recording stations, and the harnesses ──────────────────────────────
 
+        /// <summary>
+        /// What every recording station here can answer when the recording turns out not to contain what a
+        /// test was about to assert on.
+        /// </summary>
+        /// <remarks>
+        /// Both harnesses below swallow the station's exception on purpose, so that assertions can run
+        /// against a partial recording. That is right, and it used to mean the reason was simply lost: a
+        /// test whose message never arrived failed with <c>Sequence contains no elements</c> pointing at a
+        /// LINQ line, and the reader had to go and find out why for themselves. The station keeps its
+        /// reason now, and <see cref="FirstRecorded"/> prints it.
+        /// </remarks>
+        private interface IRecordingSecc
+        {
+            IEnumerable<object> Recorded { get; }
+            Exception?          Failure  { get; set; }
+        }
+
+        /// <summary>
+        /// The first recorded <typeparamref name="T"/> — or a failure that says what the station did
+        /// receive and how it ended, which between them is always the explanation.
+        /// </summary>
+        private static T FirstRecorded<T>(IRecordingSecc secc, IEnumerable<T> selected, String what)
+            where T : class
+        {
+
+            var first = selected.FirstOrDefault();
+
+            Assert.That(first, Is.Not.Null,
+                        $"no {what} reached the station ({secc.Recorded.Count()} request(s) recorded: "
+                      + $"{String.Join(", ", secc.Recorded.Select(r => r.GetType().Name))})"
+                      + (secc.Failure is { } why ? $"; the station ended with: {why.Message}" : ""));
+
+            return first!;
+
+        }
+
         private sealed class RecordingSecc20Dc(TimeSpan sequenceTimeout, TimeProvider clock)
-            : Secc20Dc(sequenceTimeout, clock)
+            : Secc20Dc(sequenceTimeout, clock), IRecordingSecc
         {
             public List<object> Requests { get; } = [];
+            public IEnumerable<object> Recorded => Requests;
+            public Exception? Failure { get; set; }
 
             public override (MessageSet Set, object Response) Handle(MessageSet set, object request)
             {
@@ -312,9 +359,11 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
         }
 
         private sealed class RecordingSecc20Ac(TimeSpan sequenceTimeout, TimeProvider clock)
-            : Secc20Ac(sequenceTimeout, clock)
+            : Secc20Ac(sequenceTimeout, clock), IRecordingSecc
         {
             public List<object> Requests { get; } = [];
+            public IEnumerable<object> Recorded => Requests;
+            public Exception? Failure { get; set; }
 
             public override (MessageSet Set, object Response) Handle(MessageSet set, object request)
             {
@@ -324,9 +373,11 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
         }
 
         private sealed class RecordingSecc2(PowerMode mode, TimeSpan sequenceTimeout, TimeProvider clock)
-            : Secc2(mode, sequenceTimeout, clock)
+            : Secc2(mode, sequenceTimeout, clock), IRecordingSecc
         {
             public List<BodyBaseType> Requests { get; } = [];
+            public IEnumerable<object> Recorded => Requests;
+            public Exception? Failure { get; set; }
 
             public override V2G_Message Handle(V2G_Message request)
             {
@@ -347,8 +398,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_2, cts.Token, mode);
+                // Swallowed so assertions can run against a partial recording, kept so an empty one
+                // can say why it is empty. See FirstRecorded.
                 try { await secc.RunAsync(seccStream, cts.Token); }
-                catch { /* the assertions are on what was received */ }
+                catch (Exception e) { secc.Failure = e; }
             }, cts.Token);
 
             using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
@@ -367,7 +420,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
                                                       Func<TimeSpan, TimeProvider, T> makeSecc,
                                                       Func<Stream, Evcc20Base> makeEvcc,
                                                       PowerMode mode = PowerMode.Dc)
-            where T : Secc20Base
+            where T : Secc20Base, IRecordingSecc
         {
             using var cts      = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
@@ -378,8 +431,10 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token, mode);
+                // Swallowed so assertions can run against a partial recording, kept so an empty one
+                // can say why it is empty. See FirstRecorded.
                 try { await secc.RunAsync(seccStream, cts.Token); }
-                catch { /* the assertions are on what was received */ }
+                catch (Exception e) { secc.Failure = e; }
             }, cts.Token);
 
             using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
