@@ -41,6 +41,14 @@ session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our o
 reason as the codec tests: the offline gate is this solution), and the loopback E2Es run both peers
 in-process. Four assemblies, 1 370 tests.
 
+**Read `dotnet test`'s exit code, not its summary lines.** When a test host crashes the run is aborted,
+but each assembly still prints a `Bestanden! : Fehler: 0, …` line for whatever it had finished — so an
+aborted run looks green and only the *total* is short (458 → 262 → 231 → 55 across four runs on
+2026-08-10, all "passing"). Piping into `grep` hides the non-zero exit and the one line that matters,
+`Der aktive Testlauf wurde abgebrochen`. The trigger that day was a stale `testhost.exe` left over from
+an interop session; clearing it made three consecutive runs green at 458. A single leftover host after a
+run is normal.
+
 ## Ground rules
 
 - **The stack is not here.** The codec, the session state machines (`WWCP_ISO15118_Session/`) and the
