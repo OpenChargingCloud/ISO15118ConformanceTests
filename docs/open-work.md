@@ -61,6 +61,35 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
+- **Our `-2` DC charge loop is open-loop: it never reads the limits the station revises in every
+  `CurrentDemandRes`.** Found 2026-08-10, from their `EvseManager` warning *"EV ignores new EVSE max
+  limits. Setting target current to new EVSE max limits"* — 47 times across our recorded EVerest runs.
+  Decoded from [`frames.log`](interop-runs/2026-08-10-everest-session-log-lengths/frames.log) of the
+  full charge the same day:
+
+  | | |
+  |---|---|
+  | their `ChargeParameterDiscoveryRes` | `EVSEMaximumCurrentLimit` **200.0 A**, `EVSEMaximumPowerLimit` 150 000 W, `EVSEMaximumVoltageLimit` 900.0 V |
+  | our `CurrentDemandReq` ×3 | `EVTargetCurrent` **120 A** at `EVTargetVoltage` 400 V — 48 kW |
+  | their `CurrentDemandRes` ×3 | `EVSEMaximumCurrentLimit` **55.2 A** |
+
+  **The first suspicion was wrong and is worth recording as wrong**: we do *not* exceed what they
+  advertised at `ChargeParameterDiscovery` — 120 A against 200 A, 48 kW against 150 kW, comfortably
+  inside. What we ignore is the limit they **revise downward in the charge loop**, which -2 lets the
+  SECC do in every `CurrentDemandRes`. They dropped it to 55.2 A and we went on asking for 120 A, three
+  times out of three, so their station clamped and warned each time.
+  <br>The cause is one method: `Evcc2.CurrentDemand()` builds `EVTargetCurrent` from the constant
+  `DcRequestedAmps`, and nothing anywhere in the `-2` EVCC reads `EVSEMaximumCurrentLimit`,
+  `EVSEMaximumPowerLimit` or `EVSECurrentLimitAchieved` off a `CurrentDemandRes`.
+  <br>**Why no test of ours could have caught it**, which is the part worth keeping: our own SECC sends
+  `EVSEMaximumCurrentLimit: null` in `CurrentDemandRes` (`Secc2.cs:653`), so a loopback session never
+  presents a running limit to read. The fix therefore has two halves — the car must read and clamp, and
+  the station must send a real running limit so a loopback test can pin the behaviour.
+  <br>**The requirement side is not cited yet.** The obligation lives in the `-2` element table for
+  `CurrentDemandRes` rather than in a numbered `[V2G2-…]` we have read cleanly; the copy to hand
+  extracts that table too poorly to quote an identifier from, and the `-2` document caveat in
+  [`normative-basis.md`](normative-basis.md) would apply on top. The measurement does not depend on it.
+
 Both halves of our ISO 15118-20 pause/resume were built by analogy to `-2`, and the code comment in
 `Secc20Base.SessionSetup` names the assumption out loud: *"same OldSessionJoined mechanic as -2"*.
 **That assumption is wrong in both directions** — `-20` added an obligation `-2` does not have, and
@@ -163,24 +192,11 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
 
 Not gaps in coverage — things a counterparty's behaviour raised about us, which are not settled.
 
-- **Does our `-2` DC charge loop respect the station's advertised current limit?** Their `EvseManager`
-  says it does not: `"EV ignores new EVSE max limits. Setting target current to new EVSE max limits"`,
-  **47 times** across our recorded EVerest runs — twice in the 2026-08-10 full charge, four times in the
-  2026-08-05 matrix. It fires in `EvseManager.cpp:2570-2599` when our `CurrentDemandReq` target exceeds
-  `evse_maximum_current_limit`, and their station then clamps and carries on, which is why every run
-  still ended `OK`.
-  <br>**Not yet a defect on our side, because the numbers have not been read.** The comparison needs the
-  `EVSEMaximumCurrentLimit` out of their `ChargeParameterDiscoveryRes` against the `EVTargetCurrent` in
-  each of our `CurrentDemandReq`, and the run we kept has `frames.log` but no decoded trace. Both are in
-  [`2026-08-10-everest-session-log-lengths`](interop-runs/2026-08-10-everest-session-log-lengths/frames.log)
-  and can be decoded from the hex.
-  <br>Found while reading their logs for something else, on 2026-08-10. Worth stating plainly why it is
-  here and not in *Ours to fix*: a warning in a counterparty's log is a lead, not a finding, and this
-  project has already had to strike one claim that skipped that step.
-
-The heading was empty until then, and the entry above is the only one. The one before it was the
-ISO 15118-20 vehicle-certificate binding, open from the 2026-08-08 EVerest run until the requirement
-text settled it the same day; it moved up to *Ours to fix* — the check is required, the method is not.
+**Currently none.** The one raised on 2026-08-10 — their `EvseManager` warning *"EV ignores new EVSE max
+limits"*, 47 times across our runs — was decoded from the recorded frames the same day and became a
+defect with an owner; it is in *Ours to fix*, below. The one before it was the ISO 15118-20
+vehicle-certificate binding, open from the 2026-08-08 EVerest run until the requirement text settled it,
+also below.
 
 ## Structural — will not close without someone else building something
 

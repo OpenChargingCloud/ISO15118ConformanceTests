@@ -202,6 +202,23 @@ nothing to say: precisely the failure its own header warns about, one release la
 a subscription per shape *and* a payload per shape, and it should be fixed against a running station
 rather than by inspection — left alone here rather than changed untested.
 
+## What else this run's frames turned out to hold
+
+Read on 2026-08-10, after their `EvseManager` warned *"EV ignores new EVSE max limits"* twice during
+this very charge. Decoding [`frames.log`](frames.log) settles it, and not the way the warning suggested:
+
+```
+their ChargeParameterDiscoveryRes : EVSEMaximumCurrentLimit 200.0 A · 150 000 W · 900.0 V
+our  CurrentDemandReq        × 3  : EVTargetCurrent 120 A at 400 V           → 48 kW, inside both
+their CurrentDemandRes       × 3  : EVSEMaximumCurrentLimit 55.2 A           ← revised downward
+```
+
+We are well inside what they advertised at `ChargeParameterDiscovery`. What we ignore is the limit they
+**revise in the charge loop** — and our `-2` EVCC reads no field of `CurrentDemandRes` at all beyond the
+response code, because `Evcc2.CurrentDemand()` builds its target from a constant. Recorded as ours in
+[`open-work.md`](../../open-work.md); our own SECC sends that field as `null`, which is why no test here
+could have found it.
+
 ## What this settles
 
 The twenty-third filing's first checklist item, and its last-but-two. The report can now say *measured
