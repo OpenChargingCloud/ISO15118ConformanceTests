@@ -8,32 +8,53 @@
 
 ---
 
-**Title:** ACDP document element codes group elements that share a type — two messages swap identity against a spec-built EXI processor
+**Title:** Document element codes are ordered by type name rather than element qname — two ACDP messages swap identity against a spec-built EXI processor
 
 ### Summary
 
 EXI 1.0 Second Edition §8.5.1 builds the `DocContent` grammar with one `SE` production per global
 element declared in the schema, over the qnames *sorted lexicographically, first by local-name, then by
-uri*. It makes no provision for elements that share a named type.
+uri*.
 
-`encode_iso20_acdp_exiDocument` assigns its 6-bit document element code in a different order — the two
-elements sharing `ACDP_ConnectReqType` land adjacent:
+cbexigen sorts by the **type** name instead, with the element name as tiebreak. That reproduces the
+generated order **exactly, in all eight document grammars it emits** — appHand, DIN, ISO 15118-2 and
+the five ISO 15118-20 families — so the rule is not in doubt.
 
-| element | EXI §8.5.1 | libcbv2g |
-|---|---:|---:|
-| `ACDP_ConnectReq` | 0 | 0 |
-| `ACDP_ConnectRes` | 1 | **2** |
-| `ACDP_DisconnectReq` | 2 | **1** |
-| `ACDP_DisconnectRes` | 3 | 3 |
-
-ACDP is the only ISO 15118 message set where this can show, because it is the only one where two global
-elements share a type — ISO commented out `ACDP_DisconnectReqType`/`ResType` and pointed the elements at
-the Connect types:
+Where two elements share a type, the tiebreak decides and the pair lands adjacent. ISO's ACDP schema
+has exactly that, because `ACDP_DisconnectReqType`/`ResType` are commented out and the elements point
+at the Connect types:
 
 ```xml
 <xs:element name="ACDP_DisconnectReq" type="ACDP_ConnectReqType"/>
 <!--  <xs:complexType name="ACDP_DisconnectReqType"> … -->   <!-- commented out in ISO's schema -->
 ```
+
+so `encode_iso20_acdp_exiDocument` assigns its 6-bit codes like this:
+
+| element | EXI §8.5.1 | libcbv2g | type |
+|---|---:|---:|---|
+| `ACDP_ConnectReq` | 0 | 0 | `ACDP_ConnectReqType` |
+| `ACDP_ConnectRes` | 1 | **2** | `ACDP_ConnectResType` |
+| `ACDP_DisconnectReq` | 2 | **1** | `ACDP_ConnectReqType` |
+| `ACDP_DisconnectRes` | 3 | 3 | `ACDP_ConnectResType` |
+
+**The shared type is not the only way it shows.** In ACDP and in the four other ISO 15118-20 families,
+the XMLDSig block is ordered the same way, and those elements share no type at all:
+
+```
+libcbv2g   SignatureMethod, SignatureProperties, SignatureProperty, Signature, SignatureValue
+§8.5.1     Signature, SignatureMethod, SignatureProperties, SignatureProperty, SignatureValue
+```
+
+which is `SignatureMethodType < SignaturePropertiesType < SignaturePropertyType < SignatureType`.
+Five of the eight document grammars deviate: ACDP by six codes, and `iso20_ac`, `iso20`, `iso20_dc`
+and `iso20_wpt` by four each. The three that agree are single-root grammars, where nothing can be
+misordered.
+
+**The wire consequence is still ACDP's alone**, and we would rather say so than overstate it: outside
+ACDP every misplaced element is from XMLDSig, and no ISO 15118 message is an EXI document rooted at
+one of those — the signature is taken over an EXI *fragment* of `SignedInfo`, and fragment grammars do
+not use these codes. So four families deviate without a message being affected, and one does not.
 
 ### Why it is worth attention: one direction is silent
 
@@ -79,12 +100,30 @@ groups nothing.
 Probe that emits the ACDP bytes above:
 <https://github.com/OpenChargingCloud/ISO15118ConformanceTests/tree/master/tools/cbv2g-defect-probe>
 
+**The ordering rule itself** can be checked against your own repository, with no schemas and nothing to
+build — it extracts the order out of every generated `*_Decoder.c` and tests it against both candidate
+keys:
+<https://github.com/OpenChargingCloud/ISO15118ConformanceTests/tree/master/tools/cbv2g-grammar-sweep>
+
+```
+bash tools/cbv2g-grammar-sweep/run.sh
+=== 2/3  the document element codes, against EXI 1.0 §8.5.1 ===
+== iso20_ACDP_Decoder.c  iso20_acdp: 34 global elements
+   EXI §8.5.1 order (element qname):        deviates
+   order by type name, element name second: MATCHES
+```
+
 ### The question
 
-Sorting the global element declarations by qname independently of their type would match §8.5.1. Before
-proposing that as a fix: **is the grouping intentional, and is there something it buys that we cannot
-see from the generated output?** We copied it deliberately for two years and stopped on 2026-08-08,
-which moved two of our vectors. If the rationale is good we would rather move back.
+Sorting the global element declarations by their qname rather than by their type would match §8.5.1,
+and it is one sort key rather than an ACDP special case. Before proposing that as a fix: **is the type
+key intentional, and is there something it buys that we cannot see from the generated output?** We
+copied it deliberately for two years and stopped on 2026-08-08, which moved two of our vectors. If the
+rationale is good we would rather move back.
+
+One reason to ask rather than assert: changing the key moves codes in five document grammars, not one.
+Four of those five moves affect XMLDSig elements that no ISO 15118 message is rooted at, so the only
+byte-level change on any real message is ACDP's — but the blast radius is worth stating up front.
 
 ### Context
 

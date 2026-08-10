@@ -36,7 +36,7 @@ was our own configuration we bent.
 | [`josev-iso20-pause-resume.md`](josev-iso20-pause-resume.md) | SwitchEV (iso15118) | one | Pause/resume works in ISO 15118-2 and cannot work in -20: the `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its states never fill — so `OK_OldSessionJoined` is unreachable and every resume degrades to a new session |
 | [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
 | [`v2gdecoder-fuzzy-grammar.md`](v2gdecoder-fuzzy-grammar.md) | FlUxIuS (V2Gdecoder) | **A**, **B** | A frame valid under two grammars is decoded by whichever sits first in the array, silently — and their DIN grammar rejects a real `ChargeParameterDiscoveryRes`, which the same fallback then answers for |
-| [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) + [`libcbv2g/`](libcbv2g/) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document grammar groups global elements sharing a type, so two ACDP messages swap identity and one decodes cleanly as the other; the WPT mid-sequence particle grammar returns success while **silently dropping** a set field; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all — reproduced by [`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md) |
+| [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) + [`libcbv2g/`](libcbv2g/) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document element codes are ordered by **type name** rather than element qname — five of the eight generated document grammars deviate from EXI §8.5.1, and in ACDP two messages swap identity so one decodes cleanly as the other; the WPT mid-sequence particle grammar returns success while **silently dropping** a set field; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all — reproduced by [`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md), and bounded by [`tools/cbv2g-grammar-sweep/`](../../tools/cbv2g-grammar-sweep/README.md) over all 4 792 generated states |
 
 **Thirty filings across six projects**, and three of them now have to be sent **twice**.
 `create_certs.sh` lives in `SwitchEV/iso15118` and in EVerest's fork of it, byte-identical in the
@@ -107,7 +107,15 @@ encode.
 The libcbv2g report is the only one where **we changed our own stack because of what we found**: this
 project reproduced both of those grammars deliberately, for byte-compatibility with the reference
 encoder, and stopped on 2026-08-08. The report says so, which is why its A is written as a question
-rather than a verdict — if there is a rationale for the grouping we cannot see, we would change back.
+rather than a verdict — if there is a rationale for the sort key we cannot see, we would change back.
+
+It is also the only one that has since been **bounded**. All three came out of round-tripping our own
+corpus, which limits them to the grammars our vectors walk; on 2026-08-11 the generated C was read
+instead, all 4 792 states of it
+([run notes](../interop-runs/2026-08-11-libcbv2g-grammar-sweep/notes.md)). That found no fourth defect —
+261 content models hold — and it corrected A: the ordering is a sort by type name reaching five document
+grammars, not a grouping of shared types confined to ACDP. A filing that says how far the search went is
+worth more than one that does not, and this is the first here that can.
 
 ## What is deliberately not here
 

@@ -7,8 +7,8 @@ independent *codec*; EVerest is the independent *charger* — the thing a car in
 and it has found more defects in this project than any other counterparty, all of one shape.
 
 Tooling and the per-session ritual: [`tools/interop-everest/`](../tools/interop-everest/README.md).
-Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-four directories, all
-prefixed `*-everest-*`; counted 2026-08-10).
+Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-six directories, all
+prefixed `*-everest-*`; counted 2026-08-11).
 
 ---
 
@@ -270,6 +270,7 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 Written up per run; **twelve** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **Checked and found correct — `EvseV2G` answers an out-of-order request instead of hanging up.** Recorded here because a ruled-out class saves the next sweep the hour: `[V2G2-538]` wants *the corresponding response message* carrying `FAILED_SequenceError` before the session ends (`[V2G2-459]`, then `[V2G2-539]`), and closing the socket without answering is the failure mode — one **we had ourselves** until 2026-08-06. Two arms, `AuthorizationReq` and `ChargeParameterDiscoveryReq` sent where a `ServiceDiscoveryReq` was due: both answered with the right message type, their own log naming *"error: Sequence Error"* each time, connection closed after. The probe is 40 lines and reusable against any `-2` station ([`…-iso2-sequence-error`](interop-runs/2026-08-11-everest-iso2-sequence-error/notes.md)).
 - **Their `-20` charge loop never returns `MeterInfo`, even when the EV asks.** `[V2G20-1081]` gives the
   EV one way to be told the meter reading; `[V2G20-1082]` makes answering a *shall* once asked. Over a
   complete 70-exchange DC session all three charge-loop responses came back without the element — and the

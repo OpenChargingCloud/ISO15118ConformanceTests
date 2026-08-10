@@ -5,9 +5,9 @@ Status: **draft, not sent.** Three filings, written out ready to post in
 them. Post under your own name; see *Before sending* at the bottom.
 
 Observed 2026-08-07/08 against **libcbv2g `03350be048b3`**, which is still `HEAD` of
-`EVerest/libcbv2g` as of 2026-08-08 — so none of this is already fixed upstream. Schemas are ISO's,
+`EVerest/libcbv2g` as of **2026-08-11** — so none of this is already fixed upstream. Schemas are ISO's,
 cross-read with **EXIficient 1.0.4** on OpenJDK 25, and every source citation was re-read against that
-checkout on 2026-08-08.
+checkout on 2026-08-08 and mechanically re-derived from it on 2026-08-11.
 
 ## First, what works
 
@@ -29,13 +29,39 @@ own words. Take the file, paste everything under its rule.
 
 | | file | one line |
 |---|---|---|
-| **A** | [`libcbv2g/issue-a-acdp-document-element-order.md`](libcbv2g/issue-a-acdp-document-element-order.md) | ACDP document element codes group elements sharing a type; one message decodes cleanly as another. Written as a **question** — see the note at the top of that file. |
+| **A** | [`libcbv2g/issue-a-acdp-document-element-order.md`](libcbv2g/issue-a-acdp-document-element-order.md) | Document element codes are ordered by **type name** rather than element qname; in ACDP one message decodes cleanly as another. Written as a **question** — see the note at the top of that file. |
 | **B** | [`libcbv2g/issue-b-mid-sequence-particle-drops-a-field.md`](libcbv2g/issue-b-mid-sequence-particle-drops-a-field.md) | An optional element after an optional list is **silently dropped**, and the list is capped at two. |
 | **C** | [`libcbv2g/issue-c-minoccurs-loop-has-no-exit.md`](libcbv2g/issue-c-minoccurs-loop-has-no-exit.md) | `minOccurs="2"` particles get a loop state with no exit; three WPT types cannot be encoded at all. |
 
 **If only one gets attention, make it B.** A and C fail loudly; B returns success and loses a field.
 B also *masks* C — the encoder never descends far enough to reach it — so they have to be fixed in
 that order, and C is unreachable in any path that has not already lost data to B.
+
+## And then the whole library was read, on 2026-08-11
+
+All three were found by round-tripping our corpus, which bounds them by what our vectors walk. So the
+generated C was read directly instead — every grammar in the library, not every grammar we exercise:
+16 files, 976 functions, **4 792 states**, 3 826 particles, 8 document grammars
+([`tools/cbv2g-grammar-sweep/`](../../tools/cbv2g-grammar-sweep/README.md),
+[run notes](../interop-runs/2026-08-11-libcbv2g-grammar-sweep/notes.md)). Three things came of it.
+
+**A is bigger and better understood, and one of its sentences was wrong.** The order is not a
+*grouping* of elements sharing a type — it is a **sort by type name**, which reproduces the generated
+order exactly in all eight document grammars and also explains the XMLDSig `Signature` block, where no
+types are shared. Five of eight grammars deviate from §8.5.1, not one. The wire consequence is still
+ACDP's alone, because the other four move only elements no ISO 15118 message is rooted at. The filing
+now says all of that, and the ordering claim can be re-checked against libcbv2g alone.
+
+**Nothing else is structurally wrong.** 261 complex types were held against the content model they were
+generated from, by enumerating the child sequences the schema permits and walking each through the
+generated state machine: **only the seven WPT types already in B and C reject anything.** Three further
+invariants — event-code numbering, code width, encoder/decoder agreement — are clean across all 4 792
+states. That is worth as much as a finding: it says where not to look.
+
+**One new row, and it is minor.** An empty `<Body/>` is valid against ISO 15118-2's schema and
+cbexigen's `BodyType` grammar has no end-element production, so neither direction can handle it — both
+fail loudly, no real message is affected, and the 35 message codes are unshifted. Mentioned here rather
+than filed.
 
 ## How this was found, and what it cost us
 
@@ -66,9 +92,18 @@ reading had missed, and which is now the most useful sentence in the filing.
 
 - [x] **Lead with what works.** 332 of 347 frames byte-exact against an independent codec, including
       complete sessions and Plug & Charge. That is the honest headline and it belongs first.
-- [x] **Check the citations against current `master`.** Re-read 2026-08-08: `03350be048b3` is still
-      upstream `HEAD`, and all three grammars are as described — ACDP's 6-bit codes 0/1/2/3, WPT ids
-      178/179/180, transmitter ids 81/82/83 with the `UNKNOWN_EVENT_CODE` dead end.
+- [x] **Check the citations against current `master`.** Re-read 2026-08-08 and again 2026-08-11:
+      `03350be048b3` is still upstream `HEAD`, and all three grammars are as described — ACDP's 6-bit
+      codes 0/1/2/3, WPT ids 178/179/180, transmitter ids 81/82/83 with the `UNKNOWN_EVENT_CODE` dead
+      end. On 2026-08-11 every id in all three filings was re-derived mechanically rather than re-read.
+- [x] **Say how far the search went, so the filing is not read as three cherry-picked types.** All
+      4 792 generated states swept 2026-08-11: three further invariants clean, 261 content models
+      checked, nothing structurally wrong outside the seven WPT types already here. The sweep is
+      [`tools/cbv2g-grammar-sweep/`](../../tools/cbv2g-grammar-sweep/README.md) and two of its three
+      checks need no schemas, so a maintainer can run them.
+- [x] **Correct A rather than defend it.** The sweep showed the ordering is a sort by type name, not a
+      grouping of shared types, and that it reaches five document grammars. The filing was rewritten;
+      the sentence claiming ACDP was the only place it could show is gone.
 - [x] **Cite the specification, not an opinion.** EXI 1.0 Second Edition §8.5.1 for A. B and C need no
       specification — both contradict their own input schema.
 - [x] **Reproduce A without ISO's schemas.** The three-element synthetic schema does it.

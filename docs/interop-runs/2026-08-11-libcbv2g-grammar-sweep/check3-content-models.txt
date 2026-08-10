@@ -1,0 +1,25 @@
+checked 261 types against their content model
+
+### schema-reject: 8
+  iso20_WPT_Decoder.c:10517  WPT_FinePositioningReqType  1 of 4 permitted child sequences rejected
+      cannot walk: ['Header', 'EVProcessing', 'EVResultCode', 'WPT_LF_DataPackageList']
+  iso20_WPT_Decoder.c:10801  WPT_FinePositioningResType  1 of 4 permitted child sequences rejected
+      cannot walk: ['Header', 'ResponseCode', 'EVSEProcessing', 'WPT_LF_DataPackageList']
+  iso20_WPT_Decoder.c:9879  WPT_FinePositioningSetupReqType  1 of 4 permitted child sequences rejected
+      cannot walk: ['Header', 'EVProcessing', 'EVDeviceFinePositioningMethodList', 'EVDevicePairingMethodList', 'EVDeviceAlignmentCheckMethodList', 'NaturalOffset', 'LF_SystemSetupData']
+  iso20_WPT_Decoder.c:10198  WPT_FinePositioningSetupResType  1 of 4 permitted child sequences rejected
+      cannot walk: ['Header', 'ResponseCode', 'PrimaryDeviceFinePositioningMethodList', 'PrimaryDevicePairingMethodList', 'PrimaryDeviceAlignmentCheckMethodList', 'NaturalOffset', 'LF_SystemSetupData']
+  iso20_WPT_Decoder.c:5111  WPT_LF_ReceiverDataType  2 of 2 permitted child sequences rejected
+      cannot walk: ['NumberOfReceivers', 'RxSpecData', 'RxSpecData']
+      cannot walk: ['NumberOfReceivers', 'RxSpecData', 'RxSpecData', 'RxSpecData']
+  iso20_WPT_Decoder.c:4437  WPT_LF_TransmitterDataType  4 of 4 permitted child sequences rejected
+      cannot walk: ['NumberOfTransmitters', 'SignalFrequency', 'TxSpecData', 'TxSpecData']
+      cannot walk: ['NumberOfTransmitters', 'SignalFrequency', 'TxSpecData', 'TxSpecData', 'TxPackageSpecData']
+      cannot walk: ['NumberOfTransmitters', 'SignalFrequency', 'TxSpecData', 'TxSpecData', 'TxSpecData']
+  iso20_WPT_Decoder.c:4263  WPT_TxRxPackageSpecDataType  2 of 2 permitted child sequences rejected
+      cannot walk: ['PulseSequenceOrder', 'PulseSequenceOrder', 'PulseSeparationTime', 'PulseDuration', 'PackageSeparationTime']
+      cannot walk: ['PulseSequenceOrder', 'PulseSequenceOrder', 'PulseSequenceOrder', 'PulseSeparationTime', 'PulseDuration', 'PackageSeparationTime']
+  iso2_msgDefDecoder.c:17730  BodyType  1 of 35 permitted child sequences rejected
+      cannot walk: []
+
+skipped: {'din': 69, 'abstract': 2}
