@@ -1,0 +1,115 @@
+Connecting to fe80::215:5dff:fe6b:3d4%eth0
+Can't use SSL_get_servername
+depth=2 CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+verify error:num=20:unable to get local issuer certificate
+verify return:1
+depth=1 CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+verify return:1
+depth=0 CN=SECCCert, O=EVerest, C=DE, DC=CPO
+verify return:1
+CONNECTED(00000003)
+---
+Certificate chain
+ 0 s:CN=SECCCert, O=EVerest, C=DE, DC=CPO
+   i:CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+   a:PKEY: EC, (prime256v1); sigalg: ecdsa-with-SHA256
+   v:NotBefore: Sep 26 07:38:34 2023 GMT; NotAfter: Feb 29 07:38:34 2040 GMT
+-----BEGIN CERTIFICATE-----
+MIIB3jCCAYWgAwIBAgICMDwwCgYIKoZIzj0EAwIwSDESMBAGA1UEAwwJQ1BPU3Vi
+Q0EyMRAwDgYDVQQKDAdFVmVyZXN0MQswCQYDVQQGEwJERTETMBEGCgmSJomT8ixk
+ARkWA1YyRzAeFw0yMzA5MjYwNzM4MzRaFw00MDAyMjkwNzM4MzRaMEcxETAPBgNV
+BAMMCFNFQ0NDZXJ0MRAwDgYDVQQKDAdFVmVyZXN0MQswCQYDVQQGEwJERTETMBEG
+CgmSJomT8ixkARkWA0NQTzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKBdMxlw
+3aS5nb5nJcL6wrXy7wpHuA1zQUHd4Lu9JjJjsmbFJ1aU/YjeNjd486cBnNFjef2J
+k7ugxFPGzgcgCRijYDBeMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgOIMB0G
+A1UdDgQWBBTsh2ntDu+kucMCihpJHD7K+ayx2TAfBgNVHSMEGDAWgBQ2GWOJSW7N
+ZiptYBlX9ycPXAzljzAKBggqhkjOPQQDAgNHADBEAiBm1ez6tTr5EBCL4lc0GxE2
+gFBov4vf4QbI4V5/a8XlaAIgB+XyVyd20UJsJu6zIZS3mowJ1OMzZ8lWJxXAJznu
+hQQ=
+-----END CERTIFICATE-----
+ 1 s:CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+   i:CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+   a:PKEY: EC, (prime256v1); sigalg: ecdsa-with-SHA256
+   v:NotBefore: Sep 26 07:38:34 2023 GMT; NotAfter: Sep  2 07:38:34 2123 GMT
+-----BEGIN CERTIFICATE-----
+MIICWTCCAf+gAwIBAgICMDswCgYIKoZIzj0EAwIwSDESMBAGA1UEAwwJQ1BPU3Vi
+Q0ExMRAwDgYDVQQKDAdFVmVyZXN0MQswCQYDVQQGEwJERTETMBEGCgmSJomT8ixk
+ARkWA1YyRzAgFw0yMzA5MjYwNzM4MzRaGA8yMTIzMDkwMjA3MzgzNFowSDESMBAG
+A1UEAwwJQ1BPU3ViQ0EyMRAwDgYDVQQKDAdFVmVyZXN0MQswCQYDVQQGEwJERTET
+MBEGCgmSJomT8ixkARkWA1YyRzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEat
+pC4ruZ4wc/Hb5JA68ICxU7TQNvLDTJ+Qjc9QetO91h8gAoVRAHKvg8Hoe+lqfu5d
++Q6Ax05xUuFwTzyc3eejgdYwgdMwEgYDVR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8B
+Af8EBAMCAQYwHQYDVR0OBBYEFDYZY4lJbs1mKm1gGVf3Jw9cDOWPMG0GCCsGAQUF
+BwEBBGEwXzAkBggrBgEFBQcwAYYYaHR0cHM6Ly93d3cuZXhhbXBsZS5jb20vMDcG
+CCsGAQUFBzAChitodHRwczovL3d3dy5leGFtcGxlLmNvbS9JbnRlcm1lZGlhdGUt
+Q0EuY2VyMB8GA1UdIwQYMBaAFCcnBk2/j/EjG9W6yXgudPVyOgWwMAoGCCqGSM49
+BAMCA0gAMEUCIQDsQM6q7ecToESugkNzZS3R6il0TKNXeeVgwC84kgb0RAIgfjZh
+VXfKo/V7VIHRG9zgM5mO8XdLp+ip25FZbc+V5wU=
+-----END CERTIFICATE-----
+ 2 s:CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+   i:CN=V2GRootCA, O=EVerest, C=DE, DC=V2G
+   a:PKEY: EC, (prime256v1); sigalg: ecdsa-with-SHA256
+   v:NotBefore: Sep 26 07:38:34 2023 GMT; NotAfter: Jun 21 07:38:34 2423 GMT
+-----BEGIN CERTIFICATE-----
+MIICWTCCAf+gAwIBAgICMDowCgYIKoZIzj0EAwIwSDESMBAGA1UEAwwJVjJHUm9v
+dENBMRAwDgYDVQQKDAdFVmVyZXN0MQswCQYDVQQGEwJERTETMBEGCgmSJomT8ixk
+ARkWA1YyRzAgFw0yMzA5MjYwNzM4MzRaGA8yNDIzMDYyMTA3MzgzNFowSDESMBAG
+A1UEAwwJQ1BPU3ViQ0ExMRAwDgYDVQQKDAdFVmVyZXN0MQswCQYDVQQGEwJERTET
+MBEGCgmSJomT8ixkARkWA1YyRzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMqy
+mpvtNjA3+U5TdcucSgdWpXFj8XXwAlb6luBEYCytUD7AREB9P+ksVgcN6GiiZGn8
+0Pdnu+NCuyDLwlUvX6ejgdYwgdMwEgYDVR0TAQH/BAgwBgEB/wIBATAOBgNVHQ8B
+Af8EBAMCAQYwHQYDVR0OBBYEFCcnBk2/j/EjG9W6yXgudPVyOgWwMG0GCCsGAQUF
+BwEBBGEwXzAkBggrBgEFBQcwAYYYaHR0cHM6Ly93d3cuZXhhbXBsZS5jb20vMDcG
+CCsGAQUFBzAChitodHRwczovL3d3dy5leGFtcGxlLmNvbS9JbnRlcm1lZGlhdGUt
+Q0EuY2VyMB8GA1UdIwQYMBaAFGfGqeJ7nmYzEV0VjQe3pbMF8+M+MAoGCCqGSM49
+BAMCA0gAMEUCICZt4DhW92hiDyUr8oqOUHocKfLRMf5I0vTvajqTbQiVAiEA6as1
+yudx0oHSYf7e7IZBQ6KP1gjC6wcRvfvlBQNbySQ=
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN=SECCCert, O=EVerest, C=DE, DC=CPO
+issuer=CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: ecdsa_secp256r1_sha256
+Peer Temp Key: X25519, 253 bits
+---
+SSL handshake has read 2183 bytes and written 324 bytes
+Verification error: unable to get local issuer certificate
+---
+New, TLSv1.2, Cipher is ECDHE-ECDSA-AES128-SHA256
+Protocol: TLSv1.2
+Server public key is 256 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.2
+    Cipher    : ECDHE-ECDSA-AES128-SHA256
+    Session-ID: 31E2C7DACCD7A4443322DD70E9DBAFF9D5F3BCC484F22FC14CDE89077F2F6843
+    Session-ID-ctx: 
+    Master-Key: 65701408913E37C045B396A56EACF4709680AF3E65F2A4216E9277BE900A3BDFBB13482DB382AB8115A1ACE79D1BF621
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+    TLS session ticket:
+    0000 - 93 f6 85 ed cc 7c 1b 48-ab fe dc d9 97 ec d5 0f   .....|.H........
+    0010 - bb 1c 58 b4 a6 a1 38 3c-4a 78 95 20 33 74 44 32   ..X...8<Jx. 3tD2
+    0020 - 5c 57 00 79 f0 5d a0 e5-14 53 06 9b ad 71 7e 44   \W.y.]...S...q~D
+    0030 - 78 43 b5 d9 c8 ad 44 74-9c 34 15 9f cc 23 fe 20   xC....Dt.4...#. 
+    0040 - 27 94 d8 f4 4e 12 b8 fa-eb b2 c3 44 b8 1a 2c 2e   '...N......D..,.
+    0050 - 21 5a d6 10 b2 5e cc 07-52 2d 8d c4 54 00 7a 1a   !Z...^..R-..T.z.
+    0060 - 37 5e 6b 47 7e de 27 ef-3e 78 60 45 60 b1 c1 e7   7^kG~.'.>x`E`...
+    0070 - 59 05 84 66 2b 38 9a 7a-3c 1a 15 45 6d 33 2a 31   Y..f+8.z<..Em3*1
+    0080 - 48 41 78 4a 07 0e 4c 12-3a 39 d1 48 bb 72 2d be   HAxJ..L.:9.H.r-.
+    0090 - 98 9d 33 5b f9 57 57 69-8b a1 9c 15 89 5e 2b 90   ..3[.WWi.....^+.
+
+    Start Time: 1786378679
+    Timeout   : 7200 (sec)
+    Verify return code: 20 (unable to get local issuer certificate)
+    Extended master secret: yes
+---
+DONE

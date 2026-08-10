@@ -15,9 +15,10 @@ the wire, recorded independently by us). The first sighting is in
 [`2026-08-02-everest-iso2-dc-mqtt-auth`](../interop-runs/2026-08-02-everest-iso2-dc-mqtt-auth/notes.md),
 its second finding.
 
-Three other reports for the same project are in
+Four other reports for the same project are in
 [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
-[`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) and
+[`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md),
+[`everest-d20-client-auth.md`](everest-d20-client-auth.md) (libiso15118, two issues) and
 [`everest-isomux.md`](everest-isomux.md) (four findings in that one module, merged), plus
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) and one to your fork of Josev's
 certificate script ([`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md)). **File them separately.**

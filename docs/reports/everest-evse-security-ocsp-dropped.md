@@ -212,6 +212,9 @@ if the operator had chosen not to staple.
 `Evse15118D20` does not staple either, but for an unrelated reason: `libiso15118` contains no OCSP
 handling at all — the only matches in that tree are `authorityInfoAccess` lines in test certificate
 configs. That is a missing feature, not a lost field, and it deserves its own issue if you want one.
+What that same TLS server *does* get wrong in a way we could measure is what it asks the **EV** for:
+[`everest-d20-client-auth.md`](everest-d20-client-auth.md), two issues, and its §2 is the same shape as
+this one — a profile applied at the table someone read.
 
 The unit tests in `lib/everest/tls/tests/` are not at fault and are worth mentioning kindly: they set
 `ocsp_response_files` directly (`tls_connection_test.cpp:42`), so they exercise the stapling correctly

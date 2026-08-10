@@ -25,6 +25,7 @@ was our own configuration we bent.
 | [`everest-evse-security-ocsp-dropped.md`](everest-evse-security-ocsp-dropped.md) | EVerest | one | `to_everest(CertificateInfo)` copies six of seven members and forgets `ocsp`, so the OCSP data libevse-security collected for the chain never reaches the TLS server: it caches nothing, and **no EVerest station ever staples an OCSP response**. `[V2G2-871]` and `[V2G20-2388]` require it, `[V2G20-2372]` makes the EV always ask, and `[V2G2-873]` makes a conformant EV close the connection when nothing comes back. Measured off their own MQTT reply — no EV, no session |
 | [`everest-isomux.md`](everest-isomux.md) | EVerest (`IsoMux`) | **four**, one per section | Four defects in the one module that fronts both protocols, merged into one report on 2026-08-10 because they are one module and — for three of them — one shape, *a decision taken on information the module does not have or does not read*: the backend is chosen on the **first** `-20` entry and never on `Priority` (`[V2G2-169]`); TLS is capped at 1.2 and `-20` is routed onto it anyway, so the `-20` backend is reachable **only** by a non-conformant EV (`[V2G20-2356]`); a failed V2GTP header read is logged and then ignored, so the routing decision is taken from a buffer that was never filled; and the TLS server boots with **`trusted_ca_keys support disabled`**, the extension `[V2G2-651]` obliges every EV to send. Both backends behind the mux implement the first correctly |
 | [`everest-d20-ac-namespace.md`](everest-d20-ac-namespace.md) | EVerest (libiso15118) | one | A DC-only `Evse15118D20` answers **`OK_SuccessfulNegotiation`** to an offer containing nothing but `urn:iso:std:iso:15118:-20:**AC**` — both namespaces go into the same priority map with no reference to what the station serves. `[V2G20-169]` makes the station's own capability a filter *before* the ranking; this implements the ranking and skips the filter. The session then spends session setup, an authorization and a token before dying at `ServiceDiscovery` on services 2 and 6. **The sibling of `everest-isomux.md` §1, from the other side** |
+| [`everest-d20-client-auth.md`](everest-d20-client-auth.md) | EVerest (libiso15118) | **§1**, **§2** | Their `-20` TLS server switches client-certificate verification on **from the `supported_versions` list in the `ClientHello`**: offer TLS 1.3 and it demands a vehicle certificate and refuses without one; offer TLS 1.2 alone and it sends no `CertificateRequest` at all — and then answers `supportedAppProtocolReq(-20:DC)` with `OK_SuccessfulNegotiation` and mints a session id, so an anonymous peer reaches `AuthorizationSetup`. `[V2G20-2400]` is unconditional. Two `openssl s_client` calls reproduce it — no EV, no client PKI. §2 is the same function's other three omissions: no `certificate_authorities` (`[V2G20-2401]`), OpenSSL's signature-algorithm defaults rather than Table 8 (`[V2G20-1667]`), a named group outside Table 7 (`[V2G20-2460]`) — while the Table 6 cipher suites are set exactly right |
 | [`everest-loop-shutdown.md`](everest-loop-shutdown.md) | EVerest | one | A failed TLS handshake ends `Evse15118D20`'s V2G accept loop, so one bad handshake takes the station down for the rest of its life — while the process stays healthy and nothing supervising it notices |
 | [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md) | EVerest (libiso15118) | one | The `-20` AC `PowerDelivery` state assigns a **pointer** to its `bool ac_connector_closed`, so a board-support module reporting the contactor **open** latches it closed, cancels the timeout that would have refused, and answers `PowerDeliveryRes(OK)` — the mechanism by [`tools/everest-contactor-probe/`](../../tools/everest-contactor-probe/README.md), the behaviour [against their running station](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md), 2 of 2 with a control |
 | [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) | EVerest (`ext-switchev-iso15118`) **and** SwitchEV (iso15118) | one, filed twice | `create_certs.sh` branches on `-v iso-2\|iso-20` and the `-20` branch selects the same `prime256v1` as `-2`, under its own `TODO` — so `-20` contract provisioning cannot complete at all, the schema's key-wrap curve choice being secp521r1 or x448 and nothing else |
@@ -33,7 +34,7 @@ was our own configuration we bent.
 | [`v2gdecoder-fuzzy-grammar.md`](v2gdecoder-fuzzy-grammar.md) | FlUxIuS (V2Gdecoder) | **A**, **B** | A frame valid under two grammars is decoded by whichever sits first in the array, silently — and their DIN grammar rejects a real `ChargeParameterDiscoveryRes`, which the same fallback then answers for |
 | [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) + [`libcbv2g/`](libcbv2g/) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document grammar groups global elements sharing a type, so two ACDP messages swap identity and one decodes cleanly as the other; the WPT mid-sequence particle grammar returns success while **silently dropping** a set field; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all — reproduced by [`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md) |
 
-**Twenty-four filings across six projects**, and two of them now have to be sent **twice**.
+**Twenty-six filings across six projects**, and two of them now have to be sent **twice**.
 `create_certs.sh` lives in `SwitchEV/iso15118` and in EVerest's fork of it, byte-identical in the
 relevant block and 100 lines apart everywhere else, so one merge will not reach the other tree. The
 contactor one is the same trap in a tidier form: `power_delivery.cpp` is byte-identical — 5663 bytes,
@@ -67,13 +68,23 @@ comes back `[V2G2-169]`, and `[V2G20-169]` beside it, which happens to be the on
 directory where the `-2` document caveat could be answered rather than merely declared: three
 independent places say it, one of them written against the 2014 edition.
 
-The two are separate reports on purpose even though the same `if` decides both, and that pair is the
-clearest illustration of why this directory splits things. They are different defects — one is *"do not
+The two are separate **filings** on purpose even though the same `if` decides both — sections of one
+report since the merge, but two issues to post — and that pair is the clearest illustration of why this
+directory splits things. They are different defects — one is *"do not
 route `-20` here"*, the other *"route the entry the car ranked first"* — with different fixes, different
 severities (one makes a backend unreachable, the other is a conformance point that costs no interop),
 and different answers available to a maintainer: the first might reasonably be *"the mux is not meant
 for that"*, the second cannot be, because the two modules behind the mux both implement the rule
 already. Filed together, one reply would have covered both and the weaker answer would have decided it.
+
+[`everest-d20-client-auth.md`](everest-d20-client-auth.md) applies that rule to a report written as one
+piece from the start: two numbered sections, and the checklist says to file two issues. §1 — the station
+decides whether to authenticate the EV from what the EV *offered* — has a reasonable answer available
+(*"the TLS 1.2 path exists so the same process can serve ISO 15118-2"*), and if §2 were part of the same
+issue that answer would close it too. §2 has none: the `certificate_authorities` extension, the Table 8
+signature algorithms and the Table 7 named groups are missing whatever the verify mode ends up being.
+One reading of one function, one patch a maintainer would plausibly write — and still two issues,
+because that is where a reply lands.
 
 The letters and numbers are per counterparty and exist to
 keep separate filings separate: IoT.bzh's A and B are the TLS pair, C and D the loop and the signal

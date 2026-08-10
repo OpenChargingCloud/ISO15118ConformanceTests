@@ -1,0 +1,61 @@
+2026-08-10 18:21:39.816334 [INFO] manager          ::   ________      __                _   
+2026-08-10 18:21:39.816626 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-10 18:21:39.816645 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-10 18:21:39.816652 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-10 18:21:39.816659 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-10 18:21:39.816665 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-10 18:21:39.816672 [INFO] manager          :: 
+2026-08-10 18:21:39.816678 [INFO] manager          :: everest-framework 0.25.0-dev 2026.02.1
+2026-08-10 18:21:39.816685 [INFO] manager          :: everest-core 2026.02.1-dev 2026.02.1
+2026-08-10 18:21:39.816693 [INFO] manager          :: 
+2026-08-10 18:21:39.816701 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-08-10 18:21:39.846863 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-10 18:21:39.846933 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-ours/config-d20-tls12-ours.yaml
+2026-08-10 18:21:40.007350 [INFO] manager          :: Config loading completed in 190ms
+2026-08-10 18:21:40.010323 [INFO] manager          :: Starting 18 modules
+2026-08-10 18:21:42.240927 [INFO] api:API          :: Module api initialized [2200ms]
+2026-08-10 18:21:42.254056 [INFO] api_sink:Energy  :: Module api_sink initialized [2209ms]
+2026-08-10 18:21:42.274202 [INFO] energy_manager:  :: Module energy_manager initialized [2217ms]
+2026-08-10 18:21:42.277474 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-10 18:21:42.277704 [INFO] error_history:E  :: Checking database
+2026-08-10 18:21:42.279578 [INFO] error_history:E  :: Module error_history initialized [2220ms]
+2026-08-10 18:21:42.279545 [INFO] auth:Auth        :: Module auth initialized [2220ms]
+2026-08-10 18:21:42.281922 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2217ms]
+2026-08-10 18:21:42.305214 [INFO] grid_connection  :: Module grid_connection_point initialized [2221ms]
+2026-08-10 18:21:42.305567 [INFO] imd:IMDSimulato  :: Module imd initialized [2216ms]
+2026-08-10 18:21:42.306750 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2236ms]
+2026-08-10 18:21:42.307562 [INFO] evse_security:E  :: Module evse_security initialized [2222ms]
+2026-08-10 18:21:42.318472 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2233ms]
+2026-08-10 18:21:42.322093 [INFO] slac:SlacSimula  :: Module slac initialized [2216ms]
+2026-08-10 18:21:42.322290 [INFO] powersupply_dc:  :: Module powersupply_dc initialized [2219ms]
+2026-08-10 18:21:42.324722 [INFO] token_validator  :: Module token_validator initialized [2208ms]
+2026-08-10 18:21:42.327466 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2225ms]
+2026-08-10 18:21:42.331455 [INFO] token_provider:  :: Module token_provider initialized [2219ms]
+2026-08-10 18:21:42.333067 [INFO] yeti_driver:Yet  :: Module yeti_driver initialized [2216ms]
+2026-08-10 18:21:42.996319 [INFO] iso15118_car     :: Module iso15118_car initialized [2216ms]
+2026-08-10 18:21:43.038138 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-10 18:21:43.040022 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [3237ms] 🚙🚙🚙
+2026-08-10 18:21:43.187380 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-08-10 18:21:43.593838 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-10 18:21:43.644109 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-10 18:21:43.650846 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-10 18:21:43.650985 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-08-10 18:21:43.733532 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-10 18:21:43.778510 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-08-10 18:21:43.818319 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-10 18:21:43.818439 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-10 18:21:43.913887 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-08-10 18:21:44.051407 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-10 18:21:48.779825 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fe6b:3d4%eth0
+2026-08-10 18:21:48.783943 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:fe6b:3d4%eth0]:50000
+2026-08-10 18:21:48.784139 [INFO] iso15118_charge  :: Created logfile at: /home/ahzf/everest/./260810_16-21-48.yaml
+2026-08-10 18:21:49.313615 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:fe6b:3d4%eth0]:35970
+2026-08-10 18:21:49.315216 [INFO] iso15118_charge  :: Handshake complete!
+2026-08-10 18:21:52.303339 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-10 18:21:52.303785 [INFO] iso15118_charge  :: New session created with session_id: 0xDA, 0x70, 0xAC, 0xE0, 0xD2, 0xD2, 0x55, 0x96
+2026-08-10 18:22:14.298006 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Shutting down session because of: Failed to SSL_read_ex(): 1: C076DC886C7F0000:error:0A000126:SSL routines::unexpected eof while reading:../ssl/record/rec_layer_s3.c:698:
+2026-08-10 18:22:14.298075 [INFO] iso15118_charge  :: Restarting session ...
+2026-08-10 18:22:14.298086 [INFO] iso15118_charge  :: Closing TLS connection
+2026-08-10 18:22:14.298101 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Failed to SSL_shutdown(): 1: C076DC886C7F0000:error:0A000197:SSL routines:SSL_shutdown:shutdown while in init:../ssl/ssl_lib.c:2797:
+2026-08-10 18:22:14.298137 [INFO] iso15118_charge  :: TLS connection closed gracefully
+2026-08-10 18:22:14.298158 [INFO] iso15118_charge  :: Connection is closed
