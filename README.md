@@ -180,7 +180,10 @@ covers the mode alone.
 
 ¹⁴ Our side is complete for both; **theirs is the bound**. Josev's -20 states never fill the session
 context, so a -20 resume degrades to a new session; and its EVCC drops the link after a real
-`SessionStopReq(ServiceRenegotiation)` [V2G20-1477] that our SECC answers without ending the session.
+`SessionStopReq(ServiceRenegotiation)` [V2G20-1477] that our SECC answers without ending the session — the
+renegotiation branch of their `SessionStop` state is the one transition in that file that never builds the
+message the next state needs, and their own framework refuses it. Filed:
+[`josev-iso20-renegotiation.md`](docs/reports/josev-iso20-renegotiation.md).
 
 ¹⁵ The one cell where `◐` is a missing **verifier**, not a missing session: their EV consumed our signed
 `AbsolutePriceSchedule` and ran on it, but Josev's EVCC-side tariff check is a literal `# TODO`.
@@ -336,7 +339,7 @@ on the wire. What each of them has proven is the matrix above.
 | [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; as an **injector at their HEAD** it drove our SECC through the full captured-Audi DC session and a VW AC route — and reached the one arm of our state machine no self-consistent test had ever executed. Over TLS it produced the first external check of our TLS profile, and [two findings drafted for them](docs/reports/tux-evse-tls.md). Their Tesla DIN capture is unreadable to us past the handshake — and the handshake alone [carried a vendor-proprietary protocol at priority 1](docs/interop-runs/2026-08-07-tesla-din-handshake/notes.md), an offer shape nothing here could have written for itself. |
 | [`docs/open-work.md`](docs/open-work.md) | the inverse of the matrix above: every cell that is not `✅`, why, and who it waits on. **The to-do list.** |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences. **History, not a to-do list** — each note's `Next` section is a snapshot from that day, and later runs close items without editing it |
-| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **twenty-nine filings across six projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
+| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **thirty filings across six projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
 | [`tools/interop-*/`](tools/) | how to bring each counterparty up and drive it — [Josev](tools/interop-josev/README.md) · [EVerest](tools/interop-everest/README.md) · [eVDriveFlow](tools/interop-evdriveflow/README.md) · [tux-evse](tools/interop-tux-evse/README.md) |
 | [`docs/assumed-values-sweep.md`](docs/assumed-values-sweep.md) | where our own assumptions replaced values the protocol supplies |
 
