@@ -61,6 +61,28 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
+- ~~**Our ISO 15118-20 EVCC could not ask to be told the meter reading.**~~ **Fixed 2026-08-10**, stack
+  branch `iso20-meter-info`. `Evcc20Dc` and `Evcc20Ac` both passed the literal `false` for
+  `MeterInfoRequested`, so `[V2G20-1081]` — the one mechanism the standard gives the *car* for asking —
+  was unreachable from here, and therefore **no run of this suite had ever tested any station's
+  `[V2G20-1082]`**, the duty to answer.
+  <br>`Evcc20Base.RequestMeterInfo` is the switch, opt-in and defaulting to `false` so every recorded
+  session and every vector keeps the bytes it was recorded with — the shape of `Battery` and
+  `TransportSecurity.Unknown`. `Evcc20Base.MeterInfoResponses` counts what came back, and
+  `Secc20Base.MeterInfoRequestedByEv` records what was asked, because the request field is otherwise
+  invisible from both ends of a loopback. `V2G_INTEROP_METER=1` reaches it from a run.
+  <br>Four tests in
+  [`Iso20MeterInfoTests`](../ISO15118ConformanceTests.Simulation/E2E/Iso20MeterInfoTests.cs); **two of
+  the four fail** when the plumbing is put back to the literal `false`, which is how it was checked, and
+  the fixture says which two and why the other two exist.
+  <br>**It found something the same hour.** EVerest's `Evse15118D20` reads the field, forwards it as a
+  feedback signal and never sets `MeterInfo` on the response — measured with a control in which our
+  request changed by one bit and their responses did not change at all
+  ([`…-d20-meter-info`](interop-runs/2026-08-10-everest-d20-meter-info/notes.md),
+  [the twenty-ninth filing](reports/everest-d20-meter-info.md)).
+  <br>**The pattern is the point, and it is the third time this month**: a gap in our own car hid a gap
+  in somebody else's station. A suite cannot find a station ignoring a question its own EV never asks.
+
 - ~~**Our `-2` DC charge loop is open-loop: it never reads the limits the station revises in every
   `CurrentDemandRes`.**~~ **Fixed 2026-08-10**, stack branch `iso2-running-limits`, both halves — and
   then **downgraded from a conformance defect to a behavioural one** the same evening, when the
@@ -249,7 +271,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Twenty-eight filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Twenty-nine filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~

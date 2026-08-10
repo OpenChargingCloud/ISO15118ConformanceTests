@@ -114,6 +114,18 @@ internal static class InteropEnvironment
         => Environment.GetEnvironmentVariable("V2G_INTEROP_DYNAMIC") == "1";
 
 
+    /// <summary>-20 only: our EV sets <c>MeterInfoRequested</c> in every charge-loop request.
+    /// <c>V2G_INTEROP_METER=1</c>.</summary>
+    /// <remarks>
+    /// `[V2G20-1081]` is the EV's mechanism and `[V2G20-1082]` the station's duty to answer it, and until
+    /// 2026-08-10 this EVCC hardcoded the field <c>false</c> — so no run of ours had ever asked, and no
+    /// counterparty's answer had ever been checked. Off by default so every recorded session keeps the
+    /// bytes it was recorded with.
+    /// </remarks>
+    public static Boolean RequestMeterInfo()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_METER") == "1";
+
+
     /// <summary>
     /// -20 only: <c>V2G_INTEROP_NO_PNC=1</c> makes our station advertise EIM only.
     /// </summary>

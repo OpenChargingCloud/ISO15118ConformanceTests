@@ -56,8 +56,12 @@ internal static class InteropSession
     /// run reported only as "completed" cannot tell an MCS result from a megawatt truck charging at an
     /// ordinary DC post. <c>null</c> for -2, which has no service catalogue to select from.
     /// </para></summary>
+    /// <param name="MeterInfoResponses">-20 only: how many charge-loop responses carried a
+    /// <c>MeterInfo</c> element. Reported separately from <paramref name="MeteringReceiptsSent"/>, which
+    /// is the -2 mechanism: a run that asked under `[V2G20-1081]` and got nothing back is a finding about
+    /// the station, and it is invisible in an exchange count.</param>
     public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent,
-                                     UInt16? SelectedEnergyServiceId = null);
+                                     UInt16? SelectedEnergyServiceId = null, Int32 MeterInfoResponses = 0);
 
 
     /// <summary>
@@ -108,10 +112,14 @@ internal static class InteropSession
     /// EVerest's BPT column stayed empty while their SIL advertised it. The generalisation is the app's
     /// <c>Evcc20Base.PreferBidirectionalService</c>.
     /// </para></param>
+    /// <param name="requestMeterInfo">-20 only: set <c>MeterInfoRequested</c> in every charge-loop
+    /// request, which `[V2G20-1081]` makes the EV's way of asking and `[V2G20-1082]` makes the station's
+    /// duty to answer. Set by <c>V2G_INTEROP_METER=1</c>. Off by default, so every earlier run and every
+    /// vector keeps the field <c>false</c> it was recorded with.</param>
     public static async Task<EvccOutcome> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
                                                        PncEvccOptions? pnc = null, Boolean mcs = false,
-                                                       Boolean bptFirst = false)
+                                                       Boolean bptFirst = false, Boolean requestMeterInfo = false)
     {
 
         if (mcs)
@@ -144,10 +152,11 @@ internal static class InteropSession
         evcc20.PreferDynamicControlMode  = preferDynamic;
         evcc20.PreferBidirectionalService = bptFirst;
         evcc20.Pnc                       = pnc;
+        evcc20.RequestMeterInfo          = requestMeterInfo;
 
         await evcc20.RunAsync(ct);
         return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,
-                               evcc20.SelectedEnergyServiceId);
+                               evcc20.SelectedEnergyServiceId, evcc20.MeterInfoResponses);
 
     }
 

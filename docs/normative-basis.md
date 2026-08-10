@@ -406,6 +406,35 @@ And the request has required contents, which is the part that is easy to miss:
   the two together. Both sit beside **`[V2G20-2458]`**/**`[V2G20-1856]`**, the Table 6 cipher-suite pair
   already recorded above under *The ISO 15118-20 TLS profile*.
 
+### Who asks for the meter reading, and who owes it
+
+Looked up on 2026-08-10, when it turned out our own `-20` EVCC had hardcoded the field that asks. The
+mechanism is small and the consequences are not: it is the entry point to the whole `-20` metering path.
+
+- **`[V2G20-1081]`** — if the EVCC wants the `MeterInfo` element, it sets `MeterInfoRequested` to TRUE
+  in `ChargeLoopReq`. The EV's only mechanism, in either message set.
+- **`[V2G20-1082]`** — *if `[V2G20-1081]` applies*, the SECC **shall** respond with the `ChargeLoopRes`
+  including `MeterInfo`. Conditional on the ask; unconditional once asked.
+- **`[V2G20-1833]`** — and without any ask: an EVSE *equipped with metering technology* and supporting
+  the capability shall provide initial `MeterInfo` in the **very first** charge-loop response. Note the
+  two antecedents — hardware and capability — either of which a station may honestly not meet.
+- **`[V2G20-902]`** — what the element means: energy charged during the current service session.
+- **`[V2G20-1083]`** — the SECC's own use for it: to trigger a `MeteringConfirmationReq/Res` it must
+  include `MeterInfo` and set `EVSENotification` to `MeteringConfirmation`.
+- **`[V2G20-1919]`** — a receipt based on kWh measurements carries the associated `MeterInfo`.
+
+**The chain is what matters.** No `MeterInfo` means no `MeteringConfirmation` to trigger and no receipt
+to base on kWh, so a station that never sets the element has not partially implemented `-20` metering —
+it has made the path unreachable. That is the difference between an omitted field and a missing
+capability, and it is worth checking for whenever a response element looks merely optional.
+
+**Filed 2026-08-10:** [`reports/everest-d20-meter-info.md`](reports/everest-d20-meter-info.md) — and it
+is the clearest case yet of the pattern this file keeps producing in the other direction. Reading
+`[V2G20-1081]` to judge a counterparty is what showed that **our own EVCC could not perform it**: both
+`-20` charge loops passed the literal `false`, so no run of ours had ever asked anyone, and no
+counterparty's `[V2G20-1082]` had ever been tested. The car half went in the same day
+([`open-work.md`](open-work.md)); the station was measured with it an hour later.
+
 ### Which credential the EV puts in the TLS handshake, and which root certifies it
 
 Looked up on 2026-08-10, when an EVerest `-20` station refused a **vehicle** certificate from its own
