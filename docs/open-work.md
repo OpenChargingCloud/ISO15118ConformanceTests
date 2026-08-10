@@ -191,7 +191,7 @@ defect with an owner.
 
 ## Not in the matrix at all
 
-- **Twenty-two filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Twenty-three filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
