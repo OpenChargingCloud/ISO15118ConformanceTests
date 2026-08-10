@@ -211,7 +211,11 @@ if the operator had chosen not to staple.
 
 `Evse15118D20` does not staple either, but for an unrelated reason: `libiso15118` contains no OCSP
 handling at all — the only matches in that tree are `authorityInfoAccess` lines in test certificate
-configs. That is a missing feature, not a lost field, and it deserves its own issue if you want one.
+configs. That is a missing feature, not a lost field. **Measured and written up separately on
+2026-08-10**: [`everest-d20-ocsp-absent.md`](everest-d20-ocsp-absent.md), and the two belong in separate
+issues because **neither fix alone produces a staple on that module** — it never asks for the data
+(`include_ocsp = false`), has no field to carry it and no callback to send it, *and* the conversion
+below would hand it an empty list. Whichever lands first will look like the whole job.
 What that same TLS server *does* get wrong in a way we could measure is what it asks the **EV** for:
 [`everest-d20-client-auth.md`](everest-d20-client-auth.md), two issues, and its §2 is the same shape as
 this one — a profile applied at the table someone read.

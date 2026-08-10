@@ -249,7 +249,33 @@ required, in both protocols, and one of them makes the request mandatory too.
 
 The pair worth carrying away is `[V2G20-2372]` with `[V2G2-873]`: one makes the request unconditional,
 the other makes silence a reason to hang up. A station that never staples is therefore not merely
-missing an optional hardening step — it is unreachable over TLS for an EV that enforces either.
+missing an optional hardening step.
+
+**Read further on 2026-08-10, and it cost part of that claim.** The sentence above used to end *"it is
+unreachable over TLS for an EV that enforces either"*, and the `-20` half of that is wrong:
+
+- **`[V2G20-2411]`** — where the public SECC did not staple, the EVCC **may** contact the OCSP responder
+  listed in the certificate itself. A `may`, so a `-20` EV is *not* obliged to abandon the session the
+  way `[V2G2-873]` obliges a `-2` EV to.
+- **`[V2G20-1240]`** keeps the check itself mandatory — the EVCC **shall** verify revocation status via
+  an OCSP response — and **`[V2G20-2409]`**, **`[V2G20-2413]`**–**`[V2G20-2415]`** say what a failed
+  verification costs: the whole chain is treated as having failed validation.
+- **`[V2G20-2398]`** is the exemption on the station side: a **private** SECC **not supporting PnC** may
+  ignore `status_request` altogether. `[V2G20-2388]` (public) and `[V2G20-2391]` (private with PnC) are
+  where the duty actually bites, so *which kind of station this is* has to be settled before a missing
+  staple is called a defect.
+
+So the honest `-20` severity is: the mandatory revocation check is pushed onto an EV that may have no
+route to a responder — which is what stapling exists to avoid — rather than a handshake that fails.
+`-2` keeps the stronger form. **Filed 2026-08-10:**
+[`reports/everest-d20-ocsp-absent.md`](reports/everest-d20-ocsp-absent.md), for the `-20` module that
+has no OCSP code at all, separately from
+[`reports/everest-evse-security-ocsp-dropped.md`](reports/everest-evse-security-ocsp-dropped.md), whose
+`-2` consequence is the hard one.
+
+Worth keeping as method, and it is the second time this file has done it: reading one clause further
+than the finding needed turned a confident sentence into a qualified one. The finding survived; the
+claim about what it costs did not.
 
 ### The DC charge-loop limits — and who has to respect them
 
