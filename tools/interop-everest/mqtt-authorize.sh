@@ -36,6 +36,13 @@
 # So: an empty log means no message ever arrived on either topic. Check the module id against the
 # config file, and check the shape against the image — do not assume it is working.
 #
+#   2026.02.1  NOT SUPPORTED BY THIS SCRIPT. The variable name became a further topic level,
+#              everest/modules/<module_id>/impl/<impl_id>/var/<name>, which neither filter below
+#              matches (MQTT filters are level-exact without a wildcard), and the payload gained a
+#              {"msg_type":"Var","data":{...}} envelope. It would write an empty log and look like it
+#              was working. Use sil-car.sh there — its plug-in makes their DummyTokenProvider
+#              authorize — and see docs/interop-runs/2026-08-10-everest-session-log-lengths/notes.md.
+#
 # The payload is {"data": <value>, "name": "<var>"} either way. The variable is spelled
 # Require_Auth_EIM in the older image and require_auth_eim in the newer, hence the case-tolerant match.
 

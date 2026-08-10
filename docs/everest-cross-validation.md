@@ -245,10 +245,15 @@ sent — they are the operator's to post, under their own name.
   2026-08-02; requests are byte-exact, responses are truncated or padded with stale buffer, under the
   correct message name. `publish_var_V2G_Message()` sizes from `conn->payload_len`, which only
   `v2g_incoming_v2gtp()` ever writes, and both response publish sites run before
-  `v2g_outgoing_v2gtp()` computes the response's own length. Unchanged at 2026.02.1. Filed 2026-08-10:
-  [`everest-evsev2g-session-log-responses.md`](reports/everest-evsev2g-session-log-responses.md) —
-  with the honest gap that the byte table is from the 2023 demo image and a re-measurement on the
-  current release has not been done.
+  `v2g_outgoing_v2gtp()` computes the response's own length. Filed 2026-08-10:
+  [`everest-evsev2g-session-log-responses.md`](reports/everest-evsev2g-session-log-responses.md).
+  **Re-measured the same day on 2026.02.1**, over a complete -2 DC charge
+  ([`2026-08-10-everest-session-log-lengths`](interop-runs/2026-08-10-everest-session-log-lengths/notes.md)):
+  43 of 43 requests byte-exact, 43 of 43 responses carrying the *request's* length — no exceptions —
+  and 42 of them published with the V2GTP version byte `0x00`, from the buffer reset that precedes
+  each encode, so the record is not a malformed frame but not a frame at all. `Evse15118D20` is
+  unaffected because it publishes the message id and no bytes: the byte-level record exists only for
+  -2/DIN, and it is the one that is wrong.
 - **An error anywhere on the accept path ends `Evse15118D20`'s whole event loop, sockets still bound.**
   One defect, three triggers found: a unicast SDP request, TLS key logging, and a refused TLS handshake.
   The station then keeps accepting connections and answers nothing, which from outside is

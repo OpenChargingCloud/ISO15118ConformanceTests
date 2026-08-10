@@ -1,0 +1,276 @@
+2026-08-10 07:59:24.819188 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:   [0;1;35;95m_[0;1;31;91m__[0;1;33;93m__[0;1;32;92m__[0;1;36;96m_[0m      [0;1;31;91m_[0;1;33;93m_[0m                [0;1;36;96m_[0m   
+2026-08-10 07:59:24.819482 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;31;91m|[0m  [0;1;33;93m_[0;1;32;92m__[0;1;36;96m_\[0m [0;1;34;94m\[0m    [0;1;33;93m/[0m [0;1;32;92m/[0m               [0;1;34;94m|[0m [0;1;35;95m|[0m
+2026-08-10 07:59:24.819494 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;33;93m|[0m [0;1;32;92m|_[0;1;36;96m_[0m   [0;1;35;95m\[0m [0;1;31;91m\[0m  [0;1;33;93m/[0m [0;1;32;92m/[0;1;36;96m__[0m [0;1;34;94m_[0m [0;1;35;95m_[0;1;31;91m_[0m [0;1;33;93m__[0;1;32;92m_[0m  [0;1;36;96m_[0;1;34;94m__[0;1;35;95m|[0m [0;1;31;91m|_[0m
+2026-08-10 07:59:24.819502 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_|[0m   [0;1;31;91m\[0m [0;1;33;93m\[0;1;32;92m/[0m [0;1;36;96m/[0m [0;1;34;94m_[0m [0;1;35;95m\[0m [0;1;31;91m'_[0;1;33;93m_/[0m [0;1;32;92m_[0m [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m__[0;1;31;91m|[0m [0;1;33;93m__[0;1;32;92m|[0m
+2026-08-10 07:59:24.819509 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;36;96m|[0m [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m_[0m   [0;1;32;92m\[0m  [0;1;36;96m/[0m  [0;1;35;95m__[0;1;31;91m/[0m [0;1;33;93m|[0m [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_/[0;1;35;95m\_[0;1;31;91m_[0m [0;1;33;93m\[0m [0;1;32;92m|_[0m
+2026-08-10 07:59:24.819516 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m__[0;1;33;93m_|[0m   [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m\_[0;1;31;91m__[0;1;33;93m|_[0;1;32;92m|[0m  [0;1;36;96m\[0;1;34;94m__[0;1;35;95m_|[0;1;31;91m|_[0;1;33;93m__[0;1;32;92m/\[0;1;36;96m__[0;1;34;94m|[0m
+2026-08-10 07:59:24.819523 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-08-10 07:59:24.819531 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-framework 0.25.0-dev 2026.02.1
+2026-08-10 07:59:24.819539 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-core 2026.02.1-dev 2026.02.1
+2026-08-10 07:59:24.819548 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-08-10 07:59:24.819556 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using MQTT broker localhost:1883
+2026-08-10 07:59:24.884376 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-10 07:59:24.884500 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading config file at: /home/ahzf/everest/configs-ours/config-dc2-ours.yaml
+2026-08-10 07:59:25.392914 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Config loading completed in 573ms
+2026-08-10 07:59:25.396231 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Starting 19 modules
+2026-08-10 07:59:27.837413 [[1;37mINFO[0m] [1;32menergy_manager:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m initialized [2331ms]
+2026-08-10 07:59:27.857059 [[1;37mINFO[0m] [1;32mapi_sink:Energy[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi_sink[0m initialized [2364ms]
+2026-08-10 07:59:27.867846 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using database at "/tmp/error_history.db"
+2026-08-10 07:59:27.868139 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Checking database
+2026-08-10 07:59:27.869997 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m initialized [2370ms]
+2026-08-10 07:59:27.870803 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34merror_history[0m initialized [2363ms]
+2026-08-10 07:59:27.872396 [[1;37mINFO[0m] [1;32mapi:API        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m initialized [2383ms]
+2026-08-10 07:59:27.906845 [[1;37mINFO[0m] [1;32mgrid_connection[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m initialized [2374ms]
+2026-08-10 07:59:27.939972 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m initialized [2380ms]
+2026-08-10 07:59:27.957675 [[1;37mINFO[0m] [1;32mev_api:EvAPI   [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_api[0m initialized [2446ms]
+2026-08-10 07:59:27.966245 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m initialized [2388ms]
+2026-08-10 07:59:27.975979 [[1;37mINFO[0m] [1;32mslac:SlacSimula[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m initialized [2412ms]
+2026-08-10 07:59:27.999784 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m initialized [2482ms]
+2026-08-10 07:59:28.002823 [[1;37mINFO[0m] [1;32movm:OVMSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Can control the over voltage measurement values over the topic: everest_api/ovm/cmd/set_over_voltage_measurement_V via MQTT
+2026-08-10 07:59:28.003285 [[1;37mINFO[0m] [1;32movm:OVMSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34movm[0m initialized [2447ms]
+2026-08-10 07:59:28.004072 [[1;37mINFO[0m] [1;32myeti_driver:Yet[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m initialized [2425ms]
+2026-08-10 07:59:28.019669 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m initialized [2483ms]
+2026-08-10 07:59:28.046034 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m initialized [2513ms]
+2026-08-10 07:59:28.081120 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m initialized [2542ms]
+2026-08-10 07:59:28.118226 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m initialized [2543ms]
+2026-08-10 07:59:28.123025 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m initialized [2562ms]
+2026-08-10 07:59:29.148456 [[1;37mINFO[0m] [1;32miso15118_car   [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m initialized [2372ms]
+2026-08-10 07:59:29.190219 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Clearing retained topics published by manager during startup
+2026-08-10 07:59:29.192772 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🚙🚙🚙 All modules are initialized. EVerest up and running [4429ms] 🚙🚙🚙[0m
+
+2026-08-10 07:59:29.196963 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TCP server on eth0 is listening on port [fe80::215:5dff:fe6b:3d4%2]:61341
+
+2026-08-10 07:59:29.197056 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TLS server on eth0 is listening on port [fe80::215:5dff:fe6b:3d4%2]:64109
+2026-08-10 07:59:29.242903 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G
+2026-08-10 07:59:29.249919 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-10 07:59:29.250310 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+
+2026-08-10 07:59:29.378556 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-10 07:59:29.383061 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mvoid {anonymous}::log_handler(openssl::log_level_t, const std::string&)[0m [1;30m:[0m[1;32m[0m: <n> certificates != <n> OCSP responses
+
+2026-08-10 07:59:29.416446 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SDP socket setup succeeded
+2026-08-10 07:59:29.471291 [[1;33mWARN[0m] [1;32mauth:Auth      [0m [1;36mvoid module::ReservationHandler::load_reservations()[0m [1;30m:[0m[1;32m[0m: Can not load reservations because no storage was configured.
+2026-08-10 07:59:29.698142 [[1;37mINFO[0m] [1;32movm:OVMSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Over voltage monitoring: stopped.
+2026-08-10 07:59:29.790507 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring BSP Event, BSP is not enabled yet.
+
+2026-08-10 07:59:29.883232 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-10 07:59:30.534051 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Cleaning up any other transaction on start up
+2026-08-10 07:59:30.675297 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🌀🌀🌀 Ready to start charging 🌀🌀🌀[0m
+
+2026-08-10 08:01:01.069500 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received packet from [fe80::215:5dff:fe6b:3d4]:15119 with security 0x10 and protocol 0x00
+
+2026-08-10 08:01:01.069570 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SDP requested NO-TLS, announcing NO-TLS
+
+2026-08-10 08:01:01.069638 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: sendto([fe80::215:5dff:fe6b:3d4]:15119) succeeded
+2026-08-10 08:01:02.009920 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Finished simulation.
+2026-08-10 08:01:08.626592 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SYS  Session logging started.
+2026-08-10 08:01:08.626786 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Session Started: EVConnected[1;0m
+2026-08-10 08:01:08.627863 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Plug In event for evse#1, starting auth
+2026-08-10 08:01:08.627928 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-10 08:01:08.628946 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-10 08:01:08.678196 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-08-10 08:01:08.928480 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Returning validation status: Accepted
+2026-08-10 08:01:08.929834 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Providing authorization to evse#1
+2026-08-10 08:01:09.127723 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM On (5.0%) took 0 ms[1;0m
+2026-08-10 08:01:09.230000 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC EIM Authorization received[1;0m
+2026-08-10 08:01:09.231070 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-08-10 08:01:09.321917 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Transaction Started (0 kWh)[1;0m
+2026-08-10 08:01:09.322413 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC mode. We are in 5percent mode so we can continue without further action.[1;0m
+2026-08-10 08:01:09.322479 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: Wait for Auth->PrepareCharging[1;0m
+2026-08-10 08:01:10.781937 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (true)[1;0m
+2026-08-10 08:01:10.781937 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC MATCHED[1;0m
+2026-08-10 08:01:11.290723 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event CarRequestedPower[1;0m
+
+2026-08-10 08:02:26.247461 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Incoming connection on eth0 from [a00:ac08:0:0:fe80::]:44040
+
+2026-08-10 08:02:26.247883 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Started new TCP connection thread
+
+2026-08-10 08:02:26.257925 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Handling SupportedAppProtocolReq
+
+2026-08-10 08:02:26.258602 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-10 08:02:26.259660 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SupportedAppProtocolReq[1;0m
+
+2026-08-10 08:02:26.272279 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-10 08:02:26.272405 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-10 08:02:26.272443 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Created new session with id 0x90c79c79349a3b13
+2026-08-10 08:02:26.302126 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SupportedAppProtocolRes[1;0m
+2026-08-10 08:02:26.370105 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionSetupReq[1;0m
+2026-08-10 08:02:26.370869 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionSetupRes[1;0m
+2026-08-10 08:02:26.417949 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ServiceDiscoveryReq[1;0m
+2026-08-10 08:02:26.476706 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ServiceDiscoveryRes[1;0m
+
+2026-08-10 08:02:26.480315 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SelectedPaymentOption: ExternalPayment
+2026-08-10 08:02:26.481273 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PaymentServiceSelectionReq[1;0m
+2026-08-10 08:02:26.578915 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PaymentServiceSelectionRes[1;0m
+2026-08-10 08:02:26.580323 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+2026-08-10 08:02:26.681907 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+2026-08-10 08:02:26.732651 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+2026-08-10 08:02:26.833874 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+
+2026-08-10 08:02:26.834670 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Parameter-phase started
+
+2026-08-10 08:02:26.835635 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Selected energy transfer mode: DC_extended
+2026-08-10 08:02:26.878013 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received EV maximum limits: {
+    "dc_ev_maximum_current_limit": 200.0,
+    "dc_ev_maximum_voltage_limit": 500.0
+}
+2026-08-10 08:02:26.966318 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ChargeParameterDiscoveryReq[1;0m
+2026-08-10 08:02:27.010264 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ChargeParameterDiscoveryRes[1;0m
+2026-08-10 08:02:27.054230 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.054312 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Start cable check...[1;0m
+2026-08-10 08:02:27.054411 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO DC HLC Close contactor (in CableCheck)[1;0m
+2026-08-10 08:02:27.098188 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:27.098529 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.174061 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOn[1;0m
+2026-08-10 08:02:27.217989 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:27.243149 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.274049 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: EV reports 500 V as maximum voltage
+2026-08-10 08:02:27.274293 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 500.00V/2.00A, requested was 500.00V/2.00A.[1;0m
+2026-08-10 08:02:27.317880 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck: Using 500 V
+2026-08-10 08:02:27.318019 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON called, ChargingPhase: CableCheck[1;0m
+2026-08-10 08:02:27.319178 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: CableCheck
+2026-08-10 08:02:27.373782 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:27.425845 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck: IMD self test started.
+2026-08-10 08:02:27.425984 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.489898 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:27.542815 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.681768 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:27.692256 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.790790 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:27.885964 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:27.930969 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 22080W/200A, target_voltage 0, actual_voltage 500, bpt_active false[1;0m
+2026-08-10 08:02:27.977925 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.022183 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.089699 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.141057 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.239431 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.292739 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.417822 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.444460 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.542887 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.595211 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.693810 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.746961 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.885994 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:28.895610 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:28.994211 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.081832 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:29.169841 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.213695 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:29.293654 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.373904 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:29.443133 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.495612 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:29.594138 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.646990 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:29.744504 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.795846 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:29.929877 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:29.947317 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.045616 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:30.100249 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.225889 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:30.246723 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.373921 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:30.417882 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation monitor self test result: true[1;0m
+2026-08-10 08:02:30.417882 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.421632 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Started simulated isolation monitoring with 1000 ms interval
+2026-08-10 08:02:30.461775 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck: Waiting for 1 isolation measurement sample(s)
+2026-08-10 08:02:30.462001 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-08-10 08:02:30.505884 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply OFF[1;0m
+2026-08-10 08:02:30.505924 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:30.506922 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Off ChargingPhase: CableCheck
+2026-08-10 08:02:30.549881 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.645857 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:30.700633 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.797693 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:30.845335 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck done, output is below 60V
+2026-08-10 08:02:30.889947 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:30.946951 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+2026-08-10 08:02:31.000146 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CableCheckReq[1;0m
+2026-08-10 08:02:31.097441 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CableCheckRes[1;0m
+
+2026-08-10 08:02:31.097648 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Precharge-phase started
+2026-08-10 08:02:31.142042 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PreChargeReq[1;0m
+2026-08-10 08:02:31.142042 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/2.00A, requested was 400.00V/2.00A.[1;0m
+2026-08-10 08:02:31.185863 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON called, ChargingPhase: PreCharge[1;0m
+2026-08-10 08:02:31.187117 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: PreCharge
+2026-08-10 08:02:31.229867 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PreChargeRes[1;0m
+2026-08-10 08:02:31.230159 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-08-10 08:02:31.278040 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 22080W/55.2A, target_voltage 400, actual_voltage 0, bpt_active false[1;0m
+2026-08-10 08:02:31.321917 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-08-10 08:02:31.323098 [[1;37mINFO[0m] [1;32movm:OVMSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Over voltage monitoring: starting with 550 (emergency) and 500(error)
+2026-08-10 08:02:31.332302 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, start monitoring
+2026-08-10 08:02:31.373897 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON in export mode[1;0m
+2026-08-10 08:02:31.373910 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, spread: 400 V > threshold: 50 V -> arming timer
+2026-08-10 08:02:31.373897 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CurrentDemandReq[1;0m
+2026-08-10 08:02:31.373965 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/120.00A, requested was 400.00V/120.00A.[1;0m
+2026-08-10 08:02:31.380305 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: PrepareCharging->Charging[1;0m
+2026-08-10 08:02:31.380852 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, spread: 0 V <= threshold: 50 V -> cancelling timer
+2026-08-10 08:02:31.381261 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Timing statistics (Plugin to CurrentDemand)
+2026-08-10 08:02:31.381305 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: -------------------------------------------
+2026-08-10 08:02:31.381317 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: ConnSetup | HLC_PWM_5%_ON: 559 ms | D-LINK_READY: 1696 ms | Auth EIM Done: 75797 ms | Total: 78484 ms
+2026-08-10 08:02:31.381329 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck | <60V: 0 ms | Relay On: 219 ms | EVInfo: 0 ms | VRampUp: 107 ms | Self test: 3035 ms | Measure: 43 ms | VRampDown: 383 ms | Total: 3836 ms
+2026-08-10 08:02:31.381347 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: PrepareCharging | Charging started: 490 ms | Total: 490 ms
+2026-08-10 08:02:31.381355 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Total duration all phases: 82811 ms
+2026-08-10 08:02:31.389782 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: Charging
+2026-08-10 08:02:31.425894 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/3.27A, requested was 400.00V/3.27A.[1;0m
+2026-08-10 08:02:31.425930 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CurrentDemandRes[1;0m
+2026-08-10 08:02:31.469791 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-08-10 08:02:31.469802 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CurrentDemandReq[1;0m
+2026-08-10 08:02:31.549610 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CurrentDemandRes[1;0m
+2026-08-10 08:02:31.603065 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G CurrentDemandReq[1;0m
+2026-08-10 08:02:31.701909 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G CurrentDemandRes[1;0m
+2026-08-10 08:02:31.751658 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply OFF[1;0m
+2026-08-10 08:02:31.752541 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Off ChargingPhase: Charging
+2026-08-10 08:02:31.760605 [[1;37mINFO[0m] [1;32movm:OVMSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Over voltage monitoring: stopped.
+2026-08-10 08:02:31.793932 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, stop monitoring
+2026-08-10 08:02:31.794032 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-08-10 08:02:31.794728 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Stopped simulated isolation monitoring
+
+2026-08-10 08:02:31.849536 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Welding-phase started
+2026-08-10 08:02:31.889906 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-08-10 08:02:31.890143 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G WeldingDetectionReq[1;0m
+2026-08-10 08:02:31.949127 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G WeldingDetectionRes[1;0m
+2026-08-10 08:02:31.950014 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionStopReq[1;0m
+
+2026-08-10 08:02:32.046688 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Closing TCP connection
+2026-08-10 08:02:32.047425 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionStopRes[1;0m
+
+2026-08-10 08:02:34.047025 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TCP connection closed gracefully
+2026-08-10 08:02:34.048027 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_TERMINATE.req[1;0m
+2026-08-10 08:02:34.048183 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM Off[1;0m
+2026-08-10 08:02:34.137904 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC UNMATCHED[1;0m
+2026-08-10 08:02:34.137926 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (false)[1;0m
+2026-08-10 08:02:36.596789 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/55.20A, requested was 400.00V/55.20A.[1;0m
+2026-08-10 08:02:36.641941 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON called, ChargingPhase: Other[1;0m
+2026-08-10 08:02:36.642985 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: Other
+2026-08-10 08:02:36.685863 [[1;33mWARN[0m] [1;32mevse_manager:Ev[0m [1;36mvoid module::EvseManager::process_dc_ev_target_voltage_current(const types::iso15118::DcEvseMaximumLimits&)[0m [1;30m:[0m[1;32m[0m: EV ignores new EVSE max limits. Setting target current to new EVSE max limits
+2026-08-10 08:02:37.882332 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 22080W/55.2A, target_voltage 400, actual_voltage 400, bpt_active false[1;0m
+2026-08-10 08:02:40.095206 [[1;33mWARN[0m] [1;32mevse_manager:Ev[0m [1;36mstd::queue<module::CPEvent> module::IECStateMachine::state_machine(std::optional<module::RawCPState>)[0m [1;30m:[0m[1;32m[0m: Timeout of 6 seconds reached, EV did not go back to state B after PWM was switched off. Powering off under load.
+2026-08-10 08:02:40.202329 [[1;37mINFO[0m] [1;32movm:OVMSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Over voltage monitoring: stopped.
+2026-08-10 08:02:40.249981 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOff[1;0m
+2026-08-10 08:02:43.054033 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/55.20A, requested was 400.00V/55.20A.[1;0m
+2026-08-10 08:02:43.097904 [[1;33mWARN[0m] [1;32mevse_manager:Ev[0m [1;36mvoid module::EvseManager::process_dc_ev_target_voltage_current(const types::iso15118::DcEvseMaximumLimits&)[0m [1;30m:[0m[1;32m[0m: EV ignores new EVSE max limits. Setting target current to new EVSE max limits

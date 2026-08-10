@@ -271,9 +271,21 @@ Timing matters and the trigger gets it right for free: `connection_timeout` (10 
 withdraws the authorization if no transaction starts, so a token published before the EV connects is
 already gone by the time it polls.
 
+> ⚠️ **The script has not been carried forward to 2026.02.1, and cannot work there as written.** Its two
+> subscriptions are exact topics ending in `…/var`; on 2026.02.1 the variable name is a further level
+> (`…/var/require_auth_eim`), and MQTT filters are level-exact without a wildcard, so it matches
+> nothing and writes an empty log. The publish side needs the new shape and the new
+> `{"msg_type":"Var","data":{…}}` envelope too. Use `sil-car.sh` on 2026.02.1, whose plug-in makes
+> their own `DummyTokenProvider` do the authorizing — that is what every run since 2026-08-05 has done.
+
 The script also logs every V2G message their charger publishes — a station-side record of the session.
 Trust the message **names**, not the bytes: the responses they publish carry the preceding *request's*
-V2GTP length, so each one is truncated or padded with stale buffer. Requests are byte-exact.
+V2GTP length, so each one is truncated or padded with stale buffer, and 42 of 43 in the run that
+measured it also carry `0x00` where the V2GTP version byte belongs. Requests are byte-exact. Measured
+over a complete -2 DC charge on 2026.02.1 —
+[`2026-08-10-everest-session-log-lengths`](../../docs/interop-runs/2026-08-10-everest-session-log-lengths/notes.md),
+43 of 43 responses wrong. `Evse15118D20` publishes the message id and no bytes at all, so a `-20`
+session has no station-side byte record to distrust.
 
 **The topic scheme**, since their documentation does not carry it — and **it changed between the
 versions this harness has used**, in both directions. Check which you are on before concluding that a
