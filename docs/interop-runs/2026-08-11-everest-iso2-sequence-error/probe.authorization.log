@@ -1,0 +1,9 @@
+connected to [fe80::215:5dff:fe6b:3d4%2]:61341
+  SupportedAppProtocolRes: 01fe80010000000480400040
+  SessionSetupRes: 01fe80010000001f8098023613193187bc05ef91e020451114a9413960a914c4c8ccd0d4a8c480
+  their SessionID: 3613193187bc05ef
+sending authorization out of order (the station is waiting for ServiceDiscoveryReq):
+  01fe80010000000d8098023613193187bc05ef5008
+  response: 01fe80010000000f8098023613193187bc05ef9010a100
+VERDICT: a response came back; decode the ResponseCode to see whether it is FAILED_SequenceError
+after that: connection closed by peer
