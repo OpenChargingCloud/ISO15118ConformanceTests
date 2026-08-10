@@ -28,7 +28,7 @@ Not politeness, and worth a paragraph because it is the reason this report exist
 bug filed by a stranger.
 
 **everest-core has found more defects in this project than every other counterparty combined**, across
-thirty-one runs. Almost all of them share one shape: a value we had taken from our own assumption where
+thirty-two runs. Almost all of them share one shape: a value we had taken from our own assumption where
 the protocol supplies one — an unbounded "Ongoing" poll, an energy transfer mode we hard-coded instead
 of reading from `ServiceDiscoveryRes`, a preference list we treated as a filter rather than a ranking,
 an EV-side power envelope written as literals. Their SIL is single-phase, their station enforces the

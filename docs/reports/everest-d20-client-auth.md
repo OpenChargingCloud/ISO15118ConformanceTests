@@ -256,9 +256,8 @@ call each, and a test house will look at both.
   side effect, not re-filed — but it is why each arm needed a fresh process, which is worth a line in
   the issue so nobody wastes an afternoon on it.
 - **OCSP stapling**, which `libiso15118` does not implement at all — no `status_request` handling
-  anywhere in the tree. Mentioned in
-  [`everest-evse-security-ocsp-dropped.md`](everest-evse-security-ocsp-dropped.md) as deserving its own
-  issue; it is a missing feature rather than a wrong line and we have not written it up.
+  anywhere in the tree. Same TLS server, same function, and still its own issue:
+  [`everest-d20-ocsp-absent.md`](everest-d20-ocsp-absent.md), measured the same day.
 - We did not test whether an anonymous session can be driven past `AuthorizationSetup`, because the
   replay could not: the station mints its own session id. An EV rather than a replay would settle it.
 

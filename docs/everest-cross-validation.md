@@ -7,7 +7,7 @@ independent *codec*; EVerest is the independent *charger* — the thing a car in
 and it has found more defects in this project than any other counterparty, all of one shape.
 
 Tooling and the per-session ritual: [`tools/interop-everest/`](../tools/interop-everest/README.md).
-Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-one directories, all
+Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-two directories, all
 prefixed `*-everest-*`; counted 2026-08-10).
 
 ---
@@ -267,9 +267,24 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **nine** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **ten** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **`Evse15118D20` never staples an OCSP response, and has nowhere to put one.** Asked with
+  `openssl s_client -status` — the extension `[V2G20-2372]` obliges every `-20` EV to send — their
+  station answers **`OCSP response: no response sent`** on TLS 1.2 and on TLS 1.3, and logs nothing,
+  because `libiso15118` has no OCSP code at all. Three independent gaps, each sufficient: the module
+  asks for its certificate with `include_ocsp = false`, `SSLConfig` has no member to carry the data, and
+  `init_ssl()` installs no `SSL_CTX_set_tlsext_status_cb`. **Not the same issue as the dropped `ocsp`
+  member** — that one is `EvseV2G`'s path, where the machinery exists and the data does not arrive; here
+  neither exists, so *neither fix alone produces a staple*. **Controlled**, because "your client never
+  asked" is the first objection: the same client and the same flag against `IsoMux` made their own
+  `OcspCache::lookup` run on the digest of their own leaf. `[V2G20-2388]` obliges a public SECC to
+  answer — with `[V2G20-2398]` the exemption to ask about, since this module has PnC commented out —
+  and reading one clause further cost part of an earlier claim: `[V2G20-2411]` lets a `-20` EV fetch the
+  response itself, so the `-2` *"close the connection"* consequence has no `-20` twin
+  ([`…-d20-ocsp-absent`](interop-runs/2026-08-10-everest-d20-ocsp-absent/notes.md)). Filed:
+  [`everest-d20-ocsp-absent.md`](reports/everest-d20-ocsp-absent.md).
 - **`Evse15118D20` lets the EV decide whether the EV is authenticated.** Their `-20` TLS server sets
   `SSL_VERIFY_NONE` on the context and raises it to `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT`
   inside the `ClientHello` callback — but only when the offered `supported_versions` list contains TLS
