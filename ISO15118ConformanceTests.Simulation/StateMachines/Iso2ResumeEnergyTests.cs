@@ -125,10 +125,29 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
         #region Plumbing
 
+        /// <summary>The EAmount the station was asked for — and, when it was asked for nothing, why.</summary>
+        /// <remarks>
+        /// <c>First()</c> here would fail with <c>Sequence contains no elements</c> pointing at a LINQ line,
+        /// which says neither what was expected nor what went wrong. The reason it went wrong is usually the
+        /// station's, and the station's exception is deliberately swallowed in <see cref="RunAsync"/> so that
+        /// assertions can run against a partial recording — so it is kept and reported here instead of being
+        /// dropped on the floor.
+        /// </remarks>
         private static double EAmountOf(RecordingSecc2 secc)
-            => (double) secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
-                            .Select(r => r.EVChargeParameter).OfType<AC_EVChargeParameterType>()
-                            .First().EAmount.ToDecimal();
+        {
+
+            var ac = secc.Requests.OfType<ChargeParameterDiscoveryReqType>()
+                         .Select(r => r.EVChargeParameter).OfType<AC_EVChargeParameterType>()
+                         .FirstOrDefault();
+
+            Assert.That(ac, Is.Not.Null,
+                        $"no AC ChargeParameterDiscoveryReq reached the station ({secc.Requests.Count} request(s) "
+                      + $"recorded: {String.Join(", ", secc.Requests.Select(r => r.GetType().Name))})"
+                      + (secc.Failure is { } why ? $"; the station ended with: {why.Message}" : ""));
+
+            return (double) ac!.EAmount.ToDecimal();
+
+        }
 
         /// <summary>One -2 AC connection against a fresh recording station; returns what it received and
         /// what the car's own meter counted.</summary>
@@ -145,8 +164,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
                 await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_2, cts.Token, PowerMode.Ac);
+                // The assertions are on what was received, so a station that ends badly must not take the
+                // test down with it — but the reason is the only thing that explains an empty recording,
+                // so it is kept rather than discarded. See EAmountOf.
                 try { await secc.RunAsync(seccStream, cts.Token); }
-                catch { /* the assertions are on what was received */ }
+                catch (Exception e) { secc.Failure = e; }
             }, cts.Token);
 
             Evcc2 evcc;
@@ -173,6 +195,10 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             : Secc2(mode, sequenceTimeout, clock)
         {
             public List<BodyBaseType> Requests { get; } = [];
+
+            /// <summary>Why the station stopped, when it stopped badly — the one thing that explains a
+            /// recording with the request under test missing from it.</summary>
+            public Exception? Failure { get; set; }
 
             public override V2G_Message Handle(V2G_Message request)
             {
