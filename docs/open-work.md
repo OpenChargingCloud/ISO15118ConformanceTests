@@ -61,11 +61,12 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
-- **Our `-2` DC charge loop is open-loop: it never reads the limits the station revises in every
-  `CurrentDemandRes`.** Found 2026-08-10, from their `EvseManager` warning *"EV ignores new EVSE max
-  limits. Setting target current to new EVSE max limits"* — 47 times across our recorded EVerest runs.
-  Decoded from [`frames.log`](interop-runs/2026-08-10-everest-session-log-lengths/frames.log) of the
-  full charge the same day:
+- ~~**Our `-2` DC charge loop is open-loop: it never reads the limits the station revises in every
+  `CurrentDemandRes`.**~~ **Fixed 2026-08-10**, stack branch `iso2-running-limits`, both halves. Found
+  from their `EvseManager` warning *"EV ignores new EVSE max limits. Setting target current to new EVSE
+  max limits"* — 47 times across our recorded EVerest runs. Decoded from
+  [`frames.log`](interop-runs/2026-08-10-everest-session-log-lengths/frames.log) of the full charge the
+  same day:
 
   | | |
   |---|---|
@@ -81,14 +82,31 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   <br>The cause is one method: `Evcc2.CurrentDemand()` builds `EVTargetCurrent` from the constant
   `DcRequestedAmps`, and nothing anywhere in the `-2` EVCC reads `EVSEMaximumCurrentLimit`,
   `EVSEMaximumPowerLimit` or `EVSECurrentLimitAchieved` off a `CurrentDemandRes`.
-  <br>**Why no test of ours could have caught it**, which is the part worth keeping: our own SECC sends
-  `EVSEMaximumCurrentLimit: null` in `CurrentDemandRes` (`Secc2.cs:653`), so a loopback session never
-  presents a running limit to read. The fix therefore has two halves — the car must read and clamp, and
-  the station must send a real running limit so a loopback test can pin the behaviour.
-  <br>**The requirement side is not cited yet.** The obligation lives in the `-2` element table for
+  <br>**Why no test of ours could have caught it**, which is the part worth keeping: our own SECC sent
+  `EVSEMaximumCurrentLimit: null` in every `CurrentDemandRes`, so a loopback session never presented a
+  running limit to read. The fix therefore had two halves.
+  <br>**The car half.** `Evcc2` keeps the station's current and power ceiling — seeded from the
+  `DC_EVSEChargeParameter` of the discovery response, then replaced by whatever each `CurrentDemandRes`
+  carries — and `DcTargetAmps` holds the setpoint inside both. `EVMaximumPowerLimit` states the same
+  operating point, so the two fields cannot contradict each other once a ceiling moves. Floor rather
+  than round: a car that rounds up asks for more than it was allowed. Each field is replaced only when a
+  message actually carries one, so a station that states its ceiling once keeps it.
+  <br>**The station half.** `Secc2.DcRunningMaxAmps` and `DcAdvertisedMaxAmps` let a station state a
+  ceiling, serve under it, and report `EVSECurrentLimitAchieved` truthfully. **Both opt-in**, the same
+  shape as `TransportSecurity.Unknown` in the `[V2G20-1237]` fix above: left unset the wire output is
+  byte-for-byte what the session corpus records, so no vector needed regenerating. One inaccuracy is
+  deliberately left alone and named at the property: the default path still reports
+  `EVSECurrentLimitAchieved = false` while serving at its own `DcMaxAmps`, and correcting that would
+  rewrite every recorded trace to settle a question no counterparty has asked.
+  <br>Four tests in
+  [`Iso2RunningLimitTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso2RunningLimitTests.cs);
+  **two of the four fail** when the clamp is removed, which is how it was checked. The other two pin the
+  station half and the unchanged default, and the fixture says which is which. Suite green at 1 366.
+  <br>**The requirement side is still not cited.** The obligation lives in the `-2` element table for
   `CurrentDemandRes` rather than in a numbered `[V2G2-…]` we have read cleanly; the copy to hand
   extracts that table too poorly to quote an identifier from, and the `-2` document caveat in
-  [`normative-basis.md`](normative-basis.md) would apply on top. The measurement does not depend on it.
+  [`normative-basis.md`](normative-basis.md) would apply on top. The measurement did not depend on it,
+  and neither does the fix — but the citation is the one thing here that is owed and unpaid.
 
 Both halves of our ISO 15118-20 pause/resume were built by analogy to `-2`, and the code comment in
 `Secc20Base.SessionSetup` names the assumption out loud: *"same OldSessionJoined mechanic as -2"*.
