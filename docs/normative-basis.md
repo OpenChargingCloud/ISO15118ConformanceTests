@@ -316,3 +316,33 @@ The practical reading, which is what made the finding filable: with a single roo
 ignores the extension is indistinguishable from one that honours it, because there is nothing to
 choose. The requirement bites exactly where an operator holds two — mid-rotation, or serving two roots
 — and that is the configuration nobody tests.
+
+### `[V2G20-169]` has two halves, and they are usually implemented one at a time
+
+Already cited on 2026-08-09 for the `IsoMux` routing finding; re-read on 2026-08-10 because a second
+EVerest module failed the *other* half of it, and the pair is worth stating once.
+
+- **`[V2G20-169]`** (and its `-2` twin `[V2G2-169]`) — the SECC selects, **from the protocols it
+  supports itself**, the one the EVCC ranked highest, and names that entry's SchemaID.
+  - **The filter**: *from the protocols it supports itself.* A station may not answer with a protocol
+    it cannot serve.
+  - **The ranking**: *the one the EVCC ranked highest.* Among what survives the filter, `Priority`
+    decides.
+- **`[V2G20-167]`** / **`[V2G2-167]`** — define the field: `1` highest, `20` lowest, at most 20 entries.
+
+Two EVerest modules, each implementing exactly one half, found a day apart:
+
+| Module | Filter | Ranking |
+|---|---|---|
+| `IsoMux` | applied (it does serve both `-2` and `-20`) — but the routing reads only *"is `-20` mentioned"* | **not read** |
+| `Evse15118D20` | **not applied** — `-20:AC` and `-20:DC` go into one map whatever the station serves | applied, and its comment cites `[V2G20-167]` |
+
+Worth keeping because of what it says about reading a requirement: *"select the highest-ranked one you
+support"* is one sentence and two obligations, and an implementation can satisfy the half it noticed
+while failing the half it did not. Both halves have to be checked separately, and in this case each was
+found by a different kind of evidence — the ranking one by a byte-identical response across three runs,
+the filter one by an offer no conformant station could accept.
+
+The `-20` AC and DC namespaces are separate `ProtocolNamespace` values because they select different
+**message sets**, so the answer is a commitment to a schema rather than a preference — which is why the
+filter half is not cosmetic.

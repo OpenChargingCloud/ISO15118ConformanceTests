@@ -267,9 +267,21 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **seven** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **eight** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **A DC-only `Evse15118D20` accepts the `-20` **AC** message set.** Offered `-20:AC` and nothing else,
+  a station with no AC hardware anywhere in its module graph answers `OK_SuccessfulNegotiation` and
+  commits the session to the AC schema; `handle_request` puts both namespaces in one priority map and
+  is not given the station's configuration to filter with. `[V2G20-169]` makes the station's own
+  capability a filter **before** the EV's ranking — and the control arm shows the ranking itself is
+  honoured, so this is the other half of the same requirement. Carried past the handshake with the car
+  plugged in, the session spends session setup, an authorization and a token and then dies at
+  `ServiceDiscovery` on services 2 and 6
+  ([`…-d20-ac-namespace`](interop-runs/2026-08-10-everest-d20-ac-namespace/notes.md)). Filed:
+  [`everest-d20-ac-namespace.md`](reports/everest-d20-ac-namespace.md). **The sibling of the `IsoMux`
+  routing finding, from the other side**: there the router reads the namespace and not the ranking,
+  here the backend reads the ranking and not its own capability.
 - **`IsoMux`'s TLS server boots with `trusted_ca_keys support disabled`.** It asks libevse-security for
   its certificate through `get_leaf_certificate_info`, which carries `include_root = false`, so it has
   no root to put in `trust_anchor_pem`; its chain is then neither verified nor registered, and the
