@@ -17,6 +17,10 @@ the run notes, both `openssl` captures, three charger logs and their own session
 unauthenticated session.
 
 Other reports go to everest-core:
+[`everest-d20-trust-anchor.md`](everest-d20-trust-anchor.md) — **the same function**, and the natural
+sequel: this report is about *whether* the station asks for a certificate and what it names in the
+`CertificateRequest`, that one about *which root it checks the answer against* (it loads the MO root,
+so it refuses vehicle certificates and accepts contract ones) —
 [`everest-isomux.md`](everest-isomux.md) (four findings in the multiplexer — **§2 there shares
 `[V2G20-2356]` with this run**, in a different module),
 [`everest-d20-ac-namespace.md`](everest-d20-ac-namespace.md) and

@@ -7,7 +7,7 @@ independent *codec*; EVerest is the independent *charger* — the thing a car in
 and it has found more defects in this project than any other counterparty, all of one shape.
 
 Tooling and the per-session ritual: [`tools/interop-everest/`](../tools/interop-everest/README.md).
-Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-two directories, all
+Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-three directories, all
 prefixed `*-everest-*`; counted 2026-08-10).
 
 ---
@@ -267,9 +267,24 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **ten** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **eleven** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **Their `-20` station refuses the vehicle certificate and accepts a contract certificate.** It loads
+  two anchors for the EV's TLS client certificate, the **V2G** root and the **MO** root — and MO
+  certifies *contract* certificates, which ISO 15118-20 places at the application layer. The anchor that
+  certifies the **vehicle** certificate is the **OEM** root, and it is never loaded because
+  `CaCertificateType` has no `OEM` value to ask with. Measured with **their own unmodified PKI**, two
+  arms three seconds apart: `OEM_LEAF` → `certificate verify failed`; `MO_LEAF` →
+  `Verify certificate result is okay` and then their own **`Vehicle Cert is available`**, whose SHA-512
+  becomes the `[V2G20-2677]` resume binding. `[V2G20-2331]` anchors a vehicle certificate at an OEM or
+  V2G root; `[V2G20-2401]` names exactly those two in `certificate_authorities`; their own error string
+  at `connection_ssl.cpp:275` already says *"Verify OEM root not found!"* over a field called
+  `mo_root`. **Why none of our runs caught it**: `install-pki.sh` mints a vehicle credential under the
+  **V2G** root, the other anchor `[V2G20-2331]` allows and the one they do load, so every mutual-TLS
+  session we have run took the branch that works
+  ([`…-d20-trust-anchor`](interop-runs/2026-08-10-everest-d20-trust-anchor/notes.md)). Filed:
+  [`everest-d20-trust-anchor.md`](reports/everest-d20-trust-anchor.md).
 - **`Evse15118D20` never staples an OCSP response, and has nowhere to put one.** Asked with
   `openssl s_client -status` — the extension `[V2G20-2372]` obliges every `-20` EV to send — their
   station answers **`OCSP response: no response sent`** on TLS 1.2 and on TLS 1.3, and logs nothing,
