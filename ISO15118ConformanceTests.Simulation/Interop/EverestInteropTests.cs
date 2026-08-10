@@ -136,11 +136,20 @@ public class EverestInteropTests
                                                             InteropEnvironment.PreferDynamic(),
                                                             InteropEnvironment.ContractCredentialsOrNull(),
                                                             mcs: InteropEnvironment.Mcs(),
-                                                            bptFirst: InteropEnvironment.BptFirst());
+                                                            bptFirst: InteropEnvironment.BptFirst(),
+                                                            requestMeterInfo: InteropEnvironment.RequestMeterInfo());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
                                            ? $", {outcome.MeteringReceiptsSent} signed metering receipt(s)" : ""));
+
+            // Reported, never asserted. A station that answers nothing is the finding rather than a broken
+            // run, so this line has to survive into the transcript instead of failing the test — the same
+            // reason the -2 metering-receipt count above is printed and not required.
+            if (protocol == ProtocolVariant.Iso15118_20 && InteropEnvironment.RequestMeterInfo())
+                TestContext.Out.WriteLine(
+                    $"MeterInfo: asked in every charge-loop request ([V2G20-1081]); " +
+                    $"{outcome.MeterInfoResponses} response(s) carried the element ([V2G20-1082]).");
 
             if (outcome.SelectedEnergyServiceId is { } serviceId)
                 TestContext.Out.WriteLine($"Energy transfer service: {serviceId} ({ServiceName(serviceId)}).");

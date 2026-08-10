@@ -7,7 +7,7 @@ independent *codec*; EVerest is the independent *charger* — the thing a car in
 and it has found more defects in this project than any other counterparty, all of one shape.
 
 Tooling and the per-session ritual: [`tools/interop-everest/`](../tools/interop-everest/README.md).
-Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-three directories, all
+Per-run write-ups and frame logs: [`docs/interop-runs/`](interop-runs/) (thirty-four directories, all
 prefixed `*-everest-*`; counted 2026-08-10).
 
 ---
@@ -267,9 +267,23 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **eleven** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **twelve** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **Their `-20` charge loop never returns `MeterInfo`, even when the EV asks.** `[V2G20-1081]` gives the
+  EV one way to be told the meter reading; `[V2G20-1082]` makes answering a *shall* once asked. Over a
+  complete 70-exchange DC session all three charge-loop responses came back without the element — and the
+  control is what makes it sharp: **our request changed by one bit** (`0x81`→`0xa1` in the same 38-byte
+  frame) and **their responses were byte-identical between the two runs**, so the answer does not depend
+  on the question. `dc_charge_loop.cpp:261` reads the field and forwards it as feedback; `:178` is the
+  one comment where the response's metering should be — *"TODO(sl): Setting EvseStatus, MeterInfo,
+  Receipt, *_limit_achieved"* — and nothing in `d20/` ever assigns `meter_info`. What it costs is more
+  than a reading: `[V2G20-1083]`'s `MeteringConfirmation` and `[V2G20-1919]`'s kWh receipt both need the
+  element, so the `-20` signed-metering path is unreachable rather than partial.
+  **The first finding here that needed a capability of ours before it could be looked at**: our own EVCC
+  hardcoded `MeterInfoRequested` to `false` until the same morning, so no run of this suite had ever
+  asked anybody ([`…-d20-meter-info`](interop-runs/2026-08-10-everest-d20-meter-info/notes.md)). Filed:
+  [`everest-d20-meter-info.md`](reports/everest-d20-meter-info.md).
 - **Their `-20` station refuses the vehicle certificate and accepts a contract certificate.** It loads
   two anchors for the EV's TLS client certificate, the **V2G** root and the **MO** root — and MO
   certifies *contract* certificates, which ISO 15118-20 places at the application layer. The anchor that
