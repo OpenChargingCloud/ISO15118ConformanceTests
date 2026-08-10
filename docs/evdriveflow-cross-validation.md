@@ -156,9 +156,12 @@ Three, all reported in the run notes with the code that causes them:
    it is the `stdin` wall below, already filed as issue 1. **The report was rewritten before it went
    anywhere**, and half of it is now the paragraph explaining that, since without it the report reads
    as a duplicate. The section below is exactly where that trap lies for the next reader.
-   <br>What is *not* closed: every observation of this defect was taken with the stdin bug also
-   active. Nobody has yet run their EV with stdin open **and** a PnC-and-EIM offer — the run that would
-   show it alone. First item on the report's checklist.
+   <br>**Isolated on 2026-08-10.** Every earlier observation was taken with the stdin bug also active,
+   so the missing cell was stdin open *and* a PnC-and-EIM offer. It was run: their EV raises at
+   `wait_for_authorization_setup_response.py:36` in exactly the configuration where it otherwise
+   charges ([`2026-08-10-edf-pnc-eim-stdin-open`](interop-runs/2026-08-10-edf-pnc-eim-stdin-open/notes.md)).
+   The two failures even have different fingerprints — the stdin wall ends a session cleanly with
+   `SessionStopReq` after four exchanges, this one dies inside the handler after three.
 
 Findings 1 and 3 were worked around **in their copy, inside a throwaway container**, to get past them.
 Our stack was not changed for either. One note on method that is worth keeping: the finding-1 workaround

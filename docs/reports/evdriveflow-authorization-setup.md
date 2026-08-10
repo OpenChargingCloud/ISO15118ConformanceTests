@@ -1,11 +1,13 @@
 # Draft report to EDF Lab — a station offering PnC *and* EIM ends their EV's session
 
 Status: **draft, not sent.** Observed on the wire 2026-08-01 against `eVDriveFlow` at `60249c3`, in
-the reverse direction (their EV, our SECC), and the source re-read at that same commit on 2026-08-10.
-Post it under your own name; see *Before sending* at the bottom — the first item is a run that has not
-been done and that a maintainer will ask about.
+the reverse direction (their EV, our SECC), and **re-observed on 2026-08-10 with their `stdin` bug out
+of the way** — which is the run that makes this report stand on its own. Source re-read at the same
+commit. Post it under your own name; see *Before sending* at the bottom.
 
 Evidence in this repository:
+[`2026-08-10-edf-pnc-eim-stdin-open`](../interop-runs/2026-08-10-edf-pnc-eim-stdin-open/notes.md) —
+the isolating run, with their traceback and the three-way contrast; and
 [`2026-08-01-edf-iso20-dc-dynamic-reverse`](../interop-runs/2026-08-01-edf-iso20-dc-dynamic-reverse/notes.md)
 — finding 4, with [`finding4-workaround.py`](../interop-runs/2026-08-01-edf-iso20-dc-dynamic-reverse/finding4-workaround.py),
 applied **inside a throwaway container**, to their copy, never to ours.
@@ -88,23 +90,36 @@ problem. With stdin held open and nothing else changed, the same EV ran fifteen 
 So the two are independent and both real, and **this one is the one still standing between their EV and
 an ordinary charge point**: fix issue 1 and a car meeting a PnC-and-EIM station still raises here.
 
-**The gap we have not closed.** That fifteen-exchange run offered **EIM only**
-(`V2G_INTEROP_NO_PNC=1`) — the configuration that avoids this defect. Nobody has yet run their EV with
-stdin open **and** a PnC-and-EIM offer. From the source it must still raise: the loop sits on the
-protocol path and has nothing to do with stdin. But that is a reading, not an observation, and the
-report says which is which.
+**And the two are now separated on the wire, not only in the reading.** That fifteen-exchange run
+offered **EIM only**, the configuration that avoids this defect, so it left one cell unfilled: stdin
+open *and* a PnC-and-EIM offer. Filled on 2026-08-10 — same rig, same commit, nothing of yours patched,
+stdin held open by a fifo — and your EV raises at `wait_for_authorization_setup_response.py:36` after
+receiving the offer quoted above.
+
+| Run | stdin | Offer | Your EV |
+|---|---|---|---|
+| 2026-08-01 | EOF | PnC, EIM | `NotImplementedError` |
+| 2026-08-01, control | EOF | EIM | 4 exchanges, clean `SessionStopReq` |
+| 2026-08-06 | **open** | EIM | **15 exchanges**, into `DC_ChargeLoop` |
+| **2026-08-10** | **open** | **PnC, EIM** | **`NotImplementedError`** |
+
+The two failures even look different in the transcript. The stdin wall ends a session cleanly — the
+state machine is intact and emits `SessionStopReq`, so the flow has four exchanges. This one kills the
+connection inside the handler: three exchanges, no `SessionStopReq`, and none of the *"stop has been
+requested"* lines every stdin-wall run carries.
 
 ---
 
 ## Before sending
 
-- [ ] **Do the missing run.** Their EV, stdin held open, our station offering PnC and EIM — the two
-      knobs are `run.sh` from the stdin-wall notes and dropping `V2G_INTEROP_NO_PNC=1`. It should end
-      in `NotImplementedError` at `AuthorizationSetupRes`. Every observation of this defect so far was
-      taken with the stdin bug also active, and a maintainer is entitled to ask whether it was ever
-      anything else.
-- [x] **Observe it, do not only read it.** The `NotImplementedError` is in their own EV log from
-      2026-08-01, and the loop is unchanged at `60249c3`.
+- [x] **Do the missing run.** Done 2026-08-10: their EV with stdin held open, our station offering PnC
+      and EIM, nothing of theirs patched — `NotImplementedError` at
+      `wait_for_authorization_setup_response.py:36`, three exchanges, no `SessionStopReq`
+      ([run notes](../interop-runs/2026-08-10-edf-pnc-eim-stdin-open/notes.md)). Every earlier
+      observation was taken with their stdin bug also active and a maintainer would have been right to
+      ask; that question is now closed on the wire rather than in the source.
+- [x] **Observe it, do not only read it.** Their own EV log carries the traceback, twice over — from
+      2026-08-01 and from the isolating run — and the loop is unchanged at `60249c3`.
 - [x] **Re-check the source against the tree.** `wait_for_authorization_setup_response.py:27-43` and
       `ev_dummy_controller.py:111`, read on 2026-08-10; the loop still has no `break`.
 - [x] **Do not blame the patch for what the patch may have caused.** The EIM-only control run exists

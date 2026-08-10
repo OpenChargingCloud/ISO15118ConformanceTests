@@ -1,0 +1,87 @@
+[38;21m[2026-08-10 03:57:45,119] INFO (physical_interface): 61851 state set to B.[0m
+[38;21m[2026-08-10 03:57:45,120] INFO (start_ev): Starting EV.[0m
+[38;21m[2026-08-10 03:57:45,121] INFO (physical_interface): Current duty cycle is 100.[0m
+[38;21m[2026-08-10 03:57:45,121] INFO (start_ev): Duty cycle is different from 5%.[0m
+[38;21m[2026-08-10 03:57:45,121] INFO (physical_interface): Duty cycle set to 5.[0m
+[38;21m[2026-08-10 03:57:45,121] INFO (physical_interface): Current duty cycle is 5.[0m
+[38;21m[2026-08-10 03:57:45,131] INFO (udp_client): Starting UDP client.[0m
+[38;21m[2026-08-10 03:57:45,132] INFO (udp_client): Attempting to connect to ('ff02::1', 15118, 0, 0).[0m
+[38;21m[2026-08-10 03:57:45,132] INFO (udp_client): Sent SECC discovery request. 0[0m
+[38;21m[2026-08-10 03:57:45,132] INFO (udp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 5).[0m
+[38;21m[2026-08-10 03:57:45,133] INFO (message_handling): Message is valid.[0m
+[38;21m[2026-08-10 03:57:45,133] INFO (udp_client): TCP server is reachable at (fe80::42:acff:fe1e:2, 15118).[0m
+[38;21m[2026-08-10 03:57:45,133] INFO (udp_client): Closing connection.[0m
+[38;21m[2026-08-10 03:57:45,133] INFO (tcp_client): Starting TCP client.[0m
+[38;21m[2026-08-10 03:57:45,135] INFO (tcp_client): Connection made with ('fe80::42:acff:fe1e:2', 15118, 0, 5). Starting new communication session.[0m
+[38;21m[2026-08-10 03:57:45,136] INFO (tcp_client): 
+
+
+ TLS DISABLED 
+
+
+[0m
+[38;21m[2026-08-10 03:57:45,137] INFO (message_handling): Supported App Protocol message to be encoded[0m
+[38;21m[2026-08-10 03:57:45,137] INFO (message_handling): Message is valid against Schema XSD[0m
+[38;21m[2026-08-10 03:57:45,147] INFO (tcp_client): Sent SupportedAppProtocolReq.[0m
+[38;21m[2026-08-10 03:57:45,156] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 5).[0m
+[38;21m[2026-08-10 03:57:45,156] INFO (message_handling): Message is valid.[0m
+[38;21m[2026-08-10 03:57:45,156] INFO (tcp_client): Payload type: 32769[0m
+[38;21m[2026-08-10 03:57:45,156] DEBUG (tcp_client): Received EXI msg to be decoded: 8040 0040 (tcp_client.py:118)[0m
+[38;21m[2026-08-10 03:57:45,157] INFO (message_handling): Supported App Protocol message to be decoded[0m
+[38;21m[2026-08-10 03:57:45,210] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s0:supportedAppProtocolRes xmlns:s0="urn:iso:15118:2:2010:AppProtocol" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><ResponseCode>OK_SuccessfulNegotiation</ResponseCode><SchemaID>1</SchemaID></s0:supportedAppProtocolRes>[0m
+[38;21m[2026-08-10 03:57:45,256] INFO (tcp_client): Received SupportedAppProtocolRes.[0m
+[38;21m[2026-08-10 03:57:45,288] INFO (wait_for_supported_app_protocol_response): Successful negotiation.[0m
+[38;21m[2026-08-10 03:57:45,289] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:SessionSetupReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>3030303030303030</ns1:SessionID>
+    <ns1:TimeStamp>1786334265</ns1:TimeStamp>
+  </ns1:Header>
+  <ns0:EVCCID>EDFVFR123456789ZZZZ8</ns0:EVCCID>
+</ns0:SessionSetupReq>
+ (tcp_client.py:162)[0m
+[38;21m[2026-08-10 03:57:45,289] INFO (message_handling): Common message to be encoded[0m
+[38;21m[2026-08-10 03:57:45,289] INFO (message_handling): Message is valid against Schema XSD[0m
+[38;21m[2026-08-10 03:57:45,291] DEBUG (tcp_client): Encoded EXI message: 808C0418181818181818180B998E5D30620B22A 2232B23291899199A1A9B1B9C1CAD2D2D2D1C00 (tcp_client.py:174)[0m
+[38;21m[2026-08-10 03:57:45,291] INFO (tcp_client): Sent SessionSetupReq.[0m
+[38;21m[2026-08-10 03:57:45,329] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 5).[0m
+[38;21m[2026-08-10 03:57:45,329] INFO (message_handling): Message is valid.[0m
+[38;21m[2026-08-10 03:57:45,329] INFO (tcp_client): Payload type: 32770[0m
+[38;21m[2026-08-10 03:57:45,330] DEBUG (tcp_client): Received EXI msg to be decoded: 809004369F14B1744D01368B998E5 D30620402D1114A905090CA914C40 (tcp_client.py:118)[0m
+[38;21m[2026-08-10 03:57:45,330] INFO (message_handling): Common message to be decoded[0m
+[38;21m[2026-08-10 03:57:45,332] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:SessionSetupRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>6D3E2962E89A026D</s2:SessionID><s2:TimeStamp>1786334265</s2:TimeStamp></s2:Header><s2:ResponseCode>OK_NewSessionEstablished</s2:ResponseCode><s1:EVSEID>DE*ABC*E1</s1:EVSEID></s1:SessionSetupRes>[0m
+[38;21m[2026-08-10 03:57:45,333] INFO (tcp_client): Received SessionSetupRes.[0m
+[38;21m[2026-08-10 03:57:45,334] INFO (wait_for_session_setup_response): Negotiated session id is: b'm>)b\xe8\x9a\x02m'.[0m
+[38;21m[2026-08-10 03:57:45,334] DEBUG (tcp_client): XML message to be sent: <?xml version="1.0" encoding="UTF-8"?>
+<ns0:AuthorizationSetupReq xmlns:ns0="urn:iso:std:iso:15118:-20:CommonMessages">
+  <ns1:Header xmlns:ns1="urn:iso:std:iso:15118:-20:CommonTypes">
+    <ns1:SessionID>6D3E2962E89A026D</ns1:SessionID>
+    <ns1:TimeStamp>1786334265</ns1:TimeStamp>
+  </ns1:Header>
+</ns0:AuthorizationSetupReq>
+ (tcp_client.py:162)[0m
+[38;21m[2026-08-10 03:57:45,335] INFO (message_handling): Common message to be encoded[0m
+[38;21m[2026-08-10 03:57:45,335] INFO (message_handling): Message is valid against Schema XSD[0m
+[38;21m[2026-08-10 03:57:45,336] DEBUG (tcp_client): Encoded EXI message: 800804369F14B1744 D01368B998E5D3062 (tcp_client.py:174)[0m
+[38;21m[2026-08-10 03:57:45,337] INFO (tcp_client): Sent AuthorizationSetupReq.[0m
+[38;21m[2026-08-10 03:57:45,340] INFO (tcp_client): Received response from ('fe80::42:acff:fe1e:2', 15118, 0, 5).[0m
+[38;21m[2026-08-10 03:57:45,340] INFO (message_handling): Message is valid.[0m
+[38;21m[2026-08-10 03:57:45,340] INFO (tcp_client): Payload type: 32770[0m
+[38;21m[2026-08-10 03:57:45,340] DEBUG (tcp_client): Received EXI msg to be decoded: 800C04369F14B1744D01368B998E5D30620020 1208691B10BE8CD523D3782CA5341D6A92A290 (tcp_client.py:118)[0m
+[38;21m[2026-08-10 03:57:45,340] INFO (message_handling): Common message to be decoded[0m
+[38;21m[2026-08-10 03:57:45,342] INFO (tcp_client): Message successfully decoded <?xml version="1.0" encoding="UTF-8"?><s1:AuthorizationSetupRes xmlns:s1="urn:iso:std:iso:15118:-20:CommonMessages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s0="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="urn:iso:std:iso:15118:-20:CommonTypes"><s2:Header><s2:SessionID>6D3E2962E89A026D</s2:SessionID><s2:TimeStamp>1786334265</s2:TimeStamp></s2:Header><s2:ResponseCode>OK</s2:ResponseCode><s1:AuthorizationServices>PnC</s1:AuthorizationServices><s1:AuthorizationServices>EIM</s1:AuthorizationServices><s1:CertificateInstallationService>true</s1:CertificateInstallationService><s1:PnC_ASResAuthorizationMode><s1:GenChallenge>0jYhfRmqR6bwWUpoOtUlRQ==</s1:GenChallenge></s1:PnC_ASResAuthorizationMode></s1:AuthorizationSetupRes>[0m
+[38;21m[2026-08-10 03:57:45,342] INFO (tcp_client): Received AuthorizationSetupRes.[0m
+Fatal error: protocol.data_received() call failed.
+protocol: <evcc.tcp_client.TCPClientProtocol object at 0x7aa72c638cd0>
+transport: <_SelectorSocketTransport fd=24 read=polling write=<idle, bufsize=0>>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/asyncio/selector_events.py", line 862, in _read_ready__data_received
+    self._protocol.data_received(data)
+  File "/app/evcc/../evcc/tcp_client.py", line 83, in data_received
+    self.process_incoming_message(packet)
+  File "/app/evcc/../evcc/tcp_client.py", line 134, in process_incoming_message
+    reaction = self.get_current_state().process_payload(xml_object)
+  File "/app/evcc/states/wait_for_authorization_setup_response.py", line 36, in process_payload
+    raise NotImplementedError
+NotImplementedError
+[31;21m[2026-08-10 03:57:45,345] ERROR (tcp_client): . (tcp_client.py:96)[0m
