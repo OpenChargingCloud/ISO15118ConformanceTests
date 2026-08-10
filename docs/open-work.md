@@ -44,7 +44,9 @@ weaker claim than it looks and worth separating from "untested".
 - **Signed tariffs, -20** (Josev) — their AC EVCC consumed our signed `AbsolutePriceSchedule`; nothing
   external verifies the signature.
 - **Renegotiation, -20** (Josev) — their EV sends a real `SessionStopReq(ServiceRenegotiation)`
-  [V2G20-1477] and then drops the link anyway.
+  [V2G20-1477] and then drops the link anyway — their `SessionStop` state sets `next_state = ServiceDiscovery`
+  without building the request that state needs, and their framework raises on it. Filed:
+  [`josev-iso20-renegotiation.md`](reports/josev-iso20-renegotiation.md).
 - **Plug & Charge, -2** (EVerest) — chain accepted and our signature verified, but their SIL has no
   contract-validating backend, so nothing decides whether the contract is *good*.
 
@@ -271,7 +273,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Twenty-nine filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Thirty filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
