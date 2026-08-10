@@ -62,7 +62,7 @@ August. Behind the mux, that strictness is unreachable in either direction.
 > *shall not* addressed to the SECC — with the connection at TLS 1.2 or below it must not select `-20`
 > from the `SupportedAppProtocolReq` — restated as `[V2G20-1237]` for the EVCC and as `[V2G20-1805]` for
 > both, all three pointing at Table 5, where `-20` sits in the 1.3 row only.
-> [`reports/everest-isomux-iso20-over-tls12.md`](../../reports/everest-isomux-iso20-over-tls12.md) is the
+> [`reports/everest-isomux.md`](../../reports/everest-isomux.md) is the
 > nineteenth filing, and it leads with the consequence rather than the clause: a `-20`-only EV gets alert
 > 70 and a backward-compatible one must drop `-20` from its offer on the 1.2 connection, so **their `-20`
 > backend is unreachable by any conformant EVCC** and reachable only by one that is not.
@@ -77,7 +77,7 @@ August. Behind the mux, that strictness is unreachable in either direction.
 >
 > Finding 3 below went the same way and got its own filing the same day, the **twentieth**:
 > `[V2G2-169]` and `[V2G20-169]` both make selecting by the EV's ranking a *shall*
-> ([`reports/everest-isomux-sap-priority.md`](../../reports/everest-isomux-sap-priority.md)). Same `if`,
+> ([`reports/everest-isomux.md`](../../reports/everest-isomux.md)). Same `if`,
 > two reports, deliberately — different defects, different fixes, and one of them has an answer a
 > maintainer could reasonably give that the other does not.
 

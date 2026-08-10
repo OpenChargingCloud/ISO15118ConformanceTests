@@ -12,11 +12,10 @@ run notes, with [`their-evse-security-mqtt.log`](../interop-runs/2026-08-10-ever
 [`their-charger.log`](../interop-runs/2026-08-10-everest-ocsp-stapling/their-charger.log) and
 [`their-cert-layout.txt`](../interop-runs/2026-08-10-everest-ocsp-stapling/their-cert-layout.txt).
 
-Five other reports for the same project are in
+Three other reports for the same project are in
 [`everest-loop-shutdown.md`](everest-loop-shutdown.md),
 [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md),
-[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md),
-[`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md) and
+[`everest-isomux.md`](everest-isomux.md) (four findings in that one module, merged) and
 [`everest-evsev2g-session-log-responses.md`](everest-evsev2g-session-log-responses.md), plus
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) and one to your fork of Josev's
 certificate script ([`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md)). **File them separately.**

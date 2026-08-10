@@ -82,7 +82,7 @@ surprising in a way a one-line comment in their loop would fix.
 > **Checked 2026-08-09, and it is a defect.** `[V2G2-169]` makes selecting the EV's highest-ranked
 > protocol a *shall*, and `[V2G20-169]` says it again in the `-20` series, so the `-2` document caveat
 > in [`normative-basis.md`](../../normative-basis.md) does not decide anything here. Filed as the
-> twentieth: [`reports/everest-isomux-sap-priority.md`](../../reports/everest-isomux-sap-priority.md).
+> twentieth: [`reports/everest-isomux.md`](../../reports/everest-isomux.md).
 > The report leads with neither clause, because reading their tree turned up something better —
 > **`EvseV2G` and `Evse15118D20` both read `Priority` correctly**, each citing the requirement in a
 > comment, and `v2g_sniff_apphandshake()` is a stripped copy of `EvseV2G`'s handler with exactly those
@@ -128,7 +128,7 @@ V2G_INTEROP_SECC=127.0.0.1:15153 V2G_INTEROP_PROTOCOL=both V2G_INTEROP_SAP_FIRST
   list — after checking the requirement text, so the report says which of the two it is.~~
   **Done 2026-08-09**, and separately rather than together: the requirement text arrived on 2026-08-08
   and says it is a defect (`[V2G2-169]`, `[V2G20-169]`), so it is its own filing —
-  [`reports/everest-isomux-sap-priority.md`](../../reports/everest-isomux-sap-priority.md).
+  [`reports/everest-isomux.md`](../../reports/everest-isomux.md).
 - ~~**`config-sil-dc-isomux-tls.yaml`**, still untried.~~ **Done 2026-08-06**: it confirmed the priority
   handling a third time and added a sharper finding — the mux serves **TLS 1.2 only**, so a both-offer gets
   a complete **-20 session over TLS 1.2**, and a conformant -20 EV cannot reach the -20 backend at all

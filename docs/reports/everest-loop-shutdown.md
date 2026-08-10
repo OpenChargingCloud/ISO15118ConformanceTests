@@ -11,10 +11,9 @@ The original 2025.10.0 sightings are in
 [`2026-08-03-everest-iso20-dc-tls13`](../interop-runs/2026-08-03-everest-iso20-dc-tls13/notes.md) and
 [`2026-08-03-everest-iso20-dc-full-charge`](../interop-runs/2026-08-03-everest-iso20-dc-full-charge/notes.md).
 
-Four other reports for the same project, all unrelated to this one, are in
+Three other reports for the same project, all unrelated to this one, are in
 [`everest-iso20-ac-contactor-latch.md`](everest-iso20-ac-contactor-latch.md),
-[`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md),
-[`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md) and
+[`everest-isomux.md`](everest-isomux.md) (four findings in that one module, merged) and
 [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md). **File them separately.**
 
 ## Before the defect — what everest-core has been worth to us
@@ -154,7 +153,7 @@ what this one dies on**, and nothing about the deployment makes surviving it imp
 
 Worth saying because of where it leaves the exposure. Behind `IsoMux` this defect is unreachable — not
 because it is handled, but because the mux never lets a TLS 1.3 hello through to the backend at all,
-which is [its own separate report](everest-isomux-iso20-over-tls12.md). Where the
+which is [its own separate report](everest-isomux.md). Where the
 defect bites is `Evse15118D20` **addressed directly**, which is exactly what your shipped
 `config-sil-dc-d20.yaml` does, and what the reproduction below uses.
 
@@ -243,8 +242,7 @@ We would happily send a PR for either, if you agree with the shape:
       that were listed here as unfilable — the mux's TLS-1.2-only termination in front of a -20
       backend (*"a layering question"*) and `IsoMux` ignoring SAP `Priority` (*"rests on requirement
       text we do not hold"*) — both have their own drafts since 2026-08-09, when that text arrived:
-      [`everest-isomux-iso20-over-tls12.md`](everest-isomux-iso20-over-tls12.md) and
-      [`everest-isomux-sap-priority.md`](everest-isomux-sap-priority.md). The `PyEvJosev` manifest one
+      both sections of [`everest-isomux.md`](everest-isomux.md). The `PyEvJosev` manifest one
       has its own too.
 - [ ] **Post under your own name, in your own words.** Keep a sentence on how it was hit in practice —
       a third-party EVCC against `Evse15118D20`, not a fuzzer — because that tells a maintainer whether

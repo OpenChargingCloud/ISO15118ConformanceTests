@@ -267,7 +267,7 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **ten** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **seven** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
 - **`IsoMux`'s TLS server boots with `trusted_ca_keys support disabled`.** It asks libevse-security for
@@ -279,7 +279,7 @@ sent — they are the operator's to post, under their own name.
   with one V2G root nothing shows, with two the mux serves the first and an EV holding the other
   abandons the handshake per `[V2G2-924]`. Two log lines from 2026-08-06, unread until 2026-08-10
   ([`…-isomux-trusted-ca-keys`](interop-runs/2026-08-10-everest-isomux-trusted-ca-keys/notes.md)).
-  Filed: [`everest-isomux-trusted-ca-keys.md`](reports/everest-isomux-trusted-ca-keys.md). **The
+  Filed: [`everest-isomux.md`](reports/everest-isomux.md). **The
   failing case has not been run** — it needs two roots and an EV that sends the extension; ours does
   not.
 - **`IsoMux` reports that it could not read the message, and then handles it.** A failed
@@ -290,7 +290,7 @@ sent — they are the operator's to post, under their own name.
   has the `goto error_out` it lost. Sat unread in a station log from 2026-08-03 for a week;
   reproduced deliberately on 2026-08-10 with a control connection differing by two bytes
   ([`…-isomux-shortread`](interop-runs/2026-08-10-everest-isomux-shortread/notes.md)). Filed:
-  [`everest-isomux-continues-after-read-failure.md`](reports/everest-isomux-continues-after-read-failure.md).
+  [`everest-isomux.md`](reports/everest-isomux.md).
   **Third finding in this module**, alongside the SAP-priority and TLS-1.2 ones.
 - **No EVerest station staples an OCSP response, and one missing line is why.** `EvseV2G` asks
   libevse-security for the OCSP data belonging to its certificate chain (`include_ocsp = true`);
@@ -336,7 +336,7 @@ sent — they are the operator's to post, under their own name.
   this is a routing policy, not an unread field. Confirmed on the wire against 2025.10.0 **and**
   2026.02.1, and a third time over TLS — the same 79-byte request and the same 12-byte answer all three
   times. **Decided and filed 2026-08-09**:
-  [`everest-isomux-sap-priority.md`](reports/everest-isomux-sap-priority.md). `[V2G2-169]` and
+  [`everest-isomux.md`](reports/everest-isomux.md). `[V2G2-169]` and
   `[V2G20-169]` both make selecting the EV's highest-ranked protocol a *shall*, so the policy conflicts
   with a requirement after all — and the `-2` caveat is answered rather than declared here, the `-20`
   clause and the 2019 manual (written to the 2014 edition) saying the same thing
@@ -351,7 +351,7 @@ sent — they are the operator's to post, under their own name.
   is fixed before the protocol is known. A dual-stack EV gets a complete **ISO 15118-20 session over
   TLS 1.2**; a -20 EV that pins its own profile gets alert 70 and never reaches the backend at all.
   Nothing on that path is in a position to object.
-  **Filed 2026-08-09:** [`everest-isomux-iso20-over-tls12.md`](reports/everest-isomux-iso20-over-tls12.md).
+  **Filed 2026-08-09:** [`everest-isomux.md`](reports/everest-isomux.md).
   `[V2G20-2356]` forbids an SECC to select -20 on a connection at TLS 1.2 or below, and the two halves
   above together mean the -20 backend is reachable *only* by an EV that breaks the mirror requirement
   `[V2G20-1237]` — which ours did, and which is now an item of our own in
