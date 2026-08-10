@@ -146,7 +146,19 @@ Three, all reported in the run notes with the code that causes them:
 3. **An EVSE offering PnC *and* EIM breaks their EV.** Their
    `wait_for_authorization_setup_response.py` walks the offered list and raises `NotImplementedError` on
    the first entry it does not support, even though EIM — which it does support — is the very next entry.
-   An EVSE offering PnC alongside EIM is the ordinary case in the field.
+   An EVSE offering PnC alongside EIM is the ordinary case in the field, and `[V2G20-2566]` says so:
+   the SECC may offer EIM, or PnC, or both.
+   **Filed 2026-08-10** as their issue 4:
+   [`reports/evdriveflow-authorization-setup.md`](reports/evdriveflow-authorization-setup.md).
+   <br>It was nearly filed as two. The termination we saw behind it looked like a second protocol
+   defect, and `[V2G20-1577]` would have made it one — the EVCC *shall* send an `AuthorizationReq`
+   after an `AuthorizationSetupRes` with `OK` and `CertificateInstallationService = False`. It is not:
+   it is the `stdin` wall below, already filed as issue 1. **The report was rewritten before it went
+   anywhere**, and half of it is now the paragraph explaining that, since without it the report reads
+   as a duplicate. The section below is exactly where that trap lies for the next reader.
+   <br>What is *not* closed: every observation of this defect was taken with the stdin bug also
+   active. Nobody has yet run their EV with stdin open **and** a PnC-and-EIM offer — the run that would
+   show it alone. First item on the report's checklist.
 
 Findings 1 and 3 were worked around **in their copy, inside a throwaway container**, to get past them.
 Our stack was not changed for either. One note on method that is worth keeping: the finding-1 workaround
