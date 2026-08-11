@@ -63,6 +63,23 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
+- **Our `-20` station has one sequence timeout for every message type, and `-20` does not.**
+  `Secc20Base(TimeSpan sequenceTimeout, …)` takes a single value and applies it in every phase, so it is
+  the same shape as [the defect filed against EVerest on 2026-08-11](reports/everest-d20-sequence-timeout.md):
+  Table 215 gives 60 s for *all other messages*, and Tables 216 and 217 — obliged by `[V2G20-1500]` and
+  `[V2G20-1502]` — override it to **0,5 s** after `AC_ChargeLoopRes` and `DC_ChargeLoopRes`, the phase
+  in which the contactor is closed.
+  <br>Nobody has measured ours either, and now the instrument exists:
+  `Evcc20Base.GoSilentInChargeLoop` was added to measure theirs and works just as well against a
+  loopback. **The fix and its test are the same piece of work** — a per-message-type lookup at the one
+  place the timer is armed, plus a loopback test that goes silent in the charge loop and asserts the
+  station gives up inside a second.
+  <br>The `-2` side needs the same reading before it is called done: `[V2G2-443]` et al. put
+  `V2G_SECC_Sequence_Timeout` at 60 s there too, and whether `-2` has charge-loop overrides is a
+  question for the document rather than an assumption from `-20`.
+  <br>Recorded rather than fixed on the day it was found, because the filing it came from was the
+  turn's work; it is the next thing in this section rather than a someday item.
+
 - ~~**Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.**~~ **The `-2` half is fixed
   2026-08-11**, stack branch `iso2-unknown-session`; **the `-20` half is still open** and the reason is
   below. Found while reading EVerest's `-2` station for the same rule: `FAILED_UnknownSession` appeared
@@ -326,7 +343,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Thirty-one filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Thirty-two filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~

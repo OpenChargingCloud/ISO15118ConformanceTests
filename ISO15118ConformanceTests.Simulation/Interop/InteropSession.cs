@@ -61,7 +61,8 @@ internal static class InteropSession
     /// is the -2 mechanism: a run that asked under `[V2G20-1081]` and got nothing back is a finding about
     /// the station, and it is invisible in an exchange count.</param>
     public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent,
-                                     UInt16? SelectedEnergyServiceId = null, Int32 MeterInfoResponses = 0);
+                                     UInt16? SelectedEnergyServiceId = null, Int32 MeterInfoResponses = 0,
+                                     TimeSpan? SilenceEndedAfter = null);
 
 
     /// <summary>
@@ -116,10 +117,15 @@ internal static class InteropSession
     /// request, which `[V2G20-1081]` makes the EV's way of asking and `[V2G20-1082]` makes the station's
     /// duty to answer. Set by <c>V2G_INTEROP_METER=1</c>. Off by default, so every earlier run and every
     /// vector keeps the field <c>false</c> it was recorded with.</param>
+    /// <param name="silentInChargeLoop">-20 only: after one charge-loop iteration, stop sending and hold
+    /// the connection open for this long, to measure when the station ends the session by itself. Set by
+    /// <c>V2G_INTEROP_SILENT=&lt;seconds&gt;</c>. A run that sets it does not charge — it measures
+    /// <c>V2G_SECC_Sequence_Timeout</c>, which nothing here could do before.</param>
     public static async Task<EvccOutcome> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
                                                        PncEvccOptions? pnc = null, Boolean mcs = false,
-                                                       Boolean bptFirst = false, Boolean requestMeterInfo = false)
+                                                       Boolean bptFirst = false, Boolean requestMeterInfo = false,
+                                                       TimeSpan? silentInChargeLoop = null)
     {
 
         if (mcs)
@@ -153,10 +159,12 @@ internal static class InteropSession
         evcc20.PreferBidirectionalService = bptFirst;
         evcc20.Pnc                       = pnc;
         evcc20.RequestMeterInfo          = requestMeterInfo;
+        evcc20.GoSilentInChargeLoop      = silentInChargeLoop;
 
         await evcc20.RunAsync(ct);
         return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,
-                               evcc20.SelectedEnergyServiceId, evcc20.MeterInfoResponses);
+                               evcc20.SelectedEnergyServiceId, evcc20.MeterInfoResponses,
+                               evcc20.SilenceEndedAfter);
 
     }
 
