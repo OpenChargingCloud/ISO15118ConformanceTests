@@ -267,8 +267,20 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **sixteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
-sent — they are the operator's to post, under their own name.
+Written up per run; **seventeen** are drafted for filing under [`docs/reports/`](reports/) and none has
+been sent — they are the operator's to post, under their own name.
+
+> **Everything below was read against `2026.02.1`, the release. On 2026-08-11 every finding was
+> re-tested against everest-core `main`** ([audit](interop-runs/2026-08-11-reports-upstream-audit/notes.md))
+> and **three of them are fixed there**: the `-20` AC contactor latch, the accept-loop shutdown's TLS
+> trigger, and the `-20` AC namespace filter. Two more had their *argument* overtaken without changing
+> the observable behaviour — OCSP and client-auth, both because the `-20` TLS layer was rebased onto
+> `lib/everest/tls`. Each entry below says where it stands. Twelve are unchanged on `main`, verbatim.
+>
+> Two related traps, both paid for once: **the standalone `EVerest/libiso15118` is not maintained** —
+> it still shows every one of these and decides nothing — and a marker broad enough to survive a
+> refactor reports *unchanged* for code that was rewritten around it, which nearly hid the namespace
+> fix.
 
 - **A malformed contract certificate in `PaymentDetailsReq` crashes the module.**
   `handle_iso_payment_details` parses the EV's contract certificate at `iso_server.cpp:982`, **uses**
@@ -457,11 +469,17 @@ sent — they are the operator's to post, under their own name.
 - **`Evse15118D20` never staples an OCSP response, and has nowhere to put one.** Asked with
   `openssl s_client -status` — the extension `[V2G20-2372]` obliges every `-20` EV to send — their
   station answers **`OCSP response: no response sent`** on TLS 1.2 and on TLS 1.3, and logs nothing,
-  because `libiso15118` has no OCSP code at all. Three independent gaps, each sufficient: the module
-  asks for its certificate with `include_ocsp = false`, `SSLConfig` has no member to carry the data, and
-  `init_ssl()` installs no `SSL_CTX_set_tlsext_status_cb`. **Not the same issue as the dropped `ocsp`
-  member** — that one is `EvseV2G`'s path, where the machinery exists and the data does not arrive; here
-  neither exists, so *neither fix alone produces a staple*. **Controlled**, because "your client never
+  because at `2026.02.1` `libiso15118` had no OCSP code at all: three independent gaps, each sufficient —
+  `include_ocsp = false`, no member on `SSLConfig` to carry the data, no `SSL_CTX_set_tlsext_status_cb`.
+  <br>**On `main` two of those three are gone** and the finding is better for it. The `-20` TLS layer
+  was rebased onto `lib/everest/tls`, which has the `OcspCache` and the `status_request` callback, and
+  `SSLConfig` grew a `chains` vector whose `ChainConfig` carries `ocsp_response_files`. What is left is
+  a module that asks with `include_ocsp = false` and passes `{}` — so the measurement is unchanged and
+  the ask went from *"implement OCSP"* to **three one-line changes in three files that only work in a
+  particular order**. Their own `<n> certificates != <n> OCSP responses` warning should now fire on
+  every `-20` start; predicted from the source, not yet observed. **Still not the same issue as the
+  dropped `ocsp` member** — that one is the conversion boundary, still present on `main`, and *neither
+  fix alone produces a staple*. **Controlled**, because "your client never
   asked" is the first objection: the same client and the same flag against `IsoMux` made their own
   `OcspCache::lookup` run on the digest of their own leaf. `[V2G20-2388]` obliges a public SECC to
   answer — with `[V2G20-2398]` the exemption to ask about, since this module has PnC commented out —
@@ -486,6 +504,17 @@ sent — they are the operator's to post, under their own name.
   not carried across
   ([`…-d20-client-auth`](interop-runs/2026-08-10-everest-d20-client-auth/notes.md)). Filed:
   [`everest-d20-client-auth.md`](reports/everest-d20-client-auth.md).
+  <br>**Re-argued 2026-08-11, and §1 got smaller.** On `main` the mechanism moved into
+  `lib/everest/tls` behind a flag, `verify_client_on_tls13`, with the reasoning written out: *-2 means
+  TLS 1.2 and no client certificate, -20 means TLS 1.3 and a client certificate.* That is **correct for
+  the library**, which serves both protocols from one code path — and wrong for `Evse15118D20`, which
+  serves only `-20` and opts into the leniency anyway (`out.verify_client = false`). So the defect is a
+  call site, the fix is one line, and it costs no conformant interop because `[V2G20-1237]` puts a
+  conformant `-20` EV on TLS 1.3 regardless. The assumption is also never checked downstream: the same
+  station that declined to authenticate the peer *because it looked like `-2`* then answers
+  `supportedAppProtocolReq(-20:DC)` with `OK`. §2 is unchanged at the new location — and two things
+  there now *look* like `certificate_authorities` and are not, the peer-side chain selection and
+  RFC 6066 `trusted_ca_keys`.
 - **A DC-only `Evse15118D20` accepts the `-20` **AC** message set.** Offered `-20:AC` and nothing else,
   a station with no AC hardware anywhere in its module graph answers `OK_SuccessfulNegotiation` and
   commits the session to the AC schema; `handle_request` puts both namespaces in one priority map and
@@ -494,10 +523,14 @@ sent — they are the operator's to post, under their own name.
   honoured, so this is the other half of the same requirement. Carried past the handshake with the car
   plugged in, the session spends session setup, an authorization and a token and then dies at
   `ServiceDiscovery` on services 2 and 6
-  ([`…-d20-ac-namespace`](interop-runs/2026-08-10-everest-d20-ac-namespace/notes.md)). Filed:
-  [`everest-d20-ac-namespace.md`](reports/everest-d20-ac-namespace.md). **The sibling of the `IsoMux`
-  routing finding, from the other side**: there the router reads the namespace and not the ranking,
-  here the backend reads the ranking and not its own capability.
+  ([`…-d20-ac-namespace`](interop-runs/2026-08-10-everest-d20-ac-namespace/notes.md)). Drafted:
+  [`everest-d20-ac-namespace.md`](reports/everest-d20-ac-namespace.md) — **withdrawn 2026-08-11,
+  fixed on `main` before it was ever sent.** `handle_request` now gates both namespaces on the
+  station's own energy services (`is_dc = … and modes.dc`), which is `[V2G20-169]`'s
+  filter-before-ranking, implemented, with a log line that reads like somebody working from the same
+  clause. **The sibling of the `IsoMux` routing finding, from the other side** — there the router reads
+  the namespace and not the ranking, here the backend read the ranking and not its own capability — and
+  **that sibling is not covered by this fix**: different file, different module, still live.
 - **`IsoMux`'s TLS server boots with `trusted_ca_keys support disabled`.** It asks libevse-security for
   its certificate through `get_leaf_certificate_info`, which carries `include_root = false`, so it has
   no root to put in `trust_anchor_pem`; its chain is then neither verified nor registered, and the
@@ -551,12 +584,19 @@ sent — they are the operator's to post, under their own name.
   unaffected because it publishes the message id and no bytes: the byte-level record exists only for
   -2/DIN, and it is the one that is wrong.
 - **An error anywhere on the accept path ends `Evse15118D20`'s whole event loop, sockets still bound.**
-  One defect, three triggers found: a unicast SDP request, TLS key logging, and a refused TLS handshake.
-  The station then keeps accepting connections and answers nothing, which from outside is
-  indistinguishable from a hung peer. On 2026.02.1 the unicast trigger is **fixed** and the refused-
-  handshake one **persists** — reachable from their *stock* SIL config with one `openssl s_client` line.
-  `IsoMux` does **not** share it (it survived two refused handshakes and kept accepting), which narrows
-  the report to the one module ([`everest-loop-shutdown.md`](reports/everest-loop-shutdown.md)).
+  One defect, three triggers found at the time: a unicast SDP request, TLS key logging, and a refused
+  TLS handshake. The station then keeps the SDP socket bound and answers nothing, while the module and
+  the manager both stay alive — so no supervisor built on process liveness can see it. On 2026.02.1 the
+  unicast trigger was **fixed** and the refused-handshake one **persisted**, reachable from their stock
+  SIL config with one `openssl s_client` line. `IsoMux` does **not** share it (it survived two refused
+  handshakes and kept accepting), which narrows the report to the one module.
+  <br>**On `main` the handshake trigger is fixed too — and the defect is not.** `TbdController::loop()`
+  still ends on any throw out of `poll()`; the fix was to stop the handshake throwing, not to stop the
+  loop dying. Rewriting the report on 2026-08-11 against `main` found **eight throw sites that still
+  reach it**, including the TLS-key-logging constructor, and a **second** fix of theirs carrying the
+  comment `// FIXME (aw): we should not die here immediately` — seventeen lines above a call in the same
+  function that still does exactly that. The report now leads with the loop and cites both of their
+  fixes as agreement ([`everest-loop-shutdown.md`](reports/everest-loop-shutdown.md)).
 - **`IsoMux` decides on *"does this EV do -20 at all"*, not on SAP `Priority`.** It walks the offer in
   array order and returns on the first namespace starting with `urn:iso:std:iso:15118:-20`, so an EV
   ranking -2 first still lands on -20. `Priority` is printed to their log two lines above the decision
@@ -624,8 +664,9 @@ Each of these is structural rather than a missing run:
   <br>**Reading their source to explain that wall, on 2026-08-09, turned up a defect beside it** —
   `d20::state::PowerDelivery` assigns the `ClosedContactor` event **pointer** to its `bool`, so a
   board-support module reporting the contactor *open* latches it closed, cancels the timeout that would
-  have refused, and answers `PowerDeliveryRes(OK)`. Filed the same day:
-  [`everest-iso20-ac-contactor-latch.md`](reports/everest-iso20-ac-contactor-latch.md), and
+  have refused, and answers `PowerDeliveryRes(OK)`. Drafted the same day:
+  [`everest-iso20-ac-contactor-latch.md`](reports/everest-iso20-ac-contactor-latch.md) — **withdrawn
+  2026-08-11, fixed on `main` by the missing `*` before it was ever sent** — and
   **reproduced against their running station that afternoon** — one command on their own MQTT
   interface, `OK` 95 ms later where the control waits 3.000 s and refuses, 2 of 2
   ([`2026-08-09-…-contactor-injection`](interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)).
@@ -666,4 +707,11 @@ The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux`
 and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against **2025.10.0** and
 re-validated against **2026.02.1 built from source**. The reverse direction runs and is recorded. There
 is no unattempted cell left in EVerest's column of the matrix; what remains is the list of walls above,
-and two reports waiting to be sent.
+and the drafts waiting to be sent.
+
+**As of 2026-08-11 those drafts were re-tested against everest-core `main`, not just the tag they were
+written against.** Two are withdrawn — the maintainers fixed them independently, which is the strongest
+external check this project's judgement has had. One was rewritten around what survived. Two had their
+argument replaced without their measurement changing. Twelve stand verbatim. The re-test is two scripts
+([`tools/reports-audit/`](../tools/reports-audit/README.md)) and is worth re-running before any of them
+goes out: `main` moves daily, and this column is the one that moves.

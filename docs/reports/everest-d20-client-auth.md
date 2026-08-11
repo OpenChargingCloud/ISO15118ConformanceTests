@@ -1,4 +1,4 @@
-# Draft report to EVerest — `Evse15118D20` lets the EV decide whether the EV is authenticated
+# Draft report to EVerest — a `-20`-only station inherits ISO 15118-2's client-auth leniency, so the EV decides whether the EV is authenticated
 
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: two `openssl s_client` handshakes against their stock configuration —
@@ -6,30 +6,29 @@ no EV, no client PKI, nothing of ours in the first two arms — and then a two-f
 the unauthenticated connection is good for. Post it under your own name; see *Before sending* at the
 bottom.
 
-> **⚠ Both findings survive on `main`, but the code moved and §1's open question is answered.** Checked
-> 2026-08-11 against everest-core `main` (`ebcd36d`)
+> **⚠ Re-argued 2026-08-11 against `main`, and §1 got smaller and sharper.** Checked against
+> everest-core `main` (`ebcd36d`)
 > ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)):
 >
-> - **The mechanism is the same, one library down.** `client_hello_cb`, the `supported_versions` scan
+> - **The mechanism moved one library down and is otherwise identical.** The `supported_versions` scan
 >   and the upgrade to `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT` now live in
->   `lib/everest/tls/src/tls.cpp:1001-1017`, with the same log line, reached from
->   `:1076` / `:1082` / `:1089`. `connection_ssl.cpp` sets `verify_client = false` and
->   `verify_client_on_tls13 = true` and hands them over. **Every `connection_ssl.cpp:*` citation in §1
->   below locates the 2026.02.1 code and nothing on `main` — re-anchor them before filing.**
-> - **§1's "is it deliberate?" is answered: yes.** Somebody named the flag `verify_client_on_tls13` and
->   wrote the comment *"upgrades to require a peer cert once TLS 1.3 is negotiated"*. That does not make
->   it meet `[V2G20-2400]`, which is unconditional — but it does mean the report must argue against a
->   documented design decision rather than report an oversight, and the *Suggested fix* has to say what
->   the flag should be for instead of proposing one.
-> - **§2 stands unchanged.** `lib/everest/tls/src/tls.cpp` contains no `SSL_CTX_set1_sigalgs`, no
->   `set1_groups`/`set1_curves` and no client-CA list on the server path, so `[V2G20-2401]`,
->   `[V2G20-1667]` and `[V2G20-2460]` are as absent there as they were in `connection_ssl.cpp`.
+>   `Server::handle_tls_1_3_verify_upgrade` (`lib/everest/tls/src/tls.cpp:997-1019`), same log line,
+>   behind a flag the caller sets. **Every `connection_ssl.cpp:NNN` citation in §1 below locates the
+>   2026.02.1 code and nothing on `main`** — the anchors have been updated in *Where it comes from*.
+> - **§1's open question — "is the TLS 1.2 path deliberate?" — is answered, and the answer moves the
+>   defect.** It is deliberate, it is documented, and **it is correct where it is written**:
+>   `lib/everest/tls` serves ISO 15118-2 (`EvseV2G`) and ISO 15118-20 (`Evse15118D20`) from the same
+>   code, and a dual-protocol library must not demand a client certificate on a `-2` connection. What
+>   is wrong is that a `-20`-**only** module opts into that leniency. **The fix is one line at the call
+>   site, not a change to the library** — which is a far easier thing to agree to than what this report
+>   asked for before.
+> - **§2 stands unchanged, at the new location.** `lib/everest/tls/src/tls.cpp` has no client-CA-list
+>   call of any kind, no `SSL_CTX_set1_sigalgs*` and no `set1_groups`/`set1_curves` on the server path,
+>   so `[V2G20-2401]`, `[V2G20-1667]` and `[V2G20-2460]` are as absent there as they were.
 > - The standalone `EVerest/libiso15118` still has the whole thing in `connection_ssl.cpp`, which is
->   the only reason the citations below still resolve anywhere — **that repository is not maintained**
->   and is not where this goes. Re-anchor against everest-core.
+>   the only reason the old citations still resolve anywhere — **that repository is not maintained**.
 >
-> Read from the source; not re-measured against a `main` build. The two `s_client` arms would have to be
-> re-run to claim the behaviour rather than the code.
+> Source only on `main`; the two `s_client` arms were **not** re-run against a `main` build.
 
 **Two issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
@@ -128,38 +127,68 @@ reach here.
 
 ### Where it comes from
 
-`lib/everest/iso15118/src/iso15118/io/connection_ssl.cpp`. The context default is refuse-nothing, and
-the `ClientHello` callback is the only thing that ever changes it:
+Two files on `main`, and they are not equally at fault.
+
+**The library is right.** `lib/everest/tls` terminates TLS for `EvseV2G` (ISO 15118-2) *and* for
+`Evse15118D20` (ISO 15118-20), so it cannot demand a client certificate unconditionally — a `-2`
+connection must not get a `CertificateRequest`. It expresses that as a flag the caller sets, with the
+reason written out:
 
 ```cpp
-// :278, in init_ssl()
-SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
-SSL_CTX_set_client_hello_cb(ctx, &client_hello_cb, nullptr);
+// lib/everest/tls/src/tls.cpp:1076-1083
+m_verify_client_on_tls13 = cfg.verify_client_on_tls13;
 
-// :132-146
-int client_hello_cb(SSL* ssl, int* /* alert */, void* /* object */) {
-    if (SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_supported_versions, &data, &datalen)) {
-        const auto tls_1_3_found = is_tls_1_3(data, datalen);      // :91 — scans the offered list
-        if (tls_1_3_found) {
-            logf_info("Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and "
-                      "SSL_VERIFY_FAIL_IF_NO_PEER_CERT");
+// 15118-2 mandates TLS 1.2 and no client certificate; 15118-20 mandates TLS 1.3 and
+// requires a client certificate. The dispatcher upgrades verify mode to require a peer
+// certificate for TLS 1.3 connections in handle_tls_1_3_verify_upgrade so that TLS 1.2
+// connections still honor cfg.verify_client below.
+int mode = cfg.verify_client ? (SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT) : SSL_VERIFY_NONE;
+```
+
+and the upgrade itself:
+
+```cpp
+// lib/everest/tls/src/tls.cpp:997-1019
+int Server::handle_tls_1_3_verify_upgrade(SSL* ssl, int* /*alert*/) {
+    if (not m_verify_client_on_tls13) { return SSL_CLIENT_HELLO_SUCCESS; }
+    …
+    if (SSL_client_hello_get0_ext(ssl, TLSEXT_TYPE_supported_versions, &data, &datalen) == 1) {
+        if (openssl::is_tls_1_3(data, datalen)) {
+            log_info("Client supports TLS1.3: Change verify mode to SSL_VERIFY_PEER and "
+                     "SSL_VERIFY_FAIL_IF_NO_PEER_CERT");
             SSL_set_verify(ssl, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
         }
     }
 ```
 
-The comment at `:269` says what was meant — *"Loading root certificates to verify client (only for tls
-1.3)"* — and `:234-235` is what leaves the other branch reachable: with `enforce_tls_1_3` false
-(`config.hpp:34`, `connection_ssl.cpp:54`, `Evse15118D20/manifest.yaml:22`) the minimum version is TLS
-1.2 and `:245` enables the ISO 15118-2 cipher suite for it.
+**The call site is where it goes wrong.** `Evse15118D20` speaks ISO 15118-20 and nothing else. It has
+no `-2` peers to be lenient for — and it opts into the leniency anyway:
 
-Everything downstream then behaves correctly for a connection with no peer certificate:
+```cpp
+// lib/everest/iso15118/src/iso15118/io/connection_ssl.cpp:89-90
+out.verify_client = false; // verify_client_on_tls13 upgrades to require a peer cert once TLS 1.3 is negotiated
+out.verify_client_on_tls13 = true;
+```
+
+`verify_client = false` is the ISO 15118-2 answer, configured into a module that never serves ISO
+15118-2. The comment beside it is accurate about the mechanism and silent about the mismatch.
+
+**And the assumption behind the comment is never checked.** *"15118-2 mandates TLS 1.2"* is a statement
+about what a conformant `-2` peer does — it is not a test that the peer on this socket is one. Nothing
+downstream re-examines it: `d20/state/supported_app_protocol.cpp` is handed the request and the custom
+namespace and not the negotiated TLS version, so the same station that declined to authenticate the
+peer *because it looked like `-2`* then answers `supportedAppProtocolReq(-20:DC)` with
+`OK_SuccessfulNegotiation` — which is what *What it costs* above measured. The inference is made in one
+place and contradicted in another, and neither knows about the other.
+
+Everything downstream then behaves correctly for a connection with no peer certificate, which is why
+nothing complains (2026.02.1 line numbers; the structure is unchanged):
 
 | | |
 |---|---|
-| `:486` | `if (SSL_get_verify_mode(ssl_ptr) != SSL_VERIFY_NONE and peer)` — the whole post-handshake certificate block is skipped |
-| `:499` | so `vehicle_cert_hash` is never filled |
-| `d20/state/session_setup.cpp:99` | `not vehicle_cert_hash.has_value()` → **always a new session**, so pause/resume on such a connection silently cannot work |
+| `connection_ssl.cpp:486` | `if (SSL_get_verify_mode(ssl_ptr) != SSL_VERIFY_NONE and peer)` — the whole post-handshake certificate block is skipped |
+| `connection_ssl.cpp:499` | so `vehicle_cert_hash` is never filled |
+| `d20/state/session_setup.cpp:99` | `not vehicle_cert_hash.has_value()` → **always a new session**, so `[V2G20-2677]` pause/resume on such a connection silently cannot work |
 
 ### Why we think it is worth fixing
 
@@ -183,20 +212,34 @@ flight, before anything of yours has run.
 
 ### Suggested direction
 
-More than one shape is reasonable and which belongs in your tree is yours to choose:
+**The change we would actually make is one line**, and it is in your module rather than your library:
 
-1. **Verify unconditionally.** `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT` at `:278`, and let
-   `client_hello_cb` go back to being a log line. This is the `-20` behaviour `[V2G20-2400]` asks for
-   and needs the fewest words to explain.
-2. **Or refuse `-20` on a connection that is not TLS 1.3.** If the TLS 1.2 path exists so the same
-   process can serve ISO 15118-2, the version has to reach the SAP handler — which today it does not:
-   `d20/state/supported_app_protocol.cpp` takes the request and the custom namespace and nothing else.
-   That is `[V2G20-2356]` and it also answers the anonymous-session half.
-3. **Or make it configurable and default it closed** — `enforce_tls_1_3` already exists; a second
-   config value that gates client authentication independently would at least make the current
-   behaviour something an operator chose.
-4. **Whatever you choose, drop the version test from the callback.** Deriving a security property from
-   what the peer offered is the part we would flag even if the standard were silent.
+```cpp
+// connection_ssl.cpp:89 — a -20-only station has no -2 peers to be lenient for
+out.verify_client = true;
+```
+
+`verify_client_on_tls13` can stay exactly as it is; it is right for `EvseV2G`, which is what it was
+written for.
+
+**It costs no conformant interop**, which is the part worth putting in the issue: `[V2G20-1237]` and
+`[V2G20-2356]` mean a conformant `-20` EV is on TLS 1.3 anyway, so the connections this newly refuses
+are the ones `[V2G20-2356]` says the station should not have been serving `-20` on. The only peers
+affected are the ones the standard already excludes.
+
+Two alternatives, if you would rather not change the default:
+
+1. **Make it configurable and default it closed.** `enforce_tls_1_3` already exists in the manifest; a
+   second value gating client authentication would at least make the current behaviour something an
+   operator chose rather than something an EV chose.
+2. **Or close the other half instead** — refuse `-20` on a connection that is not TLS 1.3. That needs
+   the negotiated version to reach `d20/state/supported_app_protocol.cpp`, which today it does not.
+   That is `[V2G20-2356]` and it answers the anonymous-session half rather than the missing
+   `CertificateRequest`.
+
+**What we would not suggest any more:** changing the version test in the library. On the previous draft
+of this report that was suggestion 1, and it was wrong — it would break `EvseV2G`, which needs exactly
+the behaviour the flag provides.
 
 ---
 
@@ -237,15 +280,30 @@ roots. This one holds two: it loaded them at `:270` and `:274` and logged no com
 
 ### Where it comes from
 
-One cause for all three: nothing configures them. In the whole of `lib/everest/iso15118` there is no
-`SSL_CTX_set_client_CA_list`, no `SSL_CTX_add_client_CA`, no `set1_groups_list` and no
-`set1_sigalgs_list`. The roots loaded at `:270`/`:274` go into the verify store, which is a different
-thing from the list advertised in the `CertificateRequest`.
+One cause for all three: nothing configures them, and on `main` the place where nothing configures them
+has moved. In the whole of `lib/everest/tls/src/tls.cpp` there is **no client-CA-list call of any
+kind** — no `SSL_CTX_set_client_CA_list`, no `SSL_CTX_add_client_CA`, no `SSL_CTX_set0_CA_list` — and no
+`set1_groups`/`set1_curves` and no `set1_sigalgs` on the server path. `configure_verify_locations`
+(`tls.cpp:667-695`) calls `SSL_CTX_load_verify_locations` for the V2G and MO roots, which fills the
+**verify store**; that is a different thing from the list advertised in the `CertificateRequest`, and it
+is the only thing the roots are used for.
 
-The extension was clearly on the author's mind from the receiving side — `:148-151` logs
-*"Extension certificate_authorities found!"* with a `TODO`, and `SSL_CTX_set_cert_cb` at `:283` is
-commented out above a `handle_certificate_cb` that reads `SSL_get0_peer_CA_list`. What is missing is the
-sending side.
+### Two things that look like this and are not — please read before replying
+
+Both are on `main` and both would make a reasonable person say *"but we do handle
+`certificate_authorities`"*:
+
+- **`ChainConfig`'s doc comment** (`iso15118/config.hpp:26-27`) says multiple chains support *"TLS 1.3
+  multi-chain selection driven by the peer's `certificate_authorities` extension (RFC 8446 §4.2.4)"*.
+  That is the server **reading** the extension the EV sent, to pick which chain to present.
+  `[V2G20-2401]` is about the server **sending** it, in its own `CertificateRequest`, so the EV can pick
+  its contract or vehicle certificate. Opposite directions, same extension name.
+- **`m_server_trusted_ca_keys.init_ssl(ctx)`** (`tls.cpp:1087`) initialises `trusted_ca_keys` —
+  **RFC 6066**, a different extension from RFC 8446's `certificate_authorities`, and the one
+  `[V2G2-651]` is about in the ISO 15118-2 world. Its absence in `IsoMux` is
+  [a separate finding](everest-isomux.md) §4. It does not populate a `CertificateRequest` either.
+
+So the receiving side was on somebody's mind twice. The sending side is what is missing.
 
 ### Why we think it is worth fixing
 
@@ -305,19 +363,32 @@ call each, and a test house will look at both.
       `:269-278`, `:280`, `:283`, `:486`, `:499`; `config.hpp:34`;
       `Evse15118D20/manifest.yaml:22`; `d20/state/session_setup.cpp:99` — read from the built 2026.02.1
       source on 2026-08-10, **re-verified 2026-08-11** in the sweep over all 189 `file:line` citations
-      in this directory. **They are 2026.02.1 line numbers**: on everest-core `main` this code lives in
-      `lib/everest/tls/src/tls.cpp` (see the box at the top). They still resolve against the
-      standalone `EVerest/libiso15118`, which is unmaintained and therefore no help.
-- [x] **Ask whether the TLS 1.2 path is deliberate — answered 2026-08-11: it is.** everest-core `main`
-      carries the identical mechanism behind a named flag, `verify_client_on_tls13`, with a comment
-      explaining it. Do not open §1 as an oversight; open it as *this flag is set true unconditionally
-      and `[V2G20-2400]` is unconditional the other way*, and expect the dual-protocol argument in the
-      first reply rather than having to invite it.
-- [ ] **Lead with the one sentence.** *Your station asks for a vehicle certificate when the EV offers
-      TLS 1.3, and asks for nothing when it does not — the EV chooses.* Everything else is support.
+      in this directory. **They are 2026.02.1 line numbers.** The `main` anchors —
+      `tls.cpp:667-695`, `:997-1019`, `:1076-1083`, `:1087`, `connection_ssl.cpp:89-90`,
+      `config.hpp:26-27` — were read on 2026-08-11 and are the ones to re-read on the day you post;
+      `main` moves daily. This report cites two revisions and labels which is which. The old anchors
+      still resolve against the standalone `EVerest/libiso15118`, which is unmaintained and no help.
+- [x] **Ask whether the TLS 1.2 path is deliberate — answered 2026-08-11, and it moved the defect.**
+      It is deliberate, documented, and **correct in the library**: `lib/everest/tls` serves `-2` and
+      `-20` from one code path and must not demand a client certificate on a `-2` connection. The defect
+      is that a `-20`-only module opts into that. **Do not open §1 against `lib/everest/tls`** — the
+      dual-protocol argument is not a reply to anticipate there, it is simply right, and the issue
+      would be closed on it. Open it against `Evse15118D20`'s call site.
+- [ ] **Lead with the one sentence, and it is a different sentence now.** *Your `-20`-only station
+      configures the TLS layer's ISO 15118-2 client-auth behaviour, so an EV that offers TLS 1.2 gets a
+      `-20` session without ever being asked for a certificate.* Everything else is support.
+- [ ] **Say the fix is one line at the call site.** `verify_client = true` in `connection_ssl.cpp`, and
+      it costs no conformant interop because `[V2G20-1237]`/`[V2G20-2356]` put a conformant `-20` EV on
+      TLS 1.3 anyway. A one-line diff that breaks nothing conformant is a very different conversation
+      from what this report asked for in its first draft.
+- [ ] **Get ahead of the two `certificate_authorities` look-alikes in §2.** The `ChainConfig` comment
+      (peer's extension, chain selection) and `trusted_ca_keys` (RFC 6066) both carry the words and
+      neither is `[V2G20-2401]`. §2 names both; keep that in the issue or the first reply will be
+      *"we do handle that"*.
 - [ ] **Say it needs no PKI and no EV.** Two `openssl s_client` calls. That is what will get it looked
       at today rather than next month.
-- [ ] **File two issues**, §1 and §2, and say in each that the other exists. §1 has an answer available
-      that would wrongly close §2.
+- [ ] **File two issues**, §1 and §2, and say in each that the other exists. §1 now has a *fix*
+      available — one line — that would leave every part of §2 standing, which is a sharper reason to
+      keep them apart than the one this checklist used to give.
 - [ ] **Mention the `IsoMux` sibling for `[V2G20-2356]`** if both are open at once.
 - [ ] **Post under your own name, in your own words.**

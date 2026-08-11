@@ -465,10 +465,13 @@ also below.
   carrying the comment `// FIXME (aw): we should not die here immediately`. They still show as defects in
   standalone `EVerest/libiso15118`, and **that repository is not maintained**; everest-core's
   `lib/everest/iso15118/` is the only tree that decides.
-  Two more need their argument rewritten before they are sendable
-  ([ocsp-absent](reports/everest-d20-ocsp-absent.md) rests on three absences and `main` has filled two;
-  [client-auth](reports/everest-d20-client-auth.md) §1 turns out to be a documented decision rather
-  than an oversight). **The rest of every checklist is judgement, and stays with a person.**
+  Two more needed their argument rewritten and **were rewritten on 2026-08-11**:
+  [ocsp-absent](reports/everest-d20-ocsp-absent.md) rested on three absences of which `main` has filled
+  two, so the ask is now three ordered one-line changes rather than "implement OCSP";
+  [client-auth](reports/everest-d20-client-auth.md) §1's TLS 1.2 path turns out to be deliberate,
+  documented, and *correct in the library that serves both protocols* — the defect is a `-20`-only
+  module opting into it, so the fix is one line at the call site. Neither measurement changed; both
+  reports got smaller. **The rest of every checklist is judgement, and stays with a person.**
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
   **Done 2026-08-09**, hours after it was written: `ac_contactor_closed(false)` published on their own
   interface inside the 3 s window, `PowerDeliveryRes(OK)` ~95 ms later and three charge loops after
