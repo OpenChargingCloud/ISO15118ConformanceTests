@@ -1,0 +1,10 @@
+### release semantics (-DNDEBUG): assert compiled out, crash reaches OpenSSL
+calling certificate_subject(NULL) the way line 990 does...
+/mnt/c/Users/achim/AppData/Local/Temp/claude/D--Coding-OpenChargingCloud-ISO15118ConformanceTests/1f05aec3-f1ff-45fa-90aa-af4c96631576/scratchpad/repro.sh: line 10: 46681 Segmentation fault      (core dumped) /tmp/nd_rel
+exit=139 (139 = 128+SIGSEGV)
+
+### debug semantics (assert live): the assert fires first
+calling certificate_subject(NULL) the way line 990 does...
+nd_dbg: nullderef.c:25: certificate_subject_head: Assertion `cert != NULL' failed.
+/mnt/c/Users/achim/AppData/Local/Temp/claude/D--Coding-OpenChargingCloud-ISO15118ConformanceTests/1f05aec3-f1ff-45fa-90aa-af4c96631576/scratchpad/repro.sh: line 10: 46687 Aborted                 (core dumped) /tmp/nd_dbg 2>&1
+exit=134 (134 = 128+SIGABRT)
