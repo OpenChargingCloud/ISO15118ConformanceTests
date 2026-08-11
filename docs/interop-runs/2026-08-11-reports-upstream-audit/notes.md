@@ -136,11 +136,22 @@ tree. Nothing in the byte comparison could have said otherwise; only knowing the
 `check_upstream.py --lib` still runs, and its output has been demoted from *status* to *history* in
 the tool's README.
 
-What survives from the three: [`everest-loop-shutdown`](../../reports/everest-loop-shutdown.md), which
-turned out to be the only one with a live defect left in it — the **trigger** is fixed on `main`, the
-**structure** is not. `TbdController::loop()` still ends the accept loop on any throw out of `poll()`.
-That report was re-pitched rather than retired, and it is stronger now: their own fix is the evidence
-that the failure mode is real.
+What survives from the three: [`everest-loop-shutdown`](../../reports/everest-loop-shutdown.md), the
+only one with a live defect left in it — the **trigger** is fixed on `main`, the **structure** is not.
+`TbdController::loop()` still ends the accept loop on any throw out of `poll()`.
+
+It was **rewritten the same day**, and reading `main` for the rewrite paid twice. It found **eight
+throw sites still reaching the loop** — SDP read failures, both `accept()` paths, the handshake
+`default:` arm, and six in the `TlsKeyLoggingServer` constructor, which runs inside the accept path
+behind a config flag. And it found a **second** fix nobody here knew about: a malformed SDP datagram
+no longer throws, and the fix carries the comment `// FIXME (aw): we should not die here immediately`.
+That is this report's argument in a maintainer's words, already in their file — seventeen lines below
+a call in the same function that still does what it warns against.
+
+Two things that could have gone wrong in the rewrite and did not, both caught by reading rather than
+grepping: `log_and_throw("Failed to parse sdp header")` is still in the file and looks like a live
+unauthenticated trigger — it is inside `#if 0`. And six of the `sdp_server.cpp` throw sites are in a
+constructor, not a per-datagram path, which changes what they are worth claiming.
 
 **The divergence is per file, not wholesale.**
 [`everest-d20-rng-entropy`](../../reports/everest-d20-rng-entropy.md) makes the same byte-identical
@@ -156,8 +167,10 @@ backlog of unsent filings:
 - **Two retired**: [contactor latch](../../reports/everest-iso20-ac-contactor-latch.md) and
   [AC namespace](../../reports/everest-d20-ac-namespace.md) are fixed upstream, nothing to send. Kept
   in the directory because the runs behind them stand as facts about `2026.02.1`.
-- **One re-pitched**: [loop-shutdown](../../reports/everest-loop-shutdown.md) leads with the loop
-  instead of the handshake.
+- **One re-pitched and rewritten**: [loop-shutdown](../../reports/everest-loop-shutdown.md) leads with
+  the loop instead of the handshake, cites both of their own fixes as agreement, and tables the eight
+  sites that still reach it. It is the one report here that cites **two revisions** — 2026.02.1 for
+  what was measured, `main` for what survives — and labels every citation with its tree.
 - **Two need their argument rewritten** before they are sendable:
   [ocsp-absent](../../reports/everest-d20-ocsp-absent.md) and
   [client-auth](../../reports/everest-d20-client-auth.md).
