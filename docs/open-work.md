@@ -459,8 +459,10 @@ also below.
   finding re-tested against its project's current default branch. Five of the six counterparties have
   not committed since the drafts were written. everest-core has — and **three findings are now fixed
   there**, so two of them are retired and the third
-  ([loop-shutdown](reports/everest-loop-shutdown.md)) is re-pitched: its trigger is fixed, its
-  structure — any throw out of `poll()` ending the accept loop — is not. They still show as defects in
+  ([loop-shutdown](reports/everest-loop-shutdown.md)) is re-pitched and **rewritten**: its trigger is
+  fixed, its structure — any throw out of `poll()` ending the accept loop — is not, and reading
+  `main` for the rewrite turned up **eight sites that still reach it** plus a second fix of theirs
+  carrying the comment `// FIXME (aw): we should not die here immediately`. They still show as defects in
   standalone `EVerest/libiso15118`, and **that repository is not maintained**; everest-core's
   `lib/everest/iso15118/` is the only tree that decides.
   Two more need their argument rewritten before they are sendable

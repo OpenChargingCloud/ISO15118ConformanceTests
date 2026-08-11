@@ -40,6 +40,12 @@ Ambiguity is reported rather than guessed: where a basename exists in more than 
 candidates are printed with the line from each. `power_delivery.cpp` exists five times in
 everest-core alone.
 
+**One thing it cannot check: which *revision* a citation means.** The checkout is one commit, and a
+report may legitimately cite two — [`everest-loop-shutdown`](../../docs/reports/everest-loop-shutdown.md)
+quotes 2026.02.1 for what it measured and `main` for what survives, and the checker resolves both
+against whichever tree is configured. Reports that do this label every citation with its tree; when
+the printed line does not match the claim, check the label before believing the tool.
+
 ## `check_upstream.py` — has anybody fixed it since we wrote it down
 
 > *"Check whether `main` has moved."*
