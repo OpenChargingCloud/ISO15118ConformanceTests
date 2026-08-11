@@ -59,7 +59,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
         private void RunDcSetup(Secc20Dc secc, ushort serviceId)
         {
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null));
@@ -124,7 +124,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         public void ServiceDetail_OffersBothControlModes_ScheduledFirstByDefault()
         {
             var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null));
@@ -138,7 +138,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         public void ServiceDetail_WithPreferDynamic_OffersDynamicFirst()
         {
             var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System) { PreferDynamicControlMode = true };
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null));
@@ -222,7 +222,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         public void AcDynamicChargeLoops_GetDynamicResInKind()
         {
             var secc = new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null));

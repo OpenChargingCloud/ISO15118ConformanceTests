@@ -54,12 +54,20 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
     public class Secc20AuthorizationOfferTests
     {
 
-        private static MessageHeaderType Header() => new SessionContext(TimeProvider.System).ToCommonHeader();
+        /// <summary>The EV's header state, which takes up the station's SessionID after SessionSetup — as a
+        /// real car does. A fresh <c>SessionContext</c> per call, which is what this was, opens every
+        /// request with the all-zero id that <c>[V2G20-460]</c> now refuses.</summary>
+        private readonly SessionContext _ctx = new(TimeProvider.System);
+        private MessageHeaderType Header() => _ctx.ToCommonHeader();
 
-        private static AuthorizationSetupRes Setup(bool offerPnc)
+        private AuthorizationSetupRes Setup(bool offerPnc)
         {
             var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System) { OfferPlugAndCharge = offerPnc };
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Header(), "EVCC01"));
+
+            var setup = (SessionSetupRes) secc.Handle(MessageSet.Iso20CommonMessages,
+                                                      new SessionSetupReq(Header(), "EVCC01")).Response;
+            _ctx.SessionId = setup.Header.SessionID;
+
             var (_, response) = secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Header()));
             return (AuthorizationSetupRes) response;
         }

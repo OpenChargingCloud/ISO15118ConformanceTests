@@ -56,9 +56,14 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         private MessageHeaderType Common => _ctx.ToCommonHeader();
 
         /// <summary>Up to ServiceDiscovery, and back with what the station actually offered.</summary>
+        /// <remarks>The SessionID is adopted from the station's own answer, as a real car does — see
+        /// <see cref="Iso20SessionDriver.AdoptSessionId"/> for what this harness was sending before
+        /// 2026-08-11 and why nothing noticed.</remarks>
         private ServiceDiscoveryRes RunToDiscovery(Secc20Base secc)
         {
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            var setup = (SessionSetupRes) secc.Handle(MessageSet.Iso20CommonMessages,
+                                                      new SessionSetupReq(Common, "EVCC01")).Response;
+            _ctx.SessionId = setup.Header.SessionID;
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages,
                         new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));

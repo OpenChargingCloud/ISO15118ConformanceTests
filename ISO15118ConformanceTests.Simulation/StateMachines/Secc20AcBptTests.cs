@@ -47,7 +47,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         public void AcBptSession_OffersBothServices_AndAnswersBptCpd()
         {
             var secc = new Secc20Ac(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
 

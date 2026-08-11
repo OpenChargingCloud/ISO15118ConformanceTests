@@ -47,7 +47,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         /// <summary>Drives the SECC through the shared CommonMessages setup up to (not including) CableCheck.</summary>
         private void RunSetup(Secc20Dc secc)
         {
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             var disc = (ServiceDiscoveryRes)secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null)).Response;
@@ -155,7 +155,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         {
             // Earliest realistic abort: right after ServiceSelection, before any DC exchange.
             var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
 
             var (_, resp) = secc.Handle(MessageSet.Iso20CommonMessages, new SessionStopReq(Common, ChargingSession.Terminate, null, null));
@@ -170,7 +170,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             // else Josev aborts with WrongServiceID — and answer with the BPT energy-transfer-mode + control-mode
             // variants. Mirrors the live 2026-07-22 DC_BPT run.
             var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
 
