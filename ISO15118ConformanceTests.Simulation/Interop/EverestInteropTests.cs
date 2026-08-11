@@ -139,11 +139,26 @@ public class EverestInteropTests
                                                             bptFirst: InteropEnvironment.BptFirst(),
                                                             requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
                                                             silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
-                                                            sendSessionId: InteropEnvironment.SendSessionId());
+                                                            sendSessionId: InteropEnvironment.SendSessionId(),
+                                                            certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
                                            ? $", {outcome.MeteringReceiptsSent} signed metering receipt(s)" : ""));
+
+            // Reported, never asserted — the same rule as the MeterInfo and sequence-timeout lines below,
+            // and for a sharper reason here: this run exists to find out what their station does with a
+            // -2 provisioning request, and a refusal, an unverifiable signature or an undecryptable key
+            // are all results. The one thing that would make the run say nothing is the station never
+            // offering the service, which is why Offered is printed first.
+            if (outcome.Provisioning is { } p)
+                TestContext.Out.WriteLine(
+                    $"Contract provisioning ({p.Action}): "
+                  + (p.Offered
+                         ? $"issued {p.ContractSubject} as {p.Emaid ?? "(no eMAID)"}; "
+                         + $"response signature {(p.SignatureOk ? "verified" : "NOT verified")} ([V2G2-891]), "
+                         + $"contract key {(p.KeyRecovered ? "recovered and matched" : "NOT recovered")}"
+                         : "the station advertised no certificate service in its ServiceList, so nothing was asked"));
 
             // Reported, never asserted. A station that answers nothing is the finding rather than a broken
             // run, so this line has to survive into the transcript instead of failing the test — the same

@@ -145,11 +145,21 @@ that — it is "answer the way you already answer everything else you cannot do"
 
 ## Before sending
 
-- [ ] **Put it on the wire.** This is a source reading. The probe exists as of 2026-08-11: our own
-      `-2` EVCC can now send a `CertificateUpdateReq` and verify (or fail to verify) the four-reference
-      response signature, so a session against your SIL with the certificate service offered would
-      show which of the two outcomes above is real — a garbage `CertificateUpdateRes` carrying `OK`,
-      or an encode failure. Needs `-2` PnC over TLS, which this project has run against you before.
+- [ ] **Put it on the wire — and there is a gate in front of it.** Still a source reading. The probe
+      exists as of 2026-08-11 and was taken to their station the same day, but the request cannot be
+      reached through the normal path: their `ServiceDiscoveryRes` advertises the certificate service
+      with **parameter-set-ID 1 only** —
+      `const int16_t cert_parameter_set_id[] = {1}; // parameter-set-ID 1: "Installation" service.
+      TODO: Support of the "Update" service (parameter-set-ID 2)`
+      (`charger/ISO15118_chargerImpl.cpp:226`) — so a car selecting set 2 is selecting a set that was
+      never offered, and `PaymentServiceSelection` answers before `handle_iso_certificate_update` is
+      ever called. Reaching the stub needs their advertisement changed, or the request injected past
+      the gate. **The neighbouring run went green on the installation path**
+      ([`…-iso2-cert-install`](../interop-runs/2026-08-11-everest-iso2-cert-install/notes.md)), which
+      is what establishes that the rest of the route works and only this message is walled off.
+      <br>Worth saying in the report itself: the handler is not merely unimplemented, it is
+      **unreachable in the shipped configuration** — which lowers the severity and should be stated
+      before a maintainer finds it and concludes the report was written without trying.
 - [x] **Check that the message is reachable at all.** Your dispatch handles `CertificateUpdateReq`
       explicitly and cites `[V2G2-556]`; it is not dead code behind a config flag.
 - [x] **Separate what is claimed from what is not.** Not a memory disclosure — the generated encoder

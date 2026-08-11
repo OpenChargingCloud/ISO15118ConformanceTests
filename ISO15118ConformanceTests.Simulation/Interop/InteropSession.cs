@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+using System.Security.Cryptography.X509Certificates;
+
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
@@ -60,9 +62,29 @@ internal static class InteropSession
     /// <c>MeterInfo</c> element. Reported separately from <paramref name="MeteringReceiptsSent"/>, which
     /// is the -2 mechanism: a run that asked under `[V2G20-1081]` and got nothing back is a finding about
     /// the station, and it is invisible in an exchange count.</param>
+    /// <param name="Provisioning">-2 only, and null unless the run asked for a contract: what the
+    /// station's <c>CertificateInstallationRes</c>/<c>CertificateUpdateRes</c> actually delivered.
+    /// Separate from <paramref name="AuthorizationMode"/> for the reason that field exists — a
+    /// provisioning run whose station never offered the certificate service completes as an ordinary
+    /// EIM or PnC session and would otherwise be filed as a provisioning result.</param>
     public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent,
                                      UInt16? SelectedEnergyServiceId = null, Int32 MeterInfoResponses = 0,
-                                     TimeSpan? SilenceEndedAfter = null);
+                                     TimeSpan? SilenceEndedAfter = null,
+                                     ProvisioningOutcome? Provisioning = null);
+
+
+    /// <summary>
+    /// What an ISO 15118-2 contract-provisioning exchange produced.
+    /// </summary>
+    /// <remarks>
+    /// Every field is <b>reported and none asserted</b>, deliberately: this run exists to find out what a
+    /// station does, and a station that answers with a refusal, an unverifiable signature or an
+    /// undecryptable key is the result rather than a broken run. <paramref name="Offered"/> is the one
+    /// that decides whether the rest means anything — a station that never advertised the service in its
+    /// <c>ServiceList</c> was never asked.
+    /// </remarks>
+    public sealed record ProvisioningOutcome(String Action, Boolean Offered, Boolean SignatureOk,
+                                             String? Emaid, String? ContractSubject, Boolean KeyRecovered);
 
 
     /// <summary>
@@ -126,7 +148,8 @@ internal static class InteropSession
                                                        PncEvccOptions? pnc = null, Boolean mcs = false,
                                                        Boolean bptFirst = false, Boolean requestMeterInfo = false,
                                                        TimeSpan? silentInChargeLoop = null,
-                                                       Byte[]? sendSessionId = null)
+                                                       Byte[]? sendSessionId = null,
+                                                       Iso2CertInstallOptions? certificateProvisioning = null)
     {
 
         if (mcs)
@@ -144,9 +167,33 @@ internal static class InteropSession
                   + "catalogue entries and -2 has no catalogue.", nameof(bptFirst));
 
             var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
-                           { Pnc = pnc };
+                           { Pnc = pnc, CertInstallRequest = certificateProvisioning };
             await evcc.RunAsync(ct);
-            return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent);
+
+            ProvisioningOutcome? provisioning = null;
+            if (certificateProvisioning is { } request)
+            {
+                // Offered is read from what came back rather than from the ServiceList: Evcc2 only runs the
+                // exchange when it found the service, so an installed certificate is the proof it was there.
+                // A station that advertised nothing leaves all of this null and the run note says so.
+                String? subject = null;
+                if (evcc.InstalledContractCertificate is { } der)
+                {
+                    using var contract = X509CertificateLoader.LoadCertificate(der);
+                    subject = contract.Subject;
+                }
+
+                provisioning = new ProvisioningOutcome(
+                                   request.Action.ToString(),
+                                   Offered:         evcc.InstalledContractCertificate is not null,
+                                   SignatureOk:     evcc.InstalledContractSignatureOk,
+                                   Emaid:           evcc.InstalledEmaid,
+                                   ContractSubject: subject,
+                                   KeyRecovered:    evcc.InstalledContractKey is not null);
+            }
+
+            return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent,
+                                   Provisioning: provisioning);
         }
 
         Evcc20Base evcc20 = (mode, mcs) switch

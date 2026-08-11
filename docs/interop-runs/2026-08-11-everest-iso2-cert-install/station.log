@@ -1,0 +1,8 @@
+2026-08-11 19:15:22.902528 [INFO] iso15118_charge  :: CertificateInstallation-phase started
+2026-08-11 19:15:22.902826 [INFO] iso15118_charge  :: Waiting for the CertInstallationExiRes msg
+2026-08-11 19:15:27.403006 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: CertificateInstallationRes timeout occurred
+2026-08-11 19:15:27.403650 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Certificate Installation", error: Sequence Error
+2026-08-11 19:20:50.200822 [INFO] iso15118_charge  :: CertificateInstallation-phase started
+2026-08-11 19:20:50.201121 [INFO] iso15118_charge  :: Waiting for the CertInstallationExiRes msg
+2026-08-11 19:20:54.701296 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: CertificateInstallationRes timeout occurred
+2026-08-11 19:20:54.701376 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Certificate Installation", error: Response FAILED
