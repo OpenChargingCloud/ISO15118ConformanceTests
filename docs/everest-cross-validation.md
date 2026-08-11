@@ -267,9 +267,36 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **fourteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **fifteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **`CertificateUpdateRes` is sent from the union slot the previous response left behind.**
+  `handle_iso_certificate_update` (`iso_server.cpp:1817-1820`) is `// TODO: implement CertificateUpdate
+  handling` and returns `V2G_EVENT_NO_EVENT` — `0`, the ordinary carry-on value, where the only value
+  that suppresses an answer is `V2G_EVENT_IGNORE_MSG`. So the dispatch, which has already set
+  `CertificateUpdateRes_isUsed = 1u` and cites `[V2G2-556]` on the calling line, sends it.
+  <br>**And `iso2_BodyType`'s message bodies are a `union`** (`iso2_msgDefDatatypes.h:2141-2178`).
+  None of the three inits touches its members — `init_iso2_exiDocument` is `(void) exiDoc;`,
+  `init_iso2_BodyType` clears only the `_isUsed` bitfields outside the union, and
+  `init_iso2_CertificateUpdateResType` clears only `RetryCounter_isUsed`. Every `*ResType` begins with
+  `ResponseCode`, so a contract-renewal request is answered with the **previous message's** code —
+  `OK` in any session that reached it — and five mandatory elements read as bytes of another type.
+  <br>`[V2G2-556]` makes acting on the request a *shall*; `[V2G2-557]`/`[V2G2-558]` leave exactly two lawful
+  answers and this is the wrong one; `[V2G2-736]` wants the mandatory fields schema-conformant
+  whatever happens. **Filed 2026-08-11:**
+  [`everest-evsev2g-certificate-update.md`](reports/everest-evsev2g-certificate-update.md),
+  [audit](interop-runs/2026-08-11-everest-iso2-cert-update-audit/notes.md).
+  <br>**Two things it deliberately does not claim.** Not a memory disclosure — the generated encoder
+  bounds-checks lengths, so a wild stale length fails the encode instead of copying past the field.
+  And not measured: no session was run, and the filing's first checklist item is that run.
+  <br>**Bounded by a complete sweep**, which is what makes it one function rather than a class: all
+  seventeen `handle_iso_*` handlers were checked, sixteen assign `ResponseCode` between 2 and 13
+  times, and this one never does. **Josev does not implement the feature either and answers `FAILED`
+  correctly in nine lines** — which is why the report asks them to answer, not to implement renewal.
+  <br>**Askable only since this morning**: our own `-2` stack learned contract provisioning in
+  `WWCP_ISO15118` `c1a7989`, so until then no counterparty's `-2` provisioning path had been looked
+  at. Fifth time this month a capability of ours opened a question about somebody else — and the first
+  of the five not answered on the wire the same day.
 - **The ISO 15118-2 signed-metering path is open at both ends.** Going out,
   `ISO15118_chargerImpl::handle_update_meter_info` reads `powermeter.energy_Wh_import.total` and never
   the `energy_Wh_import_signed` sibling **on the same argument** — `v2g_ctx->meter_info` has three

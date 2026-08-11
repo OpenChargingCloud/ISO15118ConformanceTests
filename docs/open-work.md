@@ -59,6 +59,7 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 | **Pause / Resume, -20** | EVerest | ~~▢~~ **run 2026-08-08 — and it is ours that failed.** Their station resumed on the first attempt (`OK_OldSessionJoined`, over mutual TLS with their minted vehicle credential); our EVCC then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`, because a resumed `-20` session skips authorization and opens at `{AC,DC}_ChargeParameterDiscovery`. Moved to *our stack*, below. `-2` is `—` in the matrix, not `▢`. |
 | **Signed tariffs, -20** | EVerest | ▢ |
 | **Renegotiation, -2 and -20** | EVerest | ~~▢ both~~ **-20 run 2026-08-10** — their `PyEvJosev` EV took our station's `ServiceRenegotiation` notification, stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)`; our SECC answered `OK` and stayed open, and their EV closed the connection. Same defect as Josev's, now seen in **DC** and against the fork `26f7988` ([run](interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md), [filing](reports/josev-iso20-renegotiation.md)). `-2` is still `▢`. |
+| **Contract provisioning, -2** | EVerest · Josev | ▢ **new on 2026-08-11**, and the reason it is new is that our own `-2` stack could not ask until that morning (`WWCP_ISO15118` `c1a7989`: `CertificateInstallationReq` *and* `CertificateUpdateReq`, the service advertised as a `-2` VAS and selected by id). So **no counterparty's `-2` provisioning path has ever been exercised by this project.** One session against EVerest's `EvseV2G` would do two things at once: test their `CertificateInstallation` — which forwards the EXI to a backend over MQTT and is a real implementation — and settle [the `CertificateUpdate` filing](reports/everest-evsev2g-certificate-update.md), whose whole open question is which of two outcomes their stub produces on the wire. Needs `-2` PnC over TLS, which has run against them before. Josev implements neither and answers `FAILED` correctly, so there is nothing to measure there. |
 | ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
 
 ## Ours to fix
@@ -358,7 +359,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Thirty-seven filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Thirty-eight filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
