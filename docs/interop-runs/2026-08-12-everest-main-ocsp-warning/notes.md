@@ -65,13 +65,25 @@ Why it is empty here is structural rather than a configuration mistake: `iso1511
 has **four members** — chain path, key path, key password, OCSP files — and **no trust-anchor member**
 (`config.hpp:29-34`). So the `-20` module has nothing to fill it with.
 
-**Not filed, and deliberately not.** `[V2G2-651]`, which the `IsoMux` report cites, is an ISO 15118-2
-requirement, and `trusted_ca_keys` is RFC 6066 — the `-20` profile's certificate-authority signalling
-is RFC 8446's `certificate_authorities`, a different extension, which is
-[`everest-d20-client-auth`](../../reports/everest-d20-client-auth.md) §2's subject. **Whether a `-20`
-SECC is obliged to support `trusted_ca_keys` at all is a question this run does not answer**, and
-answering it needs the requirement text rather than another session. Until then it belongs here, as an
-observation with a cause, and as a note on the `IsoMux` report that its §4 has a `-20` sibling.
+**Not filed as a `-20` defect — and the reason is now settled rather than deferred.** This run left the
+question open: *is a `-20` SECC obliged to support `trusted_ca_keys` at all?* It was answered from the
+`-20` text the same day (**[normative basis](../../normative-basis.md#-20-does-not-use-trusted_ca_keys--it-uses-certificate_authorities-in-both-directions)**):
+
+**No.** `trusted_ca_keys` appears nowhere in ISO 15118-20. RFC 6066 is referenced there for the OCSP
+`status_request` handling and for `[V2G20-2446]`, maximum fragment length, and nothing else. TLS 1.3
+carries the same duty on RFC 8446's `certificate_authorities`, which is why the older extension is not
+needed. So the line this run observed is **not applicable** as a `-20` conformance finding.
+
+**The duty is not gone, though — and chasing it produced a finding this run was not looking for.**
+`[V2G20-1006]` obliges every EV to send its roots in `certificate_authorities`, and `[V2G20-1007]` /
+`[V2G20-2379]` oblige the SECC to answer with a chain rooted in one of them. `lib/everest/tls` on `main`
+reads that extension **nowhere** and fixes the server chain at `cfg.chains[0]`; the only selector it has
+is the `trusted_ca_keys` one, for the protocol `-20` does not use. That is now
+[`everest-d20-client-auth`](../../reports/everest-d20-client-auth.md) **§3**.
+
+So the sequence was: a log line nobody asked about → a requirement question → *not applicable* → a
+different requirement that **is** applicable and unimplemented. Worth recording, because the first
+answer looked like the end of it.
 
 ## What this cost, and the one thing worth copying
 

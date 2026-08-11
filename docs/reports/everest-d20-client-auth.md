@@ -30,7 +30,7 @@ bottom.
 >
 > Source only on `main`; the two `s_client` arms were **not** re-run against a `main` build.
 
-**Two issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
+**Three issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
 purpose: §1 has an answer a maintainer might reasonably give (*"TLS 1.2 support is for ISO 15118-2 and
 this station is dual-use"*), and if the two were one issue that answer would close both.
@@ -333,6 +333,87 @@ call each, and a test house will look at both.
 
 ---
 
+## §3 — The station never reads the EV's `certificate_authorities`, so it cannot pick a chain the EV can verify
+
+**Title:** `lib/everest/tls` selects the server chain as `cfg.chains[0]` and never looks at the
+`certificate_authorities` extension the EV is obliged to send, so a `-20` station holding more than one
+root cannot satisfy `[V2G20-1007]`/`[V2G20-2379]` — and `Evse15118D20` configures exactly one chain, so
+today it cannot even try
+
+Added 2026-08-12. **Source only — not measured**, and it is latent in every configuration this project
+has run, which is the honest place to start.
+
+### The obligation
+
+`-20` runs the whole certificate-authority conversation over RFC 8446's `certificate_authorities`, in
+both directions, and this section is about the direction §2 is *not* about:
+
+- **`[V2G20-1006]`** — an EVCC not in CPM4PE **shall** list every V2G and PE private root it holds in a
+  `certificate_authorities` extension in its `ClientHello`. Unconditional, so the data is always there.
+- **`[V2G20-1007]`** — a public SECC **shall** send a chain up to a root **the EV named**.
+- **`[V2G20-2379]`** — when the EV's list is non-empty, the SECC **shall** use those DistinguishedNames
+  to choose a chain originating from one of them. **`[V2G20-2378]`** allows free choice only when the
+  list is empty. **`[V2G20-2382]`–`[V2G20-2384]`** say the same for a private SECC not in CPM4PE.
+
+Requirement identifiers and paraphrase only; the rule is
+[`docs/normative-basis.md`](../normative-basis.md). All `-20`, no document caveat.
+
+### What the code does
+
+Nothing reads it. On `main`, `lib/everest/tls/src/tls.cpp` contains no `SSL_get0_peer_CA_list`, no
+`TLSEXT_TYPE_certificate_authorities`, no DistinguishedName handling of any kind. The server chain is
+fixed at init:
+
+```cpp
+// tls.cpp:1052-1054
+// use the first server chain
+const ssl_ctx_params params{true, cfg.ciphersuites, cfg.cipher_list, true, cfg.enforce_tls_1_3};
+result = configure_ssl_ctx(ctx, cfg.chains[0], params);
+```
+
+The one selection mechanism that does exist — `ServerTrustedCaKeys` — is driven by **`trusted_ca_keys`**,
+RFC 6066, which is the ISO 15118-**2** extension and plays no part in `-20`
+([why](../normative-basis.md#-20-does-not-use-trusted_ca_keys--it-uses-certificate_authorities-in-both-directions)).
+So the `-20` station inherited a selector for a protocol it does not speak and has none for the one it
+does.
+
+And `Evse15118D20` gives it one chain to choose from anyway
+(`ISO15118_chargerImpl.cpp:276-281`, a single `chains.push_back`).
+
+### Why this is worth raising even though nothing here has failed
+
+**Because you have already written down that it should work this way.** `ChainConfig`'s own doc comment
+on `main` says multiple chains exist to support *TLS 1.3 multi-chain selection driven by the peer's
+`certificate_authorities` extension, RFC 8446 §4.2.4* (`iso15118/config.hpp:26-27`). The vector is
+there, the intent is recorded — the selection step is what is missing between them.
+
+**And because of where it bites.** With one root, a station that ignores the extension is
+indistinguishable from one that honours it: there is nothing to choose. It bites when an operator holds
+two — mid-rotation, or serving two roots — which is the configuration nobody tests and the one
+`[V2G20-1006]`'s multi-root wording is written for. An EV handed a chain that does not trace to a root
+it holds cannot validate it.
+
+### Suggested direction
+
+1. **Read the list.** In the certificate callback, `SSL_get0_peer_CA_list()` gives the
+   DistinguishedNames; match against each configured chain's root issuer and install the first that
+   matches, falling back to `chains[0]` when the list is empty — which is `[V2G20-2378]` exactly.
+2. **Then give the module more than one chain to offer**, or the selection has nothing to work with.
+   That is a `libevse-security` question rather than a TLS one, and it is the same question `IsoMux`
+   §4 runs into from the `-2` side: `get_leaf_certificate_info` returns the newest single chain, not
+   all valid ones.
+
+(1) without (2) is still worth having — it makes the station correct for the empty-list case by
+construction and puts the mechanism where the next chain can use it.
+
+### Filing
+
+**Its own issue, separate from §1 and §2.** §1 is *whether* the EV is asked to authenticate, §2 is
+*what the `CertificateRequest` carries*, §3 is *which chain the server presents*. Three directions,
+three fixes, and §3 is the only one of them that is not measured — say so.
+
+---
+
 ## Not part of this
 
 - **Your test PKI's key material.** The SECC leaf is `prime256v1` / `ecdsa-with-SHA256`, outside Tables
@@ -387,8 +468,12 @@ call each, and a test house will look at both.
       *"we do handle that"*.
 - [ ] **Say it needs no PKI and no EV.** Two `openssl s_client` calls. That is what will get it looked
       at today rather than next month.
-- [ ] **File two issues**, §1 and §2, and say in each that the other exists. §1 now has a *fix*
-      available — one line — that would leave every part of §2 standing, which is a sharper reason to
-      keep them apart than the one this checklist used to give.
+- [ ] **File three issues**, §1, §2 and §3, and say in each that the others exist. §1 now has a *fix*
+      available — one line — that would leave every part of §2 and §3 standing, which is a sharper
+      reason to keep them apart than the one this checklist used to give. §3 is the only one not
+      measured; do not let it ride on the other two's evidence.
+- [ ] **§3: lead with their own comment, not with the clause.** `ChainConfig`'s doc comment already
+      says multi-chain selection is driven by the peer's `certificate_authorities` — the report is
+      asking why the step between the vector and the selection is missing, not proposing a new idea.
 - [ ] **Mention the `IsoMux` sibling for `[V2G20-2356]`** if both are open at once.
 - [ ] **Post under your own name, in your own words.**

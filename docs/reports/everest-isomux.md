@@ -312,12 +312,22 @@ wrong call**: `iso15118::config::ChainConfig` (`config.hpp:29-34`) has four memb
 path, key password, OCSP files — and **no trust-anchor member at all**, so the `-20` module has nothing
 to fill one with. Where `IsoMux` asks the wrong question, `Evse15118D20` has no way to ask.
 
-**Whether that is a defect in `-20` is deliberately left open here.** `[V2G2-651]` is an ISO 15118-2
-requirement and `trusted_ca_keys` is RFC 6066; the `-20` profile signals certificate authorities with
-RFC 8446's `certificate_authorities`, which is a different extension and is
-[`everest-d20-client-auth.md`](everest-d20-client-auth.md) §2's subject. So this paragraph is an
-observation with a cause and **not** a fifth issue: it says the fix for §4 will want to look at the
-`-20` config struct too, and it leaves the requirement question to somebody holding the text.
+**Answered 2026-08-12 against the `-20` text: it is *not* a defect in `-20`, and this stays out of the
+issue.** `trusted_ca_keys` appears nowhere in ISO 15118-20; RFC 6066 is referenced there only for the
+OCSP `status_request` handling and for `[V2G20-2446]`, maximum fragment length. TLS 1.3 carries the
+same duty on its own extension, so a `-20` station that disables `trusted_ca_keys` is not failing
+anything ([normative basis](../normative-basis.md#-20-does-not-use-trusted_ca_keys--it-uses-certificate_authorities-in-both-directions)).
+
+**The duty did not disappear, though — it moved**, and the `-20` half of it is not implemented either.
+`[V2G20-1007]` and `[V2G20-2379]` put the same select-a-chain-the-EV-can-verify obligation on a `-20`
+SECC, driven by RFC 8446's `certificate_authorities`, which `[V2G20-1006]` obliges every EV to send.
+That is now [`everest-d20-client-auth.md`](everest-d20-client-auth.md) **§3**, filed there because it is
+the same module and the same handshake.
+
+So this paragraph is an observation with a cause and **not** a fifth issue for `IsoMux`. What it is
+worth to §4: the `-2` and `-20` halves of one idea are missing for two different reasons — `IsoMux`
+asks libevse-security the wrong question, `Evse15118D20` has no field to put an answer in — and a fix
+that only addresses `trusted_ca_keys` leaves the newer protocol exactly where it was.
 
 **The requirement.** `[V2G2-651]` obliges **every** EVCC to send a `trusted_ca_keys` extension
 (IETF RFC 6066) listing the V2G roots it holds — unconditionally. `[V2G2-871]` then obliges a station
