@@ -1,0 +1,19 @@
+162-2026-08-12 00:19:10.464087 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+163-2026-08-12 00:19:10.465303 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+164-2026-08-12 00:19:10.536596 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fe6b:3d4%eth0
+165-2026-08-12 00:19:10.537006 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:fe6b:3d4%eth0]:50000
+166:<n> certificates != <n> OCSP responses
+167-No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+168-trusted_ca_keys support disabled
+169-2026-08-12 00:19:11.062253 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+170-2026-08-12 00:19:38.238063 [INFO] ev_manager:EvMa  :: Finished simulation.
+171-2026-08-12 00:19:38.477987 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+--
+222-2026-08-12 00:19:47.790638 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+223-2026-08-12 00:19:47.791817 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+224-2026-08-12 00:19:48.016883 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fe6b:3d4%eth0
+225-2026-08-12 00:19:48.017266 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:fe6b:3d4%eth0]:50000
+226:<n> certificates != <n> OCSP responses
+227-No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+228-trusted_ca_keys support disabled
+229-2026-08-12 00:19:48.375689 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower

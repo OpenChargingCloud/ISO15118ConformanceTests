@@ -294,6 +294,31 @@ installed, and the handshake continues on `cfg.chains[0]` (`tls.cpp:940-941`).
 a trust anchor there would be one chain to choose between. `EvseV2G` gets both right with the one call
 it makes.
 
+### On `main` this is no longer only the multiplexer — measured 2026-08-12
+
+`Evse15118D20`, everest-core `main` (`ebcd36d`), stock `config-sil-dc-d20.yaml`, their own PKI, once
+per TLS session ([run notes](../interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md)):
+
+```
+[INFO] iso15118_charge  :: Start TLS server [fe80::…%eth0]:50000
+<n> certificates != <n> OCSP responses
+No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+trusted_ca_keys support disabled
+```
+
+The same three lines, from the `-20` station, because the `-20` stack was rebased onto
+`lib/everest/tls` between `2026.02.1` and `main`. The cause is different and **structural rather than a
+wrong call**: `iso15118::config::ChainConfig` (`config.hpp:29-34`) has four members — chain path, key
+path, key password, OCSP files — and **no trust-anchor member at all**, so the `-20` module has nothing
+to fill one with. Where `IsoMux` asks the wrong question, `Evse15118D20` has no way to ask.
+
+**Whether that is a defect in `-20` is deliberately left open here.** `[V2G2-651]` is an ISO 15118-2
+requirement and `trusted_ca_keys` is RFC 6066; the `-20` profile signals certificate authorities with
+RFC 8446's `certificate_authorities`, which is a different extension and is
+[`everest-d20-client-auth.md`](everest-d20-client-auth.md) §2's subject. So this paragraph is an
+observation with a cause and **not** a fifth issue: it says the fix for §4 will want to look at the
+`-20` config struct too, and it leaves the requirement question to somebody holding the text.
+
 **The requirement.** `[V2G2-651]` obliges **every** EVCC to send a `trusted_ca_keys` extension
 (IETF RFC 6066) listing the V2G roots it holds — unconditionally. `[V2G2-871]` then obliges a station
 outside a private environment to present a chain rooted at *one the EV named*, with `[V2G2-923]` as the
