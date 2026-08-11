@@ -70,7 +70,8 @@ internal static class InteropSession
     public sealed record EvccOutcome(Int32 Exchanges, String AuthorizationMode, Int32 MeteringReceiptsSent,
                                      UInt16? SelectedEnergyServiceId = null, Int32 MeterInfoResponses = 0,
                                      TimeSpan? SilenceEndedAfter = null,
-                                     ProvisioningOutcome? Provisioning = null);
+                                     ProvisioningOutcome? Provisioning = null,
+                                     Int32 Renegotiations = 0);
 
 
     /// <summary>
@@ -149,7 +150,8 @@ internal static class InteropSession
                                                        Boolean bptFirst = false, Boolean requestMeterInfo = false,
                                                        TimeSpan? silentInChargeLoop = null,
                                                        Byte[]? sendSessionId = null,
-                                                       Iso2CertInstallOptions? certificateProvisioning = null)
+                                                       Iso2CertInstallOptions? certificateProvisioning = null,
+                                                       Boolean renegotiate = false)
     {
 
         if (mcs)
@@ -167,7 +169,7 @@ internal static class InteropSession
                   + "catalogue entries and -2 has no catalogue.", nameof(bptFirst));
 
             var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
-                           { Pnc = pnc, CertInstallRequest = certificateProvisioning };
+                           { Pnc = pnc, CertInstallRequest = certificateProvisioning, Renegotiate = renegotiate };
             await evcc.RunAsync(ct);
 
             ProvisioningOutcome? provisioning = null;
@@ -193,7 +195,8 @@ internal static class InteropSession
             }
 
             return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent,
-                                   Provisioning: provisioning);
+                                   Provisioning:   provisioning,
+                                   Renegotiations: evcc.Renegotiations);
         }
 
         Evcc20Base evcc20 = (mode, mcs) switch

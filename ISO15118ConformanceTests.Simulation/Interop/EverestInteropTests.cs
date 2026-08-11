@@ -152,7 +152,8 @@ public class EverestInteropTests
                                                             requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
                                                             silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
                                                             sendSessionId: InteropEnvironment.SendSessionId(),
-                                                            certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull());
+                                                            certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
+                                                            renegotiate: InteropEnvironment.Renegotiate());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
@@ -163,6 +164,13 @@ public class EverestInteropTests
             // -2 provisioning request, and a refusal, an unverifiable signature or an undecryptable key
             // are all results. The one thing that would make the run say nothing is the station never
             // offering the service, which is why Offered is printed first.
+            // Reported, never asserted, like the lines below it: a station that ignores the request and
+            // charges on is the finding, and a run that failed instead would say less.
+            if (InteropEnvironment.Renegotiate())
+                TestContext.Out.WriteLine(
+                    $"Renegotiation ([V2G2-841]): the EV asked for one mid-charge; "
+                  + $"{outcome.Renegotiations} cycle(s) completed and the session carried on.");
+
             if (backend is not null)
                 TestContext.Out.WriteLine(
                     "MO backend: " + (backend.IsCompletedSuccessfully && backend.Result is { } issued

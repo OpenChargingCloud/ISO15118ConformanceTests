@@ -355,6 +355,22 @@ internal static class InteropEnvironment
     /// only that one. EVerest's own test PKI ships suitable material.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// <c>V2G_INTEROP_RENEGOTIATE=1</c> makes our ISO 15118-2 car trigger one renegotiation of its own
+    /// mid-charge — <c>PowerDeliveryReq(Renegotiate)</c>, a fresh ChargeParameterDiscovery, then
+    /// <c>PowerDelivery(Start)</c> and on with the loop (`[V2G2-841]`).
+    /// </summary>
+    /// <remarks>
+    /// The car reacts to a station-initiated <c>EVSENotification.ReNegotiation</c> whether or not this is
+    /// set; what the switch adds is the <em>EV-initiated</em> direction, which no station will ask for.
+    /// <see cref="Evcc2.Renegotiate"/> has existed since the `-2` state machine did and, like the
+    /// provisioning switch beside it, was unreachable from an interop run until this line — the fourth
+    /// capability this month that our car had and no run could use.
+    /// </remarks>
+    public static Boolean Renegotiate()
+        => Environment.GetEnvironmentVariable("V2G_INTEROP_RENEGOTIATE") == "1";
+
+
     public static Iso2CertInstallOptions? CertificateProvisioningOrNull()
     {
 

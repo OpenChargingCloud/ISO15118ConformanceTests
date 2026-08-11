@@ -89,7 +89,7 @@ how to read one.
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
-| Renegotiation | ✅ `Iso2LoopbackTests` (EV- and SECC-triggered) | ✅ `EV→ ←SECC` [V2G2-841] | ▢ | — | — |
+| Renegotiation | ✅ `Iso2LoopbackTests` (EV- and SECC-triggered) | ✅ `EV→ ←SECC` [V2G2-841] | ⛔ `EV→` trigger and re-discovery accepted, **restart refused**³⁰ | — | — |
 | TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` | ✅ `EV→` (the PnC session above) | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
@@ -223,6 +223,16 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+³⁰ Half-working rather than absent, which is the finding. `PowerDeliveryReq(Renegotiate)` and the fresh
+`ChargeParameterDiscovery` are both answered `OK`; the `PowerDeliveryReq(Start)` that restarts the charge
+gets `FAILED_SequenceError`. `handle_iso_charge_parameter_discovery` sends a DC session to
+`WAIT_FOR_CABLECHECK`, whose mask admits `CableCheck` and `SessionStop` only — so their station wants the
+isolation test re-run after a renegotiation, where **Annex I's own sequence** goes
+`Renegotiate → ChargeParameterDiscovery → PowerDelivery → charging loop` and the NOTE at `[V2G2-680]`
+says the contactor stays closed throughout. `[V2G2-842]` is the *shall* behind the refused message. The
+branch that would have accepted it already exists next door, gated on a pause flag. **The fortieth filing:** [`everest-evsev2g-renegotiation-cablecheck.md`](docs/reports/everest-evsev2g-renegotiation-cablecheck.md);
+[run](docs/interop-runs/2026-08-11-everest-iso2-renegotiation/notes.md).
 
 ²⁹ **Established from their source and the frames already here, without a session — and no session would
 have moved it.** `create_default_scheduled_control_mode` builds the Scheduled response under the comment
