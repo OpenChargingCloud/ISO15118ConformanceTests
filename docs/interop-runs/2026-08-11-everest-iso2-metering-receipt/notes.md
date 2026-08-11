@@ -107,6 +107,14 @@ deliberately not here* section is about.
 - **The one-shot `meter_info_is_used` flag** — MeterInfo appears in one response and not the next — is
   visible in the artifact and deliberately left out of the filing. Whether a station should repeat the
   record in every charge-loop response is a different question with no requirement cited yet.
+- **`[V2G2-902]` names `ChargingStatusRes`, and the frame measured is a `CurrentDemandRes`.** The
+  clause is worded for the **AC** message and the text to hand states nothing equivalent for the DC
+  one; the recorded session happened to be DC. The finding survives because both are filled from the
+  same three-member `v2g_ctx->meter_info` by two blocks written identically
+  (`iso_server.cpp:1717-1726` and `:2041-2050`), so the AC path the clause names has the same
+  omission — but that is an argument about their code, not a measurement of the AC message, and the
+  filing says so in the same words. **An AC capture would close it**, and one has never been recorded
+  with `MeterInfo` in it. Cheapest outstanding item here by a distance.
 
 ## Reproduce
 

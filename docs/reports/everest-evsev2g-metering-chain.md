@@ -130,6 +130,16 @@ which is a separate design question and not this report's.
 `DC_POWERMETER` is readable as plain ASCII in the raw frame, so the presence of the element needs no
 decoder to confirm; the decode is what shows precisely which of its children are absent.
 
+**One thing to be exact about, because it is the obvious way to deflect this.** `[V2G2-902]` names
+`ChargingStatusRes` — the **AC** message — and nothing in the text to hand states the same obligation
+for `CurrentDemandRes`. The frame above is a DC session, because that is the session we had recorded.
+That does not move the finding, and here is why: both messages are populated from the same three-member
+`v2g_ctx->meter_info`, by the same two blocks written the same way — `iso_server.cpp:1717-1726` for
+`ChargingStatusRes` and `:2041-2050` for `CurrentDemandRes`. The omission is in what the struct can
+hold, so the AC path that `[V2G2-902]` names directly has it too. **Whether the DC message carries the
+same obligation is not something we claim** — an AC capture would settle the citation, and we have not
+run one.
+
 ## Why this is worth fixing rather than a shrug
 
 `receipt_is_required` is a real command on your own interface — `interfaces/ISO15118_charger.yaml:107`,
