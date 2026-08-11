@@ -64,8 +64,26 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
+- **Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
+  checked too late to catch a station that never answers.** New 2026-08-11, and it came out of
+  *withdrawing* the item below rather than from a run. `Evcc20Base` takes one `perMessageTimeout` and
+  applies it to every exchange, where `V2G_EVCC_Msg_Timeout` is per message type: Table 215 gives 2 s
+  for the ordinary ones and Tables 216/217/218 override the **charge-loop request to 0,5 s**
+  (`[V2G20-1499]`, `[V2G20-1501]`, `[V2G20-5069]`). That is the exact car-side twin of the station
+  defect fixed the same morning, and of [the one filed against EVerest](reports/everest-d20-sequence-timeout.md).
+  <br>**The second half is the worse one.** `ExchangeRaw` awaits `ReadFrameAsync` with no budget and
+  *then* compares the elapsed time, so the timeout only catches an answer that arrives **late** — a
+  station that goes silent holds our car until the session-level token fires, which in a live run is
+  minutes. The station side had the same shape and was fixed on 2026-08-11 by giving the read its own
+  `CancelAfter` budget; the car has not been. The instrument to measure it with already exists on the
+  other side (`Secc20Base` can be made to go quiet the way `Evcc20Base.GoSilentInChargeLoop` does),
+  which is what makes this a bounded piece of work rather than a research item.
+  <br>Requirement side already settled — see [`normative-basis.md`](normative-basis.md) for the four
+  parameters of Tables 215–218 and which clock each belongs to.
+
 - ~~**Our `-20` station has one sequence timeout for every message type, and `-20` does not.**~~
-  **The charge-loop half is fixed 2026-08-11.** `Secc20Base` took a single `sequenceTimeout` and applied
+  **The charge-loop half is fixed 2026-08-11**, and the other half turned out not to exist (below).
+  `Secc20Base` took a single `sequenceTimeout` and applied
   it in every phase — the same shape as [the defect filed against EVerest](reports/everest-d20-sequence-timeout.md):
   Table 215 gives 60 s for *all other messages*, and Tables 216/217 — obliged by `[V2G20-1500]` and
   `[V2G20-1502]` — override it to **0,5 s** after `AC_ChargeLoopRes`/`DC_ChargeLoopRes`, the phase in
@@ -78,11 +96,18 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   drive `Evcc20Base.GoSilentInChargeLoop` — the instrument built to measure *theirs* — against our own
   station: the tight one asserts the session ends in under a second and **fails when the default is put
   back to 60 s** (verified), the control pins the flat behaviour the fix removes.
-  <br>**What is left, and it is smaller:** Table 217 gives the DC-only self-loop phases their own
-  sub-60 s timeouts too — CableCheck and PreCharge at 1,5 s, WeldingDetection at 0,25 s — which this fix
-  does *not* tighten (they stay at the baseline). Those are a fuller reading of the same table, their
-  exact values were column-scrambled in the extract and only the charge-loop 0,5 s was confirmed cleanly
-  across AC/DC/WPT, and none is the contactor-closed safety case. A bounded follow-up, not a someday item.
+  <br>~~**What is left, and it is smaller:** Table 217 gives the DC-only self-loop phases their own
+  sub-60 s timeouts too — CableCheck and PreCharge at 1,5 s, WeldingDetection at 0,25 s.~~
+  **Withdrawn 2026-08-11: there are no such timeouts, and this entry was the scrambled extract talking.**
+  It had said so itself — *"their exact values were column-scrambled … only the charge-loop 0,5 s was
+  confirmed cleanly"* — and re-reading the table settled it the other way. Tables 216/217/218 each carry
+  **four** parameters, and `V2G_SECC_Sequence_Timeout` has **exactly one row in each**: the charge-loop
+  *response*, 0,5 s, which is what `ChargeLoopSequenceTimeout` already implements. The 1,5 s and 0,25 s
+  are `V2G_SECC_Msg_Performance_Time` — how fast the station must *answer* CableCheck, PreCharge and
+  WeldingDetection — and the 2 s are `V2G_EVCC_Msg_Timeout`, the *car's* wait. **Our `-20` station is
+  complete for this parameter.** The cause was `pdftotext -layout` flattening a stacked name cell, the
+  identical illusion Table 108 produced in `-2` the same day; `-table` reads it correctly and the AC and
+  WPT tables are the control. Written up in [`normative-basis.md`](normative-basis.md).
   <br>**The `-2` half needed nothing and still does.** Table 108 was re-extracted page by page on
   2026-08-11 — `pdftotext -layout` had flattened its five stacked parameter names into one column, and
   read that way the message list looks like a per-message sequence timeout. It is not: that list belongs

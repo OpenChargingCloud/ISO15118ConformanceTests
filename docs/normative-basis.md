@@ -596,3 +596,33 @@ an implementation against Table 6, check for the other three before concluding t
 
 All `-20` identifiers, so no document caveat. **Filed 2026-08-10:**
 [`reports/everest-d20-client-auth.md`](reports/everest-d20-client-auth.md), as two issues.
+
+### The four timing parameters of Tables 215–218, and the trap in reading them
+
+Settled 2026-08-11, and it **withdrew an open item rather than confirming one**. Tables 216 (AC), 217
+(DC) and 218 (WPT) each carry the same four parameters, and only one of them is the SECC's wait for the
+next request:
+
+| parameter | whose clock | what it bounds |
+|---|---|---|
+| `V2G_EVCC_Msg_Timeout(MessageType)` | EVCC | how long the **car waits for a response** |
+| `V2G_SECC_Msg_Performance_Time(MessageType)` | SECC | how fast the **station must answer** |
+| `V2G_EVCC_Sequence_Performance_Time` | EVCC | the car's sequence timer |
+| `V2G_SECC_Sequence_Timeout` | SECC | how long the **station waits for the next request** |
+
+`V2G_SECC_Sequence_Timeout` has **exactly one row in each of the three tables** — the charge-loop
+*response*, at 0,5 s — over Table 215's `(all other messages)` baseline of 60 s. There are **no**
+DC-specific sequence timeouts for CableCheck, PreCharge or WeldingDetection. Obliged by `[V2G20-1500]`
+(AC), `[V2G20-1502]` (DC) and `[V2G20-5070]` (WPT); the EVCC halves are `[V2G20-1499]`, `[V2G20-1501]`
+and `[V2G20-5069]`.
+
+**The trap, and it is the second time this month.** In these tables one parameter name spans a stacked
+group of message-type rows. `pdftotext -layout` flattens that into one row per line and leaves the
+values trailing at the bottom of the block, which reads as though `V2G_SECC_Sequence_Timeout` had four
+DC rows at 1,5 / 1,5 / 0,25 / 0,5. It does not: those numbers are
+`V2G_SECC_Msg_Performance_Time`'s — CableCheck, PreCharge and WeldingDetection at 1,5 s, the charge loop
+at 0,25 s. Table 108 of `-2` produced the identical illusion on 2026-08-11 and cost the same hour.
+**`pdftotext -table` gets these right where `-layout` does not**, and the AC and WPT tables are the
+control: they carry the same four parameters, and reading all three the same way makes the DC one
+unambiguous. Extract with `-table`, and treat any table whose value count exceeds its row count as
+unread.
