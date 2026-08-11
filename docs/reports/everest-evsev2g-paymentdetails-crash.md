@@ -132,15 +132,23 @@ mistake is an empty map rather than a crash, though the real fix is the ordering
 
 ## Context: three ISO 15118-2 stacks meet the same malformed certificate
 
-| stack | malformed `ContractSignatureCertChain.Certificate` |
-|---|---|
-| Josev (SwitchEV) | **caught.** The whole `PaymentDetails.process_message` body is under one `try:` (`iso15118_2_states.py:944`), and the cert is parsed by `verify_certs`, whose failure is an exception the block handles — a `FAILED` response, not a crash |
-| **EVerest `EvseV2G`** | **crash** — used before the parse result is checked |
-| *(ours)* | **caught.** `X509CertificateLoader.LoadCertificate` throws `CryptographicException` on bad DER, inside `try { … } catch (Exception ex)` (`Secc2.PaymentDetails`), so a malformed cert becomes a recorded error, never a null deref |
+The bar that matters is *does it survive the same bytes* — and the answer separates EVerest from both
+others. The **second** column, what each then does, is worth stating precisely, because none of the
+three sends the `FAILED_CertChainError` the message table provides for, and one of the three is us:
 
-Both other stacks parse defensively and answer; only `EvseV2G` reaches OpenSSL with a null. That is
-what makes this a defect worth a security report rather than a style note — the surrounding code
-*wants* to answer `FAILED_CertChainError`, and one misplaced check is all that stops it.
+| stack | survives? | and then |
+|---|---|---|
+| Josev (SwitchEV) | **yes** | the parse-level `ValueError` (from `load_der_x509_certificate`, reached via `log_certs_details`/`verify_certs`) is **not** in the state's own `except` — that list is cert-*verification* exceptions, which do produce `FAILED`. It falls through to the framework's rcv-loop catch-all `except (… ValueError, … Exception)` (`shared/comm_session.py:510-516`), which calls `self.stop(...)` (`:543`) and **terminates the session with no `PaymentDetailsRes`** |
+| **EVerest `EvseV2G`** | **no — crash** | used before the parse result is checked; SIGABRT / SIGSEGV |
+| *(ours)* | **yes** | `X509CertificateLoader.LoadCertificate` throws `CryptographicException`, caught by `try { … } catch (Exception ex)` in `Secc2.PaymentDetails` — but we then return `PaymentDetailsRes(OK)` with no contract key extracted, so the bad cert fails one message later at the **signed `AuthorizationReq`**, not here |
+
+So the sharp claim is narrow and holds: **only `EvseV2G` crashes; the other two survive the identical
+bytes.** The tidier "both answer `FAILED`" would be wrong — Josev terminates the session, we return
+`OK` and fail a message later — and neither sends `FAILED_CertChainError` for the specifically
+*unparseable* case, which is a smaller shared imperfection worth naming rather than papering over.
+`EvseV2G`'s own surrounding code *wants* to answer `FAILED_CertChainError` (it sets it at every
+neighbouring exit); one misplaced check turns that intent into a crash, and that is what makes this a
+security report rather than a style note.
 
 ---
 
@@ -152,8 +160,10 @@ what makes this a defect worth a security report rather than a style note — th
       `crypto_openssl.cpp:161`, `openssl_util.cpp:653` and `:774`, everest-core 2026.02.1.
 - [x] **Say what it is not.** A null dereference, not a controllable write; availability, not code
       execution. And no ISO clause — it stands on the crash.
-- [x] **Show it is not universal.** Josev and our own station both parse the same bytes defensively and
-      answer `FAILED`. The report says how each does it.
+- [x] **Show it is not universal.** Josev and our own station both **survive** the same bytes — Josev
+      terminates the session via the framework catch-all, we return `OK` and fail a message later.
+      Neither crashes, and neither sends `FAILED_CertChainError` for the unparseable case; the report
+      says so rather than tidying it into "both answer FAILED".
 - [ ] **Put it on a running station.** Our `-2` EVCC can now drive a Plug & Charge session, so a probe
       that sends a `PaymentDetailsReq` with a garbage certificate over `-2` TLS would turn "the
       isolated call crashes" into "their module died on our frame". Needs `-2` PnC over TLS against
