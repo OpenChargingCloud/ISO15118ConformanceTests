@@ -481,7 +481,12 @@ been sent — they are the operator's to post, under their own name.
   2026-08-12 that was **measured on a `main` build**, 2 of 2, on their stock `-20` SIL config
   ([run](interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md)). The same session start also
   emits `trusted_ca_keys support disabled`, which is the `IsoMux` §4 finding appearing on the `-20`
-  station — recorded there, not filed separately. **Still not the same issue as the
+  station. **Checked against the `-20` text on 2026-08-12: not applicable** — `trusted_ca_keys` is
+  absent from ISO 15118-20, which carries the same duty on RFC 8446's `certificate_authorities`.
+  Chasing that turned up the finding the run was not looking for: `lib/everest/tls` reads the EV's
+  `certificate_authorities` **nowhere** and fixes the server chain at `cfg.chains[0]`, so
+  `[V2G20-1007]`/`[V2G20-2379]` cannot be met by a station holding two roots — now
+  [`everest-d20-client-auth.md`](reports/everest-d20-client-auth.md) §3. **Still not the same issue as the
   dropped `ocsp` member** — that one is the conversion boundary, still present on `main`, and *neither
   fix alone produces a staple*. **Controlled**, because "your client never
   asked" is the first objection: the same client and the same flag against `IsoMux` made their own

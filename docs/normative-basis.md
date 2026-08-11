@@ -343,6 +343,53 @@ ignores the extension is indistinguishable from one that honours it, because the
 choose. The requirement bites exactly where an operator holds two — mid-rotation, or serving two roots
 — and that is the configuration nobody tests.
 
+### `-20` does **not** use `trusted_ca_keys` — it uses `certificate_authorities`, in both directions
+
+Read on 2026-08-12 to settle a question left open by the
+[`main`-station OCSP run](interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md), where
+`Evse15118D20` was observed logging *"trusted_ca_keys support disabled"* once per TLS session. **Is a
+`-20` SECC obliged to support it?**
+
+**No.** `trusted_ca_keys` does not appear anywhere in ISO 15118-20. RFC 6066 is referenced by `-20` for
+exactly two things: the OCSP `status_request` handling, and **`[V2G20-2446]`**, maximum fragment length
+negotiation. The chain-selection duty that `[V2G2-651]` discharges through `trusted_ca_keys` in `-2` is
+discharged in `-20` through RFC 8446's `certificate_authorities` — TLS 1.3's own mechanism, which is
+why the older one is not needed.
+
+So the observation is **not applicable** as a `-20` conformance finding, and the note on it in
+[`everest-isomux.md`](reports/everest-isomux.md) §4 is right to have left it open rather than filed.
+
+**But the duty itself is not gone — it changed extension**, and `-20` states it symmetrically:
+
+*EV → SECC, so the station knows what the EV can verify:*
+
+- **`[V2G20-1006]`** — an EVCC not in CPM4PE **shall** send every V2G root and PE private root it holds
+  via a `certificate_authorities` extension in the `ClientHello`. Unconditional, like `[V2G2-651]`.
+- **`[V2G20-2368]`** — the DistinguishedName composition for that list.
+
+*SECC → EV, the selection duty:*
+
+- **`[V2G20-1007]`** — a public SECC **shall** send a chain up to a root **the EVCC indicated**.
+- **`[V2G20-2379]`** — when the EV's list is non-empty, the public SECC **shall** use the received
+  DistinguishedNames to choose a chain originating from one of them.
+- **`[V2G20-2378]`** — only when the EV's list is **empty** may it choose freely.
+- **`[V2G20-2382]`**, **`[V2G20-2383]`**, **`[V2G20-2384]`** — the same three for a private SECC not in
+  CPM4PE; **`[V2G20-2385]`** is the CPM4PE exception.
+
+*SECC → EV, the other direction, which is a different duty:*
+
+- **`[V2G20-2401]`**/**`[V2G20-2402]`** — the SECC **shall** send its own V2G and/or OEM roots in the
+  `certificate_authorities` extension of its `CertificateRequest`, with **`[V2G20-2403]`** fixing the
+  RDN fields and their order and **`[V2G20-2404]`** permitting an empty list only when it holds none.
+  That is [`everest-d20-client-auth.md`](reports/everest-d20-client-auth.md) §2's first item.
+
+**The practical reading is the same as for `-2` and worth repeating**: with a single root, a station
+that never reads the extension is indistinguishable from one that honours it, because there is nothing
+to choose. `[V2G20-2379]` bites where an operator holds two — mid-rotation, or serving two roots — and
+that is the configuration nobody tests. What is different from `-2` is that the requirement is *split
+across two extensions in two directions*, so a stack can implement the half it happens to have
+inherited and look compliant from either end alone.
+
 ### `[V2G20-169]` has two halves, and they are usually implemented one at a time
 
 Already cited on 2026-08-09 for the `IsoMux` routing finding; re-read on 2026-08-10 because a second
