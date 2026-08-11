@@ -267,9 +267,31 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **thirteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **fourteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **The ISO 15118-2 signed-metering path is open at both ends.** Going out,
+  `ISO15118_chargerImpl::handle_update_meter_info` reads `powermeter.energy_Wh_import.total` and never
+  the `energy_Wh_import_signed` sibling **on the same argument** — `v2g_ctx->meter_info` has three
+  members and no room for it, and `SigMeterReading` occurs nowhere in `EvseV2G`. Coming back, the EV's
+  signed `MeteringReceiptReq` reaches `publish_iso_metering_receipt_req`, whose entire body is
+  `// TODO: publish PnC only`, and gets `ResponseCode = OK` unconditionally;
+  `check_iso2_signature` has **one** call site in the module and it is the `AuthorizationReq`.
+  <br>**Measured off bytes already in this directory**, decoded by neither codec involved: entry `[30]`
+  of the [2026-08-02 DC charge](interop-runs/2026-08-02-everest-iso2-dc-full-charge/frames.log) put
+  through V2Gdecoder (RISE-V2G + EXIficient) shows `MeterInfo` with `MeterID` and `MeterReading` and
+  nothing else — **two of the five elements** `MeterInfoType` defines. Entry `[31]`, 17 bytes shorter,
+  has none at all: their `meter_info_is_used` is one-shot.
+  <br>**`[V2G2-902]` is the requirement** — the `MeterInfo` the SECC sends shall be exactly what the
+  meter itself produced. **`[V2G2-904]` is expressly a `may`**, so not verifying the receipt is permitted, and
+  the filing says so before it says anything else; what closes that door is that NOTE 1's secondary
+  actor cannot verify it either, because nothing forwards it. **Filed 2026-08-11:**
+  [`everest-evsev2g-metering-chain.md`](reports/everest-evsev2g-metering-chain.md),
+  [run](interop-runs/2026-08-11-everest-iso2-metering-receipt/notes.md).
+  <br>**The `-20` sibling is already filed** and is the same capability one step further gone:
+  `meter_info` is never set on a `ChargeLoopRes` at all
+  ([`everest-d20-meter-info.md`](reports/everest-d20-meter-info.md)). Two modules, one capability,
+  neither fix reaching the other.
 - **The `-20` SessionID and the PnC challenge carry 32 bits, whatever their width.** Four sites in
   `libiso15118` fill a security-relevant array from `std::mt19937` seeded with **one** 32-bit
   `random_device` draw — three `d20::Session` constructors and `AuthorizationSetup::handle_request` —
