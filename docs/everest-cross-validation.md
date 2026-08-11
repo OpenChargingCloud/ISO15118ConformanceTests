@@ -267,9 +267,34 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **fifteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **sixteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **A malformed contract certificate in `PaymentDetailsReq` crashes the module.**
+  `handle_iso_payment_details` parses the EV's contract certificate at `iso_server.cpp:982`, **uses**
+  it at `:990` (`getEmaidFromContractCert(contract_crt)`), and only checks the parse result `err` at
+  `:1006`. On unparseable DER `der_to_certificate` returns a null `certificate_ptr`
+  (`openssl_util.cpp:653`), so line 990 runs `certificate_subject(nullptr)` — which opens
+  `assert(cert != nullptr)` and then `X509_get_subject_name(cert)` (`openssl_util.cpp:774`): **SIGABRT**
+  in a debug build (their CMake default), **SIGSEGV** in a release build.
+  <br>**Reachable pre-authentication.** `-2` TLS is unilateral, and the crash is *during parsing*,
+  before any signature or chain check — so the trigger is one `PaymentDetailsReq` with a non-empty,
+  non-certificate `ContractSignatureCertChain.Certificate` after an ordinary handshake and a
+  `Contract` selection. A single crafted message, repeatable. **Filed 2026-08-11:**
+  [`everest-evsev2g-paymentdetails-crash.md`](reports/everest-evsev2g-paymentdetails-crash.md),
+  [run](interop-runs/2026-08-11-everest-evsev2g-paymentdetails-crash/notes.md).
+  <br>**Demonstrated in isolation, not against a running station**: a C reproduction of
+  `certificate_subject`'s first two lines on a null `X509*` gives SIGSEGV under `-DNDEBUG` and SIGABRT
+  with the assert live. **Explicitly a null dereference — availability, not code execution** — and
+  **no ISO clause**; it stands on the crash and its reachability, the same footing as any robustness
+  bug. The code's own intent for this input is `FAILED_CertChainError`, set at every neighbouring exit;
+  one misplaced check is the whole distance to a crash.
+  <br>**Josev and ours both catch it** — Josev's whole PaymentDetails body under one `try:`, ours with
+  `X509CertificateLoader.LoadCertificate` in a try/catch — so a malformed cert is a `FAILED` answer,
+  not a null. Only `EvseV2G` reaches OpenSSL with a null.
+  <br>**Same thread as the two above**: reading their `-2` Plug & Charge handlers, which our own stack
+  could only start exercising this morning (`WWCP_ISO15118` `c1a7989`). Three `EvseV2G` PnC findings in
+  one afternoon, one of them a crash.
 - **`CertificateUpdateRes` is sent from the union slot the previous response left behind.**
   `handle_iso_certificate_update` (`iso_server.cpp:1817-1820`) is `// TODO: implement CertificateUpdate
   handling` and returns `V2G_EVENT_NO_EVENT` — `0`, the ordinary carry-on value, where the only value
