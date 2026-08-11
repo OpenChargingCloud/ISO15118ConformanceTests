@@ -39,7 +39,7 @@ captured frames (`WWCP_ISO15118_EXI_Tests`, the stack's codec tests, carried in 
 session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our own wire output,
 `WWCP_ISO15118_Session_Tests` unit-tests the transport's own decisions (carried here for the same
 reason as the codec tests: the offline gate is this solution), and the loopback E2Es run both peers
-in-process. Four assemblies, 1 400 tests.
+in-process. Four assemblies, 1 403 tests.
 
 **Read `dotnet test`'s exit code, not its summary lines.** When a test host crashes the run is aborted,
 but each assembly still prints a `Bestanden! : Fehler: 0, …` line for whatever it had finished — so an
