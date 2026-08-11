@@ -38,6 +38,15 @@ again the same afternoon, out of a `frames.log` from 2026-08-02, and the reason 
 that the finding is about a field that is **absent**: no live run can show you an omission you were not
 already looking for, but a kept frame can be re-decoded by name.
 
+A third shape is the **control pair**: two sessions differing in exactly one input, run so that a single
+observation can be attributed. [`2026-08-11-everest-iso2-cert-install/`](2026-08-11-everest-iso2-cert-install/notes.md)
+is the clearest example here — the same provisioning request, answered `FAILED_SequenceError` in an EIM
+session and plain `FAILED` in a Contract one, which is what turns a confusing response code into a
+statement about the counterparty's state machine. The single session would have been written up as a
+defect; the pair says which of two explanations is the live one, and leaves the requirement question
+open on purpose. It also carries the counterparty's **own MQTT payload** as an artifact, so the claim
+that a station forwarded our bytes unaltered is a hash comparison rather than a description.
+
 ## Producing them
 
 The `[Explicit] [Category("Interop")]` fixtures write these artifacts themselves when

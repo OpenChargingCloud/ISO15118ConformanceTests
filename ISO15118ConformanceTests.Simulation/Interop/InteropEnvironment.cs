@@ -23,6 +23,7 @@ using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.Sap;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
+using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using cloud.charging.open.protocols.ISO15118.Transport;
 
@@ -326,6 +327,89 @@ internal static class InteropEnvironment
                                   $"{key.KeySize}-bit EC.");
 
         return new PncEvccOptions(leaf.RawData, subCertificates, key);
+
+    }
+
+
+    /// <summary>
+    /// ISO 15118-2 contract provisioning for the EVCC side. <c>V2G_INTEROP_PROVISION</c> is
+    /// <c>install</c> or <c>update</c>; <c>V2G_INTEROP_PROVISION_CERT</c> a PKCS#12 holding the
+    /// credential that plays the part — the <b>OEM provisioning</b> certificate for an installation, the
+    /// <b>expiring contract</b> for an update — with its private key, and
+    /// <c>V2G_INTEROP_PROVISION_PASS</c> its password. An update also needs
+    /// <c>V2G_INTEROP_PROVISION_EMAID</c>, which the message carries. Unset (the default) skips
+    /// provisioning entirely.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>This is why no counterparty's `-2` provisioning path had ever been exercised here.</b> The
+    /// capability landed in <c>Evcc2.CertInstallRequest</c> on 2026-08-11, and until this switch existed
+    /// there was no way to reach it from an interop run — the fixtures threaded
+    /// <see cref="ContractCredentialsOrNull"/> and nothing else. Same shape as
+    /// <c>Evcc20Base.RequestMeterInfo</c> and <c>SendSessionId</c> before it: a question our car could
+    /// technically ask, that no run could tell it to.
+    /// </para>
+    /// <para>
+    /// The key must be <b>P-256</b>. That is not our choice: `-2`'s key transport wraps the issued
+    /// contract key for the curve the requesting credential carries, and the schema's field sizes admit
+    /// only that one. EVerest's own test PKI ships suitable material.
+    /// </para>
+    /// </remarks>
+    public static Iso2CertInstallOptions? CertificateProvisioningOrNull()
+    {
+
+        var action = Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION");
+        if (String.IsNullOrEmpty(action))
+            return null;
+
+        var which = action.ToLowerInvariant() switch
+        {
+            "install" => Iso2CertificateAction.Install,
+            "update"  => Iso2CertificateAction.Update,
+            _         => throw new InvalidOperationException(
+                             $"V2G_INTEROP_PROVISION: expected 'install' or 'update', got '{action}'."),
+        };
+
+        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_CERT")
+                       ?? throw new InvalidOperationException(
+                              "V2G_INTEROP_PROVISION is set but V2G_INTEROP_PROVISION_CERT is not: the run "
+                            + "needs the credential to sign the request with.");
+
+        var collection = X509CertificateLoader.LoadPkcs12CollectionFromFile(
+                             path, Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_PASS"),
+                             X509KeyStorageFlags.Exportable);
+
+        var leaf = collection.FirstOrDefault(c => c.HasPrivateKey)
+                       ?? throw new InvalidOperationException(
+                              $"V2G_INTEROP_PROVISION_CERT: no certificate in '{path}' carries a private key.");
+
+        var signKey = leaf.GetECDsaPrivateKey()
+                          ?? throw new InvalidOperationException(
+                                 "V2G_INTEROP_PROVISION_CERT: the private key is not ECDSA.");
+
+        // The same key twice, in the two shapes the exchange needs it: ECDSA to sign the request, ECDH to
+        // unwrap the answer. -2 wraps the issued contract key for the key that asked, which is what makes
+        // an update need no other proof of identity.
+        var agreement = leaf.GetECDiffieHellmanPrivateKey()
+                            ?? throw new InvalidOperationException(
+                                   "V2G_INTEROP_PROVISION_CERT: the private key cannot do ECDH.");
+
+        if (signKey.KeySize != 256)
+            TestContext.Out.WriteLine(
+                $"WARNING: the provisioning key is {signKey.KeySize}-bit; -2 key transport is P-256 only, "
+              + "so the response will not be decryptable. Recording the run anyway — the refusal or the "
+              + "failure is the measurement.");
+
+        var subCertificates = collection.Where(c => !c.HasPrivateKey).Select(c => c.RawData).ToArray();
+
+        TestContext.Out.WriteLine(
+            $"Provisioning: {which} with {leaf.Subject} (+{subCertificates.Length} sub-CA(s)), "
+          + $"{signKey.KeySize}-bit EC.");
+
+        return new Iso2CertInstallOptions(
+                   leaf.RawData, signKey, agreement, which,
+                   Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_EMAID"),
+                   subCertificates.Length > 0 ? subCertificates : null);
 
     }
 
