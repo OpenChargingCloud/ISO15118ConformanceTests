@@ -166,7 +166,10 @@ that — it is "answer the way you already answer everything else you cannot do"
       bounds-checks lengths, and the report says so rather than leaving it to be assumed.
 - [x] **Say where the requirement is not exotic.** Josev does not implement the feature either and
       still answers correctly, in nine lines.
-- [ ] **Re-read the citations against the tree before posting.** Ten file:line references.
+- [x] **Re-read the citations against the tree before posting — done 2026-08-11.** All ten verified
+      against the built 2026.02.1 source in the sweep over all 189 `file:line` references in this
+      directory, and the defect is **still present on everest-core `main`** (`ebcd36d`): the handler
+      is still `// TODO: implement CertificateUpdate handling` returning `V2G_EVENT_NO_EVENT`.
 - [ ] **Ask, do not assert, about the intended answer.** `FAILED` versus letting the sequence guard
       produce `FAILED_SequenceError` is theirs to choose; the report offers the first and says so.
 - [ ] **Post under your own name, in your own words.**

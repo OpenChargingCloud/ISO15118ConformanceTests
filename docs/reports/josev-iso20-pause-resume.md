@@ -163,9 +163,10 @@ fix here is worth carrying downstream.
       to whoever picks the fix up, and it is also the sort of thing that turns a tight one-comparison
       report into a discussion. Splitting it into a follow-up comment after the issue is accepted is a
       reasonable alternative.
-- [ ] **Re-check against current `master` before posting.** The observation is from 2026-07-22 and the
-      source read from `d645255`; confirm the branches still look like this, and say which commit you
-      checked.
+- [x] **Re-check against current `master` before posting — checked 2026-08-11: `master` has not moved.**
+      `SwitchEV/iso15118` `master` is still `d645255` (2026-05-19), the commit this was read from, so the
+      branches are literally the same bytes. Say `d645255` in the issue and it is both the commit you
+      checked and their HEAD.
 - [ ] **Decide whether to mention the renegotiation observation** from the same counterparty — their
       EVCC sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477] and then drops the link
       anyway. It is a separate filing at best and unproven at present; leaving it out keeps this one

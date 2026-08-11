@@ -5,6 +5,30 @@ from source: `openssl s_client -status` against their `-20` station on both TLS 
 that proves the request reached them. No EV, no session, no client PKI. Post it under your own name; see
 *Before sending* at the bottom.
 
+> **⚠ The conclusion still holds on `main`; two of the three reasons for it do not. Rewrite before
+> filing.** Checked 2026-08-11 against everest-core `main` (`ebcd36d`)
+> ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)):
+>
+> | the report says | on `main` today |
+> |---|---|
+> | **1. Not requested** — the module passes `include_ocsp = false` | **still true**, `ISO15118_chargerImpl.cpp:244` passes `false` |
+> | **2. Nowhere to carry it** — `SSLConfig` has no OCSP member | **false now.** `SSLConfig` grew a `chains` vector of `ChainConfig`, whose fourth member is `ocsp_response_files` |
+> | **3. Nothing would send it** — `init_ssl()` never sets a status callback | **false now.** `connection_ssl.cpp` fills `chain_cfg.ocsp_response_files` and hands the chain to `lib/everest/tls`, which is the implementation this report points at as the one that already works |
+> | **4. `to_everest` drops `ocsp`** — the sibling report | **still true** |
+>
+> So the `-20` stack has been rebased onto the TLS library that has the stapling machinery, and the
+> module now passes an explicitly empty list: `{}, // ocsp_response_files — none for the single-chain
+> leaf path`. **The measurement would come back the same** — `OCSP response: no response sent` — but
+> the argument behind it is now one line (`false` → `true`, plus forwarding `certificate_info.ocsp`)
+> rather than a four-part absence, and the "younger TLS implementation that did not get it" paragraph
+> is no longer true.
+>
+> **This makes the ordering point the whole report.** Flipping that `false` still produces nothing,
+> because `to_everest` drops `ocsp` on the way back — so the two issues now have to be read together in
+> the order the sibling report describes, and that is the version worth filing.
+>
+> Not re-measured against a `main` build; the table is read from the source. Say so if you post it.
+
 **This is a different issue from
 [`everest-evse-security-ocsp-dropped.md`](everest-evse-security-ocsp-dropped.md), and the difference is
 the point.** That one is a lost struct member on the `EvseV2G` path — the stapling machinery exists,

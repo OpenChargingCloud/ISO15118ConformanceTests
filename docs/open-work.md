@@ -450,9 +450,19 @@ also below.
 
 ## Not in the matrix at all
 
-- **Thirty-nine filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Forty filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
+  <br>**The mechanical half of those checklists was cleared on 2026-08-11**
+  ([audit](interop-runs/2026-08-11-reports-upstream-audit/notes.md),
+  [tools](../tools/reports-audit/README.md)): all 189 `file:line` citations re-verified, and every
+  finding re-tested against its project's current default branch. Five of the six counterparties have
+  not committed since the drafts were written. everest-core has — and **three findings are now fixed
+  there and still open in standalone `EVerest/libiso15118`**, which is where those three should now go.
+  Two more need their argument rewritten before they are sendable
+  ([ocsp-absent](reports/everest-d20-ocsp-absent.md) rests on three absences and `main` has filled two;
+  [client-auth](reports/everest-d20-client-auth.md) §1 turns out to be a documented decision rather
+  than an oversight). **The rest of every checklist is judgement, and stays with a person.**
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
   **Done 2026-08-09**, hours after it was written: `ac_contactor_closed(false)` published on their own
   interface inside the 3 s window, `PowerDeliveryRes(OK)` ~95 ms later and three charge loops after

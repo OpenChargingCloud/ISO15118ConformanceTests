@@ -122,7 +122,8 @@ is the value on the wire, not the design — and ours has never been measured by
 - [ ] **Decide whether the AC path deserves its own measurement.** The constant is shared, so the DC run
       settles both by construction — but a reviewer may reasonably want the AC arm run as well, and it is
       the same rig with `V2G_INTEROP_MODE=ac`.
-- [ ] **Check whether `main` has moved.** 2026.02.1 was current on 2026-08-11; the shallow single-tag
-      clone here cannot answer that with `git log`, so fetch upstream `main` explicitly (that trap cost us
-      a false "unchanged" in an earlier filing).
+- [x] **Check whether `main` has moved — checked 2026-08-11 against upstream, not against the clone.**
+      `EVerest/everest-core` `main` is `ebcd36d` (2026-08-11), well ahead of the `2026.02.1` tag this was
+      read from — **and the constant is unchanged there**: `constexpr auto TIMEOUT_SEQUENCE = 1000 * 60;`
+      still, one value, one call site. The finding is live on `main`, not only in the release.
 - [ ] **Post under your own name, in your own words.**

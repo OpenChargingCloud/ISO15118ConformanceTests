@@ -38,6 +38,15 @@ again the same afternoon, out of a `frames.log` from 2026-08-02, and the reason 
 that the finding is about a field that is **absent**: no live run can show you an omission you were not
 already looking for, but a kept frame can be re-decoded by name.
 
+A fourth shape has no counterparty artifact at all: an **audit of our own drafts** against the trees
+they cite. [`2026-08-11-reports-upstream-audit/`](2026-08-11-reports-upstream-audit/notes.md) re-reads
+every `file:line` in `docs/reports/` — 189 of them, all still correct — and then asks the question the
+per-report checklists ask one at a time: *has anybody fixed it since we wrote it down?* Doing it across
+all thirty-two at once is what made the answer visible: **three findings are fixed on everest-core
+`main` and still open in standalone `EVerest/libiso15118`**, two trees that two of the drafts assumed
+were byte-identical. That does not move a matrix cell — no session was run — but it moves where three
+filings go, and it is cheaper than any run in this directory.
+
 A third shape is the **control pair**: two sessions differing in exactly one input, run so that a single
 observation can be attributed. [`2026-08-11-everest-iso2-cert-install/`](2026-08-11-everest-iso2-cert-install/notes.md)
 is the clearest example here — the same provisioning request, answered `FAILED_SequenceError` in an EIM

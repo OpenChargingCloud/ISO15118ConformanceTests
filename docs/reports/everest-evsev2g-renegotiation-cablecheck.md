@@ -117,7 +117,10 @@ there, or whether you would rather track it in the session explicitly, is yours 
       way to have a real finding dismissed.
 - [ ] **Say what was not measured.** Whether the station accepts the sequence when CableCheck and
       PreCharge *are* re-sent is read from the state table, not observed.
-- [ ] **Re-read the citations against the tree before posting.** Four `file:line` references.
+- [x] **Re-read the citations against the tree before posting — done 2026-08-11.** All four verified
+      against the built 2026.02.1 source in the sweep over all 189 `file:line` references in this
+      directory, and the state assignment is **unchanged on everest-core `main`** (`ebcd36d`): a DC
+      renegotiation still lands in `WAIT_FOR_CABLECHECK`.
 - [ ] **Ask, do not assert, about the intended sequence.** If `WAIT_FOR_CABLECHECK` after renegotiation
       is deliberate — an isolation re-test policy rather than an oversight — that is a position worth
       hearing, and it would belong in the standard's discussion rather than in a patch.

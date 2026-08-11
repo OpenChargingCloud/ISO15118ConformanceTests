@@ -206,7 +206,11 @@ message sets, and neither fix reaches the other module.
       own charger interface, not dead code.
 - [x] **Say where it is not exotic.** Josev implements the verification half; we implement both.
       Nobody implements all of it, and the table says so.
-- [ ] **Re-read the citations against the tree before posting.** Nine file:line references here.
+- [x] **Re-read the citations against the tree before posting — done 2026-08-11.** All nine verified
+      against the built 2026.02.1 source in the sweep over all 189 `file:line` references in this
+      directory. **Both halves are still present on everest-core `main`** (`ebcd36d`):
+      `publish_iso_metering_receipt_req` is still the empty `// TODO`, and `handle_update_meter_info`
+      still reads `energy_Wh_import.total` rather than the signed sibling.
 - [ ] **Consider filing (1) and (2) as two issues.** They have different severities — one is a
       `shall`, one is an unusable feature — and different fixes in different files. The rule that has
       served this directory is that a single issue invites a single answer, and the weaker one decides

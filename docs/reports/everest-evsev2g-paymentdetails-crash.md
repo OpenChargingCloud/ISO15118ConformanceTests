@@ -171,5 +171,8 @@ security report rather than a style note.
       their manager's log.
 - [ ] **Report it the way a crash should be reported.** It is remotely triggerable and pre-auth at the
       application layer; consider their security policy / private disclosure before a public issue.
-- [ ] **Re-read the citations against the tree before posting.** Six file:line references.
+- [x] **Re-read the citations against the tree before posting — done 2026-08-11.** All six verified
+      against the built 2026.02.1 source in the sweep over all 189 `file:line` references in this
+      directory, and the ordering is **unchanged on everest-core `main`** (`ebcd36d`): the certificate
+      still reaches `getEmaidFromContractCert` before the parse result is checked.
 - [ ] **Post under your own name, in your own words.**
