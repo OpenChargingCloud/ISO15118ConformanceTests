@@ -116,6 +116,16 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   responses at all — its sequence guard *throws* rather than answering (`"would be
   ResponseCode.FAILED_SequenceError"`), so `[V2G20-460]` needs that builder first, across three
   generated message sets. One piece of work serving both requirements, and bigger than this one was.
+  <br>**And there is a worked example to copy the shape from**, found on 2026-08-11 while reading
+  their `-20` library for something else: EVerest's `d20/context_helper.cpp` is exactly that table —
+  `handle_sequence_error<Response>(session)` templated over the response type, dispatched from one
+  `send_sequence_error(req_type, ctx)` across **all sixteen** `-20` message types, with every
+  `state/*.cpp` calling it from its `else` arm. So their `-20` answers an out-of-sequence request with
+  the corresponding response, where ours raises `SessionAborted` and ends the session without
+  answering at all — and the same table then serves `[V2G20-460]`. Ours is the gap here and theirs is
+  the reference, which is worth saying in a file that mostly runs the other way. It is also the
+  `-20` twin of the `-2` defect **tux-evse's VW capture found in us** on 2026-08-06 and that was
+  fixed the same day; the `-2` half answers properly now and the `-20` half never did.
   <br>None of it blocked [the filing against EVerest](reports/everest-evsev2g-session-id-zero.md),
   since that probe is raw Python and owes our state machines nothing.
   [`…-iso2-session-id-zero`](interop-runs/2026-08-11-everest-iso2-session-id-zero/notes.md).
