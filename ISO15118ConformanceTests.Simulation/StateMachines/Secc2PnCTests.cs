@@ -36,8 +36,10 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
     [TestFixture]
     public class Secc2PnCTests
     {
-        private static V2G_Message Msg(BodyBaseType body, SignatureType? sig = null) =>
-            new(new MessageHeaderType(new byte[8], Notification: null, Signature: sig), new BodyType(body));
+        // A real car echoes the SessionID the station assigned ([V2G2-460]); before SessionSetup that is
+        // still the all-zero id a SessionSetupReq carries.
+        private static V2G_Message Msg(Secc2 secc, BodyBaseType body, SignatureType? sig = null) =>
+            new(new MessageHeaderType(secc.SessionId, Notification: null, Signature: sig), new BodyType(body));
 
         private static (ECDsa Key, X509Certificate2 Cert) NewContract()
         {
@@ -50,14 +52,14 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         private static Secc2 RunToPaymentDetails(X509Certificate2 cert, out byte[] challenge)
         {
             var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(Msg(new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
-            var disc = (ServiceDiscoveryResType)secc.Handle(Msg(new ServiceDiscoveryReqType(null, null))).Body.BodyElement!;
+            secc.Handle(Msg(secc, new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
+            var disc = (ServiceDiscoveryResType)secc.Handle(Msg(secc, new ServiceDiscoveryReqType(null, null))).Body.BodyElement!;
             Assert.That(disc.PaymentOptionList.PaymentOption, Does.Contain(PaymentOption.Contract), "Contract must be offered");
 
-            secc.Handle(Msg(new PaymentServiceSelectionReqType(PaymentOption.Contract,
+            secc.Handle(Msg(secc, new PaymentServiceSelectionReqType(PaymentOption.Contract,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
 
-            var details = (PaymentDetailsResType)secc.Handle(Msg(new PaymentDetailsReqType("UKTEST000000001A",
+            var details = (PaymentDetailsResType)secc.Handle(Msg(secc, new PaymentDetailsReqType("UKTEST000000001A",
                 new CertificateChainType(null, cert.RawData, new SubCertificatesType(new[] { cert.RawData }))))).Body.BodyElement!;
             Assert.That(details.GenChallenge, Has.Length.EqualTo(16));
             challenge = details.GenChallenge;
@@ -77,7 +79,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 Assert.That(Iso2Codec.EncodeFragment_AuthorizationReq(authReq, frag, out int n), Is.True);
                 var signature = XmlDsigInterop2.Sign("id1", frag.AsSpan(0, n), key);
 
-                secc.Handle(Msg(authReq, signature));
+                secc.Handle(Msg(secc, authReq, signature));
 
                 Assert.Multiple(() =>
                 {
@@ -102,22 +104,22 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 var authReq = new AuthorizationReqType("id1", challenge);
                 var frag = new byte[1024];
                 Iso2Codec.EncodeFragment_AuthorizationReq(authReq, frag, out int n);
-                secc.Handle(Msg(authReq, XmlDsigInterop2.Sign("id1", frag.AsSpan(0, n), key)));
+                secc.Handle(Msg(secc, authReq, XmlDsigInterop2.Sign("id1", frag.AsSpan(0, n), key)));
 
-                secc.Handle(Msg(new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
+                secc.Handle(Msg(secc, new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
                     new AC_EVChargeParameterType(null, PhysicalValue.Of(22_000, UnitSymbol.Wh),
                         new PhysicalValueType(0, UnitSymbol.V, 400), new PhysicalValueType(0, UnitSymbol.A, 32),
                         new PhysicalValueType(0, UnitSymbol.A, 6)))));
-                secc.Handle(Msg(new PowerDeliveryReqType(ChargeProgress.Start, 1, null, null)));
+                secc.Handle(Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, 1, null, null)));
 
-                var status = (ChargingStatusResType)secc.Handle(Msg(new ChargingStatusReqType())).Body.BodyElement!;
+                var status = (ChargingStatusResType)secc.Handle(Msg(secc, new ChargingStatusReqType())).Body.BodyElement!;
                 Assert.That(status.ReceiptRequired, Is.True, "a Contract session must demand a receipt");
                 Assert.That(status.MeterInfo, Is.Not.Null, "the EV echoes this MeterInfo in its receipt");
 
                 var receipt = new MeteringReceiptReqType("id2", new byte[8], status.SAScheduleTupleID, status.MeterInfo!);
                 var rfrag = new byte[1024];
                 Assert.That(Iso2Codec.EncodeFragment_MeteringReceiptReq(receipt, rfrag, out int rn), Is.True);
-                var res = (MeteringReceiptResType)secc.Handle(Msg(receipt, XmlDsigInterop2.Sign("id2", rfrag.AsSpan(0, rn), key))).Body.BodyElement!;
+                var res = (MeteringReceiptResType)secc.Handle(Msg(secc, receipt, XmlDsigInterop2.Sign("id2", rfrag.AsSpan(0, rn), key))).Body.BodyElement!;
 
                 Assert.Multiple(() =>
                 {
@@ -129,7 +131,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 });
 
                 // The loop continues normally after the receipt.
-                var again = secc.Handle(Msg(new ChargingStatusReqType()));
+                var again = secc.Handle(Msg(secc, new ChargingStatusReqType()));
                 Assert.That(again.Body.BodyElement, Is.InstanceOf<ChargingStatusResType>());
             }
         }
@@ -138,18 +140,18 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         public void EimSession_IsUntouched_NoPaymentDetailsNoReceipts()
         {
             var secc = new Secc2(PowerMode.Ac, TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(Msg(new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
-            secc.Handle(Msg(new ServiceDiscoveryReqType(null, null)));
-            secc.Handle(Msg(new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
+            secc.Handle(Msg(secc, new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
+            secc.Handle(Msg(secc, new ServiceDiscoveryReqType(null, null)));
+            secc.Handle(Msg(secc, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
-            secc.Handle(Msg(new AuthorizationReqType(null, null)));   // straight to Authorization, unsigned
+            secc.Handle(Msg(secc, new AuthorizationReqType(null, null)));   // straight to Authorization, unsigned
 
-            secc.Handle(Msg(new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
+            secc.Handle(Msg(secc, new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
                 new AC_EVChargeParameterType(null, PhysicalValue.Of(22_000, UnitSymbol.Wh),
                     new PhysicalValueType(0, UnitSymbol.V, 400), new PhysicalValueType(0, UnitSymbol.A, 32),
                     new PhysicalValueType(0, UnitSymbol.A, 6)))));
-            secc.Handle(Msg(new PowerDeliveryReqType(ChargeProgress.Start, 1, null, null)));
-            var status = (ChargingStatusResType)secc.Handle(Msg(new ChargingStatusReqType())).Body.BodyElement!;
+            secc.Handle(Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, 1, null, null)));
+            var status = (ChargingStatusResType)secc.Handle(Msg(secc, new ChargingStatusReqType())).Body.BodyElement!;
 
             Assert.Multiple(() =>
             {

@@ -41,19 +41,22 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
     [TestFixture]
     public class Secc2TariffTests
     {
-        private static V2G_Message Msg(BodyBaseType body) =>
-            new(new MessageHeaderType(new byte[8], Notification: null, Signature: null), new BodyType(body));
+        // A real car echoes the SessionID the station assigned; before SessionSetup that id is still the
+        // all-zero one, which is what a SessionSetupReq carries. Reading it off the station is what
+        // makes these harnesses conformant peers rather than [V2G2-460] violators.
+        private static V2G_Message Msg(Secc2 secc, BodyBaseType body) =>
+            new(new MessageHeaderType(secc.SessionId, Notification: null, Signature: null), new BodyType(body));
 
         /// <summary>EIM session up to (and including) ChargeParameterDiscovery; returns the full response
         /// message — the tariff signature sits in its header.</summary>
         private static V2G_Message RunToChargeParams(Secc2 secc)
         {
-            secc.Handle(Msg(new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
-            secc.Handle(Msg(new ServiceDiscoveryReqType(null, null)));
-            secc.Handle(Msg(new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
+            secc.Handle(Msg(secc, new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
+            secc.Handle(Msg(secc, new ServiceDiscoveryReqType(null, null)));
+            secc.Handle(Msg(secc, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
-            secc.Handle(Msg(new AuthorizationReqType(null, null)));
-            return secc.Handle(Msg(new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
+            secc.Handle(Msg(secc, new AuthorizationReqType(null, null)));
+            return secc.Handle(Msg(secc, new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
                 new AC_EVChargeParameterType(null, PhysicalValue.Of(22_000, UnitSymbol.Wh),
                     new PhysicalValueType(0, UnitSymbol.V, 400), new PhysicalValueType(0, UnitSymbol.A, 32),
                     new PhysicalValueType(0, UnitSymbol.A, 6)))));
@@ -100,13 +103,13 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             RunToChargeParams(secc);
 
             var bad = (PowerDeliveryResType)secc.Handle(
-                Msg(new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 9, null, null))).Body.BodyElement!;
+                Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 9, null, null))).Body.BodyElement!;
             Assert.That(bad.ResponseCode, Is.EqualTo(ResponseCode.FAILED_TariffSelectionInvalid));
             Assert.That(secc.ChargingProfileCheck!.TupleIdOk, Is.False);
 
             // The phase did not advance — a corrected choice still works.
             var good = (PowerDeliveryResType)secc.Handle(
-                Msg(new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 2, null, null))).Body.BodyElement!;
+                Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 2, null, null))).Body.BodyElement!;
             Assert.That(good.ResponseCode, Is.EqualTo(ResponseCode.OK));
             Assert.That(secc.ChargingProfileCheck!.TupleIdOk, Is.True);
         }
@@ -125,7 +128,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 new ProfileEntryType(0, PhysicalValue.Of(11_000, UnitSymbol.W), null),
             });
             var bad = (PowerDeliveryResType)secc.Handle(
-                Msg(new PowerDeliveryReqType(ChargeProgress.Start, 2, greedy, null))).Body.BodyElement!;
+                Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, 2, greedy, null))).Body.BodyElement!;
             Assert.That(bad.ResponseCode, Is.EqualTo(ResponseCode.FAILED_ChargingProfileInvalid));
             Assert.That(secc.ChargingProfileCheck!.WithinPMax, Is.False);
 
@@ -145,7 +148,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 new ProfileEntryType(1800, PhysicalValue.Of(steps[1], UnitSymbol.W), null),
             });
             var good = (PowerDeliveryResType)secc.Handle(
-                Msg(new PowerDeliveryReqType(ChargeProgress.Start, 2, shaped, null))).Body.BodyElement!;
+                Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, 2, shaped, null))).Body.BodyElement!;
             Assert.That(good.ResponseCode, Is.EqualTo(ResponseCode.OK));
             Assert.That(secc.ChargingProfileCheck!.WithinPMax, Is.True);
         }
@@ -206,7 +209,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 new ProfileEntryType(0, PhysicalValue.Of(11_041, UnitSymbol.W), null),
             });
             var refused = (PowerDeliveryResType)secc.Handle(
-                Msg(new PowerDeliveryReqType(ChargeProgress.Start, 1, greedy, null))).Body.BodyElement!;
+                Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, 1, greedy, null))).Body.BodyElement!;
 
             Assert.That(refused.ResponseCode, Is.EqualTo(ResponseCode.FAILED_ChargingProfileInvalid));
 
@@ -215,7 +218,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 new ProfileEntryType(0, PhysicalValue.Of(11_040, UnitSymbol.W), null),
             });
             var accepted = (PowerDeliveryResType)secc.Handle(
-                Msg(new PowerDeliveryReqType(ChargeProgress.Start, 1, real, null))).Body.BodyElement!;
+                Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, 1, real, null))).Body.BodyElement!;
 
             Assert.Multiple(() =>
             {

@@ -44,6 +44,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             var sid = new byte[8];
 
             var setupRes = (SessionSetupResType)secc.Handle(Wrap(sid, new SessionSetupReqType(new byte[] { 1 }))).Body.BodyElement!;
+            sid = secc.SessionId;   // [V2G2-460]: a real car echoes the id the station just assigned
             Assert.That(setupRes.ResponseCode, Is.EqualTo(ResponseCode.OK_NewSessionEstablished));
 
             secc.Handle(Wrap(sid, new ServiceDiscoveryReqType(null, null)));
@@ -70,6 +71,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             var evStatus = new DC_EVStatusType(EVReady: true, DC_EVErrorCode.NO_ERROR, EVRESSSOC: 50);
 
             secc.Handle(Wrap(sid, new SessionSetupReqType(new byte[] { 1 })));
+            sid = secc.SessionId;   // [V2G2-460]: a real car echoes the id the station just assigned
             secc.Handle(Wrap(sid, new ServiceDiscoveryReqType(null, null)));
             secc.Handle(Wrap(sid, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
@@ -98,6 +100,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             var sid = new byte[8];
 
             secc.Handle(Wrap(sid, new SessionSetupReqType(new byte[] { 1 })));
+            sid = secc.SessionId;   // [V2G2-460]: a real car echoes the id the station just assigned
             secc.Handle(Wrap(sid, new ServiceDiscoveryReqType(null, null)));
             secc.Handle(Wrap(sid, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
@@ -171,6 +174,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             var sid = new byte[8];
 
             secc.Handle(Wrap(sid, new SessionSetupReqType(new byte[] { 1 })));
+            sid = secc.SessionId;   // [V2G2-460]: a real car echoes the id the station just assigned
             secc.Handle(Wrap(sid, new ServiceDiscoveryReqType(null, null)));
             secc.Handle(Wrap(sid, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
@@ -268,6 +272,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         /// a response code. This station advertises no certificate service either, so the abort stands —
         /// pinned here so the exception stays a deliberate exception and not a forgotten arm.
         /// </summary>
+        /// <remarks>
+        /// The message says "refusal guard" rather than "sequence guard" since 2026-08-11: the table of
+        /// corresponding responses now serves `[V2G2-460]` as well as `[V2G2-538]`, so the arm that has no
+        /// entry cannot name one reason over the other. The behaviour it pins is unchanged.
+        /// </remarks>
         [Test]
         public void ACertificateRequestStillAborts()
         {
@@ -276,7 +285,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             Assert.That(() => secc.Handle(Wrap(new byte[8],
                             new CertificateInstallationReqType("id1", OEMProvisioningCert: [1, 2, 3],
                                 new ListOfRootCertificateIDsType([new X509IssuerSerialType("CN=V2G Root", 1)])))),
-                Throws.InstanceOf<SessionAborted>().With.Message.Contain("sequence guard"));
+                Throws.InstanceOf<SessionAborted>().With.Message.Contain("refusal guard"));
         }
     }
 }

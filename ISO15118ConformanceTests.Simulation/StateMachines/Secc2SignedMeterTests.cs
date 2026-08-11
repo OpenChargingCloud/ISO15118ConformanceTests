@@ -48,8 +48,10 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
     [TestFixture]
     public class Secc2SignedMeterTests
     {
-        private static V2G_Message Msg(BodyBaseType body) =>
-            new(new MessageHeaderType(new byte[8], Notification: null, Signature: null), new BodyType(body));
+        // A real car echoes the SessionID the station assigned ([V2G2-460]); before SessionSetup that is
+        // still the all-zero id a SessionSetupReq carries.
+        private static V2G_Message Msg(Secc2 secc, BodyBaseType body) =>
+            new(new MessageHeaderType(secc.SessionId, Notification: null, Signature: null), new BodyType(body));
 
         private static SigningMeter Meter(string id = "VAN*M1") =>
             new(id, ECDsa.Create(ECCurve.NamedCurves.nistP256), TimeProvider.System);
@@ -57,17 +59,17 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         /// <summary>An EIM AC session up to the first ChargingStatus, which is what carries MeterInfo.</summary>
         private static ChargingStatusResType RunToChargingStatus(Secc2 secc)
         {
-            secc.Handle(Msg(new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
-            secc.Handle(Msg(new ServiceDiscoveryReqType(null, null)));
-            secc.Handle(Msg(new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
+            secc.Handle(Msg(secc, new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
+            secc.Handle(Msg(secc, new ServiceDiscoveryReqType(null, null)));
+            secc.Handle(Msg(secc, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
-            secc.Handle(Msg(new AuthorizationReqType(null, null)));
-            secc.Handle(Msg(new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
+            secc.Handle(Msg(secc, new AuthorizationReqType(null, null)));
+            secc.Handle(Msg(secc, new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
                 new AC_EVChargeParameterType(null, PhysicalValue.Of(22_000, UnitSymbol.Wh),
                     new PhysicalValueType(0, UnitSymbol.V, 400), new PhysicalValueType(0, UnitSymbol.A, 32),
                     new PhysicalValueType(0, UnitSymbol.A, 6)))));
-            secc.Handle(Msg(new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 1, null, null)));
-            return (ChargingStatusResType) secc.Handle(Msg(new ChargingStatusReqType())).Body.BodyElement!;
+            secc.Handle(Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 1, null, null)));
+            return (ChargingStatusResType) secc.Handle(Msg(secc, new ChargingStatusReqType())).Body.BodyElement!;
         }
 
         /// <summary>
@@ -159,17 +161,17 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                        { InstalledMeter = meter };
 
             // Drive a real session, then put the whole response through the codec and back.
-            secc.Handle(Msg(new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
-            secc.Handle(Msg(new ServiceDiscoveryReqType(null, null)));
-            secc.Handle(Msg(new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
+            secc.Handle(Msg(secc, new SessionSetupReqType(new byte[] { 1, 2, 3, 4, 5, 6 })));
+            secc.Handle(Msg(secc, new ServiceDiscoveryReqType(null, null)));
+            secc.Handle(Msg(secc, new PaymentServiceSelectionReqType(PaymentOption.ExternalPayment,
                 new SelectedServiceListType(new[] { new SelectedServiceType(1, null) }))));
-            secc.Handle(Msg(new AuthorizationReqType(null, null)));
-            secc.Handle(Msg(new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
+            secc.Handle(Msg(secc, new AuthorizationReqType(null, null)));
+            secc.Handle(Msg(secc, new ChargeParameterDiscoveryReqType(null, EnergyTransferMode.AC_three_phase_core,
                 new AC_EVChargeParameterType(null, PhysicalValue.Of(22_000, UnitSymbol.Wh),
                     new PhysicalValueType(0, UnitSymbol.V, 400), new PhysicalValueType(0, UnitSymbol.A, 32),
                     new PhysicalValueType(0, UnitSymbol.A, 6)))));
-            secc.Handle(Msg(new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 1, null, null)));
-            var response = secc.Handle(Msg(new ChargingStatusReqType()));
+            secc.Handle(Msg(secc, new PowerDeliveryReqType(ChargeProgress.Start, SAScheduleTupleID: 1, null, null)));
+            var response = secc.Handle(Msg(secc, new ChargingStatusReqType()));
 
             var buffer = new byte[4096];
             Assert.That(response.TryEncode(buffer, out var n), Is.True, "the response did not encode");
