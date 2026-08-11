@@ -289,9 +289,14 @@ sent — they are the operator's to post, under their own name.
   **no ISO clause**; it stands on the crash and its reachability, the same footing as any robustness
   bug. The code's own intent for this input is `FAILED_CertChainError`, set at every neighbouring exit;
   one misplaced check is the whole distance to a crash.
-  <br>**Josev and ours both catch it** — Josev's whole PaymentDetails body under one `try:`, ours with
-  `X509CertificateLoader.LoadCertificate` in a try/catch — so a malformed cert is a `FAILED` answer,
-  not a null. Only `EvseV2G` reaches OpenSSL with a null.
+  <br>**Josev and ours both survive it, differently** — Josev's parse-level `ValueError` falls through
+  the state's cert-*verification* `except` to the framework rcv-loop catch-all
+  (`shared/comm_session.py:510-516`), which stops the session with no `PaymentDetailsRes`; ours catches
+  in `Secc2.PaymentDetails` and returns `OK`, failing a message later at the signed `AuthorizationReq`.
+  Neither crashes, and **neither answers `FAILED_CertChainError` for the unparseable case** — a smaller
+  shared imperfection, one of whose three misses is us. The corrected contrast is *survival*, not the
+  answer; only `EvseV2G` reaches OpenSSL with a null. (The report's first draft said "both answer
+  FAILED"; reading the exception paths corrected it.)
   <br>**Same thread as the two above**: reading their `-2` Plug & Charge handlers, which our own stack
   could only start exercising this morning (`WWCP_ISO15118` `c1a7989`). Three `EvseV2G` PnC findings in
   one afternoon, one of them a crash.

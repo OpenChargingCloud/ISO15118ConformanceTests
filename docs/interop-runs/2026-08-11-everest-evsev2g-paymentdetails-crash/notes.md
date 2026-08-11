@@ -11,7 +11,7 @@ dereference reachable pre-authentication.
 | Kind | Remotely-triggerable denial of service (null-pointer dereference). **No ISO clause** — a robustness bug, stands on the crash and its reachability |
 | Read | [everest-core](https://github.com/EVerest/everest-core) **2026.02.1** (`b61bb12b8`), `EvseV2G`; contrast against [SwitchEV/iso15118](https://github.com/SwitchEV/iso15118) `d645255` and our own `Secc2` |
 | Measured | the crash, **in isolation** — `certificate_subject`'s first two lines on a null `X509*`; not yet against a running station |
-| Outcome | EVerest **crashes**, Josev and ours **catch and answer `FAILED`**. Filed: [`everest-evsev2g-paymentdetails-crash.md`](../../reports/everest-evsev2g-paymentdetails-crash.md) |
+| Outcome | EVerest **crashes**; Josev and ours **survive** the same bytes (differently — see the corrected contrast below). Filed: [`everest-evsev2g-paymentdetails-crash.md`](../../reports/everest-evsev2g-paymentdetails-crash.md) |
 | Artifacts | [`nullderef.c`](nullderef.c) · [`repro.log`](repro.log) |
 
 ## The bug in one sentence
@@ -62,21 +62,32 @@ two lines on a null `X509*` and shows both:
 is inside OpenSSL, not in the assert. So a release build (the reproduction's `-DNDEBUG` arm) is not
 saved by the assert; it just crashes differently.
 
-## The three-stack contrast
+## The three-stack contrast — and a correction to the first draft of it
 
 The reason this is filable rather than a shrug is that the other two stacks meet the identical bytes
-and answer:
+and **survive**. The first draft of this note (and of the merged report) said they "catch and answer
+`FAILED`". Reading the exception paths precisely, that is wrong for both — and the correction is worth
+keeping, because it is the same *reading-one-branch-further* discipline the day has been about, this
+time landing on a claim already merged.
 
-- **Josev** wraps the whole `PaymentDetails.process_message` body in one `try:`
-  (`iso15118_2_states.py:944`); the certificate is parsed inside `verify_certs`, whose failure is a
-  caught exception that becomes a `FAILED` response.
-- **Ours** loads the cert with `X509CertificateLoader.LoadCertificate` inside `try { … } catch
-  (Exception ex)` (`Secc2.PaymentDetails`), so bad DER throws `CryptographicException` and is recorded,
-  never dereferenced.
+- **Josev survives, but does not answer `FAILED` for this input.** The parse-level `ValueError` from
+  `load_der_x509_certificate` — reached at the very top of the `try:` via `log_certs_details`, before
+  `verify_certs` — is **not** in the state's own `except` list (`iso15118_2_states.py:~1058`), which
+  catches cert-*verification* exceptions and *those* do produce a `FAILED` response. It falls through
+  to the framework rcv-loop catch-all `except (… ValueError, … Exception)`
+  (`shared/comm_session.py:510-516`), which calls `self.stop(...)` (`:543`) and **terminates the
+  session with no `PaymentDetailsRes`**. Not a crash; not a `FAILED` either.
+- **Ours survives, and returns `OK`.** `X509CertificateLoader.LoadCertificate` throws
+  `CryptographicException`, caught by `try { … } catch (Exception ex)` in `Secc2.PaymentDetails` — and
+  we then return `PaymentDetailsRes(OK)` with no contract key extracted, so the bad cert fails one
+  message later at the signed `AuthorizationReq`. Also not a `FAILED` here.
 
-Both parse defensively; only `EvseV2G` reaches OpenSSL with a null. And EVerest's own intent for this
-input is `FAILED_CertChainError` — it is set at every neighbouring error exit in the same function. One
-misplaced check is the whole distance between "answer FAILED" and "crash".
+So the sharp, correct claim is *survival*, not the answer: **only `EvseV2G` crashes; the other two
+survive the identical bytes**, each differently, and **none of the three sends `FAILED_CertChainError`
+for the specifically unparseable case**. That last part is a smaller shared imperfection — and one of
+the three that misses it is us, which is the honest place to leave it. EVerest's own intent for this
+input *is* `FAILED_CertChainError` (set at every neighbouring exit); one misplaced check turns that
+into a crash, and the crash is the finding.
 
 ## The fix is one reordering
 
