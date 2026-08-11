@@ -99,6 +99,7 @@ from higher ground.
       the third is a narrower defect already filed.
 - [x] **Admit our own gap.** Our `-2` station had none until the same day, and our `-20` half is still
       open.
-- [ ] **Decide issue or PR, and expect a slow response.** The project has had no commit on `main` for
-      over two years; a PR is more likely to be useful than an issue. Same caveat as the other four.
+- [ ] **Decide issue or PR, and expect a slow response.** Re-checked 2026-08-11: `main` is still
+      `60249c3` (2023-04-17), **three years and four months** without a commit. A PR is more likely to be
+      useful than an issue. Same caveat as the other four.
 - [ ] **Post under your own name, in your own words.**

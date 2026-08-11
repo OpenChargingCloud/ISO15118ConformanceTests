@@ -8,6 +8,32 @@ Evidence in this repository:
 [`2026-08-10-everest-d20-ac-namespace`](../interop-runs/2026-08-10-everest-d20-ac-namespace/notes.md)
 — the run notes and four station logs, one per arm.
 
+> **⚠ Fixed in `everest-core` — and still open in `EVerest/libiso15118`. Read this before filing.**
+> Checked 2026-08-11 against both trees
+> ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)). The missing filter is
+> the whole finding, and on everest-core `main` (`ebcd36d`) it is there:
+>
+> ```cpp
+> // supported_app_protocol.cpp, everest-core main — the station's own capability is now the gate
+> const auto is_dc = protocol.protocol_namespace == ISO20_DC_NAMESPACE and modes.dc;
+> const auto is_ac = … and modes.ac;
+> if (is_dc or is_ac or is_custom) {
+>     ev_supported_protocols[protocol.priority] = protocol.schema_id;
+> }
+> ```
+>
+> against `2026.02.1`, where both namespaces are written into the map unconditionally. `modes` is
+> derived from `m_ctx.session_config.supported_energy_transfer_services` — *"Selecting supported app
+> protocol namespace based on the supported energy services"* in their own new log line — which is
+> `[V2G20-169]`'s filter-before-ranking, implemented. The same change also adds the two AC-DER
+> namespaces, so the report's list of what goes into the map is out of date as well.
+>
+> **`EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) still writes both namespaces in
+> unconditionally**, so the finding is live there. File it against the standalone library and point at
+> everest-core's version. Note that the *sibling* in [`everest-isomux.md`](everest-isomux.md) §1 —
+> `[V2G20-169]` failed from the multiplexer's side — is **not** covered by this fix and is still live
+> in everest-core; it is a different file in a different module.
+
 Five other reports go to everest-core:
 [`everest-isomux.md`](everest-isomux.md) (four findings in the multiplexer — **§1 there is this
 finding's sibling**, the same requirement failed from the other side),
@@ -159,11 +185,14 @@ in `EvseManager` is not something we looked at.
       and dies there on services 2 and 6 — the cost is measured, not asserted.
 - [x] **Check every line reference against the tree.**
       `lib/everest/iso15118/src/iso15118/d20/state/supported_app_protocol.cpp:17-18`, `:27-44`,
-      `:39-41` — read from the built 2026.02.1 source on 2026-08-10.
+      `:39-41` — read from the built 2026.02.1 source on 2026-08-10, **re-verified 2026-08-11** in the
+      sweep over all 189 `file:line` citations in this directory.
+- [x] **Ask whether it is deliberate — answered 2026-08-11, and it was not.** everest-core `main` now
+      gates both namespaces on the station's own energy services. That is the maintainers agreeing with
+      the finding in code before it was ever filed, which is the strongest answer this question can get
+      and removes the need to ask it.
 - [ ] **Lead with arm C**, not with the code: *a station with no AC hardware said yes to an AC-only
       offer.* One sentence, and it is the whole issue.
-- [ ] **Ask whether it is deliberate** before calling it a defect — a station that serves the AC message
-      set for some reason we cannot see is a possibility, and the answer would be worth having.
 - [ ] **Say where it costs.** The handshake refusal is one message pair; what happens instead spends an
       authorization and a token first.
 - [ ] **Mention the `IsoMux` sibling** if both are open at once, so a maintainer sees the two halves of

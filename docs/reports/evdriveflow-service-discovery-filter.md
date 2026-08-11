@@ -138,8 +138,9 @@ malformed input crashes rather than being refused, and that is not a thing we wo
       so; keep that distinction when it is rewritten in your own words.
 - [ ] **Lead with the family, not the traceback.** The optional-element pattern is the part worth their
       attention; a maintainer who fixes only line 31 has fixed one of an unknown number.
-- [ ] **Check whether `main` has moved.** `60249c3` is from 2023-04-17, so this project may simply be
-      dormant — which changes how the report should be pitched, and possibly whether it is worth
-      sending at all rather than as a PR.
+- [x] **Check whether `main` has moved — checked 2026-08-11: it has not.** `EDF-Lab/eVDriveFlow` `main`
+      is still `60249c3` (2023-04-17), **three years and four months** without a commit. So the project
+      is dormant rather than merely slow, and the pitch follows from that: a PR with the fix in it, not
+      an issue asking for one, and no expectation of a reply.
 - [ ] **File one issue, this one.** The no-GUI path is the other report, and it is separate.
 - [ ] **Post under your own name, in your own words.**

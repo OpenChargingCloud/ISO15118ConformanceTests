@@ -5,6 +5,24 @@ then **reproduced against a running station the same day, 2 of 2, with a control
 [`2026-08-09-everest-ac-contactor-injection`](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md).
 Post it under your own name; see *Before sending* at the bottom.
 
+> **⚠ Fixed in `everest-core` — and still open in `EVerest/libiso15118`. Read this before filing.**
+> Checked 2026-08-11 against both trees
+> ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)):
+>
+> | tree | the line | state |
+> |---|---|---|
+> | `EVerest/everest-core` @ `main` (`ebcd36d`) | `ac_connector_closed = *control_data;` | **fixed** |
+> | `EVerest/everest-core` @ `2026.02.1` (`b61bb12`) | `ac_connector_closed = control_data;` | broken — the shipped release |
+> | `EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) | `ac_connector_closed = control_data;` | **broken** |
+>
+> So the report's own open question — *which of the two repositories does this belong in?* — is
+> answered, and not the way it was posed: the two copies are **no longer byte-identical**. everest-core
+> carries the dereference; the standalone library has not picked it up and is eight and a half months
+> stale.
+> **File it against `EVerest/libiso15118`**, and say that everest-core already has the fix — that is a
+> one-line cherry-pick rather than a defect report. Against everest-core there is nothing left to file
+> except, if you think it is worth saying, that `2026.02.1` ships the broken version.
+
 Two ways to check it, neither of which needs our stack:
 
 ```bash
@@ -261,13 +279,15 @@ only so that it is not discovered later and mistaken for something we hid.
       a control that fails the way it should, on their stock AC `-20` configuration
       ([run notes](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)). This was the
       report's weak point and it is closed; what it says now is *observed*, not *read*.
-- [ ] **Decide which repository it belongs in.** The file is byte-identical in `EVerest/everest-core`
-      at `lib/everest/iso15118/` and in standalone `EVerest/libiso15118` @ `main`. One is presumably
-      generated from the other; we could not tell which from the outside, and filing into the mirror
-      wastes everyone's time. Ask, or file in `libiso15118` and cross-reference. (This is the same trap
-      as [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md), which needed sending twice.)
+- [x] **Decide which repository it belongs in — answered 2026-08-11, and the premise was wrong.** The
+      two copies were byte-identical when this was written and are not any more: everest-core `main`
+      carries the dereference, standalone `EVerest/libiso15118` `main` does not. **File it in
+      `libiso15118`**, pointing at everest-core's version as the fix. (The trap this shared with
+      [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) — one fix not reaching the other tree —
+      is exactly what happened, in the direction that makes the filing easier rather than harder.)
 - [x] **Re-check every line reference against the tree.** All ten were read from the built 2026.02.1
-      source on 2026-08-09, which is the same day this was written.
+      source on 2026-08-09, which is the same day this was written, and **re-verified 2026-08-11**
+      against 2026.02.1 in the sweep over all 189 `file:line` citations in this directory.
 - [ ] **Ask about impact rather than asserting it.** We do not know their BSP and cannot say whether a
       `PowerOff` during the `PowerDelivery` wait is realistic in a deployed charger or an artefact of
       how the SIL sequences events. Lead with the correctness defect, which is not in doubt, and let

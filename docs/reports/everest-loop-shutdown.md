@@ -4,6 +4,35 @@ Status: **draft, not sent.** Reproduced 2026-08-05 on everest-core 2026.02.1 bui
 times, one attempt each — including **against their own shipped `config-sil-dc-d20.yaml`, unmodified**.
 Post it under your own name; see *Before sending* at the bottom.
 
+> **⚠ Fixed in `everest-core` — and still open in `EVerest/libiso15118`. Read this before filing.**
+> Checked 2026-08-11 against both trees
+> ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)). The trigger this report
+> leads with is the throw out of the TLS accept path, and on everest-core `main` (`ebcd36d`) it is gone:
+>
+> ```cpp
+> // ConnectionSSL::handle_data(), everest-core main — the handshake no longer throws
+> case tls::Connection::result_t::closed:
+>     // convert() folds all fatal handshake outcomes (peer close, alert,
+>     // protocol error) into closed, so this teardown handles every
+>     // non-success, non-blocking handshake result.
+>     logf_error("TLS handshake failed: connection closed");
+>     this->close();
+>     return;
+> ```
+>
+> where `2026.02.1` reaches `log_and_raise_openssl_error("Failed to SSL_accept(): …")` — the throw that
+> propagates through `poll_manager.poll()` and breaks the accept loop. **That is this report's fix, and
+> theirs is better than the one suggested below**: it is the whole class, not the accept call.
+>
+> What has *not* changed is the loop itself. `TbdController::loop()` still ends on a throw out of
+> `poll()` — refactored into `poll_once()` returning `false`, log line renamed to *"Shutting down poll
+> loop because of"*, `break` intact. So the **structure** the report describes is still there and any
+> future throw on that path still bricks the station; only this trigger is closed.
+>
+> **`EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) still carries the old accept path verbatim**,
+> so the finding is live there. File it against the standalone library, pointing at everest-core's
+> version as the fix.
+
 Evidence in this repository: [`trigger3-tls-accept-shutdown.log`](../interop-runs/2026-08-05-everest-2026021-matrix/trigger3-tls-accept-shutdown.log)
 (the three reproductions plus the contrast case, filtered from the station logs), and the run notes
 [`2026-08-05-everest-2026021-matrix`](../interop-runs/2026-08-05-everest-2026021-matrix/notes.md).
@@ -238,7 +267,11 @@ We would happily send a PR for either, if you agree with the shape:
 - [x] **Reproduce it yourself.** Done 2026-08-05 on 2026.02.1: 3/3, including their unmodified stock
       config, plus the contrast case showing the session path handling the same error class correctly.
 - [x] **Re-check every line reference against the tree**, rather than trusting a five-day-old note —
-      done 2026-08-07 against the built 2026.02.1 source: all five still point where they say.
+      done 2026-08-07 against the built 2026.02.1 source: all five still point where they say, and
+      **re-verified 2026-08-11** in the sweep over all 189 `file:line` citations in this directory.
+- [x] **Check whether it is already fixed upstream — done 2026-08-11, and it is.** everest-core `main`
+      closes the connection instead of throwing; `EVerest/libiso15118` `main` does not. See the box at
+      the top: it moves where this gets filed and turns the *Suggested fix* into a cherry-pick.
 - [x] **Lead with what the project has been worth to us.** Above, and every claim in it has runs
       behind it. A report that opens with "your charger can be bricked" reads differently when the
       sender has been on the receiving end of the same courtesy two dozen times.

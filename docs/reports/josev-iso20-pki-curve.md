@@ -152,9 +152,11 @@ asking for something the field cannot supply.
 - [x] **Establish whose script it is before filing.** It is Josev's, in two homes: byte-identical
       (md5 `3dc940f0a739`) in `ext-switchev-iso15118` @ `26f7988` and in what a built `everest-core`
       2026.02.1 installs, and present in the same shape in `SwitchEV/iso15118` @ `d645255`.
-- [ ] **Re-check both line ranges against the current HEAD of each project.** `d645255` is the commit
-      this suite pinned in July 2026, not SwitchEV's HEAD — confirm the block is still there before
-      claiming it is. Line numbers drift; the anchor is `EC_CURVE=` inside the `iso-20` branch.
+- [x] **Re-check both line ranges against the current HEAD of each project — done 2026-08-11, and the
+      pin *is* the HEAD in both.** `SwitchEV/iso15118` `master` = `d645255` (2026-05-19) and
+      `EVerest/ext-switchev-iso15118` `everest` = `26f7988` (2026-05-04) are exactly what this suite
+      pinned; the `EC_CURVE=prime256v1` line is still inside the `iso-20` branch in both trees. Both
+      filings are current.
 - [ ] **File in `ext-switchev-iso15118` first, then upstream**, cross-referencing. Two filings, because
       the two trees have diverged and one merge will not carry to the other.
 - [ ] **Ask before asserting.** Open with "is `prime256v1` for `iso-20` deliberate, given Schannel?"

@@ -6,6 +6,30 @@ no EV, no client PKI, nothing of ours in the first two arms — and then a two-f
 the unauthenticated connection is good for. Post it under your own name; see *Before sending* at the
 bottom.
 
+> **⚠ Both findings survive on `main`, but the code moved and §1's open question is answered.** Checked
+> 2026-08-11 against everest-core `main` (`ebcd36d`)
+> ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)):
+>
+> - **The mechanism is the same, one library down.** `client_hello_cb`, the `supported_versions` scan
+>   and the upgrade to `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT` now live in
+>   `lib/everest/tls/src/tls.cpp:1001-1017`, with the same log line, reached from
+>   `:1076` / `:1082` / `:1089`. `connection_ssl.cpp` sets `verify_client = false` and
+>   `verify_client_on_tls13 = true` and hands them over. **Every `connection_ssl.cpp:*` citation in §1
+>   below locates the 2026.02.1 code and nothing on `main` — re-anchor them before filing.**
+> - **§1's "is it deliberate?" is answered: yes.** Somebody named the flag `verify_client_on_tls13` and
+>   wrote the comment *"upgrades to require a peer cert once TLS 1.3 is negotiated"*. That does not make
+>   it meet `[V2G20-2400]`, which is unconditional — but it does mean the report must argue against a
+>   documented design decision rather than report an oversight, and the *Suggested fix* has to say what
+>   the flag should be for instead of proposing one.
+> - **§2 stands unchanged.** `lib/everest/tls/src/tls.cpp` contains no `SSL_CTX_set1_sigalgs`, no
+>   `set1_groups`/`set1_curves` and no client-CA list on the server path, so `[V2G20-2401]`,
+>   `[V2G20-1667]` and `[V2G20-2460]` are as absent there as they were in `connection_ssl.cpp`.
+> - **`EVerest/libiso15118` @ `main` (`5c81c92`) still has the whole thing in `connection_ssl.cpp`**, so
+>   against *that* tree the citations below are current.
+>
+> Read from the source; not re-measured against a `main` build. The two `s_client` arms would have to be
+> re-run to claim the behaviour rather than the code.
+
 **Two issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
 purpose: §1 has an answer a maintainer might reasonably give (*"TLS 1.2 support is for ISO 15118-2 and
@@ -279,14 +303,19 @@ call each, and a test house will look at both.
       `connection_ssl.cpp:54`, `:91`, `:132-146`, `:148-151`, `:223-224`, `:234-235`, `:245`, `:249`,
       `:269-278`, `:280`, `:283`, `:486`, `:499`; `config.hpp:34`;
       `Evse15118D20/manifest.yaml:22`; `d20/state/session_setup.cpp:99` — read from the built 2026.02.1
-      source on 2026-08-10.
+      source on 2026-08-10, **re-verified 2026-08-11** in the sweep over all 189 `file:line` citations
+      in this directory. **They are 2026.02.1 line numbers**: on everest-core `main` this code lives in
+      `lib/everest/tls/src/tls.cpp` (see the box at the top), on `EVerest/libiso15118` `main` it is
+      still where it says.
+- [x] **Ask whether the TLS 1.2 path is deliberate — answered 2026-08-11: it is.** everest-core `main`
+      carries the identical mechanism behind a named flag, `verify_client_on_tls13`, with a comment
+      explaining it. Do not open §1 as an oversight; open it as *this flag is set true unconditionally
+      and `[V2G20-2400]` is unconditional the other way*, and expect the dual-protocol argument in the
+      first reply rather than having to invite it.
 - [ ] **Lead with the one sentence.** *Your station asks for a vehicle certificate when the EV offers
       TLS 1.3, and asks for nothing when it does not — the EV chooses.* Everything else is support.
 - [ ] **Say it needs no PKI and no EV.** Two `openssl s_client` calls. That is what will get it looked
       at today rather than next month.
-- [ ] **Ask whether the TLS 1.2 path is deliberate** before calling §1 an oversight — a dual-protocol
-      station wanting ISO 15118-2 compatibility is a real reason for the listener. The question is the
-      missing `CertificateRequest` on it, not the listener.
 - [ ] **File two issues**, §1 and §2, and say in each that the other exists. §1 has an answer available
       that would wrongly close §2.
 - [ ] **Mention the `IsoMux` sibling for `[V2G20-2356]`** if both are open at once.

@@ -118,7 +118,7 @@ this ran the morning after we finished closing a different SessionID gap of our 
       One session is enough — the SessionID in `SessionSetupRes` will be eight ASCII digits. Your rig
       needs docker, a prepared clone and the `edfnet` IPv6 network.
 - [ ] **File it separately from the `[V2G20-460]` report**, and say in both that the order matters.
-- [ ] **Decide issue or PR, and expect a slow response.** No commit on `main` for over two years; a
-      PR is more likely to be useful than an issue, and this one is a single line. Same caveat as the
-      other five.
+- [ ] **Decide issue or PR, and expect a slow response.** Re-checked 2026-08-11: no commit on `main`
+      since `60249c3` (2023-04-17), **three years and four months**. A PR is more likely to be useful
+      than an issue, and this one is a single line. Same caveat as the other five.
 - [ ] **Post under your own name, in your own words.**

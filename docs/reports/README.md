@@ -161,6 +161,57 @@ Observations we could not raise honestly. Three kinds recur:
   hardcoded 2020 timestamp, an AC schedule rounded 40 W below what a real charge point offers). The
   interop matrix in the top-level [`README.md`](../../README.md) marks which counterparty found each.
 
+## The 2026-08-11 sweep, and what it caught
+
+The two mechanical checklist items — *do the citations still point where they say* and *has upstream
+fixed it since* — were run across all thirty-two drafts at once for the first time, with
+[`tools/reports-audit/`](../../tools/reports-audit/README.md). Full account in the
+[audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md).
+
+**The citations held: 189 of 189.** Five of the six counterparties have not committed since the drafts
+were written — eVDriveFlow's `main` is now **three years and four months** old — so for those, pinned
+commit and HEAD are the same thing and there is nothing to re-read.
+
+**everest-core has moved, and three findings here are fixed on its `main`:** the contactor latch (a
+missing `*`), the accept-loop shutdown (the handshake now closes instead of throwing — a *better* fix
+than the one drafted, covering the whole class), and the `-20` AC namespace (`[V2G20-169]`'s
+capability filter, implemented, with a log line that reads like somebody working from the same clause).
+
+**Nobody was told about any of them** — these are drafts, and none has been sent. So that is not
+evidence that filing would have helped; they got there without us. It is evidence that the findings
+were **real**: three written here from a source reading and a probe, and in each case the maintainers
+independently reached the same conclusion and changed the code. It is the strongest external check
+this directory has had on its own judgement, and it carries to the twelve still open, which were
+produced the same way.
+
+**And the two libiso15118 trees have diverged**, which the contactor draft explicitly assumed they had
+not: its open item says the file is byte-identical in `everest-core/lib/everest/iso15118/` and in
+standalone `EVerest/libiso15118`, and asks which to file against. That file is not byte-identical any
+more. **everest-core has all three fixes; the standalone library has none of them** and has not
+committed since 2025-11-25. So all three go to the standalone repository as cherry-pick requests, and
+nothing is left to file against everest-core for them. The trap that draft feared — one fix not
+reaching the other tree — is exactly what happened, in the direction that makes the filing easier.
+
+Worth saying because it is easy to over-generalise: the divergence is **per file**, not wholesale.
+[`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) makes the same byte-identical claim about
+`authorization_setup.cpp`, and there it still holds — `std::mt19937 generator(rd())` is in both trees,
+unchanged. Three files moved, not the library.
+
+Two more were caught mid-argument rather than mid-fact. [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md)
+rests on three absences and `main` has filled two of them; the measurement would come back identical
+but the report as written would be answered *"that is not where it lives any more"*.
+[`everest-d20-client-auth`](everest-d20-client-auth.md) §1 asked in its own checklist whether the
+TLS 1.2 path was deliberate — on `main` the mechanism sits behind a flag called
+`verify_client_on_tls13` with a comment explaining it, so the answer is yes, and the draft has to argue
+against a decision rather than report an oversight.
+
+The remaining twelve EVerest findings are unchanged on `main`, verbatim.
+
+**What this is worth as a habit:** a marker broad enough to survive a refactor is worse than no check
+at all, because it reports *unchanged* for code that has been rewritten around it. The AC-namespace fix
+was nearly missed that way — the line the report quotes survives its own fix untouched, and only the
+`if` wrapped around it is new. That is in the tool's README as the reason its markers are narrow.
+
 ## Before any of these goes out
 
 The checklists are not decoration. The recurring items:
@@ -169,8 +220,10 @@ The checklists are not decoration. The recurring items:
   their scenario, their EV and their PKI, their manifest and their config. A finding that needs our
   stack on the other end to appear is a weaker finding, and where that is the case it says so.
 - **Re-read the citations before sending**, against the tree rather than against the draft. Every
-  `file.cpp:line` in these reports was checked again on 2026-08-07; a line number that has drifted is
-  the fastest way to have a real finding dismissed.
+  `file.cpp:line` in these reports was checked on 2026-08-07 and again on **2026-08-11**, all 189 of
+  them; a line number that has drifted is the fastest way to have a real finding dismissed.
+- **Check whether it is already fixed.** Filing a closed bug is the other fast way. `main` is not the
+  tag you measured against, and the two libiso15118 trees are not each other.
 - **File separately what will be fixed separately.** Filing two issues together invites one answer.
 - **Ask before asserting** where the thing may be a decision rather than an oversight.
 - **Offer patches only if they want them.** Every suggested fix here has at least two reasonable
