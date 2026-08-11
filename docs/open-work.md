@@ -458,7 +458,11 @@ also below.
   [tools](../tools/reports-audit/README.md)): all 189 `file:line` citations re-verified, and every
   finding re-tested against its project's current default branch. Five of the six counterparties have
   not committed since the drafts were written. everest-core has — and **three findings are now fixed
-  there and still open in standalone `EVerest/libiso15118`**, which is where those three should now go.
+  there**, so two of them are retired and the third
+  ([loop-shutdown](reports/everest-loop-shutdown.md)) is re-pitched: its trigger is fixed, its
+  structure — any throw out of `poll()` ending the accept loop — is not. They still show as defects in
+  standalone `EVerest/libiso15118`, and **that repository is not maintained**; everest-core's
+  `lib/everest/iso15118/` is the only tree that decides.
   Two more need their argument rewritten before they are sendable
   ([ocsp-absent](reports/everest-d20-ocsp-absent.md) rests on three absences and `main` has filled two;
   [client-auth](reports/everest-d20-client-auth.md) §1 turns out to be a documented decision rather

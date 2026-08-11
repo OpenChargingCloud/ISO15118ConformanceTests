@@ -5,23 +5,28 @@ then **reproduced against a running station the same day, 2 of 2, with a control
 [`2026-08-09-everest-ac-contactor-injection`](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md).
 Post it under your own name; see *Before sending* at the bottom.
 
-> **⚠ Fixed in `everest-core` — and still open in `EVerest/libiso15118`. Read this before filing.**
-> Checked 2026-08-11 against both trees
+> **⚠ Fixed. Do not file this.** Checked 2026-08-11
 > ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)):
 >
 > | tree | the line | state |
 > |---|---|---|
 > | `EVerest/everest-core` @ `main` (`ebcd36d`) | `ac_connector_closed = *control_data;` | **fixed** |
 > | `EVerest/everest-core` @ `2026.02.1` (`b61bb12`) | `ac_connector_closed = control_data;` | broken — the shipped release |
-> | `EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) | `ac_connector_closed = control_data;` | **broken** |
+> | ~~`EVerest/libiso15118` @ `main` (`5c81c92`)~~ | `ac_connector_closed = control_data;` | **unmaintained mirror — disregard** |
 >
 > So the report's own open question — *which of the two repositories does this belong in?* — is
-> answered, and not the way it was posed: the two copies are **no longer byte-identical**. everest-core
-> carries the dereference; the standalone library has not picked it up and is eight and a half months
-> stale.
-> **File it against `EVerest/libiso15118`**, and say that everest-core already has the fix — that is a
-> one-line cherry-pick rather than a defect report. Against everest-core there is nothing left to file
-> except, if you think it is worth saying, that `2026.02.1` ships the broken version.
+> answered, and the honest answer is *neither, any more*. **The standalone `EVerest/libiso15118` is not
+> maintained**; `everest-core`'s `lib/everest/iso15118/` is the live tree, and it carries the
+> dereference. That the stale mirror still shows the defect is an artefact of it being stale, not a
+> finding.
+>
+> The most this is now worth is a sentence to a maintainer that **`2026.02.1` ships the broken
+> version**, if a release note or a backport is in anybody's interest. There is no defect report left
+> in it, and the *Suggested fix* below is already their code.
+>
+> Kept rather than deleted because the run behind it stands: the behaviour was
+> [reproduced against a running station](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md),
+> 2 of 2 with a control, and that is a fact about `2026.02.1` whatever `main` does now.
 
 Two ways to check it, neither of which needs our stack:
 
@@ -280,11 +285,11 @@ only so that it is not discovered later and mistaken for something we hid.
       ([run notes](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)). This was the
       report's weak point and it is closed; what it says now is *observed*, not *read*.
 - [x] **Decide which repository it belongs in — answered 2026-08-11, and the premise was wrong.** The
-      two copies were byte-identical when this was written and are not any more: everest-core `main`
-      carries the dereference, standalone `EVerest/libiso15118` `main` does not. **File it in
-      `libiso15118`**, pointing at everest-core's version as the fix. (The trap this shared with
-      [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) — one fix not reaching the other tree —
-      is exactly what happened, in the direction that makes the filing easier rather than harder.)
+      two copies were byte-identical when this was written and are not any more — but the second copy
+      is **not maintained**, so *which of the two* was never the right question. everest-core is the
+      tree, everest-core has the fix, **nothing to file**. Unlike
+      [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md), which genuinely needs sending twice
+      because both of *its* trees are alive, this one needs sending zero times.
 - [x] **Re-check every line reference against the tree.** All ten were read from the built 2026.02.1
       source on 2026-08-09, which is the same day this was written, and **re-verified 2026-08-11**
       against 2026.02.1 in the sweep over all 189 `file:line` citations in this directory.

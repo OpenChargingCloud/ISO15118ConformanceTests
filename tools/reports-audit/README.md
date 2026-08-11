@@ -48,9 +48,17 @@ Fetches each cited file at the project's default branch and tests the marker tha
 true. No checkout, no build, network only.
 
 ```bash
-python3 check_upstream.py          # EVerest/everest-core @ main
-python3 check_upstream.py --lib    # EVerest/libiso15118 @ main
+python3 check_upstream.py          # EVerest/everest-core @ main -- the live tree
+python3 check_upstream.py --lib    # EVerest/libiso15118 @ main -- history only, see below
 ```
+
+**`--lib` does not report status.** Standalone `EVerest/libiso15118` is **not maintained**; the live
+code is everest-core's vendored `lib/everest/iso15118/`. The mirror answers, has a `main`, and returns
+the files you ask for, so a `STILL PRESENT` from it looks exactly like a live finding and is not one —
+it means nobody has touched that file since 2025-11-25. This cost a wrong conclusion on 2026-08-11:
+three findings fixed in everest-core still show as defects there, and the audit briefly recommended
+filing all three against the mirror. Use `--lib` to see how far behind it is, never to decide whether
+something is live.
 
 Reading the output:
 

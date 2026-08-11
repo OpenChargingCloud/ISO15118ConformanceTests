@@ -184,18 +184,26 @@ independently reached the same conclusion and changed the code. It is the strong
 this directory has had on its own judgement, and it carries to the twelve still open, which were
 produced the same way.
 
-**And the two libiso15118 trees have diverged**, which the contactor draft explicitly assumed they had
-not: its open item says the file is byte-identical in `everest-core/lib/everest/iso15118/` and in
-standalone `EVerest/libiso15118`, and asks which to file against. That file is not byte-identical any
-more. **everest-core has all three fixes; the standalone library has none of them** and has not
-committed since 2025-11-25. So all three go to the standalone repository as cherry-pick requests, and
-nothing is left to file against everest-core for them. The trap that draft feared — one fix not
-reaching the other tree — is exactly what happened, in the direction that makes the filing easier.
+**So two of the three are simply retired**, and the third — [`everest-loop-shutdown`](everest-loop-shutdown.md)
+— was re-pitched rather than dropped: its *trigger* is fixed on `main`, its *structure* is not.
+`TbdController::loop()` still ends the accept loop permanently on any throw out of `poll()`. Leading
+with the TLS handshake now would get it closed as stale; leading with the loop, and citing their own
+fix as evidence that the failure mode is real, is a better issue than the original.
 
-Worth saying because it is easy to over-generalise: the divergence is **per file**, not wholesale.
-[`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) makes the same byte-identical claim about
-`authorization_setup.cpp`, and there it still holds — `std::mt19937 generator(rd())` is in both trees,
-unchanged. Three files moved, not the library.
+**One wrong turn, worth keeping visible.** The audit first concluded that all three should be filed
+against standalone `EVerest/libiso15118`, which still shows every defect — the contactor draft's own
+open item asks exactly that question, since the file was byte-identical in both trees. **That was
+wrong: the standalone repository is not maintained.** everest-core's `lib/everest/iso15118/` is the
+live tree; the mirror's agreement is an artefact of nobody touching it since 2025-11-25, and there is
+nobody there to accept a cherry-pick. The evidence was internally consistent and pointed the wrong
+way — a git remote that answers and returns the file you asked for looks exactly like a maintained
+one. Only knowing the project could tell.
+
+The divergence is also **per file**, not wholesale: [`everest-d20-rng-entropy`](everest-d20-rng-entropy.md)
+makes the same byte-identical claim about `authorization_setup.cpp` and there it still holds —
+`std::mt19937 generator(rd())` is unchanged in everest-core `main`, which is the tree that decides.
+That one files once, against everest-core, and its *"file in the right tree, or both"* item is
+answered.
 
 Two more were caught mid-argument rather than mid-fact. [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md)
 rests on three absences and `main` has filled two of them; the measurement would come back identical

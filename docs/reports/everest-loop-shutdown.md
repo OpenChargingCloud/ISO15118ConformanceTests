@@ -4,8 +4,7 @@ Status: **draft, not sent.** Reproduced 2026-08-05 on everest-core 2026.02.1 bui
 times, one attempt each — including **against their own shipped `config-sil-dc-d20.yaml`, unmodified**.
 Post it under your own name; see *Before sending* at the bottom.
 
-> **⚠ Fixed in `everest-core` — and still open in `EVerest/libiso15118`. Read this before filing.**
-> Checked 2026-08-11 against both trees
+> **⚠ The trigger is fixed; the structure is not. Read this before filing.** Checked 2026-08-11
 > ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)). The trigger this report
 > leads with is the throw out of the TLS accept path, and on everest-core `main` (`ebcd36d`) it is gone:
 >
@@ -24,14 +23,21 @@ Post it under your own name; see *Before sending* at the bottom.
 > propagates through `poll_manager.poll()` and breaks the accept loop. **That is this report's fix, and
 > theirs is better than the one suggested below**: it is the whole class, not the accept call.
 >
-> What has *not* changed is the loop itself. `TbdController::loop()` still ends on a throw out of
-> `poll()` — refactored into `poll_once()` returning `false`, log line renamed to *"Shutting down poll
-> loop because of"*, `break` intact. So the **structure** the report describes is still there and any
-> future throw on that path still bricks the station; only this trigger is closed.
+> What has *not* changed is the loop itself, **and that is what is left to file.**
+> `TbdController::loop()` still ends on a throw out of `poll()` — refactored into `poll_once()`
+> returning `false`, log line renamed to *"Shutting down poll loop because of"*, `break` intact. So the
+> **structure** this report describes is live on `main`: any throw reaching that path still takes the
+> station down for the rest of its life while the process stays healthy. One trigger was closed; the
+> `sdp_server.cpp` one this report already lists as *"reachable in principle"* was not, and neither was
+> the general case.
 >
-> **`EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) still carries the old accept path verbatim**,
-> so the finding is live there. File it against the standalone library, pointing at everest-core's
-> version as the fix.
+> **Re-pitch it accordingly.** Not *"a failed TLS handshake ends the loop"* — that is fixed and saying
+> it will get the issue closed as stale. It is *"one exception anywhere under `poll()` ends the accept
+> loop permanently, and you have already fixed one instance of it"*, which is a stronger argument with
+> their own commit as the evidence.
+>
+> Ignore the standalone `EVerest/libiso15118`, which still shows the old accept path: **it is not
+> maintained**, and everest-core's `lib/everest/iso15118/` is the only tree that decides this.
 
 Evidence in this repository: [`trigger3-tls-accept-shutdown.log`](../interop-runs/2026-08-05-everest-2026021-matrix/trigger3-tls-accept-shutdown.log)
 (the three reproductions plus the contrast case, filtered from the station logs), and the run notes
@@ -269,9 +275,11 @@ We would happily send a PR for either, if you agree with the shape:
 - [x] **Re-check every line reference against the tree**, rather than trusting a five-day-old note —
       done 2026-08-07 against the built 2026.02.1 source: all five still point where they say, and
       **re-verified 2026-08-11** in the sweep over all 189 `file:line` citations in this directory.
-- [x] **Check whether it is already fixed upstream — done 2026-08-11, and it is.** everest-core `main`
-      closes the connection instead of throwing; `EVerest/libiso15118` `main` does not. See the box at
-      the top: it moves where this gets filed and turns the *Suggested fix* into a cherry-pick.
+- [x] **Check whether it is already fixed upstream — done 2026-08-11: the trigger is, the defect is
+      not.** everest-core `main` closes the connection instead of throwing, so the *lead* has to change;
+      `TbdController::loop()` still breaks out of the accept loop on any throw, so there is still an
+      issue here. See the box at the top. (The standalone `EVerest/libiso15118` still shows the old
+      code and is irrelevant — unmaintained.)
 - [x] **Lead with what the project has been worth to us.** Above, and every claim in it has runs
       behind it. A report that opens with "your charger can be bricked" reads differently when the
       sender has been on the receiving end of the same courtesy two dozen times.

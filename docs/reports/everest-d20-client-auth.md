@@ -24,8 +24,9 @@ bottom.
 > - **§2 stands unchanged.** `lib/everest/tls/src/tls.cpp` contains no `SSL_CTX_set1_sigalgs`, no
 >   `set1_groups`/`set1_curves` and no client-CA list on the server path, so `[V2G20-2401]`,
 >   `[V2G20-1667]` and `[V2G20-2460]` are as absent there as they were in `connection_ssl.cpp`.
-> - **`EVerest/libiso15118` @ `main` (`5c81c92`) still has the whole thing in `connection_ssl.cpp`**, so
->   against *that* tree the citations below are current.
+> - The standalone `EVerest/libiso15118` still has the whole thing in `connection_ssl.cpp`, which is
+>   the only reason the citations below still resolve anywhere — **that repository is not maintained**
+>   and is not where this goes. Re-anchor against everest-core.
 >
 > Read from the source; not re-measured against a `main` build. The two `s_client` arms would have to be
 > re-run to claim the behaviour rather than the code.
@@ -305,8 +306,8 @@ call each, and a test house will look at both.
       `Evse15118D20/manifest.yaml:22`; `d20/state/session_setup.cpp:99` — read from the built 2026.02.1
       source on 2026-08-10, **re-verified 2026-08-11** in the sweep over all 189 `file:line` citations
       in this directory. **They are 2026.02.1 line numbers**: on everest-core `main` this code lives in
-      `lib/everest/tls/src/tls.cpp` (see the box at the top), on `EVerest/libiso15118` `main` it is
-      still where it says.
+      `lib/everest/tls/src/tls.cpp` (see the box at the top). They still resolve against the
+      standalone `EVerest/libiso15118`, which is unmaintained and therefore no help.
 - [x] **Ask whether the TLS 1.2 path is deliberate — answered 2026-08-11: it is.** everest-core `main`
       carries the identical mechanism behind a named flag, `verify_client_on_tls13`, with a comment
       explaining it. Do not open §1 as an oversight; open it as *this flag is set true unconditionally

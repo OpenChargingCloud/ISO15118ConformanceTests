@@ -8,10 +8,9 @@ Evidence in this repository:
 [`2026-08-10-everest-d20-ac-namespace`](../interop-runs/2026-08-10-everest-d20-ac-namespace/notes.md)
 — the run notes and four station logs, one per arm.
 
-> **⚠ Fixed in `everest-core` — and still open in `EVerest/libiso15118`. Read this before filing.**
-> Checked 2026-08-11 against both trees
-> ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)). The missing filter is
-> the whole finding, and on everest-core `main` (`ebcd36d`) it is there:
+> **⚠ Fixed. Do not file this — but read the last paragraph, its sibling is still live.** Checked
+> 2026-08-11 ([audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md)). The missing
+> filter is the whole finding, and on everest-core `main` (`ebcd36d`) it is there:
 >
 > ```cpp
 > // supported_app_protocol.cpp, everest-core main — the station's own capability is now the gate
@@ -28,11 +27,15 @@ Evidence in this repository:
 > `[V2G20-169]`'s filter-before-ranking, implemented. The same change also adds the two AC-DER
 > namespaces, so the report's list of what goes into the map is out of date as well.
 >
-> **`EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) still writes both namespaces in
-> unconditionally**, so the finding is live there. File it against the standalone library and point at
-> everest-core's version. Note that the *sibling* in [`everest-isomux.md`](everest-isomux.md) §1 —
-> `[V2G20-169]` failed from the multiplexer's side — is **not** covered by this fix and is still live
-> in everest-core; it is a different file in a different module.
+> The standalone `EVerest/libiso15118` still writes both namespaces in unconditionally — **ignore it,
+> it is not maintained**. everest-core's `lib/everest/iso15118/` is the live tree and it has the fix,
+> so there is nothing to file here.
+>
+> **What is still live is the sibling.** [`everest-isomux.md`](everest-isomux.md) §1 fails the same
+> `[V2G20-169]` from the multiplexer's side, in a different file in a different module, and this fix
+> does not reach it — confirmed unchanged on `main`. That report also gets *stronger* because of this
+> one: the argument *"both backends behind the mux implement the rule already"* was true of `EvseV2G`
+> when it was written, and is now true of `Evse15118D20` in the maintainers' own code.
 
 Five other reports go to everest-core:
 [`everest-isomux.md`](everest-isomux.md) (four findings in the multiplexer — **§1 there is this
