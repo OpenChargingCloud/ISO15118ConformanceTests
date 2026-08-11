@@ -470,6 +470,74 @@ everest-core's `CaCertificateType` has `V2G`, `MO`, `CSMS`, `MF` and no `OEM`, s
 cannot be *requested*. When a requirement names a credential class an implementation's type system does
 not have, the nearest available value is what gets used — and it will look deliberate in the code.
 
+### Random numbers: one *shall* about the generator, and two numbers about the values
+
+Read on 2026-08-11, when EVerest's `-20` library turned out to draw both its SessionID and its Plug
+& Charge challenge from a Mersenne Twister seeded with 32 bits
+([`…-d20-rng-entropy`](interop-runs/2026-08-11-everest-d20-rng-entropy/notes.md)). The question to
+settle was whether `-20` says anything about *how* a random value is produced, or only about how wide
+the field is. It says a great deal, in a *Random number generation* subclause of its own under §7.3,
+and it is the most quantitative requirement text this file has had to record.
+
+- **`[V2G20-835]`** — a *shall*, and unconditional: wherever this document requires a random number, a
+  **state-of-the-art cryptographically secure** RNG is to be used. Its NOTE declines to prescribe one
+  (the choice does not affect interoperability) and names NIST SP 800-90 A and BSI AIS 20/31 as
+  examples of established standards.
+- **`[V2G20-2607]`** — the value used to re-seed or initialise a DRBG shall itself carry the minimum
+  entropy the particular function requires, and both the entropy input and the seed shall be kept
+  secret.
+- **`[V2G20-2608]`** — a value generated under `[V2G20-835]` shall be kept secret and used **only
+  once**. This is the clause a birthday collision violates, and it is what makes "how many values can
+  this generator produce" a conformance question rather than a hygiene one.
+- The surrounding non-normative text spells out the failure mode explicitly: a DRBG's output is only
+  as good as its seed, not every DRBG is cryptographically secure, and where a function states no
+  minimum entropy of its own, **116 bits** should be assumed for any random number it uses.
+
+And the two values this project has had reason to look at:
+
+| value | width | minimum entropy | where |
+|---|---|---|---|
+| `SessionID` | 64 bits | **58 bits** | `[V2G20-2621]`, beside `[V2G20-2106]` (generate a new one, non-zero) |
+| PnC `GenChallenge` | 128 bits — `[V2G20-697]`, `[V2G20-2110]` | **120 bits** | `[V2G20-698]`, with `[V2G20-2108]` pointing at 7.3.7 |
+
+**Why the pair is worth carrying together.** The width is in the schema and any codec gets it right;
+the entropy is in a requirement and nothing on the wire reveals it. Two of the four `-20` stacks
+audited that day put the right number of bytes in the right field and far too few bits inside them —
+EVerest's `-20` library at ≤ 32 bits from a non-cryptographic generator, eVDriveFlow's station at
+26,6 bits from a correct one used over a 10⁸ range. **A conformance suite that only reads messages
+cannot see either.** That is the general lesson: an entropy requirement is invisible to every oracle
+that works from bytes, and is only reachable by reading the generator or by collecting enough values
+to count collisions.
+
+`[V2G20-2545]` — the resume binding already recorded above — is the reason a weak SessionID is not
+automatically a hijack: a `-20` station that verifies the resume against the vehicle certificate does
+not rely on the identifier being unguessable. It is also the reason the requirement exists, since a
+station that skips that check does.
+
+Filed 2026-08-11: [`reports/everest-d20-rng-entropy.md`](reports/everest-d20-rng-entropy.md) and
+[`reports/evdriveflow-session-id-entropy.md`](reports/evdriveflow-session-id-entropy.md).
+
+**ISO 15118-2 carries most of this already, under the same numbers** — which the first draft of this
+section got wrong, and the correction is worth keeping because it changes what may be said to whom.
+Checked in the 2022 DIS revision to hand, §7.9.2.4.4:
+
+- **`[V2G2-835]`** — the *same* clause, same identifier in the `-2` series, same unconditional *shall*
+  on a state-of-the-art cryptographically secure RNG, with the same NIST SP 800-90 A / BSI AIS 20/31
+  NOTE. Like `[V2G2-169]`/`[V2G20-169]`, this is one rule wearing one number in two documents.
+- **`[V2G2-697]`/`[V2G2-698]`** — `GenChallenge` exactly 128 bits, entropy at least 120 bits. Again
+  the same identifiers as the `-20` pair, and **`[V2G2-825]`/`[V2G2-826]`** state it a second time for
+  the `PaymentDetailsRes` challenge.
+
+What `-20` **adds** is the rest of the table: `[V2G20-2621]`'s 58-bit floor for the SessionID — `-2`
+has only `[V2G2-750]`, generate a new one different from zero, with no entropy requirement at all —
+together with `[V2G20-2607]`, `[V2G20-2608]` and the 116-bit default for anything unspecified.
+
+So a `-2` or DIN module **is** bound by the generator rule and by the challenge's 120 bits, and is
+**not** bound by any SessionID entropy minimum. Worth having straight before pointing an entropy
+finding at one. Carries the `-2` document caveat above, though the risk is low here: these
+identifiers sit in the 600–800 range that predates the revision, and the `-20` document carries
+`[V2G20-835]` and `[V2G20-698]` verbatim.
+
 ### The ISO 15118-20 TLS profile is four lists, not one
 
 Suites (Table 6), named groups (Table 7), signature algorithms (Table 8), and the trust anchors named in

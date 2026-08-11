@@ -1,0 +1,55 @@
+# Every ISO 15118-20 SessionID this repository has on record from EVerest's Evse15118D20,
+# lifted from their own station logs -- "New session created with session_id: 0x.." -- across
+# every -20 interop run since 2026-08-03. None of those runs was looking at RNG quality;
+# the values were recorded for other reasons and are used here as found.
+#
+# SessionID          run that recorded it
+0EB582B3073696BB   2026-08-05-everest-2026021-matrix
+1032B1B2D609F3EA   2026-08-03-everest-isomux-both
+167A43CA6395F838   2026-08-11-iso20-session-id-probe
+1839D16BD9B81FD8   2026-08-03-everest-iso20-dc-tls13
+1AE81997E39F0091   2026-08-05-everest-mcs
+1BF7F1F9DC630240   2026-08-06-everest-bpt
+21AEA42BAF4CD3F6   2026-08-05-everest-mcs-bpt
+25E3265CC5F013C3   2026-08-06-everest-iso20-tls13-windows
+2B1217C0F3F9F02C   2026-08-05-everest-mcs-bpt
+312FD636C52184BC   2026-08-09-everest-ac-contactor-injection
+34532E7E6EA4C26C   2026-08-06-everest-bpt
+3D8005E20582757E   2026-08-03-everest-isomux-both
+4E5CE837A3B0296C   2026-08-05-everest-2026021-matrix
+4F00AFA7029F8CFB   2026-08-11-iso20-session-id-probe
+5053127DA8F6BEA0   2026-08-05-everest-2026021-matrix
+5155F4866C92D986   2026-08-05-everest-mcs-bpt
+52419B82EEE39D32   2026-08-06-everest-bpt
+552ACFF42CBDE28E   2026-08-06-everest-isomux-tls
+58EDFF0CEC6FCCC9   2026-08-03-everest-iso20-dc-dynamic
+62A98E1503949A9F   2026-08-08-everest-pause-resume-tls-rerun
+653AD0B3F4F48BD3   2026-08-05-everest-mcs-bpt
+729480761B9AB095   2026-08-05-everest-2026021-matrix
+76F4890363AF2858   2026-08-10-everest-d20-meter-info
+873A0C955E545319   2026-08-09-everest-ac-contactor-injection
+8A0D6F7B8CE9C155   2026-08-03-everest-iso20-dc-full-charge
+8F825AE13202B38F   2026-08-09-everest-ac-contactor-injection
+930C5835D1FFC4ED   2026-08-11-everest-d20-sequence-timeout
+972911021F592E32   2026-08-03-everest-ac
+985DDEFA75DF46A7   2026-08-05-everest-mcs
+987BD555B94FD1A6   2026-08-05-everest-2026021-matrix
+A0F3F5D291E415DF   2026-08-10-everest-d20-ac-namespace
+AE7BDB72E7FB8DA1   2026-08-05-everest-2026021-matrix
+B477E13D7C7F2DED   2026-08-06-everest-mcs-bpt-complete
+C082691821183314   2026-08-06-everest-iso20-tls13-windows
+C2B92F49573CF35A   2026-08-09-everest-ac-contactor-injection
+C50C788574E1265B   2026-08-03-everest-pnc
+C6A717C950C5E585   2026-08-05-everest-2026021-matrix
+C6CC08CD07FC883B   2026-08-08-everest-pause-resume-tls
+C8112993FD13663B   2026-08-06-everest-bpt
+CB580C977A437291   2026-08-11-everest-d20-sequence-timeout
+CD65AF75C7073756   2026-08-05-everest-2026021-matrix
+D3760BB5DA9E3DCE   2026-08-05-everest-mcs
+D9634AC10B9612CA   2026-08-03-everest-isomux-dc
+DA42FB01CBAF080F   2026-08-03-everest-ac
+DA70ACE0D2D25596   2026-08-10-everest-d20-client-auth
+DDC2953EE35753AB   2026-08-06-everest-mcs-bpt-complete
+EF83134FABE5E365   2026-08-05-everest-mcs-bpt
+F4C6FEC155CC2194   2026-08-03-everest-ac
+F6FE4912DB3ECCC6   2026-08-06-everest-isomux-tls

@@ -267,9 +267,34 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **twelve** are drafted for filing under [`docs/reports/`](reports/) and none has been
+Written up per run; **thirteen** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **The `-20` SessionID and the PnC challenge carry 32 bits, whatever their width.** Four sites in
+  `libiso15118` fill a security-relevant array from `std::mt19937` seeded with **one** 32-bit
+  `random_device` draw — three `d20::Session` constructors and `AuthorizationSetup::handle_request` —
+  so the 64-bit SessionID and the 128-bit `GenChallenge` each take at most 2³² values.
+  `[V2G20-2621]` requires 58 bits in the first and `[V2G20-698]` 120 in the second, with
+  `[V2G20-835]` requiring a cryptographically secure generator at all; `[V2G2-835]`, `[V2G2-697]` and
+  `[V2G2-698]` say the same under the same numbers, so it is not a `-20` novelty.
+  <br>**Measured against the binary, from data this repository already held.** Their own station log
+  prints `New session created with session_id: 0x…`, and twenty `-20` runs between 2026-08-03 and
+  2026-08-11 had recorded **49 distinct** of them for other reasons.
+  [`seedsearch`](../tools/everest-rng-probe/README.md) reproduces their five lines verbatim and walks
+  all 2³² seeds: **49 of 49 recovered, 639 s on sixteen threads.** The search exits non-zero if any
+  target fails, so a toolchain mismatch could not have passed as a strong RNG. A second arm counts
+  `GenChallenge` collisions: **8 repeats in 262 144 draws** against **0** for a `/dev/urandom` control,
+  where the birthday bound over 2³² predicts 8,0. **Filed 2026-08-11:**
+  [`everest-d20-rng-entropy.md`](reports/everest-d20-rng-entropy.md),
+  [run](interop-runs/2026-08-11-everest-d20-rng-entropy/notes.md).
+  <br>**Their own `EvseV2G` gets both values right** — `/dev/urandom` through `tools.cpp:38`, for the
+  `-2` SessionID, the `-2` challenge and the DIN SessionID alike. Second time in two days that a rule
+  EVerest satisfies in one module it misses in the other, the `[V2G2-460]` zero exemption below being
+  the same shape reversed.
+  <br>**No message-level oracle could ever have found this**, ours included: the bytes are the right
+  width, in the right field, schema-valid and different every session. An entropy requirement has no
+  observable in a single message — it is reachable only by reading the generator or by counting
+  collisions across many values, and this run did both.
 - **`V2G_SECC_Sequence_Timeout` is one flat 60 s, in a charge loop that allows 0,5 s.** Read out of
   their `-20` timeout header — `TIMEOUT_SEQUENCE = 1000 * 60`, armed from the single call site in
   `Session::send_response()` — and then measured. Two arms: a normal charge completes in 24 s; a car

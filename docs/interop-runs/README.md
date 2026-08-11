@@ -28,6 +28,12 @@ a rule. It carries the tool's output as its artifacts, and its `notes.md` says w
 corroborates a source reading against frame logs **already** in this directory — the cheapest run there
 is, and an argument for keeping the bytes rather than only the verdicts.
 
+[`2026-08-11-everest-d20-rng-entropy/`](2026-08-11-everest-d20-rng-entropy/notes.md) is the strongest
+form of that variant so far, and worth knowing about before you delete an old log: it measures a
+counterparty's *random number generator* by recovering the 32-bit seed behind **49 SessionIDs their
+station issued across twenty earlier runs**, none of which was recording them for that reason. The
+artifacts kept for one question answered a different one nine days later.
+
 ## Producing them
 
 The `[Explicit] [Category("Interop")]` fixtures write these artifacts themselves when
