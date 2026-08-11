@@ -103,7 +103,7 @@ how to read one.
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
-| Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | ▢ | — | — |
+| Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | — they send none, deliberately²⁹ | — | — |
 | Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ◐ `←SECC` the same, in **DC** and against their fork²⁷ | — | — |
 | Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
@@ -223,6 +223,17 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+²⁹ **Established from their source and the frames already here, without a session — and no session would
+have moved it.** `create_default_scheduled_control_mode` builds the Scheduled response under the comment
+*"Providing no price schedule!"*, citing an agreement on `iso15118.elaad.io` that `[V2G20-2176]` — a
+*shall*: the SECC provides either an `AbsolutePriceSchedule` or a `PriceLevelSchedule` — *"is not
+required and should be ignored"*; the call site adds `// TODO(sl): Adding price schedule`. The Dynamic
+branch sets only departure time and SOC. Their **codec** converts `AbsolutePriceSchedule` in both
+directions, so grepping the type name is not an answer; their **station** never produces one. The bytes
+agree and predate the question: every `ScheduleExchangeRes` recorded from them, across six runs, is
+**28–44 bytes**. Deliberately **not filed** — a documented decision attributed to an industry agreement
+is not a defect to report back. [`…-d20-price-schedule-audit`](docs/interop-runs/2026-08-11-everest-d20-price-schedule-audit/notes.md).
 
 ²⁸ **Structural, and now established rather than assumed.** This cell held a `▢` and a condition — *first find out whether they do contract certificates at all.* They do not: no `CertificateInstallation` handler in either role's state machine, and the whole Plug & Charge vocabulary (`ContractCertificateChain`, `PnC_AReqAuthorizationMode`, `SignedInstallationData`, `OEMProvisioningCert`) occurs only in the xsdata-generated bindings, ISO's schema and the Sphinx output of both — plus two Table 214 timeout keys with no handler to time. Their README's *Supported features* does not list it, and `PnC` appears nowhere in their documentation. Both halves ship `authorization_services = [EIM]`. The already-recorded bytes agree: their `AuthorizationSetupRes` is 20 payload bytes against our PnC-offering 38, with no room for a `GenChallenge` and none in it. The audit also turned up a latent SECC defect — the authorization *mode* is hardcoded to EIM whatever the configurable service list says, which `[V2G20-1219]` and `[V2G20-2568]` each forbid — recorded as a note on [the existing filing](docs/reports/evdriveflow-authorization-setup.md) rather than raised, since it is unreachable in their shipped configuration and they claim no PnC. [`…-edf-pnc-source-audit`](docs/interop-runs/2026-08-11-edf-pnc-source-audit/notes.md).
 

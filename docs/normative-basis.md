@@ -597,6 +597,28 @@ an implementation against Table 6, check for the other three before concluding t
 All `-20` identifiers, so no document caveat. **Filed 2026-08-10:**
 [`reports/everest-d20-client-auth.md`](reports/everest-d20-client-auth.md), as two issues.
 
+### `[V2G20-2176]` — a *shall* that the field treats as withdrawn
+
+The SECC shall provide either an `AbsolutePriceSchedule` or a `PriceLevelSchedule` as part of the
+`ChargingScheduleType`. Plain, unconditional, and **EVerest deliberately does not comply** — with the
+reason written at the point of non-compliance:
+
+> `// Providing no price schedule!`
+> `// NOTE: Agreement on iso15118.elaad.io: [V2G20-2176] is not required and should be ignored.`
+
+(`lib/everest/iso15118/src/iso15118/d20/state/schedule_exchange.cpp`, 2026.02.1.)
+
+**Recorded here as a caution rather than a finding.** This project cannot check the elaad agreement, and
+it does not need to: what matters is that a requirement can be present in the published text and absent
+from the interoperability consensus, and that an implementation ignoring one is not automatically
+non-conformant in any sense worth reporting. Before citing `[V2G20-2176]` against anybody — or reading
+another stack's silence on price schedules as a defect — this is the counter-example.
+
+It is also the first entry in this file that runs the other way. Everything above answers *"is this
+implementation wrong?"*; this one answers *"is this requirement live?"*, and the honest answer is that
+the document alone does not say.
+[`…-d20-price-schedule-audit`](interop-runs/2026-08-11-everest-d20-price-schedule-audit/notes.md).
+
 ### The four timing parameters of Tables 215–218, and the trap in reading them
 
 Settled 2026-08-11, and it **withdrew an open item rather than confirming one**. Tables 216 (AC), 217

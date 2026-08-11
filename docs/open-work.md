@@ -42,7 +42,8 @@ The matrix marks these `◐` because a peer *consumed* what we sent. Nothing che
 weaker claim than it looks and worth separating from "untested".
 
 - **Signed tariffs, -20** (Josev) — their AC EVCC consumed our signed `AbsolutePriceSchedule`; nothing
-  external verifies the signature.
+  external verifies the signature. **And as of 2026-08-11 nothing can**: the one remaining candidate,
+  EVerest, sends no price schedule of its own and its EV is Josev's. See *Structural*, below.
 - **Renegotiation, -20** (Josev) — their EV sends a real `SessionStopReq(ServiceRenegotiation)`
   [V2G20-1477] and then drops the link anyway — their `SessionStop` state sets `next_state = ServiceDiscovery`
   without building the request that state needs, and their framework raises on it. Filed:
@@ -57,7 +58,7 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 | | Counterparty | Note |
 |---|---|---|
 | **Pause / Resume, -20** | EVerest | ~~▢~~ **run 2026-08-08 — and it is ours that failed.** Their station resumed on the first attempt (`OK_OldSessionJoined`, over mutual TLS with their minted vehicle credential); our EVCC then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`, because a resumed `-20` session skips authorization and opens at `{AC,DC}_ChargeParameterDiscovery`. Moved to *our stack*, below. `-2` is `—` in the matrix, not `▢`. |
-| **Signed tariffs, -20** | EVerest | ▢ |
+| ~~**Signed tariffs, -20**~~ | ~~EVerest~~ | **Closed 2026-08-11 by answering the condition: their station sends no price schedule at all, deliberately.** Moved to *Structural*, below. |
 | **Renegotiation, -2 and -20** | EVerest | ~~▢ both~~ **-20 run 2026-08-10** — their `PyEvJosev` EV took our station's `ServiceRenegotiation` notification, stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)`; our SECC answered `OK` and stayed open, and their EV closed the connection. Same defect as Josev's, now seen in **DC** and against the fork `26f7988` ([run](interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md), [filing](reports/josev-iso20-renegotiation.md)). `-2` is still `▢`. |
 | **Contract provisioning, -2** | EVerest · Josev | ~~▢~~ **✅ complete against EVerest 2026-08-11, in three sessions — the third closed the loop by standing in as the MO backend.** Their station has no issuer of its own: it publishes the EV's EXI and waits 4 500 ms. With [`Iso2MoBackend`](../ISO15118ConformanceTests.Simulation/Interop/Iso2MoBackend.cs) answering through their own MQTT, the `CertificateInstallationRes` came back **`OK`**, our EVCC verified the four-reference signature and unwrapped the contract key, and the session continued to `PaymentDetails` and `Authorization`. One deviation measured and **not** explained: the return frame carries our 1 458 EXI bytes **plus a trailing `0x00`**, declared in the V2GTP length — benign for a decoder, wrong on the wire, cause unread. The earlier two sessions: Their certificate service is advertised (ServiceID 2, `ContractCertificate`), our `CertificateInstallationReq` is accepted, and the EXI reaches their MQTT interface **byte-identical** — 802 bytes, SHA-256 match, twice. With no backend in their SIL they wait exactly 4 500 ms and fail the session. A control pair (EIM vs Contract) isolated the response code: `FAILED_SequenceError` in an EIM session, plain `FAILED` in a Contract one, because their state table admits the message only in the Contract branch — **an open question, not yet a finding** ([run](interop-runs/2026-08-11-everest-iso2-cert-install/notes.md)). It did **not** settle the `CertificateUpdate` filing: they advertise parameter-set-ID **1 only**, Update being an explicit `TODO`, so the selection gate answers before the stub can. Josev implements neither and answers `FAILED` correctly, so there is nothing to measure there. |
 | ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
@@ -409,6 +410,21 @@ also below.
   they claim no PnC, and reaching it means configuring their station rather than observing it. It is a
   note on [the existing filing](reports/evdriveflow-authorization-setup.md), where the paired EVCC
   handler already is. [`…-edf-pnc-source-audit`](interop-runs/2026-08-11-edf-pnc-source-audit/notes.md).
+- **A signed tariff verified by anybody but us.** Our SECC signs an `AbsolutePriceSchedule` and our EVCC
+  verifies one; the loopback covers both ends and nothing external does. After the 2026-08-11 audit the
+  field of candidates is empty rather than merely unexplored: **EVerest's `-20` station emits no price
+  schedule at all** — `create_default_scheduled_control_mode` says *"Providing no price schedule!"* and
+  cites an `iso15118.elaad.io` agreement that `[V2G20-2176]`, a *shall*, *"is not required and should be
+  ignored"*; the Dynamic branch sets only departure time and SOC. **Josev** consumes ours without
+  checking (its EVCC-side tariff check is a literal `# TODO`), **eVDriveFlow** never gets that far, and
+  **tux-evse** has no `-20`. So this cannot be moved by choosing a different counterparty, only by one of
+  them implementing it.
+  <br>Deliberately **not filed**: a deviation documented at the point of non-compliance and attributed to
+  an industry agreement is a decision, not a defect. The data point is worth more than the verdict —
+  a published `shall` that a major implementation treats as withdrawn — and it is a caution before this
+  project cites `[V2G20-2176]` against anyone.
+  [`…-d20-price-schedule-audit`](interop-runs/2026-08-11-everest-d20-price-schedule-audit/notes.md).
+
 - **WPT and ACDP session state machines.** No independent stack implements them, so `▢ codec only` is
   the ceiling. What *did* change on 2026-08-08: the bytes are now judged by EXIficient rather than only
   by the generator that produced them, which is the strongest form available without a second stack.
