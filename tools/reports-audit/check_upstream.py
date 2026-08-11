@@ -11,8 +11,13 @@ is the signal to go and read.
 
 Network only, no checkout needed:
 
-    python3 check_upstream.py            # everest-core, where fourteen of the drafts go
-    python3 check_upstream.py --lib      # standalone EVerest/libiso15118, which has diverged
+    python3 check_upstream.py            # EVerest/everest-core @ main -- the live tree
+    python3 check_upstream.py --lib      # EVerest/libiso15118 @ main -- HISTORY, NOT STATUS
+
+The standalone libiso15118 repository is NOT maintained; the live code is everest-core's vendored
+lib/everest/iso15118/. --lib shows how far behind the mirror is and nothing else -- a STILL PRESENT
+from it is not evidence that anything is live. On 2026-08-11 it produced the opposite conclusion:
+three findings fixed in everest-core still read as defects there.
 
 Note on the marker set: it is deliberately over-specific. A marker broad enough to survive
 a refactor (a function name, a struct name) reports "still present" for code that has been
@@ -101,11 +106,15 @@ def fetch(url):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lib", action="store_true",
-                    help="check EVerest/libiso15118 instead of everest-core (libiso15118 findings only)")
+                    help="check the UNMAINTAINED standalone EVerest/libiso15118 mirror; history, "
+                         "not status -- everest-core is the live tree")
     args = ap.parse_args()
 
     base, checks = CORE, CORE_CHECKS
     if args.lib:
+        print("NOTE: EVerest/libiso15118 is an unmaintained mirror. A 'STILL PRESENT' below means")
+        print("      nobody has touched that file, not that the defect is live. everest-core decides.")
+        print()
         base = LIB
         checks = [(r, p[len(LIB_PREFIX):], m, n, *rest) for r, p, m, n, *rest in CORE_CHECKS
                   if p.startswith(LIB_PREFIX)]

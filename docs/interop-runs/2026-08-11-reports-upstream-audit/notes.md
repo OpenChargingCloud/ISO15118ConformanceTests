@@ -77,9 +77,9 @@ concluded the same thing and changed the code. That is the strongest external ch
 ever had on its own judgement, and it applies to the twelve that are still open: they were produced by
 the same method.
 
-The cost of not sending is visible in the same table. Three fixes exist in one tree and not in the
-other, and the standalone library has been broken for eight and a half months for want of a
-cherry-pick that nobody has noticed is needed.
+What it does **not** show is a cost of not having sent them. The first draft of these notes claimed one
+— three fixes sitting in one tree while the other stayed broken — and that claim depended on the stale
+mirror mattering. It does not; see *A wrong turn* below. Two of the three are simply closed.
 
 ### One is half-overtaken
 
@@ -111,32 +111,59 @@ anchor, and `IsoMux` (including the ignored header-read result, verbatim). Those
 
 ## The part worth keeping
 
-**`EVerest/libiso15118` and everest-core's copy of it have diverged, and a draft assumed they had
-not.** [`everest-iso20-ac-contactor-latch`](../../reports/everest-iso20-ac-contactor-latch.md) carries
-an open checklist item saying its file is byte-identical in both trees — 5663 bytes, same SHA-256 —
-and asking which one to file against. It is not byte-identical any more:
+**A wrong turn, corrected the same day, and the correction is the lesson.**
+
+`EVerest/libiso15118` and everest-core's copy of it have diverged.
+[`everest-iso20-ac-contactor-latch`](../../reports/everest-iso20-ac-contactor-latch.md) carries an open
+checklist item saying its file is byte-identical in both trees — 5663 bytes, same SHA-256 — and asking
+which one to file against. It is not byte-identical any more:
 
 | | `everest-core/lib/everest/iso15118` | standalone `EVerest/libiso15118` @ `main` (`5c81c92`, 2025-11-25) |
 |---|---|---|
-| contactor latch | fixed | **still broken** |
-| TLS accept throw | fixed | **still broken** |
-| AC namespace filter | fixed | **still broken** |
+| contactor latch | fixed | still shows the defect |
+| TLS accept throw | fixed | still shows the defect |
+| AC namespace filter | fixed | still shows the defect |
 
-So all three go to the **standalone library**, pointing at everest-core's version as the fix — a
-cherry-pick request rather than a defect report — and there is nothing left to file against
-everest-core for any of them. The trap that draft feared, one fix not reaching the other tree, is
-exactly what happened; it just happened in the direction that makes the filing easier.
+This audit read that table and concluded: *file all three against the standalone library as
+cherry-pick requests.* **That was wrong.** The standalone repository is **not maintained** —
+everest-core's `lib/everest/iso15118/` is the live tree, and the mirror's right-hand column is an
+artefact of nobody touching it since 2025-11-25, not a live finding. There is nobody there to
+cherry-pick. All three are simply **fixed**, and the correct action for two of them is *do not file*.
 
-**The divergence is per file, not wholesale**, and the audit is the only reason we can say which.
+The mistake is worth writing down because the evidence was **internally consistent and wrong**. A git
+remote that answers, has a `main`, and returns the file you asked for looks exactly like a maintained
+tree. Nothing in the byte comparison could have said otherwise; only knowing the project could.
+`check_upstream.py --lib` still runs, and its output has been demoted from *status* to *history* in
+the tool's README.
+
+What survives from the three: [`everest-loop-shutdown`](../../reports/everest-loop-shutdown.md), which
+turned out to be the only one with a live defect left in it — the **trigger** is fixed on `main`, the
+**structure** is not. `TbdController::loop()` still ends the accept loop on any throw out of `poll()`.
+That report was re-pitched rather than retired, and it is stronger now: their own fix is the evidence
+that the failure mode is real.
+
+**The divergence is per file, not wholesale.**
 [`everest-d20-rng-entropy`](../../reports/everest-d20-rng-entropy.md) makes the same byte-identical
 claim about `authorization_setup.cpp` and it still holds — `std::mt19937 generator(rd())` is in both
-trees, unchanged, and `--lib` confirms all seven libiso15118 findings are live in the standalone repo.
-Three files moved. Assuming the library moved would have been wrong in the other direction.
+trees and, more to the point, in everest-core `main`. Three files moved. That report files once,
+against everest-core.
 
 ## What moves
 
-Nothing in the interop matrix — no session was run and no capability changed. Five drafts in
-`docs/reports/` gained a status box, ten checklist items were answered, and
+Nothing in the interop matrix — no session was run and no capability changed. What moved is the
+backlog of unsent filings:
+
+- **Two retired**: [contactor latch](../../reports/everest-iso20-ac-contactor-latch.md) and
+  [AC namespace](../../reports/everest-d20-ac-namespace.md) are fixed upstream, nothing to send. Kept
+  in the directory because the runs behind them stand as facts about `2026.02.1`.
+- **One re-pitched**: [loop-shutdown](../../reports/everest-loop-shutdown.md) leads with the loop
+  instead of the handshake.
+- **Two need their argument rewritten** before they are sendable:
+  [ocsp-absent](../../reports/everest-d20-ocsp-absent.md) and
+  [client-auth](../../reports/everest-d20-client-auth.md).
+- **Twelve confirmed current**, verbatim on `main`.
+
+Eleven checklist items answered across ten drafts, and
 [`reports/README.md`](../../reports/README.md) records the pass.
 
 ## Reproduce

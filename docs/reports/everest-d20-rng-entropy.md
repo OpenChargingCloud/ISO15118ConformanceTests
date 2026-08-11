@@ -13,8 +13,9 @@ and the two programs that produced it,
 64-bit SessionID and the 128-bit `GenChallenge` both carry at most 32 bits of entropy —
 `[V2G20-835]`, `[V2G20-2621]`, `[V2G20-698]`
 
-**Version:** everest-core **2026.02.1** (`b61bb12b8`), `lib/everest/iso15118/`. The same two files
-are byte-identical in standalone `EVerest/libiso15118` at `5c81c92` — see *Where else this lives*.
+**Version:** everest-core **2026.02.1** (`b61bb12b8`), `lib/everest/iso15118/`, and **unchanged on
+everest-core `main`** (`ebcd36d`, checked 2026-08-11) — so unlike three of its neighbours in this
+directory, this one has not been overtaken.
 
 ## The defect
 
@@ -185,13 +186,18 @@ template is specified for the `short`/`int`/`long`/`long long` families and thei
 counterparts, and `uint8_t` is none of them. libstdc++ accepts it; MSVC static-asserts. It is not
 what this report is about, but it disappears with any of the fixes above.
 
-## Where else this lives
+## Where else this lives — and why that turned out not to matter
 
 `src/iso15118/d20/session.cpp` and `src/iso15118/d20/state/authorization_setup.cpp` are
 **byte-identical** — same SHA-256 — in `EVerest/everest-core` at `lib/everest/iso15118/` and in
-standalone `EVerest/libiso15118` at its current HEAD `5c81c92`. Whichever of the two is generated
-from the other, a fix in one tree does not reach the other by itself. The same trap as
-`power_delivery.cpp` in [the contactor filing](everest-iso20-ac-contactor-latch.md).
+standalone `EVerest/libiso15118` at `5c81c92`, and this report was drafted expecting the same
+send-it-twice trap as `power_delivery.cpp` in [the contactor filing](everest-iso20-ac-contactor-latch.md).
+
+**It is not a trap, because the standalone repository is not maintained** (checked 2026-08-11).
+everest-core's `lib/everest/iso15118/` is the live tree; the mirror is stale, and that it agrees
+byte-for-byte here says only that nobody has touched either file. **File once, against everest-core.**
+The genuine send-it-twice case in this directory is
+[`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md), where both trees are alive.
 
 ## Context: four stacks, three answers
 
@@ -224,15 +230,17 @@ SessionID gap of our own, so we are not reporting from higher ground.
 - [x] **Control the measurement.** The collision count has a `/dev/urandom` arm at the same N, and
       `seedsearch` exits non-zero if any target fails to recover — so a toolchain mismatch cannot
       pass as a strong RNG.
-- [x] **Check the source at the current head.** Present in everest-core 2026.02.1 and byte-identical
-      in standalone `libiso15118` at `5c81c92`, fetched explicitly rather than inferred from a
-      shallow clone.
+- [x] **Check the source at the current head.** Present in everest-core 2026.02.1, and **re-checked
+      2026-08-11 against everest-core `main`** (`ebcd36d`): `std::mt19937 generator(rd())` unchanged.
+      Also present in standalone `libiso15118` at `5c81c92`, which is unmaintained and proves nothing
+      either way.
 - [x] **Say where the requirement is not exotic.** Two of the three other stacks draw both values
       from a CSPRNG at full width, and one of the two is your own `EvseV2G`.
 - [ ] **Decide one issue or two.** The SessionID and the `GenChallenge` have one cause and one fix,
       so one issue is defensible here — unlike the pairs this directory usually splits. If you split
       them, the `GenChallenge` is the one with a replay consequence and the SessionID the one with a
       number in a requirement.
-- [ ] **File it in the right tree, or both.** everest-core vendors the library; standalone
-      `libiso15118` carries the same bytes. Ask which they take patches in before opening two.
+- [x] **File it in the right tree — answered 2026-08-11: everest-core, once.** The standalone
+      `libiso15118` carries the same bytes but is not maintained, so there is no second tree to
+      open against and nothing to ask.
 - [ ] **Post under your own name, in your own words.**
