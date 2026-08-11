@@ -90,9 +90,10 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   `V2G_SECC_Sequence_Timeout` sits in the `(all messages)` row at **60 s**. So the charge-loop override
   is an addition of the newer document; our `-2` station's flat timeout is correct, and so is EVerest's.
 
-- ~~**Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.**~~ **The `-2` half is fixed
-  2026-08-11**, stack branch `iso2-unknown-session`; **the `-20` half is still open** and the reason is
-  below. Found while reading EVerest's `-2` station for the same rule: `FAILED_UnknownSession` appeared
+- ~~**Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.**~~ **Both halves are fixed
+  2026-08-11** — `-2` on stack branch `iso2-unknown-session`, `-20` on `iso20-unknown-session` the same
+  day, and the `-20` one closed `[V2G20-459]` with it. Found while reading EVerest's `-2` station for the
+  same rule: `FAILED_UnknownSession` appeared
   **nowhere** in our live code — only in the `old/` tree's enum — so a request whose header carried any
   SessionID at all was served as the session owner's. The requirement is one sentence and identical in
   both documents: any request except `SessionSetupReq` whose SessionID is not the stored one shall be
@@ -117,23 +118,48 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   built every header with `new byte[8]` — they had been modelling, for their whole existence, a car that
   sends the all-zero SessionID for the entire session. Exactly the peer the EVerest filing is about.
   They now read `secc.SessionId` back, as a real car does.
-  <br>**`-20` is still open**, and not for want of trying: `Secc20Base` has no table of corresponding
-  responses at all — its sequence guard *throws* rather than answering (`"would be
-  ResponseCode.FAILED_SequenceError"`), so `[V2G20-460]` needs that builder first, across three
-  generated message sets. One piece of work serving both requirements, and bigger than this one was.
-  <br>**And there is a worked example to copy the shape from**, found on 2026-08-11 while reading
-  their `-20` library for something else: EVerest's `d20/context_helper.cpp` is exactly that table —
-  `handle_sequence_error<Response>(session)` templated over the response type, dispatched from one
-  `send_sequence_error(req_type, ctx)` across **all sixteen** `-20` message types, with every
-  `state/*.cpp` calling it from its `else` arm. So their `-20` answers an out-of-sequence request with
-  the corresponding response, where ours raises `SessionAborted` and ends the session without
-  answering at all — and the same table then serves `[V2G20-460]`. Ours is the gap here and theirs is
-  the reference, which is worth saying in a file that mostly runs the other way. It is also the
-  `-20` twin of the `-2` defect **tux-evse's VW capture found in us** on 2026-08-06 and that was
-  fixed the same day; the `-2` half answers properly now and the `-20` half never did.
   <br>None of it blocked [the filing against EVerest](reports/everest-evsev2g-session-id-zero.md),
   since that probe is raw Python and owes our state machines nothing.
   [`…-iso2-session-id-zero`](interop-runs/2026-08-11-everest-iso2-session-id-zero/notes.md).
+
+  **The `-20` half, the same day, and it was the bigger piece.** `Secc20Base` had no table of
+  corresponding responses at all: its sequence guard *threw* rather than answering — the wildcard arm of
+  the phase switch raised `SessionAborted` under a comment naming the code it would have sent — so the
+  station killed the connection instead of answering, and `[V2G20-460]` had nothing to answer *with*.
+  `Secc20Base.Refuse(set, request, Refusal)` is that table now: **twenty request types across the three
+  generated message sets** (13 CommonMessages, 5 DC, 2 AC), each with its own `ResponseCode` enum, which
+  is why the reason travels as an enum of ours and is mapped per set rather than passed as a code. The
+  AC/DC half is delegated through `RefuseInEnergyTransferSet` — the same seam, for the same reason, as
+  `HandleChargeLoop`. One table, two requirements: `[V2G20-459]` and `[V2G20-460]`.
+  <br>**The refusal is terminal here and not in `-2`**, and that asymmetry is the standards' — §8.6
+  against §8.8.2, already implemented by `Handle`'s `IsFailure` and now pinned by a test. Where the
+  schema forces content that would otherwise be a promise, it is filled with empty material and never a
+  real credential: a refused `CertificateInstallationRes` carries an empty chain, a refused
+  `AuthorizationSetupRes` offers EIM and no `GenChallenge`.
+  <br>**The worked example was theirs**, found on 2026-08-11 while reading their `-20` library for
+  something else: EVerest's `d20/context_helper.cpp` is the same table in C++ —
+  `handle_sequence_error<Response>(session)` templated over the response type, dispatched from one
+  `send_sequence_error(req_type, ctx)` across all sixteen of their `-20` message types. Worth saying in a
+  file that mostly runs the other way. It is also the `-20` twin of the `-2` defect **tux-evse's VW
+  capture found in us** on 2026-08-06 and that was fixed the same day; the `-20` half never had been.
+  <br>Six tests in
+  [`Iso20UnknownSessionTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso20UnknownSessionTests.cs);
+  **four of the six fail** when the guard is neutered — two per requirement, checked one at a time — the
+  fifth pins the unchanged default, and the sixth enumerates the request types out of the three
+  assemblies and asserts every one is answered by the type that pairs with it. That last one exists
+  because the failure mode of a hand-written table of twenty arms is a *missing* arm, which nothing else
+  here would reach. Suite green at 1 400.
+  <br>**And it cost the test harnesses again — nine call sites this time, and the same value.**
+  `SessionContext.SessionId` starts as eight zero bytes, so every `-20` fixture driving `Handle` from its
+  own context had been sending the **all-zero SessionID** in every request after `SessionSetupReq`, for
+  its whole existence, against a station with no check to fail. Adding the check turned **32 passing
+  tests red at once**, which is how it surfaced. That is the same value and the same shape as
+  [the defect filed against EVerest's `-2` station](reports/everest-evsev2g-session-id-zero.md) — we were
+  modelling the peer we filed about. The one-line fix now lives in
+  [`Iso20Handshake`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso20Handshake.cs); the EV
+  keeping its own context, which was always right, just never adopted the id the station issued.
+  `Secc20CertInstallTests` needed a different answer — it replays a **captured Josev frame** whose
+  SessionID is inside the signed bytes, so the station is given that session instead.
 
 - ~~**Our ISO 15118-20 EVCC could not ask to be told the meter reading.**~~ **Fixed 2026-08-10**, stack
   branch `iso20-meter-info`. `Evcc20Dc` and `Evcc20Ac` both passed the literal `false` for

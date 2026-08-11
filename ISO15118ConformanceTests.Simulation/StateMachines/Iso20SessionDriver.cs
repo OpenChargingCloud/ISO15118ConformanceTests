@@ -95,6 +95,26 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         protected T Send<T>(MessageSet set, object request) =>
             (T) secc.Handle(set, request).Response;
 
+        /// <summary>
+        /// Take up the SessionID the station just issued, so every request after <c>SessionSetupReq</c>
+        /// carries it — what <c>Evcc20Base</c> does at the same point, and what a real car does.
+        /// </summary>
+        /// <remarks>
+        /// <b>This was missing until 2026-08-11, and its absence was invisible.</b>
+        /// <see cref="SessionContext.SessionId"/> starts as eight zero bytes, so every driver-run session
+        /// this suite ever executed sent the all-zero SessionID in every request after the first — the
+        /// value ISO reserves for *"I have no session"*, and the one EVerest's `-2` station is filed for
+        /// serving (<c>docs/reports/everest-evsev2g-session-id-zero.md</c>). Our own `-20` station served
+        /// it too, because it had no `[V2G20-460]` check to fail; the check arriving is what turned 32
+        /// green tests red and exposed what they had been modelling all along.
+        /// <para>
+        /// The <see cref="Ev"/> context stays separate from the SECC's, which was always the right call —
+        /// borrowing the station's context would make a wrong echo unnoticeable. What was missing was the
+        /// one line that makes the separate context <em>correct</em>.
+        /// </para>
+        /// </remarks>
+        protected void AdoptSessionId(SessionSetupRes setup) => Ev.SessionId = setup.Header.SessionID;
+
         // ── The diverging middle ────────────────────────────────────────────────────────────────
 
         protected abstract void ChargeParameterDiscovery();
@@ -115,7 +135,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         /// <c>new Ac20SessionDriver(secc).ToChargeLoop().ChargeLoop()</c> in one expression.</remarks>
         public Iso20SessionDriver ToChargeLoop()
         {
-            Send(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            AdoptSessionId(Send<SessionSetupRes>(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01")));
             Send(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             Send(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM,
                                                                       new EIM_AReqAuthorizationModeType(), null));

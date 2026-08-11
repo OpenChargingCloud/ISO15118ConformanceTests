@@ -44,17 +44,26 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         private const string JosevCertificateInstallationReqHex =
             "801c0459db319f8b14f3f7087c983d3060a25687474703a2f2f7777772e77332e6f72672f54522f63616e6f6e6963616c2d6578692f435687474703a2f2f7777772e77332e6f72672f323030312f30342f786d6c647369672d6d6f72652365636473612d736861323536440c46d2c86204ad0e8e8e0745e5eeeeeee5cee665cdee4ce5ea8a45ec6c2dcdedcd2c6c2d85acaf0d25e90a5a1d1d1c0e8bcbddddddcb9dcccb9bdc99cbcc8c0c0c4bcc0d0bde1b5b195b98c8dcda184c8d4d90802b410d8fcefcc88a958571255ed49501f954ea3531884272e9124da2715bb1084a05551f956941d9ff0db1f2154399c40a2d67f234aa342c9afd27241912a3ceb017e675c661fd54f1d9927d9e2a52c75ca85e469f90792ad577db4ee43818a4686200ad2c8627201984100f0184100c350018100810101182018050304154324671e8201811823988918080301aa82018604a7a2a6a9bab121a099188798068301aa8205060329bbb4ba31b4188598048301aa820309812aa598899808830504c91344c9f91632008c8b01a7a2a6980f0b86991b181b991898989a999918ad0b869998181b991818989a999918ad1824988a18090301aa82018605a7a2a6a83937bb21b2b93a188798068301aa8205060329bbb4ba31b4188598048301aa820309812aa598899808830504c91344c9f91632008c8b01a7a2a6982c98098303954324671e81008304154324671e81808381a1000211f8d5cfa8b3023cf845b21a9a6936717100aceed35377518fcbab3edd8cac3dc07f8a4992ba4211904037c7e8b0a37eebd07a8f31d09202c2456467a7be40fad1b0182f18060301aa8e898080ff8201180018070301aa8e878080ff8202018101c4180e8301aa8e87020b020a73f4c1c98258c0b75c633817aa6064ed8ddf0100180f8301aa8e91820c180b400a63dab9984ac047c177782586b9b8326181ed58fe98050304154324671e82018101a400182281108068269fe0ad8b947d9cb06ef9ac9d09a0c04877bc40318a9858f0f7093c47369a81103c744338df81dc6b75e56b0cb432df2b4e8ff9ac6c3c5c3acc9384a1c939dac503a00cc2080790c208062a800c0804080808c0fcc0281820aa192338f4100c08c11cc448c040180d54100c30253d15354dd5890d04c4c43cc034180d54102830194ddda5d18da0c42cc024180d5410184c09552cc44cc044182826489a264fc8b1900464580d3d1534c0785c34c8d8c0dcc8c4c4c4d4ccc8c1685c34ccc0c0dcc8c0c4c4d4ccc8c168c11cc448c040180d54100c30253d15354dd5890d04c8c43cc034180d54102830194ddda5d18da0c42cc024180d5410184c09552cc44cc044182826489a264fc8b1900464580d3d1534c164c04c181caa192338f408041820aa192338f40c041c0d0800130912f7d3acfe99ace410efeddce98af308fcb05a5ed43c6464f765f2b36bc151333b0c76a3452189e97596449fe86d6ce0d684412281ea1f267fe24bde15dce68d98c190c048180d54744c0407fc1020c0180407fc080400c038180d54743c0407fc10100c080418c074180d547438105810531ed5ccc256023e0bbbc12c35cdc1930c0f6ac7f4c07c180d54748c1060c05a0053a7c42dc1a0c101778dfc7726cb8878048e703dccc0281820aa192338f4100c080d2000c1140884024a9cd7b20a8ebb3252ca2f2f3bfbf9ef004e1e93cc509bdafaa7a99d5fb260d808804ee97f2be73f2d6c08e1e0bde016b5e6e2410a5d01d4c07f6c759cebf214d2a03a00cc2080790c208062a800c0804080808c0f8c0281820aa192338f4100c08c11cc448c040180d54100c30253d153549bdbdd10d04c43cc034180d54102830194ddda5d18da0c42cc024180d5410184c09552cc44cc044182826489a264fc8b1900464580d3d1534c0785c34c8d8c0dcc8c4c4c4d4ccc8c1685c34ccc0c0dcc8c0c4c4d4ccc8c168c11cc448c040180d54100c30253d15354dd5890d04c4c43cc034180d54102830194ddda5d18da0c42cc024180d5410184c09552cc44cc044182826489a264fc8b1900464580d3d1534c164c04c181caa192338f408041820aa192338f40c041c0d080012bb5b4867e4caecc8112bf361dc9fe164168fedc7dc92aeb593be033795d9abe11522a8e15a148b8863f3af0fcd49f06fbd05631761d5f4d700a4614c0beee9128d98c190c048180d54744c0407fc1020c0180407fc080404c038180d54743c0407fc10100c080418c074180d54743810581053a7c42dc1a0c101778dfc7726cb8878048e703dccc07c180d54748c1060c05a00504b26dd72c60a17d015bfe7abf8cbe61f0f031ce8c0281820aa192338f4100c080d2000c1140884027e5d18a6a89ccfe365a28ef8f8c85665146bfb9d6d646553bcce886e80b1e2e40880211e5ec89e6a40eadb792b8b25ad17b716d869548fba198b91f0bcac5fba6f0080acf13985b594a10d38f558c91d49bdbdd10d04b13cf54ddda5d18da0b10cf5552cb1110cf558c91ca4f82e58040320";
 
-        private static MessageHeaderType Hdr() => new(new byte[8], 1_700_000_000UL, null);
+        /// <summary>A header carrying <paramref name="sessionId"/>, at the pinned timestamp this fixture's
+        /// signatures were made under.</summary>
+        private static MessageHeaderType Hdr(byte[] sessionId) => new(sessionId, 1_700_000_000UL, null);
 
         [Test]
         public void JosevCertificateInstallationReq_VerifiesAndGetsSignedRes()
         {
-            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(), "EVCC01"));
-            secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr()));
-
             var frame = Convert.FromHexString(JosevCertificateInstallationReqHex);
             var req = (CertificateInstallationReq)CommonMessagesCodec.DecodeAny(frame, out _);
+
+            // The captured request carries the SessionID Josev's own EVCC used, and it is in the frame's
+            // signed bytes — so it cannot be rewritten. Since [V2G20-460] arrived (2026-08-11) a station
+            // refuses any other id, which leaves exactly one honest way to replay a foreign frame: give the
+            // station the session the frame belongs to. Decoding therefore has to happen before the station
+            // exists, which is why this is no longer the tidy setup-first shape.
+            var sid  = req.Header.SessionID;
+            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System) { FixedSessionId = sid };
+
+            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(sid), "EVCC01"));
+            secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr(sid)));
 
             var res = (CertificateInstallationRes)secc.Handle(MessageSet.Iso20CommonMessages, req).Response;
 
@@ -84,7 +93,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
             // The session continues: the AuthorizationReq is still legal after the cert-install exchange.
             var auth = secc.Handle(MessageSet.Iso20CommonMessages,
-                new AuthorizationReq(Hdr(), Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
+                new AuthorizationReq(Hdr(sid), Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             Assert.That(auth.Response, Is.InstanceOf<AuthorizationRes>());
         }
 

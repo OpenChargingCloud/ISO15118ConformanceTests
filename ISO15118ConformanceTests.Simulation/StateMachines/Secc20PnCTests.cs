@@ -39,12 +39,27 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
     [TestFixture]
     public class Secc20PnCTests
     {
-        private static MessageHeaderType Hdr(SignatureType? sig = null) => new(new byte[8], 1_700_000_000UL, sig);
+        /// <summary>
+        /// The SessionID this fixture's station is pinned to, and that every request here carries.
+        /// </summary>
+        /// <remarks>
+        /// It used to be <c>new byte[8]</c> — the all-zero id ISO reserves for *"I have no session"*, which
+        /// this fixture was therefore sending in every request for its whole existence, and which the
+        /// station happily served because it had no <c>[V2G20-460]</c> check. Pinned rather than read back
+        /// from the station because the signatures below are made under a fixed timestamp and want a fixed
+        /// header; the point is only that it is a real id, not that it is this one.
+        /// </remarks>
+        private static readonly byte[] Sid = [0x0a, 0x1b, 0x2c, 0x3d, 0x4e, 0x5f, 0x60, 0x71];
+
+        private static Secc20Dc Station() =>
+            new(TimeSpan.FromSeconds(60), TimeProvider.System) { FixedSessionId = Sid };
+
+        private static MessageHeaderType Hdr(SignatureType? sig = null) => new(Sid, 1_700_000_000UL, sig);
 
         [Test]
         public void AuthorizationSetup_OffersPnCWithGenChallenge()
         {
-            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            var secc = Station();
             secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(), "EVCC01"));
 
             var res = (AuthorizationSetupRes)secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr())).Response;
@@ -57,7 +72,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         [Test]
         public void SignedPnCAuthorizationReq_WithP256Contract_VerifiesEndToEnd()
         {
-            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            var secc = Station();
             secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(), "EVCC01"));
             var setup = (AuthorizationSetupRes)secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr())).Response;
             byte[] challenge = setup.PnC_ASResAuthorizationMode!.GenChallenge;
@@ -97,7 +112,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         [Test]
         public void SignedPnCAuthorizationReq_OverStandaloneXmldsigGrammar_VerifiesViaFallback()
         {
-            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            var secc = Station();
             secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(), "EVCC01"));
             var setup = (AuthorizationSetupRes)secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr())).Response;
             byte[] challenge = setup.PnC_ASResAuthorizationMode!.GenChallenge;
@@ -135,7 +150,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         [Test]
         public void PnCAuthorizationReq_WithWrongChallenge_FlaggedButSessionContinues()
         {
-            var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            var secc = Station();
             secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Hdr(), "EVCC01"));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Hdr()));
 

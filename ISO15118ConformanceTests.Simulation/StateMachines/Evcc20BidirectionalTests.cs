@@ -322,7 +322,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         private Secc20Dc StationWithServiceSelected(ushort serviceId)
         {
             var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
-            secc.Handle(MessageSet.Iso20CommonMessages, new SessionSetupReq(Common, "EVCC01"));
+            _ctx.OpenSession(secc);
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationSetupReq(Common));
             secc.Handle(MessageSet.Iso20CommonMessages, new AuthorizationReq(Common, Authorization.EIM, new EIM_AReqAuthorizationModeType(), null));
             secc.Handle(MessageSet.Iso20CommonMessages, new ServiceDiscoveryReq(Common, null));
