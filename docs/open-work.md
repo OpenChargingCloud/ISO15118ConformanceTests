@@ -64,27 +64,31 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
-- **Our `-20` station has one sequence timeout for every message type, and `-20` does not.**
-  `Secc20Base(TimeSpan sequenceTimeout, …)` takes a single value and applies it in every phase, so it is
-  the same shape as [the defect filed against EVerest on 2026-08-11](reports/everest-d20-sequence-timeout.md):
-  Table 215 gives 60 s for *all other messages*, and Tables 216 and 217 — obliged by `[V2G20-1500]` and
-  `[V2G20-1502]` — override it to **0,5 s** after `AC_ChargeLoopRes` and `DC_ChargeLoopRes`, the phase
-  in which the contactor is closed.
-  <br>Nobody has measured ours either, and now the instrument exists:
-  `Evcc20Base.GoSilentInChargeLoop` was added to measure theirs and works just as well against a
-  loopback. **The fix and its test are the same piece of work** — a per-message-type lookup at the one
-  place the timer is armed, plus a loopback test that goes silent in the charge loop and asserts the
-  station gives up inside a second.
-  <br>**The `-2` half of that question is answered, and the answer is that there is nothing to do.**
-  Table 108 was re-extracted page by page on 2026-08-11 — `pdftotext -layout` had flattened its five
-  stacked parameter names into a single column, and read that way the message list looks like a
-  per-message sequence timeout. It is not: that list belongs to `V2G_SECC_Msg_Performance_Time`
-  (`CurrentDemandRes` 0,025 s — how fast the SECC must *answer*), and `V2G_SECC_Sequence_Timeout` sits
-  in the `(all messages)` row at **60 s**, beside the same 40 / 60 / 55 that `-20`'s Table 215 carries.
-  So the charge-loop override is an addition of the newer document; our `-2` station's flat timeout is
-  correct, and so is EVerest's. Only the `-20` half is ours to fix.
-  <br>Recorded rather than fixed on the day it was found, because the filing it came from was the
-  turn's work; it is the next thing in this section rather than a someday item.
+- ~~**Our `-20` station has one sequence timeout for every message type, and `-20` does not.**~~
+  **The charge-loop half is fixed 2026-08-11.** `Secc20Base` took a single `sequenceTimeout` and applied
+  it in every phase — the same shape as [the defect filed against EVerest](reports/everest-d20-sequence-timeout.md):
+  Table 215 gives 60 s for *all other messages*, and Tables 216/217 — obliged by `[V2G20-1500]` and
+  `[V2G20-1502]` — override it to **0,5 s** after `AC_ChargeLoopRes`/`DC_ChargeLoopRes`, the phase in
+  which the contactor is closed. Until now our own station flattened it to 60 s too.
+  <br>**The fix and its test were one piece of work**, exactly as predicted. `Secc20Base` now tracks
+  whether the last response it sent was a charge-loop response and arms the *next-request* wait — both
+  the `RunAsync` read (the real enforcement against a silent EV) and the reactive `Handle` check — with
+  `ChargeLoopSequenceTimeout` (init-only, default 0,5 s) instead of the baseline. Two loopback tests in
+  [`Iso20ChargeLoopTimeoutTests`](../ISO15118ConformanceTests.Simulation/E2E/Iso20ChargeLoopTimeoutTests.cs)
+  drive `Evcc20Base.GoSilentInChargeLoop` — the instrument built to measure *theirs* — against our own
+  station: the tight one asserts the session ends in under a second and **fails when the default is put
+  back to 60 s** (verified), the control pins the flat behaviour the fix removes.
+  <br>**What is left, and it is smaller:** Table 217 gives the DC-only self-loop phases their own
+  sub-60 s timeouts too — CableCheck and PreCharge at 1,5 s, WeldingDetection at 0,25 s — which this fix
+  does *not* tighten (they stay at the baseline). Those are a fuller reading of the same table, their
+  exact values were column-scrambled in the extract and only the charge-loop 0,5 s was confirmed cleanly
+  across AC/DC/WPT, and none is the contactor-closed safety case. A bounded follow-up, not a someday item.
+  <br>**The `-2` half needed nothing and still does.** Table 108 was re-extracted page by page on
+  2026-08-11 — `pdftotext -layout` had flattened its five stacked parameter names into one column, and
+  read that way the message list looks like a per-message sequence timeout. It is not: that list belongs
+  to `V2G_SECC_Msg_Performance_Time` (`CurrentDemandRes` 0,025 s — how fast the SECC must *answer*), and
+  `V2G_SECC_Sequence_Timeout` sits in the `(all messages)` row at **60 s**. So the charge-loop override
+  is an addition of the newer document; our `-2` station's flat timeout is correct, and so is EVerest's.
 
 - ~~**Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.**~~ **The `-2` half is fixed
   2026-08-11**, stack branch `iso2-unknown-session`; **the `-20` half is still open** and the reason is
