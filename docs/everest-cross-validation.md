@@ -476,8 +476,12 @@ been sent — they are the operator's to post, under their own name.
   `SSLConfig` grew a `chains` vector whose `ChainConfig` carries `ocsp_response_files`. What is left is
   a module that asks with `include_ocsp = false` and passes `{}` — so the measurement is unchanged and
   the ask went from *"implement OCSP"* to **three one-line changes in three files that only work in a
-  particular order**. Their own `<n> certificates != <n> OCSP responses` warning should now fire on
-  every `-20` start; predicted from the source, not yet observed. **Still not the same issue as the
+  particular order**. Their own `<n> certificates != <n> OCSP responses` warning fires once per TLS
+  **session setup** — not at process start, `ConnectionSSL` being constructed per SDP request — and on
+  2026-08-12 that was **measured on a `main` build**, 2 of 2, on their stock `-20` SIL config
+  ([run](interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md)). The same session start also
+  emits `trusted_ca_keys support disabled`, which is the `IsoMux` §4 finding appearing on the `-20`
+  station — recorded there, not filed separately. **Still not the same issue as the
   dropped `ocsp` member** — that one is the conversion boundary, still present on `main`, and *neither
   fix alone produces a staple*. **Controlled**, because "your client never
   asked" is the first objection: the same client and the same flag against `IsoMux` made their own

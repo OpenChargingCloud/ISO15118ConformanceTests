@@ -38,6 +38,16 @@ again the same afternoon, out of a `frames.log` from 2026-08-02, and the reason 
 that the finding is about a field that is **absent**: no live run can show you an omission you were not
 already looking for, but a kept frame can be re-decoded by name.
 
+A fifth shape is a run against a counterparty's **`main`, not its release tag**, to settle one claim.
+[`2026-08-12-everest-main-ocsp-warning/`](2026-08-12-everest-main-ocsp-warning/notes.md) is the first:
+it builds everest-core `main` in a **git worktree with its own install prefix** — the `2026.02.1` tree
+every other EVerest measurement here rests on stays untouched, which is worth more than the twenty
+minutes an in-place checkout would have saved — and answers one checklist item, *does the warning we
+predicted actually appear*. It does, 2 of 2. Worth reading for the two corrections it forced **before**
+the station was started: the claim said "at every start" and the code builds its TLS server per SDP
+request, and even then a bare SDP request is refused until a car is plugged in. Tracing the call graph
+found both; the run only confirmed the corrected version.
+
 A fourth shape has no counterparty artifact at all: an **audit of our own drafts** against the trees
 they cite. [`2026-08-11-reports-upstream-audit/`](2026-08-11-reports-upstream-audit/notes.md) re-reads
 every `file:line` in `docs/reports/` — 189 of them, all still correct — and then asks the question the

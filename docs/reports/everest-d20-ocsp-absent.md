@@ -17,8 +17,11 @@ see *Before sending* at the bottom.
 > materially easier thing to agree to, and a materially easier thing to get wrong. The order is the
 > report now.
 >
-> Read from the source on 2026-08-11; **not re-measured against a `main` build**. Say so if you post it.
-> ([Audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md).)
+> Read from the source on 2026-08-11. The **startup warning was then measured on a `main` build on
+> 2026-08-12** and is quoted below; the rest of the `main` reading has not been re-run, and the report
+> says which is which.
+> ([Audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md),
+> [warning run](../interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md).)
 
 **This is a different issue from
 [`everest-evse-security-ocsp-dropped.md`](everest-evse-security-ocsp-dropped.md), and the relationship
@@ -37,10 +40,10 @@ re-anchoring against `lib/everest/tls` — and [`everest-d20-trust-anchor.md`](e
 hands `lib/everest/tls` an empty `ocsp_response_files`, so the station never staples — `[V2G20-2372]`
 makes every `-20` EV ask, `[V2G20-2388]` obliges a public SECC to answer
 
-**Version:** measured on everest-core **2026.02.1** (`b61bb12b8`), native build, Debian 13,
-OpenSSL 3.5.6, `tls_negotiation_strategy: ENFORCE_TLS`, your own test PKI; control `IsoMux` +
-`EvseV2G` in the same build. The code below is read from **`main` (`ebcd36d`, 2026-08-11)** — source
-only, not re-run.
+**Version:** the `no response sent` measurement is everest-core **2026.02.1** (`b61bb12b8`), native
+build, Debian 13, OpenSSL 3.5.6, `tls_negotiation_strategy: ENFORCE_TLS`, your own test PKI; control
+`IsoMux` + `EvseV2G` in the same build. The code below is read from **`main` (`ebcd36d`)**, and the
+`<n> certificates != <n> OCSP responses` line is **measured on a `main` build**, 2026-08-12.
 
 ## What we saw
 
@@ -109,9 +112,9 @@ ssl_for_controller.chains.push_back(iso15118::config::ChainConfig{
 `ocsp`, so `certificate_info` arrives without it — that is the sibling report, and it is **still
 present on `main`**.
 
-### Your own log already says this, once a start
+### Your own log should already be saying this, once per TLS session
 
-`tls.cpp:1124-1137` compares the two lists and warns when they disagree:
+`tls.cpp:1123-1137` compares the two lists and warns when they disagree:
 
 ```cpp
 if (certs.size() == i.ocsp_response_files.size()) {
@@ -121,11 +124,40 @@ if (certs.size() == i.ocsp_response_files.size()) {
 }
 ```
 
-An `Evse15118D20` chain has at least one certificate and its `ocsp_response_files` is `{}`, so **that
-warning should fire on every start of every `-20` station on `main`**. We have not seen it — this is a
-prediction from the source, not an observation, and it is the cheapest thing in this report for you to
-check: one restart, one grep. If it is there, it is your own code reporting this defect to your own
-operators already.
+An `Evse15118D20` chain has at least one certificate — the module throws at startup if the V2G
+certificate is missing — and its `ocsp_response_files` is `{}`, so the two sizes can never match.
+
+The full path, traced on `main`:
+
+| | |
+|---|---|
+| `ISO15118_chargerImpl.cpp:280` | the module passes `{}` |
+| `connection_ssl.cpp` | `build_chain_configs` copies the list through, empty in / empty out |
+| `connection_ssl.cpp:138` | `tls::Server::init(cfg, …)` in the `ConnectionSSL` constructor |
+| `tls.cpp:1306` | `init()` → `update(cfg)` |
+| `tls.cpp:1318-1319` | *"always try init_certificates() and init_ssl()"* |
+| `tls.cpp:1123`, `:1136` | sizes differ → the warning |
+
+**Not at startup — per TLS session.** `ConnectionSSL` is constructed in
+`TbdController::handle_sdp_server_input()` (`tbd_controller.cpp:357-367`), in response to an SDP
+request asking for `Security::TLS`, and only once the dlink is ready. So the line appears once for
+**every TLS session setup**, not once per process.
+
+**Measured on `main`, 2026-08-12.** A station built from `ebcd36d`, your `config-sil-dc-d20.yaml` as
+shipped, your own test PKI; one plug-in and one SDP datagram asking for TLS:
+
+```
+[INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fe6b:3d4%eth0
+[INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:fe6b:3d4%eth0]:50000
+<n> certificates != <n> OCSP responses
+```
+
+Twice, from two independent plug-ins, counted rather than eyeballed — 0 → 1 → 2. At process start the
+log contains no OCSP line at all
+([run notes](../interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md)).
+
+**So your own code has been reporting this to your own operators all along**, once per TLS session, and
+that is the shortest route into this issue: it needs no EV, no client PKI and no reading of ours.
 
 ## Why we think it is worth fixing
 
@@ -165,7 +197,19 @@ is why we would rather describe the chain than send a patch for one link in it.
 |---|---|---|---|
 | 1 | `to_everest` copies `ocsp` | `conversions.cpp:429` | nothing — nobody asks for it yet |
 | 2 | `include_ocsp = false` → `true` | `ISO15118_chargerImpl.cpp:244` | nothing — the data is dropped at (1) |
-| 3 | pass `certificate_info.ocsp` instead of `{}` | `ISO15118_chargerImpl.cpp:280` | nothing — the field is empty without (1) and (2) |
+| 3 | fill `ocsp_response_files` from `certificate_info.ocsp` | `ISO15118_chargerImpl.cpp:280` | nothing — the field is empty without (1) and (2) |
+
+The types line up — `CertificateOCSP::ocsp_path` is a file path and `ChainConfig::ocsp_response_files`
+is a vector of file paths — but **(3) has a trap in it**, and it is the reason we are describing the
+change rather than sending it:
+
+`ocsp_path` is `std::optional`, and `init_certificates` compares **sizes** before it looks at contents
+(`tls.cpp:1123`), pairing chain position *c* with `ocsp_response_files[c]`. So the obvious loop —
+push_back each present `*ocsp_path` — **shortens the vector** whenever any certificate in the chain has
+no OCSP data, and the sizes stop matching. That path logs the same warning and staples nothing: the fix
+silently does not fix. It has to emit **one entry per certificate in chain order**, empty where there
+is none. `tls.cpp:1128` already tolerates a null entry inside the loop, so the shape is there — it is
+the length that matters.
 
 With all three, the existing `OcspCache` → `status_request_cb` path should staple with no further work.
 **We have not built that and cannot claim it**; the claim is that the three gaps are what stands
@@ -208,10 +252,13 @@ would be worth more than the code — it would also stop the next person filing 
 - [ ] **Lead with the empty list, not with the standard.** *Your `-20` module passes an empty
       `ocsp_response_files` into a TLS server that knows how to staple.* One sentence, it is concrete,
       and it is theirs.
-- [ ] **Check the startup warning before posting.** If `<n> certificates != <n> OCSP responses` really
-      does appear on every `-20` start, that belongs in the first paragraph and it is worth more than
-      the requirement citations. If it does **not**, find out why before claiming the rest — we would be
-      wrong about the wiring.
+- [x] **Check the warning before posting — done 2026-08-12 on a `main` build, 2 of 2.** It appears once
+      per TLS session setup, on their stock `-20` SIL config with their own PKI
+      ([run notes](../interop-runs/2026-08-12-everest-main-ocsp-warning/notes.md)). Put it in the first
+      paragraph: it is worth more than the requirement citations, because it is their log, not our
+      reading. The claim was corrected twice before it survived — it is **not** at process start, and an
+      SDP request alone is not enough either (the station answers *"Ignoring SDP request because dlink
+      is not ready"*); it needs a plugged-in car **and** a TLS SDP request.
 - [ ] **Ask the scope question early.** *Is `Evse15118D20` intended for public charging?*
       `[V2G20-2398]` is a real exemption and the answer decides whether this is a defect or a
       documentation line.
