@@ -137,7 +137,8 @@ public class EverestInteropTests
                                                             InteropEnvironment.ContractCredentialsOrNull(),
                                                             mcs: InteropEnvironment.Mcs(),
                                                             bptFirst: InteropEnvironment.BptFirst(),
-                                                            requestMeterInfo: InteropEnvironment.RequestMeterInfo());
+                                                            requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
+                                                            silentInChargeLoop: InteropEnvironment.SilentInChargeLoop());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0
@@ -150,6 +151,18 @@ public class EverestInteropTests
                 TestContext.Out.WriteLine(
                     $"MeterInfo: asked in every charge-loop request ([V2G20-1081]); " +
                     $"{outcome.MeterInfoResponses} response(s) carried the element ([V2G20-1082]).");
+
+            // Reported, never asserted, for the same reason as the MeterInfo line: the number IS the
+            // result. [V2G20-1500]/[V2G20-1502] give the SECC 0,5 s here (Tables 216/217); Table 215's 60 s
+            // is the value for every message outside the charge loop.
+            if (InteropEnvironment.SilentInChargeLoop() is { } budget)
+                TestContext.Out.WriteLine(
+                    "V2G_SECC_Sequence_Timeout: our EV stopped sending inside the charge loop and held the "
+                  + "connection open; the station "
+                  + (outcome.SilenceEndedAfter is { } t2
+                         ? $"ended the session after {t2.TotalSeconds:0.00} s"
+                         : $"had still not ended it after {budget.TotalSeconds:0} s")
+                  + " (allowed: 0,5 s in the charge loop).");
 
             if (outcome.SelectedEnergyServiceId is { } serviceId)
                 TestContext.Out.WriteLine($"Energy transfer service: {serviceId} ({ServiceName(serviceId)}).");

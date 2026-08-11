@@ -1,0 +1,3 @@
+Authorization: eim
+Energy transfer service: 2 (DC).
+V2G_SECC_Sequence_Timeout: our EV stopped sending inside the charge loop and held the connection open; the station ended the session after 65.04 s (allowed: 0,5 s in the charge loop).

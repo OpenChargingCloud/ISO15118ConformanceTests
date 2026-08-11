@@ -138,6 +138,20 @@ internal static class InteropEnvironment
         => Environment.GetEnvironmentVariable("V2G_INTEROP_METER") == "1";
 
 
+    /// <summary>-20 only: after one charge-loop iteration our EV stops sending and holds the connection
+    /// open for this many seconds, to see when the station gives up. <c>V2G_INTEROP_SILENT=&lt;seconds&gt;</c>.</summary>
+    /// <remarks>
+    /// This is how <c>V2G_SECC_Sequence_Timeout</c> is measured at all: a car that hangs up is an EOF and
+    /// says nothing about a timer. `[V2G20-1500]`/`[V2G20-1502]` give the SECC <b>0,5 s</b> in the charge
+    /// loop (Tables 216/217) against the 60 s of Table 215 elsewhere, so a budget of ~90 s tells the two
+    /// apart with room to spare. Unset by default, since a run that sets it does not charge.
+    /// </remarks>
+    public static TimeSpan? SilentInChargeLoop()
+        => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_SILENT"), out var s) && s > 0
+               ? TimeSpan.FromSeconds(s)
+               : null;
+
+
     /// <summary>
     /// -20 only: <c>V2G_INTEROP_NO_PNC=1</c> makes our station advertise EIM only.
     /// </summary>

@@ -270,6 +270,26 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 Written up per run; **twelve** are drafted for filing under [`docs/reports/`](reports/) and none has been
 sent — they are the operator's to post, under their own name.
 
+- **`V2G_SECC_Sequence_Timeout` is one flat 60 s, in a charge loop that allows 0,5 s.** Read out of
+  their `-20` timeout header — `TIMEOUT_SEQUENCE = 1000 * 60`, armed from the single call site in
+  `Session::send_response()` — and then measured. Two arms: a normal charge completes in 24 s; a car
+  that stops sending after one `DC_ChargeLoopReq` **and holds the connection open** is left standing for
+  **60,0025 s**, the interval taken from *their own* log between `DcChargeLoopRes` and their
+  `Sequence Timeout … Stopping the session` verdict. Tables 216 and 217 (`[V2G20-1500]`, `[V2G20-1502]`)
+  give the SECC **0,5 s** after a charge-loop response — the phase in which the contactor is closed.
+  120×. Everything around the value is right: the arming, the disarming, the `SupportedAppProtocolReq`
+  exemption, the session stop. **Filed 2026-08-11**:
+  [`everest-d20-sequence-timeout.md`](reports/everest-d20-sequence-timeout.md),
+  [run](interop-runs/2026-08-11-everest-d20-sequence-timeout/notes.md).
+  <br>**Measuring it needed a capability of ours, for the third time this month.** A car that hangs up
+  is an EOF and says nothing about a timer; `Evcc20Base.GoSilentInChargeLoop` makes ours go quiet with
+  the socket open. MeterInfo was a field we never set, the SessionID a header we could not forge, this a
+  message we could not withhold — three different shapes of the same lesson.
+  <br>Their log line names a third number, `40secs`, which is `V2G_EVCC_Sequence_Performance_Time` —
+  the EV's row of Table 215. Cosmetic, in the filing as cosmetic, and evidence the table was read.
+  <br>**And ours is the same shape:** `Secc20Base` takes one `sequenceTimeout` for every phase. In
+  [`open-work.md`](open-work.md), and in the report, because leaving it out is what makes a report easy
+  to dismiss.
 - **A SessionID of zero walks past `EvseV2G`'s `[V2G2-460]` check.** The next arm of the same probe,
   and the one that found something. Their check is present and cited in their own code — and carries a
   `received_session_id != 0` conjunct, so the one value ISO reserves for *"I have no session"* is
