@@ -63,21 +63,39 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
-- **Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.** Found 2026-08-11 while reading
-  EVerest's `-2` station for the same rule: `FAILED_UnknownSession` appears **nowhere** in our live
-  code — only in the `old/` tree's enum. A request whose header carries any SessionID at all is served
-  as the session owner, in both protocol versions. The requirement is unambiguous and identical in the
-  two documents: any request except `SessionSetupReq` whose SessionID is not the stored one shall be
+- ~~**Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.**~~ **The `-2` half is fixed
+  2026-08-11**, stack branch `iso2-unknown-session`; **the `-20` half is still open** and the reason is
+  below. Found while reading EVerest's `-2` station for the same rule: `FAILED_UnknownSession` appeared
+  **nowhere** in our live code — only in the `old/` tree's enum — so a request whose header carried any
+  SessionID at all was served as the session owner's. The requirement is one sentence and identical in
+  both documents: any request except `SessionSetupReq` whose SessionID is not the stored one shall be
   answered `FAILED_UnknownSession`.
-  <br>**Why no test of ours could have caught it**, which is the part worth keeping: our EVCC has no
-  way to send a SessionID other than the one the station gave it, so a loopback session never presents
-  a wrong one. Same shape as the MeterInfo gap on 2026-08-10 and the running-limit one before it — the
-  third time this month that a question our car cannot ask hid an answer nobody checked. The fix
-  therefore has two halves again: the station refusing, and an opt-in knob on the car so a run can
-  reach it.
-  <br>It did **not** block [the filing against EVerest](reports/everest-evsev2g-session-id-zero.md),
-  because that probe is raw Python and owes our state machines nothing — but their station is ahead of
-  ours here in every respect except the one conjunct it exempts, and the report says so.
+  <br>**Why no test of ours could have caught it**, which is the half worth keeping: our EVCC had no
+  way to send a SessionID other than the one it was given, so a loopback session never put a wrong one
+  in front of the station. Same shape as the MeterInfo gap on 2026-08-10 and the running-limit one
+  before it — the third time this month that a question our car cannot ask hid an answer nobody checked.
+  <br>**The car half** is `Evcc2.SendSessionId`, opt-in and defaulting to the real id, so every recorded
+  session keeps its bytes. **The station half** answers with *the response that pairs with the request*
+  — the same table `[V2G2-538]` already needed, split out of `SequenceError` into `Refuse(req, code)` —
+  and **leaves the phase alone**, which is this station's documented `-2` policy for the whole `FAILED`
+  family: nothing in `-2` obliges either side to end a session over a response code, so a car that
+  echoes the right id next time charges. `Secc2.UnknownSessionAt` and `UnknownSessionRefusals` make it
+  visible from a run, since a non-fatal refusal is otherwise invisible.
+  <br>Four tests in
+  [`Iso2UnknownSessionTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso2UnknownSessionTests.cs);
+  **three of the four fail** when the guard is neutered, which is how it was checked, and the fourth
+  pins the unchanged default. Suite green at 1 374.
+  <br>**It cost four test harnesses, and that is the interesting part.** `Secc2TariffTests`,
+  `Secc2PnCTests`, `Secc2SignedMeterTests` and `Secc2TransitionTests` drive `Secc2.Handle` directly and
+  built every header with `new byte[8]` — they had been modelling, for their whole existence, a car that
+  sends the all-zero SessionID for the entire session. Exactly the peer the EVerest filing is about.
+  They now read `secc.SessionId` back, as a real car does.
+  <br>**`-20` is still open**, and not for want of trying: `Secc20Base` has no table of corresponding
+  responses at all — its sequence guard *throws* rather than answering (`"would be
+  ResponseCode.FAILED_SequenceError"`), so `[V2G20-460]` needs that builder first, across three
+  generated message sets. One piece of work serving both requirements, and bigger than this one was.
+  <br>None of it blocked [the filing against EVerest](reports/everest-evsev2g-session-id-zero.md),
+  since that probe is raw Python and owes our state machines nothing.
   [`…-iso2-session-id-zero`](interop-runs/2026-08-11-everest-iso2-session-id-zero/notes.md).
 
 - ~~**Our ISO 15118-20 EVCC could not ask to be told the meter reading.**~~ **Fixed 2026-08-10**, stack
