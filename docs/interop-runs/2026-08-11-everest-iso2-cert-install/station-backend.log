@@ -1,0 +1,7 @@
+2026-08-11 19:41:46.969462 [INFO] iso15118_charge  :: CertificateInstallation-phase started
+2026-08-11 19:41:46.969890 [INFO] iso15118_charge  :: Waiting for the CertInstallationExiRes msg
+2026-08-11 19:41:51.470097 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: CertificateInstallationRes timeout occurred
+2026-08-11 19:41:51.470182 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Certificate Installation", error: Response FAILED
+2026-08-11 19:44:26.102552 [INFO] iso15118_charge  :: CertificateInstallation-phase started
+2026-08-11 19:44:26.102829 [INFO] iso15118_charge  :: Waiting for the CertInstallationExiRes msg
+2026-08-11 19:45:21.522596 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Authorization", error: Response FAILED

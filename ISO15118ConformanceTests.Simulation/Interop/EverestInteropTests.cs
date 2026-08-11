@@ -104,6 +104,18 @@ public class EverestInteropTests
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
 
+        // Stand in as the certificate-provisioning backend their station publishes to, if the run asks
+        // for it. Started *before* the session, because the window it has to answer in is 4,5 s wide and
+        // opens the moment our CertificateInstallationReq arrives. Same process as the car on purpose:
+        // two dotnet test runs racing a 4,5 s window is a coordination problem this does not need.
+        var backendDirectory = Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_BACKEND");
+        var backend = String.IsNullOrEmpty(backendDirectory)
+                          ? null
+                          : Iso2MoBackend.RunOnceAsync(backendDirectory, cts.Token);
+
+        if (backend is not null)
+            TestContext.Out.WriteLine($"MO backend: waiting for a forwarded request in {backendDirectory}");
+
         TestContext.Out.WriteLine($"Connecting to their SECC at {endpoint} ...");
 
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
@@ -151,6 +163,13 @@ public class EverestInteropTests
             // -2 provisioning request, and a refusal, an unverifiable signature or an undecryptable key
             // are all results. The one thing that would make the run say nothing is the station never
             // offering the service, which is why Offered is printed first.
+            if (backend is not null)
+                TestContext.Out.WriteLine(
+                    "MO backend: " + (backend.IsCompletedSuccessfully && backend.Result is { } issued
+                                          ? issued
+                                          : "never saw a forwarded request — their station published nothing, "
+                                          + "or the bridge did not carry it"));
+
             if (outcome.Provisioning is { } p)
                 TestContext.Out.WriteLine(
                     $"Contract provisioning ({p.Action}): "

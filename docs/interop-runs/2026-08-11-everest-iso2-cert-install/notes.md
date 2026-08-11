@@ -89,6 +89,68 @@ a question, with the control pair that makes it precise.
   password `123456`) and their **own** MO chain for session 2's contract. Nothing was minted for this
   run: `-2` key transport is P-256 only, and their test PKI already ships it.
 
+## Session 3 — the loop closed, by standing in as the backend
+
+Added the same day. Their station publishes and waits; nothing in their SIL answers, so sessions 1 and 2
+could only prove the forward half. Session 3 supplies the missing half:
+[`tools/interop-everest/mo-backend-bridge.sh`](../../../tools/interop-everest/mo-backend-bridge.sh)
+carries MQTT with their own `mosquitto_sub`/`_pub`, and
+[`Iso2MoBackend`](../../../ISO15118ConformanceTests.Simulation/Interop/Iso2MoBackend.cs) issues the
+contract by driving a real `Secc2` to the provisioning phase and handing it the request their station
+forwarded. **Nothing re-implements provisioning**: the contract, the ECDH-wrapped key and the
+four-reference signature are the ones a loopback would produce, so what is under test is their
+transport with a known-good answer travelling through it.
+
+**It works.** Their station took the response, delivered it, and the session went *on*:
+
+```
+[4] CertificateInstallationReq  810 bytes   →   CertificateInstallationRes (OK)  1467 bytes
+[5] PaymentDetailsReq          1917 bytes   →   PaymentDetailsRes (OK)
+[6] AuthorizationReq …                      →   AuthorizationRes (OK) ×358, then FAILED
+```
+
+Our EVCC verified the response signature and unwrapped the contract key — `MO backend: issued
+DE-VAN-C00000001-6 to CN=OEMProvCert; the car's own signature verified, answer wrapped for its key:
+yes`. The Authorization failure afterwards is the *known* property of their SIL, not this run's
+question: it has no contract-validating backend (matrix footnote ³), and it polled `Ongoing` 358 times
+before giving up.
+
+### And the return direction is not byte-exact
+
+The forward direction is (802 bytes, hash for hash). The return direction is **our 1458 bytes plus one
+trailing `0x00`**:
+
+```
+our CertificateInstallationRes   1458 bytes
+their V2GTP frame                1467 bytes = 8 header + 1459 payload   (header declares 1459)
+first differing byte             none in the first 1458 — the extra byte is appended
+```
+
+So the frame declares, and carries, one byte more than the EXI document it contains. **Benign here** —
+an EXI decoder stops at the end of the document, ours did, the signature verified and the session
+continued — but it is a wire-level deviation, and it means the length in their frame is not the length
+of the message. Their handler copies the decoded base64 to `conn->buffer + V2GTP_HEADER_LENGTH` and
+sets `byte_pos = data.size()`, then adds the header length; where the extra byte enters is **not
+established here**, and reading their writer is the next step before this becomes a filing. Recorded
+with the numbers rather than a cause.
+
+### Two mistakes worth keeping
+
+Both produced a *silent* wrong result rather than an error, which is the reason to write them down.
+
+- **The command envelope.** `set_get_certificate_response` needs
+  `{"data":{"args":{…},"id":…,"origin":…},"msg_type":"Cmd"}`. The first attempt omitted `origin` and
+  `msg_type` — the message is then dropped without a word and the station runs into its 4 500 ms
+  timeout, which looks exactly like publishing nothing. The fix was to capture a command their own
+  modules publish (`mosquitto_sub -t "everest/modules/+/impl/+/cmd/+" -v`) and copy the shape. Argument
+  names came from `types/iso15118.yaml` for the same reason: `exi_response`, not `exiResponse`, and
+  `certificate_action` is required.
+- **The request's header.** The backend first re-wrapped the forwarded request in a fresh header, which
+  drops the car's signature — the issuer then reported *"the car's own signature did NOT verify"* and
+  issued the contract anyway. The request now goes in as it arrived. Worth noticing that the wrong
+  version still produced a working session: nothing on either side refuses an unsigned provisioning
+  request, so the only thing that caught it was reading our own diagnostic line.
+
 ## What this does *not* decide
 
 - **The `CertificateUpdate` filing is not settled by this run**, and a source reading found why before
@@ -99,10 +161,10 @@ a question, with the control pair that makes it precise.
   `handle_iso_certificate_update` can be reached. The filing's open question — *which of two outcomes
   does the union-slot response produce* — needs their advertisement changed, or the request injected
   past the gate. Noted on [the filing](../../reports/everest-evsev2g-certificate-update.md).
-- **The backend half.** Nothing here answered the MQTT request. Completing the round trip means standing
-  in as the MO/CPS backend — publishing a `set_get_certificate_response` inside 4,5 s — which our own
-  `Secc2` provisioning builder could produce. That is the obvious next run and it would test their whole
-  path rather than its first half.
+- ~~**The backend half.**~~ **Done, session 3 above.** What remains unmeasured is narrower: their
+  station never validated anything we sent it — it forwards and relays — so this says nothing about a
+  *real* CSMS behind that interface.
+- **Where the extra return byte comes from.** Measured, not explained; see session 3.
 - **Their `[V2G2-918]` handling in general.** One timeout, in one message. The 4 500 ms is theirs and
   measured; whether `[V2G2-918]` prescribes that number is not checked here.
 
