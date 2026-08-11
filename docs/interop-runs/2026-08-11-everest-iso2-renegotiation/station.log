@@ -1,0 +1,11 @@
+2026-08-11 21:48:33.509900 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-11 21:48:33.522376 [INFO] evse_manager:Ev  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-11 21:48:37.918264 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-11 21:48:38.005903 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-11 21:48:38.122526 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-11 21:48:38.191589 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-11 21:48:38.238157 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-11 21:48:38.291718 [INFO] evse_manager:Ev  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-11 21:48:38.292715 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Power Delivery", error: Sequence Error
+2026-08-11 21:48:38.338071 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-11 21:48:38.392369 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
