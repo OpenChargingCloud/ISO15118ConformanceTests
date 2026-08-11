@@ -146,6 +146,23 @@ internal static class InteropEnvironment
     /// loop (Tables 216/217) against the 60 s of Table 215 elsewhere, so a budget of ~90 s tells the two
     /// apart with room to spare. Unset by default, since a run that sets it does not charge.
     /// </remarks>
+    /// <summary>-20 only: our EV puts this SessionID in every request after SessionSetup, so a station's
+    /// `[V2G20-460]` duty to refuse a foreign one is reachable. <c>V2G_INTEROP_SESSIONID=&lt;hex|zero&gt;</c>.</summary>
+    /// <remarks>
+    /// <c>zero</c> is the value worth trying first: ISO reserves the all-zero id for *"I have no session"*,
+    /// and it is the one EVerest's `-2` station was measured serving as the session owner's. Unset by
+    /// default, so every recorded session keeps the id it echoed.
+    /// </remarks>
+    public static Byte[]? SendSessionId()
+    {
+        var raw = Environment.GetEnvironmentVariable("V2G_INTEROP_SESSIONID");
+        if (String.IsNullOrWhiteSpace(raw))          return null;
+        if (raw.Equals("zero", StringComparison.OrdinalIgnoreCase)) return new Byte[8];
+        var hex = raw.Replace("0x", "", StringComparison.OrdinalIgnoreCase);
+        return hex.Length == 16 ? Convert.FromHexString(hex) : null;
+    }
+
+
     public static TimeSpan? SilentInChargeLoop()
         => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_SILENT"), out var s) && s > 0
                ? TimeSpan.FromSeconds(s)

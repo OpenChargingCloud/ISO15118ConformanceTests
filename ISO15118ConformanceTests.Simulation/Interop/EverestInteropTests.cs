@@ -138,7 +138,8 @@ public class EverestInteropTests
                                                             mcs: InteropEnvironment.Mcs(),
                                                             bptFirst: InteropEnvironment.BptFirst(),
                                                             requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
-                                                            silentInChargeLoop: InteropEnvironment.SilentInChargeLoop());
+                                                            silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
+                                                            sendSessionId: InteropEnvironment.SendSessionId());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0

@@ -125,7 +125,8 @@ internal static class InteropSession
                                                        CancellationToken ct, Boolean preferDynamic = false,
                                                        PncEvccOptions? pnc = null, Boolean mcs = false,
                                                        Boolean bptFirst = false, Boolean requestMeterInfo = false,
-                                                       TimeSpan? silentInChargeLoop = null)
+                                                       TimeSpan? silentInChargeLoop = null,
+                                                       Byte[]? sendSessionId = null)
     {
 
         if (mcs)
@@ -160,6 +161,7 @@ internal static class InteropSession
         evcc20.Pnc                       = pnc;
         evcc20.RequestMeterInfo          = requestMeterInfo;
         evcc20.GoSilentInChargeLoop      = silentInChargeLoop;
+        evcc20.SendSessionId             = sendSessionId;
 
         await evcc20.RunAsync(ct);
         return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,

@@ -309,6 +309,17 @@ sent — they are the operator's to post, under their own name.
   transferable part.
   <br>**And ours is worse:** `FAILED_UnknownSession` appears nowhere in our live code, in either
   protocol version — see *Ours to fix* in [`open-work.md`](open-work.md).
+- **Checked and found correct — their `-20` station refuses a foreign SessionID, where their `-2` one
+  serves it.** The `-20` twin of the probe above, and it came back clean: `validate_and_setup_header`
+  is called in **15 of the 17** `d20/state/*.cpp` files, and the two that skip it — `session_setup` and
+  `supported_app_protocol` — are exactly the two `[V2G20-460]` excludes. Measured with two arms against
+  `Evse15118D20`: the control charges end to end, and eight zero bytes from `AuthorizationSetupReq`
+  onward get **`FAILED_UnknownSession`**. So within one project the `-20` implementation does what the
+  `-2` one exempts, which is the sharpest available argument that the `!= 0` conjunct is an accident
+  rather than a policy ([`…-iso20-session-id-probe`](interop-runs/2026-08-11-iso20-session-id-probe/notes.md)).
+  <br>**A correction to how it was first read**: an earlier grep reported ten checking states and left
+  the charge loop looking unguarded. It had been truncated by a `head` — a truncated grep and a short
+  list are indistinguishable. The full sweep over all 17 files is what the table above rests on.
 - **Checked and found correct — `EvseV2G` answers an out-of-order request instead of hanging up.** Recorded here because a ruled-out class saves the next sweep the hour: `[V2G2-538]` wants *the corresponding response message* carrying `FAILED_SequenceError` before the session ends (`[V2G2-459]`, then `[V2G2-539]`), and closing the socket without answering is the failure mode — one **we had ourselves** until 2026-08-06. Two arms, `AuthorizationReq` and `ChargeParameterDiscoveryReq` sent where a `ServiceDiscoveryReq` was due: both answered with the right message type, their own log naming *"error: Sequence Error"* each time, connection closed after. The probe is 40 lines and reusable against any `-2` station ([`…-iso2-sequence-error`](interop-runs/2026-08-11-everest-iso2-sequence-error/notes.md)).
 - **Their `-20` charge loop never returns `MeterInfo`, even when the EV asks.** `[V2G20-1081]` gives the
   EV one way to be told the meter reading; `[V2G20-1082]` makes answering a *shall* once asked. Over a
