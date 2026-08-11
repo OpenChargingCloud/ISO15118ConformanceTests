@@ -1,0 +1,11 @@
+splice self-check ok — the vector's own id is 0a0b0c0d0e0f1011
+connected to [fe80::215:5dff:fe6b:3d4%2]:61341  arm=correct
+  SupportedAppProtocolRes: 12 B  01fe80010000000480400040
+  SessionSetupRes: 39 B  01fe80010000001f809802230129c537fd4b1d91e020451114a9413960a914c4c8ccd0d4a8c480
+  the station issued SessionID 8c04a714dff52c76
+sending ServiceDiscoveryReq — in sequence, SessionID 8c04a714dff52c76
+  expected: served (this arm is the baseline)
+  01fe80010000000d809802230129c537fd4b1d91b8
+  response: 27 B  01fe800100000013809802230129c537fd4b1d91c0012004820324
+VERDICT: 27 bytes came back — compare against the other arms and their log
+after that: connection still open after 3 s

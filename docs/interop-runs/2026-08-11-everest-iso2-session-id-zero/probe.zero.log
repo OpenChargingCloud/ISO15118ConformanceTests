@@ -1,0 +1,11 @@
+splice self-check ok — the vector's own id is 0a0b0c0d0e0f1011
+connected to [fe80::215:5dff:fe6b:3d4%2]:61341  arm=zero
+  SupportedAppProtocolRes: 12 B  01fe80010000000480400040
+  SessionSetupRes: 39 B  01fe80010000001f8098021775c70c7d3e633b11e020451114a9413960a914c4c8ccd0d4a8c480
+  the station issued SessionID 5dd71c31f4f98cec
+sending ServiceDiscoveryReq — in sequence, SessionID 0000000000000000
+  expected: FAILED_UnknownSession per [V2G2-460] — zero is not equal to the stored id
+  01fe80010000000d809802000000000000000011b8
+  response: 27 B  01fe8001000000138098021775c70c7d3e633b11c0012004820324
+VERDICT: 27 bytes came back — compare against the other arms and their log
+after that: connection still open after 3 s
