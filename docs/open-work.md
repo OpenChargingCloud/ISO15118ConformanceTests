@@ -64,21 +64,34 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
-- **Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
-  checked too late to catch a station that never answers.** New 2026-08-11, and it came out of
-  *withdrawing* the item below rather than from a run. `Evcc20Base` takes one `perMessageTimeout` and
-  applies it to every exchange, where `V2G_EVCC_Msg_Timeout` is per message type: Table 215 gives 2 s
-  for the ordinary ones and Tables 216/217/218 override the **charge-loop request to 0,5 s**
-  (`[V2G20-1499]`, `[V2G20-1501]`, `[V2G20-5069]`). That is the exact car-side twin of the station
-  defect fixed the same morning, and of [the one filed against EVerest](reports/everest-d20-sequence-timeout.md).
-  <br>**The second half is the worse one.** `ExchangeRaw` awaits `ReadFrameAsync` with no budget and
-  *then* compares the elapsed time, so the timeout only catches an answer that arrives **late** — a
-  station that goes silent holds our car until the session-level token fires, which in a live run is
-  minutes. The station side had the same shape and was fixed on 2026-08-11 by giving the read its own
-  `CancelAfter` budget; the car has not been. The instrument to measure it with already exists on the
-  other side (`Secc20Base` can be made to go quiet the way `Evcc20Base.GoSilentInChargeLoop` does),
-  which is what makes this a bounded piece of work rather than a research item.
-  <br>Requirement side already settled — see [`normative-basis.md`](normative-basis.md) for the four
+- ~~**Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
+  checked too late to catch a station that never answers.**~~ **Fixed 2026-08-11**, stack branch
+  `iso20-evcc-msg-timeout`, and it came out of *withdrawing* the item below rather than from a run.
+  `Evcc20Base` took one `perMessageTimeout` and applied it to every exchange, where
+  `V2G_EVCC_Msg_Timeout` is per message type: Table 215 gives 2 s for the ordinary ones, **5 s** for
+  `CertificateInstallationReq` and `ServiceDetailReq`, and Tables 216/217/218 override the
+  **charge-loop request to 0,5 s** (`[V2G20-1499]`, `[V2G20-1501]`, `[V2G20-5069]`). The exact car-side
+  twin of the station defect fixed the same morning, and of
+  [the one filed against EVerest](reports/everest-d20-sequence-timeout.md).
+  <br>**The second half was the worse one, and it is the one the tests are really about.**
+  `ExchangeRaw` awaited `ReadFrameAsync` with **no budget** and compared the elapsed time *afterwards*,
+  so the timeout could only ever catch an answer that arrived **late**. A station that simply stopped
+  answering held our car until the session-level token fired — minutes in a live run, and forever
+  without one. The read now carries its own `CancelAfter`, the same fix the station side got that
+  morning. `ChargeLoopMsgTimeout` and `SlowMsgTimeout` are init-only, so a test can put the flat
+  behaviour back.
+  <br>**It needed an instrument that did not exist**: a station that goes quiet *holding the socket
+  open*. One that hangs up is an EOF, and an EOF ends the read whatever the timeout does — which is
+  exactly why the old code looked healthy. `Secc20Base.GoSilentInChargeLoop` is the mirror of the EVCC
+  knob built for the station's own timer, and it is usable against a **foreign** EV in an interop run,
+  which is the point of building it in the stack rather than in a fixture. **No run of this suite had
+  ever measured any EV's per-message timeout, ours included.**
+  <br>Three tests in
+  [`Iso20MsgTimeoutTests`](../ISO15118ConformanceTests.Simulation/E2E/Iso20MsgTimeoutTests.cs); the
+  tight one fails **both** when the read budget is removed and when the charge-loop value is not applied
+  — checked one at a time — the control pins that the car is ended by the peer's EOF rather than by its
+  own timer, and the third pins that an ordinary session is untouched. Suite green at 1 403.
+  <br>Requirement side settled first — see [`normative-basis.md`](normative-basis.md) for the four
   parameters of Tables 215–218 and which clock each belongs to.
 
 - ~~**Our `-20` station has one sequence timeout for every message type, and `-20` does not.**~~
