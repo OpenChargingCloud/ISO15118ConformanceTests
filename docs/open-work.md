@@ -63,6 +63,23 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 ## Ours to fix
 
+- **Neither of our stations implements `[V2G2-460]` / `[V2G20-460]`.** Found 2026-08-11 while reading
+  EVerest's `-2` station for the same rule: `FAILED_UnknownSession` appears **nowhere** in our live
+  code — only in the `old/` tree's enum. A request whose header carries any SessionID at all is served
+  as the session owner, in both protocol versions. The requirement is unambiguous and identical in the
+  two documents: any request except `SessionSetupReq` whose SessionID is not the stored one shall be
+  answered `FAILED_UnknownSession`.
+  <br>**Why no test of ours could have caught it**, which is the part worth keeping: our EVCC has no
+  way to send a SessionID other than the one the station gave it, so a loopback session never presents
+  a wrong one. Same shape as the MeterInfo gap on 2026-08-10 and the running-limit one before it — the
+  third time this month that a question our car cannot ask hid an answer nobody checked. The fix
+  therefore has two halves again: the station refusing, and an opt-in knob on the car so a run can
+  reach it.
+  <br>It did **not** block [the filing against EVerest](reports/everest-evsev2g-session-id-zero.md),
+  because that probe is raw Python and owes our state machines nothing — but their station is ahead of
+  ours here in every respect except the one conjunct it exempts, and the report says so.
+  [`…-iso2-session-id-zero`](interop-runs/2026-08-11-everest-iso2-session-id-zero/notes.md).
+
 - ~~**Our ISO 15118-20 EVCC could not ask to be told the meter reading.**~~ **Fixed 2026-08-10**, stack
   branch `iso20-meter-info`. `Evcc20Dc` and `Evcc20Ac` both passed the literal `false` for
   `MeterInfoRequested`, so `[V2G20-1081]` — the one mechanism the standard gives the *car* for asking —
@@ -291,7 +308,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Thirty filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Thirty-one filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
