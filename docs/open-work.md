@@ -74,9 +74,14 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   loopback. **The fix and its test are the same piece of work** — a per-message-type lookup at the one
   place the timer is armed, plus a loopback test that goes silent in the charge loop and asserts the
   station gives up inside a second.
-  <br>The `-2` side needs the same reading before it is called done: `[V2G2-443]` et al. put
-  `V2G_SECC_Sequence_Timeout` at 60 s there too, and whether `-2` has charge-loop overrides is a
-  question for the document rather than an assumption from `-20`.
+  <br>**The `-2` half of that question is answered, and the answer is that there is nothing to do.**
+  Table 108 was re-extracted page by page on 2026-08-11 — `pdftotext -layout` had flattened its five
+  stacked parameter names into a single column, and read that way the message list looks like a
+  per-message sequence timeout. It is not: that list belongs to `V2G_SECC_Msg_Performance_Time`
+  (`CurrentDemandRes` 0,025 s — how fast the SECC must *answer*), and `V2G_SECC_Sequence_Timeout` sits
+  in the `(all messages)` row at **60 s**, beside the same 40 / 60 / 55 that `-20`'s Table 215 carries.
+  So the charge-loop override is an addition of the newer document; our `-2` station's flat timeout is
+  correct, and so is EVerest's. Only the `-20` half is ours to fix.
   <br>Recorded rather than fixed on the day it was found, because the filing it came from was the
   turn's work; it is the next thing in this section rather than a someday item.
 
@@ -343,7 +348,7 @@ also below.
 
 ## Not in the matrix at all
 
-- **Thirty-three filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
+- **Thirty-four filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
   Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
   This is the largest single block of finished work waiting on a human.
 - ~~**The eighteenth needs one thing that is ours:** the contactor report has never been seen happen.~~
