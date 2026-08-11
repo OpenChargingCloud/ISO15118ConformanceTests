@@ -1,0 +1,30 @@
+$ g++ -O3 -march=native -o collide collide.cpp
+$ ./collide 262144
+drawing 262144 16-byte GenChallenges each way
+expected repeats for a 32-bit value space: 8.0
+expected repeats for a 128-bit value space: ~0
+
+    draw 116623 repeats draw 77989: 737479144a92c7456510be368b2d4ffc
+    draw 153973 repeats draw 614: 6a0b9bb16a6214ca918b462d7f1a7b9b
+    draw 161018 repeats draw 153936: 9db46372609986f232e2a345a30aac69
+    draw 179886 repeats draw 151147: 22afa0ec759d161453d96ebab6d19d92
+    draw 192485 repeats draw 122527: af9c9a80df36e1be32ed4f262b511b6d
+  libiso15118 (mt19937):       262144 draws, 262136 distinct, 8 repeated
+  control (/dev/urandom):      262144 draws, 262144 distinct, 0 repeated
+
+the 16-byte challenge repeats; the 16-byte control does not
+
+$ ./collide 262144    # again, to show the count is a measurement and not a constant
+drawing 262144 16-byte GenChallenges each way
+expected repeats for a 32-bit value space: 8.0
+expected repeats for a 128-bit value space: ~0
+
+    draw 150292 repeats draw 14514: 842273afdb252d84f80f07d9fca525a7
+    draw 174018 repeats draw 18411: 96fac7bf149e8f91632e2b968d347ae5
+    draw 187004 repeats draw 155355: 6c77904b205e6e4634674628b195f373
+    draw 205715 repeats draw 6318: 435ee152d2108a15653216608756098a
+    draw 239852 repeats draw 30062: fcbff64da569978e1c60369330234363
+  libiso15118 (mt19937):       262144 draws, 262139 distinct, 5 repeated
+  control (/dev/urandom):      262144 draws, 262144 distinct, 0 repeated
+
+the 16-byte challenge repeats; the 16-byte control does not
