@@ -435,6 +435,53 @@ is the clearest case yet of the pattern this file keeps producing in the other d
 counterparty's `[V2G20-1082]` had ever been tested. The car half went in the same day
 ([`open-work.md`](open-work.md)); the station was measured with it an hour later.
 
+### The ISO 15118-2 signed metering receipt — one `shall`, one `may`, and the difference matters
+
+Read on 2026-08-11 to decide whether EVerest's `EvseV2G` accepting a `MeteringReceiptReq` without
+looking at its signature is a defect
+([`…-iso2-metering-receipt`](interop-runs/2026-08-11-everest-iso2-metering-receipt/notes.md)). **It is
+not**, and the finding had to be relocated rather than dropped — which is why this entry exists.
+
+- **`[V2G2-902]`** — **shall**. The `MeterInfo` element the SECC sends in `ChargingStatusRes` shall
+  *unconditionally* be the meter's own output and nothing else, carrying the raw reading in a form a
+  machine can generally read. This is the outbound half and it is the requirement with teeth.
+- **`[V2G2-903]`** — **shall**, on the EVCC: sign the `MeteringReceiptReq` body with the private key
+  of the contract certificate sent in `PaymentDetailsReq` this session. So every conformant PnC car
+  does the work whether or not anyone reads the result.
+- **`[V2G2-904]`** — **may**, on the SECC/SA: verify that signature using the contract certificate
+  from `PaymentDetailsReq`; if verification fails the receipt shall be regarded as invalid. **Its
+  NOTE 1 is the load-bearing part**: the SECC may submit the contract certificate together with the
+  signed receipt to a *secondary actor*, so that actor can re-verify later. That is the alternative
+  the `may` presupposes — the permission to skip verification exists because someone else can do it,
+  not because nobody need.
+- **`[V2G2-481]`** — the `FAILED_MeteringSignatureNotValid` code, for a signature the SECC cannot
+  validate *or* a reading that does not match the one sent in `ChargingStatusRes` — qualified by *and
+  the SECC requires that the signature is valid*, so a station that does not require it is exempt from
+  this too.
+- The clause's own prose bounds what the signature means: it confirms the EVCC *received* the
+  `MeterInfo` record, `SessionID` and `SAScheduleTupleID`, and expressly **does not** assert that the
+  energy amount is correct for billing. NOTE 2 says the EVCC may be unable to verify `SigMeterReading`
+  at all. So this is an acknowledgement mechanism, not an audit one — worth knowing before overstating
+  what a missing receipt costs.
+
+**The schema, since the requirement is about which fields are present.** `MeterInfoType` is `MeterID`
+(mandatory), `MeterReading`, `SigMeterReading`, `MeterStatus`, `TMeter` (all optional);
+`sigMeterReadingType` is `xs:base64Binary` with `maxLength` 64. Four optional children mean a decoder
+that prints what is present never says a word about what is absent — which is how a station shipping
+two of five went unremarked across every recorded session in this repository until someone went
+looking for the field by name.
+
+**Method, and it is the useful part.** The first draft of that finding led with *"the station does not
+verify the receipt"*, which `[V2G2-904]` permits outright; it would have been answered in one line.
+Reading two clauses further found `[V2G2-902]` — a plain `shall` about the **other** direction, whose
+fix is a field the handler already holds. Fourth time this month that reading one clause further
+changed a claim, and the second time it **rescued** one rather than retiring it. The other two
+(`[V2G20-2188]`, `[V2G20-1618]`) both cost a finding.
+
+Carries the **`-2` document caveat** above: these identifiers are read from the 2022 DIS revision.
+The risk is the usual low one — they sit in ranges that predate it — but `[V2G2-902]`'s wording is
+what the filing rests on, so it is worth re-reading against a 2014 copy before the report goes out.
+
 ### Which credential the EV puts in the TLS handshake, and which root certifies it
 
 Looked up on 2026-08-10, when an EVerest `-20` station refused a **vehicle** certificate from its own

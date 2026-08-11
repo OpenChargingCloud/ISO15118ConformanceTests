@@ -32,7 +32,11 @@ is, and an argument for keeping the bytes rather than only the verdicts.
 form of that variant so far, and worth knowing about before you delete an old log: it measures a
 counterparty's *random number generator* by recovering the 32-bit seed behind **49 SessionIDs their
 station issued across twenty earlier runs**, none of which was recording them for that reason. The
-artifacts kept for one question answered a different one nine days later.
+artifacts kept for one question answered a different one nine days later —
+[`2026-08-11-everest-iso2-metering-receipt/`](2026-08-11-everest-iso2-metering-receipt/notes.md) did it
+again the same afternoon, out of a `frames.log` from 2026-08-02, and the reason it needed no rig is
+that the finding is about a field that is **absent**: no live run can show you an omission you were not
+already looking for, but a kept frame can be re-decoded by name.
 
 ## Producing them
 
