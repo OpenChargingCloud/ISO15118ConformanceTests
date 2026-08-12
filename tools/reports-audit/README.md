@@ -9,9 +9,16 @@ First use: [`2026-08-11-reports-upstream-audit`](../../docs/interop-runs/2026-08
 
 > *"Re-read the citations against the tree before posting."*
 
-Resolves every `` `file.cpp:123` `` in `docs/reports/*.md` against the counterparty checkouts and
+Resolves every `` `file.cpp:123` `` in `docs/reports/` — **recursively**, so a report split into
+postable issues in a subdirectory of its own is covered — against the counterparty checkouts and
 prints the source line it lands on, so the claim beside it can be compared to the code. Unresolvable
 paths and line numbers past the end of a file are flagged.
+
+The recursion was added on 2026-08-12 after a re-run found the three
+[`everest-d20-client-auth/`](../../docs/reports/everest-d20-client-auth/README.md) issue files
+uncovered — eight citations that had gone unchecked for a day because the glob stopped at the top
+level. Splitting a report is exactly when its citations get copied, and copied citations are the ones
+that drift.
 
 ```bash
 TREE_EVEREST=~/everest/everest-core \
