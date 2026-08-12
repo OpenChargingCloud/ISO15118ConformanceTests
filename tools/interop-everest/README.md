@@ -523,6 +523,19 @@ Confirmed on first contact, and no longer questions:
 - **Killing the manager orphans its modules.** They are separate processes and stay bound to port 61341.
   `pkill -f 'bin/manager'` leaves a half-dead charger answering connections; kill the process group or
   recreate the container.
+- **And a native build's modules do not carry the binary path at all**, so a pattern built from it kills
+  nothing and reports success. The manager execs each module with the prefix as a **flag** —
+  `evse_security:EvseSecurity --prefix <p> --module …` — so `pkill -f "dist-main/bin/manager"` matches
+  neither the manager (`./bin/manager --prefix …`) nor any child. **Kill on `--prefix <p>`.**
+  <br>On 2026-08-12 that left a station running under a second one: two managers on one MQTT prefix,
+  `json.exception.type_error.302` and `std::future_error: Promise already satisfied` seconds after
+  *"Starting 18 modules"*, then a manager-wide crash shutdown with modules exiting on signal 11. It
+  reads exactly like a defect in whatever you changed last
+  ([run notes](../../docs/interop-runs/2026-08-12-everest-main-chain-selection/notes.md)).
+- **Verify the kill with a self-match-proof pattern.** `pgrep -f "prefix /home/…"` matches the shell that
+  is running the `pgrep`, so it answers *"still running"* forever and a check built on it agrees with
+  whatever you already believe. Bracket one letter — `pgrep -cf "[d]ist-main"` — or match on something
+  that cannot appear in your own command line.
 - **On colima, publish a port only once its backend is listening.** A relay container that installs
   `socat` at startup leaves the published port empty for ten seconds, and the lima forward is poisoned
   for good afterwards: connections are accepted and silently dropped, `nc -z` says the port is open, and

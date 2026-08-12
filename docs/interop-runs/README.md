@@ -48,6 +48,16 @@ the station was started: the claim said "at every start" and the code builds its
 request, and even then a bare SDP request is refused until a car is plugged in. Tracing the call graph
 found both; the run only confirmed the corrected version.
 
+[`2026-08-12-everest-main-chain-selection/`](2026-08-12-everest-main-chain-selection/notes.md) is the
+second, and it is the shape to copy when a finding is about *selection*: install two roots, give the
+station a valid chain under each, and vary only what the client asks for. The EV asks for root A and
+gets root B — with a no-extension control that gets the same chain, so the request demonstrably has no
+influence. Its longest section is a **rig error**: the previous station was still running because the
+kill pattern did not match a native build's argv, and the *check* used the same wrong pattern and
+agreed. Two managers on one MQTT prefix crash-shut-down in a way that reads exactly like a defect in
+whatever you changed last. An unexplained crash in a rig you just changed is your rig until proven
+otherwise.
+
 A fourth shape has no counterparty artifact at all: an **audit of our own drafts** against the trees
 they cite. [`2026-08-11-reports-upstream-audit/`](2026-08-11-reports-upstream-audit/notes.md) re-reads
 every `file:line` in `docs/reports/` — 189 of them, all still correct — and then asks the question the
