@@ -346,7 +346,10 @@ doing since 2026-08-03.** Add to the `auth` module's connections:
 ```
 
 The arm refuses to start a config that lacks it. EIM tokens arrive without it, which is why the gap
-survived so long.
+survived so long — and because an EIM-only measurement is a real use of this arm, `EIM_ONLY=1` says you
+meant it. **Every `-20` run is EIM-only**: `Evse15118D20` offers no PnC at all
+(`ISO15118_chargerImpl.cpp:713`), so pair the arm with
+[`mqtt-authorize.sh`](mqtt-authorize.sh) — that supplies the token, this supplies the verdict.
 
 Measured on 2026-08-13 —
 [`2026-08-13-everest-contract-validator`](../../docs/interop-runs/2026-08-13-everest-contract-validator/notes.md):
@@ -355,6 +358,12 @@ Measured on 2026-08-13 —
 FAILED_CertificateRevoked`** — a response code no configuration of their SIL can reach, because
 `DummyTokenValidator` cannot set `certificate_status` at all and `evse_managerImpl.cpp:386` then fills
 in `value_or(Accepted)`.
+
+The `-20` arm the same day found the sharper result: **a rejected verdict does not reach
+`Evse15118D20` at all**, because `EvseManager` forwards them for PnC only
+(`evse_managerImpl.cpp:381-387`) and that module has no PnC. Their station answered `Ongoing` 602 times
+where `[V2G20-2230]` allows 1,5 s to answer `Finished` with `WARNING_EIMAuthorizationFailure` —
+[`…-d20-eim-rejection`](../../docs/interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md).
 
 Two things the arm does **not** do. It does not test their chain validation: that already happened in
 `iso_server.cpp:1049` before the token was built, and we measured it working on 2026-08-03. And it is a
