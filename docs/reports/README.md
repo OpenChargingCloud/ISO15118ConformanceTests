@@ -11,6 +11,11 @@ appears to come from, why we think it is worth fixing, and a suggested fix offer
 asserted. Where we worked around something to keep going, the workaround is named — including when it
 was our own configuration we bent.
 
+**In what order to send them: [`sending-order.md`](sending-order.md).** The table below is how you find
+a report; that file is how you work through them — thirty sendable reports, forty-four issues, six
+projects, with the rules that produced the order, the four hard dependencies, and the one anti-dependency
+that would blur two findings into one.
+
 ## What is here
 
 | Report | To | Issues | One line |
