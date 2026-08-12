@@ -450,9 +450,13 @@ also below.
 
 ## Not in the matrix at all
 
-- **Forty filings across six projects** are drafted and unsent in [`reports/`](reports/README.md).
-  Each ends with a *Before sending* checklist whose unticked items are the parts only a person can do.
-  This is the largest single block of finished work waiting on a human.
+- **Forty-four issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
+  in thirty sendable reports. Each ends with a *Before sending* checklist whose unticked items are the
+  parts only a person can do. This is the largest single block of finished work waiting on a human.
+  <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
+  crash first, then small measured fixes to buy the attention the hard ones need, the four orderings
+  that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
+  answer an issue.
   <br>**The mechanical half of those checklists was cleared on 2026-08-11**
   ([audit](interop-runs/2026-08-11-reports-upstream-audit/notes.md),
   [tools](../tools/reports-audit/README.md)): all 189 `file:line` citations re-verified, and every
