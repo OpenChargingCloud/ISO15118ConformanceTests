@@ -28,10 +28,12 @@ bottom.
 > - The standalone `EVerest/libiso15118` still has the whole thing in `connection_ssl.cpp`, which is
 >   the only reason the old citations still resolve anywhere — **that repository is not maintained**.
 >
-> §1 and §2's `main` reading is **source only** — their two `s_client` arms were measured on
-> `2026.02.1` and not re-run against `main`. **§3 is measured on `main`**, 2026-08-12, three arms with
-> a control; it is the section added by this re-argument and the only one whose evidence is from the
-> branch the code now lives on.
+> **All three sections are now measured on `main`.** §1's two `s_client` arms were re-run there on
+> 2026-08-12 and reproduce exactly ([run notes](../interop-runs/2026-08-12-everest-main-client-auth/notes.md));
+> §3's three arms are from the same day
+> ([run notes](../interop-runs/2026-08-12-everest-main-chain-selection/notes.md)). **One exception,
+> stated where it belongs**: §1's *What it costs* — the two-frame replay showing an anonymous peer
+> reaching `AuthorizationSetup` — still rests on the `2026.02.1` measurement and was not re-run.
 
 **Three issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
@@ -80,7 +82,11 @@ the SECC unconditionally
 ### What we saw
 
 Two arms. Same station, same config, same server certificate, fresh process each. The **only**
-difference is the version the client offered:
+difference is the version the client offered. **Run on `2026.02.1` (2026-08-10) and again on `main`
+(2026-08-12) with the same result** — the table below is the release; the `main` re-run is in its
+[own notes](../interop-runs/2026-08-12-everest-main-client-auth/notes.md) and differs only in that the
+*"Change verify mode"* lines were **counted** (0 → 1 in arm 1, 1 → 1 in arm 2), which is what turns
+arm 2's silence into a negative result rather than an absence of evidence:
 
 | Arm | client | your log | result |
 |---|---|---|---|
@@ -96,8 +102,10 @@ config reproduce all of it, which is worth putting in the issue so it can be che
 
 ### What it costs
 
-Same station, same anonymous TLS 1.2 handshake, then two frames replayed byte-for-byte out of our own
-ISO 15118-20 DC session corpus — so there is no question what was offered:
+**Measured on `2026.02.1`, not re-run on `main`** — the rest of §1 was, and the code path this depends
+on is unchanged, but we are not going to blur those. Same station, same anonymous TLS 1.2 handshake,
+then two frames replayed byte-for-byte out of our own ISO 15118-20 DC session corpus — so there is no
+question what was offered:
 
 ```
 → supportedAppProtocolReq   one entry, urn:iso:std:iso:15118:-20:DC
@@ -471,8 +479,14 @@ three fixes — and all three are now measured, so none of them has to lean on t
 
 - [x] **Reproduce it, with a control.** Two arms, fresh station each, one variable — the TLS version
       offered. Arm 1 shows the station demanding a certificate; arm 2 shows the same station asking for
-      nothing.
-- [x] **Carry it past the handshake.** `supportedAppProtocolReq(-20:DC)` answered
+      nothing. **Done twice: `2026.02.1` on 2026-08-10 and `main` on 2026-08-12**, same result, with the
+      *"Change verify mode"* lines counted the second time.
+- [ ] **Carry it past the handshake — and say which build.** This half is `2026.02.1` only; the
+      `main` re-run covered the handshake arms and not the replay, because the request frames were never
+      kept as bytes (see the [run notes](../interop-runs/2026-08-12-everest-main-client-auth/notes.md)).
+      Either regenerate them from our EVCC and re-run, or state plainly in the issue that the
+      consequence was observed on the release. Do not let it ride on the `main` arms.
+      <br>What was measured on `2026.02.1`: `supportedAppProtocolReq(-20:DC)` answered
       `OK_SuccessfulNegotiation` and `SessionSetupReq` answered with a session id, on a connection with
       no client certificate — measured, and quoted from *your* session log rather than ours.
 - [x] **Check every line reference against the tree.**

@@ -49,6 +49,13 @@ Same station, same TLS 1.2 handshake with no client certificate, then two frames
 ← 01fe8002 00000023 8090046d38567069692acb0a…     SessionSetupRes
 ```
 
+> **What `replay.consequence.hex` contains — read this before reusing it.** The two frames in that file
+> are the **station's responses** above (`80400040` and the `SessionSetupRes`), not the two requests we
+> sent. The name reads as *the replay* and it is *the consequence*. Feeding it back to a station as
+> input gets `Expected SupportedAppProtocol`, correctly, and teaches nothing — which cost a wrong
+> conclusion on [2026-08-12](../2026-08-12-everest-main-client-auth/notes.md). The **request** frames
+> were not kept as bytes; they survive only as the elided hexdumps above.
+
 and their own session log, written by their own station
 ([`their-session-log.consequence.yaml`](their-session-log.consequence.yaml)):
 
