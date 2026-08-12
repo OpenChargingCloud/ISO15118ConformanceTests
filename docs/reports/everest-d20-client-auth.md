@@ -36,6 +36,11 @@ bottom.
 > anonymous peer reaching `AuthorizationSetup` — still rests on the `2026.02.1` measurement and was not
 > re-run, because the request frames were never kept as bytes.
 
+> **The three postable issues are in [`everest-d20-client-auth/`](everest-d20-client-auth/README.md).**
+> This file is the *account* — how each finding was reached, on which build, what was ruled out and what
+> we got wrong on the way. The three files in that directory are what goes to the maintainers: shorter,
+> self-contained, each naming the other two. Suggested order and the reason for it are in its README.
+
 **Three issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
 purpose: §1 has an answer a maintainer might reasonably give (*"TLS 1.2 support is for ISO 15118-2 and
@@ -554,9 +559,13 @@ three fixes — and all three are now measured, so none of them has to lean on t
       installed, a valid chain under each; the EV asks for root A and gets root B, and the served chain
       is byte-identical whether the EV asks for A, for B, or sends no extension at all
       ([run notes](../interop-runs/2026-08-12-everest-main-chain-selection/notes.md)).
-- [ ] **File three issues**, §1, §2 and §3, and say in each that the others exist. §1 has a *fix*
-      available — one line — that would leave every part of §2 and §3 standing, which is a sharper
-      reason to keep them apart than the one this checklist used to give.
+- [x] **File three issues, §1, §2 and §3 — split and drafted 2026-08-12** into
+      [`everest-d20-client-auth/`](everest-d20-client-auth/README.md), each self-contained and naming
+      the other two. The reason they stay apart is sharper than this checklist used to give: §1 has an
+      *answer* available (*"the TLS 1.2 path is there for ISO 15118-2"*) that closes its framing without
+      touching §2 or §3, and a one-line *fix* that leaves both standing. §2 and §3 have no such answer.
+      <br>Suggested posting order is **1, 3, 2** — smallest fix first, because a maintainer who has just
+      merged a one-liner reads the next one. By severity it is 3, 1, 2, and the README says both.
 - [ ] **§3: lead with their own comment, not with the clause.** `ChainConfig`'s doc comment already
       says multi-chain selection is driven by the peer's `certificate_authorities` — the report is
       asking why the step between the vector and the selection is missing, not proposing a new idea.
