@@ -28,7 +28,10 @@ bottom.
 > - The standalone `EVerest/libiso15118` still has the whole thing in `connection_ssl.cpp`, which is
 >   the only reason the old citations still resolve anywhere — **that repository is not maintained**.
 >
-> Source only on `main`; the two `s_client` arms were **not** re-run against a `main` build.
+> §1 and §2's `main` reading is **source only** — their two `s_client` arms were measured on
+> `2026.02.1` and not re-run against `main`. **§3 is measured on `main`**, 2026-08-12, three arms with
+> a control; it is the section added by this re-argument and the only one whose evidence is from the
+> branch the code now lives on.
 
 **Three issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
@@ -340,8 +343,41 @@ call each, and a test house will look at both.
 root cannot satisfy `[V2G20-1007]`/`[V2G20-2379]` — and `Evse15118D20` configures exactly one chain, so
 today it cannot even try
 
-Added 2026-08-12. **Source only — not measured**, and it is latent in every configuration this project
-has run, which is the honest place to start.
+Added 2026-08-12 from a source reading, and **measured the same day: 3 arms with a control**
+([run notes](../interop-runs/2026-08-12-everest-main-chain-selection/notes.md)). It is not latent.
+
+### What we saw
+
+Your station, `main` (`ebcd36d`), `config-sil-dc-d20.yaml` as shipped, **two V2G roots installed with a
+valid SECC chain under each**. One variable: what the client puts in `certificate_authorities`.
+
+| arm | the EV asks for | the station serves |
+|---|---|---|
+| **A** | root **A** — and you hold a valid chain under it | `SECCCert-B` ← `CPOSubCA-B` ← **`V2GRootCA-B`** |
+| **B** | root **B** | the same chain B |
+| **C** (control) | *no extension at all* | the same chain B |
+
+Byte-identical in all three, and **arm A is the finding on its own**: the EV named a root, you hold a
+chain under exactly that root, and you sent the other one. `Verify return code: 20` in every arm is our
+client refusing what it got.
+
+**The right answer was available** — this is not an impossibility argument:
+
+```
+$ openssl verify -CAfile ca/v2g/V2G_ROOT_CA.pem       -untrusted client/cso/CPO_CERT_CHAIN.pem client/cso/SECC_LEAF.pem
+client/cso/SECC_LEAF.pem: OK
+```
+
+and your own log names the one that went to the TLS layer instead:
+
+```
+evse_security:E :: Requesting leaf certificate info: V2G
+evse_security:E :: Found valid leaf: [".../client/cso/CPO_CERT_CHAIN_B.pem"]
+```
+
+**One leaf, chosen before any `ClientHello` exists.** `get_leaf_certificate_info` runs while the TLS
+server is being built, in response to the SDP request; the EV's list arrives a flight later with
+nowhere to go.
 
 ### The obligation
 
@@ -380,7 +416,7 @@ does.
 And `Evse15118D20` gives it one chain to choose from anyway
 (`ISO15118_chargerImpl.cpp:276-281`, a single `chains.push_back`).
 
-### Why this is worth raising even though nothing here has failed
+### Why this is worth raising
 
 **Because you have already written down that it should work this way.** `ChainConfig`'s own doc comment
 on `main` says multiple chains exist to support *TLS 1.3 multi-chain selection driven by the peer's
@@ -389,9 +425,9 @@ there, the intent is recorded — the selection step is what is missing between 
 
 **And because of where it bites.** With one root, a station that ignores the extension is
 indistinguishable from one that honours it: there is nothing to choose. It bites when an operator holds
-two — mid-rotation, or serving two roots — which is the configuration nobody tests and the one
-`[V2G20-1006]`'s multi-root wording is written for. An EV handed a chain that does not trace to a root
-it holds cannot validate it.
+two — mid-rotation, or serving two roots — which is the configuration nobody tests, the one
+`[V2G20-1006]`'s multi-root wording is written for, and the one the arms above set up. An EV handed a
+chain that does not trace to a root it holds cannot validate it, and ours did not.
 
 ### Suggested direction
 
@@ -410,7 +446,7 @@ construction and puts the mechanism where the next chain can use it.
 
 **Its own issue, separate from §1 and §2.** §1 is *whether* the EV is asked to authenticate, §2 is
 *what the `CertificateRequest` carries*, §3 is *which chain the server presents*. Three directions,
-three fixes, and §3 is the only one of them that is not measured — say so.
+three fixes — and all three are now measured, so none of them has to lean on the others.
 
 ---
 
@@ -468,10 +504,13 @@ three fixes, and §3 is the only one of them that is not measured — say so.
       *"we do handle that"*.
 - [ ] **Say it needs no PKI and no EV.** Two `openssl s_client` calls. That is what will get it looked
       at today rather than next month.
-- [ ] **File three issues**, §1, §2 and §3, and say in each that the others exist. §1 now has a *fix*
+- [x] **Measure §3 rather than reasoning about it — done 2026-08-12, 3 arms with a control.** Two roots
+      installed, a valid chain under each; the EV asks for root A and gets root B, and the served chain
+      is byte-identical whether the EV asks for A, for B, or sends no extension at all
+      ([run notes](../interop-runs/2026-08-12-everest-main-chain-selection/notes.md)).
+- [ ] **File three issues**, §1, §2 and §3, and say in each that the others exist. §1 has a *fix*
       available — one line — that would leave every part of §2 and §3 standing, which is a sharper
-      reason to keep them apart than the one this checklist used to give. §3 is the only one not
-      measured; do not let it ride on the other two's evidence.
+      reason to keep them apart than the one this checklist used to give.
 - [ ] **§3: lead with their own comment, not with the clause.** `ChainConfig`'s doc comment already
       says multi-chain selection is driven by the peer's `certificate_authorities` — the report is
       asking why the step between the vector and the selection is missing, not proposing a new idea.

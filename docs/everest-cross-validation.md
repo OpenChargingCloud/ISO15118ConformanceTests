@@ -486,7 +486,11 @@ been sent — they are the operator's to post, under their own name.
   Chasing that turned up the finding the run was not looking for: `lib/everest/tls` reads the EV's
   `certificate_authorities` **nowhere** and fixes the server chain at `cfg.chains[0]`, so
   `[V2G20-1007]`/`[V2G20-2379]` cannot be met by a station holding two roots — now
-  [`everest-d20-client-auth.md`](reports/everest-d20-client-auth.md) §3. **Still not the same issue as the
+  [`everest-d20-client-auth.md`](reports/everest-d20-client-auth.md) §3, and **measured the same day**:
+  with two roots installed and a valid chain under each, the EV asks for root A and the station serves
+  root B, identically to when it asks for B and when it asks for nothing
+  ([run](interop-runs/2026-08-12-everest-main-chain-selection/notes.md)). Their own log names the single
+  leaf it picked before any `ClientHello` existed. **Still not the same issue as the
   dropped `ocsp` member** — that one is the conversion boundary, still present on `main`, and *neither
   fix alone produces a staple*. **Controlled**, because "your client never
   asked" is the first objection: the same client and the same flag against `IsoMux` made their own

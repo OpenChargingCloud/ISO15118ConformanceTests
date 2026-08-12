@@ -1,0 +1,44 @@
+# [V2G20-2379] chain selection — three arms against everest-core main (ebcd36d)
+# Evse15118D20, config-sil-dc-d20.yaml as shipped, two V2G roots installed.
+# Station holds a valid chain under BOTH roots; evse_security handed the module chain B.
+#
+#   evse_security:E :: Requesting leaf certificate info: V2G
+#   evse_security:E :: Found valid leaf: [".../client/cso/CPO_CERT_CHAIN_B.pem"]
+
+### ARM-A: ask for root A (the one it also holds)  requestCAfile=ca/v2g/V2G_ROOT_CA.pem
+--- chain the station served ---
+ 0 s:CN=SECCCert-B, O=EVerest, C=DE, DC=CPO
+   i:CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+ 1 s:CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+   i:CN=V2GRootCA-B, O=EVerest, C=DE, DC=V2G
+--- handshake ---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+Verify return code: 20 (unable to get local issuer certificate)
+
+### ARM-B: ask for root B                          requestCAfile=pki-rootb/V2G_ROOT_CA_B.pem
+--- chain the station served ---
+ 0 s:CN=SECCCert-B, O=EVerest, C=DE, DC=CPO
+   i:CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+ 1 s:CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+   i:CN=V2GRootCA-B, O=EVerest, C=DE, DC=V2G
+--- handshake ---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+Verify return code: 20 (unable to get local issuer certificate)
+
+### ARM-C (control): send no certificate_authorities at all
+--- chain the station served ---
+ 0 s:CN=SECCCert-B, O=EVerest, C=DE, DC=CPO
+   i:CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+ 1 s:CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+   i:CN=V2GRootCA-B, O=EVerest, C=DE, DC=V2G
+--- handshake ---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+Verify return code: 20 (unable to get local issuer certificate)
+
+### the answer arm A should have had was available
+$ openssl verify -CAfile ca/v2g/V2G_ROOT_CA.pem \
+      -untrusted client/cso/CPO_CERT_CHAIN.pem client/cso/SECC_LEAF.pem
+client/cso/SECC_LEAF.pem: OK
