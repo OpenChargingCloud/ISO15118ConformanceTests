@@ -8,6 +8,9 @@ resolve each citation, print the source line it lands on, and flag the ones that
 resolved or fall off the end of the file. Whether the line still *says what the report
 claims* is a reading job and stays one.
 
+Walks docs/reports/ recursively, so a report split into postable issues in a subdirectory of
+its own is covered too.
+
 Point it at wherever the counterparty checkouts live:
 
     TREE_EVEREST=~/everest/everest-core TREE_JOSEV=~/josev-src … python3 check_citations.py
@@ -101,9 +104,12 @@ def main():
     index = build_index()
     total = ok = ambiguous = missing = 0
 
-    for md in sorted(glob.glob(os.path.join(REPORTS, "*.md"))):
-        name = os.path.basename(md)
-        if name == "README.md":
+    # Recurse: a report may be split into postable issues in a subdirectory of its own
+    # (docs/reports/everest-d20-client-auth/), and those carry citations too. Globbing only
+    # the top level left three files unchecked for a day.
+    for md in sorted(glob.glob(os.path.join(REPORTS, "**", "*.md"), recursive=True)):
+        name = os.path.relpath(md, REPORTS)
+        if os.path.basename(md) == "README.md":
             continue
         with open(md, "r", encoding="utf-8", errors="replace") as f:
             text = f.read()
