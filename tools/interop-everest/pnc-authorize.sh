@@ -11,6 +11,17 @@
 # their own DummyTokenProviderManual in place. See docs/interop-runs/2026-08-03-everest-pnc/notes.md —
 # the signature verifying is the result of that run; this is where it stops.
 #
+# **Superseded 2026-08-13, and the diagnosis above was wrong twice over.** Use
+# contract-validator-arm.sh instead.
+#
+# NO_CONNECTOR_AVAILABLE is what a token *without* `connectors` gets: EvseV2G builds the PnC token
+# without them (iso_server.cpp:1118-1125) and EvseManager adds them on the way through
+# (EvseManager.cpp:1047), so forwarding the raw require_auth_pnc payload skips exactly the hop that
+# makes it routable. And the hop was never missing — what was missing is a *connection in the config*,
+# from EvseManager's own token_provider implementation to auth, which only the two OCPP PnC configs
+# carry. With it, EVerest forwards its own token correctly and this script has nothing left to do.
+# docs/interop-runs/2026-08-13-everest-contract-validator/notes.md.
+#
 # Topic shapes as in mqtt-authorize.sh, and for the same reason — carrying only one of them is how a
 # script in this directory came to silently do nothing:
 #

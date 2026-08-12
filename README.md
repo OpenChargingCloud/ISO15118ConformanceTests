@@ -86,7 +86,7 @@ how to read one.
 |---|---|---|---|---|---|
 | AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
 | DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
-| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; their SIL has no contract-validating backend³ | — | — |
+| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; verdict now driven from our own backend — past `Authorization`, and `FAILED_CertificateRevoked` measured³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2LoopbackTests` (EV- and SECC-triggered) | ✅ `EV→ ←SECC` [V2G2-841] | ⛔ `EV→` trigger and re-discovery accepted, **restart refused**³⁰ | — | — |
@@ -128,6 +128,17 @@ recording — a property of their tool, not an interop verdict.
 A complete charge and a PnC offer never came in the same session — but that is the **intended EIM path**,
 not a wall: their `EvseManager` offers `ExternalPayment` alone once a session is authorized, and their
 SIL's dummy token provider swipes at plug-in.
+<br>**The backend is ours as of 2026-08-13, and the session now gets past `Authorization`.** EVerest
+delegates the contract decision to whoever is wired as `token_validator` — the CSMS in a real
+deployment, a constant-returning dummy in their SIL — so
+[the arm](tools/interop-everest/contract-validator-arm.sh) supplies it over MQTT as a withheld
+standalone module, no patch to theirs. `Accepted` carried the session on to `ChargeParameterDiscovery`
+and `CableCheck`; `certificate_status: CertificateRevoked` produced `AuthorizationRes =
+FAILED_CertificateRevoked`, unreachable by any configuration of their SIL. The earlier dead end was
+one missing connection in the config, not a missing backend: only their two OCPP PnC configs join
+`EvseManager`'s `token_provider` to `auth`, and without it the contract token is published and dropped
+in silence ([`…-contract-validator`](docs/interop-runs/2026-08-13-everest-contract-validator/notes.md)).
+Still `◐`: what nothing checks, here or anywhere, is whether the *contract* is good.
 
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
 run notes — and 12 of our -20 messages decoded clean by a second independent codec.

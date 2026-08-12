@@ -310,6 +310,60 @@ subscribed, which looks exactly like a working script with nothing to say.
 Module ids are the **keys in the config file**, not the module types. `mosquitto_sub -v -t 'everest/#'`
 against their broker is the fastest way to learn any wiring this README does not cover.
 
+### Deciding a Plug & Charge contract  ([`contract-validator-arm.sh`](contract-validator-arm.sh))
+
+**Their SIL does not decide whether a contract is good, and that is by design.** `EvseV2G` verifies the
+chain against the MO root locally and hands the whole token — eMAID, chain in PEM, OCSP hash data — to
+whoever is wired as `token_validator`. In every SIL config that is `DummyTokenValidator`, which returns
+a value from its own config file and never reads the token. In a real deployment the decider is the
+CSMS, through their OCPP module.
+
+This arm is that backend, minus the CSMS: the manager is started with the validator **withheld** and
+[`contract-validator.py`](contract-validator.py) answers on its topics over MQTT, using their own
+`everestpy`. No patch, no new module, no manifest — `--standalone <module_id>` is the mechanism their
+own `everest-testing` `ProbeModule` uses, and the module id is one the stock configs already declare.
+
+```bash
+bash contract-validator-arm.sh ~/everest/configs-ours/config-dc2-pnc-validator-ours.yaml policy.json
+# then drive a session; every validate_token call is appended whole to the tokens JSONL
+echo '{"status":"Invalid","certificate_status":"CertificateRevoked"}' > policy.json   # re-read per call
+```
+
+**One line of configuration decides whether this works at all, and its absence is invisible.**
+`EvseManager` republishes the contract token through its own `token_provider` implementation, and only
+`config-sil-ocpp-pnc.yaml` and `config-sil-ocpp201-pnc.yaml` connect that to `auth`. Everywhere else the
+token is published to a variable nobody subscribed to: `PaymentDetailsRes` is `OK`, the signature
+verifies, and then the session polls `AuthorizationReq` until `auth_timeout_pnc` and answers `FAILED` —
+no token in any log, no error anywhere. **That is what every PnC run against their plain SIL has been
+doing since 2026-08-03.** Add to the `auth` module's connections:
+
+```yaml
+      token_provider:
+      - module_id: token_provider
+        implementation_id: main
+      - module_id: evse_manager          # without this there is no PnC token, ever
+        implementation_id: token_provider
+```
+
+The arm refuses to start a config that lacks it. EIM tokens arrive without it, which is why the gap
+survived so long.
+
+Measured on 2026-08-13 —
+[`2026-08-13-everest-contract-validator`](../../docs/interop-runs/2026-08-13-everest-contract-validator/notes.md):
+`Accepted` carried a `-2` PnC session past `Authorization` for the first time, and
+`Invalid` + `certificate_status: CertificateRevoked` produced **`AuthorizationRes =
+FAILED_CertificateRevoked`** — a response code no configuration of their SIL can reach, because
+`DummyTokenValidator` cannot set `certificate_status` at all and `evse_managerImpl.cpp:386` then fills
+in `value_or(Accepted)`.
+
+Two things the arm does **not** do. It does not test their chain validation: that already happened in
+`iso_server.cpp:1049` before the token was built, and we measured it working on 2026-08-03. And it is a
+test double, so what it proves is that their station *asks* correctly and *carries the verdict*
+correctly — not that it decides correctly, because by design it does not decide.
+
+Run it inside WSL. Through a `wsl.exe -- bash -lc '…' | …` wrapper the call does not return while the
+background station is alive; the rig is up regardless, and the logs say so.
+
 ### Reporting a contactor state  ([`contactor-report.sh`](contactor-report.sh))
 
 `ac_contactor_closed(bool)` is a command on their `ISO15118_charger` interface, called in a running
@@ -484,6 +538,11 @@ produce a corpus entry — keep both, they are different evidence.
   module before deciding which of those two you are looking at.
 - **Their EV is Josev.** If a reverse run reproduces something already recorded under
   `docs/interop-runs/2026-07-2*`, that is not a new finding; check there first.
+- **A Plug & Charge token reaches `auth` in two configs only.** `evse_manager`'s `token_provider`
+  implementation is connected to `auth` in `config-sil-ocpp-pnc.yaml` and `config-sil-ocpp201-pnc.yaml`
+  and nowhere else, so everywhere else the contract token is published and dropped — and the session
+  fails on the auth timeout with nothing in any log to say why. EIM is unaffected, which is what makes
+  it hard to see. See [the contract-validator arm](#deciding-a-plug--charge-contract--contract-validator-armsh).
 
 Confirmed on first contact, and no longer questions:
 

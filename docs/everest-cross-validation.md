@@ -121,6 +121,18 @@ Everything below was unblocked by it.
   still unauthorized car is offered `Contract` never opens. On a real charger that window is the ordinary
   case. Our own workaround says it from the other side — `token_provider.main.connector_id: 2`, a
   connector that does not exist, is just *do not swipe*.
+  <br>**And the session stopped at `Authorization` for a reason that took until 2026-08-13 to find, and
+  it was ours.** `EvseManager` republishes the contract token through its own `token_provider`
+  implementation, and only `config-sil-ocpp-pnc.yaml` and `config-sil-ocpp201-pnc.yaml` connect that to
+  `auth` — everywhere else the token is published to a variable nobody subscribed to, and the session
+  polls until `auth_timeout_pnc` and answers `FAILED` with no token in any log. One connection added,
+  and the same session runs **past `Authorization`** to `ChargeParameterDiscovery` and `CableCheck`.
+  <br>With [the contract-validator arm](../tools/interop-everest/contract-validator-arm.sh) supplying
+  the verdict their SIL has no backend for, `Invalid` + `certificate_status: CertificateRevoked` also
+  produced **`AuthorizationRes = FAILED_CertificateRevoked`** — unreachable by any configuration of
+  their SIL, since `DummyTokenValidator` cannot set `certificate_status` and
+  `evse_managerImpl.cpp:386` then fills in `value_or(Accepted)`
+  ([`…-contract-validator`](interop-runs/2026-08-13-everest-contract-validator/notes.md)).
 
 - **`IsoMux`, all four offer shapes (2026-08-03), and over TLS (2026-08-06).** One endpoint answering
   both protocols; then both protocols in *one* offer, which is the case a multiplexer exists for; then
