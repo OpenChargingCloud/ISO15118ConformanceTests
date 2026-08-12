@@ -28,12 +28,13 @@ bottom.
 > - The standalone `EVerest/libiso15118` still has the whole thing in `connection_ssl.cpp`, which is
 >   the only reason the old citations still resolve anywhere — **that repository is not maintained**.
 >
-> **All three sections are now measured on `main`.** §1's two `s_client` arms were re-run there on
-> 2026-08-12 and reproduce exactly ([run notes](../interop-runs/2026-08-12-everest-main-client-auth/notes.md));
-> §3's three arms are from the same day
-> ([run notes](../interop-runs/2026-08-12-everest-main-chain-selection/notes.md)). **One exception,
-> stated where it belongs**: §1's *What it costs* — the two-frame replay showing an anonymous peer
-> reaching `AuthorizationSetup` — still rests on the `2026.02.1` measurement and was not re-run.
+> **All three sections are measured on `main`**, all on 2026-08-12:
+> §1's [two handshake arms](../interop-runs/2026-08-12-everest-main-client-auth/notes.md),
+> §2's [CertificateRequest, byte for byte](../interop-runs/2026-08-12-everest-main-tls-profile/notes.md),
+> §3's [three chain-selection arms](../interop-runs/2026-08-12-everest-main-chain-selection/notes.md).
+> **One exception, stated where it belongs**: §1's *What it costs* — the two-frame replay showing an
+> anonymous peer reaching `AuthorizationSetup` — still rests on the `2026.02.1` measurement and was not
+> re-run, because the request frames were never kept as bytes.
 
 **Three issues, and they are numbered here so they can be filed separately.** §1 is the one that matters
 and can stand alone. §2 is three small omissions in the same function, and it is kept apart from §1 on
@@ -268,7 +269,28 @@ every handshake the station does.
 ### What we saw
 
 All of it in the arm-1 capture — the one where a `CertificateRequest` **was** sent, so this is what your
-station puts in it:
+station puts in it. **Measured on `2026.02.1` and again on `main` (`ebcd36d`) on 2026-08-12**, the
+second time with `-msg`, which turns the first item from a summary line into a parse
+([run notes](../interop-runs/2026-08-12-everest-main-tls-profile/notes.md)):
+
+```
+<<< TLS 1.3, Handshake [length 003e], CertificateRequest
+    0d 00 00 3a 00 00 37 00 0d 00 2a 00 28 09 05 09
+    06 09 04 04 03 05 03 06 03 08 07 08 08 08 1a 08
+    1b 08 1c 08 09 08 0a 08 0b 08 04 08 05 08 06 04
+    01 05 01 06 01 00 1b 00 05 04 00 01 00 03
+```
+
+| bytes | |
+|---|---|
+| `0d 00 00 3a` | CertificateRequest, body 58 |
+| `00` | `certificate_request_context`: empty |
+| `00 37` | extensions, 55 bytes |
+| `00 0d 00 2a` … | ext **13** `signature_algorithms`, inner list 40 bytes = **20 algorithms** |
+| `00 1b 00 05` … | ext **27** `compress_certificate` (RFC 8879) |
+
+1 + 2 + 55 = 58, 46 + 9 = 55 — the message is fully accounted for. **Two extensions, and neither is
+number 47**, `certificate_authorities`. The same transcript also carries openssl's summary:
 
 ```
 No client certificate CA names sent
@@ -283,11 +305,16 @@ Against the profile:
 |---|---|---|
 | cipher suites, Table 6 | `TLS_AES_256_GCM_SHA384`, `TLS_CHACHA20_POLY1305_SHA256`, in that order | **exactly that** — `:224` |
 | `certificate_authorities` | `[V2G20-2401]`/`[V2G20-2402]`: the V2G and/or OEM roots the SECC holds | absent |
-| signature algorithms, Table 8 | `[V2G20-1667]`: Table 8's two entries in Table 8's order | OpenSSL's default list, 19 entries |
+| signature algorithms, Table 8 | `[V2G20-1667]`: Table 8's two entries in Table 8's order | OpenSSL's default list — **19 entries in 2026-08, 20 in 2026-08-12**, see below |
 | named groups, Table 7 | `[V2G20-2460]`: preference from Table 7 — `secp521r1`, then `x448` | `X25519MLKEM768` |
 
 `[V2G20-2404]` is the only exemption for an empty authority list, and it is for a SECC that holds no
 roots. This one holds two: it loaded them at `:270` and `:274` and logged no complaint.
+
+**The list is not one anybody chose, and there is now evidence for that rather than an assertion.**
+Between the two runs the count went from **19 entries to 20** — nothing in your code changed, the
+linked OpenSSL's defaults did. A conformance property that moves when a dependency is upgraded is not
+being met on purpose, and `[V2G20-1667]` asks for exactly two entries in a fixed order.
 
 ### Where it comes from
 
@@ -489,6 +516,11 @@ three fixes — and all three are now measured, so none of them has to lean on t
       <br>What was measured on `2026.02.1`: `supportedAppProtocolReq(-20:DC)` answered
       `OK_SuccessfulNegotiation` and `SessionSetupReq` answered with a session id, on a connection with
       no client certificate — measured, and quoted from *your* session log rather than ours.
+- [x] **Re-measure §2 on `main` — done 2026-08-12, and it got sharper.** `-msg` shows the
+      `CertificateRequest` carries exactly two extensions, `signature_algorithms` and
+      `compress_certificate`, and **not** number 47 — so `[V2G20-2401]` is a byte count rather than an
+      inference from an openssl summary line
+      ([run notes](../interop-runs/2026-08-12-everest-main-tls-profile/notes.md)).
 - [x] **Check every line reference against the tree.**
       `connection_ssl.cpp:54`, `:91`, `:132-146`, `:148-151`, `:223-224`, `:234-235`, `:245`, `:249`,
       `:269-278`, `:280`, `:283`, `:486`, `:499`; `config.hpp:34`;
