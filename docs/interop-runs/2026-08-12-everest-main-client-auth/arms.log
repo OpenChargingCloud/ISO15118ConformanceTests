@@ -1,0 +1,32 @@
+# [V2G20-2400] client authentication — two arms against everest-core main (ebcd36d)
+# Evse15118D20, config-sil-dc-d20.yaml as shipped, STOCK PKI (the second root used by the
+# chain-selection run was stashed first, so nothing unusual is installed).
+# One variable: which TLS version the client offers. No client certificate in either arm.
+
+### ARM-1 (control): offer TLS 1.3 only
+--- outcome ---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+Verify return code: 20 (unable to get local issuer certificate)
+40972E7C077D0000:error:0A00045C:SSL routines:ssl3_read_bytes:
+    tlsv13 alert certificate required:../ssl/record/rec_layer_s3.c:918:SSL alert number 116
+--- station ---
+"Change verify mode" lines: 0 -> 1        <-- handle_tls_1_3_verify_upgrade fired
+[ERRO] iso15118_charge …
+[INFO] iso15118_charge :: Closing TLS connection
+[INFO] iso15118_charge :: TLS connection closed
+
+### ARM-2: offer TLS 1.2 only
+--- outcome ---
+New, TLSv1.2, Cipher is ECDHE-ECDSA-AES128-SHA256
+Protocol: TLSv1.2
+                                          <-- handshake completed, no alert
+--- station ---
+"Change verify mode" lines: 1 -> 1        <-- the upgrade did NOT fire
+[INFO] iso15118_charge :: Peer closed the connection
+[INFO] iso15118_charge :: Closing TLS connection
+
+### the anonymous TLS 1.2 connection is accepted by the -20 stack
+[INFO] iso15118_charge :: Incoming connection from [fe80::215:5dff:fe6b:3d4%eth0]:46392
+[INFO] iso15118_charge :: Accepted connection on port 50000
+[INFO] iso15118_charge :: Handshake complete!

@@ -5,7 +5,9 @@
 # Stop any previous station FIRST, and stop it properly:
 #   pkill -f "prefix <your-prefix>"        # the manager execs modules with --prefix as a FLAG,
 #                                          # so "…/bin/manager" is not in their argv
-#   pgrep -cf "[d]ist-main"                # bracket one letter, or pgrep matches its own shell
+#   pgrep -af <pattern>                    # READ the lines; a count can lie two ways -- pgrep
+#                                          # matches its own shell, and nested quotes do not
+#                                          # survive a wsl.exe wrapper (see the rig README)
 # Two managers on one MQTT prefix produce json type_error / "Promise already satisfied" and a
 # manager-wide crash shutdown that looks exactly like a finding. It is not.
 #

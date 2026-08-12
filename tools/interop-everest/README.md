@@ -532,10 +532,17 @@ Confirmed on first contact, and no longer questions:
   *"Starting 18 modules"*, then a manager-wide crash shutdown with modules exiting on signal 11. It
   reads exactly like a defect in whatever you changed last
   ([run notes](../../docs/interop-runs/2026-08-12-everest-main-chain-selection/notes.md)).
-- **Verify the kill with a self-match-proof pattern.** `pgrep -f "prefix /home/…"` matches the shell that
-  is running the `pgrep`, so it answers *"still running"* forever and a check built on it agrees with
-  whatever you already believe. Bracket one letter — `pgrep -cf "[d]ist-main"` — or match on something
-  that cannot appear in your own command line.
+- **Verify the kill by reading `pgrep -af`, not by trusting a count.** Two different things go wrong
+  with a count, and both did:
+  <br>`pgrep -f "prefix /home/…"` matches the shell that is running the `pgrep`, so it answers
+  *"still running"* forever. Bracketing one letter — `pgrep -cf [d]ist-main` — fixes that **in a native
+  shell**.
+  <br>But through a `wsl.exe -- bash -lc '…'` wrapper the nested quotes do not survive:
+  `pgrep -cf "[d]ist-main"` returned **0** while twenty-one matching processes were running, and the
+  same pattern **unquoted** returned 21. A verification that can silently return zero is worse than
+  none, because it confirms whatever you already believe.
+  <br>So: run `pgrep -af <pattern>` and *look at the lines*. The self-match is obvious when you can see
+  it — it is the one whose command line is your own `pgrep`.
 - **On colima, publish a port only once its backend is listening.** A relay container that installs
   `socat` at startup leaves the published port empty for ten seconds, and the lima forward is poisoned
   for good afterwards: connections are accepted and silently dropped, `nc -z` says the port is open, and
