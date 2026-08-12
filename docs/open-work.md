@@ -49,8 +49,39 @@ weaker claim than it looks and worth separating from "untested".
   [V2G20-1477] and then drops the link anyway — their `SessionStop` state sets `next_state = ServiceDiscovery`
   without building the request that state needs, and their framework raises on it. Filed:
   [`josev-iso20-renegotiation.md`](reports/josev-iso20-renegotiation.md).
-- **Plug & Charge, -2** (EVerest) — chain accepted and our signature verified, but their SIL has no
-  contract-validating backend, so nothing decides whether the contract is *good*.
+- ~~**Plug & Charge, -2** (EVerest) — chain accepted and our signature verified, but their SIL has no
+  contract-validating backend, so nothing decides whether the contract is *good*.~~
+  **Closed 2026-08-13 by building the backend.** It was never a missing capability of theirs: EVerest
+  delegates the contract decision to whoever is wired as `token_validator`, which in a real deployment
+  is the CSMS through their OCPP module and in their SIL is `DummyTokenValidator` returning a constant
+  from its own config file. So the hole was in *our* rig, and closing it needed no patch to theirs —
+  [`contract-validator-arm.sh`](../tools/interop-everest/contract-validator-arm.sh) starts the station
+  with that module withheld (`--standalone`) and answers on its topics over MQTT with their own
+  `everestpy`, which is what their `everest-testing` `ProbeModule` does.
+  <br>**Both halves are now measured** ([run](interop-runs/2026-08-13-everest-contract-validator/notes.md)).
+  What their station hands over: one call per session carrying the eMAID off the leaf's CN, the
+  three-certificate chain in PEM, and `connectors` added by `EvseManager`. What it does with an answer:
+  `Accepted` carried a `-2` PnC session **past `Authorization` for the first time in this project**, on
+  to `ChargeParameterDiscovery` and `CableCheck`; `Invalid` + `certificate_status: CertificateRevoked`
+  produced **`AuthorizationRes = FAILED_CertificateRevoked`**, which no configuration of their SIL can
+  reach — `DummyTokenValidator` cannot set `certificate_status` at all, so `evse_managerImpl.cpp:386`
+  fills in `value_or(Accepted)` and that branch is dead.
+  <br>**And the reason every earlier PnC run dead-ended was one missing connection, not the missing
+  backend.** `EvseManager` republishes the contract token through its own `token_provider`
+  implementation, and only `config-sil-ocpp-pnc.yaml` and `config-sil-ocpp201-pnc.yaml` connect that to
+  `auth`; everywhere else it is published to a variable nobody subscribed to and the session runs to
+  `auth_timeout_pnc`. `PaymentDetailsRes` is `OK`, the signature verifies, and then 366 polls and
+  `FAILED`, with no token in any log. Not a defect — their plain SIL configs are simply not PnC
+  configs — but a fact about driving their harness, now in the
+  [harness README](../tools/interop-everest/README.md).
+  <br>**Still not verified by anything but us:** whether the *contract* is good. Nothing on either side
+  of this checks that, and nothing can while the decider is a test double — the arm proves their
+  station asks correctly and carries the verdict correctly, which is the whole of what a backend is
+  answerable for. One observation left deliberately unfiled: `iso15118CertificateHashData` came back
+  **absent** on a chain that verified (`OcspCache::lookup: not in cache`), so a backend is handed no
+  revocation material at all. That is the far end of
+  [`everest-evse-security-ocsp-dropped`](reports/everest-evse-security-ocsp-dropped.md) and worth
+  re-measuring once that lands.
 
 ## Untested, and nothing is stopping us
 
