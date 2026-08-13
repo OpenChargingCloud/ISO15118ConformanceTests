@@ -98,8 +98,8 @@ how to read one.
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 sessions, 16/16 `OK`, their contactor really closed⁵ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2**, complete¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, then **×2 over mutual TLS 1.3**⁵ | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
@@ -152,6 +152,12 @@ where it was produced and discarded. Firing it *into* the window instead gives `
 against 3 000 ms and a complete session — five of them, with a control between that still fails at
 3,047 s. Nothing injected, nothing patched: their IEC layer, their `EvseManager`, their conclusion.
 [`…-d20-ac-contactor-window`](docs/interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md).
+<br>**And then over mutual TLS 1.3 the same day**, which is what makes the cell conformant rather than
+merely complete: every session up to that point was plain TCP, and `[V2G20-1237]` and `[V2G20-2356]`
+both forbid that. Two `AC` and two `AC_BPT` sessions with their `Handshake complete!` and
+`Verify certificate result is okay`, the window unchanged at +832…1048 ms because the handshake is
+spent before `PowerDelivery`
+([`…-d20-ac-tls13`](docs/interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md)).
 Reading their source to explain the wall had already turned up something that *is* theirs, on the same
 code path and not the cause of it:
 [`everest-iso20-ac-contactor-latch.md`](docs/reports/everest-iso20-ac-contactor-latch.md).

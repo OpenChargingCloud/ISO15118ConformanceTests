@@ -424,6 +424,38 @@ Two timing constraints, both of which cost a run: the session must start within 
 (after that the station declares `Car Paused`, and waking from it takes longer than the window), and the
 watcher must be armed **before** the session.
 
+### A PKI both sides agree on  ([`tls-pki-setup.sh`](tls-pki-setup.sh), [`tls-pki-restore.sh`](tls-pki-restore.sh))
+
+**Every `-20` TLS run starts here, and it cannot be skipped or cached.** `Evse15118D20` switches to
+`SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT` the moment the client offers TLS 1.3, so the session
+is mutual — and their pristine `everest-aux` PKI ships **no vehicle credential at all**.
+
+```bash
+bash tls-pki-setup.sh          # back up, regenerate with their own create_certs.sh, install, export
+# … run …
+bash tls-pki-restore.sh        # put the pristine tree back
+```
+
+Nor can the material be kept between runs: `create_certs.sh` regenerates the whole tree including the
+station leaf, so the two sides agree only if it is installed wholesale — and the run then **restores**
+the pristine tree, so that a later Plug & Charge run is not standing on material this harness minted.
+Measured on 2026-08-13: the credentials left over from the 2026-08-06 TLS run chain to V2G root
+`5E:77:33:20…` while the installed root was `88:F8:C2:D5…`, so they could not have worked. The restore
+is a separate script rather than a sentence in a run note for exactly that reason.
+
+Two traps it now handles for you, each of which cost an attempt:
+
+- **The client chain needs *both* Vehicle Sub-CAs.** The path their station builds is
+  `VEHICLE_LEAF ← VehicleSubCA2 ← VehicleSubCA1 ← V2GRootCA`; ship only SubCA2 and the handshake dies
+  with `tls_process_client_certificate:certificate verify failed`, which names the client certificate
+  rather than the missing link.
+- **A refused handshake takes their whole V2G loop down** (`Shutdown loop() because of: Failed to
+  SSL_accept()`), so the station needs restarting before the next attempt — not another SDP probe.
+
+And one that is yours to remember: **their SDP is one-shot per session.** A probe not followed by a
+connection leaves them answering *"Ignoring sdp request message because a session is already created and
+running"* to every later probe. Probe and connect belong in one sequence.
+
 ### Their PyEvJosev → our SECC  ([`reverse-iso2-dc.sh`](reverse-iso2-dc.sh))
 
 ```bash

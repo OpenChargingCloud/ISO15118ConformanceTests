@@ -101,20 +101,28 @@ weaker claim than it looks and worth separating from "untested".
 
 The honest backlog. No counterparty defect in the way, no missing capability on our side that is known.
 
-**Two rows, both opened on 2026-08-13 by closing something else.** Until that morning the `-20` AC
-cells were behind a wall, so nothing beyond them could be listed here at all; now that AC and AC_BPT
-run ([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)),
-what sits beyond them is ordinary untested work:
+**Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
+morning the `-20` AC cells were behind a wall, so nothing beyond them could be listed here at all; once
+AC and AC_BPT ran
+([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)),
+ordinary untested work appeared behind them:
 
 | | Counterparty | Note |
 |---|---|---|
-| **AC over TLS, -20** | EVerest | Every `-20` AC session so far is plain TCP, which our own fixture prints a warning about on every run: `[V2G20-1237]` (car) and `[V2G20-2356]` (station) both forbid it and Table 5 puts `-20` in the TLS 1.3 row alone. So the two green AC cells are green for a transport the standard does not allow. The rig exists — `config-d20-tls-ours.yaml` for the TLS half, `carsim-on-trigger.sh` for the contactor window — and the two have never been combined. **This is the run that would make the AC claim conformant rather than merely complete.** |
+| ~~**AC over TLS, -20**~~ | ~~EVerest~~ | **Run the same evening — AC 2/2 and AC_BPT 2/2 over mutual TLS 1.3**, their `Handshake complete!` and `Verify certificate result is okay`, contactor window unchanged at +832…1048 ms because the handshake is spent before `PowerDelivery`. That was the run that mattered: every AC session before it was plain TCP, which `[V2G20-1237]` and `[V2G20-2356]` both forbid, so the cells were green for a transport the standard does not allow. [`…-d20-ac-tls13`](interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md). |
 | **A recorded reverse AC run** | EVerest | Their `PyEvJosev` → our SECC has been run for DC and never for AC, and the reverse direction is the only one that puts *our* AC station under a foreign car. No known obstacle; it has simply never been the next thing. |
 
-Both are ours to run, neither waits on anybody, and neither existed as an item before the wall came
-down — which is the argument for re-deriving this section after every closed cell rather than adding to
-it. **The struck-through table below is the previous state**, kept because the shape of a day that
-empties a backlog is that half of it turns out not to have been work.
+**`-2` AC over TLS 1.2 is the other one nobody has run** against this counterparty, and it is now the
+older gap of the two. Worth listing here once somebody wants it; the `-2` AC cell has been green over
+plain TCP since 2026-08-03.
+
+The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
+set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
+the run note rather than smoothed away, and two became [`tls-pki-setup.sh`](../tools/interop-everest/tls-pki-setup.sh)
+and its restore twin, so the next TLS run starts from a script instead of from a run note.
+
+**The struck-through table below is the previous state**, kept because the shape of a day that empties a
+backlog is that half of it turns out not to have been work.
 
 | | Counterparty | Note |
 |---|---|---|
