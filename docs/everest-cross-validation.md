@@ -153,9 +153,11 @@ Everything below was unblocked by it.
   [`…-mcs-reverse`](interop-runs/2026-08-06-everest-mcs-reverse/notes.md)).
 
 - **BPT without MCS (2026-08-06).** Two complete **DC_BPT** sessions, Scheduled and Dynamic, with their
-  station reading `Max discharge current 200.000000A` out of our `BPT_DC_*` request. **AC_BPT** negotiates
-  — their log says `EV selected service: AC_BPT` — and then meets their contactor wall
-  ([`…-bpt`](interop-runs/2026-08-06-everest-bpt/notes.md)).
+  station reading `Max discharge current 200.000000A` out of our `BPT_DC_*` request. **AC_BPT** negotiated
+  — their log says `EV selected service: AC_BPT` — and then met their contactor wall
+  ([`…-bpt`](interop-runs/2026-08-06-everest-bpt/notes.md)); **it runs complete since 2026-08-13**, twice,
+  once the wall turned out to be a 3 s window we were arriving five seconds early for
+  ([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)).
 
 - **Reverse, `PyEvJosev` → our SECC (2026-08-06).** Lower information in general — their car *is* Josev —
   with one exception that made it worth doing: it is the only run that puts **our** service catalogue in
@@ -701,10 +703,21 @@ Each of these is structural rather than a missing run:
   (`NO_CONNECTOR_AVAILABLE`). `config-sil-ocpp201-pnc.yaml` is the configuration that would, and it needs
   an OCPP 2.0.1 CSMS on the other end — a different counterparty and a bigger piece of work than this
   harness has set up.
-- **ISO 15118-20 AC past `PowerDelivery(Start)`.** Their SIL expects *their own* EV module to close the
-  contactor, so driving the CP line is not enough. Two different car-simulator sequences give the
-  identical `FAILED_ContactorError`.
-  <br>**Reading their source to explain that wall, on 2026-08-09, turned up a defect beside it** —
+- ~~**ISO 15118-20 AC past `PowerDelivery(Start)`.** Their SIL expects *their own* EV module to close the
+  contactor, so driving the CP line is not enough.~~ **Closed 2026-08-13 — and the explanation above was
+  wrong, not merely incomplete.** Their SIL never needed its own EV: `EvseManager` produced the
+  contactor confirmation in our topology too, from the CP line we were driving. It arrived **4,948 s
+  before** `PowerDelivery` opened its 3 s window, and `libiso15118` — unlike `EvseV2G`, which latches
+  the value in a loop that re-tests it — remembers nothing that arrived early. Six runs and three
+  car-simulator sequences went into that wall over four months; what got past it was publishing the same
+  car command about five seconds later, into the window. **Five complete sessions, three `AC` and two
+  `AC_BPT`, 16/16 `OK`, nothing injected and nothing patched**, with the old sequencing run between them
+  as a control that still fails at 3,047 s
+  ([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)).
+  The instrument is [`carsim-on-trigger.sh`](../tools/interop-everest/carsim-on-trigger.sh), and the
+  distinction from `contactor-report.sh` is what makes these sessions count: that one asserts a hardware
+  fact to the HLC layer, this one moves the simulated car and lets the station reach its own conclusion.
+  <br>**Reading their source to explain that wall, on 2026-08-09, had turned up a defect beside it** —
   `d20::state::PowerDelivery` assigns the `ClosedContactor` event **pointer** to its `bool`, so a
   board-support module reporting the contactor *open* latches it closed, cancels the timeout that would
   have refused, and answers `PowerDeliveryRes(OK)`. Drafted the same day:
@@ -713,10 +726,11 @@ Each of these is structural rather than a missing run:
   **reproduced against their running station that afternoon** — one command on their own MQTT
   interface, `OK` 95 ms later where the control waits 3.000 s and refuses, 2 of 2
   ([`2026-08-09-…-contactor-injection`](interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)).
-  Worth keeping the two apart: **the wall is ours to get past and the defect is theirs to fix**, they
-  sit on the same code path, and neither causes the other — our runs never produce a `ClosedContactor`
-  event at all, which is precisely why we hit the timeout branch and not this one, and precisely what
-  made the injection a clean measurement.
+  Worth keeping the two apart: **the wall was ours to get past and the defect is theirs to fix**, they
+  sit on the same code path, and neither causes the other. The reason given at the time — that our runs
+  "never produce a `ClosedContactor` event at all" — held for the `control` topology and not for
+  `cphold`, where one is produced and lands in a state that does not read it. Either way the timeout
+  branch is the one taken, which is what made the injection a clean measurement.
 - **Megawatt *power*.** Their MCS SIL is electrically an ordinary charger and clamps to 22 kW whatever is
   declared. The catalogue and the envelope are validated; the current is not.
 - **A conformant -20 curve, from this counterparty.** Their `create_certs.sh -v iso-20` emits **P-256** —
@@ -746,11 +760,18 @@ Each of these is structural rather than a missing run:
 
 ## Current state
 
-The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, `IsoMux` in all four offer shapes
-and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against **2025.10.0** and
-re-validated against **2026.02.1 built from source**. The reverse direction runs and is recorded. There
-is no unattempted cell left in EVerest's column of the matrix; what remains is the list of walls above,
-and the drafts waiting to be sent.
+The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, **-20 AC and AC_BPT**, `IsoMux` in
+all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against
+**2025.10.0** and re-validated against **2026.02.1 built from source**. The reverse direction runs and is
+recorded. There is no unattempted cell left in EVerest's column of the matrix; what remains is the list
+of walls above, and the drafts waiting to be sent.
+
+**The last two AC cells fell on 2026-08-13, and the lesson is not about AC.** They had stood since
+2026-08-03 behind an explanation this page stated with confidence four separate times — *their SIL
+expects its own EV module* — which their own `cphold` log from 2026-08-09 had already contradicted, in a
+file sitting in this repository. Nobody re-read it, because the wall had a name. What was actually
+needed was one MQTT publish about five seconds later. **A named wall stops being measured**, and that is
+the failure mode this page should be read for, more than any individual cell.
 
 **As of 2026-08-11 those drafts were re-tested against everest-core `main`, not just the tag they were
 written against.** Two are withdrawn — the maintainers fixed them independently, which is the strongest

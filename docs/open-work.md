@@ -23,16 +23,23 @@ and this file is stale.
 
 ## Blocked on the counterparty
 
-Nothing here can be moved by work on our side, **except** the two EVerest AC rows — those are ours to
-unblock and are here because they read as counterparty walls and are not. Every other row has a filed
-or drafted report.
+Nothing here can be moved by work on our side. Every row has a filed or drafted report.
+
+The two EVerest AC rows that used to carry that exception are **gone as of 2026-08-13**, and how they
+went is worth one line here rather than only in the run notes: they were not a counterparty wall and
+they were not "their EV-side hardware simulation, which is ours to build" either. Their `-20`
+`PowerDelivery` waits for a contactor *event* inside a 3 s window and remembers nothing that arrived
+before it; our harness raised the car's CP line at plug-in, so their own confirmation was produced
+**4,948 s early** and discarded. Moving one MQTT publish into the window turned four months of
+`FAILED_ContactorError` into five complete sessions, AC and AC_BPT, with a control that still fails
+([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)).
+**The entry described the wall confidently and described it wrong** — which is the argument for this
+file naming a mechanism rather than a verdict, and for re-reading one before quoting it.
 
 | | Counterparty | State | Waiting on |
 |---|---|---|---|
 | **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its `-20` states never fill — so `OK_OldSessionJoined` is unreachable. Six-line fix, mirroring their own working `-2` branch. Filed: [`josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md). |
 | **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). |
-| **AC, -20** | EVerest | ◐ | Their SIL's own-EV contactor coupling — a property of driving their harness with a foreign EV, **not** a defect, and so nothing to file. Reading their source to explain it turned up one that is: [`everest-iso20-ac-contactor-latch.md`](reports/everest-iso20-ac-contactor-latch.md), on the same code path and not the cause of this wall. Moving this cell needs their EV-side hardware simulation driven, which is ours to build. |
-| **AC_BPT** | EVerest | ◐ | Negotiated, then the same wall, for the same reason. |
 | **Renegotiation, -2** | EVerest | ⛔ `EV→` | Their DC station requires CableCheck again after a renegotiation, so the `PowerDeliveryReq(Start)` that restarts the charge is answered `FAILED_SequenceError`. The trigger and the re-discovery are accepted — this is the restart path only, and the state that would take it already exists next door. Filed: [`everest-evsev2g-renegotiation-cablecheck.md`](reports/everest-evsev2g-renegotiation-cablecheck.md). |
 | **TLS 1.2 unilateral, -2** | tux-evse | ⛔ pinned | Their configs offer neither suite ISO 15118-2 prescribes. Filed: [`tux-evse-tls.md`](reports/tux-evse-tls.md). |
 | **CertificateInstallation, -20** | Josev · EVerest | ◐ | Both send a real signed request — SwitchEV's on 2026-07-22, EVerest's `PyEvJosev` on 2026-08-08 with its own OEM root. Our response is decoded and validated, and then each ends at the same `NotImplementedError`: the fork inherited the gap. Nothing to file that the upstream code does not already say out loud. |
@@ -519,8 +526,15 @@ also below.
   interface inside the 3 s window, `PowerDeliveryRes(OK)` ~95 ms later and three charge loops after
   that, 2 of 2, against a control that fails at 3.000 s
   ([run notes](interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md)). It did **not** buy
-  the two AC matrix cells, which was the hope: injecting a contactor report is not the same capability
-  as driving their EV-side hardware, and `cphold` still walls at `FAILED_ContactorError`.
+  the two AC matrix cells, which was the hope — and the reason given here for four days was wrong.
+  <br>**Bought on 2026-08-13, and not by more capability.** The injection was not "not the same
+  capability as driving their EV-side hardware"; driving their EV-side hardware was never what was
+  missing. Their contactor confirmation was already being produced — 4,948 s too early, in a state that
+  does not read `ClosedContactor` — and the whole wall was that `libiso15118` remembers nothing that
+  arrived before the 3 s window opened. Moving the car's CP command *into* the window bought both cells,
+  five sessions, nothing injected
+  ([run notes](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)). The `cphold` control
+  still walls, which is now the evidence rather than the obstacle.
 - **A methodological item, from the EVerest MQTT run:** *"Run every future session twice, in every
   harness. One session is not a test of a station."* Not systematically applied.
 - ~~**A candidate seventeenth filing, unwritten:** counterparty `iso-20` certificate scripts that emit

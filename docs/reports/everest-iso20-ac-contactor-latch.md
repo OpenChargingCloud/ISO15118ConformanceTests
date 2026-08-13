@@ -261,6 +261,15 @@ you want one, but you may prefer one of these instead, and the choice is yours:
 
 ## Also seen, not reported
 
+> **This section was wrong, and is corrected on 2026-08-13** — the report above is unaffected, since
+> the injection measurement never depended on it. Our `-20` AC and AC_BPT runs *can* reach the window,
+> and now do: five complete sessions, nothing injected
+> ([run notes](../interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)). The confirmation
+> was never missing — `EvseManager` produced it from the CP line we were driving, about **five seconds
+> before** `PowerDelivery` opened its window, and `PowerDelivery` is the only state that reads
+> `ClosedContactor`. Publishing the car's CP command *into* the window instead is all it took. Kept
+> below as written because it is what the report said when it was drafted.
+
 Our `-20` AC and AC_BPT runs against your SIL cannot reach the window on their own: they end at
 `FAILED_ContactorError` from the **timeout**, because in that topology no `ClosedContactor` event
 arrives at all — the contactor confirmation your `EvseManager` waits on comes from your own EV module,
