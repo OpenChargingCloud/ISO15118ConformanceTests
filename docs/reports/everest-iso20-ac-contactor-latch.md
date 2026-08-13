@@ -27,6 +27,11 @@ Post it under your own name; see *Before sending* at the bottom.
 > Kept rather than deleted because the run behind it stands: the behaviour was
 > [reproduced against a running station](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md),
 > 2 of 2 with a control, and that is a fact about `2026.02.1` whatever `main` does now.
+>
+> **There is a live report in the neighbouring lines**, and it is not this one:
+> [`everest-d20-ac-contactor-edge.md`](everest-d20-ac-contactor-edge.md) — the same `PowerDelivery`
+> state, surviving this fix, about *when* the `ClosedContactor` arrives rather than what it carries. If
+> you came here from a search for the AC contactor, that is the one to read.
 
 Two ways to check it, neither of which needs our stack:
 

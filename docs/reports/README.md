@@ -184,6 +184,12 @@ fixed it since* — were run across all thirty-two drafts at once for the first 
 [`tools/reports-audit/`](../../tools/reports-audit/README.md). Full account in the
 [audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md).
 
+**That "thirty-two" is the file count on 2026-08-11 and is not the "thirty-two" above.** There are
+**thirty-four** report files now — the forty-fifth and forty-sixth filings were written on 08-12 and
+08-13 — of which **two are withdrawn** and thirty-two are sendable. The two numbers agreeing today is a
+coincidence, and the arithmetic is written out here so nobody has to rediscover it: 34 files − 2
+withdrawn = 32 sendable, carrying 46 issues.
+
 **The citations held: 189 of 189.** Five of the six counterparties have not committed since the drafts
 were written — eVDriveFlow's `main` is now **three years and four months** old — so for those, pinned
 commit and HEAD are the same thing and there is nothing to re-read.

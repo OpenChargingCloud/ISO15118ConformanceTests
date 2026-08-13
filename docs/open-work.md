@@ -101,11 +101,20 @@ weaker claim than it looks and worth separating from "untested".
 
 The honest backlog. No counterparty defect in the way, no missing capability on our side that is known.
 
-**Empty as of 2026-08-11.** Every row below is struck through: the four that were open that morning were
-run or answered during the day, and each moved somewhere else rather than to `✅` — two to *Blocked on
-the counterparty* with a filing behind them, two to *Structural* by establishing that there is nothing to
-test. Worth keeping the table rather than deleting it, because the shape of a day that empties a backlog
-is that half of it turns out not to have been work.
+**Two rows, both opened on 2026-08-13 by closing something else.** Until that morning the `-20` AC
+cells were behind a wall, so nothing beyond them could be listed here at all; now that AC and AC_BPT
+run ([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)),
+what sits beyond them is ordinary untested work:
+
+| | Counterparty | Note |
+|---|---|---|
+| **AC over TLS, -20** | EVerest | Every `-20` AC session so far is plain TCP, which our own fixture prints a warning about on every run: `[V2G20-1237]` (car) and `[V2G20-2356]` (station) both forbid it and Table 5 puts `-20` in the TLS 1.3 row alone. So the two green AC cells are green for a transport the standard does not allow. The rig exists — `config-d20-tls-ours.yaml` for the TLS half, `carsim-on-trigger.sh` for the contactor window — and the two have never been combined. **This is the run that would make the AC claim conformant rather than merely complete.** |
+| **A recorded reverse AC run** | EVerest | Their `PyEvJosev` → our SECC has been run for DC and never for AC, and the reverse direction is the only one that puts *our* AC station under a foreign car. No known obstacle; it has simply never been the next thing. |
+
+Both are ours to run, neither waits on anybody, and neither existed as an item before the wall came
+down — which is the argument for re-deriving this section after every closed cell rather than adding to
+it. **The struck-through table below is the previous state**, kept because the shape of a day that
+empties a backlog is that half of it turns out not to have been work.
 
 | | Counterparty | Note |
 |---|---|---|
@@ -497,9 +506,9 @@ also below.
 
 - **Forty-six issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
   in thirty-two sendable reports. Each ends with a *Before sending* checklist whose unticked items are
-  the parts only a person can do. This is the largest single block of finished work waiting on a human —
-  and since 2026-08-13 it is the **only** block: *Untested, nothing stopping us* is empty, *Ours to fix*
-  is empty, and *Open questions about our own stack* has none.
+  the parts only a person can do. This is the largest single block of finished work waiting on a human,
+  and by a wide margin: *Ours to fix* is empty, *Open questions about our own stack* has none, and
+  *Untested, nothing stopping us* holds two runs that between them are an afternoon.
   <br>**The forty-sixth was written on 2026-08-13** and came out of a question this file had been
   carrying: whether `EvseManager` re-reports a contactor it already knows is closed. It does not — the
   `-20` AC wait is edge-triggered against a level, so a contactor that closed a moment early can never

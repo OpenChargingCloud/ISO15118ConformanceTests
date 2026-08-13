@@ -625,6 +625,14 @@ Confirmed on first contact, and no longer questions:
   because the simulated car walks the CP line A→B→C; a V2G peer over TCP has no CP line, so a forward
   run stops there unless [`sil-car.sh`](sil-car.sh) drives it. Publishing `cp C` is **not** the way —
   the state machine rewrites `cp_voltage` from its own state on every tick.
+- **`-20` AC has two clocks, and both cost a run before they were understood.** The contactor window is
+  **3 s** wide and only an event arriving inside it counts, so the car must raise CP *after*
+  `PowerDelivery(Start)` — that is [`carsim-on-trigger.sh`](carsim-on-trigger.sh). And with the car
+  waiting at state B the station gives up after about **45 s** (`PrepareCharging → T_step_EF →
+  Car Paused`), from which waking takes longer than the window; so the session has to start inside that
+  runway, which in practice means `dotnet test --no-build` launched right after `Set PWM On`. A run that
+  misses the second clock looks exactly like a run that missed the first: `FAILED_ContactorError` at
+  3,0 s. Read the log for `Car Paused` before concluding anything.
 - **Killing the manager orphans its modules.** They are separate processes and stay bound to port 61341.
   `pkill -f 'bin/manager'` leaves a half-dead charger answering connections; kill the process group or
   recreate the container.

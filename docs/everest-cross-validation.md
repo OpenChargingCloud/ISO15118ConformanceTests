@@ -781,7 +781,10 @@ The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, **-20 AC
 all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against
 **2025.10.0** and re-validated against **2026.02.1 built from source**. The reverse direction runs and is
 recorded. There is no unattempted cell left in EVerest's column of the matrix; what remains is the list
-of walls above, and the drafts waiting to be sent.
+of walls above, the drafts waiting to be sent, and two runs that only became possible on 2026-08-13 —
+**AC over TLS**, without which the two new AC cells are green for a transport `[V2G20-1237]` forbids,
+and a **recorded reverse AC** run. Both are in [`open-work.md`](open-work.md) under *Untested, nothing
+stopping us*, a section that had been empty since 2026-08-11 and was refilled by closing a wall.
 
 **The last two AC cells fell on 2026-08-13, and the lesson is not about AC.** They had stood since
 2026-08-03 behind an explanation this page stated with confidence four separate times — *their SIL

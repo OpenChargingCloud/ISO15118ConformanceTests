@@ -142,7 +142,12 @@ Isolated afterwards, the trigger turns out to need no ISO 15118 stack at all: **
 `SupportedAppProtocolReq`, then disconnect** — 2,153,049 log lines in the following 10 seconds with no
 peer connected, 365 MB, and the socket left in `CLOSE-WAIT`. Their `get_data` returns `Ok(0)` at EOF
 (`iso15118-network-rs/src/ipv6-tcp.rs:66`), which is indistinguishable from an empty read, and nothing
-removes the fd from the poll set. Reproduction, measurements and the report:
+removes the fd from the poll set. **That file is not in the `tux-evse` checkout**: `iso15118-network-rs`
+is a sibling repository that cargo pulls by git URL, which is why the citation went unverified by
+[`check_citations.py`](../tools/reports-audit/README.md) from the day it was written until 2026-08-13,
+when a `TREE_TUX_NET` root was configured and it resolved — correct, and to exactly the code claimed.
+The crate is at `f1ab338` (2024-07-25) and has not moved since, so its line numbers are the most stable
+of any counterparty here. Reproduction, measurements and the report:
 [`spin-repro.sh`](interop-runs/2026-08-06-tux-head-reverse/spin-repro.sh),
 [`docs/reports/tux-evse-spin.md`](reports/tux-evse-spin.md). Excerpts from the original sightings:
 [`their-responder.log`](interop-runs/2026-08-06-tux-head-reverse/their-responder.log),
