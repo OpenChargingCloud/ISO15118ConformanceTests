@@ -361,9 +361,17 @@ in `value_or(Accepted)`.
 
 The `-20` arm the same day found the sharper result: **a rejected verdict does not reach
 `Evse15118D20` at all**, because `EvseManager` forwards them for PnC only
-(`evse_managerImpl.cpp:381-387`) and that module has no PnC. Their station answered `Ongoing` 602 times
-where `[V2G20-2230]` allows 1,5 s to answer `Finished` with `WARNING_EIMAuthorizationFailure` —
-[`…-d20-eim-rejection`](../../docs/interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md).
+(`evse_managerImpl.cpp:381-387`) and that module has no PnC. Their station answers `Ongoing` until
+`TIMEOUT_EIM_ONGOING` and then `FAILED`, where `[V2G20-2230]` allows 1,5 s to answer `Finished` with
+`WARNING_EIMAuthorizationFailure`. The `-2` twin does the same thing and is **correct** doing it —
+`[V2G2-854]` requires exactly that — so the rule changed between the protocols and the shared module
+kept `-2`'s: [`…-d20-eim-rejection`](../../docs/interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md).
+
+**`V2G_INTEROP_ONGOING=<seconds>`** is what makes any of that visible. Our car stops polling an
+`Ongoing` phase after 60 s, and all three station timers worth measuring are longer —
+`auth_timeout_eim` 300 s, `TIMEOUT_EIM_ONGOING` 180 s, `auth_timeout_pnc` 55 s. Without it a run
+measures our patience and reads exactly like a station that never answered; the first pass at this
+finding did, and stopped 118 s short.
 
 Two things the arm does **not** do. It does not test their chain validation: that already happened in
 `iso_server.cpp:1049` before the token was built, and we measured it working on 2026-08-03. And it is a
@@ -510,6 +518,12 @@ discovered session is a recorded one. Three things to get right:
 1. **Run `dotnet test` inside WSL.** SDP is multicast on the EV's link and Windows is not on it. .NET 10 is
    there; pass `--artifacts-path ~/wsl-artifacts` so the Linux build does not fight the Windows `bin/`+`obj/`
    in the same working tree.
+   <br>**That flag costs three red tests, and they are not real.** `SchemaSetIntegrationTests` resolves
+   `Schemas/` relative to the default `bin/` layout, so `--artifacts-path` moves the output out from under
+   it and all three `FullIso2SchemaSet_*` cases fail with `DirectoryNotFoundException`. Use a filter for
+   interop work, and **verify the offline gate on Windows** — `dotnet test -c Release` there is the run
+   that means 1 403 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
+   same commit.
 2. **Fixture first, station second.** Their EV probes once, shortly after the manager boots. If nothing
    answers that probe the session never starts, and the timeout looks exactly like a peer that never came.
 3. **Their `Evse15118D20` on `lo`**, as for the CLI, or it answers the probe before ours does.

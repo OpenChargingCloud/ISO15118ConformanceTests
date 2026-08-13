@@ -717,7 +717,16 @@ for that case: report the failure as `Finished`, and let the EV ask again. **`On
 failure is not a conservative reading of `[V2G20-2230]`, it is the state the requirement excludes** —
 `Ongoing` means *no answer yet*, and there is an answer.
 
-The `-2` twin is **not** the same and should not be assumed to be: `-2` has no
-`WARNING_EIMAuthorizationFailure`, its `AuthorizationRes` carries `EVSEProcessing` with the station's own
-`auth_timeout_eim` behind it, and what it owes on a rejected EIM token is a separate question that has
-not been asked here.
+**And `-2` asks for the opposite — checked the same day, because assuming the twin would have been
+wrong.** ISO 15118-2 has no `WARNING_EIMAuthorizationFailure` at all, and:
+
+- **`[V2G2-854]`** — EIM selected and **no positive EIM information available** → the SECC shall set
+  `EVSEProcessing = Ongoing_WaitingForCustomerInteraction`. A rejected token is that case.
+- **`[V2G2-856]`** — only *positive* authorization information makes it `Finished`.
+- **`[V2G2-845]`** — and the EV shall **resend** `AuthorizationReq` for as long as that lasts.
+
+So under `-2` a station that keeps answering `Ongoing` after a rejection is doing what it is told, and
+nothing obliges it to report the negative result; when it gives up is its own policy. **The rule
+changed between the protocols**, and that is the shape of the EVerest finding: a shared module applying
+`-2`'s rule to both stacks. Anything written about one of these two clauses has to name the other, or a
+fix aimed at `-20` will be applied to `-2` and break it.

@@ -662,8 +662,14 @@ been sent — they are the operator's to post, under their own name.
   `WARNING_EIMAuthorizationFailure`. Their `-20` library has exactly that branch, citing exactly that
   requirement in the comment above it (`d20/state/authorization.cpp:55-57`) — the same shape as the
   `IsoMux` finding two entries up, where the layer that is right is underneath the layer that decides.
-  **Not yet filed:** the 180 s tail is read rather than measured, and the `-2` twin is unasked
-  ([`…-d20-eim-rejection`](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md)).
+  <br>**Both halves measured out the same day.** With our car's own patience raised out of the way
+  (`V2G_INTEROP_ONGOING`), the tail arrives at **1 800 `Ongoing` then `FAILED`** — the wrong code, since
+  their timeout branch is tested before the EIM switch, and 120× the 1,5 s allowed. And the **`-2` twin
+  is correct**: `[V2G2-854]` requires `Ongoing_WaitingForCustomerInteraction` when no *positive* EIM
+  information is available, `[V2G2-845]` has the EV keep asking, and `EvseV2G` does exactly that for
+  299,8 s — its `auth_timeout_eim` — citing the clause at `iso_server.cpp:947-948`. **The rule changed
+  between the protocols and the shared module kept `-2`'s**, which is what any report has to say, or the
+  fix lands on both and breaks the one that is right.
 - **`PyEvJosev`'s manifest documents 4 of the 12 energy-service values it accepts**, omitting the `MCS`
   its own shipped config uses — and an unrecognised entry is silently dropped rather than reported
   ([`pyevjosev-manifest-services.md`](reports/pyevjosev-manifest-services.md)).
