@@ -35,6 +35,8 @@ ROOT_VARS = {
     "edf": "TREE_EDF",
     "libcbv2g": "TREE_LIBCBV2G",
     "tux": "TREE_TUX",
+    "tux-net": "TREE_TUX_NET",                 # tux-evse/iso15118-network-rs — a sibling repo,
+                                               # pulled by cargo and absent from the tux checkout
     "v2gdecoder": "TREE_V2GDECODER",
 }
 

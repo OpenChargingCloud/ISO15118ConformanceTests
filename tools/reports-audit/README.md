@@ -28,6 +28,7 @@ TREE_JOSEV=~/josev-src \
 TREE_EDF=~/edf/eVDriveFlow \
 TREE_LIBCBV2G=~/libcbv2g \
 TREE_TUX=~/tux-evse \
+TREE_TUX_NET=~/tux-net \
 TREE_V2GDECODER=~/v2gdec/V2Gdecoder \
 python3 check_citations.py
 ```
@@ -35,13 +36,25 @@ python3 check_citations.py
 Unset roots are announced on stderr and their citations come back **unresolved**, never silently
 correct — a checkout you forgot to configure must not look like a clean bill of health.
 
-Two roots are not obvious and both cost a false alarm the first time:
+Three roots are not obvious and each cost a false alarm the first time:
 
 - **`TREE_EVEREST_GENERATED`.** `types/*.hpp` are generated from the `types/*.yaml` into `build/`,
   which the tree walk skips. Without this the reports' generated-header citations look out of range.
 - **`TREE_JOSEV_FORK`.** Several reports cite upstream Josev *and* EVerest's fork of it, with the
   same paths and different line numbers. Configure both or the fork's citations resolve against
   upstream and appear wrong.
+- **`TREE_TUX_NET`.** tux-evse is **several repositories**, not one. `iso15118-network-rs` is a
+  sibling of `tux-evse` that cargo pulls by git URL, so it is nowhere inside the `TREE_TUX` checkout
+  and no amount of walking that tree will find it:
+  ```bash
+  git clone https://github.com/tux-evse/iso15118-network-rs.git ~/tux-net/iso15118-network-rs
+  ```
+  Configure it or [`tux-evse-spin.md`](../../docs/reports/tux-evse-spin.md)'s central citation — the
+  `get_data` that cannot tell EOF from an empty read — comes back unresolved. It sat that way from the
+  day it was written until 2026-08-13, which is the whole argument for the "unresolved, never silently
+  correct" rule above: **the tool did its job, and nobody read the one line it printed.** The citation
+  turned out to be exactly right. Note the repo is at `f1ab338` (2024-07-25) and has not moved since,
+  so it is a slower-moving tree than the rest and its line numbers are correspondingly stable.
 
 Ambiguity is reported rather than guessed: where a basename exists in more than one tree the
 candidates are printed with the line from each. `power_delivery.cpp` exists five times in
@@ -52,6 +65,21 @@ report may legitimately cite two — [`everest-loop-shutdown`](../../docs/report
 quotes 2026.02.1 for what it measured and `main` for what survives, and the checker resolves both
 against whichever tree is configured. Reports that do this label every citation with its tree; when
 the printed line does not match the claim, check the label before believing the tool.
+
+**Three `OUT OF RANGE` lines are expected with the roots above, and all three are correct.** With
+`TREE_EVEREST` on the release, `tbd_controller.cpp` is 188 lines; on `main` (`ebcd36d`) it is 388, and
+two reports cite the longer one:
+
+| report | citation | at `main` |
+|---|---|---|
+| [`everest-loop-shutdown`](../../docs/reports/everest-loop-shutdown.md) | `tbd_controller.cpp:320-321` | `handle_sdp_server_input()` and its untried `get_peer_request()` — as claimed |
+| [`everest-d20-ocsp-absent`](../../docs/reports/everest-d20-ocsp-absent.md) | `tbd_controller.cpp:357-367` | the connection lambda building `ConnectionSSL` on `Security::TLS` — as claimed |
+
+Both were re-verified against `ebcd36d` on 2026-08-13, and both reports already say *"on `main`"* in
+the surrounding prose. **Do not "fix" them against the release tree.** Configuring a second everest
+root would silence the warning and cost more than it saves: every basename would then match twice, so
+roughly 150 clean citations would turn ambiguous, and a local `main` checkout drifts from the real one
+— a citation resolving against a stale clone is the `--lib` trap below wearing a different hat.
 
 ## `check_upstream.py` — has anybody fixed it since we wrote it down
 
