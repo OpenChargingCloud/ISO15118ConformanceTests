@@ -3,7 +3,7 @@
 The `-20` Plug & Charge cell for this counterparty carried a `▢` and a condition:
 *"first establish whether they do contract certificates at all; their documentation does not mention
 them."* This is that. It is a source audit, not a session — the category
-[`README.md`](README.md) calls a **static sweep** — and it closes the cell by answering *no*.
+[`README.md`](../README.md) calls a **static sweep** — and it closes the cell by answering *no*.
 
 | | |
 |---|---|

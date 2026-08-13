@@ -62,7 +62,8 @@ A fourth shape has no counterparty artifact at all: an **audit of our own drafts
 they cite. [`2026-08-11-reports-upstream-audit/`](2026-08-11-reports-upstream-audit/notes.md) re-reads
 every `file:line` in `docs/reports/` — 189 of them, all still correct — and then asks the question the
 per-report checklists ask one at a time: *has anybody fixed it since we wrote it down?* Doing it across
-all thirty-two at once is what made the answer visible: **three findings are already fixed on
+all thirty-two at once — the file count **that day**; there are thirty-four now — is what made the
+answer visible: **three findings are already fixed on
 everest-core `main`**, two of which are therefore retired without ever being sent. It also records a
 wrong turn taken on the way — the stale `EVerest/libiso15118` mirror still shows all three, and the
 audit briefly concluded they should be filed there. That does not move a matrix cell — no session was
@@ -76,6 +77,22 @@ statement about the counterparty's state machine. The single session would have 
 defect; the pair says which of two explanations is the live one, and leaves the requirement question
 open on purpose. It also carries the counterparty's **own MQTT payload** as an artifact, so the claim
 that a station forwarded our bytes unaltered is a hash comparison rather than a description.
+
+The control pair has a variant where **the variable is *when*, not what**, and it is worth knowing
+because a wall that survives six attempts starts to look like a property of the counterparty.
+[`2026-08-13-everest-d20-ac-contactor-window/`](2026-08-13-everest-d20-ac-contactor-window/notes.md) is
+seven `-20` AC sessions in eleven minutes against one station, one binary and one config, differing only
+in the moment the simulated car raises its Control-Pilot line. Raised early: `FAILED_ContactorError` at
+3,047 s, as on every attempt since 2026-08-03. Raised inside the counterparty's own three-second window:
+`OK`, five times, through the charge loop to `SessionStop`. **Nothing was injected and nothing patched
+in any of the seven** — the station reached its own conclusion each time.
+
+Two things generalise from it. The first is that the **positive control is the load-bearing half** here:
+five successes are what turn "it fails" into "it fails for this reason", and without them the run would
+have been another failed attempt. The second is the reason it took four months: the wall had a *name* —
+an explanation this repository stated confidently in four places and had already contradicted in a log
+file of its own from 2026-08-09. **A named wall stops being measured.** When a cell has been blocked
+long enough to have a story attached, re-read the artifacts before believing the story.
 
 ## Producing them
 

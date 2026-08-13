@@ -281,8 +281,11 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ## What it found in **them**
 
-Written up per run; **seventeen** are drafted for filing under [`docs/reports/`](reports/) and none has
-been sent — they are the operator's to post, under their own name.
+Written up per run; the ones that became filings are drafted under [`docs/reports/`](reports/) and none
+has been sent — they are the operator's to post, under their own name. **The count lives in
+[`reports/README.md`](reports/README.md) and nowhere else**: it was carried here as a literal for weeks
+and was wrong by four before anyone noticed, which is the same failure this page's *Current state*
+section warns about in a different costume.
 
 > **Everything below was read against `2026.02.1`, the release. On 2026-08-11 every finding was
 > re-tested against everest-core `main`** ([audit](interop-runs/2026-08-11-reports-upstream-audit/notes.md))
@@ -672,6 +675,20 @@ been sent — they are the operator's to post, under their own name.
   299,8 s — its `auth_timeout_eim` — citing the clause at `iso_server.cpp:947-948`. **The rule changed
   between the protocols and the shared module kept `-2`'s**, which is what any report has to say, or the
   fix lands on both and breaks the one that is right.
+- **The `-20` AC contactor wait is edge-triggered against a level `EvseManager` already holds**, so a
+  contactor that closed a moment early can never be learned about and the station answers
+  `FAILED_ContactorError` on a **closed** contactor. `ac_connector_closed` is a per-entry `bool` written
+  only by a `ClosedContactor` arriving while `PowerDelivery` is active; `EvseManager` sends that event on
+  a CP **edge** only, keeps the truth in `contactor_open`, and never re-reports it — while the request
+  the state machine does send merely sets `hlc_allow_close_contactor`, which changes nothing once the
+  contactor is shut. **Measured with a positive control on 2026-08-13**: `PowerOn` at −4,948 s gives the
+  3,047 s timeout, `PowerOn` inside the window gives `OK` and a complete session, five times. `EvseV2G`
+  is immune twice over — it reads the current state *before* waiting and re-tests a latched value inside
+  the wait. **The second instance of the same shape as the EIM entry above**: the layer that knows does
+  not tell the layer that decides, and the fix is on `EvseManager`'s side both times
+  ([`everest-d20-ac-contactor-edge.md`](reports/everest-d20-ac-contactor-edge.md)). It is **not** the
+  withdrawn pointer-latch report; it survives that fix, and on `main` the gate has widened to
+  `is_ac_der_iec_charger()`.
 - **`PyEvJosev`'s manifest documents 4 of the 12 energy-service values it accepts**, omitting the `MCS`
   its own shipped config uses — and an unrecognised entry is silently dropped rather than reported
   ([`pyevjosev-manifest-services.md`](reports/pyevjosev-manifest-services.md)).
@@ -764,7 +781,10 @@ The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, **-20 AC
 all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against
 **2025.10.0** and re-validated against **2026.02.1 built from source**. The reverse direction runs and is
 recorded. There is no unattempted cell left in EVerest's column of the matrix; what remains is the list
-of walls above, and the drafts waiting to be sent.
+of walls above, the drafts waiting to be sent, and two runs that only became possible on 2026-08-13 —
+**AC over TLS**, without which the two new AC cells are green for a transport `[V2G20-1237]` forbids,
+and a **recorded reverse AC** run. Both are in [`open-work.md`](open-work.md) under *Untested, nothing
+stopping us*, a section that had been empty since 2026-08-11 and was refilled by closing a wall.
 
 **The last two AC cells fell on 2026-08-13, and the lesson is not about AC.** They had stood since
 2026-08-03 behind an explanation this page stated with confidence four separate times — *their SIL

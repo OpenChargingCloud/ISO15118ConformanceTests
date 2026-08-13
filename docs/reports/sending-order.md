@@ -1,6 +1,6 @@
 # In what order to send them
 
-Thirty-one sendable reports carrying **forty-five issues** across six projects, and none of them sent. The
+Thirty-two sendable reports carrying **forty-six issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
@@ -32,6 +32,7 @@ of these changes what the next one should be.
 | **2** | client-auth [issue 1](everest-d20-client-auth/issue-1-client-auth-decided-by-the-ev.md) | [issue 3](everest-d20-client-auth/issue-3-server-chain-selection.md), then [issue 2](everest-d20-client-auth/issue-2-certificaterequest-contents.md) | Issue 1 has an answer available that would close its framing without touching the others; send it while it is still its own conversation. |
 | **3** | eVDriveFlow issue **1** (`stdin`) | issue **2** | Fixing 1 is what reveals 2. Report 2 reads as a duplicate until 1 is understood. |
 | **4** | [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) → `ext-switchev-iso15118` | → `SwitchEV/iso15118` | Same file in two live trees; the fork is the one that will move, and the upstream issue can then cite it. |
+| **5** | [`everest-d20-eim-rejection`](everest-d20-eim-rejection.md) | [`everest-d20-ac-contactor-edge`](everest-d20-ac-contactor-edge.md) | Both say *"`EvseManager` does not tell the `-20` stack something it knows"*, and both are answered by a change on that side. Sent together they are one argument with two instances; sent in the other order the second reads as a rehash of the first. |
 
 And one **anti**-dependency: [`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) and
 [`evdriveflow-session-id-entropy`](evdriveflow-session-id-entropy.md) are the same requirement in two
@@ -95,69 +96,83 @@ conversation is still open.
 is that `[V2G2-854]` requires the opposite for ISO 15118-2, and `EvseV2G` gets it right — so the obvious
 fix regresses the other stack. A maintainer who reads that first will read the rest differently.
 
+**9.** [`everest-d20-ac-contactor-edge`](everest-d20-ac-contactor-edge.md) — the `-20` AC contactor wait
+is edge-triggered against a level `EvseManager` already holds, so a contactor that closed a moment early
+can never be learned about and the station answers `FAILED_ContactorError` on a closed contactor.
+
+**Immediately after (8), per dependency 5**, and in the same breath: both are *"`EvseManager` does not
+tell the `-20` stack something it knows"*, both are fixed on that side, and the pair is a stronger
+argument than either alone — one is a verdict never forwarded, the other a state never re-reported.
+Sent apart, this one reads as a rehash.
+
+Two things to say explicitly, both already in the draft. **It is not the withdrawn latch report** — a
+maintainer who remembers the missing `*` will assume it is. And **it makes no severity claim**: we have
+not shown a real EV produces the early ordering, only that the code cannot recover from it. Leading with
+"your charger fails to charge" would be claiming the half we did not measure.
+
 ### Then — the OCSP chain, in the only order that works
 
-**9.** [`everest-evse-security-ocsp-dropped`](everest-evse-security-ocsp-dropped.md) — the dropped
+**10.** [`everest-evse-security-ocsp-dropped`](everest-evse-security-ocsp-dropped.md) — the dropped
 struct member, measured off their own MQTT reply.
-**10.** [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md) — and lead it with **their own log
+**11.** [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md) — and lead it with **their own log
 line**, `<n> certificates != <n> OCSP responses`, which we measured firing once per TLS session. That
 is the shortest route into the issue and it is their record, not our reading.
 
 ### Then — the two entropy findings, apart
 
-**11.** [`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) — 49 of 49 SessionIDs recovered from a
+**12.** [`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) — 49 of 49 SessionIDs recovered from a
 32-bit seed space. This is the strongest measurement in the whole directory and it deserves its own
 week.
 
-**12.** [`evdriveflow-session-id-entropy`](evdriveflow-session-id-entropy.md) — **as a PR**, and see
-the dormant-project section. Not the same week as (11).
+**13.** [`evdriveflow-session-id-entropy`](evdriveflow-session-id-entropy.md) — **as a PR**, and see
+the dormant-project section. Not the same week as (12).
 
 ### Then — the bigger arguments, one at a time
 
-These need a maintainer with attention, which is what the first ten were for.
+These need a maintainer with attention, which is what the first thirteen were for.
 
-**13.** [`everest-loop-shutdown`](everest-loop-shutdown.md) — re-pitched around the loop rather than the
+**14.** [`everest-loop-shutdown`](everest-loop-shutdown.md) — re-pitched around the loop rather than the
 handshake, citing two of their own fixes as agreement. Do not lead with the TLS handshake; it is fixed.
-**14.** [`everest-isomux`](everest-isomux.md) — four issues in one module. Decide the shape first: one
+**15.** [`everest-isomux`](everest-isomux.md) — four issues in one module. Decide the shape first: one
 issue with four headings or four issues. §1 and §2 have different answers available, which argues for
 splitting, and the report says so.
-**15.** [`everest-d20-trust-anchor`](everest-d20-trust-anchor.md) — needs a change outside
+**16.** [`everest-d20-trust-anchor`](everest-d20-trust-anchor.md) — needs a change outside
 `libiso15118` (`CaCertificateType` has no `OEM`), so it is a conversation, not a patch.
-**16.** [`libcbv2g-grammar-deviations`](libcbv2g-grammar-deviations.md) — three grammars in one
+**17.** [`libcbv2g-grammar-deviations`](libcbv2g-grammar-deviations.md) — three grammars in one
 generator. **Lead with C**: three types no caller can encode is the one finding here that is not a
 difference of opinion. A is written as a question on purpose.
 
 ### Then — the rest of EVerest, in no particular order among themselves
 
-**17.** [`everest-evsev2g-metering-chain`](everest-evsev2g-metering-chain.md) — two issues, different
+**18.** [`everest-evsev2g-metering-chain`](everest-evsev2g-metering-chain.md) — two issues, different
 severities, file separately.
-**18.** [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) —
+**19.** [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) —
 **carries the `-2` document caveat harder than any other**: every quotation is from the 2022 DIS.
 Re-read the 2014 wording before posting. That is a gate, not a footnote.
-**19.** [`everest-d20-meter-info`](everest-d20-meter-info.md)
-**20.** [`everest-evsev2g-session-log-responses`](everest-evsev2g-session-log-responses.md)
-**21.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — source only, and
+**20.** [`everest-d20-meter-info`](everest-d20-meter-info.md)
+**21.** [`everest-evsev2g-session-log-responses`](everest-evsev2g-session-log-responses.md)
+**22.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — source only, and
 its own checklist wants it on the wire first.
-**22.** [`pyevjosev-manifest-services`](pyevjosev-manifest-services.md) — one line, and the smallest
+**23.** [`pyevjosev-manifest-services`](pyevjosev-manifest-services.md) — one line, and the smallest
 thing in the directory. Good filler between two hard ones.
 
 ### Then — SwitchEV, what is left
 
-**23.** [`josev-iso20-renegotiation`](josev-iso20-renegotiation.md) — §1 to both trees, §2 upstream
+**24.** [`josev-iso20-renegotiation`](josev-iso20-renegotiation.md) — §1 to both trees, §2 upstream
 only, and say in the upstream issue that the fork already carries §2's fix.
-**24.** [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) — fork first, then upstream, per dependency 4.
-**25.** [`josev-iso20-pause-resume`](josev-iso20-pause-resume.md)
+**25.** [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) — fork first, then upstream, per dependency 4.
+**26.** [`josev-iso20-pause-resume`](josev-iso20-pause-resume.md)
 
 ### Then — tux-evse and V2Gdecoder
 
 Both semi-dormant but not dead. Issues, not PRs, and expect a slow answer.
 
-**26.** [`tux-evse-spin`](tux-evse-spin.md) — C and D. The only tux finding that was *measured*, and the
+**27.** [`tux-evse-spin`](tux-evse-spin.md) — C and D. The only tux finding that was *measured*, and the
 reproduction is one line: one connection, one message, disconnect.
-**27.** [`tux-evse-tls`](tux-evse-tls.md) — A and B, separately; A is a bug, B is a question.
-**28.** [`tux-evse-capture-fidelity`](tux-evse-capture-fidelity.md) — E and F; F is the one-liner a
+**28.** [`tux-evse-tls`](tux-evse-tls.md) — A and B, separately; A is a bug, B is a question.
+**29.** [`tux-evse-capture-fidelity`](tux-evse-capture-fidelity.md) — E and F; F is the one-liner a
 maintainer merges in a minute, so consider sending F first.
-**29.** [`v2gdecoder-fuzzy-grammar`](v2gdecoder-fuzzy-grammar.md) — A and B. **Lead with what worked**:
+**30.** [`v2gdecoder-fuzzy-grammar`](v2gdecoder-fuzzy-grammar.md) — A and B. **Lead with what worked**:
 285 of 287 frames round-tripped.
 
 ### Last — eVDriveFlow, as pull requests
@@ -165,13 +180,13 @@ maintainer merges in a minute, so consider sending F first.
 `main` has not moved since **2023-04-17** — three years and four months. Six issues, and an issue is a
 question nobody is there to answer. **Send patches instead**, in one batch, and expect nothing back.
 
-**30.** issue **1** (`stdin` EOF) — the wall everything else is behind.
-**31.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
-**32.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
+**31.** issue **1** (`stdin` EOF) — the wall everything else is behind.
+**32.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
+**33.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
 one that needs no misbehaviour from the other side at all.
-**33.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
-**34.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
-**35.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
+**34.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
+**35.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
+**36.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
 as the report does.
 
 ---

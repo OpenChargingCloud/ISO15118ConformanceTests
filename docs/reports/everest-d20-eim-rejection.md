@@ -11,6 +11,13 @@ Evidence in this repository:
 Citations are labelled `[tag]` for **2026.02.1**, the tree this was measured against, and `[main]` for
 `8dcd75f`, where all of it is unchanged. The two differ only in line numbers.
 
+**Send this one first, then its sibling.**
+[`everest-d20-ac-contactor-edge.md`](everest-d20-ac-contactor-edge.md) is the same shape found a day
+later on the same module — `EvseManager` not telling the `-20` stack something it knows, fixed on
+`EvseManager`'s side — and the two together are a stronger argument than either alone: a verdict never
+forwarded, and a state never re-reported. Sent in the other order the second reads as a rehash.
+[`sending-order.md`](sending-order.md) carries this as dependency 5.
+
 ---
 
 **Title:** `EvseManager` forwards authorization verdicts to the HLC for PnC only, so `Evse15118D20` never
