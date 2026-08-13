@@ -1,0 +1,16 @@
+--- trigger arm, session actls3 ---
+17:34:55.761 watching /home/ahzf/everest/run/actls3.charger.log for: Waiting for contactor is closed
+17:34:59.595 -> draw_power_fixed 0,0;sleep 600
+17:34:59.600 published
+--- trigger arm, session actls4 ---
+17:36:26.248 watching /home/ahzf/everest/run/actls4.charger.log for: Waiting for contactor is closed
+17:36:30.147 -> draw_power_fixed 0,0;sleep 600
+17:36:30.153 published
+--- trigger arm, session actls5 ---
+17:37:30.404 watching /home/ahzf/everest/run/actls5.charger.log for: Waiting for contactor is closed
+17:37:34.462 -> draw_power_fixed 0,0;sleep 600
+17:37:34.467 published
+--- trigger arm, session actls6 ---
+17:38:36.990 watching /home/ahzf/everest/run/actls6.charger.log for: Waiting for contactor is closed
+17:38:42.278 -> draw_power_fixed 0,0;sleep 600
+17:38:42.285 published

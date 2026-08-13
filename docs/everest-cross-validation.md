@@ -781,10 +781,16 @@ The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, **-20 AC
 all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against
 **2025.10.0** and re-validated against **2026.02.1 built from source**. The reverse direction runs and is
 recorded. There is no unattempted cell left in EVerest's column of the matrix; what remains is the list
-of walls above, the drafts waiting to be sent, and two runs that only became possible on 2026-08-13 —
-**AC over TLS**, without which the two new AC cells are green for a transport `[V2G20-1237]` forbids,
-and a **recorded reverse AC** run. Both are in [`open-work.md`](open-work.md) under *Untested, nothing
-stopping us*, a section that had been empty since 2026-08-11 and was refilled by closing a wall.
+of walls above, the drafts waiting to be sent, and **one** run: a recorded **reverse AC** session, the
+only AC shape never attempted in either direction.
+
+The other run that appeared on 2026-08-13 was done the same evening. **AC over mutual TLS 1.3** — two
+`AC` and two `AC_BPT` sessions, their `Handshake complete!` and `Verify certificate result is okay`,
+the contactor window unchanged at +832…1048 ms because the handshake is spent before `PowerDelivery`
+([`…-d20-ac-tls13`](interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md)). Without it the two new AC
+cells were green for a transport `[V2G20-1237]` and `[V2G20-2356]` both forbid, which is a distinction
+this page should keep making: **complete is not conformant**, and the matrix cannot tell them apart on
+its own.
 
 **The last two AC cells fell on 2026-08-13, and the lesson is not about AC.** They had stood since
 2026-08-03 behind an explanation this page stated with confidence four separate times — *their SIL

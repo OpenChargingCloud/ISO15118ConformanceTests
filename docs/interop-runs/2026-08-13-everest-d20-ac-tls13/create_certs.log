@@ -1,0 +1,77 @@
+Password used is: '123456'
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=V2GRootCA, O=EVerest, C=DE, DC=V2G
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=SECCCert, O=EVerest, C=DE, DC=CPO
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=OEMRootCA, O=EVerest, C=DE, DC=OEM
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=OEMSubCA1, O=EVerest, C=DE, DC=OEM
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=OEMSubCA2, O=EVerest, C=DE, DC=OEM
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=OEMProvCert, O=EVerest, C=DE, DC=OEM
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=MORootCA, O=EVerest, C=DE, DC=MO
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=PKI-Ext_CRT_MO_SUB1_VALID, O=EVerest, C=DE, DC=MO
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=PKI-Ext_CRT_MO_SUB2_VALID, O=EVerest, C=DE, DC=MO
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=UKSWI123456791A, O=EVerest, C=DE, DC=MO
+Warning: output encryption option -aes128 ignored with -export
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=ProvSubCA1, O=EVerest, C=DE, DC=CPS
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=ProvSubCA2, O=EVerest, C=DE, DC=CPS
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=CPS Leaf, O=EVerest, C=DE, DC=CPS
+Warning: output encryption option -aes128 ignored with -export
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=VehicleSubCA1, O=Pionix, C=DE, DC=OEM
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=VehicleSubCA2, O=Pionix, C=DE, DC=OEM
+read EC key
+writing EC key
+Certificate request self-signature ok
+subject=CN=WMIV1234567890ABCDEX, O=Pionix, C=DE, DC=OEM
+Certificate was added to keystore
+Importing keystore iso15118_20/certs/client/oem/OEM_CERT_CHAIN.p12 to iso15118_20/certs/client/oem/EVCC_KEYSTORE.jks...
