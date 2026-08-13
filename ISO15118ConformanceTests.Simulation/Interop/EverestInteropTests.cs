@@ -102,7 +102,13 @@ public class EverestInteropTests
 
         var recording = InteropRecording.FromEnvironment($"everest-{protocolName}-{modeName}-forward");
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
+        // 180 s covers every ordinary run. A run that raises V2G_INTEROP_ONGOING is measuring a station
+        // timer longer than that, so the budget has to clear it — and by a margin, or the run ends on
+        // *our* deadline one message before theirs and reads as "the station never answered".
+        var ongoing  = InteropEnvironment.OngoingTimeout();
+        using var cts = new CancellationTokenSource(ongoing is { } pollBudget
+                                                        ? pollBudget + TimeSpan.FromSeconds(120)
+                                                        : TimeSpan.FromSeconds(180));
 
         // Stand in as the certificate-provisioning backend their station publishes to, if the run asks
         // for it. Started *before* the session, because the window it has to answer in is 4,5 s wide and
@@ -153,7 +159,8 @@ public class EverestInteropTests
                                                             silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
                                                             sendSessionId: InteropEnvironment.SendSessionId(),
                                                             certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
-                                                            renegotiate: InteropEnvironment.Renegotiate());
+                                                            renegotiate: InteropEnvironment.Renegotiate(),
+                                                            ongoingTimeout: ongoing);
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0

@@ -157,7 +157,13 @@ SIL, and it is now measured.
   them, and now there is a session that gets far enough to carry one.
 - **The other verdicts.** `Blocked`, `Expired`, `NoCredit` all map to plain `FAILED` on the `-2` wire by
   reading; only `Accepted` and `CertificateRevoked` are measured.
-- **`-20`.** `Evse15118D20` has its own `authorization_response` handler
+- ~~**`-20`.** `Evse15118D20` has its own `authorization_response` handler
   (`Evse15118D20/charger/ISO15118_chargerImpl.cpp:811`) whose `certificate_status` parameter is
   `[[maybe_unused]]`. The same arm reaches it; whether the verdict survives to the `-20` wire is a
-  separate measurement and the signature above says it may not.
+  separate measurement and the signature above says it may not.~~
+  **Run the same day — and the verdict does not survive, for a reason one level above the
+  `[[maybe_unused]]`.** `EvseManager` forwards authorization verdicts to the HLC for Plug & Charge only
+  (`evse_managerImpl.cpp:381-387`), so a rejected EIM token never reaches `Evse15118D20` at all: their
+  station answered `Ongoing` **602 times** where `[V2G20-2230]` gives it 1,5 s to answer `Finished` with
+  `WARNING_EIMAuthorizationFailure` — a branch their own `-20` library has, and cites the requirement
+  in. [`2026-08-13-everest-d20-eim-rejection`](../2026-08-13-everest-d20-eim-rejection/notes.md).

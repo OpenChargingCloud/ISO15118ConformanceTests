@@ -33,7 +33,11 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # polls AuthorizationReq until auth_timeout_pnc and answers FAILED — with no token anywhere and nothing
 # in any log to say why. Measured on 2026-08-13; it is what a PnC run against their plain SIL has
 # always been doing.
-if ! grep -q 'implementation_id: token_provider' "$CONFIG"; then
+#
+# It gates PnC only. An EIM token reaches `auth` from `DummyTokenProvider` without this hop, and an
+# EIM-only measurement is a real use of this arm — `Evse15118D20` offers no PnC at all, so every -20
+# run is one. `EIM_ONLY=1` says you meant it.
+if [[ "${EIM_ONLY:-0}" != "1" ]] && ! grep -q 'implementation_id: token_provider' "$CONFIG"; then
     cat >&2 <<EOF
 $CONFIG does not connect EvseManager's token_provider to auth.
 
@@ -46,7 +50,8 @@ answer FAILED without this validator ever being called. Add to the auth module's
       - module_id: evse_manager
         implementation_id: token_provider
 
-(EIM tokens reach auth without it; PnC ones do not.)
+(EIM tokens reach auth without it; PnC ones do not. Set EIM_ONLY=1 to proceed anyway --
+every -20 run is EIM-only, since Evse15118D20 offers no PnC.)
 EOF
     exit 2
 fi

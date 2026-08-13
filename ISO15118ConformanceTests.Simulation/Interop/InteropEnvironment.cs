@@ -171,6 +171,27 @@ internal static class InteropEnvironment
 
 
     /// <summary>
+    /// <c>V2G_INTEROP_ONGOING=&lt;seconds&gt;</c> — how long our car keeps polling a phase that answers
+    /// <c>EVSEProcessing = Ongoing</c>. Both protocols; default 60 s.
+    /// </summary>
+    /// <remarks>
+    /// For measuring a station's *own* long timers, which are routinely longer than any car should wait:
+    /// EvseV2G's <c>auth_timeout_eim</c> defaults to <b>300 s</b> and its <c>auth_timeout_pnc</c> to 55 s,
+    /// and libiso15118's <c>TIMEOUT_EIM_ONGOING</c> is <b>180 s</b>. A run that leaves the default in place
+    /// measures our patience rather than their timer, and the two are easy to confuse in a frame log —
+    /// both end in "the station stopped being asked".
+    /// <para>Raising it is not a claim that a car may wait that long. It is the instrument being taken
+    /// out of the way of the thing being measured; a conformance statement about our car's patience is a
+    /// different test.</para>
+    /// See <c>docs/interop-runs/2026-08-13-everest-d20-eim-rejection/</c>.
+    /// </remarks>
+    public static TimeSpan? OngoingTimeout()
+        => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_ONGOING"), out var s) && s > 0
+               ? TimeSpan.FromSeconds(s)
+               : null;
+
+
+    /// <summary>
     /// -20 only: <c>V2G_INTEROP_NO_PNC=1</c> makes our station advertise EIM only.
     /// </summary>
     /// <remarks>

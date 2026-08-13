@@ -652,6 +652,24 @@ been sent — they are the operator's to post, under their own name.
 - **ISO 15118-20 Plug & Charge is not implemented in `Evse15118D20`** — `auth_services.push_back(…PnC)`
   is commented out with *"Currently Plug&Charge is not supported and ignored"*. It moved off this
   project's list and onto theirs.
+- **Their `-20` station cannot report a failed EIM authorization, and the branch that would is dead
+  code in their own tree.** `EvseManager` forwards authorization verdicts to the HLC **for Plug & Charge
+  only** (`evse_managerImpl.cpp:381-387`, under its own comment), so `Evse15118D20` never learns that a
+  token was rejected — and since it offers no PnC, *no* verdict ever reaches it. Measured 2026-08-13 with
+  [the contract-validator arm](../tools/interop-everest/contract-validator-arm.sh) answering `Invalid`:
+  their `Auth` logged `REJECTED` and their station answered `AuthorizationRes = OK, EVSEProcessing =
+  Ongoing` **602 times**, where `[V2G20-2230]` gives it **1,5 s** to answer `Finished` with
+  `WARNING_EIMAuthorizationFailure`. Their `-20` library has exactly that branch, citing exactly that
+  requirement in the comment above it (`d20/state/authorization.cpp:55-57`) — the same shape as the
+  `IsoMux` finding two entries up, where the layer that is right is underneath the layer that decides.
+  <br>**Both halves measured out the same day.** With our car's own patience raised out of the way
+  (`V2G_INTEROP_ONGOING`), the tail arrives at **1 800 `Ongoing` then `FAILED`** — the wrong code, since
+  their timeout branch is tested before the EIM switch, and 120× the 1,5 s allowed. And the **`-2` twin
+  is correct**: `[V2G2-854]` requires `Ongoing_WaitingForCustomerInteraction` when no *positive* EIM
+  information is available, `[V2G2-845]` has the EV keep asking, and `EvseV2G` does exactly that for
+  299,8 s — its `auth_timeout_eim` — citing the clause at `iso_server.cpp:947-948`. **The rule changed
+  between the protocols and the shared module kept `-2`'s**, which is what any report has to say, or the
+  fix lands on both and breaks the one that is right.
 - **`PyEvJosev`'s manifest documents 4 of the 12 energy-service values it accepts**, omitting the `MCS`
   its own shipped config uses — and an unrecognised entry is silently dropped rather than reported
   ([`pyevjosev-manifest-services.md`](reports/pyevjosev-manifest-services.md)).

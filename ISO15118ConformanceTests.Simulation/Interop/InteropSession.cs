@@ -144,6 +144,10 @@ internal static class InteropSession
     /// the connection open for this long, to measure when the station ends the session by itself. Set by
     /// <c>V2G_INTEROP_SILENT=&lt;seconds&gt;</c>. A run that sets it does not charge — it measures
     /// <c>V2G_SECC_Sequence_Timeout</c>, which nothing here could do before.</param>
+    /// <param name="ongoingTimeout">Both protocols: how long to keep polling a phase that answers
+    /// <c>EVSEProcessing = Ongoing</c>, overriding the 60 s default. Set by
+    /// <c>V2G_INTEROP_ONGOING=&lt;seconds&gt;</c>, and needed to reach a station's own timer at all —
+    /// see <see cref="InteropEnvironment.OngoingTimeout"/> for the three that are longer than 60 s.</param>
     public static async Task<EvccOutcome> RunEvccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode,
                                                        CancellationToken ct, Boolean preferDynamic = false,
                                                        PncEvccOptions? pnc = null, Boolean mcs = false,
@@ -151,7 +155,8 @@ internal static class InteropSession
                                                        TimeSpan? silentInChargeLoop = null,
                                                        Byte[]? sendSessionId = null,
                                                        Iso2CertInstallOptions? certificateProvisioning = null,
-                                                       Boolean renegotiate = false)
+                                                       Boolean renegotiate = false,
+                                                       TimeSpan? ongoingTimeout = null)
     {
 
         if (mcs)
@@ -170,6 +175,10 @@ internal static class InteropSession
 
             var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
                            { Pnc = pnc, CertInstallRequest = certificateProvisioning, Renegotiate = renegotiate };
+
+            if (ongoingTimeout is { } iso2Ongoing)
+                evcc.OngoingTimeout = iso2Ongoing;
+
             await evcc.RunAsync(ct);
 
             ProvisioningOutcome? provisioning = null;
@@ -212,6 +221,9 @@ internal static class InteropSession
         evcc20.RequestMeterInfo          = requestMeterInfo;
         evcc20.GoSilentInChargeLoop      = silentInChargeLoop;
         evcc20.SendSessionId             = sendSessionId;
+
+        if (ongoingTimeout is { } iso20Ongoing)
+            evcc20.OngoingTimeout = iso20Ongoing;
 
         await evcc20.RunAsync(ct);
         return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,

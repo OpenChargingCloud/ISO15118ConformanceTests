@@ -695,3 +695,38 @@ at 0,25 s. Table 108 of `-2` produced the identical illusion on 2026-08-11 and c
 control: they carry the same four parameters, and reading all three the same way makes the DC one
 unambiguous. Extract with `-table`, and treat any table whose value count exceeds its row count as
 unread.
+
+### A failed EIM authorization is `Finished`, not `Ongoing`
+
+Settled 2026-08-13, against a measurement that found their station doing the other thing 602 times in a
+row ([`…-d20-eim-rejection`](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md)).
+
+- **`[V2G20-2219]`** — `AuthorizationRes` shall carry the ResponseCode
+  `WARNING_EIMAuthorizationFailure` if EIM authorization fails **for any reason**, expressly including
+  the customer cancelling it.
+- **`[V2G20-2230]`** — after an `AuthorizationReq` with `SelectedAuthorizationService = EIM`, when
+  authorization has failed for any reason, the SECC shall answer with `EVSEProcessing = Finished` and
+  that ResponseCode, **within `V2G_SECC_Msg_Performance_Time`** — Table 215 gives **1,5 s** for
+  `AuthorizationReq`. It then enumerates the next allowed requests, and **another `AuthorizationReq` is
+  among them**.
+
+That last clause is the whole of it, and it disposes of the obvious counter-argument. An implementation
+that keeps answering `Ongoing` after a rejection is usually protecting a real case — the user may swipe
+again, and a session ended on the first bad badge is a bad charger. ISO 15118-20 has already provided
+for that case: report the failure as `Finished`, and let the EV ask again. **`Ongoing` after a decided
+failure is not a conservative reading of `[V2G20-2230]`, it is the state the requirement excludes** —
+`Ongoing` means *no answer yet*, and there is an answer.
+
+**And `-2` asks for the opposite — checked the same day, because assuming the twin would have been
+wrong.** ISO 15118-2 has no `WARNING_EIMAuthorizationFailure` at all, and:
+
+- **`[V2G2-854]`** — EIM selected and **no positive EIM information available** → the SECC shall set
+  `EVSEProcessing = Ongoing_WaitingForCustomerInteraction`. A rejected token is that case.
+- **`[V2G2-856]`** — only *positive* authorization information makes it `Finished`.
+- **`[V2G2-845]`** — and the EV shall **resend** `AuthorizationReq` for as long as that lasts.
+
+So under `-2` a station that keeps answering `Ongoing` after a rejection is doing what it is told, and
+nothing obliges it to report the negative result; when it gives up is its own policy. **The rule
+changed between the protocols**, and that is the shape of the EVerest finding: a shared module applying
+`-2`'s rule to both stacks. Anything written about one of these two clauses has to name the other, or a
+fix aimed at `-20` will be applied to `-2` and break it.
