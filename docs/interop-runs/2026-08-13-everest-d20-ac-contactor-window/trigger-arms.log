@@ -1,0 +1,20 @@
+--- trigger arm, session 2 ---
+08:14:07.709 watching /home/ahzf/everest/run/acwin.charger.log for: Waiting for contactor is closed
+08:14:13.105 -> draw_power_fixed 0,0;sleep 600
+08:14:13.109 published
+--- trigger arm, session 3 ---
+08:15:12.647 watching /home/ahzf/everest/run/acwin.charger.log for: Waiting for contactor is closed
+08:15:17.352 -> draw_power_fixed 0,0;sleep 600
+08:15:17.358 published
+--- trigger arm, session 4 ---
+08:16:07.116 watching /home/ahzf/everest/run/acwin.charger.log for: Waiting for contactor is closed
+08:16:11.784 -> draw_power_fixed 0,0;sleep 600
+08:16:11.789 published
+--- trigger arm, session 5 ---
+08:16:56.784 watching /home/ahzf/everest/run/acwin.charger.log for: Waiting for contactor is closed
+08:17:01.654 -> draw_power_fixed 0,0;sleep 600
+08:17:01.660 published
+--- trigger arm, session 7 ---
+08:18:29.512 watching /home/ahzf/everest/run/acwin.charger.log for: Waiting for contactor is closed
+08:18:34.326 -> draw_power_fixed 0,0;sleep 600
+08:18:34.332 published

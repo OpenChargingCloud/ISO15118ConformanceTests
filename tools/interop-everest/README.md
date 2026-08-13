@@ -401,6 +401,29 @@ under `set -o pipefail` that reads as failure — the first version announced *"
 It found [a defect in their `-20` state machine](../../docs/reports/everest-iso20-ac-contactor-latch.md):
 a contactor reported **open** is charged through.
 
+### Arriving inside a window  ([`carsim-on-trigger.sh`](carsim-on-trigger.sh))
+
+**This is the one that opened `-20` AC.** Same watcher as above, but instead of telling the HLC layer a
+hardware fact, it moves the **simulated car** — so the station reaches its own conclusion through its own
+IEC layer, its own `CPEvent::PowerOn` and its own `ac_contactor_closed(true)`. That difference is why its
+sessions count as interop and `contactor-report.sh`'s do not.
+
+```bash
+CP_AT_PLUGIN=0 bash sil-car.sh &                     # plug in, hold at state B
+bash carsim-on-trigger.sh --watch charger.log        # raise CP when the 3 s window opens
+```
+
+`PowerDelivery` waits for a `ClosedContactor` **event** inside that window and remembers nothing that
+arrived earlier (`power_delivery.cpp:118`, gated on `is_ac_charger()` — which is why `-20` DC never meets
+it, and why `-2` does not either: `EvseV2G` latches the value in a loop that re-tests it). Raising CP at
+plug-in, as every AC run here did until 2026-08-13, puts their own `PowerOn` about **five seconds early**,
+where it is produced and discarded. Firing it into the window gives `PowerOn` at +783…1005 ms against
+3 000 ms: [`…-d20-ac-contactor-window`](../../docs/interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md).
+
+Two timing constraints, both of which cost a run: the session must start within ~45 s of `Set PWM On`
+(after that the station declares `Car Paused`, and waking from it takes longer than the window), and the
+watcher must be armed **before** the session.
+
 ### Their PyEvJosev → our SECC  ([`reverse-iso2-dc.sh`](reverse-iso2-dc.sh))
 
 ```bash

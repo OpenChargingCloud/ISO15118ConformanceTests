@@ -98,8 +98,8 @@ how to read one.
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ◐ `EV→` to `ScheduleExchange`, then their SIL's own-EV contactor coupling⁵ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; ◐ AC_BPT negotiated, then their contactor wall¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 sessions, 16/16 `OK`, their contactor really closed⁵ | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2**, complete¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
@@ -143,10 +143,17 @@ Still `◐`: what nothing checks, here or anywhere, is whether the *contract* is
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
 run notes — and 12 of our -20 messages decoded clean by a second independent codec.
 
-⁵ Their -20 AC SIL closes the contactor on a Control-Pilot `PowerOn` event, and in SIL that line is
-driven by their own EV module following its own session — so driving it from outside is not enough.
-Ours to get past, not theirs to fix. Reading their source to explain it did turn up something that is
-theirs, on the same code path and not the cause of this:
+⁵ **Green since 2026-08-13, after four months of reading the wall wrong.** Their `-20`
+`PowerDelivery` waits for a `ClosedContactor` *event* inside a 3 s window — `power_delivery.cpp:118`,
+gated on `is_ac_charger()`, which is why `-20` DC never meets it and `-2` does not either (`EvseV2G`
+latches the value in a loop that re-tests it, so an early `true` is remembered; `libiso15118` remembers
+nothing). Raising the car's CP line at plug-in put their own `PowerOn` **4,948 s before** the window,
+where it was produced and discarded. Firing it *into* the window instead gives `PowerOn` at +783…1005 ms
+against 3 000 ms and a complete session — five of them, with a control between that still fails at
+3,047 s. Nothing injected, nothing patched: their IEC layer, their `EvseManager`, their conclusion.
+[`…-d20-ac-contactor-window`](docs/interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md).
+Reading their source to explain the wall had already turned up something that *is* theirs, on the same
+code path and not the cause of it:
 [`everest-iso20-ac-contactor-latch.md`](docs/reports/everest-iso20-ac-contactor-latch.md).
 
 ⁶ 59 and 68 exchanges to `SessionStop` from Windows, once the app let a session name its TLS backend.
@@ -176,6 +183,8 @@ ran as a by-product of the MCS reverse session. The `EV→` result for **-2** is
 
 ¹¹ **Neither of their configs was changed for this**, which is the finding: their SIL had been
 advertising service 6 at every -20 DC run this project ever made, and our EV could not ask for it.
+The **AC_BPT** half followed on 2026-08-13 once the contactor window was understood (footnote ⁵) — two
+sessions, their log reading `EV selected service: AC_BPT`, through the charge loop to `SessionStop`.
 
 ¹² `IsoMux` terminates TLS at the **-2 profile** — 1.2 with the suite ISO 15118-2 prescribes, pinned in
 code it shares with `EvseV2G` — and only then routes on the SAP offer. So a dual-stack EV gets a complete

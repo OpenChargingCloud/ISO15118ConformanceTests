@@ -1,0 +1,729 @@
+2026-08-13 10:08:16.232748 [INFO] manager          ::   ________      __                _   
+2026-08-13 10:08:16.233039 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-13 10:08:16.233050 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-13 10:08:16.233056 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-13 10:08:16.233062 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-13 10:08:16.233068 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-13 10:08:16.233074 [INFO] manager          :: 
+2026-08-13 10:08:16.233080 [INFO] manager          :: everest-framework 0.25.0-dev 2026.02.1
+2026-08-13 10:08:16.233086 [INFO] manager          :: everest-core 2026.02.1-dev 2026.02.1
+2026-08-13 10:08:16.233093 [INFO] manager          :: 
+2026-08-13 10:08:16.233100 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-08-13 10:08:16.259691 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-13 10:08:16.259755 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-ours/config-ac20-ours.yaml
+2026-08-13 10:08:16.400678 [INFO] manager          :: Config loading completed in 167ms
+2026-08-13 10:08:16.402914 [INFO] manager          :: Starting 15 modules
+2026-08-13 10:08:18.394519 [INFO] api_sink:Energy  :: Module api_sink initialized [1962ms]
+2026-08-13 10:08:18.399663 [INFO] api:API          :: Module api initialized [1970ms]
+2026-08-13 10:08:18.437734 [INFO] energy_manager:  :: Module energy_manager initialized [1995ms]
+2026-08-13 10:08:18.440423 [INFO] grid_connection  :: Module grid_connection_point initialized [1978ms]
+2026-08-13 10:08:18.440982 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-13 10:08:18.441168 [INFO] error_history:E  :: Checking database
+2026-08-13 10:08:18.441490 [INFO] connector_1_pow  :: Module connector_1_powerpath initialized [2003ms]
+2026-08-13 10:08:18.441670 [INFO] evse_security:E  :: Module evse_security initialized [1979ms]
+2026-08-13 10:08:18.442404 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [1992ms]
+2026-08-13 10:08:18.442507 [INFO] auth:Auth        :: Module auth initialized [2004ms]
+2026-08-13 10:08:18.443297 [INFO] error_history:E  :: Module error_history initialized [1997ms]
+2026-08-13 10:08:18.453344 [INFO] token_validator  :: Module token_validator initialized [1967ms]
+2026-08-13 10:08:18.454717 [INFO] evse_manager:Ev  :: Module evse_manager initialized [1995ms]
+2026-08-13 10:08:18.482047 [INFO] slac:SlacSimula  :: Module slac initialized [2005ms]
+2026-08-13 10:08:18.482636 [INFO] token_provider:  :: Module token_provider initialized [2002ms]
+2026-08-13 10:08:18.484496 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2008ms]
+2026-08-13 10:08:18.931928 [INFO] iso15118_car     :: Module iso15118_car initialized [1975ms]
+2026-08-13 10:08:18.976629 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-13 10:08:18.978330 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2762ms] 🚙🚙🚙
+2026-08-13 10:08:19.156431 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-08-13 10:08:19.382344 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-13 10:08:19.387434 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-13 10:08:19.387596 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-08-13 10:08:19.469101 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-13 10:08:19.516154 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-13 10:08:19.517723 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-08-13 10:08:19.520747 [INFO] evse_manager:Ev  :: AC HLC mode enabled.
+2026-08-13 10:08:19.560565 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-08-13 10:08:19.560679 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-13 10:08:20.032415 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-08-13 10:08:20.125125 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-13 10:08:59.184134 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:09:05.708792 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:09:05.806355 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:09:05.806517 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:09:05.808019 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}2026-08-13 10:09:05.808148 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+
+2026-08-13 10:09:05.809082 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:09:05.810279 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:09:06.060478 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:09:06.061812 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:09:06.204687 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:09:06.207899 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:09:06.252426 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:09:06.252878 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:09:06.252974 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:09:06.253488 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:09:07.796386 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:09:07.796399 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:09:30.898179 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:09:30.899360 [INFO] iso15118_charge  :: Created logfile at: /home/ahzf/everest/dist/./260813_08-09-30.yaml
+2026-08-13 10:09:36.330769 [INFO] evse_manager:Ev  :: EVSE IEC EV did not transition to state C, trying one legacy wakeup according to IEC61851-1 A.5.3
+2026-08-13 10:09:36.331026 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->T_step_EF
+2026-08-13 10:09:36.331422 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-08-13 10:09:36.331638 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-08-13 10:09:36.428360 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:09:36.428460 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:09:36.428470 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-08-13 10:09:40.333101 [INFO] evse_manager:Ev  :: EVSE IEC Pause in X1 for EV READY regulations
+2026-08-13 10:09:40.333341 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:09:40.921396 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedStopPower
+2026-08-13 10:09:40.922889 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHING
+2026-08-13 10:09:40.923008 [INFO] evse_manager:Ev  ::                                     CAR IEC Event EFtoBCD
+2026-08-13 10:09:41.123437 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_EF
+2026-08-13 10:09:41.123717 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:09:41.172164 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_EF->PrepareCharging
+2026-08-13 10:09:51.183486 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Car Paused
+2026-08-13 10:12:23.424099 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:45928
+2026-08-13 10:12:23.431071 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:12:23.443140 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:12:23.443594 [INFO] iso15118_charge  :: New session created with session_id: 0x23, 0xF0, 0x14, 0x34, 0x03, 0xA5, 0x88, 0xD3
+2026-08-13 10:12:23.476594 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:12:23.477046 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:12:23.541149 [INFO] iso15118_charge  :: Timestamp: 1786608743
+2026-08-13 10:12:23.576569 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:12:23.576903 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:12:23.664258 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:12:23.664659 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:12:23.755500 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:12:23.755997 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:12:23.831997 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:12:23.835761 [INFO] iso15118_charge  :: Requested info about ServiceID: 1
+2026-08-13 10:12:23.836490 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:12:23.931890 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:12:23.934823 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:12:23.934901 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC
+2026-08-13 10:12:24.032156 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:12:24.036683 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:12:24.160466 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:12:24.160788 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:12:24.239485 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:12:24.248480 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:12:24.248775 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:12:24.248765 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:12:24.978900 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:12:27.288339 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:12:32.285790 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:12:34.286112 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:12:34.286199 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:12:34.316116 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:12:34.316455 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:12:34.404098 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:12:34.404142 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:12:40.361645 [WARN] evse_manager:Ev std::queue<module::CPEvent> module::IECStateMachine::state_machine(std::optional<module::RawCPState>) :: Timeout of 6 seconds reached, EV did not go back to state B after PWM was switched off. Powering off under load.
+2026-08-13 10:13:53.882132 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:13:57.896094 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:13:58.263999 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 10:13:58.308070 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 10:13:58.308250 [INFO] evse_manager:Ev  :: EVSE IEC Stop in ChargingPausedEV: [EV unplugged]
+2026-08-13 10:13:58.308344 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Car Paused->StoppingCharging
+2026-08-13 10:13:58.396124 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 10:13:58.440516 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0 kWh)
+2026-08-13 10:13:58.616267 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 10:13:58.616437 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 10:13:58.660370 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:13:58.660517 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:14:04.504032 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:14:04.681098 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:14:04.681262 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:14:04.682607 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:14:04.682825 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 10:14:04.683397 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:14:04.684428 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:14:04.934610 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:14:04.935918 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:14:04.982392 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:14:04.983350 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:14:05.024230 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:14:05.024716 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:14:05.024993 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:14:05.025639 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:14:06.668385 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:14:06.668420 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:14:12.263458 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:40928
+2026-08-13 10:14:12.280727 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:14:12.281055 [INFO] iso15118_charge  :: New session created with session_id: 0xE0, 0x3E, 0xF3, 0xE2, 0x77, 0x3E, 0xC5, 0xA7
+2026-08-13 10:14:12.304373 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:14:12.312408 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:14:12.312681 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:14:12.377739 [INFO] iso15118_charge  :: Timestamp: 1786608852
+2026-08-13 10:14:12.412433 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:14:12.412697 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:14:12.504211 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:14:12.504526 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:14:12.570389 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:14:12.571829 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:14:12.673318 [INFO] iso15118_charge  :: Requested info about ServiceID: 1
+2026-08-13 10:14:12.688110 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:14:12.688364 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:14:12.804418 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:14:12.804434 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC
+2026-08-13 10:14:12.804698 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:14:12.904322 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:14:12.904665 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:14:12.970851 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:14:12.975319 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:14:13.070562 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:14:13.076187 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:14:13.076523 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:14:13.124390 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:14:13.784339 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:14:13.784975 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 10:14:14.015768 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 10:14:14.060244 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:14:14.065328 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:14:14.160250 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:14:14.214760 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:14:14.260249 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:14:14.360140 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:14:14.360613 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:14:14.417114 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:14:14.460493 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Open contactor
+2026-08-13 10:14:14.460536 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:14:14.504414 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionStopReq
+2026-08-13 10:14:14.560548 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionStopRes
+2026-08-13 10:14:19.559929 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:14:21.560321 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:14:21.560396 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:14:21.592230 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:14:21.592461 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:14:21.684625 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:14:21.732139 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:14:21.732244 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:14:58.917137 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:15:02.844167 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:15:03.096362 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 10:15:03.096593 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-13 10:15:03.096728 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-13 10:15:03.097292 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 10:15:03.184269 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-13 10:15:03.184447 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 10:15:03.228501 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.093 kWh)
+2026-08-13 10:15:03.360273 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 10:15:03.360450 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 10:15:03.404225 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:15:03.404382 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:15:09.537846 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:15:09.713222 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:15:09.713391 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:15:09.714641 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 10:15:09.714627 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:15:09.715415 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:15:09.716516 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:15:09.966704 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:15:09.968708 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:15:10.014428 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:15:10.015372 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:15:10.060277 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:15:10.060751 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:15:10.060843 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:15:10.061363 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:15:11.696376 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:15:11.696376 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:15:16.483298 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:42740
+2026-08-13 10:15:16.503613 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:15:16.504010 [INFO] iso15118_charge  :: New session created with session_id: 0x54, 0xC2, 0xF5, 0xB0, 0xFC, 0x65, 0x13, 0x0F
+2026-08-13 10:15:16.528372 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:15:16.536497 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:15:16.536778 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:15:16.602629 [INFO] iso15118_charge  :: Timestamp: 1786608916
+2026-08-13 10:15:16.620558 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:15:16.620925 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:15:16.690226 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:15:16.694048 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:15:16.790694 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:15:16.797429 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:15:16.890332 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:15:16.893137 [INFO] iso15118_charge  :: Requested info about ServiceID: 1
+2026-08-13 10:15:16.893733 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:15:16.990395 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:15:16.993382 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:15:16.993512 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC
+2026-08-13 10:15:17.120608 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:15:17.120891 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:15:17.190965 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:15:17.197487 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:15:17.290929 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:15:17.298302 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:15:17.298964 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:15:17.340577 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:15:17.830534 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:15:17.830746 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 10:15:18.082732 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 10:15:18.128533 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:15:18.128968 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:15:18.186499 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:15:18.286239 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:15:18.328649 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:15:18.356078 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:15:18.428695 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:15:18.466496 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:15:18.508566 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Open contactor
+2026-08-13 10:15:18.508665 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:15:18.558080 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionStopReq
+2026-08-13 10:15:18.586428 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionStopRes
+2026-08-13 10:15:23.585971 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:15:25.586399 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:15:25.586520 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:15:25.587781 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:15:25.587983 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:15:25.632294 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:15:25.676193 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:15:25.676394 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:15:53.349030 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:15:57.288234 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:15:57.684526 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 10:15:57.684812 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-13 10:15:57.685043 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-13 10:15:57.685601 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 10:15:57.776453 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-13 10:15:57.776647 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 10:15:57.824681 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.074 kWh)
+2026-08-13 10:15:57.960963 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 10:15:57.961327 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 10:15:58.004312 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:15:58.004479 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:16:03.829445 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:16:03.929096 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:16:03.929312 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:16:03.930748 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 10:16:03.930838 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:16:03.931754 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:16:03.932793 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:16:04.182978 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:16:04.184425 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:16:04.240765 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:16:04.241864 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:16:04.288302 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:16:04.289041 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:16:04.289467 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:16:04.290151 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:16:06.012315 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:16:06.012306 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:16:10.924626 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:57166
+2026-08-13 10:16:10.930249 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:16:10.942625 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:16:10.942970 [INFO] iso15118_charge  :: New session created with session_id: 0xDB, 0x93, 0x2A, 0x8C, 0x1E, 0xF0, 0x8E, 0x23
+2026-08-13 10:16:10.972867 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:16:10.973270 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:16:11.044963 [INFO] iso15118_charge  :: Timestamp: 1786608971
+2026-08-13 10:16:11.072582 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:16:11.072964 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:16:11.164278 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:16:11.164610 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:16:11.231598 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:16:11.235355 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:16:11.331601 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:16:11.338826 [INFO] iso15118_charge  :: Requested info about ServiceID: 5
+2026-08-13 10:16:11.339759 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:16:11.431257 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:16:11.434774 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC_BPT
+2026-08-13 10:16:11.434774 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:16:11.531790 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:16:11.538694 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:16:11.631810 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:16:11.637415 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:16:11.731871 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:16:11.745663 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:16:11.746201 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:16:11.800115 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:16:12.373567 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:16:12.373865 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 10:16:12.625983 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 10:16:12.669210 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:16:12.669807 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:16:12.732162 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:16:12.810785 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:16:12.900393 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:16:12.901458 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:16:12.948408 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:16:13.020610 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:16:13.064377 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Open contactor
+2026-08-13 10:16:13.064417 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:16:13.100649 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionStopReq
+2026-08-13 10:16:13.176481 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionStopRes
+2026-08-13 10:16:18.131986 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:16:20.132389 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:16:20.132510 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:16:20.133761 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:16:20.133977 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:16:20.176254 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:16:20.224249 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:16:20.224292 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:16:42.917682 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:16:46.976502 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:16:47.440323 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 10:16:47.440524 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-13 10:16:47.440619 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-13 10:16:47.441210 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 10:16:47.532221 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-13 10:16:47.532401 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 10:16:47.577010 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.065 kWh)
+2026-08-13 10:16:47.716577 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 10:16:47.716865 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 10:16:47.804222 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:16:47.804380 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:16:53.587642 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:16:53.720693 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:16:53.720845 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:16:53.722226 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 10:16:53.722209 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:16:53.723052 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:16:53.724141 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:16:53.974376 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:16:53.975810 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:16:54.022053 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:16:54.022901 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:16:54.068339 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:16:54.068846 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:16:54.068975 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:16:54.069552 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:16:55.748421 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:16:55.748421 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:17:00.814607 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:53926
+2026-08-13 10:17:00.821733 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:17:00.837713 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:17:00.838206 [INFO] iso15118_charge  :: New session created with session_id: 0xB8, 0x5A, 0xE2, 0xE0, 0x34, 0x19, 0x09, 0x09
+2026-08-13 10:17:00.871341 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:17:00.871653 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:17:00.934845 [INFO] iso15118_charge  :: Timestamp: 1786609020
+2026-08-13 10:17:00.964285 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:17:00.964550 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:17:01.064336 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:17:01.064720 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:17:01.122820 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:17:01.125017 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:17:01.223054 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:17:01.232752 [INFO] iso15118_charge  :: Requested info about ServiceID: 5
+2026-08-13 10:17:01.233680 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:17:01.323074 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:17:01.327198 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:17:01.327337 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC_BPT
+2026-08-13 10:17:01.422903 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:17:01.428169 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:17:01.523073 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:17:01.527959 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:17:01.629707 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:17:01.644391 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:17:01.644702 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:17:01.645034 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:17:02.384020 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:17:02.384199 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 10:17:02.634859 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 10:17:02.684263 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:17:02.684540 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:17:02.776266 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:17:02.868201 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:17:02.916279 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:17:02.917384 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:17:02.963498 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:17:03.072187 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Open contactor
+2026-08-13 10:17:03.072187 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:17:03.104390 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:17:03.104718 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionStopReq
+2026-08-13 10:17:03.184292 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionStopRes
+2026-08-13 10:17:08.162559 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:17:10.162948 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:17:10.163047 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:17:10.164049 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:17:10.164197 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:17:10.244960 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:17:10.245764 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:17:10.288237 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:17:21.937666 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:17:25.896363 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:17:26.420254 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 10:17:26.420457 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-13 10:17:26.420554 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-13 10:17:26.421125 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 10:17:26.512402 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-13 10:17:26.512603 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 10:17:26.560717 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.044 kWh)
+2026-08-13 10:17:26.740307 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 10:17:26.740484 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 10:17:26.784231 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:17:26.784387 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:17:32.588067 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:17:32.764853 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:17:32.765042 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:17:32.766243 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 10:17:32.766263 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:17:32.767033 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:17:32.767995 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:17:33.018159 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:17:33.019344 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:17:33.066117 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:17:33.066967 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:17:33.108228 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:17:33.108715 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:17:33.108821 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:17:33.109229 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:17:34.764285 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:17:34.764285 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:17:35.308163 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:17:35.308350 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 10:17:35.560524 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 10:17:39.690098 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:53680
+2026-08-13 10:17:39.698416 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:17:39.722260 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:17:39.722735 [INFO] iso15118_charge  :: New session created with session_id: 0xE6, 0x7C, 0x53, 0xE6, 0xDB, 0xFC, 0xB1, 0xA7
+2026-08-13 10:17:39.740843 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:17:39.741296 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:17:39.819046 [INFO] iso15118_charge  :: Timestamp: 1786609059
+2026-08-13 10:17:39.880374 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:17:39.880703 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:17:39.898976 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:17:39.904934 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:17:39.999168 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:17:40.001509 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:17:40.104419 [INFO] iso15118_charge  :: Requested info about ServiceID: 1
+2026-08-13 10:17:40.108463 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:17:40.108858 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:17:40.199491 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:17:40.206783 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:17:40.206974 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC
+2026-08-13 10:17:40.299484 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:17:40.304835 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:17:40.440478 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:17:40.440844 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:17:40.499934 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:17:40.508747 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:17:40.509228 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:17:40.552659 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:17:43.555744 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:17:48.555051 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:17:50.555466 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:17:50.555626 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:17:50.556418 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:17:50.556552 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:17:50.600504 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:17:50.648164 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:17:50.648164 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 10:18:15.812414 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:feda:2c1f%eth0
+2026-08-13 10:18:19.828068 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 10:18:20.165914 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 10:18:20.166238 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-13 10:18:20.166356 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-13 10:18:20.166754 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 10:18:20.256239 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-13 10:18:20.256436 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 10:18:20.300445 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.084 kWh)
+2026-08-13 10:18:20.388238 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 10:18:20.388408 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 10:18:20.436120 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:18:20.436268 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 10:18:26.352075 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 10:18:26.528837 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 10:18:26.528999 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 10:18:26.530392 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:18:26.530475 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 10:18:26.531258 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 10:18:26.532376 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 10:18:26.782594 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 10:18:26.783960 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 10:18:26.836625 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 10:18:26.837642 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 10:18:26.880447 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 10:18:26.881113 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 10:18:26.881293 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 10:18:26.881939 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:18:28.532573 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 10:18:28.532573 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 10:18:33.402868 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:feda:2c1f%eth0]:42162
+2026-08-13 10:18:33.410627 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-13 10:18:33.427704 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-08-13 10:18:33.428165 [INFO] iso15118_charge  :: New session created with session_id: 0x71, 0xA1, 0x96, 0x3B, 0x68, 0xF5, 0x14, 0x1E
+2026-08-13 10:18:33.452506 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-13 10:18:33.452764 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-13 10:18:33.521152 [INFO] iso15118_charge  :: Timestamp: 1786609113
+2026-08-13 10:18:33.556559 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-08-13 10:18:33.556826 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-08-13 10:18:33.644503 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-08-13 10:18:33.644899 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:18:33.711565 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:18:33.788392 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-13 10:18:33.832263 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-08-13 10:18:33.832547 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-13 10:18:33.911827 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-08-13 10:18:33.914953 [INFO] iso15118_charge  :: Requested info about ServiceID: 1
+2026-08-13 10:18:33.915906 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-08-13 10:18:34.011773 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-08-13 10:18:34.016246 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-08-13 10:18:34.016308 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: AC
+2026-08-13 10:18:34.111806 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-08-13 10:18:34.156327 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeParameterDiscoveryReq
+2026-08-13 10:18:34.211763 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeParameterDiscoveryRes
+2026-08-13 10:18:34.217110 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-08-13 10:18:34.312316 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-08-13 10:18:34.320827 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-13 10:18:34.321362 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:18:34.364468 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Close contactor
+2026-08-13 10:18:34.888374 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 10:18:34.888654 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 10:18:35.103377 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 10:18:35.112704 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:18:35.113335 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:18:35.208342 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:18:35.269145 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:18:35.352382 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:18:35.360779 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AcChargeLoopReq
+2026-08-13 10:18:35.408466 [INFO] evse_manager:Ev  :: EVSE ISO V2G AcChargeLoopRes
+2026-08-13 10:18:35.469181 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-13 10:18:35.512257 [INFO] evse_manager:Ev  ::                                     CAR ISO AC HLC Open contactor
+2026-08-13 10:18:35.512281 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-13 10:18:35.556488 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionStopReq
+2026-08-13 10:18:35.652155 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionStopRes
+2026-08-13 10:18:40.607958 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-13 10:18:42.608239 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-13 10:18:42.608321 [INFO] iso15118_charge  :: Connection is closed
+2026-08-13 10:18:42.628101 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-13 10:18:42.628293 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 10:18:42.712657 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 10:18:42.713317 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 10:18:42.713317 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
