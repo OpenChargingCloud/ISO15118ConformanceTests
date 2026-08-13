@@ -98,7 +98,7 @@ how to read one.
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, then **×2 over mutual TLS 1.3**⁵ | — | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
@@ -249,6 +249,17 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+³¹ **The first AC session this project has run in the reverse direction, in either protocol** — and it
+cost two findings on the way. Ours: the reverse fixture passed no power mode to the SAP handshake, whose
+parameter *defaults* to DC, so every reverse `-20` run ever made announced a DC-only catalogue and it
+took an AC EV to notice. Theirs, measured rather than read: their `PyEvJosev` paces the AC charge loop at
+**≈532 ms** — 44 loops in 23,407 s from their own log — against the **500 ms** `[V2G20-1500]` and
+`[V2G20-1502]` allow a station to wait, so **2 of 2** runs with our conformant timer die on the *first*
+charge loop and the 56-exchange session above needed `V2G_INTEROP_CHARGELOOP` to relax it. Not filed
+yet: whether the EVCC is bound by the same table is a question this run did not read, and
+[`normative-basis.md`](docs/normative-basis.md) says decide before citing.
+[`…-d20-ac-reverse`](docs/interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md).
 
 ³⁰ Half-working rather than absent, which is the finding. `PowerDeliveryReq(Renegotiate)` and the fresh
 `ChargeParameterDiscovery` are both answered `OK`; the `PowerDeliveryReq(Start)` that restarts the charge

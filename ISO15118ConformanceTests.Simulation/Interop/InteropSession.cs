@@ -299,11 +299,19 @@ internal static class InteropSession
             return new SeccOutcome(secc.IsDone, SequenceErrorAt: secc.SequenceErrorAt);
         }
 
+        // ChargeLoopSequenceTimeout is init-only, so the knob has to be applied here rather than after
+        // construction. Unset, every arm keeps Secc20Base's own 500 ms — the Tables 216/217 value, and
+        // the one a conformance claim rests on. See InteropEnvironment.ChargeLoopTimeout.
+        var chargeLoop = InteropEnvironment.ChargeLoopTimeout();
+
         Secc20Base secc20 = (mode, mcs) switch
         {
-            (PowerMode.Dc, true ) => new Secc20Mcs(SequenceTimeout, TimeProvider.System),
-            (PowerMode.Dc, false) => new Secc20Dc (SequenceTimeout, TimeProvider.System),
-            _                     => new Secc20Ac (SequenceTimeout, TimeProvider.System),
+            (PowerMode.Dc, true ) => chargeLoop is { } m ? new Secc20Mcs(SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = m }
+                                                        : new Secc20Mcs(SequenceTimeout, TimeProvider.System),
+            (PowerMode.Dc, false) => chargeLoop is { } d ? new Secc20Dc (SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = d }
+                                                        : new Secc20Dc (SequenceTimeout, TimeProvider.System),
+            _                     => chargeLoop is { } a ? new Secc20Ac (SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = a }
+                                                        : new Secc20Ac (SequenceTimeout, TimeProvider.System),
         };
 
         secc20.PreferDynamicControlMode = preferDynamic;

@@ -110,11 +110,13 @@ ordinary untested work appeared behind them:
 | | Counterparty | Note |
 |---|---|---|
 | ~~**AC over TLS, -20**~~ | ~~EVerest~~ | **Run the same evening — AC 2/2 and AC_BPT 2/2 over mutual TLS 1.3**, their `Handshake complete!` and `Verify certificate result is okay`, contactor window unchanged at +832…1048 ms because the handshake is spent before `PowerDelivery`. That was the run that mattered: every AC session before it was plain TCP, which `[V2G20-1237]` and `[V2G20-2356]` both forbid, so the cells were green for a transport the standard does not allow. [`…-d20-ac-tls13`](interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md). |
-| **A recorded reverse AC run** | EVerest | Their `PyEvJosev` → our SECC has been run for DC and never for AC, and the reverse direction is the only one that puts *our* AC station under a foreign car. No known obstacle; it has simply never been the next thing. |
+| ~~**A recorded reverse AC run**~~ | ~~EVerest~~ | **Run the same evening, and it was the most productive hour of the day.** Their EV discovered our station over SDP, negotiated `-20:AC` and charged — 56 exchanges, all `OK`, 44 charge loops to `SessionStop`. It found **a defect of ours** (the reverse fixture defaulted its SAP catalogue to DC, so every reverse `-20` run ever made announced DC-only) and **a measurement of theirs** (their EV paces the AC charge loop at ≈532 ms, against the 500 ms `[V2G20-1500]` allows a station to wait — 2 of 2 strict runs die on the first loop). [`…-d20-ac-reverse`](interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md). |
+| **The EVCC half of Tables 216/217** | — | Ours to decide, not to run. `[V2G20-1500]`/`[V2G20-1502]` oblige the **SECC** to time out 0,5 s after a charge-loop response; whether a matching obligation binds the **EVCC** to send within it is what turns the 532 ms measured above from a fact into a filing. [`normative-basis.md`](normative-basis.md) says decide before citing, so it is listed here rather than half-written as a report. |
+| **Reverse over TLS** | EVerest | The reverse direction has never run over TLS in any mode. Now that the forward AC half is on TLS 1.3 and the reverse half runs at all, this is the remaining combination. |
 
 **`-2` AC over TLS 1.2 is the other one nobody has run** against this counterparty, and it is now the
-older gap of the two. Worth listing here once somebody wants it; the `-2` AC cell has been green over
-plain TCP since 2026-08-03.
+older gap. Worth listing here once somebody wants it; the `-2` AC cell has been green over plain TCP
+since 2026-08-03.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in

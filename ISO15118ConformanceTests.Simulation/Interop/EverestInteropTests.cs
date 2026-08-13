@@ -308,7 +308,14 @@ public class EverestInteropTests
 
         try
         {
-            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, transport: transport);
+            // `mode` is passed, and that is not decoration: RunSeccSideAsync defaults it to PowerMode.Dc,
+            // so this fixture announced a DC-only `-20` catalogue no matter what V2G_INTEROP_MODE said —
+            // for as long as every reverse run happened to be DC, which was all of them until 2026-08-13.
+            // Their AC EV then offered `-20:AC` and our own station refused it: "the EVCC offered none of
+            // urn:iso:std:iso:15118:-20:DC". The forward fixture never had the bug because the EVCC side
+            // takes the mode as a required argument. Same shape the sweep keeps finding, here in our
+            // harness rather than in the stack: a value we already held, defaulted instead of passed.
+            await SapHandshake.RunSeccSideAsync(stream, protocol, cts.Token, mode, transport);
 
             var outcome = await InteropSession.RunSeccAsync(stream, protocol, mode, cts.Token, preferDynamic, offerPnc,
                                                             mcs: InteropEnvironment.Mcs(),
