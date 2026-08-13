@@ -1,0 +1,22 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [16 s]
+  Error Message:
+   cloud.charging.open.protocols.ISO15118.Session.SessionAborted : SECC sequence timeout: EV silent for > 500 ms in the charge loop
+  Stack Trace:
+--- End of stack trace from previous location ---
+
+  Standard Output Messages:
+ SDP: advertising [fe80::215:5dff:feda:2c1f%2]:15118 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their PyEvJosev on [::]:15118 ...
+ SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+ Recorded:
+   /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/docs/interop-runs/2026-08-13-everest-d20-ac-reverse/everest-iso15118-20-ac-reverse.ev-to-station.bin
+   /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/docs/interop-runs/2026-08-13-everest-d20-ac-reverse/everest-iso15118-20-ac-reverse.station-to-ev.bin
+   /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/docs/interop-runs/2026-08-13-everest-d20-ac-reverse/everest-iso15118-20-ac-reverse.frames.log
+   /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/docs/interop-runs/2026-08-13-everest-d20-ac-reverse/everest-iso15118-20-ac-reverse.flow.md
+   /mnt/d/Coding/OpenChargingCloud/ISO15118ConformanceTests/docs/interop-runs/2026-08-13-everest-d20-ac-reverse/everest-iso15118-20-ac-reverse.trace-not-built.txt
+
+
+
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 16 s - ISO15118ConformanceTests.Simulation.dll (net10.0)

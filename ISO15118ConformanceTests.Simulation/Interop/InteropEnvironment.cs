@@ -192,6 +192,27 @@ internal static class InteropEnvironment
 
 
     /// <summary>
+    /// <c>V2G_INTEROP_CHARGELOOP=&lt;milliseconds&gt;</c> — what our <c>-20</c> station waits for the next
+    /// request after a charge-loop response. Unset leaves <see cref="Secc20Base"/>'s own <b>500 ms</b>,
+    /// which is what Tables 216/217 require (<c>[V2G20-1500]</c>, <c>[V2G20-1502]</c>).
+    /// </summary>
+    /// <remarks>
+    /// The mirror image of <see cref="OngoingTimeout"/>, and it exists for the same reason: a run that
+    /// stops on <i>our</i> timer has measured us. The `-20` AC reverse run on 2026-08-13 ended at
+    /// <c>SECC sequence timeout: EV silent for &gt; 500 ms in the charge loop</c> after eleven clean
+    /// exchanges — which says our station enforced the requirement and says nothing whatever about how
+    /// fast their EV actually is. Raising this reads the peer's real pacing off the wire; the 500 ms
+    /// default is the conformance statement and stays the default.
+    /// <para>Raising it is not a claim that a station may wait that long, and a run that used it cannot
+    /// be quoted as a passing charge-loop conformance result.</para>
+    /// </remarks>
+    public static TimeSpan? ChargeLoopTimeout()
+        => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_CHARGELOOP"), out var ms) && ms > 0
+               ? TimeSpan.FromMilliseconds(ms)
+               : null;
+
+
+    /// <summary>
     /// -20 only: <c>V2G_INTEROP_NO_PNC=1</c> makes our station advertise EIM only.
     /// </summary>
     /// <remarks>

@@ -781,8 +781,15 @@ The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, **-20 AC
 all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against
 **2025.10.0** and re-validated against **2026.02.1 built from source**. The reverse direction runs and is
 recorded. There is no unattempted cell left in EVerest's column of the matrix; what remains is the list
-of walls above, the drafts waiting to be sent, and **one** run: a recorded **reverse AC** session, the
-only AC shape never attempted in either direction.
+of walls above and the drafts waiting to be sent. The last untried AC shape, a **reverse AC** session,
+ran the same evening and was the most productive hour of the day: it found a defect of *ours* — the
+reverse fixture defaulted its SAP catalogue to DC, so every reverse `-20` run ever made announced
+DC-only, and it took an AC EV on the far end to notice — and then measured one of theirs, their EV
+pacing the AC charge loop at **≈532 ms** against the 500 ms `[V2G20-1500]` allows a station to wait
+([`…-d20-ac-reverse`](interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md)). **That pair is worth
+more than either half:** their own `-20` station flattens the same override to 60 s
+([the twenty-second filing](reports/everest-d20-sequence-timeout.md)), so a station that waits 60 s
+never discovers that its own EV takes 532 ms. Neither side is visible without a conformant third party.
 
 The other run that appeared on 2026-08-13 was done the same evening. **AC over mutual TLS 1.3** — two
 `AC` and two `AC_BPT` sessions, their `Handshake complete!` and `Verify certificate result is okay`,

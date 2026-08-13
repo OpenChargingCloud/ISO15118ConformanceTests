@@ -1,0 +1,111 @@
+2026-08-13 20:32:29.016343 [INFO] manager          ::   ________      __                _   
+2026-08-13 20:32:29.016533 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-13 20:32:29.016543 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-13 20:32:29.016549 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-13 20:32:29.016555 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-13 20:32:29.016561 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-13 20:32:29.016567 [INFO] manager          :: 
+2026-08-13 20:32:29.016572 [INFO] manager          :: everest-framework 0.25.0-dev 2026.02.1
+2026-08-13 20:32:29.016579 [INFO] manager          :: everest-core 2026.02.1-dev 2026.02.1
+2026-08-13 20:32:29.016585 [INFO] manager          :: 
+2026-08-13 20:32:29.016592 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-08-13 20:32:29.038566 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-13 20:32:29.038628 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-ours/config-ac20-reverse-ours.yaml
+2026-08-13 20:32:29.171017 [INFO] manager          :: Config loading completed in 154ms
+2026-08-13 20:32:29.173528 [INFO] manager          :: Starting 15 modules
+2026-08-13 20:32:31.156774 [INFO] energy_manager:  :: Module energy_manager initialized [1955ms]
+2026-08-13 20:32:31.159772 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-13 20:32:31.160044 [INFO] error_history:E  :: Checking database
+2026-08-13 20:32:31.162274 [INFO] error_history:E  :: Module error_history initialized [1957ms]
+2026-08-13 20:32:31.162777 [INFO] connector_1_pow  :: Module connector_1_powerpath initialized [1959ms]2026-08-13 20:32:31.162757 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [1957ms]
+
+2026-08-13 20:32:31.162711 [INFO] api:API          :: Module api initialized [1964ms]
+2026-08-13 20:32:31.164121 [INFO] auth:Auth        :: Module auth initialized [1965ms]
+2026-08-13 20:32:31.178496 [INFO] grid_connection  :: Module grid_connection_point initialized [1969ms]
+2026-08-13 20:32:31.179335 [INFO] evse_security:E  :: Module evse_security initialized [1969ms]
+2026-08-13 20:32:31.181035 [INFO] slac:SlacSimula  :: Module slac initialized [1967ms]
+2026-08-13 20:32:31.181035 [INFO] iso15118_charge  :: Module iso15118_charger initialized [1965ms]
+2026-08-13 20:32:31.185494 [INFO] token_validator  :: Module token_validator initialized [1967ms]
+2026-08-13 20:32:31.188063 [INFO] token_provider:  :: Module token_provider initialized [1968ms]
+2026-08-13 20:32:31.193846 [INFO] evse_manager:Ev  :: Module evse_manager initialized [1984ms]
+2026-08-13 20:32:31.199085 [INFO] api_sink:Energy  :: Module api_sink initialized [2001ms]
+2026-08-13 20:32:31.667854 [INFO] iso15118_car     :: Module iso15118_car initialized [1984ms]
+2026-08-13 20:32:31.716497 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-13 20:32:31.718153 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2707ms] 🚙🚙🚙
+2026-08-13 20:32:31.900626 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-08-13 20:32:32.168576 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-13 20:32:32.173043 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-13 20:32:32.173162 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-08-13 20:32:32.175858 [INFO] evse_manager:Ev  :: AC HLC mode enabled.
+2026-08-13 20:32:32.256679 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-13 20:32:32.264115 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-13 20:32:32.305609 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-08-13 20:32:32.348472 [INFO] iso15118_charge  :: Using ethernet interface: lo
+2026-08-13 20:32:32.348577 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-08-13 20:32:32.356516 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-08-13 20:32:32.489421 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-13 20:32:35.788370 [INFO] connector_1_pow  :: Lock connector
+2026-08-13 20:32:35.957723 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-13 20:32:35.957882 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-13 20:32:35.959000 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 20:32:35.959177 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-13 20:32:35.960147 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-13 20:32:36.008548 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-13 20:32:36.258813 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-13 20:32:36.260259 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-13 20:32:36.332822 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-13 20:32:36.359174 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-13 20:32:36.452390 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-13 20:32:36.453193 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-13 20:32:36.453345 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-13 20:32:36.453930 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-13 20:32:38.016341 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-13 20:32:38.016341 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-13 20:32:38.232880 [WARN] iso15118_car    pybind11_init_everestpy(pybind11::module_&)::<lambda(const std::string&)> :: The port 15118 does not match the mandatory UDP server port 15118.
+2026-08-13 20:32:44.031297 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-08-13 20:32:44.031618 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-13 20:32:44.281766 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-08-13 20:32:50.100725 [ERRO] iso15118_car    pybind11_init_everestpy(pybind11::module_&)::<lambda(const std::string&)> :: EVCC tried to initiate a V2GCommunicationSession, but maximum number of SDP retry cycles (1) is now reached. Shutting down high-level communication. Unplug and plug in the cable again if you want to start anew.
+Traceback (most recent call last):
+  File "/home/ahzf/everest/dist/libexec/everest/modules/PyEvJosev/../../3rd_party/josev/iso15118/evcc/comm_session_handler.py", line 584, in get_from_rcv_queue
+    await self.restart_sdp(True)
+  File "/home/ahzf/everest/dist/libexec/everest/modules/PyEvJosev/../../3rd_party/josev/iso15118/evcc/comm_session_handler.py", line 401, in restart_sdp
+    raise SDPFailedError(
+    ...<3 lines>...
+    )
+iso15118.shared.exceptions.SDPFailedError: EVCC tried to initiate a V2GCommunicationSession, but maximum number of SDP retry cycles (1) is now reached. Shutting down high-level communication. Unplug and plug in the cable again if you want to start anew.
+2026-08-13 20:33:07.468085 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-13 20:33:07.784148 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-13 20:33:07.784148 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-13 20:33:07.872307 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-13 20:33:07.872521 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-13 20:33:07.872573 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-13 20:33:07.873217 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-13 20:33:07.873460 [INFO] connector_1_pow  :: Unlock connector
+2026-08-13 20:33:07.960323 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-13 20:33:07.960574 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-13 20:33:08.008807 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.069 kWh)
+2026-08-13 20:33:08.100263 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-13 20:33:08.100450 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-13 20:33:08.148479 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-13 20:33:08.148641 [INFO] evse_manager:Ev  :: All errors cleared

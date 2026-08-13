@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-20-ac-reverse",
+  "protocol": "iso15118-20",
+  "mode": "ac",
+  "note": "live interop: EVerest\u0027s PyEvJosev against our SECC",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d20a18010000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe800100000003804880"
+      }
+    }
+  ]
+}
