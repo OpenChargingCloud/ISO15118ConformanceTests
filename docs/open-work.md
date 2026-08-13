@@ -111,7 +111,7 @@ ordinary untested work appeared behind them:
 |---|---|---|
 | ~~**AC over TLS, -20**~~ | ~~EVerest~~ | **Run the same evening — AC 2/2 and AC_BPT 2/2 over mutual TLS 1.3**, their `Handshake complete!` and `Verify certificate result is okay`, contactor window unchanged at +832…1048 ms because the handshake is spent before `PowerDelivery`. That was the run that mattered: every AC session before it was plain TCP, which `[V2G20-1237]` and `[V2G20-2356]` both forbid, so the cells were green for a transport the standard does not allow. [`…-d20-ac-tls13`](interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md). |
 | ~~**A recorded reverse AC run**~~ | ~~EVerest~~ | **Run the same evening, and it was the most productive hour of the day.** Their EV discovered our station over SDP, negotiated `-20:AC` and charged — 56 exchanges, all `OK`, 44 charge loops to `SessionStop`. It found **a defect of ours** (the reverse fixture defaulted its SAP catalogue to DC, so every reverse `-20` run ever made announced DC-only) and **a measurement of theirs** (their EV paces the AC charge loop at ≈532 ms, against the 500 ms `[V2G20-1500]` allows a station to wait — 2 of 2 strict runs die on the first loop). [`…-d20-ac-reverse`](interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md). |
-| **The EVCC half of Tables 216/217** | — | Ours to decide, not to run. `[V2G20-1500]`/`[V2G20-1502]` oblige the **SECC** to time out 0,5 s after a charge-loop response; whether a matching obligation binds the **EVCC** to send within it is what turns the 532 ms measured above from a fact into a filing. [`normative-basis.md`](normative-basis.md) says decide before citing, so it is listed here rather than half-written as a report. |
+| ~~**The EVCC half of Tables 216/217**~~ | ~~—~~ | **Decided 2026-08-13: the EVCC is bound, and to a *performance* criterion rather than an error one.** Table 216 gives `V2G_EVCC_Sequence_Performance_Time` one row — `AC_ChargeLoopReq`, **0,25 s** — and `[V2G20-1499]` makes implementing it a *shall*; Figure 212 draws that span from response-received to next-request-sent and its legend separates *Performance Time (Performance Criteria)* from *Timeout (Error Criteria)*, which is the SECC's 0,5 s. So their EV's ≈532 ms misses the car's own performance time by **2,1×**, and the abort belongs to the station, where `[V2G20-443]` does make it an error. Written up in [`normative-basis.md`](normative-basis.md), including the absence it turned up: there is no general clause starting the EVCC's sequence timer, only the SECC's. |
 | **Reverse over TLS** | EVerest | The reverse direction has never run over TLS in any mode. Now that the forward AC half is on TLS 1.3 and the reverse half runs at all, this is the remaining combination. |
 
 **`-2` AC over TLS 1.2 is the other one nobody has run** against this counterparty, and it is now the
@@ -525,6 +525,15 @@ also below.
   be learned about ([`everest-d20-ac-contactor-edge`](reports/everest-d20-ac-contactor-edge.md)). It is
   the second half of the shape [`everest-d20-eim-rejection`](reports/everest-d20-eim-rejection.md) found,
   and [`sending-order.md`](reports/sending-order.md) now pairs them as dependency 5.
+  <br>**A forty-seventh is warranted and unwritten.** Their `PyEvJosev` paces the AC charge loop at
+  ≈532 ms where Table 216 gives the EVCC **0,25 s** (`[V2G20-1499]`) and the SECC a 0,5 s error
+  criterion (`[V2G20-1500]`, `[V2G20-443]`) — measured 2 of 2, and the requirement side is now
+  [decided](normative-basis.md) rather than assumed. It goes to `EVerest/ext-switchev-iso15118` and
+  upstream SwitchEV, like [`josev-iso20-renegotiation`](reports/josev-iso20-renegotiation.md), and it
+  must be written **as a performance deviation, not a violated timeout** — the figure legend separates
+  them and a report that blurs it is refutable in one sentence. Pair it with
+  [`everest-d20-sequence-timeout`](reports/everest-d20-sequence-timeout.md): that station's flattened
+  60 s is exactly why nobody there has noticed this EV.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the four orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to

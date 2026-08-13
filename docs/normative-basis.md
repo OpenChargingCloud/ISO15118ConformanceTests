@@ -696,6 +696,52 @@ control: they carry the same four parameters, and reading all three the same way
 unambiguous. Extract with `-table`, and treat any table whose value count exceeds its row count as
 unread.
 
+### The EVCC is bound by those tables too — but to a *performance* criterion, not an error one
+
+Settled 2026-08-13, because a measurement needed it: EVerest's `PyEvJosev` paces the AC charge loop at
+**≈532 ms** ([`…-d20-ac-reverse`](interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md)), and the
+question was whether anything binds the *car* or only the station's timeout.
+
+**Both, and the document says which is which in a figure legend.** Figure 212 draws one span between
+request-response pair *n−1* and pair *n* — from `A-Data.confirmation` (the response arriving) to
+`A-Data.request` (the next request going out) — and puts **two** thresholds on it, the EVCC's
+`V2G_EVCC_Sequence_Performance_Time` and the SECC's `V2G_SECC_Sequence_Timeout`. Its legend sorts the
+two into different kinds: one is a *performance* threshold, the other an *error* threshold, and the
+figure labels which is which.
+
+| threshold | kind, per the legend | who | AC charge loop |
+|---|---|---|---|
+| `V2G_EVCC_Sequence_Performance_Time` | performance criterion | EVCC | **0,25 s**, Table 216, obliged by `[V2G20-1499]` |
+| `V2G_SECC_Sequence_Timeout` | error criterion | SECC | **0,5 s**, Table 216, obliged by `[V2G20-1500]` |
+
+So the EV **is** bound: Table 216 gives `V2G_EVCC_Sequence_Performance_Time` a single row,
+`AC_ChargeLoopReq` at 0,25 s, and `[V2G20-1499]` makes implementing the EVCC-specific performance times
+a *shall*. Table 217's DC row is the same value for `DC_ChargeLoopReq`, and Table 218's for WPT —
+three tables, one number.
+
+**Two things follow, and keeping them apart is the whole point.**
+
+1. **Missing the EVCC performance time is a conformance deviation, not an abort.** The document sorts it
+   with the performance thresholds, and there is no clause of the `[V2G20-443]` shape — stop the session —
+   pointed at the car's sequence timer. A report that says a slow EV "violates a timeout" has read the
+   figure legend backwards.
+2. **The consequence lands on the station, and there it *is* an error criterion.** `[V2G20-443]` has the
+   SECC stop the V2G communication session when its sequence timer reaches the timeout with no request
+   received. So an EV pacing above 0,5 s cannot charge on a conformant station — which needs no reading
+   of the EVCC clause at all, and is the half that was already certain before this section existed.
+
+**What the document does not give**, and it is worth recording as an absence rather than glossing it:
+there is **no general clause that starts the EVCC's sequence timer**. `[V2G20-441]` does exactly that for
+the SECC — reset on sending a response, monitor, abort at the timeout — and the EVCC block beside it
+(`[V2G20-436]`–`[V2G20-440]`) covers only `V2G_EVCC_Msg_Timeout`, the wait for a *response*. The EVCC
+sequence timer is invoked instead by individual state-machine requirements, and for the charge loop the
+explicit ones are the standby transitions — `[V2G20-2113]`, `[V2G20-1391]`, `[V2G20-1393]`. Figure 212
+and `[V2G20-1499]` are what carry the general case, which is enough to cite and not enough to pretend the
+symmetry is written out.
+
+Extracted with `pdftotext -table` per the trap above; Table 217 is the control, since its stacked groups
+are visible there and Table 216's one-row-per-parameter shape is not an artefact of flattening.
+
 ### A failed EIM authorization is `Finished`, not `Ongoing`
 
 Settled 2026-08-13, against a measurement that found their station doing the other thing 602 times in a
