@@ -1,6 +1,6 @@
 # In what order to send them
 
-Thirty sendable reports carrying **forty-four issues** across six projects, and none of them sent. The
+Thirty-one sendable reports carrying **forty-five issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
@@ -79,69 +79,85 @@ conformance profile.
 
 Their [README](everest-d20-client-auth/README.md) explains why three and why this order.
 
+### Then — the one the client-auth reader is already in the right code for
+
+**8.** [`everest-d20-eim-rejection`](everest-d20-eim-rejection.md) — a rejected EIM authorization never
+reaches `Evse15118D20`, because `EvseManager` forwards verdicts for Plug & Charge only. Their station
+answers `Ongoing` for 180 s and then the wrong code, where `[V2G20-2230]` allows 1,5 s and names
+`WARNING_EIMAuthorizationFailure` — a branch their own `-20` library has and cites.
+
+Placed here on **code locality**, which is the one thing that beats the batching rule: 5–7 are all
+`Evse15118D20`/`libiso15118` authorization, and so is this. It does stretch rule 3 to four in a row for
+one project — send it a clear week after (7), or move it behind the OCSP chain if the client-auth
+conversation is still open.
+
+**Lead with the `-2` control, not with the defect.** The report's value over "you forgot to forward EIM"
+is that `[V2G2-854]` requires the opposite for ISO 15118-2, and `EvseV2G` gets it right — so the obvious
+fix regresses the other stack. A maintainer who reads that first will read the rest differently.
+
 ### Then — the OCSP chain, in the only order that works
 
-**8.** [`everest-evse-security-ocsp-dropped`](everest-evse-security-ocsp-dropped.md) — the dropped
+**9.** [`everest-evse-security-ocsp-dropped`](everest-evse-security-ocsp-dropped.md) — the dropped
 struct member, measured off their own MQTT reply.
-**9.** [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md) — and lead it with **their own log
+**10.** [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md) — and lead it with **their own log
 line**, `<n> certificates != <n> OCSP responses`, which we measured firing once per TLS session. That
 is the shortest route into the issue and it is their record, not our reading.
 
 ### Then — the two entropy findings, apart
 
-**10.** [`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) — 49 of 49 SessionIDs recovered from a
+**11.** [`everest-d20-rng-entropy`](everest-d20-rng-entropy.md) — 49 of 49 SessionIDs recovered from a
 32-bit seed space. This is the strongest measurement in the whole directory and it deserves its own
 week.
 
-**11.** [`evdriveflow-session-id-entropy`](evdriveflow-session-id-entropy.md) — **as a PR**, and see
-the dormant-project section. Not the same week as (10).
+**12.** [`evdriveflow-session-id-entropy`](evdriveflow-session-id-entropy.md) — **as a PR**, and see
+the dormant-project section. Not the same week as (11).
 
 ### Then — the bigger arguments, one at a time
 
 These need a maintainer with attention, which is what the first ten were for.
 
-**12.** [`everest-loop-shutdown`](everest-loop-shutdown.md) — re-pitched around the loop rather than the
+**13.** [`everest-loop-shutdown`](everest-loop-shutdown.md) — re-pitched around the loop rather than the
 handshake, citing two of their own fixes as agreement. Do not lead with the TLS handshake; it is fixed.
-**13.** [`everest-isomux`](everest-isomux.md) — four issues in one module. Decide the shape first: one
+**14.** [`everest-isomux`](everest-isomux.md) — four issues in one module. Decide the shape first: one
 issue with four headings or four issues. §1 and §2 have different answers available, which argues for
 splitting, and the report says so.
-**14.** [`everest-d20-trust-anchor`](everest-d20-trust-anchor.md) — needs a change outside
+**15.** [`everest-d20-trust-anchor`](everest-d20-trust-anchor.md) — needs a change outside
 `libiso15118` (`CaCertificateType` has no `OEM`), so it is a conversation, not a patch.
-**15.** [`libcbv2g-grammar-deviations`](libcbv2g-grammar-deviations.md) — three grammars in one
+**16.** [`libcbv2g-grammar-deviations`](libcbv2g-grammar-deviations.md) — three grammars in one
 generator. **Lead with C**: three types no caller can encode is the one finding here that is not a
 difference of opinion. A is written as a question on purpose.
 
 ### Then — the rest of EVerest, in no particular order among themselves
 
-**16.** [`everest-evsev2g-metering-chain`](everest-evsev2g-metering-chain.md) — two issues, different
+**17.** [`everest-evsev2g-metering-chain`](everest-evsev2g-metering-chain.md) — two issues, different
 severities, file separately.
-**17.** [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) —
+**18.** [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) —
 **carries the `-2` document caveat harder than any other**: every quotation is from the 2022 DIS.
 Re-read the 2014 wording before posting. That is a gate, not a footnote.
-**18.** [`everest-d20-meter-info`](everest-d20-meter-info.md)
-**19.** [`everest-evsev2g-session-log-responses`](everest-evsev2g-session-log-responses.md)
-**20.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — source only, and
+**19.** [`everest-d20-meter-info`](everest-d20-meter-info.md)
+**20.** [`everest-evsev2g-session-log-responses`](everest-evsev2g-session-log-responses.md)
+**21.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — source only, and
 its own checklist wants it on the wire first.
-**21.** [`pyevjosev-manifest-services`](pyevjosev-manifest-services.md) — one line, and the smallest
+**22.** [`pyevjosev-manifest-services`](pyevjosev-manifest-services.md) — one line, and the smallest
 thing in the directory. Good filler between two hard ones.
 
 ### Then — SwitchEV, what is left
 
-**22.** [`josev-iso20-renegotiation`](josev-iso20-renegotiation.md) — §1 to both trees, §2 upstream
+**23.** [`josev-iso20-renegotiation`](josev-iso20-renegotiation.md) — §1 to both trees, §2 upstream
 only, and say in the upstream issue that the fork already carries §2's fix.
-**23.** [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) — fork first, then upstream, per dependency 4.
-**24.** [`josev-iso20-pause-resume`](josev-iso20-pause-resume.md)
+**24.** [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) — fork first, then upstream, per dependency 4.
+**25.** [`josev-iso20-pause-resume`](josev-iso20-pause-resume.md)
 
 ### Then — tux-evse and V2Gdecoder
 
 Both semi-dormant but not dead. Issues, not PRs, and expect a slow answer.
 
-**25.** [`tux-evse-spin`](tux-evse-spin.md) — C and D. The only tux finding that was *measured*, and the
+**26.** [`tux-evse-spin`](tux-evse-spin.md) — C and D. The only tux finding that was *measured*, and the
 reproduction is one line: one connection, one message, disconnect.
-**26.** [`tux-evse-tls`](tux-evse-tls.md) — A and B, separately; A is a bug, B is a question.
-**27.** [`tux-evse-capture-fidelity`](tux-evse-capture-fidelity.md) — E and F; F is the one-liner a
+**27.** [`tux-evse-tls`](tux-evse-tls.md) — A and B, separately; A is a bug, B is a question.
+**28.** [`tux-evse-capture-fidelity`](tux-evse-capture-fidelity.md) — E and F; F is the one-liner a
 maintainer merges in a minute, so consider sending F first.
-**28.** [`v2gdecoder-fuzzy-grammar`](v2gdecoder-fuzzy-grammar.md) — A and B. **Lead with what worked**:
+**29.** [`v2gdecoder-fuzzy-grammar`](v2gdecoder-fuzzy-grammar.md) — A and B. **Lead with what worked**:
 285 of 287 frames round-tripped.
 
 ### Last — eVDriveFlow, as pull requests
@@ -149,13 +165,13 @@ maintainer merges in a minute, so consider sending F first.
 `main` has not moved since **2023-04-17** — three years and four months. Six issues, and an issue is a
 question nobody is there to answer. **Send patches instead**, in one batch, and expect nothing back.
 
-**29.** issue **1** (`stdin` EOF) — the wall everything else is behind.
-**30.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
-**31.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
+**30.** issue **1** (`stdin` EOF) — the wall everything else is behind.
+**31.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
+**32.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
 one that needs no misbehaviour from the other side at all.
-**32.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
-**33.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
-**34.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
+**33.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
+**34.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
+**35.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
 as the report does.
 
 ---
