@@ -82,6 +82,13 @@ weaker claim than it looks and worth separating from "untested".
   revocation material at all. That is the far end of
   [`everest-evse-security-ocsp-dropped`](reports/everest-evse-security-ocsp-dropped.md) and worth
   re-measuring once that lands.
+  <br>**The arm's second run turned into the forty-fifth filing.** Pointed at their `-20` station it
+  found that a *rejected* verdict reaches `Evse15118D20` not at all — `EvseManager` forwards them for
+  Plug & Charge only, and that module offers no PnC — so their station answers `Ongoing` for 180 s and
+  then the wrong code, where `[V2G20-2230]` allows 1,5 s. The `-2` control run the same day is what
+  makes it sendable: `EvseV2G` does the identical thing and is **right** to, because `[V2G2-854]`
+  inverts the rule. [`everest-d20-eim-rejection`](reports/everest-d20-eim-rejection.md),
+  [run](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md).
 
 ## Untested, and nothing is stopping us
 
