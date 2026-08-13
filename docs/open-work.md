@@ -495,11 +495,17 @@ also below.
 
 ## Not in the matrix at all
 
-- **Forty-five issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
-  in thirty-one sendable reports. Each ends with a *Before sending* checklist whose unticked items are
+- **Forty-six issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
+  in thirty-two sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human —
   and since 2026-08-13 it is the **only** block: *Untested, nothing stopping us* is empty, *Ours to fix*
   is empty, and *Open questions about our own stack* has none.
+  <br>**The forty-sixth was written on 2026-08-13** and came out of a question this file had been
+  carrying: whether `EvseManager` re-reports a contactor it already knows is closed. It does not — the
+  `-20` AC wait is edge-triggered against a level, so a contactor that closed a moment early can never
+  be learned about ([`everest-d20-ac-contactor-edge`](reports/everest-d20-ac-contactor-edge.md)). It is
+  the second half of the shape [`everest-d20-eim-rejection`](reports/everest-d20-eim-rejection.md) found,
+  and [`sending-order.md`](reports/sending-order.md) now pairs them as dependency 5.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the four orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
