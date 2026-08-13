@@ -495,9 +495,11 @@ also below.
 
 ## Not in the matrix at all
 
-- **Forty-four issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
-  in thirty sendable reports. Each ends with a *Before sending* checklist whose unticked items are the
-  parts only a person can do. This is the largest single block of finished work waiting on a human.
+- **Forty-five issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
+  in thirty-one sendable reports. Each ends with a *Before sending* checklist whose unticked items are
+  the parts only a person can do. This is the largest single block of finished work waiting on a human —
+  and since 2026-08-13 it is the **only** block: *Untested, nothing stopping us* is empty, *Ours to fix*
+  is empty, and *Open questions about our own stack* has none.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the four orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
@@ -505,7 +507,13 @@ also below.
   <br>**The mechanical half of those checklists was cleared on 2026-08-11**
   ([audit](interop-runs/2026-08-11-reports-upstream-audit/notes.md),
   [tools](../tools/reports-audit/README.md)): all 189 `file:line` citations re-verified, and every
-  finding re-tested against its project's current default branch. Five of the six counterparties have
+  finding re-tested against its project's current default branch. **189 was the count that day; it is
+  242 now** — the forty-fifth report added its own, and configuring `TREE_TUX_NET` on 2026-08-13
+  finally resolved the one that had been unresolved since the day it was written
+  ([`tux-evse-spin`](reports/tux-evse-spin.md)'s central citation, which turned out to be correct). The
+  standing state is **227 resolved, 15 ambiguous, 0 unresolved**; the ambiguous ones are basenames that
+  exist in two trees and the reports name the tree in prose. Re-run it before the first filing goes out,
+  not because it is due but because `main` moves. Five of the six counterparties have
   not committed since the drafts were written. everest-core has — and **three findings are now fixed
   there**, so two of them are retired and the third
   ([loop-shutdown](reports/everest-loop-shutdown.md)) is re-pitched and **rewritten**: its trigger is
