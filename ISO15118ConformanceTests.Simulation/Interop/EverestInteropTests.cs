@@ -286,21 +286,43 @@ public class EverestInteropTests
         var preferDynamic    = InteropEnvironment.PreferDynamic();
         var offerPnc         = InteropEnvironment.OfferPlugAndCharge();
 
-        var recording = InteropRecording.FromEnvironment($"everest-{protocolName}-{modeName}-reverse");
+        // Their EV verifies the station against the V2G root in its own PKI path
+        // (`get_ssl_context(server_side=False)` → `CertPath.V2G_ROOT_PEM`, `CERT_REQUIRED`, hostname
+        // checking off), so the only material that can work here is theirs — SECC_LEAF plus both CPO
+        // Sub-CAs as a PKCS#12. Null leaves the listener plaintext, which is what every reverse run
+        // against this counterparty was until 2026-08-14: the knob has existed since the tux-evse runs
+        // and the eVDriveFlow fixture uses it, and this one simply never reached for it.
+        var serverTls = InteropEnvironment.ServerTlsOrNull(protocol);
+
+        var recording = InteropRecording.FromEnvironment(
+                            $"everest-{protocolName}-{modeName}-reverse{(serverTls is null ? "" : "-tls")}");
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(240));
 
-        using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort));
+        using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.IPv6Any, listenPort), serverTls);
 
         // Their EV cannot be pointed at this socket — it takes a `device` and finds a station by SDP on it
         // — so without V2G_INTEROP_SDP this fixture waits for a car that has no way to arrive. See
         // InteropSdp: the run it exists for is the one below.
+        //
+        // The flag is the listener's own, never a constant: their EV reads the security byte out of the
+        // SDP response and opens a TLS or a plaintext socket accordingly, so a station advertising one and
+        // serving the other is discovered and then fails, which reads as a defect of theirs.
         await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
-                                                                     tls: false, cts.Token);
+                                                                     tls: serverTls is not null, cts.Token);
 
-        TestContext.Out.WriteLine($"Waiting for their PyEvJosev on [::]:{listenPort} ...");
+        TestContext.Out.WriteLine($"Waiting for their PyEvJosev on [::]:{listenPort} " +
+                                  $"({(serverTls is null ? "plain TCP" : "TLS")}) ...");
 
         using var socket = await listener.AcceptAsync(cts.Token);
+
+        // Read back rather than assumed. Their EV pins `set_ecdh_curve("prime256v1")` and, under TLS 1.3,
+        // presents the vehicle credential their own `create_certs.sh` mints — so what was negotiated and
+        // who authenticated are results of the run rather than configuration restated.
+        if (socket is SslStream tls)
+            TestContext.Out.WriteLine(
+                $"TLS: {tls.SslProtocol}, {tls.NegotiatedCipherSuite}, " +
+                $"client certificate {(tls.RemoteCertificate is { } c ? c.Subject : "none")}.");
 
         var transport = InteropEnvironment.ReportTransport(socket, protocol);
 

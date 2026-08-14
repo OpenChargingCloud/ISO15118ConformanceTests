@@ -809,6 +809,19 @@ cells were green for a transport `[V2G20-1237]` and `[V2G20-2356]` both forbid, 
 this page should keep making: **complete is not conformant**, and the matrix cannot tell them apart on
 its own.
 
+**The same day closed the last row of the untested table too — the reverse direction over TLS — and it
+had never run because of *our fixture*.** `InteropEnvironment.ServerTlsOrNull` has existed since the
+tux-evse runs and the eVDriveFlow reverse fixture uses it; this one built a plain listener and advertised
+`tls: false` as a constant, so the entry saying the reverse direction had never run over TLS was a
+statement about our harness. Two lines later their EV discovered our station over SDP with the TLS byte,
+handshook **mutual TLS 1.3** (`TLS_AES_256_GCM_SHA384`), presented an **OEM vehicle certificate** of its
+own — `CN=WMIV1234567890ABCDEX, O=Pionix`, P-256, issued by their `VehicleSubCA2` — against the CPO leaf
+we presented out of their own PKI, and charged: 56 exchanges, all `OK`, 43 charge loops to `SessionStop`.
+It also measured the thing [the forty-seventh filing](reports/josev-iso20-evcc-charge-loop-pacing.md) had
+to leave open: their charge-loop pacing over TLS is **≈544 ms** against ≈532 ms on plain TCP, so the
+number a real `-20` deployment meets is the larger one
+([`…-d20-ac-reverse-tls`](interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md)).
+
 **2026-08-14 closed the oldest gap in this column — `-2` AC over TLS 1.2 — and the transport was the
 easy half.** Four sessions, 13/13 `OK` each, one config line changed (`tls_security: force`); `-2` TLS is
 unilateral, so it needed no vehicle credential and no PKI regeneration. Their side is conformant where it

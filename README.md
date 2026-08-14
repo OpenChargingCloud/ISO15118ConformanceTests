@@ -98,14 +98,14 @@ how to read one.
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ | — | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **and again over mutual TLS 1.3**³³ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
 | Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | — they send none, deliberately²⁹ | — | — |
 | Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ◐ `←SECC` the same, in **DC** and against their fork²⁷ | — | — |
-| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→ ←SECC` (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ · ✅ **`←SECC` their EV presents an OEM vehicle certificate to our station**³³ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
 | Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
 | WPT · ACDP | ▢ codec only — but the codec is now independently judged²⁴ | *no independent stack implements session state machines for them; the bytes are read by EXIficient* | | | |
@@ -249,6 +249,19 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+³³ **The first TLS session this project has run in the reverse direction, in any protocol** — and the
+reason there had never been one was **our fixture**, not the counterparties. Their EV discovered our
+station over SDP with the TLS security byte, handshook **mutual TLS 1.3** (`TLS_AES_256_GCM_SHA384`),
+presented an OEM vehicle certificate of its own (`CN=WMIV1234567890ABCDEX, O=Pionix`, P-256, issued by
+their `VehicleSubCA2`) against the CPO leaf we presented from their own PKI, and charged: **56 exchanges,
+every response `OK`, 43 charge loops to `SessionStop`**. `InteropEnvironment.ServerTlsOrNull` has existed
+since the tux-evse runs and the eVDriveFlow reverse fixture uses it; this one built a plain listener and
+advertised `tls: false` as a constant — the third instance in a week of *a capability we already held
+that no call site reached for*. It also **measured what [the forty-seventh filing](docs/reports/josev-iso20-evcc-charge-loop-pacing.md)
+had to leave open**: their EV's charge-loop pacing over TLS is **≈544 ms** against ≈532 ms on plain TCP,
+so the deviation a real `-20` deployment sees is the larger one.
+[`…-d20-ac-reverse-tls`](docs/interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md).
 
 ³² **The last untried cell in this counterparty's column, and it found something in ours.** Four `-2` AC
 sessions over TLS 1.2, 13 exchanges each, every response `OK`, against `EvseV2G` with one line changed

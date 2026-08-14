@@ -778,11 +778,18 @@ internal static class InteropEnvironment
     public static TransportSecurity ReportTransport(Stream socket, ProtocolVariant protocol, Boolean offersIso20 = false)
     {
 
+        // Named by role, not by side. `RemoteCertificate` is the server's in a forward run and the *car's*
+        // in a reverse one, so a fixed wording labels a vehicle certificate "server" — which is what this
+        // line did on 2026-08-14, the first time it ever ran on the station side of a TLS session.
         if (socket is SslStream { IsAuthenticated: true } ssl)
             TestContext.Out.WriteLine(
                 $"TLS: {ssl.SslProtocol}, {ssl.NegotiatedCipherSuite}" +
-                (ssl.RemoteCertificate is { } certificate ? $", server {certificate.Subject}" : "") +
-                (ssl.LocalCertificate is not null ? ", client certificate presented (mutual)" : ""));
+                (ssl.RemoteCertificate is { } peer
+                     ? $", {(ssl.IsServer ? "their car" : "their station")} {peer.Subject}"
+                     : "") +
+                (ssl.LocalCertificate is { } own
+                     ? $", we presented {own.Subject}" + (ssl.IsServer ? "" : " (mutual)")
+                     : ""));
 
         var transport = Iso20Transport.Of(socket);
 
