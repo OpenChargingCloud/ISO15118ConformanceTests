@@ -821,6 +821,16 @@ an inference from the run before it: the extra `PowerDeliveryReq` seen in both r
 absent here, so it was never the transport
 ([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)).
 
+**And on 2026-08-15, Dynamic control mode in reverse — three sessions no frame count can tell apart.**
+Their EV ran Dynamic plain and over mutual TLS 1.3; a control arm with `V2G_INTEROP_DYNAMIC` removed ran
+Scheduled. All three carry identical counts — 53 exchanges, 33 charge loops, one CableCheck, two
+PreCharges, five WeldingDetections — because `[V2G20-2656]` has the station advertise both modes and it
+answers in kind either way. The station had branched on the car's choice since the mode existed and
+thrown the answer away; `Secc20Base.EvControlModeIsDynamic` now records it. The control arm is what makes
+the other two mean anything, and it **measures a claim this project had only ever read off its own
+source**: their EV takes whichever parameter set is offered first
+([`…-dc-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-dc-dynamic-reverse/notes.md)).
+
 **`DC_BPT` in reverse followed an hour later and cost no code at all** — one line in their config,
 everything else built by the four runs before it. Their EV picked service 6 out of `Secc20Dc`'s
 `{ 2, 6 }` and drove the whole DC sequence — CableCheck, PreCharge, the charge loop, WeldingDetection —

@@ -577,7 +577,7 @@ discovered session is a recorded one. Three things to get right:
    `Schemas/` relative to the default `bin/` layout, so `--artifacts-path` moves the output out from under
    it and all three `FullIso2SchemaSet_*` cases fail with `DirectoryNotFoundException`. Use a filter for
    interop work, and **verify the offline gate on Windows** — `dotnet test -c Release` there is the run
-   that means 1 404 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
+   that means 1 405 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
    same commit.
    <br>**And it is a separate output tree from the Windows `bin/`, which `--no-build` will happily run.**
    A fixture change built on Windows is not in `~/wsl-artifacts`; the first reverse TLS attempt on

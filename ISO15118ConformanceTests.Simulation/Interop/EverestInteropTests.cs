@@ -380,6 +380,20 @@ public class EverestInteropTests
                             $"this run claims a bidirectional service (5 = AC_BPT, 6 = DC_BPT, 9 = MCS_BPT), "
                           + $"and their EV selected {outcome.SelectedEnergyServiceId?.ToString() ?? "none"} "
                           + $"out of our catalogue — so their car did not ask for the bidirectional entry");
+
+            // And the third thing an EV can quietly not do. `[V2G20-2656]` has this station advertise both
+            // control modes always; PreferDynamicControlMode only decides which one comes *first* in
+            // ServiceDetailRes. So an EV that takes the Scheduled set out of a Dynamic-first offer runs a
+            // Scheduled session, completes to SessionStop, and looks identical afterwards — our station
+            // answers in kind either way ([V2G20-1600]). It knew which one it answered; until 2026-08-14
+            // it had no property to say so.
+            if (protocol == ProtocolVariant.Iso15118_20 && preferDynamic)
+                Assert.That(outcome.EvControlModeIsDynamic, Is.True,
+                            "this run offers Dynamic first and is written up as a Dynamic session, so their "
+                          + "car had to have sent Dynamic_SEReqControlMode — it sent "
+                          + (outcome.EvControlModeIsDynamic is null
+                                 ? "no ScheduleExchangeReq at all"
+                                 : "the Scheduled control mode"));
         }
         finally
         {
@@ -423,6 +437,12 @@ public class EverestInteropTests
         if (outcome.SelectedEnergyServiceId is { } serviceId)
             TestContext.Out.WriteLine($"Energy transfer service: {serviceId} ({ServiceName(serviceId)}) — " +
                                       $"their EV's pick out of our catalogue.");
+
+        // The other thing the peer chose rather than was given. Both modes are always on offer, so this is
+        // a result of the run and not a restatement of V2G_INTEROP_DYNAMIC.
+        if (outcome.EvControlModeIsDynamic is { } dynamic)
+            TestContext.Out.WriteLine($"Control mode: {(dynamic ? "Dynamic" : "Scheduled")} — " +
+                                      $"read off their ScheduleExchangeReq, not off our offer.");
 
         // A -2 session that ends because our own guard refused a message reaches the terminal state like any
         // other, so IsDone alone would report it as a completed charge (see SeccOutcome.SequenceErrorAt).
