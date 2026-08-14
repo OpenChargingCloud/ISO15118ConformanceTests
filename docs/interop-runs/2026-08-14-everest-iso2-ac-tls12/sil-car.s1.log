@@ -1,0 +1,2 @@
+12:52:23 -> plug in: sleep 2;iso_wait_slac_matched;iso_wait_pwm_is_running;draw_power_fixed 0,0;sleep 600
+12:52:23    (CP held at state C from the plug-in; no Start_CableCheck trigger needed)

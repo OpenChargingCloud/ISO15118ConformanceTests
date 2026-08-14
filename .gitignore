@@ -50,3 +50,7 @@ tools/**/__pycache__/
 # this tree leaves a handful in the root. They are their artifact, not ours: the run notes carry the
 # frames we recorded ourselves, and these would be a second, unreviewed copy of somebody else's log.
 [0-9][0-9][01][0-9][0-3][0-9]_[0-2][0-9]-[0-5][0-9]-[0-5][0-9].yaml
+
+# Same cause, a different module: EVerest's PersistentStore opens a SQLite file in the manager's working
+# directory, and a manager started through `wsl.exe` from this tree inherits it. Theirs, not ours.
+everest_persistent_store.db

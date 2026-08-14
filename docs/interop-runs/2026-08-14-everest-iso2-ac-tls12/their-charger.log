@@ -1,0 +1,1078 @@
+2026-08-14 14:51:09.471147 [INFO] manager          ::   ________      __                _   
+2026-08-14 14:51:09.471303 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-14 14:51:09.471312 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-14 14:51:09.471318 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-14 14:51:09.471323 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-14 14:51:09.471329 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-14 14:51:09.471334 [INFO] manager          :: 
+2026-08-14 14:51:09.471339 [INFO] manager          :: everest-framework 0.25.0-dev 2026.02.1
+2026-08-14 14:51:09.471345 [INFO] manager          :: everest-core 2026.02.1-dev 2026.02.1
+2026-08-14 14:51:09.471351 [INFO] manager          :: 
+2026-08-14 14:51:09.471357 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-08-14 14:51:09.471364 [INFO] manager          :: Telemetry enabled
+2026-08-14 14:51:09.494291 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-14 14:51:09.494329 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-ours/config-ac2-tls-ours.yaml
+2026-08-14 14:51:09.616122 [INFO] manager          :: Config loading completed in 144ms
+2026-08-14 14:51:09.619258 [INFO] manager          :: Starting 17 modules
+2026-08-14 14:51:11.758317 [INFO] api:API          :: Module api initialized [2112ms]
+2026-08-14 14:51:11.773251 [INFO] connector_1_pow  :: Module connector_1_powerpath initialized [2107ms]
+2026-08-14 14:51:11.774200 [INFO] auth:Auth        :: Module auth initialized [2121ms]
+2026-08-14 14:51:11.778790 [INFO] energy_manager:  :: Module energy_manager initialized [2107ms]
+2026-08-14 14:51:11.788070 [INFO] connector_1:Evs  :: Module connector_1 initialized [2121ms]
+2026-08-14 14:51:11.791458 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2113ms]
+2026-08-14 14:51:11.791938 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-14 14:51:11.792083 [INFO] error_history:E  :: Checking database
+2026-08-14 14:51:11.794066 [INFO] error_history:E  :: Module error_history initialized [2119ms]
+2026-08-14 14:51:11.797032 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2114ms]
+2026-08-14 14:51:11.802931 [INFO] grid_connection  :: Module grid_connection_point initialized [2109ms]
+2026-08-14 14:51:11.804268 [INFO] evse_security:E  :: Module evse_security initialized [2114ms]
+2026-08-14 14:51:11.825950 [INFO] setup:Setup      :: Module setup initialized [2117ms]
+2026-08-14 14:51:11.834033 [INFO] token_validator  :: Module token_validator initialized [2110ms]
+2026-08-14 14:51:11.835218 [INFO] slac:SlacSimula  :: Module slac initialized [2122ms]
+2026-08-14 14:51:11.838105 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2131ms]
+2026-08-14 14:51:11.839671 [INFO] token_provider:  :: Module token_provider initialized [2119ms]
+2026-08-14 14:51:11.855695 [INFO] persistent_stor  :: Module persistent_store initialized [2152ms]
+2026-08-14 14:51:12.392995 [INFO] iso15118_car     :: Module iso15118_car initialized [2156ms]
+2026-08-14 14:51:12.393621 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-14 14:51:12.395104 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2941ms] 🚙🚙🚙
+
+2026-08-14 14:51:12.397211 [INFO] iso15118_charge  :: TLS server on eth0 is listening on port [fe80::215:5dff:fedf:2f0c%2]:64109
+2026-08-14 14:51:12.439035 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-14 14:51:12.444050 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-14 14:51:12.444267 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-08-14 14:51:12.486440 [WARN] iso15118_charge void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+
+2026-08-14 14:51:12.498368 [INFO] iso15118_charge  :: SDP socket setup succeeded
+2026-08-14 14:51:12.526905 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:51:12.570984 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::handle_update_ac_minimum_limits(types::iso15118::AcEvseMinimumPower&) :: Ignoring handle_update_ac_minimum_limits call
+2026-08-14 14:51:12.638974 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::handle_update_ac_parameters(types::iso15118::AcParameters&) :: Ignoring handle_update_ac_parameters call
+2026-08-14 14:51:12.774293 [INFO] connector_1:Evs  :: AC HLC mode enabled.
+2026-08-14 14:51:12.906656 [INFO] connector_1:Evs  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-08-14 14:51:12.951893 [INFO] connector_1:Evs  :: Cleaning up any other transaction on start up
+2026-08-14 14:51:13.043948 [INFO] connector_1:Evs  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-14 14:51:13.175682 [WARN] api:API         void module::API::ready() :: No evse energy sink configured for evse_id: 1. API module does therefore not allow control of amps or power limits for this EVSE
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:51:47.093905 [INFO] iso15118_charge  :: Incoming TLS connection
+2026-08-14 14:51:47.094240 [ERRO] iso15118_charge void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: OcspCache::lookup: not in cache: d8817041a94bb65646ea392c812fcb4978ae4cf6
+
+2026-08-14 14:51:47.096758 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: connection_read(header) failed: Success
+
+2026-08-14 14:51:47.096783 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: v2g_incoming_v2gtp() failed
+
+2026-08-14 14:51:47.096794 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with -1
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:52:19.070392 [INFO] iso15118_charge  :: Incoming TLS connection
+
+2026-08-14 14:52:19.072926 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: connection_read(header) failed: Success
+
+2026-08-14 14:52:19.072983 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: v2g_incoming_v2gtp() failed
+
+2026-08-14 14:52:19.072991 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with -1
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:52:19.502562 [INFO] ev_manager:EvMa  :: Finished simulation.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:52:25.998531 [INFO] connector_1_pow  :: Lock connector
+2026-08-14 14:52:26.140694 [INFO] connector_1:Evs  :: SYS  Session logging started.
+2026-08-14 14:52:26.140881 [INFO] connector_1:Evs  :: EVSE IEC Session Started: EVConnected
+2026-08-14 14:52:26.142261 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-14 14:52:26.142356 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-14 14:52:26.143596 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-14 14:52:26.144718 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-14 14:52:26.394899 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-14 14:52:26.396154 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-14 14:52:26.441972 [INFO] connector_1:Evs  :: EVSE IEC EIM Authorization received
+2026-08-14 14:52:26.442872 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-14 14:52:26.530841 [INFO] connector_1:Evs  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-14 14:52:26.531395 [INFO] connector_1:Evs  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-14 14:52:26.531488 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-14 14:52:26.531936 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:52:28.258662 [INFO] connector_1:Evs  :: EVSE ISO SLAC MATCHED
+2026-08-14 14:52:28.258824 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (true)
+2026-08-14 14:52:28.717533 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarRequestedPower
+2026-08-14 14:52:28.717793 [INFO] connector_1:Evs  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-14 14:52:28.969464 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOn
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:53:05.615128 [INFO] iso15118_charge  :: Incoming TLS connection
+
+2026-08-14 14:53:05.797976 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+
+2026-08-14 14:53:05.798504 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-14 14:53:05.799187 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+
+2026-08-14 14:53:05.813098 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-14 14:53:05.813179 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-14 14:53:05.813190 [INFO] iso15118_charge  :: Created new session with id 0x193387c241cfc8cf
+2026-08-14 14:53:05.842877 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-14 14:53:05.910651 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-14 14:53:05.911245 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-14 14:53:05.958578 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-14 14:53:06.019958 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+
+2026-08-14 14:53:06.024469 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-14 14:53:06.025254 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-14 14:53:06.123783 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-14 14:53:06.125232 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-14 14:53:06.223564 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-14 14:53:06.314699 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:53:06.374991 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+
+2026-08-14 14:53:06.378418 [INFO] iso15118_charge  :: Parameter-phase started
+
+2026-08-14 14:53:06.379175 [INFO] iso15118_charge  :: Selected energy transfer mode: AC_three_phase_core
+
+2026-08-14 14:53:06.379200 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 96.000000, nom_voltage 230, pmax 66240, departure_duration 0
+2026-08-14 14:53:06.514705 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-14 14:53:06.518794 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-14 14:53:06.562825 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:53:06.626957 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:53:06.627282 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:53:06.682371 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:53:06.745073 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:53:06.843540 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:53:06.914695 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:53:07.002779 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:53:07.056657 [INFO] connector_1:Evs  ::                                     CAR ISO AC HLC Open contactor
+2026-08-14 14:53:07.056657 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:53:07.155205 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:53:07.156344 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionStopReq
+
+2026-08-14 14:53:07.254387 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with 0
+2026-08-14 14:53:07.255085 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionStopRes
+2026-08-14 14:53:07.298865 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-14 14:53:07.299046 [INFO] connector_1:Evs  :: EVSE IEC Set PWM Off
+2026-08-14 14:53:07.346949 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-14 14:53:07.390982 [INFO] connector_1:Evs  :: EVSE ISO SLAC UNMATCHED
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:53:07.446559 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (false)
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:53:29.066408 [INFO] iso15118_charge  :: Incoming TLS connection
+
+2026-08-14 14:53:29.229420 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+
+2026-08-14 14:53:29.229761 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-14 14:53:29.230452 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+
+2026-08-14 14:53:29.243325 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-14 14:53:29.243428 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-14 14:53:29.243444 [INFO] iso15118_charge  :: Created new session with id 0xbd8d4d76561fad8c
+2026-08-14 14:53:29.270817 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:53:29.314892 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-14 14:53:29.382790 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-14 14:53:29.383021 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-14 14:53:29.448612 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+
+2026-08-14 14:53:29.453609 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-14 14:53:29.454481 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-14 14:53:29.552741 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-14 14:53:29.554427 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-14 14:53:29.653112 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-14 14:53:29.714606 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-14 14:53:29.812972 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+
+2026-08-14 14:53:29.816554 [INFO] iso15118_charge  :: Parameter-phase started
+
+2026-08-14 14:53:29.817445 [INFO] iso15118_charge  :: Selected energy transfer mode: AC_three_phase_core
+
+2026-08-14 14:53:29.817484 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 96.000000, nom_voltage 230, pmax 66240, departure_duration 0
+
+2026-08-14 14:53:29.922510 [INFO] iso15118_charge  :: Waiting for contactor is closed
+2026-08-14 14:53:29.930713 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-14 14:53:29.958750 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-14 14:53:30.002780 [INFO] connector_1:Evs  ::                                     CAR ISO AC HLC Close contactor
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:53:32.922618 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: timeout while waiting for contactor to close, signaling error
+
+2026-08-14 14:53:32.922673 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Power Delivery", error: Contactor Error
+
+2026-08-14 14:53:32.922861 [WARN] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Response message (type 14) not configured within 98 ms (took 3000 ms)
+2026-08-14 14:53:32.934808 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:53:32.935085 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:53:32.975467 [ERRO] iso15118_charge void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: 0 1
+C0C67F6A47760000:error:0A000126:SSL routines::unexpected eof while reading:../ssl/record/rec_layer_s3.c:698:
+
+2026-08-14 14:53:32.975575 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: connection_read(header) failed: Success
+
+2026-08-14 14:53:32.975587 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: v2g_incoming_v2gtp() (previous message "Power Delivery") failed
+
+2026-08-14 14:53:32.975597 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with -1
+2026-08-14 14:53:32.976491 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_ERROR.req
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:54:19.918770 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-14 14:54:20.310752 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarUnplugged
+2026-08-14 14:54:20.311558 [INFO] connector_1:Evs  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-14 14:54:20.311587 [INFO] connector_1_pow  :: Unlock connector
+2026-08-14 14:54:20.311654 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-14 14:54:20.446810 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOff
+2026-08-14 14:54:20.446949 [INFO] connector_1:Evs  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-14 14:54:20.449097 [INFO] connector_1:Evs  :: EVSE IEC Transaction Finished: EVDisconnected (0.211 kWh)
+2026-08-14 14:54:20.627026 [INFO] connector_1:Evs  :: EVSE IEC Session Finished
+2026-08-14 14:54:20.627249 [INFO] connector_1:Evs  :: SYS  Session logging stopped.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:54:20.675224 [INFO] connector_1:Evs  :: All errors cleared
+2026-08-14 14:54:20.675426 [INFO] connector_1:Evs  :: All errors cleared
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:54:26.511875 [INFO] connector_1_pow  :: Lock connector
+2026-08-14 14:54:26.682026 [INFO] connector_1:Evs  :: SYS  Session logging started.
+2026-08-14 14:54:26.682198 [INFO] connector_1:Evs  :: EVSE IEC Session Started: EVConnected
+2026-08-14 14:54:26.683357 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-14 14:54:26.683381 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-14 14:54:26.684134 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-14 14:54:26.726825 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-14 14:54:26.976994 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-14 14:54:26.978031 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-14 14:54:27.027229 [INFO] connector_1:Evs  :: EVSE IEC EIM Authorization received
+2026-08-14 14:54:27.028238 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-14 14:54:27.122777 [INFO] connector_1:Evs  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-14 14:54:27.123347 [INFO] connector_1:Evs  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-14 14:54:27.123437 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-14 14:54:27.123872 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:54:28.798770 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (true)
+2026-08-14 14:54:28.798772 [INFO] connector_1:Evs  :: EVSE ISO SLAC MATCHED
+2026-08-14 14:54:29.258216 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarRequestedPower
+2026-08-14 14:54:29.258388 [INFO] connector_1:Evs  :: EVSE IEC Charger state: PrepareCharging->Charging
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:54:29.510085 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOn
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:54:45.798570 [INFO] iso15118_charge  :: Incoming TLS connection
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:54:45.963016 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+
+2026-08-14 14:54:45.963391 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+
+2026-08-14 14:54:45.977025 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-14 14:54:45.977101 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-14 14:54:45.977109 [INFO] iso15118_charge  :: Created new session with id 0x238f3940ee7c8a63
+2026-08-14 14:54:45.998671 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-08-14 14:54:45.998911 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-14 14:54:46.018743 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-14 14:54:46.075240 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-14 14:54:46.083078 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-08-14 14:54:46.181475 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+
+2026-08-14 14:54:46.186057 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-14 14:54:46.186788 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-14 14:54:46.284249 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-14 14:54:46.285699 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-14 14:54:46.383124 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-14 14:54:46.447128 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-14 14:54:46.545473 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+
+2026-08-14 14:54:46.548946 [INFO] iso15118_charge  :: Parameter-phase started
+
+2026-08-14 14:54:46.549826 [INFO] iso15118_charge  :: Selected energy transfer mode: AC_three_phase_core
+
+2026-08-14 14:54:46.549871 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 96.000000, nom_voltage 230, pmax 66240, departure_duration 0
+2026-08-14 14:54:46.634822 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-14 14:54:46.690846 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-14 14:54:46.734693 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:54:46.753685 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:54:46.755054 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:54:46.854865 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:54:46.942753 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:54:47.014727 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:54:47.073777 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:54:47.172037 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:54:47.230833 [INFO] connector_1:Evs  ::                                     CAR ISO AC HLC Open contactor
+2026-08-14 14:54:47.230870 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:54:47.328341 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:54:47.329530 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionStopReq
+
+2026-08-14 14:54:47.427522 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with 0
+2026-08-14 14:54:47.428203 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-14 14:54:47.428203 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionStopRes
+2026-08-14 14:54:47.428405 [INFO] connector_1:Evs  :: EVSE IEC Set PWM Off
+2026-08-14 14:54:47.471073 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-08-14 14:54:47.514929 [INFO] connector_1:Evs  :: EVSE ISO SLAC UNMATCHED
+2026-08-14 14:54:47.514968 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (false)
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:55:26.912055 [INFO] iso15118_charge  :: Incoming TLS connection
+2026-08-14 14:55:27.071817 [ERRO] iso15118_charge void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: 0 1
+C0C67F6A47760000:error:0A000412:SSL routines:ssl3_read_bytes:ssl/tls alert bad certificate:../ssl/record/rec_layer_s3.c:918:SSL alert number 42
+
+2026-08-14 14:55:27.071895 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: connection_read(header) failed: Success
+
+2026-08-14 14:55:27.071929 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: v2g_incoming_v2gtp() failed
+
+2026-08-14 14:55:27.071951 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with -1
+2026-08-14 14:55:27.118844 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_ERROR.req
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:55:40.182609 [INFO] ev_manager:EvMa  :: Finished simulation.
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:55:40.446718 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarUnplugged
+2026-08-14 14:55:40.446887 [INFO] connector_1:Evs  :: EVSE IEC Stop in Charging: [EV unplugged]
+2026-08-14 14:55:40.446982 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-08-14 14:55:40.447418 [INFO] connector_1_pow  :: Unlock connector
+2026-08-14 14:55:40.534794 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOff
+2026-08-14 14:55:40.534944 [INFO] connector_1:Evs  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-14 14:55:40.537004 [INFO] connector_1:Evs  :: EVSE IEC Transaction Finished: EVDisconnected (0.134 kWh)
+2026-08-14 14:55:40.674727 [INFO] connector_1:Evs  :: EVSE IEC Session Finished
+2026-08-14 14:55:40.674885 [INFO] connector_1:Evs  :: SYS  Session logging stopped.
+2026-08-14 14:55:40.766674 [INFO] connector_1:Evs  :: All errors cleared
+2026-08-14 14:55:40.766825 [INFO] connector_1:Evs  :: All errors cleared
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:55:46.886632 [INFO] connector_1_pow  :: Lock connector
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:55:47.071488 [INFO] connector_1:Evs  :: SYS  Session logging started.
+2026-08-14 14:55:47.071629 [INFO] connector_1:Evs  :: EVSE IEC Session Started: EVConnected
+2026-08-14 14:55:47.072783 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-14 14:55:47.072791 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-14 14:55:47.073535 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-08-14 14:55:47.074566 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-08-14 14:55:47.324716 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-14 14:55:47.325778 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-14 14:55:47.372525 [INFO] connector_1:Evs  :: EVSE IEC EIM Authorization received
+2026-08-14 14:55:47.373291 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-08-14 14:55:47.414774 [INFO] connector_1:Evs  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-14 14:55:47.415401 [INFO] connector_1:Evs  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-08-14 14:55:47.415491 [INFO] connector_1:Evs  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-14 14:55:47.415985 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:55:49.046642 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (true)
+2026-08-14 14:55:49.046642 [INFO] connector_1:Evs  :: EVSE ISO SLAC MATCHED
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:55:49.605814 [INFO] connector_1:Evs  ::                                     CAR IEC Event CarRequestedPower
+2026-08-14 14:55:49.605970 [INFO] connector_1:Evs  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-14 14:55:49.858201 [INFO] connector_1:Evs  :: EVSE IEC Event PowerOn
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+
+2026-08-14 14:56:04.079228 [INFO] iso15118_charge  :: Incoming TLS connection
+
+2026-08-14 14:56:04.321294 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+
+2026-08-14 14:56:04.321790 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-14 14:56:04.322480 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SupportedAppProtocolReq
+
+2026-08-14 14:56:04.337373 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-08-14 14:56:04.337449 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-08-14 14:56:04.337457 [INFO] iso15118_charge  :: Created new session with id 0x39a5f594f876bb48
+2026-08-14 14:56:04.363042 [INFO] connector_1:Evs  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-08-14 14:56:04.406928 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionSetupReq
+2026-08-14 14:56:04.478903 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionSetupRes
+2026-08-14 14:56:04.479233 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ServiceDiscoveryReq
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:56:04.542667 [INFO] connector_1:Evs  :: EVSE ISO V2G ServiceDiscoveryRes
+
+2026-08-14 14:56:04.547132 [INFO] iso15118_charge  :: SelectedPaymentOption: ExternalPayment
+2026-08-14 14:56:04.547919 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-14 14:56:04.645472 [INFO] connector_1:Evs  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-14 14:56:04.647064 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+2026-08-14 14:56:04.745665 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-14 14:56:04.805317 [INFO] connector_1:Evs  ::                                     CAR ISO V2G AuthorizationReq
+
+2026-08-14 14:56:04.906552 [INFO] iso15118_charge  :: Parameter-phase started
+
+2026-08-14 14:56:04.907490 [INFO] iso15118_charge  :: Selected energy transfer mode: AC_three_phase_core
+
+2026-08-14 14:56:04.907539 [INFO] iso15118_charge  :: before adjusting for departure time, max_current 96.000000, nom_voltage 230, pmax 66240, departure_duration 0
+2026-08-14 14:56:04.934727 [INFO] connector_1:Evs  :: EVSE ISO V2G AuthorizationRes
+2026-08-14 14:56:04.978777 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-14 14:56:05.018075 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-14 14:56:05.018365 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:56:05.111695 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:56:05.113039 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:56:05.222809 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:56:05.270623 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:56:05.369102 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+2026-08-14 14:56:05.427770 [INFO] connector_1:Evs  ::                                     CAR ISO V2G ChargingStatusReq
+2026-08-14 14:56:05.525284 [INFO] connector_1:Evs  :: EVSE ISO V2G ChargingStatusRes
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+2026-08-14 14:56:05.585554 [INFO] connector_1:Evs  ::                                     CAR ISO AC HLC Open contactor
+2026-08-14 14:56:05.585583 [INFO] connector_1:Evs  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-14 14:56:05.683793 [INFO] connector_1:Evs  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-14 14:56:05.726817 [INFO] connector_1:Evs  ::                                     CAR ISO V2G SessionStopReq
+
+2026-08-14 14:56:05.783337 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with 0
+2026-08-14 14:56:05.784186 [INFO] connector_1:Evs  :: EVSE ISO V2G SessionStopRes
+2026-08-14 14:56:05.784188 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_TERMINATE.req
+2026-08-14 14:56:05.784376 [INFO] connector_1:Evs  :: EVSE IEC Set PWM Off
+2026-08-14 14:56:05.874945 [INFO] connector_1:Evs  :: EVSE ISO SLAC UNMATCHED
+2026-08-14 14:56:05.874965 [INFO] connector_1:Evs  :: EVSE ISO D-LINK_READY (false)
+2026-08-14 14:56:05.875496 [INFO] connector_1:Evs  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down
+System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to system scope bus via local transport: Host is down

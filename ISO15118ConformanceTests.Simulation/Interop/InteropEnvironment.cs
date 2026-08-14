@@ -22,6 +22,7 @@ using System.Security.Cryptography.X509Certificates;
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.Sap;
+using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
@@ -545,7 +546,7 @@ internal static class InteropEnvironment
             foreach (var certificate in bundle)
                 (IsSelfSigned(certificate) ? roots : intermediates).Add(certificate);
 
-            validation = (_, certificate, _, _) =>
+            validation = (_, certificate, peerChain, _) =>
             {
                 if (certificate is null)
                     return false;
@@ -555,6 +556,18 @@ internal static class InteropEnvironment
                 chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
                 chain.ChainPolicy.CustomTrustStore.AddRange(roots);
                 chain.ChainPolicy.ExtraStore.AddRange(intermediates);
+
+                // …and what the station actually put on the wire beyond its leaf. Dropping this argument
+                // is the trap TrustRoots.PeerIntermediates exists for: without it a station that sends
+                // its Sub-CAs is judged as though it had sent none, so the bundle above has to carry
+                // them and the run cannot tell the two kinds of station apart. The app's two runnable
+                // peers were fixed on 2026-08-09; this copy was missed, and only a run whose bundle
+                // holds the *root alone* can see it — on 2026-08-14 EVerest's EvseV2G, which does send
+                // all three certificates, was refused here and accepted by `openssl s_client -CAfile`
+                // against the same station in the same minute.
+                foreach (var peerCertificate in TrustRoots.PeerIntermediates(peerChain) ?? [])
+                    chain.ChainPolicy.ExtraStore.Add(X509CertificateLoader.LoadCertificate(peerCertificate));
+
                 return chain.Build(new X509Certificate2(certificate));
             };
         }

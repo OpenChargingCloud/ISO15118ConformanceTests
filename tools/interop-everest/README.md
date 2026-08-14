@@ -577,7 +577,7 @@ discovered session is a recorded one. Three things to get right:
    `Schemas/` relative to the default `bin/` layout, so `--artifacts-path` moves the output out from under
    it and all three `FullIso2SchemaSet_*` cases fail with `DirectoryNotFoundException`. Use a filter for
    interop work, and **verify the offline gate on Windows** — `dotnet test -c Release` there is the run
-   that means 1 403 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
+   that means 1 404 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
    same commit.
 2. **Fixture first, station second.** Their EV probes once, shortly after the manager boots. If nothing
    answers that probe the session never starts, and the timeout looks exactly like a peer that never came.
@@ -645,8 +645,15 @@ Confirmed on first contact, and no longer questions:
   `SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT` as soon as the client offers 1.3, so mutual TLS is
   mandatory there. Their `create_certs.sh` (Josev, `iso15118/shared/pki/`) generates the whole chain,
   station and vehicle, and that is their own documented workflow.
-- **Their station sends only its leaf.** No CPO Sub-CAs on the wire, so an EV must already hold them;
+- **`Evse15118D20` sends only its leaf** — no CPO Sub-CAs on the wire, so an EV must already hold them;
   pass root + both Sub-CAs as one PEM bundle in `V2G_INTEROP_TLS_TRUST`.
+  <br>**This is per module, and the general phrasing it used to have was hiding a defect of ours.**
+  `EvseV2G` sends the **whole** path — leaf, `CPOSubCA2`, `CPOSubCA1` — so against the `-2` station the
+  V2G root alone is a sufficient anchor, measured 2026-08-14. That could not be said until the same day,
+  because `InteropEnvironment.DevTlsOrNull` discarded the validation callback's `X509Chain` and judged
+  every peer on its bare leaf; a bundle carrying the Sub-CAs passes either way, so only a root-only
+  anchor could tell. Fixed, with the regression in `ChainValidationTests`
+  ([`…-iso2-ac-tls12`](../../docs/interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md)).
 - **`enable_tls_key_logging: true` kills their -20 server here** — it binds a UDP socket to an interface
   and the call fails under qemu (`Could not set interface name:eth0`). Probably emulation rather than a
   defect; leave it off unless you are on x86-64.

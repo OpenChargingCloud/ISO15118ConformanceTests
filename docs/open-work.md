@@ -112,11 +112,8 @@ ordinary untested work appeared behind them:
 | ~~**AC over TLS, -20**~~ | ~~EVerest~~ | **Run the same evening — AC 2/2 and AC_BPT 2/2 over mutual TLS 1.3**, their `Handshake complete!` and `Verify certificate result is okay`, contactor window unchanged at +832…1048 ms because the handshake is spent before `PowerDelivery`. That was the run that mattered: every AC session before it was plain TCP, which `[V2G20-1237]` and `[V2G20-2356]` both forbid, so the cells were green for a transport the standard does not allow. [`…-d20-ac-tls13`](interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md). |
 | ~~**A recorded reverse AC run**~~ | ~~EVerest~~ | **Run the same evening, and it was the most productive hour of the day.** Their EV discovered our station over SDP, negotiated `-20:AC` and charged — 56 exchanges, all `OK`, 44 charge loops to `SessionStop`. It found **a defect of ours** (the reverse fixture defaulted its SAP catalogue to DC, so every reverse `-20` run ever made announced DC-only) and **a measurement of theirs** (their EV paces the AC charge loop at ≈532 ms, against the 500 ms `[V2G20-1500]` allows a station to wait — 2 of 2 strict runs die on the first loop). [`…-d20-ac-reverse`](interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md). |
 | ~~**The EVCC half of Tables 216/217**~~ | ~~—~~ | **Decided 2026-08-13: the EVCC is bound, and to a *performance* criterion rather than an error one.** Table 216 gives `V2G_EVCC_Sequence_Performance_Time` one row — `AC_ChargeLoopReq`, **0,25 s** — and `[V2G20-1499]` makes implementing it a *shall*; Figure 212 draws that span from response-received to next-request-sent and its legend separates *Performance Time (Performance Criteria)* from *Timeout (Error Criteria)*, which is the SECC's 0,5 s. So their EV's ≈532 ms misses the car's own performance time by **2,1×**, and the abort belongs to the station, where `[V2G20-443]` does make it an error. Written up in [`normative-basis.md`](normative-basis.md), including the absence it turned up: there is no general clause starting the EVCC's sequence timer, only the SECC's. |
-| **Reverse over TLS** | EVerest | The reverse direction has never run over TLS in any mode. Now that the forward AC half is on TLS 1.3 and the reverse half runs at all, this is the remaining combination. |
-
-**`-2` AC over TLS 1.2 is the other one nobody has run** against this counterparty, and it is now the
-older gap. Worth listing here once somebody wants it; the `-2` AC cell has been green over plain TCP
-since 2026-08-03.
+| ~~**`-2` AC over TLS 1.2**~~ | ~~EVerest~~ | **Run 2026-08-14 — four sessions, 13/13 `OK` each**, against `EvseV2G` with one line changed (`tls_security: force`). Their transport is conformant where it matters: TLS 1.2 with `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, one of the two ISO 15118-2 prescribes, and they send their **whole chain** where `Evse15118D20` sends a bare leaf. `-2` TLS is unilateral, so it needed no vehicle credential and no PKI regeneration at all. It also found a defect **of ours** — see *Ours to fix*, closed the same hour. [`…-iso2-ac-tls12`](interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md). |
+| **Reverse over TLS** | EVerest | The reverse direction has never run over TLS in any mode. Now that the forward AC half is on TLS 1.3 and the reverse half runs at all, this is the remaining combination — **and it is the last one left in this table**. |
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
@@ -388,6 +385,19 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   [`2026-08-09-edf-chain-validation`](interop-runs/2026-08-09-edf-chain-validation/notes.md);
   five tests in `ISO15118ConformanceTests.Simulation/Security/ChainValidationTests.cs`, the validator's
   first coverage of any kind.
+  <br>~~**And the interop fixtures had a second copy of it, which that fix did not reach.**~~ **Fixed
+  2026-08-14.** `InteropEnvironment.DevTlsOrNull` builds its own `X509Chain` rather than going through
+  `V2GChainValidator`, and its callback was `(_, certificate, _, _)` — so every counterparty every TLS
+  interop run has ever met was judged on its bare leaf, and the intermediates had to be spoon-fed in the
+  trust bundle. **Nothing could detect that**, because a bundle of root + Sub-CAs passes either way; only
+  a *root-only* anchor tells them apart, and no run had used one until the arm that was meant to confirm
+  a paragraph about EVerest's chain. It was refused here and accepted by `openssl s_client -CAfile`
+  against the same station minutes apart
+  ([`…-iso2-ac-tls12`](interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md)). Now routed through
+  `TrustRoots.PeerIntermediates` like the app's two peers, with a sixth test in the same file — **the one
+  of the seven that fails when the fix is removed**, checked by removing it.
+  <br>**No earlier run is invalidated**: a superset bundle validates the same chains, so every
+  *"we verified their chain"* stands. It was a weaker claim than it read, in all of them.
 - ~~**Our EVCC offers ISO 15118-20 without regard to the TLS version underneath it.**~~ **Fixed
   2026-08-10**, app branch `iso20-transport-conformance`, and the SECC mirror with it. `[V2G20-1237]`
   forbids offering `-20` in the `SupportedAppProtocolReq` when the established connection is TLS 1.2 or
