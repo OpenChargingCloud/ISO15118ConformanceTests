@@ -791,6 +791,16 @@ more than either half:** their own `-20` station flattens the same override to 6
 ([the twenty-second filing](reports/everest-d20-sequence-timeout.md)), so a station that waits 60 s
 never discovers that its own EV takes 532 ms. Neither side is visible without a conformant third party.
 
+**Filed 2026-08-14, and the EV half belongs to a different project** — the car is `PyEvJosev`, so
+[the forty-seventh](reports/josev-iso20-evcc-charge-loop-pacing.md) goes to SwitchEV and EVerest's fork
+of it rather than to everest-core. Table 216 gives the EVCC 0,25 s (`[V2G20-1499]`) against the
+station's 0,5 s, so the deviation is 2,1× — but it is a **performance** criterion by Figure 212's own
+legend, not an error one, and the report is written to that distinction. Two things emerged in the
+writing that the run had not asked: the ≈532 ms is the session's per-message cost rather than a
+charge-loop decision (the setup phase runs at ≈573–600 ms per exchange in the same logs), and
+`V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` is absent from their timeouts file entirely — a different shape
+from the SECC constants beside it, which exist and are simply never referenced.
+
 The other run that appeared on 2026-08-13 was done the same evening. **AC over mutual TLS 1.3** — two
 `AC` and two `AC_BPT` sessions, their `Handshake complete!` and `Verify certificate result is okay`,
 the contactor window unchanged at +832…1048 ms because the handshake is spent before `PowerDelivery`

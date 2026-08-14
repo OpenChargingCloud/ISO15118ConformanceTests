@@ -62,7 +62,7 @@ A fourth shape has no counterparty artifact at all: an **audit of our own drafts
 they cite. [`2026-08-11-reports-upstream-audit/`](2026-08-11-reports-upstream-audit/notes.md) re-reads
 every `file:line` in `docs/reports/` — 189 of them, all still correct — and then asks the question the
 per-report checklists ask one at a time: *has anybody fixed it since we wrote it down?* Doing it across
-all thirty-two at once — the file count **that day**; there are thirty-four now — is what made the
+all thirty-two at once — the file count **that day**; there are thirty-five now — is what made the
 answer visible: **three findings are already fixed on
 everest-core `main`**, two of which are therefore retired without ever being sent. It also records a
 wrong turn taken on the way — the stale `EVerest/libiso15118` mirror still shows all three, and the

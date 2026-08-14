@@ -742,6 +742,11 @@ symmetry is written out.
 Extracted with `pdftotext -table` per the trap above; Table 217 is the control, since its stacked groups
 are visible there and Table 216's one-row-per-parameter shape is not an artefact of flattening.
 
+All `-20` identifiers, so no document caveat. **Filed 2026-08-14:**
+[`reports/josev-iso20-evcc-charge-loop-pacing.md`](reports/josev-iso20-evcc-charge-loop-pacing.md), which
+leads with the performance/error distinction rather than defending it at the bottom — that ordering is
+this section's only real consequence for how the report reads.
+
 ### A failed EIM authorization is `Finished`, not `Ongoing`
 
 Settled 2026-08-13, against a measurement that found their station doing the other thing 602 times in a

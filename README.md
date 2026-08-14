@@ -256,9 +256,11 @@ parameter *defaults* to DC, so every reverse `-20` run ever made announced a DC-
 took an AC EV to notice. Theirs, measured rather than read: their `PyEvJosev` paces the AC charge loop at
 **≈532 ms** — 44 loops in 23,407 s from their own log — against the **500 ms** `[V2G20-1500]` and
 `[V2G20-1502]` allow a station to wait, so **2 of 2** runs with our conformant timer die on the *first*
-charge loop and the 56-exchange session above needed `V2G_INTEROP_CHARGELOOP` to relax it. Not filed
-yet: whether the EVCC is bound by the same table is a question this run did not read, and
-[`normative-basis.md`](docs/normative-basis.md) says decide before citing.
+charge loop and the 56-exchange session above needed `V2G_INTEROP_CHARGELOOP` to relax it. **Decided and
+filed 2026-08-14, as the forty-seventh:** the EVCC *is* bound by the same table — Table 216 gives it
+**0,25 s** (`[V2G20-1499]`) — but Figure 212's legend sorts that threshold as a *performance* criterion
+where the station's is an *error* one, so it is a deviation of 2,1× and not a violated timeout, and the
+abort belongs to the station. [`josev-iso20-evcc-charge-loop-pacing.md`](docs/reports/josev-iso20-evcc-charge-loop-pacing.md);
 [`…-d20-ac-reverse`](docs/interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md).
 
 ³⁰ Half-working rather than absent, which is the finding. `PowerDeliveryReq(Renegotiate)` and the fresh
@@ -401,7 +403,7 @@ on the wire. What each of them has proven is the matrix above.
 | [`docs/tux-evse-cross-validation.md`](docs/tux-evse-cross-validation.md) | a **replayer**, not a codec: their scenarios come from packet captures, so what it offers is a real car's route and the only DIN 70121 material this project has seen. As a responder it answers the car in its recording and no other; as an **injector at their HEAD** it drove our SECC through the full captured-Audi DC session and a VW AC route — and reached the one arm of our state machine no self-consistent test had ever executed. Over TLS it produced the first external check of our TLS profile, and [two findings drafted for them](docs/reports/tux-evse-tls.md). Their Tesla DIN capture is unreadable to us past the handshake — and the handshake alone [carried a vendor-proprietary protocol at priority 1](docs/interop-runs/2026-08-07-tesla-din-handshake/notes.md), an offer shape nothing here could have written for itself. |
 | [`docs/open-work.md`](docs/open-work.md) | the inverse of the matrix above: every cell that is not `✅`, why, and who it waits on. **The to-do list.** |
 | [`docs/interop-runs/`](docs/interop-runs/) | one write-up per live run: configuration, frame logs, divergences. **History, not a to-do list** — each note's `Next` section is a snapshot from that day, and later runs close items without editing it |
-| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **thirty-nine filings across six projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
+| [`docs/reports/`](docs/reports/README.md) | findings written up for the counterparty they belong to — **forty-seven filings across six projects**, each a draft for a person to send, with the reproduction that makes it confirmable |
 | [`tools/interop-*/`](tools/) | how to bring each counterparty up and drive it — [Josev](tools/interop-josev/README.md) · [EVerest](tools/interop-everest/README.md) · [eVDriveFlow](tools/interop-evdriveflow/README.md) · [tux-evse](tools/interop-tux-evse/README.md) |
 | [`docs/assumed-values-sweep.md`](docs/assumed-values-sweep.md) | where our own assumptions replaced values the protocol supplies |
 

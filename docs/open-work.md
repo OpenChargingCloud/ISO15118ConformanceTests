@@ -514,8 +514,8 @@ also below.
 
 ## Not in the matrix at all
 
-- **Forty-six issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
-  in thirty-two sendable reports. Each ends with a *Before sending* checklist whose unticked items are
+- **Forty-seven issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
+  in thirty-three sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin: *Ours to fix* is empty, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.
@@ -525,17 +525,25 @@ also below.
   be learned about ([`everest-d20-ac-contactor-edge`](reports/everest-d20-ac-contactor-edge.md)). It is
   the second half of the shape [`everest-d20-eim-rejection`](reports/everest-d20-eim-rejection.md) found,
   and [`sending-order.md`](reports/sending-order.md) now pairs them as dependency 5.
-  <br>**A forty-seventh is warranted and unwritten.** Their `PyEvJosev` paces the AC charge loop at
-  ≈532 ms where Table 216 gives the EVCC **0,25 s** (`[V2G20-1499]`) and the SECC a 0,5 s error
-  criterion (`[V2G20-1500]`, `[V2G20-443]`) — measured 2 of 2, and the requirement side is now
-  [decided](normative-basis.md) rather than assumed. It goes to `EVerest/ext-switchev-iso15118` and
-  upstream SwitchEV, like [`josev-iso20-renegotiation`](reports/josev-iso20-renegotiation.md), and it
-  must be written **as a performance deviation, not a violated timeout** — the figure legend separates
-  them and a report that blurs it is refutable in one sentence. Pair it with
+  <br>**The forty-seventh was written on 2026-08-14**, and it is the first filing here about a
+  requirement that is not an error criterion. Their `PyEvJosev` paces the AC charge loop at ≈532 ms
+  where Table 216 gives the EVCC **0,25 s** (`[V2G20-1499]`) and the SECC a 0,5 s error criterion
+  (`[V2G20-1500]`, `[V2G20-443]`) — measured 2 of 2 against our own conformant timer, and written **as
+  a performance deviation, not a violated timeout**, because Figure 212's legend sorts the two
+  thresholds on that interval into different kinds and a report that blurs them is refutable in one
+  sentence ([`josev-iso20-evcc-charge-loop-pacing`](reports/josev-iso20-evcc-charge-loop-pacing.md)).
+  Both target trees were checked at HEAD the same day and are still on the revisions the reading was
+  taken from, so it may honestly be one upstream issue that the fork inherits rather than two filings —
+  which its checklist leaves as a decision. It pairs with
   [`everest-d20-sequence-timeout`](reports/everest-d20-sequence-timeout.md): that station's flattened
   60 s is exactly why nobody there has noticed this EV.
+  <br>**What the writing added to the measurement**, and it is the part that would have been missed by
+  filing on 08-13: the ≈532 ms is **not** a charge-loop pacing decision. The same log times the setup
+  phase at ≈573–600 ms per exchange, so it is the session's per-message cost and the charge loop is
+  merely the one phase whose budget is tight enough to notice. Where that cost goes was **not**
+  localized, and the report says so in its own section rather than in a footnote.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
-  crash first, then small measured fixes to buy the attention the hard ones need, the four orderings
+  crash first, then small measured fixes to buy the attention the hard ones need, the five orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
   answer an issue.
   <br>**The mechanical half of those checklists was cleared on 2026-08-11**
