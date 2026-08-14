@@ -63,7 +63,7 @@ reason). Their EV then charged happily:
 station is allowed to wait, which is exactly why the strict runs die on the *first* loop rather than
 somewhere in the middle.
 
-### Why this is not written up as a report yet
+### Why this was not written up as a report on the day — and what closed it
 
 Because the requirement has one more question in it, and
 [`normative-basis.md`](../../normative-basis.md) is explicit that this project decides such things
@@ -78,6 +78,22 @@ and their fork's SECC has the 0,5 s constants sitting unused, which is
 [the SwitchEV one](../../reports/josev-iso20-charge-loop-timeout.md). **A station that waits 60 s never
 discovers that its own EV takes 532 ms.** The two halves hide each other, and only a conformant third
 party sees either.
+
+**Answered and filed 2026-08-14** — the forty-seventh:
+[`josev-iso20-evcc-charge-loop-pacing.md`](../../reports/josev-iso20-evcc-charge-loop-pacing.md). The
+EVCC **is** bound by the same table — Table 216 gives `V2G_EVCC_Sequence_Performance_Time` one row,
+`AC_ChargeLoopReq` at **0,25 s**, and `[V2G20-1499]` makes it a *shall* — but Figure 212's legend sorts
+that threshold as a **performance** criterion where the station's is an **error** one, so the filing is a
+2,1× deviation and not a violated timeout, and the abort stays the station's under `[V2G20-443]`. The
+reading is in [`normative-basis.md`](../../normative-basis.md).
+
+Two things the writing added that this run had not looked for. **The 532 ms is not a charge-loop pacing
+decision**: the log above times the setup phase at 5,730 s for SDP, TCP and ten exchanges — ≈573 ms each,
+and 6,015 s ≈ 600 ms each in the strict arm — so it is the session's per-message cost, and the charge
+loop is simply the one phase whose budget is tight enough to notice. And **the parameter is missing
+rather than mis-wired**: `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` does not exist in Josev's
+`iso15118_20/timeouts.py`, in either tree, where the SECC's charge-loop constants next door do exist and
+are merely unreferenced.
 
 ## Reproduce
 

@@ -12,8 +12,8 @@ asserted. Where we worked around something to keep going, the workaround is name
 was our own configuration we bent.
 
 **In what order to send them: [`sending-order.md`](sending-order.md).** The table below is how you find
-a report; that file is how you work through them — thirty-two sendable reports, forty-six issues, six
-projects, with the rules that produced the order, the four hard dependencies, and the one anti-dependency
+a report; that file is how you work through them — thirty-three sendable reports, forty-seven issues, six
+projects, with the rules that produced the order, the five hard dependencies, and the one anti-dependency
 that would blur two findings into one.
 
 ## What is here
@@ -50,17 +50,23 @@ that would blur two findings into one.
 | [`josev-iso20-pki-curve.md`](josev-iso20-pki-curve.md) | EVerest (`ext-switchev-iso15118`) **and** SwitchEV (iso15118) | one, filed twice | `create_certs.sh` branches on `-v iso-2\|iso-20` and the `-20` branch selects the same `prime256v1` as `-2`, under its own `TODO` — so `-20` contract provisioning cannot complete at all, the schema's key-wrap curve choice being secp521r1 or x448 and nothing else |
 | [`josev-iso20-renegotiation.md`](josev-iso20-renegotiation.md) | SwitchEV (iso15118) **and** EVerest (`ext-switchev-iso15118`) | **§1**, **§2** | Their `-20` EVCC sends a correct `SessionStopReq(ServiceRenegotiation)`, our station answers `OK` without ending the session — and their EVCC then kills the link, because the renegotiation branch of `SessionStop.process_message` sets `next_state = ServiceDiscovery` and is **the only one of 28 transitions in the file that never calls `create_next_message(...)`**. Their own framework says so: *"Field `next_v2gtp_msg` is None but must be set because next state is not Terminate"*. §2 is upstream-only — `DCWeldingDetection` hardcodes `ChargingSession.TERMINATE`, so a DC/MCS EV cannot even ask — and **EVerest's fork has already fixed it**, which is worth telling upstream |
 | [`josev-iso20-charge-loop-timeout.md`](josev-iso20-charge-loop-timeout.md) | SwitchEV (iso15118) | one | `V2G_SECC_SEQUENCE_TIMEOUT_{AC,DC,WPT}_CL = 0.5` are transcribed from Tables 216/217 into their own timeouts file and **referenced nowhere**; both charge-loop states hand on the 60 s baseline instead, so a silent EV holds the loop — contactor closed — for a minute where `[V2G20-1500]`/`[V2G20-1502]` give 0,5 s. Two lines to fix, and the constants already exist. **Source only, and the checklist says so first**: the identical behaviour was *measured* against EVerest's implementation the same day, so two independent `-20` stacks flatten the same override |
+| [`josev-iso20-evcc-charge-loop-pacing.md`](josev-iso20-evcc-charge-loop-pacing.md) | SwitchEV (iso15118) **and** EVerest (`ext-switchev-iso15118`) | one | The other side of the same table, and the only filing here about a **performance** criterion. Their `-20` EVCC turns the AC charge loop around in **≈532 ms** where Table 216 gives the EVCC **0,25 s** (`[V2G20-1499]`) — measured against our station's own conformant 0,5 s timer, which arms after our response is written and so measures exactly Figure 212's span: **2 of 2 strict runs die on the *first* charge loop**, and relaxing the timer to 20 s gives 44 pairs at ≈532 ms each from their own log. `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` is **not in `timeouts.py` at all** — a different shape from the SECC constant next door that exists and is unreferenced. **Written carefully as a deviation, not a violated timeout**: Figure 212's legend sorts the EVCC's threshold as *performance* and the SECC's as *error*, and there is no `[V2G20-443]`-shaped clause aimed at the car — the consequence lands at the station, where an EV above 0,5 s simply cannot charge. Not a charge-loop pacing decision either: the setup phase costs ≈573–600 ms per exchange, so it is the session's per-message cost, and §4 says out loud that we did **not** localize it. Only visible because a conformant station was on the other end — their own `-20` station and this EVCC's own SECC both wait 60 s |
 | [`josev-iso20-pause-resume.md`](josev-iso20-pause-resume.md) | SwitchEV (iso15118) | one | Pause/resume works in ISO 15118-2 and cannot work in -20: the `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its states never fill — so `OK_OldSessionJoined` is unreachable and every resume degrades to a new session |
 | [`pyevjosev-manifest-services.md`](pyevjosev-manifest-services.md) | EVerest | one | `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`, so a valid MCS configuration looks impossible — and an unrecognised entry is dropped in silence |
 | [`v2gdecoder-fuzzy-grammar.md`](v2gdecoder-fuzzy-grammar.md) | FlUxIuS (V2Gdecoder) | **A**, **B** | A frame valid under two grammars is decoded by whichever sits first in the array, silently — and their DIN grammar rejects a real `ChargeParameterDiscoveryRes`, which the same fallback then answers for |
 | [`libcbv2g-grammar-deviations.md`](libcbv2g-grammar-deviations.md) + [`libcbv2g/`](libcbv2g/) | EVerest (libcbv2g / cbexigen) | **A**, **B**, **C** | The document element codes are ordered by **type name** rather than element qname — five of the eight generated document grammars deviate from EXI §8.5.1, and in ACDP two messages swap identity so one decodes cleanly as the other; the WPT mid-sequence particle grammar returns success while **silently dropping** a set field; and every `minOccurs="2"` repeating particle gets a loop state with no exit, so three WPT types cannot be encoded at all — reproduced by [`tools/cbv2g-defect-probe/`](../../tools/cbv2g-defect-probe/README.md), and bounded by [`tools/cbv2g-grammar-sweep/`](../../tools/cbv2g-grammar-sweep/README.md) over all 4 792 generated states |
 
-**Forty-six filings across six projects**, and three of them now have to be sent **twice**.
+**Forty-seven filings across six projects**, and four of them now have to be sent **twice**.
 `create_certs.sh` lives in `SwitchEV/iso15118` and in EVerest's fork of it, byte-identical in the
 relevant block and 100 lines apart everywhere else, so one merge will not reach the other tree. The
 contactor one is the same trap in a tidier form: `power_delivery.cpp` is byte-identical — 5663 bytes,
 same SHA-256 — in `EVerest/everest-core` at `lib/everest/iso15118/` and in standalone
 `EVerest/libiso15118`, and which of the two is generated from the other could not be told from outside.
+The **forty-seventh** is the mildest version of the same problem and the only one where both trees were
+**verified at HEAD on the day of writing**: `SwitchEV/iso15118` is still `d645255c` and
+`EVerest/ext-switchev-iso15118` still `26f79889`, `timeouts.py` is identical in the two, and nothing in
+the finding is fork-specific — so unlike the other three it may honestly be one upstream issue that the
+fork inherits. Its checklist makes that a decision rather than an assumption.
 
 The **eighteenth** went out of that pattern and came back into it within a day. It was written from a
 source reading plus a probe, with *"this was not observed on the wire"* as the first item on its checklist;
@@ -163,6 +169,23 @@ different causes — a correct generator used over a 10⁸ range, and a full ran
 that is not cryptographic. A single report saying *"use a CSPRNG"* would have been **wrong about
 eVDriveFlow's code**, which already does.
 
+The **forty-seventh** is the first filing here about a requirement that is not an error criterion, and
+that is why it is dated a day later than the measurement it rests on. ISO 15118-20 puts two thresholds on the same
+interval — the car's turnaround between a response and the next request — and Figure 212's legend sorts
+them into different kinds: *performance* for the EVCC, *error* for the SECC. The obvious report,
+*"your EV violates a 0,25 s timeout"*, is wrong in one word and closable in one sentence, and the number
+in it would have been right. So the measurement sat in the run notes under an explicit *"the filing waits
+on this"* until [`normative-basis.md`](../normative-basis.md) had read Tables 216–218 and Figure 212 on
+2026-08-13, and the report now leads with the distinction rather than defending it at the bottom.
+
+It is also the clearest case in this directory of **two implementations hiding one defect from each
+other**. Their `-20` station waits 60 s where the table says 0,5 s
+([`everest-d20-sequence-timeout`](everest-d20-sequence-timeout.md)); their EV takes 0,53 s where the same
+table gives it 0,25 s. Ship those two together — which is exactly what EVerest's SIL does — and neither
+is observable. It took a station that enforces its own half, and that station enforced it against *us*
+first: the strict arm's abort is our timer, added on 2026-08-11 after measuring theirs, meeting a peer
+for the first time.
+
 ## What is deliberately not here
 
 Observations we could not raise honestly. Three kinds recur:
@@ -184,11 +207,12 @@ fixed it since* — were run across all thirty-two drafts at once for the first 
 [`tools/reports-audit/`](../../tools/reports-audit/README.md). Full account in the
 [audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md).
 
-**That "thirty-two" is the file count on 2026-08-11 and is not the "thirty-two" above.** There are
-**thirty-four** report files now — the forty-fifth and forty-sixth filings were written on 08-12 and
-08-13 — of which **two are withdrawn** and thirty-two are sendable. The two numbers agreeing today is a
-coincidence, and the arithmetic is written out here so nobody has to rediscover it: 34 files − 2
-withdrawn = 32 sendable, carrying 46 issues.
+**That "thirty-two" is the file count on 2026-08-11 and is not the "thirty-three" above.** There are
+**thirty-five** report files now — the forty-fifth, forty-sixth and forty-seventh filings were written on
+08-12, 08-13 and 08-14 — of which **two are withdrawn** and thirty-three are sendable. The arithmetic is
+written out here so nobody has to rediscover it: 35 files − 2 withdrawn = 33 sendable, carrying 47
+issues. (On 2026-08-11 the file count and the sendable count were both thirty-two, which was a
+coincidence and is no longer one.)
 
 **The citations held: 189 of 189.** Five of the six counterparties have not committed since the drafts
 were written — eVDriveFlow's `main` is now **three years and four months** old — so for those, pinned
