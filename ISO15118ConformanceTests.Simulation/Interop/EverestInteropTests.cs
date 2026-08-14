@@ -364,6 +364,22 @@ public class EverestInteropTests
                             "an MCS reverse run has to have had an MCS service (8 = MCS, 9 = MCS_BPT) " +
                             "picked out of our catalogue; anything else means their EV asked for something " +
                             "and our station gave it");
+
+            // The same guard for the bidirectional services, and this direction needs it more than the
+            // forward one. `Secc20Ac` advertises { 1, 5 } and `Secc20Dc` { 2, 6 }, so an EV configured for
+            // AC_BPT that quietly selects plain AC out of that catalogue charges to SessionStop exactly as
+            // happily — and the run would be filed as the one in which somebody else's car chose our
+            // bidirectional service. Nothing on the wire distinguishes the two afterwards except this id.
+            //
+            // `V2G_INTEROP_BPT_FIRST` means something different here than in a forward run, deliberately
+            // rather than by accident: there its EVCC half ranks the bidirectional entry first in *our*
+            // request, and in reverse we have no EVCC, so what is left is the claim the run is making.
+            if (InteropEnvironment.BptFirst())
+                Assert.That(outcome.SelectedEnergyServiceId is { } bpt && EnergyTransferService.IsBidirectional(bpt),
+                            Is.True,
+                            $"this run claims a bidirectional service (5 = AC_BPT, 6 = DC_BPT, 9 = MCS_BPT), "
+                          + $"and their EV selected {outcome.SelectedEnergyServiceId?.ToString() ?? "none"} "
+                          + $"out of our catalogue — so their car did not ask for the bidirectional entry");
         }
         finally
         {

@@ -263,6 +263,14 @@ internal static class InteropEnvironment
     /// exactly that — so their whole SIL has been advertising a service nothing here ever selected.
     /// </para>
     /// <para>
+    /// <b>In a reverse run it means the other thing, and that is deliberate.</b> There is no EVCC of ours
+    /// to rank anything, so the ranking half is inert and what is left is the claim: <i>this session
+    /// negotiated a bidirectional service</i>, which the reverse fixture then asserts against the id their
+    /// EV actually selected out of our catalogue. Without it, a car configured for AC_BPT that takes plain
+    /// AC out of <c>Secc20Ac</c>'s <c>{ 1, 5 }</c> charges to <c>SessionStop</c> exactly as happily and the
+    /// run is filed as the wrong one.
+    /// </para>
+    /// <para>
     /// <b>It used to be spelt <c>V2G_INTEROP_MCS_FIRST=9</c> and could only do MCS</b>, which is why the
     /// run notes up to 2026-08-06 say that. The old spelling is still honoured — a run note records what
     /// was actually typed, and rewriting those to a variable that did not exist at the time would make the
