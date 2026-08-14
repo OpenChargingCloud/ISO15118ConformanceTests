@@ -1,0 +1,5 @@
+A SessionTrace could not be built from this recording, which is not in itself a finding:
+
+  trace 'everest-iso15118-20-ac-reverse-tls' has signed requests but no signing key — the signature-aware comparison would substitute the recorded value and verify nothing.
+
+The raw octets and the frame log beside this file are the capture. A trace additionally requires a strictly alternating, untruncated session (and a signing key, if any request was signed) — see Traces/SessionTrace.cs.

@@ -809,6 +809,18 @@ cells were green for a transport `[V2G20-1237]` and `[V2G20-2356]` both forbid, 
 this page should keep making: **complete is not conformant**, and the matrix cannot tell them apart on
 its own.
 
+**And AC_BPT in reverse, an hour later, which is the half of BPT no forward run can produce.** In `EV→`
+we rank the bidirectional entry first and their station answers, so what is measured is their response;
+here **their car chose service 5 out of our `{ 1, 5 }` catalogue on its own** — one line changed in their
+config — and charged, 56 exchanges and 44 charge loops, plain and again over mutual TLS 1.3. Two things
+keep it from being a relabelled AC run: the reverse fixture now **asserts** the negotiated service (it
+guarded only MCS until today, and an EV that quietly took service 1 completes identically), and our
+station answers `FAILED_WrongChargeParameter` when the charge-parameter direction contradicts the
+selected service — so the `OK` there is proof their request carried the discharge half. It also withdrew
+an inference from the run before it: the extra `PowerDeliveryReq` seen in both reverse TLS sessions is
+absent here, so it was never the transport
+([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)).
+
 **The same day closed the last row of the untested table too — the reverse direction over TLS — and it
 had never run because of *our fixture*.** `InteropEnvironment.ServerTlsOrNull` has existed since the
 tux-evse runs and the eVDriveFlow reverse fixture uses it; this one built a plain listener and advertised

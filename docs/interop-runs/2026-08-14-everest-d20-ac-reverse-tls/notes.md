@@ -116,6 +116,11 @@ consistent with the car polling `PowerDelivery` while its own side is not yet re
 an inference, not a decode**: `SessionTrace.Build` refuses a PnC recording, so no artifact here decodes
 those two frames. Two TLS runs show it and two plain ones do not, which is suggestive and not conclusive.
 
+**Not conclusive, and now withdrawn — the AC_BPT run the same afternoon has one `PowerDeliveryReq` and
+44 charge loops over the same mutual TLS 1.3.** So it is not a property of the transport; readiness
+timing on their side is the likelier reading, and the loop count simply follows whether an exchange was
+spent on it. [`…-d20-ac-bpt-reverse`](../2026-08-14-everest-d20-ac-bpt-reverse/notes.md).
+
 ## And a label that had never been wrong before
 
 `InteropEnvironment.ReportTransport` printed `SslStream.RemoteCertificate` as *"server …"*. Correct in

@@ -123,6 +123,15 @@ was fixed against on 2026-08-10. It is not filed because this run configured the
 it the downgrade; the arm that would settle it is a **station of theirs** answering `NoTLS` to a `-20` EV,
 which is a different run and a cheap one.
 
+**The table emptied and then produced work that was not in it.** `AC_BPT` in reverse — carried only in
+the 08-13 run note's `Next`, never in this file — ran the same afternoon and is the half of BPT no
+forward run can produce: **their car chose our bidirectional service**, rather than answering a request
+in which we had ranked it first
+([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)). It cost one
+line in their config and one guard in ours, and it leaves an obvious next: **`DC_BPT` in reverse** is the
+same one-line change against `Secc20Dc`'s `{ 2, 6 }`, with the guard already covering it. That belongs
+here rather than in a run note, which is where the last one hid.
+
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
 the run note rather than smoothed away, and two became [`tls-pki-setup.sh`](../tools/interop-everest/tls-pki-setup.sh)
