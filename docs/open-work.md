@@ -128,9 +128,16 @@ the 08-13 run note's `Next`, never in this file — ran the same afternoon and i
 forward run can produce: **their car chose our bidirectional service**, rather than answering a request
 in which we had ranked it first
 ([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)). It cost one
-line in their config and one guard in ours, and it leaves an obvious next: **`DC_BPT` in reverse** is the
-same one-line change against `Secc20Dc`'s `{ 2, 6 }`, with the guard already covering it. That belongs
-here rather than in a run note, which is where the last one hid.
+line in their config and one guard in ours, and it left an obvious next — **`DC_BPT` in reverse**, the
+same one-line change against `Secc20Dc`'s `{ 2, 6 }` with the guard already covering it. **Run the same
+hour**, and it is the first this week that cost no code at all: their EV picked service 6 and drove the
+whole DC sequence, CableCheck and PreCharge and WeldingDetection included, plain and over mutual TLS 1.3
+([`…-d20-dc-bpt-reverse`](interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md)). Writing it here
+rather than in a run note's `Next` is what made it get done, which is the argument for this file.
+
+What is left of the reverse direction is one variable rather than a wall: **`←SECC` in Dynamic control
+mode** (`V2G_INTEROP_DYNAMIC=1`; their EV adopts whatever our station offers) and **a reverse `-2` run
+over TLS 1.2**, which the fixture change of 2026-08-14 already covers.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
