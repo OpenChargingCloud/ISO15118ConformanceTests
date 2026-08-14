@@ -87,7 +87,23 @@ in the moment the simulated car raises its Control-Pilot line. Raised early: `FA
 `OK`, five times, through the charge loop to `SessionStop`. **Nothing was injected and nothing patched
 in any of the seven** — the station reached its own conclusion each time.
 
-Two things generalise from it. The first is that the **positive control is the load-bearing half** here:
+A fourth shape is the arm that **checks the instrument rather than the peer**, and it is the one most
+easily skipped because it is expected to be a formality.
+[`2026-08-14-everest-iso2-ac-tls12/`](2026-08-14-everest-iso2-ac-tls12/notes.md) ran a `-2` AC session
+over TLS with the trust anchor narrowed from *root + both Sub-CAs* to **the root alone** — which should
+have made no difference, because `openssl s_client -showcerts` had just shown their station sending the
+whole path. It failed, and what it had found was ours: the interop fixture's TLS callback discarded the
+chain the peer sent, so every counterparty since the fixtures existed had been judged on its bare leaf.
+**The wider bundle passes either way**, which is precisely why nothing had ever seen it.
+
+The general form is worth stating, because this repository's usual instinct runs the other way: when a
+run's setup contains a value that is *more generous than necessary* — a trust bundle with extra
+certificates, a timeout longer than the standard's, a catalogue offering more than the peer needs — the
+run cannot distinguish a peer that needed the generosity from one that did not. **Narrow it once, on
+purpose.** The result is either a stronger claim about the counterparty or a finding about yourself.
+
+Two things generalise from the contactor-window run. The first is that the **positive control is the
+load-bearing half** here:
 five successes are what turn "it fails" into "it fails for this reason", and without them the run would
 have been another failed attempt. The second is the reason it took four months: the wall had a *name* —
 an explanation this repository stated confidently in four places and had already contradicted in a log

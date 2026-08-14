@@ -778,10 +778,10 @@ Each of these is structural rather than a missing run:
 ## Current state
 
 The full forward matrix — -2 DC/AC, -20 DC Scheduled **and** Dynamic, **-20 AC and AC_BPT**, `IsoMux` in
-all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, MCS, MCS_BPT, DC_BPT — is green against
-**2025.10.0** and re-validated against **2026.02.1 built from source**. The reverse direction runs and is
-recorded. There is no unattempted cell left in EVerest's column of the matrix; what remains is the list
-of walls above and the drafts waiting to be sent. The last untried AC shape, a **reverse AC** session,
+all four offer shapes and over TLS, -20 DC over mutual TLS 1.3, **-2 AC over TLS 1.2**, MCS, MCS_BPT,
+DC_BPT — is green against **2025.10.0** and re-validated against **2026.02.1 built from source**. The
+reverse direction runs and is recorded. There is no unattempted cell left in EVerest's column of the
+matrix; what remains is the list of walls above and the drafts waiting to be sent. The last untried AC shape, a **reverse AC** session,
 ran the same evening and was the most productive hour of the day: it found a defect of *ours* — the
 reverse fixture defaulted its SAP catalogue to DC, so every reverse `-20` run ever made announced
 DC-only, and it took an AC EV on the far end to notice — and then measured one of theirs, their EV
@@ -808,6 +808,24 @@ the contactor window unchanged at +832…1048 ms because the handshake is spent 
 cells were green for a transport `[V2G20-1237]` and `[V2G20-2356]` both forbid, which is a distinction
 this page should keep making: **complete is not conformant**, and the matrix cannot tell them apart on
 its own.
+
+**2026-08-14 closed the oldest gap in this column — `-2` AC over TLS 1.2 — and the transport was the
+easy half.** Four sessions, 13/13 `OK` each, one config line changed (`tls_security: force`); `-2` TLS is
+unilateral, so it needed no vehicle credential and no PKI regeneration. Their side is conformant where it
+counts: **TLS 1.2 with `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`**, one of the two ISO 15118-2 prescribes
+and the one [tux-evse's configs lack](reports/tux-evse-tls.md), and `EvseV2G` sends its **whole chain**
+where `Evse15118D20` sends a bare leaf. It also survives a refused handshake, which the `-20` module's
+accept loop does not.
+
+**Being able to say that second thing cost a fix of ours**, and it is the most useful result of the day.
+The arm anchored at the V2G root **alone** was refused by us and accepted by `openssl s_client -CAfile`
+against the same station minutes apart: `InteropEnvironment.DevTlsOrNull` discarded the validation
+callback's `X509Chain` — the same defect the app fixed on 2026-08-09, in a second copy the interop
+fixtures had of their own. Every TLS run in this document had its intermediates handed to it in the trust
+bundle, which passes either way, so nothing could see it; only a root-only anchor can
+([`…-iso2-ac-tls12`](interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md)). **No earlier run is
+invalidated** — a superset bundle validates the same chains — but *"we verified their chain"* was a
+weaker claim than it read, in every one of them.
 
 **The last two AC cells fell on 2026-08-13, and the lesson is not about AC.** They had stood since
 2026-08-03 behind an explanation this page stated with confidence four separate times — *their SIL

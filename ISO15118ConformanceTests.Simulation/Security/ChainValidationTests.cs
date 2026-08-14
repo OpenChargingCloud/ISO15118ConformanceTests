@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -22,6 +23,7 @@ using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.Security;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
+using cloud.charging.open.protocols.ISO15118.StateMachines;
 
 namespace ISO15118ConformanceTests.Simulation.Security
 {
@@ -219,6 +221,70 @@ namespace ISO15118ConformanceTests.Simulation.Security
                 Assert.That(TrustRoots.PeerIntermediates(null),  Is.Null);
                 Assert.That(TrustRoots.PeerIntermediates(empty), Is.Null);
             });
+        }
+
+        /// <summary>
+        /// The same regression, one layer out — in the <em>interop fixtures'</em> own callback, which is a
+        /// second implementation of this and was missed when the first was fixed.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Everything above pins <see cref="V2GChainValidator"/>, which the two runnable peers go through.
+        /// <c>InteropEnvironment.DevTlsOrNull</c> builds its own <see cref="X509Chain"/> instead, and until
+        /// 2026-08-14 it discarded the callback's chain argument exactly as the app once did — so every
+        /// counterparty was judged on its bare leaf and every TLS run had to be handed the intermediates in
+        /// its trust bundle. Nothing detected that, because a bundle carrying root + Sub-CAs passes either
+        /// way; only a <em>root-only</em> anchor tells them apart.
+        /// </para>
+        /// <para>
+        /// Found on the wire against EVerest's <c>EvseV2G</c>, which sends all three certificates: the
+        /// root-only run was refused here and accepted by <c>openssl s_client -CAfile</c> against the same
+        /// station minutes apart
+        /// (<c>docs/interop-runs/2026-08-14-everest-iso2-ac-tls12/</c>).
+        /// </para>
+        /// </remarks>
+        [Test]
+        public void TheInteropFixturesCallback_AlsoReadsWhatThePeerSent()
+        {
+
+            var pem      = Path.Combine(Path.GetTempPath(), $"chainvalidation-root-{Guid.NewGuid():N}.pem");
+            var oldTls   = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS");
+            var oldTrust = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_TRUST");
+
+            try
+            {
+
+                // A trust store the way a real one looks: anchors, no intermediates.
+                File.WriteAllText(pem, _root.ExportCertificatePem());
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS",       "1");
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS_TRUST", pem);
+
+                var validate = Interop.InteropEnvironment
+                                      .DevTlsOrNull(ProtocolVariant.Iso15118_2)!
+                                      .ServerCertificateValidation!;
+
+                // What .NET hands the callback: the peer's own certificates in ChainPolicy.ExtraStore.
+                using var sent    = new X509Chain();
+                sent.ChainPolicy.ExtraStore.Add(_subCa2);
+                sent.ChainPolicy.ExtraStore.Add(_subCa1);
+                using var nothing = new X509Chain();
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(validate(this, _leaf, sent,    SslPolicyErrors.None), Is.True,
+                                "the peer sent the path to the only trusted root, so the leaf validates");
+                    Assert.That(validate(this, _leaf, nothing, SslPolicyErrors.None), Is.False,
+                                "and a station that really does send a bare leaf is still refused");
+                });
+
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS",       oldTls);
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS_TRUST", oldTrust);
+                try { File.Delete(pem); } catch { }
+            }
+
         }
 
     }

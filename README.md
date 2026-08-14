@@ -84,13 +84,13 @@ how to read one.
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 plain TCP · **×4 over TLS 1.2**³² | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
 | DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; verdict now driven from our own backend — past `Authorization`, and `FAILED_CertificateRevoked` measured³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2LoopbackTests` (EV- and SECC-triggered) | ✅ `EV→ ←SECC` [V2G2-841] | ⛔ `EV→` trigger and re-discovery accepted, **restart refused**³⁰ | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` | ✅ `EV→` (the PnC session above) | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` | ✅ `EV→` the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
 
@@ -250,6 +250,22 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
 
+³² **The last untried cell in this counterparty's column, and it found something in ours.** Four `-2` AC
+sessions over TLS 1.2, 13 exchanges each, every response `OK`, against `EvseV2G` with one line changed
+(`tls_security: force`). Their transport is conformant where it matters: **TLS 1.2 with
+`TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`** — one of the two ISO 15118-2 prescribes, and the one
+[tux-evse's configs do not offer](docs/reports/tux-evse-tls.md) — and they send their **whole chain**,
+unlike `Evse15118D20`. Being able to say that cost a fix: the arm anchored at the **V2G root alone** was
+refused by us and accepted by `openssl s_client -CAfile` against the same station minutes apart, because
+`InteropEnvironment.DevTlsOrNull` discarded the validation callback's `X509Chain` — **the same defect the
+app fixed on 2026-08-09, in a second copy the fixtures had of their own**. Every TLS run before today had
+its intermediates spoon-fed in the trust bundle, which passes either way; only a root-only anchor can tell
+them apart. Fixed through `TrustRoots.PeerIntermediates`, the root-only session then ran complete, and the
+regression is the one test of seven in `ChainValidationTests` that fails when the fix is removed. Negative
+control: their **MO** root as the anchor is refused (their log records our `SSL alert number 42`), and
+`EvseV2G` survives that refusal where `Evse15118D20`'s accept loop would not.
+[`…-iso2-ac-tls12`](docs/interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md).
+
 ³¹ **The first AC session this project has run in the reverse direction, in either protocol** — and it
 cost two findings on the way. Ours: the reverse fixture passed no power mode to the SAP handshake, whose
 parameter *defaults* to DC, so every reverse `-20` run ever made announced a DC-only catalogue and it
@@ -387,7 +403,7 @@ The offline run (`dotnet test`) needs no C toolchain, no Java and no network: th
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
 regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
-loopback E2Es run both peers in-process. 1 403 tests, all four assemblies green. The **live** cross-checks against a
+loopback E2Es run both peers in-process. 1 404 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 
