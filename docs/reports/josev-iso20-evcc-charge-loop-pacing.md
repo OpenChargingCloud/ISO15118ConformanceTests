@@ -222,9 +222,11 @@ this measurement exists, and it enforced it against us first.
 - [ ] **Localize the 0,5 s, or say in the issue that you did not.** §4 is a hypothesis with a named place
       to look, and it is labelled as one. A timestamped debug log of a single charge loop would settle it
       and would make the issue far easier to act on — consider running that before posting.
-- [ ] **Re-run over TLS.** The measurement is plain TCP. `-20` mandates TLS in the field, so the number a
-      real deployment sees is this one or worse, but "or worse" is unmeasured; the reverse direction has
-      never run over TLS in any mode here.
+- [x] **Re-run over TLS — done 2026-08-14, and it is worse.** Mutual TLS 1.3, same EV, same config, same
+      20 s window: **23,400 s for 43 charge loops, ≈544 ms each**, against ≈532 ms over plain TCP. So the
+      number a real `-20` deployment sees is the larger one — TLS costs about 12 ms per exchange here —
+      and the deviation is 2,2× the 0,25 s rather than 2,1×. Quote whichever you like; they are the same
+      finding ([`…-d20-ac-reverse-tls`](../interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md)).
 - [ ] **Decide fork or upstream first.** Same file in two live trees, both at HEAD — the shape
       [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) handles as dependency 4: the fork is the one
       that moves, and the upstream issue can then cite it. Unlike that one, nothing here is

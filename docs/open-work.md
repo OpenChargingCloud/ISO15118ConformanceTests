@@ -113,7 +113,15 @@ ordinary untested work appeared behind them:
 | ~~**A recorded reverse AC run**~~ | ~~EVerest~~ | **Run the same evening, and it was the most productive hour of the day.** Their EV discovered our station over SDP, negotiated `-20:AC` and charged — 56 exchanges, all `OK`, 44 charge loops to `SessionStop`. It found **a defect of ours** (the reverse fixture defaulted its SAP catalogue to DC, so every reverse `-20` run ever made announced DC-only) and **a measurement of theirs** (their EV paces the AC charge loop at ≈532 ms, against the 500 ms `[V2G20-1500]` allows a station to wait — 2 of 2 strict runs die on the first loop). [`…-d20-ac-reverse`](interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md). |
 | ~~**The EVCC half of Tables 216/217**~~ | ~~—~~ | **Decided 2026-08-13: the EVCC is bound, and to a *performance* criterion rather than an error one.** Table 216 gives `V2G_EVCC_Sequence_Performance_Time` one row — `AC_ChargeLoopReq`, **0,25 s** — and `[V2G20-1499]` makes implementing it a *shall*; Figure 212 draws that span from response-received to next-request-sent and its legend separates *Performance Time (Performance Criteria)* from *Timeout (Error Criteria)*, which is the SECC's 0,5 s. So their EV's ≈532 ms misses the car's own performance time by **2,1×**, and the abort belongs to the station, where `[V2G20-443]` does make it an error. Written up in [`normative-basis.md`](normative-basis.md), including the absence it turned up: there is no general clause starting the EVCC's sequence timer, only the SECC's. |
 | ~~**`-2` AC over TLS 1.2**~~ | ~~EVerest~~ | **Run 2026-08-14 — four sessions, 13/13 `OK` each**, against `EvseV2G` with one line changed (`tls_security: force`). Their transport is conformant where it matters: TLS 1.2 with `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, one of the two ISO 15118-2 prescribes, and they send their **whole chain** where `Evse15118D20` sends a bare leaf. `-2` TLS is unilateral, so it needed no vehicle credential and no PKI regeneration at all. It also found a defect **of ours** — see *Ours to fix*, closed the same hour. [`…-iso2-ac-tls12`](interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md). |
-| **Reverse over TLS** | EVerest | The reverse direction has never run over TLS in any mode. Now that the forward AC half is on TLS 1.3 and the reverse half runs at all, this is the remaining combination — **and it is the last one left in this table**. |
+| ~~**Reverse over TLS**~~ | ~~EVerest~~ | **Run 2026-08-14, and the reason it had never run was ours.** `InteropEnvironment.ServerTlsOrNull` has existed since the tux-evse runs and the eVDriveFlow reverse fixture uses it; the EVerest one built a plain listener and advertised `tls: false` as a constant — so *"the reverse direction has never run over TLS"* was a statement about our harness that read like one about the counterparties. With two lines changed: their EV discovered our station over SDP with the TLS byte, handshook **mutual TLS 1.3**, presented an OEM vehicle certificate of its own, and charged — 56 exchanges, all `OK`, 43 charge loops. [`…-d20-ac-reverse-tls`](interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md). |
+
+**That table is now empty**, which has not been true since it was written. What replaced it is one
+observation the same run left behind, recorded as a candidate rather than a filing: **their `PyEvJosev`
+asked for TLS in its SDP request, was answered `NoTLS`, and ran an ISO 15118-20 session over plain TCP** —
+the requirement `[V2G20-1237]` puts `-20` in the TLS 1.3 row alone, and it is the same one our own EVCC
+was fixed against on 2026-08-10. It is not filed because this run configured their car and then offered
+it the downgrade; the arm that would settle it is a **station of theirs** answering `NoTLS` to a `-20` EV,
+which is a different run and a cheap one.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
@@ -398,6 +406,19 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
   of the seven that fails when the fix is removed**, checked by removing it.
   <br>**No earlier run is invalidated**: a superset bundle validates the same chains, so every
   *"we verified their chain"* stands. It was a weaker claim than it read, in all of them.
+- ~~**The EVerest reverse fixture could not run over TLS, and the matrix said the counterparties could
+  not.**~~ **Fixed 2026-08-14.** `InteropEnvironment.ServerTlsOrNull` has existed since the tux-evse
+  reverse runs — its own documentation calls it *"the only way that direction can run over TLS at
+  all"* — and the eVDriveFlow reverse fixture uses it. `EverestInteropTests` built a plain
+  `TcpV2GListener` and advertised SDP with `tls: false` **written as a constant**, so the entry that read
+  *"the reverse direction has never run over TLS in any mode"* was a fact about our harness wearing a
+  counterparty's clothes. Two lines: the listener takes the options, the SDP flag is derived from them.
+  Their EV then handshook mutual TLS 1.3 on the first attempt
+  ([`…-d20-ac-reverse-tls`](interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md)).
+  <br>**Third instance in a week of the same shape** — *a capability we already held that no call site
+  reached for* — after the reverse fixture's defaulted power mode (08-13) and the interop TLS callback's
+  discarded peer chain (08-14, above). All three were invisible for the same reason: the wrong behaviour
+  and the right one are indistinguishable until something narrows the input.
 - ~~**Our EVCC offers ISO 15118-20 without regard to the TLS version underneath it.**~~ **Fixed
   2026-08-10**, app branch `iso20-transport-conformance`, and the SECC mirror with it. `[V2G20-1237]`
   forbids offering `-20` in the `SupportedAppProtocolReq` when the established connection is TLS 1.2 or

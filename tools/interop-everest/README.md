@@ -579,9 +579,21 @@ discovered session is a recorded one. Three things to get right:
    interop work, and **verify the offline gate on Windows** — `dotnet test -c Release` there is the run
    that means 1 404 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
    same commit.
+   <br>**And it is a separate output tree from the Windows `bin/`, which `--no-build` will happily run.**
+   A fixture change built on Windows is not in `~/wsl-artifacts`; the first reverse TLS attempt on
+   2026-08-14 advertised `NoTLS` with `V2G_INTEROP_TLS_SERVER` set for exactly that reason, and everything
+   else about the run looked right. **Rebuild in WSL after any fixture change**, or drop `--no-build`.
 2. **Fixture first, station second.** Their EV probes once, shortly after the manager boots. If nothing
    answers that probe the session never starts, and the timeout looks exactly like a peer that never came.
 3. **Their `Evse15118D20` on `lo`**, as for the CLI, or it answers the probe before ours does.
+4. **Over TLS: `V2G_INTEROP_TLS_SERVER=<pfx>[:password]`**, and `V2G_INTEROP_TLS_REQUIRE_CLIENT=1` for the
+   mutual handshake `-20` wants. The certificate has to be **theirs** — their EV anchors at
+   `CertPath.V2G_ROOT_PEM` in its own PKI path with `CERT_REQUIRED` — so run
+   [`tls-pki-setup.sh`](tls-pki-setup.sh) and bundle `SECC_LEAF` with both CPO Sub-CAs into a PKCS#12;
+   that script exports the *EV* half (`trust.pem`, `vehicle.p12`) and not this one. The SDP security byte
+   follows the listener automatically; a station advertising TLS while serving plaintext is discovered and
+   then fails, which reads as a defect of theirs
+   ([`…-d20-ac-reverse-tls`](../../docs/interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md)).
 
 ```bash
 /usr/sbin/mosquitto -p 1883 &                                    # not on PATH
