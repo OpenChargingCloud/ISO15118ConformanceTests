@@ -821,6 +821,17 @@ an inference from the run before it: the extra `PowerDeliveryReq` seen in both r
 absent here, so it was never the transport
 ([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)).
 
+**`DC_BPT` in reverse followed an hour later and cost no code at all** — one line in their config,
+everything else built by the four runs before it. Their EV picked service 6 out of `Secc20Dc`'s
+`{ 2, 6 }` and drove the whole DC sequence — CableCheck, PreCharge, the charge loop, WeldingDetection —
+to `SessionStop`, plain and over mutual TLS 1.3. **The check that makes it a BPT result is theirs before
+it was ours:** our station refuses a charge-parameter direction that contradicts the selected service
+only because everest-core refused *our* session that way on 2026-08-05, and the rule is written into
+`Secc20Dc` with that run cited beside it. Their EV was on the receiving end of it today and passed
+([`…-d20-dc-bpt-reverse`](interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md)). A counterparty's
+refusal became a conformance check here, and the check then validated the counterparty — which is the
+clearest single argument this page can make for why the harness is worth the trouble.
+
 **The same day closed the last row of the untested table too — the reverse direction over TLS — and it
 had never run because of *our fixture*.** `InteropEnvironment.ServerTlsOrNull` has existed since the
 tux-evse runs and the eVDriveFlow reverse fixture uses it; this one built a plain listener and advertised

@@ -99,7 +99,7 @@ how to read one.
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **and again over mutual TLS 1.3**³³ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT out of our catalogue**, plain and over TLS³⁴ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
@@ -262,6 +262,14 @@ station answers `FAILED_WrongChargeParameter` to a direction that contradicts th
 also **withdrew an inference from the run before it**: the extra `PowerDeliveryReq` seen in both reverse
 TLS sessions does not appear here, so it was never the transport.
 [`…-d20-ac-bpt-reverse`](docs/interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md).
+<br>**`DC_BPT` followed an hour later and cost no code at all** — one line in their config, everything
+else built by the four runs before it. Their EV picked service **6** out of `Secc20Dc`'s `{ 2, 6 }` and
+drove the whole DC sequence, CableCheck and PreCharge and WeldingDetection included, to `SessionStop`;
+53 exchanges plain, 52 over mutual TLS 1.3. Its charge-parameter check has the neatest provenance in the
+directory: our station only refuses a direction that contradicts the selected service **because
+everest-core refused ours that way on 2026-08-05**, so a counterparty's `FAILED_WrongChargeParameter`
+became our conformance check and the check then validated the counterparty.
+[`…-d20-dc-bpt-reverse`](docs/interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md).
 
 ³³ **The first TLS session this project has run in the reverse direction, in any protocol** — and the
 reason there had never been one was **our fixture**, not the counterparties. Their EV discovered our
