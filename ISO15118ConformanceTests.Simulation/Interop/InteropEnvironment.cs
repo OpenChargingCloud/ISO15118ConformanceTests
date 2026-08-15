@@ -570,6 +570,19 @@ internal static class InteropEnvironment
         => Read("V2G_INTEROP_RENEGOTIATE") == "1";
 
 
+    /// <summary>-2 DC only: renegotiate the way our car did until 2026-08-15 — straight from the new
+    /// <c>ChargeParameterDiscovery</c> to <c>PowerDelivery(Start)</c>, skipping <c>CableCheck</c> and
+    /// <c>PreCharge</c>. <c>V2G_INTEROP_RENEG_SKIP_ISOLATION=1</c>.</summary>
+    /// <remarks>
+    /// The pre-fix car, on purpose, so that a run can show the difference is the sequence rather than the
+    /// station: pointed at EVerest's <c>EvseV2G</c> it reproduces the <c>FAILED_SequenceError</c> of
+    /// 2026-08-11 on demand, beside a conformant arm against the same binary and config. A control taken
+    /// four days apart is a weaker control than one taken four minutes apart.
+    /// </remarks>
+    public static Boolean RenegotiationSkipsIsolation()
+        => Read("V2G_INTEROP_RENEG_SKIP_ISOLATION") == "1";
+
+
     public static Iso2CertInstallOptions? CertificateProvisioningOrNull()
     {
 

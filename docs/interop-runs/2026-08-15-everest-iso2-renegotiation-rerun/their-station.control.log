@@ -1,0 +1,60 @@
+2026-08-15 21:49:09.601573 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PreChargeReq
+2026-08-15 21:49:09.601573 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 400.00V/2.00A, requested was 400.00V/2.00A.
+2026-08-15 21:49:09.633896 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply: switch ON called, ChargingPhase: PreCharge
+2026-08-15 21:49:09.720907 [INFO] evse_manager:Ev  :: EVSE ISO V2G PreChargeRes
+2026-08-15 21:49:09.721273 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-15 21:49:09.800659 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-15 21:49:09.803357 [INFO] ovm:OVMSimulato  :: Over voltage monitoring: starting with 550 (emergency) and 500(error)
+2026-08-15 21:49:09.821066 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-08-15 21:49:09.821753 [INFO] evse_manager:Ev  :: VoltagePlausibilityMonitor, start monitoring
+2026-08-15 21:49:09.822207 [INFO] evse_manager:Ev  :: Timing statistics (Plugin to CurrentDemand)
+2026-08-15 21:49:09.822233 [INFO] evse_manager:Ev  :: -------------------------------------------
+2026-08-15 21:49:09.822243 [INFO] evse_manager:Ev  :: ConnSetup | HLC_PWM_5%_ON: 680 ms | D-LINK_READY: 1584 ms | Auth EIM Done: 1232 ms | Total: 3849 ms
+2026-08-15 21:49:09.822250 [INFO] evse_manager:Ev  :: CableCheck | <60V: 0 ms | Relay On: 227 ms | EVInfo: 0 ms | VRampUp: 227 ms | Self test: 3084 ms | Measure: 47 ms | VRampDown: 359 ms | Total: 4012 ms
+2026-08-15 21:49:09.822256 [INFO] evse_manager:Ev  :: PrepareCharging | Charging started: 332 ms | Total: 332 ms
+2026-08-15 21:49:09.822276 [INFO] evse_manager:Ev  :: Total duration all phases: 8194 ms
+2026-08-15 21:49:09.864808 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply: switch ON in export mode
+2026-08-15 21:49:09.864822 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CurrentDemandReq
+2026-08-15 21:49:09.908910 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 400.00V/3.55A, requested was 400.00V/3.55A.
+2026-08-15 21:49:09.908951 [INFO] evse_manager:Ev  :: EVSE ISO V2G CurrentDemandRes
+2026-08-15 21:49:09.909328 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-15 21:49:09.952910 [INFO] evse_manager:Ev  :: VoltagePlausibilityMonitor, spread: 400 V > threshold: 50 V -> arming timer
+2026-08-15 21:49:09.953036 [INFO] evse_manager:Ev  :: VoltagePlausibilityMonitor, spread: 0 V <= threshold: 50 V -> cancelling timer
+2026-08-15 21:49:10.000889 [INFO] iso15118_charge  :: Selected energy transfer mode: DC_extended
+2026-08-15 21:49:10.040971 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-15 21:49:10.084875 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ChargeParameterDiscoveryReq
+2026-08-15 21:49:10.084908 [INFO] evse_manager:Ev  :: EVSE IEC Isolation measurement Ok R_F 900000.
+2026-08-15 21:49:10.100442 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Power Delivery", error: Sequence Error
+2026-08-15 21:49:10.128849 [INFO] evse_manager:Ev  :: EVSE ISO V2G ChargeParameterDiscoveryRes
+2026-08-15 21:49:10.129100 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-08-15 21:49:10.198056 [INFO] iso15118_charge  :: Closing TCP connection
+2026-08-15 21:49:10.198708 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-08-15 21:49:10.305711 [INFO] evse_manager:Ev  :: EVSE ISO Change HLC Limits: 22080W/55.2A, target_voltage 400, actual_voltage 400, bpt_active false
+2026-08-15 21:49:10.397094 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 400.00V/16.85A, requested was 400.00V/16.85A.
+2026-08-15 21:49:11.057665 [INFO] evse_manager:Ev  :: EVSE IEC Isolation measurement Ok R_F 900000.
+2026-08-15 21:49:12.057878 [INFO] evse_manager:Ev  :: EVSE IEC Isolation measurement Ok R_F 900000.
+2026-08-15 21:49:12.198322 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-08-15 21:49:12.199100 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-08-15 21:49:12.225046 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->T_step_X1
+2026-08-15 21:49:12.225746 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-15 21:49:12.225846 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_X1
+2026-08-15 21:49:12.225746 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-15 21:49:12.225972 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-15 21:49:15.272122 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_X1
+2026-08-15 21:49:15.272379 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-15 21:49:15.316813 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_X1->T_step_EF
+2026-08-15 21:49:15.317068 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-08-15 21:49:15.317250 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-08-15 21:49:15.812969 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-08-15 21:49:15.825133 [INFO] ovm:OVMSimulato  :: Over voltage monitoring: stopped.
+2026-08-15 21:49:15.856889 [INFO] evse_manager:Ev  :: VoltagePlausibilityMonitor, stop monitoring
+2026-08-15 21:49:15.857073 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-08-15 21:49:19.361140 [INFO] evse_manager:Ev  :: EVSE IEC Pause in X1 for EV READY regulations
+2026-08-15 21:49:19.361394 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-15 21:49:20.149717 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_EF
+2026-08-15 21:49:20.149976 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-15 21:49:20.192859 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_EF->Wait for Auth
+2026-08-15 21:49:20.741398 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-08-15 21:49:20.788992 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-15 21:49:20.789186 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-08-15 21:49:20.789303 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging

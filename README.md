@@ -89,7 +89,7 @@ how to read one.
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; verdict now driven from our own backend — past `Authorization`, and `FAILED_CertificateRevoked` measured³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
-| Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ◐ `EV→` trigger and re-discovery accepted; the restart was refused **and correctly so** — ours to re-run³⁰ | — | — |
+| Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ◐ `EV→` **the sequence wall is gone**: their station accepts the renegotiated `CableCheck`; the session then dies in their own cable-check self-test³⁰ | — | — |
 | TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
@@ -479,8 +479,15 @@ Josev cells are AC.
 the station expects it and answers `FAILED_SequenceError` when it is skipped — the answer EVerest gave
 us, now from our own station, with `Secc2.IsolationSequences` counting the two CableChecks a DC
 renegotiation owes. Four tests, **three fail on the pre-fix code**, checked by putting both halves back.
-What is left is a re-run against their station, which is now a test of *our* fix: an arm this project
-owes EVerest rather than the other way round.
+<br>**Re-run against their station the same evening, with a control three minutes apart**
+([`…-iso2-renegotiation-rerun`](docs/interop-runs/2026-08-15-everest-iso2-renegotiation-rerun/notes.md)).
+The pre-fix car reproduces `FAILED_SequenceError` on the same binary; the fixed car gets the renegotiated
+`CableCheckReq` **accepted**, four `OK`s — the message that was unreachable that morning. The session
+then dies four messages later inside their `EvseManager`: its cable check waits for the DC link to fall
+below 60 V, which does not happen during a renegotiation, and it raises `MREC11CableCheckFault` →
+`Inoperative`. **Deliberately not filed**: our `CableCheckReq` still carries `EVReady = true` and our car
+neither drops its demand nor models a contactor, so the likelier owner is us again. The arm that decides
+is named in the note and has not been run.
 
 ²⁹ **Established from their source and the frames already here, without a session — and no session would
 have moved it.** `create_default_scheduled_control_mode` builds the Scheduled response under the comment

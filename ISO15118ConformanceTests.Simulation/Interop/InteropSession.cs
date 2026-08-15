@@ -231,6 +231,12 @@ internal static class InteropSession
                                CertInstallRequest = certificateProvisioning,
                                Renegotiate        = renegotiate,
 
+                               // The pre-fix car on demand, so a run can show the difference is the
+                               // sequence and not the station. Never set outside a control arm.
+                               RenegotiationSkipsIsolationSequence
+                                                  = InteropEnvironment.RenegotiationSkipsIsolation(),
+
+
                                // `Evcc2.SendSessionId` has existed since 2026-08-11 and this line had not:
                                // every -2 caller passing sendSessionId had it discarded here, so the one
                                // stack whose `[V2G2-460]` behaviour was measured that day had to be probed
