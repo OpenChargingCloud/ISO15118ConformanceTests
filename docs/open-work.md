@@ -143,9 +143,18 @@ own side already held that no caller could reach*. That pattern now has more ins
 counterparty defect found in the same period, and it is worth treating as the thing to look for rather
 than as a run of bad luck.
 
-What is left of the reverse direction is two variables and no wall: **Dynamic over AC** (different code
-path through `ScheduleExchange`'s answer) and **a reverse `-2` run over TLS 1.2**, which the fixture
-change of 2026-08-14 already covers.
+**Dynamic over AC ran the same day**, with its own Scheduled control — and it closed a loose end rather
+than just filling a cell. The three arms are 56 exchanges each and differ only in composition, and lined
+up with the two earlier AC reverse runs they give an invariant across five sessions: **`PowerDelivery`
+before the loop plus charge loops = 45, every time**. The extra `PowerDeliveryReq` first noted on 08-14
+and withdrawn the same day is readiness polling — our own `PowerOn` phase self-loops for it — never the
+transport, and Dynamic only makes it larger
+([`…-ac-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md)).
+
+What is left of the reverse direction is two variables and no wall: **`AC_BPT` in Dynamic**, which would
+put the fourth and last AC charge-loop control-mode variant (`BPT_Dynamic_AC_CLResControlModeType`) in
+front of a live peer, and **a reverse `-2` run over TLS 1.2**, which the fixture change of 2026-08-14
+already covers.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in

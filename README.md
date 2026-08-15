@@ -98,7 +98,7 @@ how to read one.
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` · ✅ **`←SECC` ×2, with a Scheduled control arm that switches with the offer**³⁵ | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **and again over mutual TLS 1.3**³³ | — | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **over mutual TLS 1.3**³³ **and in Dynamic**³⁶ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
@@ -249,6 +249,20 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+³⁶ **The AC charge loop's Dynamic answer, in front of a live peer for the first time — and an invariant
+that closed a three-day loose end.** `ScheduleExchange` is shared between the power modes; the
+charge-loop answer is not, and a Dynamic AC response carries a **mandatory** `EVSETargetActivePower` a
+Scheduled one does not, so 40 and 41 completed Dynamic loops are the evidence our AC side answers in kind
+(`[V2G20-1600]`) rather than only our DC side. The three arms are 56 exchanges each and differ in
+*composition*: 5 / 4 `PowerDeliveryReq` before the loop in Dynamic against 1 in the Scheduled control.
+Lined up with the two earlier AC reverse runs that makes five sessions in which **`PowerDelivery` before
+the loop plus charge loops = 45, every time** — the car simulator fixes the window, not the exchange
+count, so every message spent getting started is one not spent charging. That retires the extra
+`PowerDeliveryReq` [noted on 08-14](docs/interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md) and
+withdrawn on the same day: it is readiness polling, which our own `PowerOn` phase self-loops for and says
+so; it was never the transport, and Dynamic only makes it larger.
+[`…-ac-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md).
 
 ³⁵ **Three sessions no frame count can tell apart, and one of them is a different control mode.** Their EV
 ran Dynamic against our station plain and over mutual TLS 1.3; the **control arm**, the same rig with
