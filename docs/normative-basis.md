@@ -809,6 +809,42 @@ changed between the protocols**, and that is the shape of the EVerest finding: a
 `-2`'s rule to both stacks. Anything written about one of these two clauses has to name the other, or a
 fix aimed at `-20` will be applied to `-2` and break it.
 
+### A DC renegotiation returns through CableCheck and PreCharge — and reading this withdrew a filing
+
+Settled 2026-08-15, working the one unticked gate on
+[`everest-evsev2g-renegotiation-cablecheck`](reports/everest-evsev2g-renegotiation-cablecheck.md). The
+filing said their station was wrong to expect `CableCheck` after a renegotiation. **It is not**, and four
+independent legs say so — the first two from the same document the report was written from:
+
+- **The SECC state table for DC.** `Process ChargeParameterDiscoveryReq` is followed by *Wait for
+  CableCheckReq*, carrying `[V2G2-565]` and `[V2G2-582]`, and the table has **no renegotiation
+  exception** — the only other place a `ChargeParameterDiscoveryReq` is admitted again is after welding
+  detection, which is the pause path. `EvseV2G`'s own comment at that state cites `[V2G-582]`.
+- **Annex I is AC.** Both its sequence diagrams carry `ChargingStatusReq/Res` — the AC charge loop; DC's
+  is `CurrentDemandReq/Res`. They show no CableCheck because AC has none to show. An informative example
+  was read as a general one, and its mode was never checked.
+- **`[V2G2-842]` constrains a value, not an order.** It obliges the EVCC to set `ChargeProgress = Start`
+  in the *next* `PowerDeliveryReq` after a renegotiation. Messages between the renegotiation and that
+  `PowerDeliveryReq` are not what it is about.
+- **The contactor NOTE is somewhere else.** *"the contactor stays closed"* is NOTE 1 in the Control-Pilot
+  block beside `[V2G2-847]`–`[V2G2-849]`, not at `[V2G2-680]`, whose NOTE is about an EV declining an
+  SECC-initiated renegotiation.
+
+**And the 2014 edition, which is what everybody's `-2` actually targets:** the *ISO 15118 Manual* (2019)
+describes DC renegotiation as exchanging `CableCheck` and `PreCharge` between `ChargeParameterDiscovery`
+and `PowerDelivery`, notes that this normally opens the contactor and interrupts the energy flow, and
+names skipping them as something the **second edition** was expected to address. The manual is
+explanatory and never a citation for a conformance claim — but the direction matters: it is used here to
+**withdraw** a claim of ours, not to support one, and it agrees with the revision's own state table.
+
+So the sequence is the same in both editions as far as this project can see, and the second-edition
+change the manual anticipated is not in the DIS state table either.
+
+**What it costs us.** `Evcc2` renegotiates as `PowerDelivery(Renegotiate)` → `ChargeParameterDiscovery`
+→ `PowerDelivery(Start)` in **both** modes; in DC that skips two message pairs the state table requires.
+Our own SECC accepts it, so the loopback agrees with itself. In *Ours to fix* in
+[`open-work.md`](open-work.md).
+
 ### `SupportedServiceIDs` is the EV's option, and the filtering duty is narrower than it looks
 
 Read on 2026-08-15, before writing the code rather than after, because the obvious assumption — *a
