@@ -50,8 +50,11 @@ internal sealed class InteropRecording
 {
 
     /// <summary>Where artifacts go, or <c>null</c> when nobody asked for any.</summary>
+    /// <remarks>Through <see cref="InteropEnvironment.Read"/> rather than <c>Environment</c> since
+    /// 2026-08-15: that is what records the variable as consulted, and a run that recorded four files was
+    /// told <c>V2G_INTEROP_RECORD</c> had been ignored.</remarks>
     public static String? Directory
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_RECORD") is { Length: > 0 } dir ? dir : null;
+        => InteropEnvironment.Read("V2G_INTEROP_RECORD") is { Length: > 0 } dir ? dir : null;
 
 
     private readonly String       directory;
@@ -82,7 +85,7 @@ internal sealed class InteropRecording
     public static DeclaredFlow? Reference()
     {
 
-        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_SCENARIO");
+        var path = InteropEnvironment.Read("V2G_INTEROP_SCENARIO");
         if (String.IsNullOrWhiteSpace(path))
             return null;
 

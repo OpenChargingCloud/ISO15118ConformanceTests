@@ -65,7 +65,7 @@ internal static class InteropSdp
 
     /// <summary>The interface to advertise on, or <c>null</c> when nobody asked for SDP.</summary>
     public static String? InterfaceName
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_SDP") is { Length: > 0 } name ? name : null;
+        => InteropEnvironment.Read("V2G_INTEROP_SDP") is { Length: > 0 } name ? name : null;
 
 
     /// <summary>

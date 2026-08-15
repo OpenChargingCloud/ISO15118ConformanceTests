@@ -112,6 +112,38 @@ the two we watched on the wire both went wrong. Sweeping `hasattr(x, "y")` to `x
 those four files is a smaller job than the individual fixes and closes the class, which is why this
 report leads with it rather than with the traceback.
 
+## The same mistake one message later, and this one *was* observed
+
+**2026-08-15, on the wire, from a conformant car.** `process_dc_charge_loop_request.py:114` reads the
+optional `DisplayParameters` the same way line 31 reads `SupportedServiceIDs`:
+
+```python
+display_parameters = payload.display_parameters
+self.controller.data_model.update_charging_status(display_parameters.present_soc,
+                                                  display_parameters.battery_energy_capacity, power)
+```
+
+`DisplayParameters` is `minOccurs="0"` in `ChargeLoopReqType`, our EVCC omits it, and the station ends
+the same way as at line 31:
+
+```
+Received DcChargeLoopReq.
+AttributeError: 'NoneType' object has no attribute 'present_soc'
+```
+
+The same read is at `:176` for the unidirectional branch, so both DC paths carry it. This one is
+**worth more than the crash at line 31 in one respect and less in another**: more, because the EV that
+hits it has done everything right — selected a service your catalogue offers, negotiated Dynamic
+control, driven `CableCheck`, `PreCharge` and `PowerDelivery` to `OK`, and then sent a legal charge-loop
+request; less, because by then the session has already had to get past line 31, so nobody has ever seen
+it. It is written up in
+[`2026-08-15-edf-session-id-460`](../interop-runs/2026-08-15-edf-session-id-460/notes.md), a run that
+had a reason to send the filter.
+
+**Not split into its own filing**, deliberately: it is the same one-line pattern in the same tree, and
+the suggested direction below closes it in the same sweep. If it is split when this is posted, the
+count changes and the argument does not.
+
 ## Also seen, and deliberately **not** reported
 
 Our 2026-08-01 notes list a third observation, which does not survive checking and is corrected here
@@ -123,6 +155,10 @@ Scheduled and never sends one. Reaching that line takes a car that ignored the c
 — which ours did in August, before it was taught to read parameter sets. What is left is that
 malformed input crashes rather than being refused, and that is not a thing we would file against you.
 
+**The `display_parameters` read fourteen lines earlier is the opposite case**, which is why it is in the
+report proper and this one is not: there the input is legal and the omission is the standard's own
+default. Two reads in one file, one reportable and one not, is the distinction this section exists for.
+
 ---
 
 ## Before sending
@@ -133,9 +169,16 @@ malformed input crashes rather than being refused, and that is not a thing we wo
 - [x] **Re-check the source against the tree.** `process_service_discovery_request.py:31-35`,
       `process_service_selection_request.process_payload`, `evse_dummy_controller.py:109-114`,
       `evse_session.py:151` and all seven `hasattr` sites read from `60249c3` on 2026-08-10.
-- [ ] **Say which half was observed and which was read.** The crash was observed. The unset
-      `EnergyTransferServiceList` was not — it comes from reading the branches — and the report says
-      so; keep that distinction when it is rewritten in your own words.
+- [ ] **Say which half was observed and which was read.** The crash was observed, and so is the
+      `display_parameters` one since 2026-08-15. The unset `EnergyTransferServiceList` was not — it
+      comes from reading the branches — and the report says so; keep that distinction when it is
+      rewritten in your own words.
+- [x] **Check that the fix is reachable from outside.** With `SupportedServiceIDs` present their station
+      runs the whole DC sequence — `ServiceDetail`, `ServiceSelection`, `ChargeParameterDiscovery`,
+      `ScheduleExchange`, `CableCheck`, `PreCharge`, `PowerDelivery`, all `OK`
+      ([2026-08-15](../interop-runs/2026-08-15-edf-session-id-460/notes.md)). So line 31 is a wall in
+      front of a station that otherwise works, which is the strongest version of this report and was
+      not known when it was written.
 - [ ] **Lead with the family, not the traceback.** The optional-element pattern is the part worth their
       attention; a maintainer who fixes only line 31 has fixed one of an unknown number.
 - [x] **Check whether `main` has moved — checked 2026-08-11: it has not.** `EDF-Lab/eVDriveFlow` `main`

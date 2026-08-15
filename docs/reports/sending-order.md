@@ -4,6 +4,12 @@ Thirty-four sendable reports carrying **forty-eight issues** across six projects
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
+**As of 2026-08-15 not one of them is waiting on a measurement.** The last open box was (37)'s *"run it
+against your station"*, taken that evening; the only report still marked source-only,
+[`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md), is walled off by their own
+advertisement rather than by work nobody has done, and its checklist says so. Everything left in this
+directory is a decision a person makes.
+
 It is a suggestion, not a queue to execute. The rules are given first so you can re-derive the order
 when something changes — and something will: `main` moves, projects wake up, and the first reply to any
 of these changes what the next one should be.
@@ -221,9 +227,20 @@ question nobody is there to answer. **Send patches instead**, in one batch, and 
 **33.** issue **1** (`stdin` EOF) — the wall everything else is behind.
 **34.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
 **35.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
-one that needs no misbehaviour from the other side at all.
+one that needs no misbehaviour from the other side at all. **It got stronger on 2026-08-15 in two ways.**
+Their station turns out to work: with the element present it runs the whole DC sequence to
+`PowerDelivery`, so line 31 is a wall in front of a station that otherwise charges — which is a better
+pitch than a traceback. And the same unguarded-optional read is in the **charge loop** as well
+(`process_dc_charge_loop_request.py:114`, `DisplayParameters`), reached by a car that has done everything
+right. That second site is in the same report rather than a separate filing; if it is split when posted,
+the count goes to 49 and the argument does not change.
 **36.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
-**37.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
+**37.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares). **No longer
+source-only, and it is the strongest of the six**: measured 2026-08-15, **ten message types answered
+`OK` under a SessionID their station never issued**, `PowerDelivery` among them, in sessions identical to
+the control message for message — with their own debug log printing the foreign id three lines above the
+answer that ignores it. Lead with that line. It is also the last measurement box that was open anywhere
+in this directory.
 **38.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
 as the report does.
 

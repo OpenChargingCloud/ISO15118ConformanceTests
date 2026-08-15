@@ -102,10 +102,23 @@ public class EvDriveFlowInteropTests
         {
             await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode, transport: transport);
 
+            // Every parameter the shared driver takes. This fixture reached four of them until
+            // 2026-08-15 — the same gap the Josev one had that morning, in the fixture nobody had
+            // pointed a knob at yet. V2G_INTEROP_SESSIONID is the one this run needs, and dropping it
+            // would have produced a complete Dynamic session: the exact output a station that never
+            // compares the id also produces.
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
                                                             InteropEnvironment.ContractCredentialsOrNull(),
-                                                            mcs: InteropEnvironment.Mcs());
+                                                            mcs: InteropEnvironment.Mcs(),
+                                                            bptFirst: InteropEnvironment.BptFirst(),
+                                                            requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
+                                                            silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
+                                                            sendSessionId: InteropEnvironment.SendSessionId(),
+                                                            supportedServiceIds: InteropEnvironment.SupportedServiceIds(),
+                                                            certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
+                                                            renegotiate: InteropEnvironment.Renegotiate(),
+                                                            ongoingTimeout: InteropEnvironment.OngoingTimeout());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0

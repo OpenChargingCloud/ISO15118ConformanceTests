@@ -108,10 +108,23 @@ public class TuxEvseInteropTests
         {
             await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode, transport: transport);
 
+            // The full parameter list, for the reason the eVDriveFlow fixture got it on 2026-08-15: a knob
+            // this fixture does not pass on is a knob that reads as a counterparty result. Their responder
+            // speaks -2 and DIN, so the -20-only ones are refused rather than dropped inside RunEvccAsync —
+            // sendSessionId is the one that means something here, `[V2G2-460]` being the -2 twin of the rule
+            // this list was completed for, and their replayer the obvious next target for it.
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
                                                             InteropEnvironment.ContractCredentialsOrNull(),
-                                                            mcs: InteropEnvironment.Mcs());
+                                                            mcs: InteropEnvironment.Mcs(),
+                                                            bptFirst: InteropEnvironment.BptFirst(),
+                                                            requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
+                                                            silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
+                                                            sendSessionId: InteropEnvironment.SendSessionId(),
+                                                            supportedServiceIds: InteropEnvironment.SupportedServiceIds(),
+                                                            certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
+                                                            renegotiate: InteropEnvironment.Renegotiate(),
+                                                            ongoingTimeout: InteropEnvironment.OngoingTimeout());
 
             TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                       (outcome.MeteringReceiptsSent > 0

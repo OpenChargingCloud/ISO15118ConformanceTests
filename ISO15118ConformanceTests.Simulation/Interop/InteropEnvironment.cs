@@ -79,7 +79,15 @@ internal static class InteropEnvironment
     /// The one place a variable is read, so that <see cref="ReportUnconsulted"/> can tell a run that was
     /// configured from a run that was configured and ignored.
     /// </summary>
-    private static String? Read(String name)
+    /// <remarks>
+    /// <b>Internal rather than private since 2026-08-15.</b> Three <c>V2G_INTEROP_*</c> variables are read
+    /// by classes next door — <c>V2G_INTEROP_RECORD</c> and <c>V2G_INTEROP_SCENARIO</c> in
+    /// <see cref="InteropRecording"/>, <c>V2G_INTEROP_SDP</c> in <see cref="InteropSdp"/> — and while they
+    /// went to <c>Environment</c> directly, the guard called them ignored. It did exactly that on its first
+    /// live firing, in a run that had recorded four artifacts. A guard that cries wolf is worse than no
+    /// guard, because the next real warning is the one nobody reads.
+    /// </remarks>
+    internal static String? Read(String name)
     {
         lock (Consulted) Consulted.Add(name);
         return Environment.GetEnvironmentVariable(name);
@@ -217,6 +225,83 @@ internal static class InteropEnvironment
         => Read("V2G_INTEROP_METER") == "1";
 
 
+    /// <summary>Both protocols: our EV puts this SessionID in every request after SessionSetup, so a
+    /// station's `[V2G2-460]` / `[V2G20-460]` duty to refuse a foreign one is reachable.
+    /// <c>V2G_INTEROP_SESSIONID=&lt;hex|zero&gt;</c>.</summary>
+    /// <remarks>
+    /// <c>zero</c> is the value worth trying first: ISO reserves the all-zero id for *"I have no session"*,
+    /// and it is the one EVerest's `-2` station was measured serving as the session owner's. Unset by
+    /// default, so every recorded session keeps the id it echoed.
+    /// <para>
+    /// It said <i>-20 only</i> until 2026-08-15, and that was a statement about
+    /// <see cref="InteropSession.RunEvccAsync"/> rather than about the knob: <c>Evcc2.SendSessionId</c> has
+    /// existed as long as its `-20` twin, and the `-2` branch of that method simply did not set it.
+    /// </para>
+    /// <para>
+    /// <b>A value that cannot be used is refused rather than dropped.</b> Returning <c>null</c> for a
+    /// malformed id would send the <i>real</i> one, which is the arm's control — so a typo would have
+    /// produced a complete session and read as *"their station accepts anything"*, which is precisely the
+    /// finding such a run is usually written to support. The guard in <see cref="WarnIfIgnored"/> cannot
+    /// see this one: the variable <i>was</i> consulted.
+    /// </para>
+    /// </remarks>
+    public static Byte[]? SendSessionId()
+    {
+
+        var raw = Read("V2G_INTEROP_SESSIONID");
+
+        if (String.IsNullOrWhiteSpace(raw))                          return null;
+        if (raw.Equals("zero", StringComparison.OrdinalIgnoreCase))  return new Byte[8];
+
+        var hex = raw.Replace("0x", "", StringComparison.OrdinalIgnoreCase).Trim();
+
+        if (hex.Length != 16 || !hex.All(Uri.IsHexDigit))
+            throw new ArgumentException(
+                $"V2G_INTEROP_SESSIONID is '{raw}', which is neither 'zero' nor 16 hex digits (8 bytes, the "
+              + "width of the SessionID field). Refused rather than ignored: ignoring it would have sent the "
+              + "session's real id, and a run that meant to send a foreign one would have measured nothing.");
+
+        return Convert.FromHexString(hex);
+
+    }
+
+
+    /// <summary>-20 only: the <c>SupportedServiceIDs</c> filter our EV puts in <c>ServiceDiscoveryReq</c>.
+    /// <c>V2G_INTEROP_SERVICE_IDS=2,6</c>; unset omits the element, which asks for everything.</summary>
+    /// <remarks>
+    /// Both settings are conformant — the element is optional and naming ids is what it is for. It exists
+    /// because one station cannot be asked the ordinary question: eVDriveFlow's
+    /// <c>process_service_discovery_request.py</c> dereferences the optional element unconditionally, so
+    /// every forward session this project has driven against their SECC has ended at the fifth message
+    /// (<c>docs/reports/evdriveflow-service-discovery-filter.md</c>). Naming <b>6</b> is what gets past it,
+    /// their check being <c>if 6 in payload.supported_service_ids.service_id</c>.
+    /// </remarks>
+    public static IReadOnlyList<UInt16>? SupportedServiceIds()
+    {
+
+        var raw = Read("V2G_INTEROP_SERVICE_IDS");
+
+        if (String.IsNullOrWhiteSpace(raw))
+            return null;
+
+        var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                     .Select(x => UInt16.TryParse(x, out var id) ? id : (UInt16?) null)
+                     .ToList();
+
+        // Refused rather than dropped, for the reason SendSessionId is: a filter that silently became
+        // "list everything" would run a session that looks exactly like the one this variable was set
+        // to avoid.
+        if (ids.Count is 0 or > 16 || ids.Any(id => id is null))
+            throw new ArgumentException(
+                $"V2G_INTEROP_SERVICE_IDS is '{raw}', which is not 1..16 comma-separated service ids "
+              + "(Table 204: AC=1, DC=2, WPT=3, DC_ACDP=4, AC_BPT=5, DC_BPT=6, DC_ACDP_BPT=7, MCS=8, "
+              + "MCS_BPT=9).");
+
+        return ids.Select(id => id!.Value).ToList();
+
+    }
+
+
     /// <summary>-20 only: after one charge-loop iteration our EV stops sending and holds the connection
     /// open for this many seconds, to see when the station gives up. <c>V2G_INTEROP_SILENT=&lt;seconds&gt;</c>.</summary>
     /// <remarks>
@@ -224,24 +309,10 @@ internal static class InteropEnvironment
     /// says nothing about a timer. `[V2G20-1500]`/`[V2G20-1502]` give the SECC <b>0,5 s</b> in the charge
     /// loop (Tables 216/217) against the 60 s of Table 215 elsewhere, so a budget of ~90 s tells the two
     /// apart with room to spare. Unset by default, since a run that sets it does not charge.
+    /// <para>This doc block sat above <see cref="SendSessionId"/> until 2026-08-15 — two
+    /// <c>&lt;summary&gt;</c> elements on one method, the compiler taking the second and this one
+    /// documenting nothing. The same slip the stack's own <c>Evcc20Base.SendSessionId</c> records.</para>
     /// </remarks>
-    /// <summary>-20 only: our EV puts this SessionID in every request after SessionSetup, so a station's
-    /// `[V2G20-460]` duty to refuse a foreign one is reachable. <c>V2G_INTEROP_SESSIONID=&lt;hex|zero&gt;</c>.</summary>
-    /// <remarks>
-    /// <c>zero</c> is the value worth trying first: ISO reserves the all-zero id for *"I have no session"*,
-    /// and it is the one EVerest's `-2` station was measured serving as the session owner's. Unset by
-    /// default, so every recorded session keeps the id it echoed.
-    /// </remarks>
-    public static Byte[]? SendSessionId()
-    {
-        var raw = Read("V2G_INTEROP_SESSIONID");
-        if (String.IsNullOrWhiteSpace(raw))          return null;
-        if (raw.Equals("zero", StringComparison.OrdinalIgnoreCase)) return new Byte[8];
-        var hex = raw.Replace("0x", "", StringComparison.OrdinalIgnoreCase);
-        return hex.Length == 16 ? Convert.FromHexString(hex) : null;
-    }
-
-
     public static TimeSpan? SilentInChargeLoop()
         => Int32.TryParse(Read("V2G_INTEROP_SILENT"), out var s) && s > 0
                ? TimeSpan.FromSeconds(s)

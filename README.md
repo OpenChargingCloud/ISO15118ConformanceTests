@@ -96,7 +96,7 @@ how to read one.
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
+| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ — **and since 2026-08-15 with their station unpatched**⁴² | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` · ✅ **`←SECC` ×2, with a Scheduled control arm that switches with the offer**³⁵ | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **over mutual TLS 1.3**³³ **and in Dynamic**³⁶ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ — **AC_BPT also in Dynamic, completing all four AC charge-loop variants**³⁷ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
@@ -249,6 +249,27 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+⁴² **The `-20` `[V2G20-460]` filing, measured — and a wall of theirs turned out to be one line of ours.**
+Their SECC never reads the SessionID it was sent: with `DEADBEEFDEADBEEF` and with eight zero bytes,
+**ten message types were answered `OK`** — `PowerDelivery`, the request that closes the contactor, among
+them — in sessions otherwise identical to the control, message for message. Their own debug log prints
+the id it received three lines above the answer carrying a different one.
+[`evdriveflow-session-id`](docs/reports/evdriveflow-session-id.md) was a source finding until this;
+EVerest refuses the identical bytes, which is what rules out the probe.
+<br>**Ten handlers rather than three, because our car learned to send a legal filter.** Every forward
+session ever driven against their SECC stopped at the fifth message on their unconditional dereference of
+the optional `SupportedServiceIDs` — the 2026-08-01 run got past it only by patching *their* code in a
+throwaway container. `Evcc20Base.SupportedServiceIds` sends the element instead, which Table 38 of
+`[V2G20-1248]` makes the EV's option, and their station then runs the whole DC sequence unpatched:
+`ServiceDetail`, `ServiceSelection`, `ChargeParameterDiscovery`, `ScheduleExchange`, `CableCheck`,
+`PreCharge`, `PowerDelivery`, all `OK`. So the cell above no longer rests on a modified station.
+<br>The run also found **their same defect one message later** — `display_parameters` dereferenced in the
+charge loop, hit by a car that has done everything right — and cost **two fixes of ours**: two fixtures
+still passing four of eleven parameters, and `RunEvccAsync`'s `-2` branch dropping `sendSessionId`
+entirely. The first is the class the 08-15 guard catches, and it caught it; the second is the class it
+cannot see, which its own documentation says.
+[`…-edf-session-id-460`](docs/interop-runs/2026-08-15-edf-session-id-460/notes.md).
 
 ⁴¹ **The forty-eighth filing, and it corrected the fortieth.** Josev's EVCC loads its **OEM provisioning**
 chain as the TLS client credential (`security.py:209`), and the same leaf is the `OEMProvisioningCert` of
@@ -554,7 +575,7 @@ The offline run (`dotnet test`) needs no C toolchain, no Java and no network: th
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
 regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
-loopback E2Es run both peers in-process. 1 405 tests, all four assemblies green. The **live** cross-checks against a
+loopback E2Es run both peers in-process. 1 409 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 

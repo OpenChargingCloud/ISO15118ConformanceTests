@@ -39,7 +39,7 @@ file naming a mechanism rather than a verdict, and for re-reading one before quo
 | | Counterparty | State | Waiting on |
 |---|---|---|---|
 | **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its `-20` states never fill — so `OK_OldSessionJoined` is unreachable. Six-line fix, mirroring their own working `-2` branch. Filed: [`josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md). |
-| **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). |
+| **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). **The forward half stopped needing a patched station on 2026-08-15** — see below — and the wall it now ends at is the same family a third time: `process_dc_charge_loop_request.py:114` dereferences the optional `DisplayParameters`, which our car legally omits, so their station raises on a request that is correct in every respect. Added to [`evdriveflow-service-discovery-filter.md`](reports/evdriveflow-service-discovery-filter.md) rather than filed separately. |
 | **Renegotiation, -2** | EVerest | ⛔ `EV→` | Their DC station requires CableCheck again after a renegotiation, so the `PowerDeliveryReq(Start)` that restarts the charge is answered `FAILED_SequenceError`. The trigger and the re-discovery are accepted — this is the restart path only, and the state that would take it already exists next door. Filed: [`everest-evsev2g-renegotiation-cablecheck.md`](reports/everest-evsev2g-renegotiation-cablecheck.md). |
 | **TLS 1.2 unilateral, -2** | tux-evse | ⛔ pinned | Their configs offer neither suite ISO 15118-2 prescribes. Filed: [`tux-evse-tls.md`](reports/tux-evse-tls.md). |
 | **CertificateInstallation, -20** | Josev · EVerest | ◐ | Both send a real signed request — SwitchEV's on 2026-07-22, EVerest's `PyEvJosev` on 2026-08-08 with its own OEM root. Our response is decoded and validated, and then each ends at the same `NotImplementedError`: the fork inherited the gap. Nothing to file that the upstream code does not already say out loud. |
@@ -219,6 +219,24 @@ The item that closed took **three attempts, all of them ours**: a client chain o
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
 the run note rather than smoothed away, and two became [`tls-pki-setup.sh`](../tools/interop-everest/tls-pki-setup.sh)
 and its restore twin, so the next TLS run starts from a script instead of from a run note.
+
+**The eVDriveFlow forward direction stopped depending on a patched station the same day**, which is not
+a matrix cell moving but is the caveat under one going away. Every `EV→` session against their SECC since
+2026-08-01 had ended at the fifth message — they dereference the optional `SupportedServiceIDs` without
+checking — and the one run that got past it did so by patching *their* code inside a throwaway container.
+Our car now sends the element (`Evcc20Base.SupportedServiceIds`, `V2G_INTEROP_SERVICE_IDS=2,6`), which
+Table 38 of `[V2G20-1248]` makes its option, and their **unmodified** station runs the whole DC sequence
+to `PowerDelivery`. A workaround that lives in our car instead of in their tree is worth more than the
+messages it buys: it is the difference between a result and a result with an asterisk
+([`…-edf-session-id-460`](interop-runs/2026-08-15-edf-session-id-460/notes.md)).
+
+**And it closed the last measurement box in `docs/reports/`.** Nothing in that directory now waits on a
+run: `evdriveflow-session-id`'s *"run it against your station"* was the one still open, and their station
+answered ten message types `OK` under a SessionID it never issued, `PowerDelivery` among them. What is
+left there is thirty-four reports and forty-eight issues waiting on a **person** — with one exception that
+is not a measurement either: [`everest-evsev2g-certificate-update`](reports/everest-evsev2g-certificate-update.md)
+is source-only because their advertisement gate offers parameter-set-ID 1 alone and answers before the
+stub can be reached, which is a fact about their catalogue rather than a run nobody has done.
 
 **The struck-through table below is the previous state**, kept because the shape of a day that empties a
 backlog is that half of it turns out not to have been work.
@@ -756,11 +774,35 @@ also below.
   send `trusted_ca_keys`, and **ours does not**. Building it would close §4's box and fix a conformance
   gap of ours in the same change — which is the honest reason to do it, and why it is not smuggled in as
   a probe.
+  <br>**Number 37 in the sending order was the last one with a measurement in it**, and it was taken the
+  same evening. `evdriveflow-session-id` said `[V2G20-460]` is unimplemented in their SECC and had *"run
+  it against your station"* as its first open line; run, their station answered **ten message types `OK`
+  under a SessionID it never issued** — `PowerDelivery` among them, the request that closes the contactor
+  — in sessions otherwise identical to the control message for message, with their own log printing the
+  foreign id three lines above the answer that ignores it
+  ([run](interop-runs/2026-08-15-edf-session-id-460/notes.md)). **With that, no report in `docs/reports/`
+  is waiting on a run.**
+  <br>Ten handlers rather than three because our car learned to send a legal `SupportedServiceIDs` filter,
+  which is also what removed the *"we patched their station"* asterisk from the eVDriveFlow forward
+  column, above. And the same run found **their optional-element defect a third time**, in the charge
+  loop, hit by a car that had done everything right.
   <br>**A knob that is ignored is worse than a knob that is missing**, because the run still produces a
   number — so `InteropEnvironment` now records what it consults and every fixture ends by naming any
   `V2G_INTEROP_*` variable the run set and nothing read. It is a warning rather than a failure, and it
   is honest about its own limit: it catches *asked for and nobody looked*, not *looked at and dropped on
   the way*, which is exactly what the AC handshake bug was.
+  <br>**Both halves of that were exercised hours later, and the guard scored one of two — exactly as its
+  own documentation predicts.** The eVDriveFlow fixture had never passed `sendSessionId` on, which is
+  *asked for and nobody looked*: the guard named the variable before the first arm ran. And
+  `InteropSession.RunEvccAsync`'s `-2` branch had been dropping the same parameter since the day it was
+  written — *looked at and dropped on the way*, invisible to the guard, found by reading the method while
+  wiring the fixture. That one explains a loose end: it is why the EVerest `-2` measurement of 2026-08-11
+  had to be taken with a raw Python probe rather than with this suite. In a run whose expected finding is
+  *"the peer ignores this input"*, both would have produced a complete session and read as the finding.
+  <br>**And its first live firing was a false alarm**, which is the failure mode a guard cannot afford:
+  `V2G_INTEROP_RECORD` is read by `InteropRecording`, which went to `Environment` directly, so a run that
+  wrote four artifacts was told the variable had been ignored. Three such call sites now go through the
+  recording `Read`.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the five orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
