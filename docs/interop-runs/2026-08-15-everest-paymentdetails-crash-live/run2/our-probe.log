@@ -1,0 +1,23 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+=== what their station did ===
+  control (well-formed, untrusted)       ANSWERED  — answered OK
+  probe (non-empty, unparseable)         no answer  — InvalidDataException: V2GTP frame: connection closed before a full 8-byte header arrived.
+  liveness (control, repeated)           no answer  — SocketException: Connection refused
+NUnit Adapter 4.6.0.0: Test execution complete
+  Passed MalformedContractCertificate_AgainstTheirEvseV2G [1 s]
+  Standard Output Messages:
+ === what their station did ===
+   control (well-formed, untrusted)       ANSWERED  — answered OK
+   probe (non-empty, unparseable)         no answer  — InvalidDataException: V2GTP frame: connection closed before a full 8-byte header arrived.
+   liveness (control, repeated)           no answer  — SocketException: Connection refused
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 2.4202 Seconds
