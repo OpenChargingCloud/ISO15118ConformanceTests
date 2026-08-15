@@ -704,6 +704,18 @@ also below.
   because three of the four fixtures dropped the power mode before the SAP handshake and always offered
   the DC namespace. Both fixed. **Numbers 1 through 4 in the sending order now have nothing left in them
   but a person.**
+  <br>**Number 5 followed, and its measurement changed who the report is for.**
+  `josev-iso20-evcc-charge-loop-pacing` had one open technical box — *localize the ≈0,5 s, or say you did
+  not* — and §4 named the py4j/JVM codec as the first suspect. Measured: the codec costs **≈30 ms per
+  direction** in both roles, and **Josev's own EVCC turns the same AC charge loop around in 43 ms**
+  against the same station in the identical scenario, twelve times faster than through EVerest's
+  `PyEvJosev`. So the half second is not in the codec and not in the Josev EVCC, and **the filing is now
+  addressed to EVerest** ([localization](interop-runs/2026-08-15-josev-evcc-pacing-localized/notes.md)).
+  <br>It stops there on purpose. Splitting the remaining 480 ms needs Josev's INFO lines from inside
+  their module, and `PyEvJosev` clears the root logger's handlers and never sets a level — one line
+  would fix it, and enabling INFO adds per-message logging to exactly the quantity being measured.
+  **The instrument that would finish the job is disabled by the thing under measurement**, and a
+  contaminated number is worth less than that sentence.
   <br>**A knob that is ignored is worse than a knob that is missing**, because the run still produces a
   number — so `InteropEnvironment` now records what it consults and every fixture ends by naming any
   `V2G_INTEROP_*` variable the run set and nothing read. It is a warning rather than a failure, and it

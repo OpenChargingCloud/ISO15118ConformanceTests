@@ -1,4 +1,12 @@
-# Draft report to SwitchEV (Josev) and EVerest (`ext-switchev-iso15118`) — the `-20` EVCC turns the charge loop around in ≈0,53 s
+# Draft report to EVerest (`PyEvJosev`) — the `-20` EV turns the charge loop around in ≈0,53 s
+
+> **Re-aimed 2026-08-15, and this used to be addressed to SwitchEV first.** §4 said the ≈0,5 s had not
+> been localized and named the py4j/JVM codec round-trip as the first place to look. It was looked at:
+> **the codec costs ~30 ms per direction**, and **Josev's own EVCC turns the same charge loop around in
+> a median of 43 ms** against the same station, in the same scenario — a factor of twelve. Whatever the
+> half second is, the Josev EVCC does not have it when it runs by itself, so the measurement belongs to
+> the module that wraps it. [`…-josev-evcc-pacing-localized`](../interop-runs/2026-08-15-josev-evcc-pacing-localized/notes.md).
+> <br>What remains for SwitchEV is one sentence, in *Not part of this*.
 
 Status: **draft, not sent.** Measured on the wire 2026-08-13 against **everest-core 2026.02.1**
 (`b61bb12`) running `PyEvJosev`, ISO 15118-20 AC over plain TCP, with our own SECC on the other end.
@@ -7,7 +15,9 @@ Post it under your own name; see *Before sending* at the bottom.
 Evidence in this repository:
 [`2026-08-13-everest-d20-ac-reverse`](../interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md) — two
 arms, our station's own timer as the instrument, and their EVSE-side log carrying the corroborating
-average.
+average — and
+[`2026-08-15-josev-evcc-pacing-localized`](../interop-runs/2026-08-15-josev-evcc-pacing-localized/notes.md),
+which is where the ≈0,5 s stopped being unattributed.
 
 **This is a performance deviation, not a violated timeout, and the difference is the whole reason the
 measurement sat for a day before becoming a report.** ISO 15118-20 sorts the two thresholds on that
@@ -128,23 +138,51 @@ the SECC simulator. So this is a different shape from the SECC finding in the *s
 and never referenced): here the parameter was never transcribed, so nothing in the EVCC measures its own
 turnaround or could report it.
 
-## 4. Where the ≈0,5 s actually goes — we did **not** localize it
+## 4. Where the ≈0,5 s goes — three answers, and the third is why this is addressed to you
 
-Said plainly, because the rest of this report is measured and this part is not. Two things we can rule
-out and one place we would look first:
+This section used to say *"we did not localize it"* and name the codec as the first suspect. It has been
+measured since.
 
-- **It is not a deliberate pacing.** The only `asyncio.sleep(0.5)` on the EVCC path is commented out
-  (`iso15118/evcc/controller/simulator.py`, inside `continue_charging`), and the one live sleep in the
-  EVCC is the 0,1 s SDP start-up synchronisation in `comm_session_handler.py`.
-- **It is not confined to the charge loop**, per the table in §1: the setup phase costs the same per
-  exchange.
-- **Where we would look first, unmeasured:** every message is encoded and decoded through
-  `ExificientEXICodec`, a py4j gateway to a JVM — your own `iso15118/evcc/main.py:28` selects it, and
-  the module that exercised it here does the same (everest-core `2026.02.1`,
-  `modules/EV/PyEvJosev/module.py:88`; the same call at line 89 on `main` `8e52afd5`). Two
-  inter-process round-trips per exchange is a plausible fixed cost of this order, and it is the kind of
-  thing a timestamped debug log of one charge loop would settle in a minute. Plausible is not measured,
-  and we are not claiming it.
+**It is not a deliberate pacing.** The only `asyncio.sleep(0.5)` on the EVCC path is commented out
+(`iso15118/evcc/controller/simulator.py`, inside `continue_charging`), and the one live sleep in the
+fork's EVCC is the 0,1 s SDP start-up synchronisation in `comm_session_handler.py`. *(True of the fork.
+Upstream `d645255` is different and has a real charge-loop delay hook — see* Not part of this *below.)*
+
+**It is not confined to the charge loop**, per the table in §1: the setup phase costs the same per
+exchange.
+
+**It is not the EXI codec.** Josev logs three timestamped lines per message and they bracket exactly the
+three costs; split across four sessions and both roles, the medians are:
+
+| | their EVCC, `-20` AC | their EVCC, `-20` DC | their EVCC, `-2` AC | their SECC, `-20` DC |
+|---|---:|---:|---:|---:|
+| `SENT` → `Decoded` — peer + read + **decode** | 31 ms | 25 ms | 36 ms | — |
+| `Decoded` → to-encode — state handling | 1 ms | 1 ms | 1 ms | 0 ms |
+| to-encode → `SENT` — **encode** + write | 30 ms | 24 ms | 32 ms | 28 ms |
+
+Both codec halves cross the py4j gateway into the JVM, in both roles, and both cost **tens of
+milliseconds** — an order of magnitude short of what has to be explained. The state machine's own
+handling is 1 ms.
+
+**And it is not in the Josev EVCC.** Their own EVCC container, upstream `d645255`, in the identical
+scenario — `-20` AC, EIM, plain TCP, SDP discovery, our station on the other end:
+
+| what drives the Josev EVCC | AC charge-loop turnaround |
+|---|---:|
+| your `PyEvJosev` module, fork `26f7988` | **≈532 ms** |
+| Josev's own EVCC container, upstream `d645255` | **43 ms** (min 32, max 58) |
+
+Twelve times, same codec, same protocol, same transport, same peer. That is why this report is now
+addressed to you rather than to SwitchEV.
+
+**What we could not do, and why we chose not to.** Splitting the 532 ms the same way needs Josev's INFO
+lines from inside your module, and they do not exist: `modules/EV/PyEvJosev/utilities.py:30-42` clears
+the root logger's handlers, installs `EverestPyLoggingHandler` and **never sets a level**, so the root
+logger stays at Python's default `WARNING`. Confirmed by re-running the scenario: 0 of the expected
+lines, while the session negotiated and charged normally. One line would fix it — and enabling INFO adds
+per-message formatting and a log call to precisely the quantity being measured, so a number taken that
+way would be a number about a modified tree. **The instrument that would finish this is disabled by the
+module under measurement**, and we would rather hand you that sentence than a contaminated figure.
 
 ## 5. Where you are right
 
@@ -184,11 +222,36 @@ Three implementations, and the pair that ships together is exactly the pair that
 this one alongside the SECC report if you send both — they are the same file and the same table, from
 the two sides.
 
+**And a fourth implementation is the reason this section survived the re-aiming.** Josev's own EVCC, run
+standalone against our station, turns the loop around in 43 ms — inside Table 216's 0,25 s with room to
+spare. So the stack this module wraps is not the one with the problem, and the sentence *"a station that
+waits 60 s never discovers that its own EV takes 532 ms"* now has a sharper form: the only configuration
+in which the 532 ms exists is the one in which nothing measures it.
+
 **Our own gap, and it is the symmetric one.** Our stack has **no**
 `V2G_EVCC_Sequence_Performance_Time` either — no such constant anywhere in it. Our EVCC happens to turn
 the loop around in ~50 ms and therefore sits inside the budget by accident rather than by design;
 nothing in it measures or enforces the 0,25 s. Our *station* enforces its half, which is the only reason
 this measurement exists, and it enforced it against us first.
+
+## Not part of this
+
+- **The one thing that is still SwitchEV's.** `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` is absent from
+  `timeouts.py` in **both** trees, where the SECC-side `_CL` constants are present — §3. That is a
+  one-line note to upstream, worth sending with
+  [`josev-iso20-charge-loop-timeout`](josev-iso20-charge-loop-timeout.md) rather than as a report of its
+  own, and it is unaffected by where the 532 ms turned out to live.
+- **Upstream has a charge-loop delay hook and this fork does not.** `charge_loop_delay()` awaited as
+  `asyncio.sleep(delay)` in upstream's `-20` AC and DC loops, its `-2` loop and DIN, logging *"Next
+  ChargeLoop Req in N seconds"*; `grep charge_loop_delay` matches nothing in `26f7988`. It resolved to
+  **0** in our measurement and caused nothing — named here only so that nobody reading §4's *"it is not
+  a deliberate pacing"* has to re-derive that the sentence is about this tree.
+- **A small crash in their SDP refusal path**, met while setting the comparison up and deliberately not
+  filed here: an EVCC that refuses an SDP response naming port 15118 then raises `AttributeError:
+  'SDPResponse' object has no attribute 'ip_address'` inside the `__repr__` of the message it is
+  refusing. Different project, different report, and it has nothing to do with pacing.
+- **Where the 480 ms actually is.** Not in the codec, not in the Josev EVCC — and no further, for the
+  reason §4 ends with.
 
 ---
 
@@ -219,18 +282,24 @@ this measurement exists, and it enforced it against us first.
 - [x] **Say where they are right**, and that their EV completed a session nothing else has.
 - [x] **Admit our own gap.** No EVCC performance-time constant on our side either; we are inside the
       budget by accident.
-- [ ] **Localize the 0,5 s, or say in the issue that you did not.** §4 is a hypothesis with a named place
-      to look, and it is labelled as one. A timestamped debug log of a single charge loop would settle it
-      and would make the issue far easier to act on — consider running that before posting.
+- [x] **Localize the 0,5 s — done 2026-08-15, and it moved the report to a different project.** Not the
+      codec: their own three log lines split each exchange into decode ≈30 ms, handling ≈1 ms, encode
+      ≈30 ms, across four sessions and both roles. Not the EVCC: Josev's own container turns the same
+      charge loop around in **43 ms** in the identical scenario, twelve times faster than through this
+      module. The remainder is not localized further, and §4 ends with the reason — their module clears
+      the root logger and never sets a level, so the split cannot be taken inside it without a patch
+      that changes what is measured.
+      [`…-josev-evcc-pacing-localized`](../interop-runs/2026-08-15-josev-evcc-pacing-localized/notes.md).
 - [x] **Re-run over TLS — done 2026-08-14, and it is worse.** Mutual TLS 1.3, same EV, same config, same
       20 s window: **23,400 s for 43 charge loops, ≈544 ms each**, against ≈532 ms over plain TCP. So the
       number a real `-20` deployment sees is the larger one — TLS costs about 12 ms per exchange here —
       and the deviation is 2,2× the 0,25 s rather than 2,1×. Quote whichever you like; they are the same
       finding ([`…-d20-ac-reverse-tls`](../interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md)).
-- [ ] **Decide fork or upstream first.** Same file in two live trees, both at HEAD — the shape
-      [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) handles as dependency 4: the fork is the one
-      that moves, and the upstream issue can then cite it. Unlike that one, nothing here is
-      fork-specific, so a single upstream issue that the fork inherits may be the honest shape. Pick one.
+- [x] **Decide fork or upstream first — answered by the measurement, not by a preference.** It is
+      neither: it is the **module**. `PyEvJosev` is where the 532 ms appears and the only place it
+      appears, so this is one EVerest issue. The single sentence that is genuinely upstream's — the
+      absent `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` — is in *Not part of this* and travels with the SECC
+      report instead.
 - [ ] **Consider sending it with the SECC half.** §7 is the argument; two issues, close together, not one
       issue with two headings — they have different fixes in different files.
 - [ ] **Post under your own name, in your own words.**
