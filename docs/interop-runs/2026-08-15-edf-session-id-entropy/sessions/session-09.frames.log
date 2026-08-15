@@ -1,0 +1,24 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 155 byte(s), 5 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=45
+    01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040
+[1] SessionSetupReq payloadType=0x8002 bytes=33
+    01fe800200000019808c0400000000000000000adec81d40620422ab21a1981880
+[2] AuthorizationSetupReq payloadType=0x8002 bytes=25
+    01fe8002000000118008041b9a9b9b9b1c1a1b0adec81d4062
+[3] AuthorizationReq payloadType=0x8002 bytes=26
+    01fe8002000000128000041b9a9b9b9b1c1a1b0adec81d406200
+[4] ServiceDiscoveryReq payloadType=0x8002 bytes=26
+    01fe800200000012807c041b9a9b9b9b1c1a1b0adec81d406280
+
+## station -> EV: 103 byte(s), 4 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8002 bytes=36
+    01fe80020000001c8090041b9a9b9b9b1c1a1b0adec81d4062040296968c0c0c0c0c0c00
+[2] AuthorizationSetupRes (OK) payloadType=0x8002 bytes=28
+    01fe800200000014800c041b9a9b9b9b1c1a1b0adec81d4062000400
+[3] AuthorizationRes (OK) payloadType=0x8002 bytes=27
+    01fe8002000000138004041b9a9b9b9b1c1a1b0adec81d40620000
