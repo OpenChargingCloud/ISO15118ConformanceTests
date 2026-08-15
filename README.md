@@ -99,7 +99,7 @@ how to read one.
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
 | DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` · ✅ **`←SECC` ×2, with a Scheduled control arm that switches with the offer**³⁵ | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **over mutual TLS 1.3**³³ **and in Dynamic**³⁶ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ — **AC_BPT also in Dynamic, completing all four AC charge-loop variants**³⁷ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
@@ -250,6 +250,15 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
 
+³⁷ **All four AC charge-loop control-mode variants have now met somebody else's car.** `Secc20Ac.ClResInKind`
+answers strictly in kind (`[V2G20-1600]`) and has four arms — Scheduled, BPT_Scheduled, Dynamic, and
+**BPT_Dynamic**, which this run supplied: service 5 in Dynamic, plain and over mutual TLS 1.3, with a
+BPT/Scheduled control. A wrong variant is a wire-type mismatch their Josev-derived EV does not survive, so
+44 completed loops per arm is the evidence. **It also refuted footnote 36's own explanation**: its Dynamic
+arms poll `PowerDelivery` once, not four or five times. Across ten AC reverse sessions the invariant holds
+every time and nothing measured predicts the variation.
+[`…-ac-bpt-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-ac-bpt-dynamic-reverse/notes.md).
+
 ³⁶ **The AC charge loop's Dynamic answer, in front of a live peer for the first time — and an invariant
 that closed a three-day loose end.** `ScheduleExchange` is shared between the power modes; the
 charge-loop answer is not, and a Dynamic AC response carries a **mandatory** `EVSETargetActivePower` a
@@ -261,8 +270,14 @@ the loop plus charge loops = 45, every time** — the car simulator fixes the wi
 count, so every message spent getting started is one not spent charging. That retires the extra
 `PowerDeliveryReq` [noted on 08-14](docs/interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md) and
 withdrawn on the same day: it is readiness polling, which our own `PowerOn` phase self-loops for and says
-so; it was never the transport, and Dynamic only makes it larger.
+so, and it was never the transport.
 [`…-ac-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md).
+<br>**The reading offered there — that Dynamic makes the polling larger — was itself refuted hours later**
+by the AC_BPT Dynamic run, whose Dynamic arms poll once. Across ten AC reverse sessions the invariant
+holds every time and the count is 1 or 2 in nine of them; **nothing measured predicts the variation**, and
+the `PowerOn` loop is designed to tolerate it. Two explanations refuted in two days from one three-line
+observation, both hedged when written and both refuted by the next run — *an explanation offered for a
+difference between two runs is a hypothesis about the next ten*.
 
 ³⁵ **Three sessions no frame count can tell apart, and one of them is a different control mode.** Their EV
 ran Dynamic against our station plain and over mutual TLS 1.3; the **control arm**, the same rig with

@@ -151,10 +151,16 @@ and withdrawn the same day is readiness polling — our own `PowerOn` phase self
 transport, and Dynamic only makes it larger
 ([`…-ac-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md)).
 
-What is left of the reverse direction is two variables and no wall: **`AC_BPT` in Dynamic**, which would
-put the fourth and last AC charge-loop control-mode variant (`BPT_Dynamic_AC_CLResControlModeType`) in
-front of a live peer, and **a reverse `-2` run over TLS 1.2**, which the fixture change of 2026-08-14
-already covers.
+**`AC_BPT` in Dynamic ran the same day**, completing all four AC charge-loop control-mode variants against
+a live peer — and refuting the explanation the run before it had offered
+([`…-ac-bpt-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-ac-bpt-dynamic-reverse/notes.md)). Two
+inferences withdrawn in two days from one three-line observation, both hedged when written, both refuted
+by the next run rather than by re-reading. The invariant underneath never moved. **The rule worth keeping
+is narrower than "hedge more":** an explanation offered for a difference between two runs is a hypothesis
+about the next ten, and this file should treat it as one.
+
+What is left of the reverse direction is **one** variable and no wall: **a reverse `-2` run over TLS 1.2**,
+which the fixture change of 2026-08-14 already covers.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in
