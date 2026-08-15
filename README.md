@@ -261,6 +261,8 @@ Plug & Charge run is dated 2026-07-22, and `--trust-roots` with the station's co
 arrived on 2026-08-08 — six weeks in which the cell read as more than it had ever measured, with nothing
 to flag it. **A capability the harness gains does not reach back through the matrix**, and that is a
 second staleness mechanism beside the *value no caller could reach* of the footnote below.
+<br>These two were also the **last** of it, which the footnote below got wrong on the same day and in
+the same breath as stating the rule: it named a third cell, at eVDriveFlow, that does not exist.
 <br>The `-20` arm settled one more thing unasked: with the store configured their car's **TLS client
 chain** is validated instead of accept-any, and it anchors at `CN=OEMRootCA` — the class `[V2G20-2331]`
 and clause 7.3.1 ask for, and the exact inverse of the [EVerest station](docs/reports/everest-d20-trust-anchor.md)
@@ -275,10 +277,15 @@ presented, with nobody asking who issued it — because both station classes hav
 three signature checks and not the chain. Both are fixed; the `-20` EVerest cell is **re-taken** over
 mutual TLS 1.3 with the anchor configured — *chain trusted, anchored at `CN=MORootCA`*, their EV's own
 `SubCertificates` walked to it — against a control at the **V2G** root that refuses the chain while the
-signature still verifies. **Earlier recordings are not retroactively upgraded**, and the Josev and
-eVDriveFlow `←SECC` cells still carried the weaker claim, which is why they went `◐`: same one variable,
-each against its own counterparty's MO root. Josev's two were closed the same night⁴⁰; eVDriveFlow's is
-the last one left.
+signature still verifies. **Earlier recordings are not retroactively upgraded**, and the Josev `←SECC`
+cells still carried the weaker claim, which is why they went `◐`: same one variable, against their own MO
+root. They were closed the same night⁴⁰, and with them **every inbound Plug & Charge result in this
+matrix is anchored** — the two Josev cells, this one, and the `-2` EVerest cell of the same day³⁸.
+<br>~~*and eVDriveFlow's*~~ — **withdrawn 2026-08-15, hours after it was written.** This footnote named
+an eVDriveFlow `←SECC` PnC cell as carrying the same overstatement. There is no such cell:
+[they implement no Plug & Charge](docs/interop-runs/2026-08-11-edf-pnc-source-audit/notes.md), established
+by source audit four days earlier, and the matrix row has said `— they implement none`²⁸ ever since. The
+claim never matched the table it was written under.
 [`…-d20-reverse-pnc-chain`](docs/interop-runs/2026-08-15-everest-d20-reverse-pnc-chain/notes.md).
 
 ³⁸ **The first ISO 15118-2 reverse session against this counterparty, in any transport — and their car

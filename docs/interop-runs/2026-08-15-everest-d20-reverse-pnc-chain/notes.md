@@ -58,9 +58,16 @@ this counterparty, this run, and any run that sets the variable.
 
 **Not settled, and worth stating:** the *earlier* recordings are not retroactively upgraded. The runs of
 2026-08-06 through 08-15 remain sessions in which the chain was not validated; what changed is that the
-claim in the matrix now matches a run that validated it. Josev's and eVDriveFlow's `←SECC` PnC cells are
+claim in the matrix now matches a run that validated it. Josev's two `←SECC` PnC cells are
 in the same position the `-20` EVerest one was in this morning, and closing them is the same one
 variable — but it is their PKI, their MO root, and a run each.
+
+> ~~*and eVDriveFlow's*~~ — **withdrawn the same day, and it originated here.** This paragraph and the
+> *Next* below named an eVDriveFlow `←SECC` PnC cell alongside Josev's. There is none: they implement no
+> Plug & Charge in either role, [audited on 2026-08-11](../2026-08-11-edf-pnc-source-audit/notes.md), with
+> the matrix reading `— they implement none` ever since. From here the mistake was copied into the Josev
+> note, `README.md` and `open-work.md`. The [correction](../2026-08-15-josev-reverse-pnc-chain/notes.md)
+> is written up where it was caught.
 
 ## Reproduce
 
@@ -96,5 +103,7 @@ verified back in place.
 
 ## Next
 
-- **The Josev and eVDriveFlow `←SECC` PnC cells**, which carry the same overstatement and need the same
-  one variable against each counterparty's own MO root.
+- ~~**The Josev and eVDriveFlow `←SECC` PnC cells**, which carry the same overstatement and need the same
+  one variable against each counterparty's own MO root.~~ **Josev's two: done the same night**
+  ([`…-josev-reverse-pnc-chain`](../2026-08-15-josev-reverse-pnc-chain/notes.md)), which anchors every
+  inbound Plug & Charge result in the matrix. **eVDriveFlow's does not exist** — see the withdrawal above.
