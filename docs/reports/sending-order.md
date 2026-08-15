@@ -1,6 +1,6 @@
 # In what order to send them
 
-Thirty-three sendable reports carrying **forty-seven issues** across six projects, and none of them sent. The
+Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
@@ -176,18 +176,22 @@ thing in the directory. Good filler between two hard ones.
 **25.** [`josev-iso20-renegotiation`](josev-iso20-renegotiation.md) — §1 to both trees, §2 upstream
 only, and say in the upstream issue that the fork already carries §2's fix.
 **26.** [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) — fork first, then upstream, per dependency 4.
-**27.** [`josev-iso20-pause-resume`](josev-iso20-pause-resume.md)
+**27.** [`josev-iso20-vehicle-certificate`](josev-iso20-vehicle-certificate.md) — **upstream only, and
+send it beside 26**: same file, same reviewer, and the vehicle branch this asks for is a good moment to
+fix the curves that one is about. Unusually easy to accept — the fork already carries the whole change,
+so lead with that rather than with the two requirement numbers.
+**28.** [`josev-iso20-pause-resume`](josev-iso20-pause-resume.md)
 
 ### Then — tux-evse and V2Gdecoder
 
 Both semi-dormant but not dead. Issues, not PRs, and expect a slow answer.
 
-**28.** [`tux-evse-spin`](tux-evse-spin.md) — C and D. The only tux finding that was *measured*, and the
+**29.** [`tux-evse-spin`](tux-evse-spin.md) — C and D. The only tux finding that was *measured*, and the
 reproduction is one line: one connection, one message, disconnect.
-**29.** [`tux-evse-tls`](tux-evse-tls.md) — A and B, separately; A is a bug, B is a question.
-**30.** [`tux-evse-capture-fidelity`](tux-evse-capture-fidelity.md) — E and F; F is the one-liner a
+**30.** [`tux-evse-tls`](tux-evse-tls.md) — A and B, separately; A is a bug, B is a question.
+**31.** [`tux-evse-capture-fidelity`](tux-evse-capture-fidelity.md) — E and F; F is the one-liner a
 maintainer merges in a minute, so consider sending F first.
-**31.** [`v2gdecoder-fuzzy-grammar`](v2gdecoder-fuzzy-grammar.md) — A and B. **Lead with what worked**:
+**32.** [`v2gdecoder-fuzzy-grammar`](v2gdecoder-fuzzy-grammar.md) — A and B. **Lead with what worked**:
 285 of 287 frames round-tripped.
 
 ### Last — eVDriveFlow, as pull requests
@@ -195,13 +199,13 @@ maintainer merges in a minute, so consider sending F first.
 `main` has not moved since **2023-04-17** — three years and four months. Six issues, and an issue is a
 question nobody is there to answer. **Send patches instead**, in one batch, and expect nothing back.
 
-**32.** issue **1** (`stdin` EOF) — the wall everything else is behind.
-**33.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
-**34.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
+**33.** issue **1** (`stdin` EOF) — the wall everything else is behind.
+**34.** issue **2** (`hasattr` on an `Optional`) — only makes sense after 1.
+**35.** issue **3** (`SupportedServiceIDs` dereferenced unconditionally) — independent of both, and the
 one that needs no misbehaviour from the other side at all.
-**35.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
-**36.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
-**37.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
+**36.** issue **4** (PnC alongside EIM raises `NotImplementedError`).
+**37.** issue **5** (`[V2G20-460]` unimplemented — fifteen handlers, none compares).
+**38.** issue **6** (26,6 bits where 58 are required) — **and it buys nothing until 5 is fixed**; say so,
 as the report does.
 
 ---

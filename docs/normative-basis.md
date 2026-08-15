@@ -557,7 +557,34 @@ its own overview before any requirement does.
 The distinction to carry away: **a contract certificate says *who pays*, a vehicle certificate says
 *which car*.** A station that accepts the first where the second belongs is not merely permissive — it
 is answering a different question from the one the handshake asks. **Filed 2026-08-10:**
-[`reports/everest-d20-trust-anchor.md`](reports/everest-d20-trust-anchor.md).
+[`reports/everest-d20-trust-anchor.md`](reports/everest-d20-trust-anchor.md) — **and corrected on
+2026-08-15**, see below.
+
+### The third credential in that family, read on 2026-08-15
+
+The section above separates *contract* from *vehicle*. It stopped one credential short, and a Josev
+audit needed the missing one: the **OEM provisioning certificate** is neither.
+
+- **`[V2G20-2342]`** — the EVCC **shall** contain one OEM provisioning certificate, whose stated purpose
+  is contract certificate installation via the EVSE. That is a different obligation from
+  **`[V2G20-2339]`**'s vehicle certificate, which is what establishes the TLS session.
+- **Clause 7.3.1** names them in that order and for those two purposes, one sentence apart.
+- **`[V2G20-2331]`** and **`[V2G20-2333]`** give both classes the *same* two permitted anchors, OEM root
+  or V2G root. **So the anchor cannot distinguish them** — which is why a run that prints only *"chain
+  valid, anchored at `CN=OEMRootCA`"* has not yet established which credential it received.
+- **`[V2G20-2598]`** is what does distinguish them: a vehicle certificate's subject carries the
+  **EVCCID** as Common Name and the OEM as Organization, and no further RDNs. A leaf whose CN names a
+  role rather than a vehicle is not one.
+- **Annex B.7 vs B.8** are separate profiles, and B.8 is the one carrying `ExtendedKeyUsage` with
+  `id-kp-clientAuth`.
+
+Two things followed from reading this properly. Josev presents the provisioning certificate as its TLS
+client credential and has no vehicle certificate in code or PKI — filed,
+[`reports/josev-iso20-vehicle-certificate.md`](reports/josev-iso20-vehicle-certificate.md). And the
+EVerest filing above had made the same conflation in its own test setup, calling an OEM provisioning
+leaf *"the vehicle credential"* and generalising from it; the correction is in that report's own header
+and the audit is [`…-josev-tls-vehicle-cert-audit`](interop-runs/2026-08-15-josev-tls-vehicle-cert-audit/notes.md).
+**A distinction is only as sharp as the third case you test it on.**
 
 And a note on where such a defect can live: this one is not fixable in the `-20` stack alone.
 everest-core's `CaCertificateType` has `V2G`, `MO`, `CSMS`, `MF` and no `OEM`, so the correct anchor

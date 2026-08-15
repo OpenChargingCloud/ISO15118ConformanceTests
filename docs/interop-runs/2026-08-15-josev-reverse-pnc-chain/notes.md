@@ -168,7 +168,10 @@ because no other counterparty sends a signed `AuthorizationReq` at all.
 
 ## Next
 
-- **Their car's TLS client leaf**: `CN=OEMProvCert` where `[V2G20-2339]` and clause 7.3.1 put a vehicle
+- ~~**Their car's TLS client leaf**: `CN=OEMProvCert` where `[V2G20-2339]` and clause 7.3.1 put a vehicle
   certificate. Read `security.py` against EVerest's fork before deciding whether it is a filing or a
-  PKI-shape note — the anchor is right either way, so this is about the leaf's role and nothing else.
-  <br>This is the **only** item this run leaves, and it is an audit rather than a session.
+  PKI-shape note.~~ **Done the same day, and it is a filing**: the class is absent from their stack
+  entirely and their own fork already implements it
+  ([`…-josev-tls-vehicle-cert-audit`](../2026-08-15-josev-tls-vehicle-cert-audit/notes.md),
+  [the forty-eighth](../../reports/josev-iso20-vehicle-certificate.md)). The audit also found the same
+  conflation in one of our own unsent drafts.

@@ -1,4 +1,19 @@
-# Draft report to EVerest — `Evse15118D20` trusts the MO root for TLS client authentication, so it refuses vehicle certificates and accepts contract certificates
+# Draft report to EVerest — `Evse15118D20` trusts the MO root for TLS client authentication, so it accepts contract certificates and refuses **OEM-rooted** vehicle certificates
+
+> **Corrected 2026-08-15, before sending.** This draft called arm A's leaf *"the vehicle credential"* and
+> concluded that the station *"refuses vehicle certificates"*. Arm A's leaf is `client/oem/OEM_LEAF.pem`
+> — `CN=OEMProvCert`, the OEM **provisioning** certificate, which `[V2G20-2342]` makes a different
+> credential from the vehicle certificate of `[V2G20-2339]`. At the time the installed `dist` tree had no
+> vehicle leaf to use, which is why that leaf was picked; it is still the wrong name for it.
+> <br>**And the broader conclusion did not survive the check.** `connection_ssl.cpp:270` loads
+> `path_certificate_v2g_root` **as well as** the MO root, and their own `create_certs.sh` mints the
+> vehicle branch under the **V2G** root (`CN=WMIV1234567890ABCDEX, O=Pionix` ← `VehicleSubCA1` ←
+> `V2GRootCA`). So a vehicle certificate from their own PKI **would verify**. What arm A actually
+> demonstrates is narrower and still worth filing: an **OEM-rooted** client chain is refused, and
+> `[V2G20-2331]` names the OEM root first among the two permitted anchors. Arm B is untouched.
+> <br>Found while auditing the same distinction in someone else's stack
+> ([`josev-iso20-vehicle-certificate.md`](josev-iso20-vehicle-certificate.md)) — the report that made us
+> re-read this one. Corrections are in place below rather than rewritten away.
 
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: two TLS 1.3 handshakes against their stock configuration, using **their
@@ -28,9 +43,9 @@ is not a bug filed by a stranger — applies here unchanged and is not repeated.
 ---
 
 **Title:** `Evse15118D20` loads the **MO** root as a trust anchor for the EV's TLS client certificate
-and never loads an **OEM** root, so a conformant vehicle certificate fails verification while a contract
-certificate passes and is recorded as *"Vehicle Cert"* — and `CaCertificateType` has no `OEM` value with
-which to ask for the right one
+and never loads an **OEM** root, so a contract certificate passes verification and is recorded as
+*"Vehicle Cert"* while an OEM-rooted client chain fails — and `CaCertificateType` has no `OEM` value with
+which to ask for the anchor `[V2G20-2331]` names first
 
 **Version:** everest-core **2026.02.1** (`b61bb12b8`), native build, Debian 13, OpenSSL 3.5.6. Module
 `Evse15118D20`, library `lib/everest/iso15118`, `tls_negotiation_strategy: ENFORCE_TLS`,
@@ -43,8 +58,11 @@ of **your own** client leaves the client presented:
 
 | Arm | client certificate | chains to | your station |
 |---|---|---|---|
-| **A** | `client/oem/OEM_LEAF.pem` — `OEMProvCert`, the **vehicle** credential | `OEMRootCA` | **`certificate verify failed`** |
+| **A** | `client/oem/OEM_LEAF.pem` — `OEMProvCert`, the OEM **provisioning** credential | `OEMRootCA` | **`certificate verify failed`** |
 | **B** | `client/mo/MO_LEAF.pem` — `UKSWI123456789A`, a **contract** credential | `MORootCA` | `Verify certificate result is okay` |
+
+Arm A is an **OEM-rooted** client chain, which is what it demonstrates; it is not a vehicle certificate,
+and the installed tree had none to offer (`client/` holds `cps csms cso mo oem v2g` and no `vehicle`).
 
 Arm A, in full:
 
@@ -89,7 +107,7 @@ if (SSL_CTX_load_verify_file(ctx, ssl_config.path_certificate_mo_root.c_str()) =
 ```
 
 **Your error string is the clearest evidence of intent we have.** The member is
-`path_certificate_mo_root` (`config.hpp:31`), the module fills it from `CaCertificateType::MO`, and the
+`path_certificate_mo_root` (`lib/everest/iso15118/include/iso15118/config.hpp:31`), the module fills it from `CaCertificateType::MO`, and the
 message printed when it will not load calls it the OEM root. That reads like the right idea meeting an
 interface that has no word for it.
 
@@ -124,10 +142,12 @@ We cite requirement identifiers and paraphrase what they oblige rather than quot
 
 **And because of what each half costs.**
 
-- *Refusing the vehicle certificate* is an interoperability wall: an EV whose vehicle certificate chains
-  to an OEM root — which `[V2G20-2331]` names first — cannot complete the TLS handshake with your
-  station at all. It is not a soft failure; arm A ends the handshake, and (separately) your accept loop
-  with it.
+- *Refusing an OEM-rooted client chain* is an interoperability wall for half the fleet the standard
+  permits: an EV whose vehicle certificate chains to an **OEM** root — which `[V2G20-2331]` names first —
+  cannot complete the TLS handshake with your station at all. It is not a soft failure; arm A ends the
+  handshake, and (separately) your accept loop with it. **A V2G-rooted vehicle certificate is fine**,
+  including the one your own `create_certs.sh` mints, because `connection_ssl.cpp:270` loads the V2G root
+  — so this half is about the anchor you do *not* load, not about vehicle certificates as such.
 - *Accepting the contract certificate* is the part that would worry us more in a deployment. A contract
   certificate is issued by a mobility operator to a **contract**, and is designed to be installed into
   vehicles; treating it as proof of *which vehicle* is on the cable is a different claim than it was
