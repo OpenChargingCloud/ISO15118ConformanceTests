@@ -46,7 +46,8 @@ only one with results in both directions across the whole message set. The `[Exp
   material matches -20 (`docs/interop-runs/2026-08-07-edf-mutual-tls13/`). Schannel's inability to use
   P-521 for TLS is most of the reason a portable test PKI ends up non-conformant. Found + fixed a client/server certificate-**chain** transmission bug (`SslStream` sent only the
   leaf, breaking a root-only peer) via `SslStreamCertificateContext`.
-- **Live Plug & Charge over TLS — fully verified:** our SECC offers PnC + a `GenChallenge` and validates
+- **Live Plug & Charge over TLS — fully verified, and since 2026-08-15 that includes the contract chain:**
+  our SECC offers PnC + a `GenChallenge` and validates
   Josev's signed `AuthorizationReq` **end to end — `GenChallenge` echo, reference digest, and the ECDSA
   signature all verify** (live run [`2026-07-22-iso20-dc-pnc-tls-verified`](interop-runs/2026-07-22-iso20-dc-pnc-tls-verified/):
   `challenge OK, digest OK, signature OK … grammar=xmldsig-standalone`, then the full DC charge loop to
@@ -61,6 +62,14 @@ only one with results in both directions across the whole message set. The `[Exp
   same schema (`WWCP_ISO15118_XMLDSig` project; `XmlDsigStandaloneGrammarReproducesJosev`), so our SECC
   **verifies** Josev-style signatures via a standalone-xmldsig fallback (`XmlDsigInteropVerify`) while our
   default signing stays cbV2G-byte-exact. See `JosevPnCSignatureDiag`.
+  <br>**What that run could not say, and the 2026-08-15 re-take does:** it was recorded six weeks before
+  the station could validate a contract chain at all (`--trust-roots`, 2026-08-08), so *verified* meant
+  the signature against the leaf their car presented. Re-taken with the anchor configured: **chain valid,
+  anchored at `CN=MORootCA`**, their car's own `SubCertificates` walked to it — against a control that
+  drops the MO root and refuses the chain while all three signature checks stay `OK`. The same run
+  validates their **TLS client** chain for the first time (`--require-client-cert` had run accept-any):
+  it anchors at `CN=OEMRootCA`.
+  [`…-josev-reverse-pnc-chain`](interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md).
 - **Live Plug & Charge, forward — our EVCC signs, Josev verifies:** the closing counterpart. `evcc
   --contract-cert <pfx>` switches the EVCC from EIM to a **signed** PnC `AuthorizationReq` (challenge echo +
   contract chain, signed in Josev's exact interop form via `XmlDsigInteropSign`: SHA-256 fragment digest +
@@ -100,6 +109,13 @@ only one with results in both directions across the whole message set. The `[Exp
   `EVSEProcessing=Finished` [V2G2-905], a SECC must not demand a receipt on *every* status response (a
   Josev EVCC then loops forever), and the -2 SAP offer must carry protocol version **2.0** (Josev matches
   major version, not just the namespace). CI: `Secc2PnCTests` + the `AcPncSession` loopback E2E.
+  <br>**Re-taken 2026-08-15 with the contract chain anchored**, for the same reason as the `-20` cell
+  above and with the same control: *chain valid, anchored at `CN=MORootCA`* against *REJECTED — unable to
+  get local issuer certificate*, the three signature checks and the whole session identical either way.
+  This is the only counterparty here that produces a signed `MeteringReceiptReq`, and it needs no second
+  anchor: `Secc2.MeteringReceipt` verifies through the same contract key established at `PaymentDetails`,
+  so one chain verdict covers both signatures.
+  [`…-josev-reverse-pnc-chain`](interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md).
 - **Live smart charging / signed tariffs:** the last declared non-goal, closed in both protocols
   ([`2026-07-22-tariff`](interop-runs/2026-07-22-tariff/)). **-2** (`--tariff-cert`): the SECC offers a
   two-tuple `SAScheduleList` whose SalesTariffs are digitally signed into ONE header signature (one reference
@@ -203,6 +219,7 @@ Paths are relative to `iso15118/`.
 | **Checked and found correct — an unimplemented `-2` message still gets a lawful answer** | `secc/failed_responses.py:488-495` carries a prepared `CertificateUpdateRes(response_code=FAILED, …)` with every mandatory element filled by a schema-conformant placeholder, and `-2` `CertificateUpdate` is implemented nowhere else in their SECC. That is `[V2G2-558]` and `[V2G2-736]` in nine lines from a stack with no intention of renewing contracts. Recorded because it is what decides the shape of [the EVerest filing](reports/everest-evsev2g-certificate-update.md) beside it — *answer the way you already answer everything you cannot do*, a one-function fix rather than a feature request |
 | **Checked, and it is half a feature rather than a defect — the `-2` metering receipt** | `iso15118_2_states.py:1962-1979` **verifies** the `MeteringReceiptReq` signature and stops the session with *"Unable to verify signature of MeteringReceiptReq"* when it fails — the half EVerest's `EvseV2G` does not do. But `meter_info=…get_meter_info_v2()` is **commented out** at both `-2` call sites (`:2147`, `:2494`), so their station sends no `MeterInfo` and nothing sets `ReceiptRequired`: they verify a receipt for a record they never send. **Deliberately not filed** — an unimplemented option is not a defect, which is the distinction [`reports/README.md`](reports/README.md)'s *What is deliberately not here* exists for. Recorded because the [three-stack table](interop-runs/2026-08-11-everest-iso2-metering-receipt/notes.md) needs it: each of the three implements a different half, and the [EVerest filing](reports/everest-evsev2g-metering-chain.md) says so |
 | **Checked and found correct — their random values are full-width and cryptographically generated** | `shared/security.py:95-100` — `get_random_bytes(n)` is `secrets.token_bytes(n)`, the CSPRNG. Used for the SessionID at full 8 bytes in all three protocols (`iso15118_2_states.py:183`, `iso15118_20_states.py:151`, `din_spec_states.py:107`) and for the 16-byte `GenChallenge` in `-2` and `-20` (`:1037`, `:262`). So `[V2G2-835]`/`[V2G20-835]` (a CSPRNG *shall*), `[V2G20-2621]` (SessionID ≥ 58 bits) and `[V2G2-698]`/`[V2G20-698]` (challenge ≥ 120 bits) are all met, one call doing the work of all three. A ruled-out class, recorded because the same audit found **two** of the other three `-20` stacks short — EVerest's `-20` library at ≤ 32 bits ([filing](reports/everest-d20-rng-entropy.md)) and eVDriveFlow at 26,6 ([filing](reports/evdriveflow-session-id-entropy.md)) |
+| **Checked and found correct in the part that matters — their EVCC's TLS client credential is anchored where `-20` puts it** | `shared/security.py:209` loads `CertPath.OEM_CERT_CHAIN_PEM` + `KeyPath.OEM_LEAF_PEM` into the client context whenever `ENABLE_TLS_1_3` is set, and their station verifies it against `CertPath.OEM_ROOT_PEM` (`:171`). **Measured 2026-08-15**, not merely read: with our station's store configured for the first time in this direction, their car's chain validates and anchors at `CN=OEMRootCA`. That is the class `[V2G20-2331]` prescribes (OEM root, V2G root as the permitted alternative) and the pairing clause 7.3.1 draws, and the **exact inverse** of the EVerest station that took a *contract* certificate for the job ([filing](reports/everest-d20-trust-anchor.md)) — worth recording because it shows the requirement is implementable and someone implemented it. **Open, and deliberately not resolved here:** the leaf is `CN=OEMProvCert`, the OEM *provisioning* certificate, which 7.3.1 names separately from the vehicle certificate `[V2G20-2339]` makes the TLS credential; their PKI mints no vehicle certificate at all, so one leaf does two jobs. Whether that is a filing or a test-PKI shape needs the fork read beside upstream first |
 | ~~Their SECC verifies our signed `AuthorizationReq` without checking the contract chain~~ **— ruled out 2026-08-10** | It is not a finding, and it looked like a serious one. Their log carries `WARNING - shared.security (999): Sub-CA and root CA certificates were not used to verify signatures along the certificate chain` immediately before *"Signature verified successfully"* and an `AuthorizationRes: OK` ([`…-iso2-pnc-tls`](interop-runs/2026-07-22-iso2-pnc-tls/josev-secc-iso2-pnc.log):108). `verify_signature`'s own docstring documents the skip — step 3 *"can be skipped if the contract certificate chain from leaf to root was already checked when receiving the `PaymentDetailsReq`"* — and the same log shows exactly that happening 70 ms earlier: leaf and both sub-CAs printed with subject, issuer, serial and validity, then *"Using MO root at …/moRootCACert.der"*. The warning fires at the call site that passes no roots, not at a station that checked none |
 
 The renegotiation row deserves one more sentence, because the finding was nearly **ours**: the branch that

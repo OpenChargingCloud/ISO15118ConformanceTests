@@ -70,6 +70,17 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up   # Josev EVCC
 (Josev's own `make build && make run-secc` assumes `docker-compose` v1 and the EOL buster base; the two
 lines above replace it for Compose v2 + a current Debian.)
 
+> **Compose names the images after the directory it built in**, so a clone at `~/josev-src` yields
+> `josev-src-evcc:latest`, not the `iso15118-evcc:latest` every scenario script here expects. Tag it
+> rather than renaming the clone — `docker tag josev-src-evcc:latest iso15118-evcc:latest` — since the
+> run notes name the checkout by its commit and not by its path.
+
+> **One PKI serves both protocols, and that is theirs, not ours.** Every certificate path in Josev
+> resolves under `iso15118_2/certs/` whatever the session is, hard-coded, with their own *"TODO: Make
+> filepath flexible"* above it (`iso15118/shared/security.py:1445`). `create_certs.sh -v iso-20` writes a
+> second tree that nothing reads. So `-v iso-2` is the one that matters, and a `-20` run against a `-20`
+> tree fails for a reason that looks like a counterparty defect.
+
 ### WSL2 venv
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
@@ -106,6 +117,7 @@ matching write-up under `docs/interop-runs/2026-07-22-*/`):
 |---|---|
 | `reverse-dynamic-sdp.sh` | -20 Dynamic control mode (DC / DC_BPT / AC_BPT), Josev EVCC → our SECC |
 | `live-evcc-pnc-tls.sh` | -20 forward PnC over TLS: our signed AuthorizationReq verified by Josev |
+| `pnc-chain-setup.sh` | the prerequisites the two reverse PnC scripts assume: `/tmp/secc.p12`, the -20 EVCC config, and the four trust-root directories the arms and controls differ by |
 | `reverse-iso2-pnc-tls-sdp.sh` / `live-evcc-iso2-pnc-tls.sh` | -2 Plug & Charge over TLS, both directions |
 | `reverse-certinstall-sdp.sh` / `certinstall-probe.py` | -20 CertificateInstallation (contract provisioning) |
 | `live-evcc-pause-resume.sh` | Pause → reconnect → `OK_OldSessionJoined` resume, forward |
@@ -134,6 +146,23 @@ matching write-up under `docs/interop-runs/2026-07-22-*/`):
 The interop test env vars: `V2G_INTEROP_SECC=host:port`, `V2G_INTEROP_LISTEN=port`,
 `V2G_INTEROP_PROTOCOL=2|20` (default 2), `V2G_INTEROP_MODE=ac|dc` (default ac), `V2G_INTEROP_TLS=1`
 (EVCC accepts any server cert — dev only).
+
+### Validating what their car signs with, not just what it signed
+
+The reverse Plug & Charge scripts go through the **station CLI**, so the anchor is `--trust-roots
+<file|dir>` rather than the fixture's `V2G_INTEROP_CONTRACT_ROOTS`. Without it the station prints *chain
+not checked — no `--trust-roots`*, which is the state every Josev PnC run was recorded in until
+2026-08-15; with it, the two arms of a proper measurement are:
+
+| Protocol | The arm | The control |
+|---|---|---|
+| `-2`, unilateral TLS 1.2 | `moRootCACert.pem` | `v2gRootCACert.pem` |
+| `-20`, mutual TLS 1.3 | a **directory** with `oemRootCACert.pem` **and** `moRootCACert.pem` | the same directory minus the MO root |
+
+The `-20` control keeps the OEM root in **both** arms on purpose: their car presents an OEM-rooted client
+certificate (`security.py:209`), so dropping that would change the handshake instead of the contract
+check — and the arms must differ in one thing. Their PKI has three genuinely separate self-signed roots,
+V2G, MO and OEM, which is what makes the controls sharp.
 
 Helper wrappers: [`run-our-evcc.sh`](run-our-evcc.sh), [`run-our-secc.sh`](run-our-secc.sh).
 

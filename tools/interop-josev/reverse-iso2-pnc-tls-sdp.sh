@@ -9,6 +9,12 @@
 #
 # Prereq: /tmp/secc.p12 (Josev SECC leaf+key+CPO Sub-CAs, pw 12345) — the EVCC validates our TLS server
 # cert against its V2G root, so we present the chain it trusts. -2 TLS is unilateral (no client cert).
+# `pnc-chain-setup.sh` builds it, along with the trust-root directories below.
+#
+# TRUST_ROOTS=<file|dir> anchors the CONTRACT chain as well as verifying the signature; unset, the
+# station prints "chain not checked" and the run proves only that the signature matched the leaf the car
+# sent. /tmp/josev-roots-mo is the arm, /tmp/josev-roots-v2g the control that must REJECT it. -2 TLS is
+# unilateral, so here the roots decide nothing but the contract.
 set -uo pipefail
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,6 +32,7 @@ docker run -d --rm --name redis-interop --network host redis:6.2.6-alpine >/dev/
 echo ">>> our SECC :55000  -2 AC, TLS (secc.p12), --sdp — offers Contract + ExternalPayment"
 dotnet "$DLL" --listen 55000 --protocol 2 --mode ac --tls \
    --server-cert /tmp/secc.p12 --server-cert-pass 12345 \
+   ${TRUST_ROOTS:+--trust-roots "$TRUST_ROOTS"} \
    --sdp --interface eth0 >"$SECC_LOG" 2>&1 &
 PID=$!; sleep 3
 grep -i advertising "$SECC_LOG"
@@ -39,7 +46,7 @@ wait "$PID" 2>/dev/null; PID=
 sleep 1
 
 echo "== our SECC: verdicts =="
-grep -E "Plug & Charge|MeteringReceipt:|Session complete|Session aborted" "$SECC_LOG"
+grep -E "Trust roots|Plug & Charge|MeteringReceipt:|Session complete|Session aborted" "$SECC_LOG"
 echo "== Josev EVCC: what it ran =="
 grep -oE "Sent (PaymentDetailsReq|AuthorizationReq|MeteringReceiptReq|PowerDeliveryReq|SessionStopReq)" "$EVCC_LOG" | sort | uniq -c
 echo "== stop reason =="

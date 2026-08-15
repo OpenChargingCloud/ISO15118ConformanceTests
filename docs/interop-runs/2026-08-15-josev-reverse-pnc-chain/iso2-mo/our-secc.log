@@ -1,0 +1,9 @@
+Trust roots: DC=MO, C=UK, O=Switch, CN=MORootCA
+Presenting server certificate: DC=CPO, C=UK, O=Switch, CN=SECCCert (+2 intermediate(s))
+SECC listening on [::]:55000 (protocol -2, AC, TLS Dotnet)...
+SDP: advertising [fe80::215:5dff:fedf:2f0c%2]:55000 (TLS) on eth0...
+-2 Plug & Charge: contract DC=MO, C=UK, O=Switch, CN=UKSWI123456791A; challenge OK, digest OK, signature OK (grammar=xmldsig-standalone); chain valid (anchored at DC=MO, C=UK, O=Switch, CN=MORootCA).
+-2 MeteringReceipt: digest OK, signature OK (grammar=xmldsig-standalone).
+-2 SmartCharging: EV chose tuple 1 (offered), ChargingProfile 2 entries, within PMax: OK.
+
+✓ Station stopped after 12775 ms.
