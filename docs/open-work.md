@@ -135,9 +135,17 @@ whole DC sequence, CableCheck and PreCharge and WeldingDetection included, plain
 ([`…-d20-dc-bpt-reverse`](interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md)). Writing it here
 rather than in a run note's `Next` is what made it get done, which is the argument for this file.
 
-What is left of the reverse direction is one variable rather than a wall: **`←SECC` in Dynamic control
-mode** (`V2G_INTEROP_DYNAMIC=1`; their EV adopts whatever our station offers) and **a reverse `-2` run
-over TLS 1.2**, which the fixture change of 2026-08-14 already covers.
+**`←SECC` in Dynamic control mode ran 2026-08-15**, with a Scheduled control arm that switches with the
+offer — three sessions identical in every count, differing only in the mode
+([`…-dc-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-dc-dynamic-reverse/notes.md)). It needed a
+property the station had never exposed, which is the **fourth** instance in three days of *a value our
+own side already held that no caller could reach*. That pattern now has more instances than any
+counterparty defect found in the same period, and it is worth treating as the thing to look for rather
+than as a run of bad luck.
+
+What is left of the reverse direction is two variables and no wall: **Dynamic over AC** (different code
+path through `ScheduleExchange`'s answer) and **a reverse `-2` run over TLS 1.2**, which the fixture
+change of 2026-08-14 already covers.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in

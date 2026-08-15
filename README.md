@@ -97,7 +97,7 @@ how to read one.
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
 | DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ | — |
-| DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
+| DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` · ✅ **`←SECC` ×2, with a Scheduled control arm that switches with the offer**³⁵ | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
 | AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **and again over mutual TLS 1.3**³³ | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→ ←SECC` | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
@@ -249,6 +249,19 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+³⁵ **Three sessions no frame count can tell apart, and one of them is a different control mode.** Their EV
+ran Dynamic against our station plain and over mutual TLS 1.3; the **control arm**, the same rig with
+`V2G_INTEROP_DYNAMIC` removed so Scheduled is offered first, ran Scheduled — and all three carry
+identical counts: 53 exchanges, 33 charge loops, one CableCheck, two PreCharges, five WeldingDetections.
+`[V2G20-2656]` has the SECC advertise **both** modes always, so the preference only decides which comes
+first and an EV that takes the other one completes exactly as well; our station answers in kind
+(`[V2G20-1600]`) either way. It had branched on the car's choice since the mode existed and thrown the
+answer away — `Secc20Base.EvControlModeIsDynamic` now records it, the fixture asserts it, and the control
+arm proves the value tracks the peer rather than our flag. That control also **measures a claim this
+repository had only ever read off its own source**: their EV takes whichever parameter set is offered
+first. Fourth instance in three days of *a value our own side already held that no caller could reach*.
+[`…-dc-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-dc-dynamic-reverse/notes.md).
 
 ³⁴ **Their car chose our bidirectional service**, which is the half of BPT no forward run can show: in
 `EV→` we rank AC_BPT first and their station answers, so what is tested is their *response*; here their
@@ -437,7 +450,7 @@ The offline run (`dotnet test`) needs no C toolchain, no Java and no network: th
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
 regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
-loopback E2Es run both peers in-process. 1 404 tests, all four assemblies green. The **live** cross-checks against a
+loopback E2Es run both peers in-process. 1 405 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 

@@ -115,8 +115,13 @@ internal static class InteropSession
     /// the normal way. -20 has no equivalent yet: its guard still throws.
     /// </para>
     /// </remarks>
+    /// <param name="EvControlModeIsDynamic">-20 only: which control mode the peer's car actually ran, read
+    /// off its <c>ScheduleExchangeReq</c>. Null for -2, and for a session that ended before that message.
+    /// <see cref="InteropEnvironment.PreferDynamic"/> only decides what our station offers <i>first</i>;
+    /// both modes are always advertised, so this is the half that says what the car did with the offer.</param>
     public sealed record SeccOutcome(Boolean IsDone, UInt16? SelectedEnergyServiceId = null,
-                                     PnCAuthResult? PlugAndCharge = null, String? SequenceErrorAt = null);
+                                     PnCAuthResult? PlugAndCharge = null, String? SequenceErrorAt = null,
+                                     Boolean? EvControlModeIsDynamic = null);
 
 
     /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
@@ -323,7 +328,8 @@ internal static class InteropSession
         // not filed as one that selected something.
         SeccOutcome SoFar() => new(secc20.IsDone,
                                    secc20.SelectedEnergyServiceId != 0 ? secc20.SelectedEnergyServiceId : null,
-                                   secc20.PnCAuth);
+                                   secc20.PnCAuth,
+                                   EvControlModeIsDynamic: secc20.EvControlModeIsDynamic);
 
         try
         {

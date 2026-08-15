@@ -168,6 +168,51 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             });
         }
 
+        /// <summary>
+        /// The station records which control mode the <em>car</em> chose, which is a different fact from
+        /// which one it offered first.
+        /// </summary>
+        /// <remarks>
+        /// Both modes are always advertised (<c>[V2G20-2656]</c>), so a peer is free to take either — and a
+        /// reverse interop run configured for Dynamic completes exactly as happily when the car runs
+        /// Scheduled, with nothing on the wire afterwards to tell the two sessions apart. The station
+        /// branched on the answer all along and had no property to expose it; the reverse fixture now
+        /// asserts this one when <c>V2G_INTEROP_DYNAMIC=1</c>.
+        /// <para>Null before <c>ScheduleExchange</c> matters as much as the two values: a session that died
+        /// earlier must not read as "Scheduled".</para>
+        /// </remarks>
+        [Test]
+        public void TheStationRecordsWhichControlModeTheCarChose()
+        {
+            // The headers have to be built *after* the session is open — `Common` reads the shared context,
+            // and a request minted before `OpenSession` carries a SessionID `[V2G20-460]` refuses, which
+            // never reaches ScheduleExchange at all. That is how the first version of this test failed.
+            var dynamic   = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            RunDcSetup(dynamic, serviceId: 2);
+            dynamic.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryReq(Dc,
+                new Dc20.DC_CPDReqEnergyTransferModeType(DcRat(5_000, 1), DcRat(0), DcRat(200), DcRat(0), DcRat(500), DcRat(50), TargetSOC: 80)));
+            dynamic.Handle(MessageSet.Iso20CommonMessages, new ScheduleExchangeReq(Common, 12, DynamicSeReq(), null));
+
+            var scheduled = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+            RunDcSetup(scheduled, serviceId: 2);
+            scheduled.Handle(MessageSet.Iso20DC, new Dc20.DC_ChargeParameterDiscoveryReq(Dc,
+                new Dc20.DC_CPDReqEnergyTransferModeType(DcRat(5_000, 1), DcRat(0), DcRat(200), DcRat(0), DcRat(500), DcRat(50), TargetSOC: 80)));
+            scheduled.Handle(MessageSet.Iso20CommonMessages, new ScheduleExchangeReq(Common, 12, null,
+                new Scheduled_SEReqControlModeType(null, null, null, null, null)));
+
+            var untouched = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(dynamic.EvControlModeIsDynamic,   Is.True,
+                            "a Dynamic_SEReqControlMode is what a Dynamic session is");
+                Assert.That(scheduled.EvControlModeIsDynamic, Is.False,
+                            "and the same station reports Scheduled when the car sends the other one");
+                Assert.That(untouched.EvControlModeIsDynamic, Is.Null,
+                            "before ScheduleExchange there is no answer, and null is not 'Scheduled'");
+            });
+        }
+
         [Test]
         public void DcDynamicChargeLoop_GetsDynamicResWithEvseLimits()
         {
