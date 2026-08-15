@@ -1,12 +1,14 @@
 # Draft report to EVerest (`libiso15118`) — one sequence timeout for every message, where the charge loop gets 0,5 s
 
-Status: **draft, not sent.** Measured on the wire 2026-08-11 against **everest-core 2026.02.1**
-(`b61bb12b8`), `Evse15118D20`, ISO 15118-20 DC over plain TCP. Post it under your own name; see
-*Before sending* at the bottom.
+Status: **draft, not sent.** Measured on the wire against **everest-core 2026.02.1** (`b61bb12b8`),
+`Evse15118D20`, ISO 15118-20 over plain TCP — **DC on 2026-08-11 and AC on 2026-08-15**, each with a
+control. Post it under your own name; see *Before sending* at the bottom.
 
 Evidence in this repository:
 [`2026-08-11-everest-d20-sequence-timeout`](../interop-runs/2026-08-11-everest-d20-sequence-timeout/notes.md)
-— two arms, and your own log carrying both timestamps.
+(DC) and
+[`2026-08-15-everest-d20-sequence-timeout-ac`](../interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md)
+(AC) — two arms each, and your own log carrying both timestamps in both.
 
 ---
 
@@ -45,31 +47,44 @@ waiting, stop the session — and your code does that correctly, 120× too late.
 The charge loop is the phase where this matters: the contactor is closed and current is flowing. The
 standard shortens the timer there for that reason.
 
-## Measured, with a control
+## Measured, with a control — on both tables
 
-Two arms against a freshly started `Evse15118D20`, plain TCP, DC. Same negotiation both times
-(`Authorization: eim`, energy transfer service 2). The only difference is what our EV does after the
-first `DC_ChargeLoopReq`.
+Two arms against a freshly started `Evse15118D20`, plain TCP. Same negotiation within each pair
+(`Authorization: eim`; energy transfer service 2 for DC, 1 for AC). The only difference is what our EV
+does after the first charge-loop request.
 
 | arm | our EV | outcome |
 |---|---|---|
-| **control** | charges normally | full session, `SessionStopReq`/`Res`, 24 s |
-| **silent** | stops sending, **holds the connection open** | your station ended the session **60,00 s** later |
+| **control** | charges normally | full session, `SessionStopReq`/`Res` |
+| **silent** | stops sending, **holds the connection open** | your station ended the session ≈60 s later |
 
-From your own log, the two lines that decide it:
+From your own log, the two lines that decide it — **DC, 2026-08-11**:
 
 ```
 03:06:05.849686 [INFO] evse_manager:Ev :: EVSE ISO V2G DcChargeLoopRes
 03:07:05.852171 [ERRO] iso15118_charge :: Sequence Timeout 40secs is reached. Stopping the session
 ```
 
-**60,0025 s** between your last charge-loop response and your own sequence-timeout verdict. Allowed:
-0,5 s. Our EV, measuring the socket rather than the log, saw the connection close 65,04 s after it
-stopped sending — the extra ≈5 s is your teardown between the timer firing and the TCP close, and it is
-worth knowing that the two numbers measure different things.
+and **AC, 2026-08-15**:
 
-The control arm matters: it shows the car reaches and completes the loop normally, so the silent arm is
-not a car that failed to get there.
+```
+15:01:18.793896 [INFO] evse_manager:Ev :: EVSE ISO V2G AcChargeLoopRes
+15:02:18.809863 [ERRO] iso15118_charge :: Sequence Timeout 40secs is reached. Stopping the session
+```
+
+| | your last charge-loop response → your own timeout verdict | allowed |
+|---|---:|---:|
+| DC, Table 217, `[V2G20-1502]` | **60,0025 s** | 0,5 s |
+| AC, Table 216, `[V2G20-1500]` | **60,0160 s** | 0,5 s |
+
+The two agree to within 14 ms, which is what one shared constant should look like — and the AC arm was
+run precisely so that the AC row is a measurement rather than an inference from the DC one. In the DC
+run our EV, measuring the socket rather than the log, saw the connection close 65,04 s after it stopped
+sending; the extra ≈5 s is your teardown between the timer firing and the TCP close, and it is worth
+knowing that the two numbers measure different things.
+
+The control arm matters in both: it shows the car reaches and completes the loop normally, so the silent
+arm is not a car that failed to get there.
 
 ## Also, and much smaller: the log line names the wrong number
 
@@ -80,6 +95,7 @@ logf_error("Sequence Timeout 40secs is reached. Stopping the session");   // iso
 40 s is `V2G_EVCC_Sequence_Performance_Time` from Table 215 — the **EV's** number. The constant is 60 s
 and the charge-loop allowance is 0,5 s, so the message names neither. Whoever wrote it was reading the
 right table and took the wrong row. Harmless next to the above, and a one-word fix while you are there.
+It is the same line on both paths: AC and DC print it identically, which is expected — one call site.
 
 ## Suggested direction
 
@@ -109,19 +125,23 @@ is the value on the wire, not the design — and ours has never been measured by
 
 ## Before sending
 
-- [x] **Observe it, do not only read it.** Two arms on the wire, and the decisive interval comes from
-      *your* log rather than ours — 60,0025 s between `DcChargeLoopRes` and your own timeout verdict.
+- [x] **Observe it, do not only read it.** Two arms on the wire per protocol, and the decisive interval
+      comes from *your* log rather than ours — 60,0025 s after `DcChargeLoopRes`, 60,0160 s after
+      `AcChargeLoopRes`.
 - [x] **Have a control.** The normal-charge arm proves the car reaches the charge loop and completes it,
-      so the silent arm is not a car that never got there.
+      so the silent arm is not a car that never got there. Run for both protocols.
 - [x] **Check the tables, not just the constant.** Table 215's 60 s is right for everything outside the
       charge loop; the defect is only visible once Tables 216 and 217 are read, and those carry their own
       requirement ids (`[V2G20-1499]`–`[V2G20-1502]`).
 - [x] **Say where they are right.** The arming, the disarming, the `SupportedAppProtocolReq` exemption
       and the session stop are all correct. This is one value, not a broken design.
 - [x] **Admit our own gap.** `Secc20Base` has one flat timeout too.
-- [ ] **Decide whether the AC path deserves its own measurement.** The constant is shared, so the DC run
-      settles both by construction — but a reviewer may reasonably want the AC arm run as well, and it is
-      the same rig with `V2G_INTEROP_MODE=ac`.
+- [x] **Decide whether the AC path deserves its own measurement — decided yes, and run 2026-08-15.**
+      The constant is shared, so DC settled AC by construction; by construction is not by measurement,
+      and Table 216 carries its own requirement id. **60,0160 s after `AcChargeLoopRes`**, same rig, one
+      variable, with its own control:
+      [`…-sequence-timeout-ac`](../interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md).
+      Both rows of the table above are now measured rather than one measured and one inferred.
 - [x] **Check whether `main` has moved — checked 2026-08-11 against upstream, not against the clone.**
       `EVerest/everest-core` `main` is `ebcd36d` (2026-08-11), well ahead of the `2026.02.1` tag this was
       read from — **and the constant is unchanged there**: `constexpr auto TIMEOUT_SEQUENCE = 1000 * 60;`

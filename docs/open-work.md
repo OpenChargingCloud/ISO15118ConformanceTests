@@ -687,6 +687,13 @@ also below.
   **Every technical box on that filing is ticked**; what remains is a person choosing the disclosure
   route, which is the right thing to be blocked on for a pre-auth crash
   ([`…-paymentdetails-crash-live`](interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md)).
+  <br>**Number 3 followed the same night.** `everest-d20-sequence-timeout` had one open box — *does the
+  AC path deserve its own measurement?* — and the answer was yes for a reason worth keeping: the
+  constant is shared, so DC settled AC **by construction**, and by construction is not by measurement.
+  Table 216 carries its own requirement id. Run: **60,0160 s** after their `AcChargeLoopRes` against
+  60,0025 s after `DcChargeLoopRes`, agreeing to 14 ms, one control each
+  ([run](interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md)). Numbers 1, 2 and 3 in the
+  sending order now have nothing left in them but a person.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the five orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
