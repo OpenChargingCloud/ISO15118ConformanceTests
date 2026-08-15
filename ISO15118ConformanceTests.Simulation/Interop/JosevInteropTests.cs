@@ -64,12 +64,25 @@ namespace ISO15118ConformanceTests.Simulation.Interop
 
             try
             {
-                await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, transport: transport);
+                // `mode` decides which -20 namespace the offer names, AC or DC. Omitting it defaulted the
+                // offer to DC, so a `-20 AC` run against a station configured for AC was answered
+                // `Failed_NoNegotiation` — the variable was read, and then dropped one hop short.
+                await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode, transport: transport);
 
+                // Every parameter the shared driver takes, because this fixture reached four of them
+                // until 2026-08-15 and the other seven were read from the environment by nobody. A run
+                // that sets V2G_INTEROP_SILENT here used to complete a textbook charge and report it.
                 var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                                 InteropEnvironment.PreferDynamic(),
                                                                 InteropEnvironment.ContractCredentialsOrNull(),
-                                                                mcs: InteropEnvironment.Mcs());
+                                                                mcs: InteropEnvironment.Mcs(),
+                                                                bptFirst: InteropEnvironment.BptFirst(),
+                                                                requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
+                                                                silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
+                                                                sendSessionId: InteropEnvironment.SendSessionId(),
+                                                                certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
+                                                                renegotiate: InteropEnvironment.Renegotiate(),
+                                                                ongoingTimeout: InteropEnvironment.OngoingTimeout());
 
                 TestContext.Out.WriteLine($"Authorization: {outcome.AuthorizationMode}" +
                                           (outcome.MeteringReceiptsSent > 0
@@ -80,6 +93,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
             }
             finally
             {
+                InteropEnvironment.WarnIfIgnored();
                 Report(recording?.Save(protocolName, modeName,
                                        "live interop: our EVCC against Josev's SECC", weAreTheEvcc: true));
             }
@@ -132,6 +146,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
             }
             finally
             {
+                InteropEnvironment.WarnIfIgnored();
                 Report(recording?.Save(protocolName, modeName,
                                        "live interop: Josev's EVCC against our SECC", weAreTheEvcc: false));
             }

@@ -1,12 +1,15 @@
 # Draft report to SwitchEV (Josev) — the charge-loop sequence timeouts are defined and never used
 
-Status: **draft, not sent**, and **not observed on the wire** — this is a source finding, which the
-first item on the checklist says out loud. Read on **upstream `master` `d645255c`** (2026-05-19,
-"Pydantic upgrade to v2"), not only on the copy EVerest fetches. Post it under your own name; see
-*Before sending* at the bottom.
+Status: **draft, not sent.** Read on **upstream `master` `d645255c`** (2026-05-19, "Pydantic upgrade to
+v2"), not only on the copy EVerest fetches — and **measured on the wire against that SECC on
+2026-08-15**, AC and DC, each with a control. Post it under your own name; see *Before sending* at the
+bottom.
 
 Evidence in this repository:
-[`2026-08-11-josev-charge-loop-timeout-audit`](../interop-runs/2026-08-11-josev-charge-loop-timeout-audit/notes.md).
+[`2026-08-11-josev-charge-loop-timeout-audit`](../interop-runs/2026-08-11-josev-charge-loop-timeout-audit/notes.md)
+(the source audit) and
+[`2026-08-15-josev-charge-loop-timeout`](../interop-runs/2026-08-15-josev-charge-loop-timeout/notes.md)
+(four arms, and your own log naming the value).
 
 ---
 
@@ -61,6 +64,28 @@ So the plumbing is right and the value is wrong — in exactly one place per ene
 16 `create_next_message` calls in the `-20` SECC pass `V2G_SECC_SEQUENCE_TIMEOUT`, which is correct for
 14 of them and wrong for the two charge loops.
 
+## On the wire, both energy modes
+
+Your SECC in host mode, plain TCP, our EV as the peer. A control arm charges normally to `SessionStop`;
+the silent arm stops sending after a charge-loop response and holds the connection open.
+
+```
+DC   13:20:16,012  Sent DC_ChargeLoopRes
+     13:21:16,073  Reason: TimeoutError occurred. Waited for 60.0 s after sending last message
+                   Session ended in DCChargeLoop
+
+AC   13:23:59,758  Sent AC_ChargeLoopRes
+     13:24:59,818  Reason: TimeoutError occurred. Waited for 60.0 s after sending last message
+                   Session ended in ACChargeLoop
+```
+
+**60,061 s** and **60,060 s**, against **0,5 s** in Tables 217 and 216. We would lead an issue with your
+own line rather than with ours: *"Waited for 60.0 s"*, printed from `DCChargeLoop` and `ACChargeLoop` —
+the two states whose constants are transcribed in `timeouts.py` and referenced nowhere.
+
+Both modes were run because the fix is two lines, one per state, and we did not want one of them to rest
+on the other.
+
 ## Why it matters, and what the standard says
 
 `[V2G20-441]` sets `V2G_SECC_Sequence_Timeout` from Table 215 — 60 s for *all other messages*.
@@ -98,10 +123,12 @@ in exactly the situation where somebody is reading logs to find out why a sessio
 
 The same defect was measured on the wire hours earlier in EVerest's `libiso15118`, which has one flat
 `TIMEOUT_SEQUENCE = 60 s` and no charge-loop value at all: their station held a silent charge loop for
-**60,0025 s**, timed from their own log
-([notes](../interop-runs/2026-08-11-everest-d20-sequence-timeout/notes.md)). Two independent `-20`
+**60,0025 s** (DC) and **60,0160 s** (AC), timed from their own log
+([DC](../interop-runs/2026-08-11-everest-d20-sequence-timeout/notes.md),
+[AC](../interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md)). Two independent `-20`
 implementations flatten the same per-message override, which is worth knowing when deciding how
 prominent the fix should be — and Josev is the one that already has the right numbers written down.
+All four intervals land within 60 ms of each other, from two codebases that share nothing.
 
 **Our own station has the same shape** and is recorded as ours to fix: `Secc20Base` takes a single
 sequence timeout for every phase.
@@ -110,11 +137,16 @@ sequence timeout for every phase.
 
 ## Before sending
 
-- [ ] **Run it.** This is a source finding: their SECC was **not** brought up for it. The identical
-      behaviour was measured against EVerest's implementation the same day, which is corroboration of
-      the reading rather than of this code. The rig is `tools/interop-josev/` — their SECC in host mode
-      plus redis, then our EVCC with `V2G_INTEROP_SILENT=90`, which reports the interval directly.
-      Expect ~60 s.
+- [x] **Run it — done 2026-08-15, four arms.** Their SECC in host mode, our EVCC with
+      `V2G_INTEROP_SILENT=90`, a control per energy mode: **60,061 s** after `DC_ChargeLoopRes` and
+      **60,060 s** after `AC_ChargeLoopRes`, with **their own log naming the value it waited on**.
+      [`…-josev-charge-loop-timeout`](../interop-runs/2026-08-15-josev-charge-loop-timeout/notes.md).
+      <br>It cost two fixes of ours first, both in the harness and both worth knowing: the first silent
+      run produced a **complete, successful session**, because this fixture passed four of the eleven
+      parameters its EVerest twin does and `silentInChargeLoop` was not among them — so the car never
+      went quiet and the run would have read as *"their station does not time out"*. And the AC arm was
+      answered `Failed_NoNegotiation`, because the same fixture dropped the power mode before the SAP
+      handshake and always offered the DC namespace.
 - [x] **Check the citation against upstream, not the fork.** Fetched `SwitchEV/iso15118` `master`
       `d645255c` explicitly: the three `_CL` constants are present and unreferenced there too, and both
       charge-loop states pass the 60 s baseline. EVerest's fork point `26f79889` is two weeks older and

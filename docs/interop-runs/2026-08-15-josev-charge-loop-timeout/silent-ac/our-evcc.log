@@ -1,0 +1,21 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+Authorization: eim
+Nothing was recorded — set V2G_INTEROP_RECORD=<dir> to keep the session.
+NUnit Adapter 4.6.0.0: Test execution complete
+  Passed OurEvcc_AgainstJosevSecc_RunsToCompletion [1 m 6 s]
+  Standard Output Messages:
+ SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+ Authorization: eim
+ Nothing was recorded — set V2G_INTEROP_RECORD=<dir> to keep the session.
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 1.1189 Minutes
