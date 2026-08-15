@@ -170,9 +170,21 @@ result in this matrix — both protocols, every reverse run — was recorded wit
 **unvalidated**: `Secc2` and `Secc20Base` have carried a `ContractChainValidator` since they verified
 signatures, and no interop run could set it, so what was checked was the signature against the leaf the
 car presented. `V2G_INTEROP_CONTRACT_ROOTS` now reaches it and the `-2` run above is anchored at
-EVerest's MO root, with a negative control. **The `-20` reverse PnC cells have not been re-run**, and
-until they are, *"their signed AuthorizationReq verified by our SECC"* means the signature and not the
-contract. That is one variable per cell, and it is the largest remaining overstatement in the matrix.
+EVerest's MO root, with a negative control.
+
+**The `-20` EVerest cell was re-taken the same evening** — *chain trusted, anchored at `CN=MORootCA`*,
+their EV's own `SubCertificates` walked to it, against a control at the V2G root that refuses the chain
+while the signature still verifies
+([`…-d20-reverse-pnc-chain`](interop-runs/2026-08-15-everest-d20-reverse-pnc-chain/notes.md)). It cost
+one more line: `PnCAuthResult` had carried `Chain` all along and the `-20` report printed the three
+signature checks without it — **the sixth instance in three days** of a value our own side already held
+that no caller could reach.
+
+**What is left of this is other people's PKIs.** Josev's and eVDriveFlow's `←SECC` Plug & Charge cells
+carry exactly the claim the EVerest one carried this morning, and the matrix now marks them `◐` rather
+than `✅`. Closing each is the same single variable pointed at that counterparty's own MO root, and a run
+apiece. **Earlier recordings are not retroactively upgraded** — what changed is that the claim can now
+match a run that validated the chain, not that the old runs did.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in

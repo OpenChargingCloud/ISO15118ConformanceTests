@@ -452,12 +452,18 @@ public class EverestInteropTests
 
         // Named as a verdict rather than a tick: a contract that arrived and failed to verify is a finding,
         // and it completes the session either way — our SECC does not refuse on a bad signature.
+        // The chain verdict is part of this line and was not, until 2026-08-15: `PnCAuthResult` has
+        // carried `Chain` since it existed, every reverse run printed the three signature checks without
+        // it, and the matrix therefore read "verified by our SECC" for sessions whose contract chain
+        // nobody had validated. Printed even when unconfigured, because "not checked" and "checked and
+        // bad" must never read the same.
         if (outcome.PlugAndCharge is { } pnc)
             TestContext.Out.WriteLine(
                 $"Plug & Charge (inbound): contract {pnc.ContractSubject}; " +
                 $"challenge {(pnc.ChallengeOk ? "OK" : "MISMATCH")}, digest {(pnc.DigestOk ? "OK" : "FAIL")}, " +
                 $"signature {(pnc.SignatureOk ? "OK" : "FAIL")} ({pnc.SignatureMethod}" +
-                $"{(pnc.SignatureOk ? $", grammar={pnc.SignatureGrammar}" : "")}).");
+                $"{(pnc.SignatureOk ? $", grammar={pnc.SignatureGrammar}" : "")}); " +
+                $"chain {(pnc.Chain.Ok ? $"trusted, anchored at {pnc.Chain.Anchor}" : pnc.Chain.Reason)}.");
 
         // The `-2` twin. Their EV selects Contract the moment the transport is TLS — `-2` ties Plug &
         // Charge to it — so this is the line that says whether the signature it then sent verified,

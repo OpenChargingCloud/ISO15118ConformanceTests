@@ -838,9 +838,17 @@ signature checked against the leaf the car presented, with nobody asking who iss
 run could reach the `ContractChainValidator` both station classes have always had.
 `V2G_INTEROP_CONTRACT_ROOTS` now can, and the `-2` run is anchored at EVerest's own MO root with a
 negative control that refuses the chain while the signature still verifies
-([`…-iso2-ac-reverse-tls12`](interop-runs/2026-08-15-everest-iso2-ac-reverse-tls12/notes.md)). **The
-`-20` cells here have not been re-run**; until they are, *"verified by our SECC"* on this page means the
-signature and not the contract.
+([`…-iso2-ac-reverse-tls12`](interop-runs/2026-08-15-everest-iso2-ac-reverse-tls12/notes.md)).
+
+**The `-20` cell was re-taken the same evening**, over mutual TLS 1.3 with the anchor configured: *chain
+trusted, anchored at `CN=MORootCA`*, their EV's own `SubCertificates` walked to it, against a control at
+the V2G root that refuses the chain while the signature still verifies
+([`…-d20-reverse-pnc-chain`](interop-runs/2026-08-15-everest-d20-reverse-pnc-chain/notes.md)). It needed
+one further line — `PnCAuthResult` had carried `Chain` all along and the `-20` report printed the three
+signature checks without it, the sixth instance in three days of the same shape. So *"verified by our
+SECC"* on this page now means the contract for EVerest, and still means only the signature for the other
+counterparties, whose cells the matrix marks `◐` accordingly. The earlier recordings are not
+retroactively upgraded; what changed is that the claim matches a run.
 
 **Dynamic over AC followed, and it retired a loose end this page had been carrying for two days.** The
 AC charge-loop control-mode answer is a different `switch` from DC's — a Dynamic AC response carries a
