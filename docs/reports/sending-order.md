@@ -166,7 +166,10 @@ These need a maintainer with attention, which is what the first fourteen were fo
 handshake, citing two of their own fixes as agreement. Do not lead with the TLS handshake; it is fixed.
 **16.** [`everest-isomux`](everest-isomux.md) — four issues in one module. Decide the shape first: one
 issue with four headings or four issues. §1 and §2 have different answers available, which argues for
-splitting, and the report says so.
+splitting, and the report says so. **One argument against splitting arrived 2026-08-15**: §2 and §4 turn
+out to be **coupled** — while the TLS 1.2 cap stands, no client can exercise `trusted_ca_keys` at all,
+so §4 is unobservable from outside until §2 moves. Two issues that must be read together are a case for
+one issue with headings.
 **17.** [`everest-d20-trust-anchor`](everest-d20-trust-anchor.md) — needs a change outside
 `libiso15118` (`CaCertificateType` has no `OEM`), so it is a conversation, not a patch.
 **18.** [`libcbv2g-grammar-deviations`](libcbv2g-grammar-deviations.md) — three grammars in one

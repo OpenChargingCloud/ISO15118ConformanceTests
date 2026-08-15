@@ -17,6 +17,7 @@
 # openssl s_client sending a certificate_authorities extension built from
 # <requestCAfile> -- and prints which certificate chain the station served.
 set -u
+STATION_EP=${STATION_EP:-}
 
 LOG=${STATION_LOG:-/home/ahzf/everest/mainstation3.log}
 CARSIM=${CARSIM_TOPIC:-'everest_external/nodered/1/carsim/cmd'}
@@ -41,10 +42,19 @@ printf '\x01\xfe\x90\x00\x00\x00\x00\x02\x00\x00' \
   | timeout 5 socat -T3 - "UDP6-DATAGRAM:[ff02::1%${IFACE}]:15118,bind=:15119" >/dev/null 2>&1
 
 sleep 1
-EP=$(sed 's/\x1b\[[0-9;]*m//g' "$LOG" | grep "Start TLS server" | tail -1 \
-     | sed 's/.*Start TLS server \[\(.*\)\]:\([0-9]*\).*/\1 \2/')
+# Two wordings, because two builds. `main` logs "Start TLS server [addr]:port"; 2026.02.1's IsoMux and
+# EvseV2G log "TLS server on <iface> is listening on port [addr]:port". Matching only the first is how
+# this instrument silently produced an empty endpoint when it was first pointed at a release build.
+# STATION_EP overrides both, for a station whose log says neither.
+EP=${STATION_EP:-$(sed 's/\x1b\[[0-9;]*m//g' "$LOG" \
+     | grep -E "Start TLS server|TLS server on .* is listening on port" | tail -1 \
+     | sed -E 's/.*\[([^]]*)\]:([0-9]+).*/\1 \2/')}
 ADDR=$(echo "$EP" | cut -d' ' -f1)
 PORT=$(echo "$EP" | cut -d' ' -f2)
+if [ -z "$ADDR" ] || [ -z "$PORT" ]; then
+  echo "### $LABEL  -> no TLS endpoint in $LOG (and no STATION_EP); aborting this arm" >&2
+  exit 1
+fi
 echo "### $LABEL  -> [$ADDR]:$PORT   requestCAfile=$CAFILE"
 
 if [ "$CAFILE" = "none" ]; then

@@ -289,6 +289,21 @@ support disabled"* with `m_server_trusted_ca_keys.update({})`.
 registered chains and the match is installed. With an empty list it returns `nullptr`, nothing is
 installed, and the handshake continues on `cfg.chains[0]` (`tls.cpp:940-941`).
 
+**A second root changes nothing, and that was measured rather than argued — 2026-08-15.** The obvious
+rebuttal to *"No trust anchors for certificate"* is *then configure one*, so we did: a second V2G root
+in your test-PKI style, a valid SECC chain under it, installed beside the first, with chain A verifying
+under root A. Your station boots with the same two lines. The mechanism above predicts exactly that —
+the module never asks for the root it has — and it is what the arm confirms
+([`…-isomux-trusted-ca-keys-attempt`](../interop-runs/2026-08-15-everest-isomux-trusted-ca-keys-attempt/notes.md)).
+
+**The client half we could not run, and §2 is why.** An EV that sends the extension would show the
+consequence directly. `openssl s_client -requestCAfile` sets the **TLS 1.3** `certificate_authorities`
+extension — and `IsoMux` refuses TLS 1.3 at the ClientHello, three times, with your own
+`tls_early_post_process_client_hello: unsupported protocol`. `trusted_ca_keys` is the **TLS 1.2**
+extension of RFC 6066, which `openssl` cannot send and our EVCC does not implement. **So while the
+version cap of §2 stands, §4 cannot be exercised even by a conformant `-2` EV** — the two sections are
+coupled, and fixing §4 alone would be unobservable from outside.
+
 **Two things are therefore impossible here, not one.** No chain ever enters the selectable list; and
 `get_leaf_certificate_info` returns the **newest single** chain rather than all valid ones, so even with
 a trust anchor there would be one chain to choose between. `EvseV2G` gets both right with the one call
@@ -398,8 +413,18 @@ Per finding, what is established and what is not:
       the version cap independently of our client.
 - [x] **§3 reproduced deliberately, with a control** — two `socat` connections six seconds apart
       differing by two bytes, no EV and no car simulation. A maintainer can run it in a minute.
-- [ ] **§4's failing case has not been run.** Two roots and an EV that sends `trusted_ca_keys`. **Say
-      this in the issue** rather than letting a reader infer a session that never happened.
+- [x] **§4's failing case — attempted 2026-08-15, and it cannot be run with any client here.** Say
+      *that* in the issue, which is a better sentence than the one this box used to ask for.
+      [`…-isomux-trusted-ca-keys-attempt`](../interop-runs/2026-08-15-everest-isomux-trusted-ca-keys-attempt/notes.md).
+      <br>**§2 closes the door on §4.** `openssl s_client -requestCAfile` sets the **TLS 1.3**
+      `certificate_authorities` extension — the instrument that measured chain selection against
+      `Evse15118D20` — and `IsoMux` refuses TLS 1.3 at the ClientHello, three times, with their own
+      `tls_early_post_process_client_hello: unsupported protocol`. The extension §4 is about is the
+      **TLS 1.2** RFC 6066 `trusted_ca_keys`, which `openssl` has no flag for and our own EVCC does not
+      implement. A `-2` EV that sends it is a capability we would have to build.
+      <br>**What the attempt did settle** is the arm §4 most needed: with a **second V2G root installed
+      and a valid SECC chain under each**, the station boots with the same two lines. The
+      *"then configure a trust anchor"* reading is now closed by measurement.
 - [x] **Every line reference re-read against the built 2026.02.1 tree**, on 2026-08-09 (§1, §2) and
       2026-08-10 (§3, §4): `IsoMux/v2g_server.cpp:30`, `:45-47`, `:48-51`, `:53-56`, `:118-142`,
       `:145-179`, `:172`, `:178`; `IsoMux/connection/connection.cpp:436-443`;
