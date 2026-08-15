@@ -52,8 +52,17 @@ self-loops for and documents in as many words: *"a real EV repeats `PowerDeliver
 larger — four or five rather than one — which is consistent with the station steering the operating point
 and the car waiting to be told it. **That last clause is the inference; the table is the measurement.**
 
+> **Refuted the same afternoon, and the hedge is why it is easy to say so.** The AC_BPT run in Dynamic
+> shows **1** poll in both of its Dynamic arms
+> ([`…-ac-bpt-dynamic-reverse`](../2026-08-15-everest-d20-ac-bpt-dynamic-reverse/notes.md)). So *"Dynamic
+> makes it larger"* is wrong as stated: across ten AC reverse sessions the count is 1 or 2 in nine of
+> them, and the two outliers share AC **and** Dynamic together, which two runs cannot establish as a
+> mechanism. The invariant below is untouched; the explanation is withdrawn.
+
 Withdrawing the TLS guess was right, and it was right for a better reason than "it did not reproduce":
-the variable it was attributed to was never the one moving.
+the variable it was attributed to was never the one moving. **That sentence now applies to this run's own
+explanation too**, which is the more useful lesson: an explanation offered for a difference between two
+runs is a hypothesis about the next ten.
 
 ## Reproduce
 

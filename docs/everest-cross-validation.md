@@ -828,10 +828,20 @@ our AC side answers in kind too. The three arms are 56 exchanges each and differ
 with the two earlier AC reverse runs that makes five sessions obeying one invariant: **`PowerDelivery`
 before the loop plus charge loops = 45**. The car simulator fixes the window, not the exchange count. So
 the extra `PowerDeliveryReq` noted on 08-14 is readiness polling, which our own `PowerOn` phase
-self-loops for and documents; it was never the transport, and Dynamic only makes it larger
+self-loops for and documents; it was never the transport
 ([`…-ac-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md)). Withdrawing
 the TLS guess was right, and for a better reason than "it did not reproduce": the variable it was
 attributed to was never the one moving.
+
+**And then the same thing happened to that run's own explanation.** `AC_BPT` in Dynamic followed hours
+later — completing all four AC charge-loop control-mode variants against a live peer, `BPT_Dynamic` being
+the one still missing — and its Dynamic arms poll `PowerDelivery` **once**, not four or five times. So
+*"Dynamic makes the polling larger"* is withdrawn too. Across ten AC reverse sessions the invariant holds
+every time, the count is 1 or 2 in nine of them, and **nothing measured predicts the variation**
+([`…-ac-bpt-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-ac-bpt-dynamic-reverse/notes.md)).
+Two explanations refuted in two days from one three-line observation, both hedged when written, both
+refuted by the next run rather than by re-reading. This page should take the narrow lesson rather than the
+broad one: an explanation offered for a difference between two runs is a hypothesis about the next ten.
 
 **And on 2026-08-15, Dynamic control mode in reverse — three sessions no frame count can tell apart.**
 Their EV ran Dynamic plain and over mutual TLS 1.3; a control arm with `V2G_INTEROP_DYNAMIC` removed ran
