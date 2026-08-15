@@ -1,5 +1,15 @@
 # 2026-08-11 — ISO 15118-2 renegotiation against EVerest: they take it, then refuse the restart
 
+> **Correction, 2026-08-15: the refusal is correct and the defect is ours.** ISO 15118-2's SECC state
+> table for DC admits `CableCheckReq` after `ChargeParameterDiscoveryReq` and nothing else — `[V2G2-565]`,
+> `[V2G2-582]`, with no renegotiation exception — so a DC renegotiation returns through `CableCheck` and
+> `PreCharge`, and our EVCC sends neither. The filing this run produced is
+> [withdrawn](../../reports/everest-evsev2g-renegotiation-cablecheck.md); the reasoning, including why
+> Annex I's sequence (which is **AC**) does not apply, is in [`normative-basis.md`](../../normative-basis.md).
+> <br>**The frames below are unchanged and still a fact about 2026.02.1.** What changed is which side they
+> convict. Left in place rather than rewritten, because this note's own *Why, from their state table*
+> section quotes the requirement ids that refute it — they were on the page the whole time.
+
 everest-core **2026.02.1**, `modules/EVSE/EvseV2G/`, DC over plain TCP, config `config-dc2-ours.yaml`
 unchanged. `EV→`: our EVCC initiates one renegotiation mid-charge (`V2G_INTEROP_RENEGOTIATE=1`, added
 here — the fourth capability this month our car had and no interop run could ask for).

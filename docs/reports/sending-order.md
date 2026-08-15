@@ -1,6 +1,6 @@
 # In what order to send them
 
-Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent. The
+Thirty-three sendable reports carrying **forty-seven issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
@@ -186,9 +186,20 @@ difference of opinion. A is written as a question on purpose.
 
 **19.** [`everest-evsev2g-metering-chain`](everest-evsev2g-metering-chain.md) — two issues, different
 severities, file separately.
-**20.** [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) —
-**carries the `-2` document caveat harder than any other**: every quotation is from the 2022 DIS.
-Re-read the 2014 wording before posting. That is a gate, not a footnote.
+**20.** ~~[`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md)~~ —
+**withdrawn 2026-08-15, by this very entry.** It said the `-2` document caveat was *a gate, not a
+footnote*; the gate was worked and the report did not survive it. Their station's
+`FAILED_SequenceError` is correct — the DC state table admits `CableCheckReq` after
+`ChargeParameterDiscoveryReq` and nothing else, in both editions — and the Annex I sequence the report
+leaned on is the **AC** one. The defect is ours and is in `open-work.md`.
+<br>**Nothing else in this order inherits the mistake**, checked two ways. It was the only report in the
+directory that reproduced ISO prose rather than paraphrasing it — which is what
+[`normative-basis.md`](../normative-basis.md) forbids, and the sweep found no second instance. And it is
+the only one leaning on an annex **sequence diagram**; the one other annex citation here,
+[`josev-iso20-vehicle-certificate`](josev-iso20-vehicle-certificate.md) on `-20` Annex B, is about
+certificate profiles, where there is no AC/DC split to get wrong. Both facts point the same way, and
+that is the useful part — a filing that quotes the standard at length is a filing that has stopped
+checking the standard.
 **21.** [`everest-d20-meter-info`](everest-d20-meter-info.md)
 **22.** [`everest-evsev2g-session-log-responses`](everest-evsev2g-session-log-responses.md)
 **23.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — source only, and
@@ -248,9 +259,12 @@ as the report does.
 
 ## What is deliberately not in this order
 
-- **The two withdrawn reports.** [`everest-iso20-ac-contactor-latch`](everest-iso20-ac-contactor-latch.md)
+- **The three withdrawn reports.** [`everest-iso20-ac-contactor-latch`](everest-iso20-ac-contactor-latch.md)
   and [`everest-d20-ac-namespace`](everest-d20-ac-namespace.md) are fixed on `main` and are not sent at
   all. They stay in the directory because the runs behind them are facts about `2026.02.1`.
+  [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) is the third
+  and the only one withdrawn because it was **wrong** rather than overtaken; it stays for the same
+  reason and for one more, that its four citation errors are a better checklist than any list of rules.
 - **Anything that needs a decision only you can make.** Several entries above have one — whether to
   include §1's `2026.02.1` replay, what shape `IsoMux` takes, whether the `-2` caveat survives a look at
   the 2014 text. Those are gates on individual filings, not on the order.

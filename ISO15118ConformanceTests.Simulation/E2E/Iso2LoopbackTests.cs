@@ -262,6 +262,9 @@ namespace ISO15118ConformanceTests.Simulation.E2E
                 Assert.That(secc.IsDone, Is.True);
                 Assert.That(evcc.Renegotiations, Is.EqualTo(1), "the EVCC must react to the ReNegotiation notification");
                 Assert.That(secc.Renegotiations, Is.EqualTo(1), "the SECC must see one PowerDelivery(Renegotiate)");
+                // DC returns through the isolation sequence, so this session runs CableCheck twice
+                // ([V2G2-565], [V2G2-582]); see Iso2RenegotiationSequenceTests for the arms that pin it.
+                Assert.That(secc.IsolationSequences, Is.EqualTo(2));
             });
         }
 

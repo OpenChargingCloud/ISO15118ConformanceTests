@@ -40,7 +40,7 @@ file naming a mechanism rather than a verdict, and for re-reading one before quo
 |---|---|---|---|
 | **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its `-20` states never fill — so `OK_OldSessionJoined` is unreachable. Six-line fix, mirroring their own working `-2` branch. Filed: [`josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md). |
 | **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). **The forward half stopped needing a patched station on 2026-08-15** — see below — and the wall it now ends at is the same family a third time: `process_dc_charge_loop_request.py:114` dereferences the optional `DisplayParameters`, which our car legally omits, so their station raises on a request that is correct in every respect. Added to [`evdriveflow-service-discovery-filter.md`](reports/evdriveflow-service-discovery-filter.md) rather than filed separately. |
-| **Renegotiation, -2** | EVerest | ⛔ `EV→` | Their DC station requires CableCheck again after a renegotiation, so the `PowerDeliveryReq(Start)` that restarts the charge is answered `FAILED_SequenceError`. The trigger and the re-discovery are accepted — this is the restart path only, and the state that would take it already exists next door. Filed: [`everest-evsev2g-renegotiation-cablecheck.md`](reports/everest-evsev2g-renegotiation-cablecheck.md). |
+| ~~**Renegotiation, -2**~~ | ~~EVerest~~ | ~~⛔ `EV→`~~ | **Withdrawn 2026-08-15: their station is right and ours is not.** The DC state table goes `ChargeParameterDiscovery` → *Wait for CableCheckReq* (`[V2G2-565]`, `[V2G2-582]`) with no renegotiation exception, so `FAILED_SequenceError` is the correct answer to a `PowerDeliveryReq` that skipped `CableCheck` and `PreCharge`. The report leaned on Annex I, whose diagrams are **AC**. [Withdrawn filing](reports/everest-evsev2g-renegotiation-cablecheck.md), reasoning in [`normative-basis.md`](normative-basis.md); the defect moves to *Ours to fix*, below. Nothing here is blocked on EVerest. |
 | **TLS 1.2 unilateral, -2** | tux-evse | ⛔ pinned | Their configs offer neither suite ISO 15118-2 prescribes. Filed: [`tux-evse-tls.md`](reports/tux-evse-tls.md). |
 | **CertificateInstallation, -20** | Josev · EVerest | ◐ | Both send a real signed request — SwitchEV's on 2026-07-22, EVerest's `PyEvJosev` on 2026-08-08 with its own OEM root. Our response is decoded and validated, and then each ends at the same `NotImplementedError`: the fork inherited the gap. Nothing to file that the upstream code does not already say out loud. |
 
@@ -233,7 +233,7 @@ messages it buys: it is the difference between a result and a result with an ast
 **And it closed the last measurement box in `docs/reports/`.** Nothing in that directory now waits on a
 run: `evdriveflow-session-id`'s *"run it against your station"* was the one still open, and their station
 answered ten message types `OK` under a SessionID it never issued, `PowerDelivery` among them. What is
-left there is thirty-four reports and forty-eight issues waiting on a **person** — with one exception that
+left there is thirty-three reports and forty-seven issues waiting on a **person** — with one exception that
 is not a measurement either: [`everest-evsev2g-certificate-update`](reports/everest-evsev2g-certificate-update.md)
 is source-only because their advertisement gate offers parameter-set-ID 1 alone and answers before the
 stub can be reached, which is a fact about their catalogue rather than a run nobody has done.
@@ -245,11 +245,40 @@ backlog is that half of it turns out not to have been work.
 |---|---|---|
 | **Pause / Resume, -20** | EVerest | ~~▢~~ **run 2026-08-08 — and it is ours that failed.** Their station resumed on the first attempt (`OK_OldSessionJoined`, over mutual TLS with their minted vehicle credential); our EVCC then re-sent `AuthorizationSetupReq` and got `FAILED_SequenceError`, because a resumed `-20` session skips authorization and opens at `{AC,DC}_ChargeParameterDiscovery`. Moved to *our stack*, below. `-2` is `—` in the matrix, not `▢`. |
 | ~~**Signed tariffs, -20**~~ | ~~EVerest~~ | **Closed 2026-08-11 by answering the condition: their station sends no price schedule at all, deliberately.** Moved to *Structural*, below. |
-| **Renegotiation, -2 and -20** | EVerest | ~~▢ both~~ **`-2` run 2026-08-11 — and it found something.** Their station accepts `PowerDeliveryReq(Renegotiate)` and the fresh `ChargeParameterDiscovery`, then refuses the `PowerDeliveryReq(Start)` that restarts the charge with `FAILED_SequenceError`: `handle_iso_charge_parameter_discovery` puts a DC session into `WAIT_FOR_CABLECHECK`, so they want the isolation test re-run where Annex I's own sequence goes straight to `PowerDelivery` and the `[V2G2-680]` NOTE keeps the contactor closed. Moved to *Blocked on the counterparty*; [the fortieth filing](reports/everest-evsev2g-renegotiation-cablecheck.md), [run](interop-runs/2026-08-11-everest-iso2-renegotiation/notes.md). **-20 run 2026-08-10** — their `PyEvJosev` EV took our station's `ServiceRenegotiation` notification, stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)`; our SECC answered `OK` and stayed open, and their EV closed the connection. Same defect as Josev's, now seen in **DC** and against the fork `26f7988` ([run](interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md), [filing](reports/josev-iso20-renegotiation.md)). **Both directions are now run; neither is `▢`.** |
+| **Renegotiation, -2 and -20** | EVerest | ~~▢ both~~ **`-2` run 2026-08-11 — and what it found was ours.** Their station accepts `PowerDeliveryReq(Renegotiate)` and the fresh `ChargeParameterDiscovery`, then refuses the `PowerDeliveryReq(Start)` that restarts the charge with `FAILED_SequenceError` — **correctly**, as of 2026-08-15: the DC state table admits only `CableCheckReq` there (`[V2G2-565]`, `[V2G2-582]`), and our car skips `CableCheck` and `PreCharge`. The filing is [withdrawn](reports/everest-evsev2g-renegotiation-cablecheck.md) — it read Annex I's **AC** sequence as a general one — and the defect is in *Ours to fix* ([run](interop-runs/2026-08-11-everest-iso2-renegotiation/notes.md), [reasoning](normative-basis.md)). **-20 run 2026-08-10** — their `PyEvJosev` EV took our station's `ServiceRenegotiation` notification, stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)`; our SECC answered `OK` and stayed open, and their EV closed the connection. Same defect as Josev's, now seen in **DC** and against the fork `26f7988` ([run](interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md), [filing](reports/josev-iso20-renegotiation.md)). **Both directions are now run; neither is `▢`.** |
 | **Contract provisioning, -2** | EVerest · Josev | ~~▢~~ **✅ complete against EVerest 2026-08-11, in three sessions — the third closed the loop by standing in as the MO backend.** Their station has no issuer of its own: it publishes the EV's EXI and waits 4 500 ms. With [`Iso2MoBackend`](../ISO15118ConformanceTests.Simulation/Interop/Iso2MoBackend.cs) answering through their own MQTT, the `CertificateInstallationRes` came back **`OK`**, our EVCC verified the four-reference signature and unwrapped the contract key, and the session continued to `PaymentDetails` and `Authorization`. One deviation measured and **not** explained: the return frame carries our 1 458 EXI bytes **plus a trailing `0x00`**, declared in the V2GTP length — benign for a decoder, wrong on the wire, cause unread. The earlier two sessions: Their certificate service is advertised (ServiceID 2, `ContractCertificate`), our `CertificateInstallationReq` is accepted, and the EXI reaches their MQTT interface **byte-identical** — 802 bytes, SHA-256 match, twice. With no backend in their SIL they wait exactly 4 500 ms and fail the session. A control pair (EIM vs Contract) isolated the response code: `FAILED_SequenceError` in an EIM session, plain `FAILED` in a Contract one, because their state table admits the message only in the Contract branch — **an open question, not yet a finding** ([run](interop-runs/2026-08-11-everest-iso2-cert-install/notes.md)). It did **not** settle the `CertificateUpdate` filing: they advertise parameter-set-ID **1 only**, Update being an explicit `TODO`, so the selection gate answers before the stub can. Josev implements neither and answers `FAILED` correctly, so there is nothing to measure there. |
 | ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
 
 ## Ours to fix
+
+- ~~**Our `-2` car's DC renegotiation skips `CableCheck` and `PreCharge`, and the state table requires
+  them.**~~ **Fixed 2026-08-15**, stack branch `iso2-renegotiation-isolation`, both halves. `Evcc2` ran
+  `PowerDelivery(Renegotiate)` → `ChargeParameterDiscovery` → `PowerDelivery(Start)` in **both** modes.
+  In AC that is right; in DC the SECC state table goes from `Process ChargeParameterDiscoveryReq` to
+  *Wait for CableCheckReq* (`[V2G2-565]`, `[V2G2-582]`) with no renegotiation exception, so our car sent
+  a `PowerDeliveryReq` into a state that cannot admit it.
+  <br>**Found by being wrong about somebody else.** EVerest's `EvseV2G` answered it
+  `FAILED_SequenceError` on 2026-08-11 and that was filed as *their* defect; working the filing's own
+  document gate on 2026-08-15 refuted it, and the report is
+  [withdrawn](reports/everest-evsev2g-renegotiation-cablecheck.md). Their station was correct
+  throughout. The reasoning and its four legs are in [`normative-basis.md`](normative-basis.md).
+  <br>**Why no test of ours could have caught it**, which is the part worth keeping: `Secc2` accepted the
+  short sequence, because both ends were built from the same reading — a loopback agreeing with itself,
+  and the first time here that the disagreement came from a counterparty being *right*.
+  <br>**The car half** is `Evcc2.RunDcIsolationSequence`, now called on the way in *and* after a
+  renegotiation — one method instead of two inline blocks, because the return path is the same path.
+  **The station half** is `Secc2.RenegotiationNeedsIsolationSequence` (default **true**): a renegotiated
+  DC session goes to `CableCheck`, and a `PowerDeliveryReq` that skipped it gets `FAILED_SequenceError`
+  — the answer EVerest gave us, now from our own station. `Secc2.IsolationSequences` counts them, since
+  a phase that is never entered and a refusal that never happens look identical from outside.
+  <br>Four tests in
+  [`Iso2RenegotiationSequenceTests`](../ISO15118ConformanceTests.Simulation/StateMachines/Iso2RenegotiationSequenceTests.cs);
+  **three of the four fail on the pre-fix code**, checked by putting both halves back, and the fourth
+  pins that AC is untouched — the mistake the withdrawn report made, in the other direction.
+  `Evcc2.RenegotiationSkipsIsolationSequence` reproduces the old car on purpose, which is how the
+  station's refusal is shown to bite.
+  <br>**No recorded session changed**, checked rather than assumed: no `Vectors/*.trace.json` contains a
+  renegotiation at all, so the wire-semantics worry this entry was parked on turned out to be empty.
 
 - **Our `-2` car does not send `trusted_ca_keys`, and `[V2G2-651]` obliges every `-2` EV to.**
   `grep -rn trusted_ca_keys` matches nothing in the stack. Found on 2026-08-15 while trying to run
