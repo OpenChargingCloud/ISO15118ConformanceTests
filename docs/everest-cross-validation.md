@@ -821,6 +821,18 @@ an inference from the run before it: the extra `PowerDeliveryReq` seen in both r
 absent here, so it was never the transport
 ([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)).
 
+**Dynamic over AC followed, and it retired a loose end this page had been carrying for two days.** The
+AC charge-loop control-mode answer is a different `switch` from DC's — a Dynamic AC response carries a
+mandatory `EVSETargetActivePower` — so 40 and 41 completed Dynamic loops are the first live evidence that
+our AC side answers in kind too. The three arms are 56 exchanges each and differ only in composition, and
+with the two earlier AC reverse runs that makes five sessions obeying one invariant: **`PowerDelivery`
+before the loop plus charge loops = 45**. The car simulator fixes the window, not the exchange count. So
+the extra `PowerDeliveryReq` noted on 08-14 is readiness polling, which our own `PowerOn` phase
+self-loops for and documents; it was never the transport, and Dynamic only makes it larger
+([`…-ac-dynamic-reverse`](interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md)). Withdrawing
+the TLS guess was right, and for a better reason than "it did not reproduce": the variable it was
+attributed to was never the one moving.
+
 **And on 2026-08-15, Dynamic control mode in reverse — three sessions no frame count can tell apart.**
 Their EV ran Dynamic plain and over mutual TLS 1.3; a control arm with `V2G_INTEROP_DYNAMIC` removed ran
 Scheduled. All three carry identical counts — 53 exchanges, 33 charge loops, one CableCheck, two
