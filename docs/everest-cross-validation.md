@@ -312,7 +312,16 @@ section warns about in a different costume.
   `Contract` selection. A single crafted message, repeatable. **Filed 2026-08-11:**
   [`everest-evsev2g-paymentdetails-crash.md`](reports/everest-evsev2g-paymentdetails-crash.md),
   [run](interop-runs/2026-08-11-everest-evsev2g-paymentdetails-crash/notes.md).
-  <br>**Demonstrated in isolation, not against a running station**: a C reproduction of
+  <br>**Reproduced on a running station 2026-08-15, twice**, closing the last technical box on the
+  highest-priority filing in this project: their `-2` PnC SIL config with one line changed
+  (`tls_security: force`), a peer presenting **no client certificate**, five frames from TCP connect to
+  `Assertion 'cert != nullptr' failed` at `openssl_util.cpp:775` and `exited with status: 134`. With a
+  **control** whose leaf is well-formed and untrusted — answered `OK`, station alive — so the only
+  variable is whether the bytes parse. **And a liveness arm that corrected the report**: the manager does
+  not restart the module, it answers *Terminating all modules* / *Exiting manager*, and the next
+  connection is refused. The whole charger goes down on one frame
+  ([`…-paymentdetails-crash-live`](interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md)).
+  Before that it was demonstrated in isolation only: a C reproduction of
   `certificate_subject`'s first two lines on a null `X509*` gives SIGSEGV under `-DNDEBUG` and SIGABRT
   with the assert live. **Explicitly a null dereference — availability, not code execution** — and
   **no ISO clause**; it stands on the crash and its reachability, the same footing as any robustness

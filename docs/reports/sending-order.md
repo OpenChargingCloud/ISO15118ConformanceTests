@@ -48,9 +48,14 @@ same day — you will blur them.
 **1.** [`everest-evsev2g-paymentdetails-crash`](everest-evsev2g-paymentdetails-crash.md) — EVerest
 
 A malformed contract certificate in `PaymentDetailsReq` crashes the V2G module, **pre-authentication**.
-One reordered check fixes it. It is the only filing in this directory where the delay has a cost, and
-its checklist has *"put it on a running station"* still open — send it anyway with the caveat rather
-than sit on a crash. Report it the way a crash should be reported.
+One reordered check fixes it. It is the only filing in this directory where the delay has a cost.
+
+**Its last technical box was ticked on 2026-08-15**: reproduced twice on a running 2026.02.1 station,
+SIGABRT from a peer that presented no client certificate, with a control arm and a liveness arm — and
+the liveness arm is what upgraded the consequence from *"the module dies"* to *"the manager terminates
+every module and exits"*. So the caveat this entry used to carry is gone, and **the only thing left
+between this report and a maintainer is a person deciding how to send it**. Report it the way a crash
+should be reported: their security policy first, not a public issue.
 
 ### Then — small, measured, and to a project that will act
 

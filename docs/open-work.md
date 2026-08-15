@@ -678,6 +678,15 @@ also below.
   a real one verifies. The OEM-rooted half stands; the generalisation did not. **Nothing sent, so it
   cost only the re-read** — which is the strongest argument this file has for the queue being read as
   well as written ([audit](interop-runs/2026-08-15-josev-tls-vehicle-cert-audit/notes.md)).
+  <br>**The one at number 1 is now finished, and it is the only one where waiting costs anything.**
+  `everest-evsev2g-paymentdetails-crash` had carried *"put it on a running station"* since it was
+  written; on 2026-08-15 it was put on one, twice — SIGABRT from a peer that presented no client
+  certificate, five frames from TCP connect, with a control arm whose certificate merely *parses* and a
+  liveness arm afterwards. The liveness arm changed the report: their manager does not restart the
+  module, it answers *Terminating all modules* / *Exiting manager*, and the next connection is refused.
+  **Every technical box on that filing is ticked**; what remains is a person choosing the disclosure
+  route, which is the right thing to be blocked on for a pre-auth crash
+  ([`…-paymentdetails-crash-live`](interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md)).
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the five orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to

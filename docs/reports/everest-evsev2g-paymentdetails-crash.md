@@ -1,13 +1,15 @@
 # Draft report to EVerest (`EvseV2G`) — a malformed contract certificate in `PaymentDetailsReq` crashes the V2G module (null dereference)
 
-Status: **draft, not sent**, and **not observed against a running station** — the crash is demonstrated
-in isolation below and the source path is exact, but nobody has sent the frame to a live `EvseV2G` yet.
-This is a **remotely-triggerable denial of service**; treat it as the security report it is. Post it
-under your own name; see *Before sending*.
+Status: **draft, not sent** — and **reproduced against a running station on 2026-08-15**, twice. One
+frame from an unauthenticated peer aborts the module, and their manager then terminates every other
+module and exits. This is a **remotely-triggerable denial of service**; treat it as the security report
+it is, and see *Before sending* about how to send it. Post it under your own name.
 
 Evidence in this repository:
+[`2026-08-15-everest-paymentdetails-crash-live`](../interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md)
+— the live runs, their manager's logs, the config as run, with a control arm — and
 [`2026-08-11-everest-evsev2g-paymentdetails-crash`](../interop-runs/2026-08-11-everest-evsev2g-paymentdetails-crash/notes.md),
-with a self-contained C reproduction.
+the source reading and a self-contained C reproduction.
 
 ---
 
@@ -76,6 +78,40 @@ runs `certificate_subject`'s first two lines on a null `X509*`:
   Aborted (core dumped)                 exit=134
 ```
 
+## On your own station, twice
+
+2026-08-15, everest-core **2026.02.1** (`b61bb12`), your `-2` Plug & Charge SIL config with **one line
+changed** (`tls_security: allow` → `force`), your own PKI, nothing of ours on the wire but the frames.
+Your log, both runs identical but for timestamps and pid:
+
+```
+13:48:46  [INFO] iso15118_charge :: SelectedPaymentOption: Contract
+          iso15118_charger:EvseV2G: …/lib/everest/tls/src/openssl_util.cpp:775:
+              openssl::certificate_subject(const X509*): Assertion `cert != nullptr' failed.
+13:48:47  [CRIT] manager :: Module iso15118_charger (pid: 2802) exited with status: 134.
+                            Terminating all modules.
+13:48:47  [CRIT] manager :: Exiting manager.
+```
+
+Status **134** is SIGABRT, at the assert on the line this report named four days before the run. The
+sequence was TCP connect → TLS 1.2 (server-auth only, **we presented no client certificate**) → SAP →
+`SessionSetup` → `ServiceDiscovery` → `PaymentServiceSelection(Contract)` → `PaymentDetailsReq`. Five
+frames, no credential of any kind.
+
+**Two arms, and the only variable is whether the bytes parse.** Both send a certificate you have no
+reason to accept:
+
+| arm | `ContractSignatureCertChain.Certificate` | your station |
+|---|---|---|
+| **control** | a well-formed self-signed P-256 leaf, chaining to nothing | **answered `OK`**, stayed up |
+| **probe** | 64 random bytes, leading `0xFF` — cannot begin a DER `SEQUENCE` | **SIGABRT** |
+| **liveness** | the control's certificate again, three seconds later | `Connection refused` |
+
+**And the third row is the part we would most want you to see.** This report used to say the module dies
+and that your manager *may* restart it. It does not: your own two lines are *Terminating all modules*
+and *Exiting manager*. One frame from an unauthenticated peer takes the whole charger down, and it does
+not come back.
+
 ## Who can trigger it, and why that is the concerning part
 
 The path is inside `if (iso_selected_payment_option == Contract)`, so the peer must select Plug &
@@ -90,7 +126,8 @@ chain check**. The sequence to reach it is the ordinary one:
    are not a valid certificate.
 
 No valid credential, no authorization, no prior state beyond the handshake. A single crafted message
-takes the module down, repeatably.
+takes the module down, repeatably — and since 2026-08-15 that is measured on your station rather than
+reasoned from your source.
 
 ## What this is, and what it is not
 
@@ -101,11 +138,13 @@ takes the module down, repeatably.
   code's own intent for this case is `FAILED_CertChainError`, which it sets at every neighbouring
   error exit. The finding stands on the crash and the reachability, not on a clause — the same footing
   as any robustness bug.
-- **Whether the charger recovers depends on supervision.** everest's manager may restart the module,
-  but the session drops and an in-progress charge on that connection dies. And a station whose V2G
-  front-end can be cycled by one packet is a station an attacker can hold down with a loop. The
-  [loop-shutdown filing](everest-loop-shutdown.md) already recorded that a downed `-20` accept loop
-  goes unnoticed; this is a harder version — a process crash rather than a silent stall.
+- **The charger does not recover, and that is measured.** We expected a supervision question here and
+  there is none: the manager answers the module's exit with *Terminating all modules* and *Exiting
+  manager*, and a connection attempt three seconds later is refused. The session drops, an in-progress
+  charge on that connection dies, and nothing is left to restart anything. The
+  [loop-shutdown filing](everest-loop-shutdown.md) recorded that a downed `-20` accept loop goes
+  unnoticed because the process stays alive; this is the opposite failure and the louder one — the whole
+  process tree goes, and any supervisor built on process liveness *will* see it.
 
 ## Suggested fix
 
@@ -164,13 +203,16 @@ security report rather than a style note.
       terminates the session via the framework catch-all, we return `OK` and fail a message later.
       Neither crashes, and neither sends `FAILED_CertChainError` for the unparseable case; the report
       says so rather than tidying it into "both answer FAILED".
-- [ ] **Put it on a running station.** Our `-2` EVCC can now drive a Plug & Charge session, so a probe
-      that sends a `PaymentDetailsReq` with a garbage certificate over `-2` TLS would turn "the
-      isolated call crashes" into "their module died on our frame". Needs `-2` PnC over TLS against
-      their SIL — the rig this project has used before. Expect the `EvseV2G` process to exit; watch
-      their manager's log.
+- [x] **Put it on a running station — done 2026-08-15, twice.** SIGABRT at `openssl_util.cpp:775`, on
+      their own SIL config with one line changed, from a peer that presented no client certificate. With
+      a **control arm** whose only difference is that its certificate parses: answered `OK`, station
+      alive. And a **liveness arm** afterwards, which is what turned "the module dies" into "the manager
+      terminates every module and exits":
+      [`…-paymentdetails-crash-live`](../interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md).
 - [ ] **Report it the way a crash should be reported.** It is remotely triggerable and pre-auth at the
-      application layer; consider their security policy / private disclosure before a public issue.
+      application layer; use their security policy / private disclosure before a public issue. This is
+      the box that now decides when it goes out — everything technical is closed, and it is number **1**
+      in [`sending-order.md`](sending-order.md) for that reason.
 - [x] **Re-read the citations against the tree before posting — done 2026-08-11.** All six verified
       against the built 2026.02.1 source in the sweep over all 189 `file:line` references in this
       directory, and the ordering is **unchanged on everest-core `main`** (`ebcd36d`): the certificate
