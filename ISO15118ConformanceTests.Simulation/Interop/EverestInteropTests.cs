@@ -459,6 +459,28 @@ public class EverestInteropTests
                 $"signature {(pnc.SignatureOk ? "OK" : "FAIL")} ({pnc.SignatureMethod}" +
                 $"{(pnc.SignatureOk ? $", grammar={pnc.SignatureGrammar}" : "")}).");
 
+        // The `-2` twin. Their EV selects Contract the moment the transport is TLS — `-2` ties Plug &
+        // Charge to it — so this is the line that says whether the signature it then sent verified,
+        // rather than merely that the session completed.
+        if (outcome.PlugAndChargeIso2 is { } pnc2)
+            TestContext.Out.WriteLine(
+                $"Plug & Charge (inbound, -2): contract {pnc2.ContractSubject}; " +
+                $"challenge {(pnc2.ChallengeOk ? "OK" : "MISMATCH")}, digest {(pnc2.DigestOk ? "OK" : "FAIL")}, " +
+                $"signature {(pnc2.SignatureOk ? "OK" : "FAIL")}" +
+                $"{(pnc2.SignatureOk ? $", grammar={pnc2.SignatureGrammar}" : "")}; " +
+                // "not checked" and "checked and bad" must never read the same, which is why ChainResult
+                // keeps NotConfigured distinct from a rejection — so the reason is printed either way.
+                $"chain {(pnc2.Chain.Ok ? $"trusted, anchored at {pnc2.Chain.Anchor}" : pnc2.Chain.Reason)}.");
+
+        // `[V2G2-903]` makes a signed MeteringReceiptReq a *shall* on a Contract car, and our station
+        // verifies each one. Counted rather than listed: what matters is that they all verified and how
+        // many arrived.
+        if (outcome.MeteringReceipts is { Count: > 0 } receipts)
+            TestContext.Out.WriteLine(
+                $"Metering receipts (inbound, -2): {receipts.Count}, " +
+                $"{receipts.Count(r => r.SignatureOk && r.DigestOk)} verified" +
+                $"{(receipts.Select(r => r.SignatureGrammar).Distinct().Count() == 1 ? $", grammar={receipts[0].SignatureGrammar}" : "")}.");
+
     }
 
 

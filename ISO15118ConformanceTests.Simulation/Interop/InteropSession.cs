@@ -119,9 +119,17 @@ internal static class InteropSession
     /// off its <c>ScheduleExchangeReq</c>. Null for -2, and for a session that ended before that message.
     /// <see cref="InteropEnvironment.PreferDynamic"/> only decides what our station offers <i>first</i>;
     /// both modes are always advertised, so this is the half that says what the car did with the offer.</param>
+    /// <param name="PlugAndChargeIso2">The `-2` twin of <paramref name="PlugAndCharge"/>: what
+    /// <c>Secc2</c> made of a signed <c>AuthorizationReq</c> — challenge echo, reference digest, ECDSA
+    /// signature, the <c>SignedInfo</c> grammar it verified under, and how the contract chain fared.</param>
+    /// <param name="MeteringReceipts">One verdict per signed `-2` <c>MeteringReceiptReq</c>. A PnC car
+    /// owes these (<c>[V2G2-903]</c>) and our station verifies each; an empty list in a Contract session
+    /// means none arrived, which is a different statement from "they did not verify".</param>
     public sealed record SeccOutcome(Boolean IsDone, UInt16? SelectedEnergyServiceId = null,
                                      PnCAuthResult? PlugAndCharge = null, String? SequenceErrorAt = null,
-                                     Boolean? EvControlModeIsDynamic = null);
+                                     Boolean? EvControlModeIsDynamic = null,
+                                     Iso2PnCResult? PlugAndChargeIso2 = null,
+                                     IReadOnlyList<Iso2ReceiptResult>? MeteringReceipts = null);
 
 
     /// <param name="preferDynamic">-20 only: drive the session in Dynamic control mode (ControlMode = 2)
@@ -292,16 +300,31 @@ internal static class InteropSession
         if (protocol == ProtocolVariant.Iso15118_2)
         {
             var secc = new Secc2(mode, SequenceTimeout, TimeProvider.System)
-                           { RequestRenegotiation = requestRenegotiation };
+                           {
+                               RequestRenegotiation   = requestRenegotiation,
+                               ContractChainValidator = InteropEnvironment.ContractRootsOrNull(),
+                           };
+
+            // `Secc2` verifies a Contract session's signed AuthorizationReq and every signed
+            // MeteringReceiptReq, and until 2026-08-15 this branch reported neither — so a reverse `-2`
+            // Plug & Charge run was judged on IsDone, which a session with an unverifiable signature
+            // reaches just as well. Their EV switches to Contract the moment the transport is TLS, so the
+            // first run that met it was also the first that needed this.
+            SeccOutcome Iso2Outcome() => new(secc.IsDone,
+                                             SequenceErrorAt:   secc.SequenceErrorAt,
+                                             PlugAndChargeIso2: secc.PnCAuth,
+                                             MeteringReceipts:  secc.MeteringReceipts.Count > 0
+                                                                    ? secc.MeteringReceipts
+                                                                    : null);
             try
             {
                 await secc.RunAsync(stream, ct);
             }
             finally
             {
-                observed?.Invoke(new SeccOutcome(secc.IsDone, SequenceErrorAt: secc.SequenceErrorAt));
+                observed?.Invoke(Iso2Outcome());
             }
-            return new SeccOutcome(secc.IsDone, SequenceErrorAt: secc.SequenceErrorAt);
+            return Iso2Outcome();
         }
 
         // ChargeLoopSequenceTimeout is init-only, so the knob has to be applied here rather than after
@@ -322,6 +345,9 @@ internal static class InteropSession
         secc20.PreferDynamicControlMode = preferDynamic;
         secc20.OfferPlugAndCharge       = offerPlugAndCharge;
         secc20.RequestRenegotiation     = requestRenegotiation;
+        // Same knob as the `-2` branch above, for the same reason: without it an inbound contract
+        // signature is checked against the leaf the car presented and nobody asks who issued it.
+        secc20.ContractChainValidator   = InteropEnvironment.ContractRootsOrNull();
 
         // Zero is "no ServiceSelectionReq ever arrived", not service 0 — the state machine's own sentinel,
         // and the CLI reads it the same way. Reported as null so a session that stopped before selection is

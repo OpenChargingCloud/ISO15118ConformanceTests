@@ -159,8 +159,20 @@ by the next run rather than by re-reading. The invariant underneath never moved.
 is narrower than "hedge more":** an explanation offered for a difference between two runs is a hypothesis
 about the next ten, and this file should treat it as one.
 
-What is left of the reverse direction is **one** variable and no wall: **a reverse `-2` run over TLS 1.2**,
-which the fixture change of 2026-08-14 already covers.
+**The reverse `-2` run over TLS 1.2 closed the list on 2026-08-15**, and it was the least routine item on
+it. Their car authorizes by **EIM over plain TCP and by Plug & Charge over TLS** — `-2`'s own *no
+Contract without TLS* rule, applied by the car rather than by the station this project met it from in
+August. It needed no PKI regeneration at all
+([`…-iso2-ac-reverse-tls12`](interop-runs/2026-08-15-everest-iso2-ac-reverse-tls12/notes.md)).
+
+**It also opened something that belongs here rather than in a run note.** Every inbound Plug & Charge
+result in this matrix — both protocols, every reverse run — was recorded with the contract chain
+**unvalidated**: `Secc2` and `Secc20Base` have carried a `ContractChainValidator` since they verified
+signatures, and no interop run could set it, so what was checked was the signature against the leaf the
+car presented. `V2G_INTEROP_CONTRACT_ROOTS` now reaches it and the `-2` run above is anchored at
+EVerest's MO root, with a negative control. **The `-20` reverse PnC cells have not been re-run**, and
+until they are, *"their signed AuthorizationReq verified by our SECC"* means the signature and not the
+contract. That is one variable per cell, and it is the largest remaining overstatement in the matrix.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in

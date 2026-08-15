@@ -84,7 +84,7 @@ how to read one.
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 plain TCP · **×4 over TLS 1.2**³² | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 plain TCP · **×4 over TLS 1.2**³² · ✅ **`←SECC` their EV, EIM plain and Plug & Charge over TLS**³⁸ | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
 | DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→ ←SECC`, signed msgs verified both ways | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; verdict now driven from our own backend — past `Authorization`, and `FAILED_CertificateRevoked` measured³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
@@ -249,6 +249,25 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+³⁸ **The first ISO 15118-2 reverse session against this counterparty, in any transport — and their car
+is a different car over TLS.** Same config, one variable (the SDP security byte): over plain TCP it
+authorizes by **EIM**; over **TLS 1.2** an extra `PaymentDetailsReq` appears, the `AuthorizationReq` is
+signed, and a `MeteringReceiptReq` arrives inside the charge loop. That is `-2`'s own *no Contract
+without TLS* rule, applied by the car — the same rule this project met from their **station** on
+2026-08-03, now seen from the other end. It needed no PKI regeneration: `-2` TLS is unilateral, and
+`enable_tls_1_3: false` is what makes their EV present no client certificate.
+<br>**Two things of ours came out of it.** `Secc2` verifies the contract signature and every signed
+metering receipt, and the interop fixture reported neither — so the run would have been judged on
+`IsDone`, which a session with an unverifiable signature reaches just as well (our station reports the
+verdict, it does not refuse on it). **Fifth instance in three days of *a value our own side already held
+that no caller could reach*, and the first where the discarded value is the result of the run.** And the
+first TLS arm then said `chain not validated`: both station classes have carried a
+`ContractChainValidator` all along and **no interop run could set it**, so *every* inbound Plug & Charge
+result in this matrix checked the signature against the leaf the car presented and never asked who issued
+it. `V2G_INTEROP_CONTRACT_ROOTS` now sets it — verdict *trusted, anchored at `CN=MORootCA`*, with the V2G
+root as a negative control that refuses the chain while the signature still verifies.
+[`…-iso2-ac-reverse-tls12`](docs/interop-runs/2026-08-15-everest-iso2-ac-reverse-tls12/notes.md).
 
 ³⁷ **All four AC charge-loop control-mode variants have now met somebody else's car.** `Secc20Ac.ClResInKind`
 answers strictly in kind (`[V2G20-1600]`) and has four arms — Scheduled, BPT_Scheduled, Dynamic, and
