@@ -1,0 +1,247 @@
+2026-08-15 16:39:13.160565 [INFO] manager          ::   ________      __                _   
+2026-08-15 16:39:13.160802 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-08-15 16:39:13.160813 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-08-15 16:39:13.160819 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-08-15 16:39:13.160825 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-08-15 16:39:13.160831 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-08-15 16:39:13.160836 [INFO] manager          :: 
+2026-08-15 16:39:13.160842 [INFO] manager          :: everest-framework 0.25.0-dev 2026.02.1
+2026-08-15 16:39:13.160848 [INFO] manager          :: everest-core 2026.02.1-dev 2026.02.1
+2026-08-15 16:39:13.160855 [INFO] manager          :: 
+2026-08-15 16:39:13.160862 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-08-15 16:39:13.182558 [INFO] manager          :: Boot mode is set to YamlFile, loading module configs from YAML file
+2026-08-15 16:39:13.182626 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-ours/config-mux-tls-ours.yaml
+2026-08-15 16:39:13.371057 [INFO] manager          :: Config loading completed in 210ms
+2026-08-15 16:39:13.373153 [INFO] manager          :: Starting 19 modules
+2026-08-15 16:39:15.653909 [INFO] energy_manager:  :: Module energy_manager initialized [2254ms]
+2026-08-15 16:39:15.654628 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2254ms]
+2026-08-15 16:39:15.657199 [INFO] auth:Auth        :: Module auth initialized [2258ms]
+2026-08-15 16:39:15.665057 [INFO] api:API          :: Module api initialized [2268ms]
+2026-08-15 16:39:15.676844 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2268ms]
+2026-08-15 16:39:15.677940 [INFO] imd:IMDSimulato  :: Module imd initialized [2269ms]
+2026-08-15 16:39:15.680035 [INFO] token_validator  :: Module token_validator initialized [2258ms]
+2026-08-15 16:39:15.681414 [INFO] powersupply_dc:  :: Module powersupply_dc initialized [2266ms]
+2026-08-15 16:39:15.682903 [INFO] evse_security:E  :: Module evse_security initialized [2274ms]
+2026-08-15 16:39:15.683398 [INFO] yeti_driver:Yet  :: Module yeti_driver initialized [2263ms]
+2026-08-15 16:39:15.683939 [INFO] token_provider:  :: Module token_provider initialized [2263ms]
+2026-08-15 16:39:15.684717 [INFO] iso15118_20:Evs  :: Module iso15118_20 initialized [2271ms]
+2026-08-15 16:39:15.685874 [INFO] iso15118_2:Evse  :: Module iso15118_2 initialized [2273ms]
+2026-08-15 16:39:15.686282 [INFO] slac:SlacSimula  :: Module slac initialized [2269ms]
+2026-08-15 16:39:15.707258 [INFO] grid_connection  :: Module grid_connection_point initialized [2299ms]
+2026-08-15 16:39:15.707909 [INFO] iso_mux:IsoMux   :: Module iso_mux initialized [2291ms]
+2026-08-15 16:39:15.708338 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2301ms]
+2026-08-15 16:39:15.708358 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-08-15 16:39:15.708528 [INFO] error_history:E  :: Checking database
+2026-08-15 16:39:15.710303 [INFO] error_history:E  :: Module error_history initialized [2311ms]
+2026-08-15 16:39:16.053683 [INFO] iso15118_car     :: Module iso15118_car initialized [2227ms]
+2026-08-15 16:39:16.101270 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-08-15 16:39:16.102662 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2949ms] 🚙🚙🚙
+
+2026-08-15 16:39:16.104385 [INFO] iso15118_2:Evse  :: TCP server on lo is listening on port [::1%0]:61341
+
+2026-08-15 16:39:16.104473 [INFO] iso15118_2:Evse  :: TLS server on lo is listening on port [::1%0]:64109
+
+2026-08-15 16:39:16.106335 [INFO] iso_mux:IsoMux   :: TLS server on eth0 is listening on port [fe80::215:5dff:fe07:f821%2]:64110
+2026-08-15 16:39:16.107402 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-15 16:39:16.111228 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-15 16:39:16.111313 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-08-15 16:39:16.153423 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-15 16:39:16.153560 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+2026-08-15 16:39:16.153608 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: trusted_ca_keys support disabled
+2026-08-15 16:39:16.160912 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-15 16:39:16.162178 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-15 16:39:16.162378 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-08-15 16:39:16.162717 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN_B.pem"]
+2026-08-15 16:39:16.162851 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/SECC_LEAF_B.pem"]
+
+2026-08-15 16:39:16.163557 [INFO] iso_mux:IsoMux   :: SDP socket setup succeeded
+2026-08-15 16:39:16.213083 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-08-15 16:39:16.213167 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-08-15 16:39:16.223317 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-08-15 16:39:16.223411 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-08-15 16:39:16.240559 [WARN] iso15118_2:Evse void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-15 16:39:16.249200 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-08-15 16:39:16.357098 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+
+2026-08-15 16:39:16.857423 [INFO] iso15118_2:Evse  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-15 16:39:17.506582 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-08-15 16:39:17.507756 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-08-15 16:39:17.507780 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-08-15 16:39:17.593446 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-08-15 16:39:17.637989 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+
+2026-08-15 16:39:17.665553 [INFO] iso15118_2:Evse  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-15 16:39:17.680953 [INFO] iso15118_20:Evs  :: Using ethernet interface: lo
+2026-08-15 16:39:17.681201 [WARN] iso15118_20:Evs module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: The supported energy services contain DC_BPT or MCS_BPT, but dc limits does not contain BPT limits. This can lead to session shutdowns.
+2026-08-15 16:39:17.681347 [INFO] iso15118_20:Evs  :: Created logfile at: /home/ahzf/./260815_14-39-17.yaml
+2026-08-15 16:39:18.429908 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-08-15 16:39:18.610688 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-08-15 16:39:18.697618 [WARN] api:API         void module::API::ready() :: No evse energy sink configured for evse_id: 1. API module does therefore not allow control of amps or power limits for this EVSE
+2026-08-15 16:39:27.344815 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-15 16:39:33.227735 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-15 16:39:41.249891 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-15 16:39:41.250047 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-15 16:39:41.251300 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-15 16:39:41.251300 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-15 16:39:41.252419 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-15 16:39:41.297095 [INFO] token_validator  :: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-08-15 16:39:41.547353 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-15 16:39:41.548566 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-15 16:39:41.751041 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-08-15 16:39:41.997372 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-15 16:39:41.998322 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-08-15 16:39:42.040982 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-15 16:39:42.041407 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-08-15 16:39:42.041666 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-15 16:39:43.157137 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-08-15 16:39:43.157154 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+
+2026-08-15 16:39:43.196141 [INFO] iso_mux:IsoMux   :: Received packet from [fe80::215:5dff:fe07:f821]:15119 with security 0x00 and protocol 0x00
+
+2026-08-15 16:39:43.196283 [INFO] iso_mux:IsoMux   :: SDP requested TLS, announcing TLS
+
+2026-08-15 16:39:43.196366 [INFO] iso_mux:IsoMux   :: sendto([fe80::215:5dff:fe07:f821]:15119) succeeded
+2026-08-15 16:39:43.512880 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+
+2026-08-15 16:39:44.718311 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-15 16:39:44.718774 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: -1 1
+C0E67F679B730000:error:0A000102:SSL routines:tls_early_post_process_client_hello:unsupported protocol:../ssl/statem/statem_srvr.c:1780:
+2026-08-15 16:39:44.996906 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-15 16:39:45.393776 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-15 16:39:45.393818 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-15 16:39:45.484923 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-15 16:39:45.485133 [INFO] evse_manager:Ev  :: EVSE IEC Stop in PrepareCharging: [EV unplugged]
+2026-08-15 16:39:45.485252 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->StoppingCharging
+2026-08-15 16:39:45.485896 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-08-15 16:39:45.533719 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-15 16:39:45.577192 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0 kWh)
+2026-08-15 16:39:45.805000 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-15 16:39:45.805192 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-15 16:39:45.849184 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-15 16:39:45.849349 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-15 16:39:52.486765 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-15 16:39:52.486985 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-15 16:39:52.488184 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-15 16:39:52.488178 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-15 16:39:52.489038 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-15 16:39:52.489984 [INFO] token_validator  :: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-08-15 16:39:52.740198 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-15 16:39:52.741704 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-15 16:39:52.987885 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-08-15 16:39:53.132911 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-15 16:39:53.134140 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-08-15 16:39:53.220943 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-15 16:39:53.221586 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-08-15 16:39:53.221693 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-15 16:39:54.413014 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-15 16:39:54.413023 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+
+2026-08-15 16:39:54.759478 [INFO] iso_mux:IsoMux   :: Received packet from [fe80::215:5dff:fe07:f821]:15119 with security 0x00 and protocol 0x00
+
+2026-08-15 16:39:54.759543 [INFO] iso_mux:IsoMux   :: SDP requested TLS, announcing TLS
+
+2026-08-15 16:39:54.759598 [INFO] iso_mux:IsoMux   :: sendto([fe80::215:5dff:fe07:f821]:15119) succeeded
+2026-08-15 16:39:55.028648 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+
+2026-08-15 16:39:56.279873 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-15 16:39:56.280037 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: -1 1
+C0E67F679B730000:error:0A000102:SSL routines:tls_early_post_process_client_hello:unsupported protocol:../ssl/statem/statem_srvr.c:1780:
+2026-08-15 16:39:56.668775 [INFO] ev_manager:EvMa  :: Finished simulation.
+2026-08-15 16:39:57.168918 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-08-15 16:39:57.169057 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-08-15 16:39:57.212917 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-08-15 16:39:57.213091 [INFO] evse_manager:Ev  :: EVSE IEC Stop in PrepareCharging: [EV unplugged]
+2026-08-15 16:39:57.213298 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->StoppingCharging
+2026-08-15 16:39:57.348836 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-08-15 16:39:57.393435 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0 kWh)
+2026-08-15 16:39:57.617766 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-08-15 16:39:57.617930 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-08-15 16:39:57.660800 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-15 16:39:57.660939 [INFO] evse_manager:Ev  :: All errors cleared
+2026-08-15 16:40:04.301723 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-08-15 16:40:04.301875 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-08-15 16:40:04.302770 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-08-15 16:40:04.302829 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-15 16:40:04.303619 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-08-15 16:40:04.304742 [INFO] token_validator  :: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-08-15 16:40:04.554917 [INFO] token_validator  :: Returning validation status: Accepted
+2026-08-15 16:40:04.556193 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-08-15 16:40:04.802579 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-08-15 16:40:04.950211 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-08-15 16:40:04.997332 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-08-15 16:40:05.041680 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-08-15 16:40:05.042056 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-08-15 16:40:05.042207 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-08-15 16:40:06.169059 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-08-15 16:40:06.169059 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+
+2026-08-15 16:40:06.318082 [INFO] iso_mux:IsoMux   :: Received packet from [fe80::215:5dff:fe07:f821]:15119 with security 0x00 and protocol 0x00
+
+2026-08-15 16:40:06.318142 [INFO] iso_mux:IsoMux   :: SDP requested TLS, announcing TLS
+
+2026-08-15 16:40:06.318193 [INFO] iso_mux:IsoMux   :: sendto([fe80::215:5dff:fe07:f821]:15119) succeeded
+2026-08-15 16:40:06.834886 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+
+2026-08-15 16:40:07.840723 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-15 16:40:07.841093 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: -1 1
+C0E67F679B730000:error:0A000102:SSL routines:tls_early_post_process_client_hello:unsupported protocol:../ssl/statem/statem_srvr.c:1780:

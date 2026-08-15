@@ -233,6 +233,20 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
+- **Our `-2` car does not send `trusted_ca_keys`, and `[V2G2-651]` obliges every `-2` EV to.**
+  `grep -rn trusted_ca_keys` matches nothing in the stack. Found on 2026-08-15 while trying to run
+  [`everest-isomux`](reports/everest-isomux.md) §4's failing case, which needs exactly such an EV — so it
+  is a gap of ours that is *also* the instrument for one of theirs. Two reasons to do it, and the first
+  one is the honest one: it is a `-2` requirement we do not meet.
+  <br>Worth knowing before starting: the extension is RFC 6066, TLS 1.2-era, and its point is to let the
+  car tell the station which roots it trusts so the station can serve a chain the car can verify —
+  `[V2G2-651]` on our side, `[V2G20-1006]`/`[V2G20-1007]` and `[V2G20-2379]` on theirs, which is what
+  [`everest-d20-client-auth`](reports/everest-d20-client-auth/issue-3-server-chain-selection.md) §3
+  measured against a station that ignores it. Building the sending half would let this project measure
+  the receiving half everywhere, and there are two stations here that get it wrong.
+  <br>**Not started**, and deliberately not folded into the isomux run: a probe written to produce one
+  line of somebody else's log is a bad reason to add a protocol feature.
+
 - ~~**Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
   checked too late to catch a station that never answers.**~~ **Fixed 2026-08-11**, stack branch
   `iso20-evcc-msg-timeout`, and it came out of *withdrawing* the item below rather than from a run.
@@ -727,6 +741,21 @@ also below.
   payload into readable digits — which is the shortfall wearing different clothes, and which means **the
   first data point had been sitting in this repository since 2026-08-01** in a frames log nobody had
   re-read. The extractor is checked in.
+  <br>**Number 16, `everest-isomux` §4, is the first of these that could not be finished** — and the
+  attempt is worth more than the box was. Its failing case wants *"two roots and an EV that sends
+  `trusted_ca_keys`"*. The two-root half ran and is the arm §4 most needed: with a second V2G root and a
+  valid SECC chain under each, the station boots with the **same two lines**, so the *"then configure a
+  trust anchor"* rebuttal is closed by measurement. The EV half **cannot be run with any client here**,
+  and the reason is §2 of the same report: `IsoMux` refuses TLS 1.3 at the ClientHello — three times,
+  their own `unsupported protocol` — which is the only route `openssl -requestCAfile` speaks, while
+  `trusted_ca_keys` is the TLS 1.2 extension of RFC 6066 that `openssl` cannot send and our EVCC does not
+  implement. **§2 and §4 are coupled: while the cap stands, §4 is unobservable from outside**, which the
+  report did not say and now does
+  ([attempt](interop-runs/2026-08-15-everest-isomux-trusted-ca-keys-attempt/notes.md)).
+  <br>It also leaves a real item for *our* side rather than theirs: `[V2G2-651]` obliges every `-2` EV to
+  send `trusted_ca_keys`, and **ours does not**. Building it would close §4's box and fix a conformance
+  gap of ours in the same change — which is the honest reason to do it, and why it is not smuggled in as
+  a probe.
   <br>**A knob that is ignored is worse than a knob that is missing**, because the run still produces a
   number — so `InteropEnvironment` now records what it consults and every fixture ends by naming any
   `V2G_INTEROP_*` variable the run set and nothing read. It is a warning rather than a failure, and it
