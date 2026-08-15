@@ -637,8 +637,8 @@ also below.
 
 ## Not in the matrix at all
 
-- **Forty-seven issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
-  in thirty-three sendable reports. Each ends with a *Before sending* checklist whose unticked items are
+- **Forty-eight issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
+  in thirty-four sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin: *Ours to fix* is empty, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.
@@ -665,6 +665,19 @@ also below.
   phase at ≈573–600 ms per exchange, so it is the session's per-message cost and the charge loop is
   merely the one phase whose budget is tight enough to notice. Where that cost goes was **not**
   localized, and the report says so in its own section rather than in a footnote.
+  <br>**The forty-eighth was written on 2026-08-15**, and it is the easiest one here to accept: Josev's
+  EVCC presents its **OEM provisioning** certificate as the TLS client credential, where `[V2G20-2339]`
+  and `[V2G20-2342]` are two *shall*s for two credentials — and **their own downstream fork already
+  carries the whole change**, so the ask is a port rather than a design
+  ([`josev-iso20-vehicle-certificate`](reports/josev-iso20-vehicle-certificate.md)). It slots beside
+  `josev-iso20-pki-curve` at 26/27: same file, same reviewer.
+  <br>**It also corrected the fortieth.** Pointing the vehicle-versus-provisioning distinction at our own
+  drafts showed that [`everest-d20-trust-anchor`](reports/everest-d20-trust-anchor.md) had called an OEM
+  provisioning leaf *"the vehicle credential"* and concluded the station *"refuses vehicle
+  certificates"* — but it loads the V2G root as well, and EVerest's own vehicle chain is V2G-rooted, so
+  a real one verifies. The OEM-rooted half stands; the generalisation did not. **Nothing sent, so it
+  cost only the re-read** — which is the strongest argument this file has for the queue being read as
+  well as written ([audit](interop-runs/2026-08-15-josev-tls-vehicle-cert-audit/notes.md)).
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the five orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to

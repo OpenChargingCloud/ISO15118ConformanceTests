@@ -250,6 +250,22 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
 
+⁴¹ **The forty-eighth filing, and it corrected the fortieth.** Josev's EVCC loads its **OEM provisioning**
+chain as the TLS client credential (`security.py:209`), and the same leaf is the `OEMProvisioningCert` of
+`CertificateInstallationReq` — one leaf, two jobs, where `[V2G20-2339]` and `[V2G20-2342]` are two
+*shall*s for two credentials. `grep -c VEHICLE shared/security.py` returns **0** and nothing matches
+`vehicle_cert`/`VEHICLE_LEAF` anywhere under `iso15118/`: the class is absent, not mis-wired. `[V2G20-2598]`
+decides it — a vehicle certificate carries the **EVCCID** as Common Name, and this one reads
+`CN=OEMProvCert`. **Their own downstream fork `26f7988` already has the whole thing**, mints
+`CN=WMIV1234567890ABCDEX, O=Pionix` under the V2G root, so the ask is a port.
+<br>**And pointing the distinction at our own drafts broke one.** `everest-d20-trust-anchor.md` had
+called an OEM *provisioning* leaf "the vehicle credential" and concluded their station *"refuses vehicle
+certificates"* — but it loads the V2G root too, and EVerest's own vehicle chain is V2G-rooted, so a real
+one verifies. The OEM-rooted half stands and the generalisation does not; corrected in place. The
+measurement was right and the sentence ran past it — **a distinction is only as sharp as the third case
+you test it on**.
+[`…-josev-tls-vehicle-cert-audit`](docs/interop-runs/2026-08-15-josev-tls-vehicle-cert-audit/notes.md).
+
 ⁴⁰ **Both Josev inbound Plug & Charge cells, re-taken — and these two were stale for a different reason
 than the one above.** `-2` over unilateral TLS 1.2 and `-20` over mutual TLS 1.3, each against a control:
 *chain valid, anchored at `CN=MORootCA`* with the MO root in the store, *REJECTED — unable to get local
@@ -266,8 +282,10 @@ the same breath as stating the rule: it named a third cell, at eVDriveFlow, that
 <br>The `-20` arm settled one more thing unasked: with the store configured their car's **TLS client
 chain** is validated instead of accept-any, and it anchors at `CN=OEMRootCA` — the class `[V2G20-2331]`
 and clause 7.3.1 ask for, and the exact inverse of the [EVerest station](docs/reports/everest-d20-trust-anchor.md)
-that took a contract certificate for the job. The *leaf* is left open: it is `CN=OEMProvCert`, the
-provisioning certificate, where those clauses put a vehicle certificate.
+that took a contract certificate for the job. The *leaf* was left open and **audited the same day**: it
+is `CN=OEMProvCert`, the provisioning certificate, where `[V2G20-2339]` and `[V2G20-2342]` put two
+different credentials — the class is absent from their stack entirely, their own downstream fork already
+implements it, and it is now the **forty-eighth filing**⁴¹.
 [`…-josev-reverse-pnc-chain`](docs/interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md).
 
 ³⁹ **"Verified by our SECC" meant the signature.** Every inbound Plug & Charge result in this matrix was
