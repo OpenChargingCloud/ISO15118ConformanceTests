@@ -69,7 +69,9 @@ DIN twin, their own `-20` module and their own DIN test all get it right; that i
 possible framing and it is true.
 
 **3.** [`everest-d20-sequence-timeout`](everest-d20-sequence-timeout.md) — one constant. Measured to
-60,0025 s against their own log.
+60,0025 s (DC) and 60,0160 s (AC) against their own log, one control each. **Its last technical box was
+ticked on 2026-08-15**: the AC arm was run so that Table 216's row is a measurement rather than an
+inference from Table 217's, and the two agree to 14 ms. Nothing left but posting it.
 
 **4.** [`josev-iso20-charge-loop-timeout`](josev-iso20-charge-loop-timeout.md) — SwitchEV. The
 constants already exist in their file and are referenced nowhere. **Send this within days of (3)**:

@@ -423,6 +423,15 @@ section warns about in a different costume.
   exemption, the session stop. **Filed 2026-08-11**:
   [`everest-d20-sequence-timeout.md`](reports/everest-d20-sequence-timeout.md),
   [run](interop-runs/2026-08-11-everest-d20-sequence-timeout/notes.md).
+  <br>**And on the AC path too, 2026-08-15: 60,0160 s after their `AcChargeLoopRes`**, with its own
+  control, closing the filing's last technical box. The constant is shared, so DC settled AC *by
+  construction* — but Table 216 is a different requirement from Table 217, and by construction is not by
+  measurement. The two intervals agree to 14 ms, which is the shape one shared constant should have and
+  is now shown rather than assumed
+  ([run](interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md)). The run cost three attempts
+  and none of them was theirs: `sh` is dash and mangles `sdp-probe.sh`'s datagram; `CP_AT_PLUGIN=1`
+  walks straight into [their *other* AC finding](reports/everest-d20-ac-contactor-edge.md) and measures
+  that instead; and a `${VAR:+NAME=value}` prefix is a command word, not an assignment.
   <br>**Measuring it needed a capability of ours, for the third time this month.** A car that hangs up
   is an EOF and says nothing about a timer; `Evcc20Base.GoSilentInChargeLoop` makes ours go quiet with
   the socket open. MeterInfo was a field we never set, the SessionID a header we could not forge, this a
