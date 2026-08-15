@@ -279,6 +279,27 @@ And one that is neither shape but belongs on the list, because a loopback peer c
 
 ---
 
+## What it found in **us**, by being right — the renegotiation
+
+Kept separate from the two lists below because it belongs to neither: it is the one case here where a
+finding *against* EVerest was withdrawn and the defect turned out to be ours.
+
+Their `EvseV2G` answered our `-2` DC renegotiation's `PowerDeliveryReq(Start)` with
+`FAILED_SequenceError` on 2026-08-11. That was filed. On 2026-08-15, working the filing's own document
+gate refuted it: ISO 15118-2's DC state table admits `CableCheckReq` after `ChargeParameterDiscoveryReq`
+and nothing else (`[V2G2-565]`, `[V2G2-582]`), with no renegotiation exception — **their station
+implements the table, and our car skipped two message pairs.** The report leaned on Annex I, whose
+sequence diagrams are AC. [Withdrawn](reports/everest-evsev2g-renegotiation-cablecheck.md); reasoning in
+[`normative-basis.md`](normative-basis.md); fix on both sides of our stack the same day.
+
+**Re-run that evening with a control three minutes apart**
+([`…-iso2-renegotiation-rerun`](interop-runs/2026-08-15-everest-iso2-renegotiation-rerun/notes.md)): the
+pre-fix car still gets `FAILED_SequenceError`; the fixed car gets the renegotiated `CableCheckReq`
+**accepted**. The session then dies inside their `EvseManager` — its cable check waits for the DC link to
+fall below 60 V, which does not happen mid-renegotiation, and raises `MREC11CableCheckFault` →
+`Inoperative`. **Not filed**, because our `CableCheckReq` still declares `EVReady = true`: the deciding
+arm is ours to run first.
+
 ## What it found in **them**
 
 Written up per run; the ones that became filings are drafted under [`docs/reports/`](reports/) and none

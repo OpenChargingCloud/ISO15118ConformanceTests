@@ -177,9 +177,15 @@ there, or whether you would rather track it in the session explicitly, is yours 
       report was written from; nothing arrived later. A checklist item that says *"this project cannot"*
       is worth re-testing before it is believed — it was written when the documents were newer here than
       the habit of reading them.
-- [ ] ~~**Say what was not measured.** Whether the station accepts the sequence when CableCheck and
-      PreCharge *are* re-sent is read from the state table, not observed.~~ **Moot** — that arm is now a
-      test of *our* fix rather than of their station, and it belongs with the `Ours to fix` entry.
+- [x] ~~**Say what was not measured.** Whether the station accepts the sequence when CableCheck and
+      PreCharge *are* re-sent is read from the state table, not observed.~~ **Measured the same evening,
+      and the state table was right.** With the isolation sequence restored, their station **accepts** the
+      renegotiated `CableCheckReq` (four `OK`s) where the pre-fix car — reproduced as a control three
+      minutes earlier on the same binary — still gets `FAILED_SequenceError`. The session then stops four
+      messages later inside their `EvseManager`, on a cable check that waits for the DC link to fall below
+      60 V. **That is a different finding, it is not this report, and it is not filed**: our car still
+      says `EVReady = true` while asking for an isolation test.
+      [`…-iso2-renegotiation-rerun`](../interop-runs/2026-08-15-everest-iso2-renegotiation-rerun/notes.md).
 - [x] **Re-read the citations against the tree before posting — done 2026-08-11.** All four verified
       against the built 2026.02.1 source in the sweep over all 189 `file:line` references in this
       directory, and the state assignment is **unchanged on everest-core `main`** (`ebcd36d`): a DC
