@@ -1,13 +1,15 @@
 # Draft report to EDF Lab (eVDriveFlow) — the SessionID is eight ASCII digits, so 26,6 bits where 58 are required
 
-Status: **draft, not sent**, and **not run against your station** — the finding is in one line of
-your source and needs no session to see. Post it under your own name; see *Before sending* at the
-bottom.
+Status: **draft, not sent.** The finding is in one line of your source and needs no session to see —
+and it was taken off the wire anyway on 2026-08-15, **24 sessions against your own station**. Post it
+under your own name; see *Before sending* at the bottom.
 
 Evidence in this repository:
 [`2026-08-11-everest-d20-rng-entropy`](../interop-runs/2026-08-11-everest-d20-rng-entropy/notes.md)
 — an entropy audit across four ISO 15118-20 stacks, of which yours is one of the two that come up
-short.
+short — and
+[`2026-08-15-edf-session-id-entropy`](../interop-runs/2026-08-15-edf-session-id-entropy/notes.md), the
+24 SessionIDs and the frame logs they came out of.
 
 Four other reports for the same project — issues 1 to 5 — are in
 [`evdriveflow-headless-session.md`](evdriveflow-headless-session.md),
@@ -58,6 +60,36 @@ number, which is what a 58-bit floor is there to make it.
 
 Your own docstring names the requirement and says it *might have security issues*, so this report
 is mostly a measurement of by how much, and a one-line fix.
+
+## On the wire, 24 times
+
+Your SECC, `60249c3`, plain TCP, 24 consecutive sessions from our EV against one station — every
+SessionID read out of your own `SessionSetupRes`:
+
+```
+50475261  66517944  96751133  26079747  40482773  76881948  19193724  86292746
+75776846  40738080  17203515  41960978  67275833  52324782  64493806  58476268
+47267897  35647279  20819696  30812432  84089082  92122701  47445612  39261178
+```
+
+**24 of 24 eight ASCII digits, 24 distinct**, minimum 17 203 515, maximum 96 751 133 — every one inside
+`[0, 10⁸)`. The field is eight bytes and full; it is the *alphabet* that is ten symbols wide, which is
+where 8 × log₂10 = 26,6 comes from.
+
+**And reading them needed no EXI decoder.** The SessionID sits at a one-bit offset in the payload, so
+shifting it left by one bit makes the digits appear as text a regex finds:
+
+```
+payload   ...041b9c1c1c9c1b9b1a8ecfab8d3062...
+<< 1 bit  ...  37 38 38 39 38 37 36 35  ...   =  "78898765"
+```
+
+That one is from a session recorded on 2026-08-01, ten days before this report was written. A SessionID
+of arbitrary bytes would not be legible that way at all — **that it can be read out of a hex dump with
+no decoder is the same fact as the shortfall, wearing different clothes.**
+
+One thing the sample does not show: all 24 draws are ≥ 10⁷, so none exercises `zfill`'s leading zero.
+`zfill(8)` guarantees the width either way; the sample simply does not happen to contain the case.
 
 ## Suggested fix
 
@@ -114,9 +146,14 @@ this ran the morning after we finished closing a different SessionID gap of our 
       code.
 - [x] **Say where the requirement is not exotic.** Two of the three other stacks meet it, and the
       third fails it a different way.
-- [ ] **Run it against your station** if you want the number on the wire rather than in the source.
-      One session is enough — the SessionID in `SessionSetupRes` will be eight ASCII digits. Your rig
-      needs docker, a prepared clone and the `edfnet` IPv6 network.
+- [x] **Run it against your station — done 2026-08-15, 24 sessions.** 24 of 24 eight ASCII digits, 24
+      distinct, all inside `[0, 10⁸)`, read out of `SessionSetupRes` with no EXI decoder. Twenty-four
+      rather than one because the claim is about a **range** and a range needs more than one point.
+      [`…-edf-session-id-entropy`](../interop-runs/2026-08-15-edf-session-id-entropy/notes.md).
+      <br>Two things for whoever repeats it: your SECC binds `[fd00:edf::2]:49152` — an IPv6 ULA at an
+      ephemeral port — and your log names neither, saying only `Starting TCP server.`; port 15118 is the
+      UDP discovery port and refuses the connection. And your station took all 24 sessions without a
+      restart, which is worth saying as the positive it is.
 - [ ] **File it separately from the `[V2G20-460]` report**, and say in both that the order matters.
 - [ ] **Decide issue or PR, and expect a slow response.** Re-checked 2026-08-11: no commit on `main`
       since `60249c3` (2023-04-17), **three years and four months**. A PR is more likely to be useful

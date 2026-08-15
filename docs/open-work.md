@@ -716,6 +716,17 @@ also below.
   would fix it, and enabling INFO adds per-message logging to exactly the quantity being measured.
   **The instrument that would finish the job is disabled by the thing under measurement**, and a
   contaminated number is worth less than that sentence.
+  <br>**Numbers 6 through 13 turned out to be finished already** — every open box in them is a writing
+  or posting decision — so the next one with work in it was **14**,
+  `evdriveflow-session-id-entropy`, whose box offered a choice: *run it against your station if you want
+  the number on the wire rather than in the source*. Taken, 24 consecutive sessions: **24 of 24
+  SessionIDs eight ASCII digits, 24 distinct**, all inside `[0, 10⁸)`
+  ([run](interop-runs/2026-08-15-edf-session-id-entropy/notes.md)). Twenty-four rather than one because
+  the claim is about a range.
+  <br>It needed **no EXI decoder**: the field sits at a one-bit offset, so a single bit shift turns the
+  payload into readable digits — which is the shortfall wearing different clothes, and which means **the
+  first data point had been sitting in this repository since 2026-08-01** in a frames log nobody had
+  re-read. The extractor is checked in.
   <br>**A knob that is ignored is worse than a knob that is missing**, because the run still produces a
   number — so `InteropEnvironment` now records what it consults and every fixture ends by naming any
   `V2G_INTEROP_*` variable the run set and nothing read. It is a warning rather than a failure, and it

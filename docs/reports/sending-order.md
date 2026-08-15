@@ -153,7 +153,10 @@ is the shortest route into the issue and it is their record, not our reading.
 week.
 
 **14.** [`evdriveflow-session-id-entropy`](evdriveflow-session-id-entropy.md) — **as a PR**, and see
-the dormant-project section. Not the same week as (13).
+the dormant-project section. Not the same week as (13). **On the wire since 2026-08-15**: 24 of 24
+SessionIDs eight ASCII digits, from their own station, read out of the frames with no decoder — which
+also means the PR can quote a measurement rather than only their docstring. Its `[V2G20-460]` sibling
+still has that box open, and the rig is now written down for it.
 
 ### Then — the bigger arguments, one at a time
 
