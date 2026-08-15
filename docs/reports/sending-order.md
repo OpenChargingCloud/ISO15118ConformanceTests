@@ -79,13 +79,18 @@ same defect, two independent stacks, and each issue is more credible for the oth
 source-only — run 2026-08-15**, four arms against their own SECC, and their log names the value it
 waited on. Lead with that line rather than with ours.
 
-**5.** [`josev-iso20-evcc-charge-loop-pacing`](josev-iso20-evcc-charge-loop-pacing.md) — SwitchEV, and
-the same file as (4) from the other side: their EVCC turns the charge loop around in ≈532 ms where
-Table 216 gives it 0,25 s, and `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` is not in `timeouts.py` at all.
-**With (4) or immediately after it** — one is the station half and one is the car half of the same two
-table rows, and §7 of this one is the argument that shipping both together is exactly what makes either
-invisible. Unlike (4) it is **measured**, 2 of 2, which is also why it goes second: (4) is the smaller
-patch and the friendlier opening.
+**5.** [`josev-iso20-evcc-charge-loop-pacing`](josev-iso20-evcc-charge-loop-pacing.md) — **EVerest, since
+2026-08-15**, and it used to be here as SwitchEV's. Their EV turns the charge loop around in ≈532 ms
+where Table 216 gives it 0,25 s. The localization moved it: the codec costs ~30 ms per direction and
+Josev's own EVCC does the same loop in **43 ms**, so the half second belongs to `PyEvJosev` rather than
+to the stack it wraps.
+
+**This breaks its pairing with (4)** and that is worth knowing before either goes out. They are still
+the station half and the car half of the same two table rows, and §7 is still the argument that shipping
+both together is what makes either invisible — but they are now **two projects**, so "send them
+together" means two issues in two trackers on the same day, not a pair to one maintainer. The one
+sentence that stayed SwitchEV's — the absent `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` — travels with (4)
+instead, which is the tidier home for it anyway.
 
 **Say what it is not.** It is a *performance* criterion, not a timeout anyone may abort on — Figure
 212's legend sorts the two thresholds on that interval differently — and the report leads with that
