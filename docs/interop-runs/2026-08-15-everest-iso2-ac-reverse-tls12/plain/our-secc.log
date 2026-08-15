@@ -1,0 +1,35 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fedf:2f0c%2]:50921 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::215:5dff:fedf:2f0c%2]:50921 with [fe80::215:5dff:fedf:2f0c%2]:15118 (NoTLS, TCP), 28 byte(s).
+SDP: advertising [fe80::215:5dff:fedf:2f0c%2]:15118 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their PyEvJosev on [::]:15118 (plain TCP) ...
+Recorded:
+  /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.ev-to-station.bin
+  /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.station-to-ev.bin
+  /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.frames.log
+  /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.flow.md
+  /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.trace.json
+
+NUnit Adapter 4.6.0.0: Test execution complete
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [38 s]
+  Standard Output Messages:
+ SDP: advertising [fe80::215:5dff:fedf:2f0c%2]:15118 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their PyEvJosev on [::]:15118 (plain TCP) ...
+ Recorded:
+   /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.ev-to-station.bin
+   /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.station-to-ev.bin
+   /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.frames.log
+   /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.flow.md
+   /home/ahzf/everest/run/iso2rev-plain/everest-iso15118-2-ac-reverse.trace.json
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 39.2439 Seconds

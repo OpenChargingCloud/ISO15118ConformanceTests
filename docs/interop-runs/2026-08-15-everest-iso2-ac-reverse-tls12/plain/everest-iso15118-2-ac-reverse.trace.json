@@ -1,0 +1,686 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-2-ac-reverse",
+  "protocol": "iso15118-2",
+  "mode": "ac",
+  "note": "live interop: EVerest\u0027s PyEvJosev against our SECC",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupReqType",
+        "frame": "01fe80010000000e8098004011d0180055777cbc3000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupResType",
+        "frame": "01fe80010000001e8098021c7ef8abd995fd9451e0202d1114a905090ca914c412ffdfda60c0"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9451b8"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryResType",
+        "frame": "01fe8001000000178098021c7ef8abd995fd9451c00008004011050c050248"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionReqType",
+        "frame": "01fe8001000000108098021c7ef8abd995fd945132001280"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionResType",
+        "frame": "01fe80010000000e8098021c7ef8abd995fd94514000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd945008"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationResType",
+        "frame": "01fe80010000000f8098021c7ef8abd995fd9450100000"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryReqType",
+        "frame": "01fe8001000000228098021c7ef8abd995fd9450944080a3050c30000188120060018407d00818601400"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryResType",
+        "frame": "01fe8001000000258098021c7ef8abd995fd9450a00000000000240700c50a0560a80000006207300818604000"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe80010000008a8098021c7ef8abd995fd94515000002580418a0002158040c500010c203062800086c02031400043b81418a00021080e0c5000109a08062800085804831400043182818a00021b8160c500010f20c062800084407031400042783c18a0002168200c500010ca11062800087009031400043d84c18a00021182a0c500010a216062800085c0b831400058"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe8001000000118098021c7ef8abd995fd94516000000000"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 8,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 9,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 10,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 11,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 12,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 13,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 14,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 15,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 16,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 17,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 18,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 19,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 20,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 21,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 22,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 23,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 24,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 25,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 26,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 27,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 28,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 29,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 30,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 31,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 32,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 33,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 34,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 35,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 36,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 37,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 38,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 39,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 40,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 41,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 42,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 43,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 44,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 45,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 46,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 47,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 48,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 49,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusReqType",
+        "frame": "01fe80010000000d8098021c7ef8abd995fd9450b0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargingStatusResType",
+        "frame": "01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000"
+      }
+    },
+    {
+      "index": 50,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe8001000000108098021c7ef8abd995fd945151000600"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe8001000000118098021c7ef8abd995fd94516000000000"
+      }
+    },
+    {
+      "index": 51,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionStopReqType",
+        "frame": "01fe80010000000e8098021c7ef8abd995fd9451f000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionStopResType",
+        "frame": "01fe80010000000e8098021c7ef8abd995fd94520000"
+      }
+    }
+  ]
+}

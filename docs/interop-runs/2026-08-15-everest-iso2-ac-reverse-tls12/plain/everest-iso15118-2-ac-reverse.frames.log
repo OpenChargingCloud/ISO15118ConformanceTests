@@ -1,0 +1,214 @@
+# Frames as recorded, per direction. Ordering within a direction is real;
+# the two directions are not interleaved, because the recording has no timestamps.
+
+## EV -> station: 1269 byte(s), 52 frame(s)
+[0] SupportedAppProtocolReq payloadType=0x8001 bytes=44
+    01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040
+[1] SessionSetupReq payloadType=0x8001 bytes=22
+    01fe80010000000e8098004011d0180055777cbc3000
+[2] ServiceDiscoveryReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9451b8
+[3] PaymentServiceSelectionReq payloadType=0x8001 bytes=24
+    01fe8001000000108098021c7ef8abd995fd945132001280
+[4] AuthorizationReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd945008
+[5] ChargeParameterDiscoveryReq payloadType=0x8001 bytes=42
+    01fe8001000000228098021c7ef8abd995fd9450944080a3050c30000188120060018407d00818601400
+[6] PowerDeliveryReq payloadType=0x8001 bytes=146
+    01fe80010000008a8098021c7ef8abd995fd94515000002580418a0002158040c500010c203062800086c02031400043b81418a00021080e0c5000109a08062800085804831400043182818a00021b8160c500010f20c062800084407031400042783c18a0002168200c500010ca11062800087009031400043d84c18a00021182a0c500010a216062800085c0b831400058
+[7] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[8] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[9] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[10] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[11] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[12] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[13] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[14] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[15] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[16] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[17] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[18] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[19] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[20] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[21] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[22] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[23] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[24] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[25] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[26] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[27] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[28] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[29] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[30] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[31] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[32] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[33] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[34] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[35] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[36] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[37] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[38] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[39] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[40] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[41] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[42] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[43] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[44] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[45] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[46] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[47] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[48] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[49] ChargingStatusReq payloadType=0x8001 bytes=21
+    01fe80010000000d8098021c7ef8abd995fd9450b0
+[50] PowerDeliveryReq payloadType=0x8001 bytes=24
+    01fe8001000000108098021c7ef8abd995fd945151000600
+[51] SessionStopReq payloadType=0x8001 bytes=22
+    01fe80010000000e8098021c7ef8abd995fd9451f000
+
+## station -> EV: 1834 byte(s), 52 frame(s)
+[0] SupportedAppProtocolRes (OK_SuccessfulNegotiation) payloadType=0x8001 bytes=12
+    01fe80010000000480400040
+[1] SessionSetupRes (OK_NewSessionEstablished) payloadType=0x8001 bytes=38
+    01fe80010000001e8098021c7ef8abd995fd9451e0202d1114a905090ca914c412ffdfda60c0
+[2] ServiceDiscoveryRes (OK) payloadType=0x8001 bytes=31
+    01fe8001000000178098021c7ef8abd995fd9451c00008004011050c050248
+[3] PaymentServiceSelectionRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e8098021c7ef8abd995fd94514000
+[4] AuthorizationRes (OK) payloadType=0x8001 bytes=23
+    01fe80010000000f8098021c7ef8abd995fd9450100000
+[5] ChargeParameterDiscoveryRes (OK) payloadType=0x8001 bytes=45
+    01fe8001000000258098021c7ef8abd995fd9450a00000000000240700c50a0560a80000006207300818604000
+[6] PowerDeliveryRes (OK) payloadType=0x8001 bytes=25
+    01fe8001000000118098021c7ef8abd995fd94516000000000
+[7] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[8] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[9] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[10] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[11] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[12] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[13] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[14] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[15] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[16] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[17] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[18] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[19] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[20] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[21] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[22] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[23] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[24] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[25] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[26] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[27] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[28] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[29] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[30] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[31] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[32] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[33] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[34] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[35] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[36] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[37] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[38] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[39] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[40] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[41] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[42] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[43] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[44] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[45] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[46] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[47] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[48] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[49] ChargingStatusRes (OK) payloadType=0x8001 bytes=37
+    01fe80010000001d8098021c7ef8abd995fd9450c0002d1114a905090ca914c40018000000
+[50] PowerDeliveryRes (OK) payloadType=0x8001 bytes=25
+    01fe8001000000118098021c7ef8abd995fd94516000000000
+[51] SessionStopRes (OK) payloadType=0x8001 bytes=22
+    01fe80010000000e8098021c7ef8abd995fd94520000

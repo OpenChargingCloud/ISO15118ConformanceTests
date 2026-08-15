@@ -821,6 +821,27 @@ an inference from the run before it: the extra `PowerDeliveryReq` seen in both r
 absent here, so it was never the transport
 ([`…-d20-ac-bpt-reverse`](interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md)).
 
+**And the last item on the list — `-2` in reverse over TLS 1.2 — was the least routine of them.** It is
+the first ISO 15118-2 session this project has run in that direction against EVerest in any transport,
+and **their car authorizes differently depending on it**: EIM over plain TCP, Plug & Charge over TLS,
+with a `PaymentDetailsReq`, a signed `AuthorizationReq` and a signed `MeteringReceiptReq` appearing only
+in the TLS arm. That is `-2`'s *no Contract without TLS* rule applied by the car — this page has recorded
+the same rule from their **station** since 2026-08-03, and now has both ends of it. No PKI regeneration:
+`-2` TLS is unilateral, and `enable_tls_1_3: false` is what makes their EV present no client certificate.
+
+Two findings of ours came with it, and the second is the one that reaches back through this page.
+`Secc2` verifies the contract signature and every metering receipt and the fixture reported neither — the
+fifth instance in three days of a value our own side already held that no caller could reach, and the
+first where the discarded value *is* the result. Then the first TLS arm reported `chain not validated`:
+**every inbound Plug & Charge result in this document, in both protocols, was recorded that way** — the
+signature checked against the leaf the car presented, with nobody asking who issued it, because no interop
+run could reach the `ContractChainValidator` both station classes have always had.
+`V2G_INTEROP_CONTRACT_ROOTS` now can, and the `-2` run is anchored at EVerest's own MO root with a
+negative control that refuses the chain while the signature still verifies
+([`…-iso2-ac-reverse-tls12`](interop-runs/2026-08-15-everest-iso2-ac-reverse-tls12/notes.md)). **The
+`-20` cells here have not been re-run**; until they are, *"verified by our SECC"* on this page means the
+signature and not the contract.
+
 **Dynamic over AC followed, and it retired a loose end this page had been carrying for two days.** The
 AC charge-loop control-mode answer is a different `switch` from DC's — a Dynamic AC response carries a
 mandatory `EVSETargetActivePower` — so 40 and 41 completed Dynamic loops are the first live evidence that

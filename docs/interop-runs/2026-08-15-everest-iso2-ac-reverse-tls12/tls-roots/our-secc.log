@@ -1,0 +1,45 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fedf:2f0c%2]:37675 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::215:5dff:fedf:2f0c%2]:37675 with [fe80::215:5dff:fedf:2f0c%2]:15118 (TLS, TCP), 28 byte(s).
+TLS (station): presenting DC=CPO, C=DE, O=EVerest, CN=SECCCert (+2 chain certificate(s)), TLS 1.2
+SDP: advertising [fe80::215:5dff:fedf:2f0c%2]:15118 (TLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their PyEvJosev on [::]:15118 (TLS) ...
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, client certificate none.
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, we presented DC=CPO, C=DE, O=EVerest, CN=SECCCert
+Plug & Charge (inbound, -2): contract DC=MO, C=DE, O=EVerest, CN=UKSWI123456789A; challenge OK, digest OK, signature OK, grammar=xmldsig-standalone; chain trusted, anchored at DC=MO, C=DE, O=EVerest, CN=MORootCA.
+Metering receipts (inbound, -2): 1, 1 verified, grammar=xmldsig-standalone.
+Recorded:
+  /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.ev-to-station.bin
+  /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.station-to-ev.bin
+  /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.frames.log
+  /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.flow.md
+  /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.trace-not-built.txt
+
+NUnit Adapter 4.6.0.0: Test execution complete
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [38 s]
+  Standard Output Messages:
+ TLS (station): presenting DC=CPO, C=DE, O=EVerest, CN=SECCCert (+2 chain certificate(s)), TLS 1.2
+ SDP: advertising [fe80::215:5dff:fedf:2f0c%2]:15118 (TLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their PyEvJosev on [::]:15118 (TLS) ...
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, client certificate none.
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, we presented DC=CPO, C=DE, O=EVerest, CN=SECCCert
+ Plug & Charge (inbound, -2): contract DC=MO, C=DE, O=EVerest, CN=UKSWI123456789A; challenge OK, digest OK, signature OK, grammar=xmldsig-standalone; chain trusted, anchored at DC=MO, C=DE, O=EVerest, CN=MORootCA.
+ Metering receipts (inbound, -2): 1, 1 verified, grammar=xmldsig-standalone.
+ Recorded:
+   /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.ev-to-station.bin
+   /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.station-to-ev.bin
+   /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.frames.log
+   /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.flow.md
+   /home/ahzf/everest/run/iso2rev-tls-roots/everest-iso15118-2-ac-reverse-tls.trace-not-built.txt
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 38.8970 Seconds

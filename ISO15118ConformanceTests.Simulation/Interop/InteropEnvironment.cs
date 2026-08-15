@@ -22,6 +22,7 @@ using System.Security.Cryptography.X509Certificates;
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.Sap;
+using cloud.charging.open.protocols.ISO15118.Security;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
@@ -732,6 +733,33 @@ internal static class InteropEnvironment
                                                     : TlsProfiles.Iso2CipherSuites,
         };
 
+    }
+
+
+    /// <summary>
+    /// <c>V2G_INTEROP_CONTRACT_ROOTS=&lt;pem|dir&gt;</c> — the MO roots <b>our station</b> holds a peer's
+    /// Plug &amp; Charge contract chain against. Unset (the default) leaves the chain unvalidated.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Both `-2` and `-20` stations have carried a <c>ContractChainValidator</c> for as long as they have
+    /// verified signatures, and no interop run could reach it — so every inbound Plug &amp; Charge result
+    /// this project has recorded says <i>the signature verified against the leaf the car presented</i> and
+    /// nothing about who issued that leaf. <see cref="ChainResult.NotConfigured"/> keeps the two apart on
+    /// purpose, and the run notes print it, but "not checked" is a weaker claim than it reads.
+    /// </para>
+    /// <para>
+    /// The anchor is the counterparty's, like every other credential in a reverse run: EVerest's own
+    /// <c>ca/mo/MO_ROOT_CA.pem</c> is what their car's contract chains to. Added 2026-08-15, when the
+    /// first reverse `-2` session met a car that switches to Contract as soon as the transport is TLS.
+    /// </para>
+    /// </remarks>
+    public static V2GChainValidator? ContractRootsOrNull()
+    {
+        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_CONTRACT_ROOTS");
+        return String.IsNullOrWhiteSpace(path)
+                   ? null
+                   : TrustRoots.Load(path!, "V2G_INTEROP_CONTRACT_ROOTS");
     }
 
 
