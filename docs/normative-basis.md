@@ -808,3 +808,28 @@ nothing obliges it to report the negative result; when it gives up is its own po
 changed between the protocols**, and that is the shape of the EVerest finding: a shared module applying
 `-2`'s rule to both stacks. Anything written about one of these two clauses has to name the other, or a
 fix aimed at `-20` will be applied to `-2` and break it.
+
+### `SupportedServiceIDs` is the EV's option, and the filtering duty is narrower than it looks
+
+Read on 2026-08-15, before writing the code rather than after, because the obvious assumption — *a
+station that is sent a filter owes a filtered answer* — would have made a conformance item out of our
+own station and was wrong.
+
+- **`[V2G20-1248]`**, Table 38 (`ServiceDiscoveryReq`): `SupportedServiceIDs` is **optional**, described
+  as a list the EV *can* use to filter what the SECC will offer, and **omitting it means the EV wants
+  every service the station provides**. So both an EV that sends one and an EV that does not are within
+  the requirement, and an EV that sends one is not making a demand.
+- **`[V2G20-1249]`**, Table 39 (`ServiceDiscoveryRes`): the sentence about the returned list being
+  filtered against `SupportedServiceIDs` sits on **`VASList`** — the value-added services — and **not**
+  on `EnergyTransferServiceList`, which is described only as the services the EVSE supports.
+
+Two consequences worth having written down. **Our station is not obliged to narrow its energy-transfer
+catalogue** when a filter arrives, and it does not; it sends no `VASList` at all, so the one place the
+filtering sentence lands does not arise. And **a station that dereferences the element without checking
+is wrong for the ordinary case, not the exotic one** — omission is the default the table names, which is
+why eVDriveFlow's unguarded read ends every session by a car that has not opted in
+([`evdriveflow-service-discovery-filter`](reports/evdriveflow-service-discovery-filter.md)).
+
+The element is reachable from here since the same day (`Evcc20Base.SupportedServiceIds`,
+`V2G_INTEROP_SERVICE_IDS`), and what our station made of one is recorded rather than acted on —
+`Secc20Base.SupportedServiceIdsRequestedByEv`, four tests in `Iso20ServiceFilterTests`.

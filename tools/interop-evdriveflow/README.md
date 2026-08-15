@@ -175,6 +175,46 @@ does not say which interface to use, and the platform's own parsers discard a zo
 this machine does not have — `V2GEndpoint` refuses those forms rather than connecting to something that
 cannot work.
 
+### Getting past their fifth message without touching their tree
+
+Their `process_service_discovery_request.py` dereferences the optional `SupportedServiceIDs` without
+checking, so a car that does not pre-filter ends the session at `ServiceDiscoveryReq`. Until 2026-08-15
+the only way through was patching *their* code inside a throwaway container
+([`finding1-workaround.py`](../../docs/interop-runs/2026-08-01-edf-iso20-dc-notls/finding1-workaround.py)),
+which put an asterisk on every forward result. Send the element instead:
+
+```bash
+V2G_INTEROP_SERVICE_IDS=2,6      # DC and DC_BPT; their check is `if 6 in …`
+```
+
+Both settings are conformant — Table 38 of `[V2G20-1248]` makes the filter the EV's option and omission
+means *"list everything"* — so this is our car exercising a legal element, not a workaround wearing a
+disguise. With it, their **unmodified** station runs `ServiceDetail` → `ServiceSelection` →
+`DC_ChargeParameterDiscovery` → `ScheduleExchange` → `CableCheck` → `PreCharge` → `PowerDelivery`, all
+`OK`, and stops one message later on the same defect in the charge loop (`DisplayParameters`, also
+optional, also dereferenced).
+
+### `[V2G20-460]`: what they do with a SessionID they never issued
+
+[`session-id-arm.sh`](session-id-arm.sh) is three arms — control, `zero`, `deadbeefdeadbeef` — with the
+control run **again at the end**, because their first session after a container start fails its virtual
+isolation test and would otherwise look like a result:
+
+```bash
+SECC='[fd00:edf::2]:49152' OUT=/tmp/edf-460 SERVICE_IDS=2,6 bash session-id-arm.sh ~/i15118
+```
+
+**Read the arms against each other, never one alone.** A station that ignores the field answers a foreign
+id exactly as it answers the right one, so *"the session completed"* is the finding only once the control
+completed the same way **and** the frame log proves the wrong bytes went out:
+
+```bash
+python3 session-id-from-frames.py --requests --expect deadbeefdeadbeef '/tmp/edf-460/*/*.frames.log'
+```
+
+Same script, no `--requests`, reads *their* SessionIDs out of `SessionSetupRes` — the entropy finding.
+Neither mode needs an EXI decoder: the field sits at a one-bit offset.
+
 ### Scenario order
 
 1. **-20 DC, EIM, no TLS, Dynamic** — both directions. Establishes the flow.

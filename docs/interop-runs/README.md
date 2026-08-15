@@ -87,6 +87,14 @@ in the moment the simulated car raises its Control-Pilot line. Raised early: `FA
 `OK`, five times, through the charge loop to `SessionStop`. **Nothing was injected and nothing patched
 in any of the seven** — the station reached its own conclusion each time.
 
+The same variable bites from the other side when it is *not* the one under test.
+[`2026-08-15-edf-session-id-460/`](2026-08-15-edf-session-id-460/notes.md) took its control first, and
+that control stopped four messages earlier than the two probe arms — because eVDriveFlow's station fails
+its virtual isolation test in the first session after a start, not because of anything the arms varied.
+Read as it stood it says *"the wrong SessionID got further than the right one"*. **Against a stateful
+peer, ordering is a variable until it is shown not to be**, and the cheap way to show it is to run the
+control again at the end; the second one is identical to the probes, message for message.
+
 A fourth shape is the arm that **checks the instrument rather than the peer**, and it is the one most
 easily skipped because it is expected to be a formality.
 [`2026-08-14-everest-iso2-ac-tls12/`](2026-08-14-everest-iso2-ac-tls12/notes.md) ran a `-2` AC session
@@ -101,6 +109,17 @@ run's setup contains a value that is *more generous than necessary* — a trust 
 certificates, a timeout longer than the standard's, a catalogue offering more than the peer needs — the
 run cannot distinguish a peer that needed the generosity from one that did not. **Narrow it once, on
 purpose.** The result is either a stronger claim about the counterparty or a finding about yourself.
+
+There is a sharper version of that arm, and
+[`2026-08-15-edf-session-id-460/`](2026-08-15-edf-session-id-460/notes.md) is the case for it: **when the
+expected finding is *"the peer ignores this input"*, a probe that never sent the input produces exactly
+the same session as the finding**. A complete, successful, textbook charge is the evidence *and* the
+symptom of a broken instrument, and no amount of reading the peer's log tells them apart. The only way
+out is to read the input back off the wire — there, the wrong SessionID recovered from our own recorded
+request frames with a one-bit shift and no decoder, eleven of eleven — and to keep a peer that *does*
+implement the rule as the reference arm, which refuses the identical bytes. Two fixtures in this suite
+were passing four of eleven parameters when that run started; without the byte-level read-back, the
+finding and the bug would have been written up the same way.
 
 A fifth shape is the **re-take**: the same session against the same peer, run again because the harness
 can now measure something it could not before. Two ran on 2026-08-15 and they had different causes worth

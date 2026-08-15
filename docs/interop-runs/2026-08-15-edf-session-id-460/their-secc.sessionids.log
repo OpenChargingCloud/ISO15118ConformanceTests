@@ -1,0 +1,164 @@
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3032353239383532</ns1:SessionID>
+<s2:SessionID>3032353239383532</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3032353239383532</ns1:SessionID>
+<s2:SessionID>3032353239383532</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3032353239383532</ns1:SessionID>
+<s2:SessionID>3032353239383532</s2:SessionID>
+Received ServiceDiscoveryReq.
+AttributeError: 'NoneType' object has no attribute 'service_id'
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3831303836353532</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3831303836353532</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3831303836353532</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received ServiceDiscoveryReq.
+AttributeError: 'NoneType' object has no attribute 'service_id'
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3736333737383430</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3736333737383430</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3736333737383430</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received ServiceDiscoveryReq.
+AttributeError: 'NoneType' object has no attribute 'service_id'
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+<s2:SessionID>3936303639363733</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+<s2:SessionID>3936303639363733</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+<s2:SessionID>3936303639363733</s2:SessionID>
+Received ServiceDiscoveryReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+<s2:SessionID>3936303639363733</s2:SessionID>
+Received ServiceDetailReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+<s2:SessionID>3936303639363733</s2:SessionID>
+Received ServiceSelectionReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+Received DcChargeParameterDiscoveryReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+<s2:SessionID>3936303639363733</s2:SessionID>
+Received ScheduleExchangeReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+Received DcCableCheckReq.
+<ns1:SessionID>3936303639363733</ns1:SessionID>
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received ServiceDiscoveryReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received ServiceDetailReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received ServiceSelectionReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+Received DcChargeParameterDiscoveryReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received ScheduleExchangeReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+Received DcCableCheckReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+Received DcPreChargeReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received PowerDeliveryReq.
+<ns1:SessionID>3632333239333734</ns1:SessionID>
+Received DcChargeLoopReq.
+AttributeError: 'NoneType' object has no attribute 'present_soc'
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received ServiceDiscoveryReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received ServiceDetailReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received ServiceSelectionReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+Received DcChargeParameterDiscoveryReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received ScheduleExchangeReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+Received DcCableCheckReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+Received DcPreChargeReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+<s2:SessionID>DEADBEEFDEADBEEF</s2:SessionID>
+Received PowerDeliveryReq.
+<ns1:SessionID>3432363539393930</ns1:SessionID>
+Received DcChargeLoopReq.
+AttributeError: 'NoneType' object has no attribute 'present_soc'
+Received SupportedAppProtocolReq.
+<s2:SessionID>0000000000000000</s2:SessionID>
+Received SessionSetupReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received AuthorizationSetupReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received AuthorizationReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received ServiceDiscoveryReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received ServiceDetailReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received ServiceSelectionReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+Received DcChargeParameterDiscoveryReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received ScheduleExchangeReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+Received DcCableCheckReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+Received DcPreChargeReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+<s2:SessionID>3633353439333934</s2:SessionID>
+Received PowerDeliveryReq.
+<ns1:SessionID>3633353439333934</ns1:SessionID>
+Received DcChargeLoopReq.
+AttributeError: 'NoneType' object has no attribute 'present_soc'

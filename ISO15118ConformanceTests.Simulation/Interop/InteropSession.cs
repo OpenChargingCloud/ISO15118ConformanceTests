@@ -156,7 +156,25 @@ internal static class InteropSession
     /// <param name="silentInChargeLoop">-20 only: after one charge-loop iteration, stop sending and hold
     /// the connection open for this long, to measure when the station ends the session by itself. Set by
     /// <c>V2G_INTEROP_SILENT=&lt;seconds&gt;</c>. A run that sets it does not charge — it measures
-    /// <c>V2G_SECC_Sequence_Timeout</c>, which nothing here could do before.</param>
+    /// <c>V2G_SECC_Sequence_Timeout</c>, which nothing here could do before.
+    /// <para><b>-2 refuses it</b> rather than ignoring it, as of 2026-08-15: our `-2` car has no such
+    /// instrument, so a run that asked for one used to charge normally and measure nobody's timer.</para></param>
+    /// <param name="sendSessionId">Both protocols: the SessionID our car puts in every request after
+    /// <c>SessionSetup</c>, so a station's `[V2G2-460]` / `[V2G20-460]` duty to answer
+    /// <c>FAILED_UnknownSession</c> is reachable at all. Set by
+    /// <c>V2G_INTEROP_SESSIONID=&lt;hex|zero&gt;</c>; <c>null</c> sends the id the station issued.
+    /// <para>
+    /// <b>The `-2` half was dropped here until 2026-08-15.</b> <c>Evcc2.SendSessionId</c> and its `-20`
+    /// twin were both built on 2026-08-11, and this method wired only the `-20` one — so every `-2`
+    /// caller's value went nowhere, which is why the EVerest `-2` measurement of that same day had to be
+    /// taken with a raw Python probe instead of this fixture. A silently ignored value here produces a
+    /// <i>complete, successful session</i>, which is exactly what a station that ignores the rule also
+    /// produces.
+    /// </para></param>
+    /// <param name="supportedServiceIds">-20 only: the <c>SupportedServiceIDs</c> filter our EV puts in
+    /// <c>ServiceDiscoveryReq</c>. Null omits the element, which asks the station for everything and is
+    /// what every recorded session does. Set by <c>V2G_INTEROP_SERVICE_IDS=2,6</c>; see
+    /// <c>Evcc20Base.SupportedServiceIds</c> for why it exists.</param>
     /// <param name="ongoingTimeout">Both protocols: how long to keep polling a phase that answers
     /// <c>EVSEProcessing = Ongoing</c>, overriding the 60 s default. Set by
     /// <c>V2G_INTEROP_ONGOING=&lt;seconds&gt;</c>, and needed to reach a station's own timer at all —
@@ -167,6 +185,7 @@ internal static class InteropSession
                                                        Boolean bptFirst = false, Boolean requestMeterInfo = false,
                                                        TimeSpan? silentInChargeLoop = null,
                                                        Byte[]? sendSessionId = null,
+                                                       IReadOnlyList<UInt16>? supportedServiceIds = null,
                                                        Iso2CertInstallOptions? certificateProvisioning = null,
                                                        Boolean renegotiate = false,
                                                        TimeSpan? ongoingTimeout = null)
@@ -186,8 +205,38 @@ internal static class InteropSession
                     "BPT was ranked first for an ISO 15118-2 session; the bidirectional services are -20 "
                   + "catalogue entries and -2 has no catalogue.", nameof(bptFirst));
 
+            // The same rule as bptFirst above, applied to the two knobs that reach `Evcc20Base` and have no
+            // -2 counterpart at all: `MeterInfoRequested` is a -20 charge-loop field, and going silent needs
+            // `GoSilentInChargeLoop`, which only the -20 car has. Both were *dropped* here until 2026-08-15 —
+            // so a -2 run that set V2G_INTEROP_SILENT charged normally and measured nobody's timer, which is
+            // the eighth instance this month of a value read from the environment and lost one hop short.
+            if (requestMeterInfo)
+                throw new ArgumentException(
+                    "MeterInfo was requested for an ISO 15118-2 session; `[V2G20-1081]`'s MeterInfoRequested "
+                  + "is a -20 charge-loop field and -2 has no way to ask.", nameof(requestMeterInfo));
+
+            if (silentInChargeLoop is not null)
+                throw new ArgumentException(
+                    "A silent charge loop was asked of an ISO 15118-2 session; the instrument is "
+                  + "`Evcc20Base.GoSilentInChargeLoop` and our -2 car has no twin of it.", nameof(silentInChargeLoop));
+
+            if (supportedServiceIds is not null)
+                throw new ArgumentException(
+                    "A service-id filter was given for an ISO 15118-2 session; SupportedServiceIDs is a -20 "
+                  + "ServiceDiscoveryReq element and -2 has no service catalogue at all.", nameof(supportedServiceIds));
+
             var evcc = new Evcc2(stream, mode, TimeProvider.System, new TaskAsyncDelay(), PerMessageTimeout)
-                           { Pnc = pnc, CertInstallRequest = certificateProvisioning, Renegotiate = renegotiate };
+                           {
+                               Pnc                = pnc,
+                               CertInstallRequest = certificateProvisioning,
+                               Renegotiate        = renegotiate,
+
+                               // `Evcc2.SendSessionId` has existed since 2026-08-11 and this line had not:
+                               // every -2 caller passing sendSessionId had it discarded here, so the one
+                               // stack whose `[V2G2-460]` behaviour was measured that day had to be probed
+                               // with raw Python. Wired 2026-08-15.
+                               SendSessionId      = sendSessionId
+                           };
 
             if (ongoingTimeout is { } iso2Ongoing)
                 evcc.OngoingTimeout = iso2Ongoing;
@@ -234,6 +283,7 @@ internal static class InteropSession
         evcc20.RequestMeterInfo          = requestMeterInfo;
         evcc20.GoSilentInChargeLoop      = silentInChargeLoop;
         evcc20.SendSessionId             = sendSessionId;
+        evcc20.SupportedServiceIds       = supportedServiceIds;
 
         if (ongoingTimeout is { } iso20Ongoing)
             evcc20.OngoingTimeout = iso20Ongoing;

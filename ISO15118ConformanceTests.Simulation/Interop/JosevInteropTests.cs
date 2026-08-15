@@ -80,6 +80,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
                                                                 requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
                                                                 silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
                                                                 sendSessionId: InteropEnvironment.SendSessionId(),
+                                                                supportedServiceIds: InteropEnvironment.SupportedServiceIds(),
                                                                 certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
                                                                 renegotiate: InteropEnvironment.Renegotiate(),
                                                                 ongoingTimeout: InteropEnvironment.OngoingTimeout());

@@ -52,6 +52,16 @@ the wall, why it was invisible, and what stands behind it.
   same way. Not a byte diff — we never encoded the same content with both and compared octets — but a
   working independent decoder in both directions, at -20 session level, which nothing else had given.
 
+  **That run needed their station patched, and since 2026-08-15 it does not.** Getting past their fifth
+  message meant editing `process_service_discovery_request.py` inside a throwaway container, so every
+  forward result carried an asterisk. Our EV now sends the optional `SupportedServiceIDs` element instead
+  — its own option under Table 38 of `[V2G20-1248]`, and the thing their unguarded dereference is looking
+  for — and their **unmodified** station runs the same sequence to `PowerDelivery`
+  ([`…-edf-session-id-460`](interop-runs/2026-08-15-edf-session-id-460/notes.md)). The wall one message
+  further on is theirs too, and it is the same defect a third time (the `DisplayParameters` row below).
+  A workaround that lives in our car rather than in their tree is the difference between a result and a
+  result with an asterisk.
+
 - **Reverse, their EV against our SECC — 4 exchanges, and three firsts.** Their EV said hello, asked how to
   authorize, and left. What it produced anyway: the **first live SDP discovery** in this project against a
   non-Josev peer, the **first `trace.json` recorded from a real counterparty**, and finding 4.
@@ -268,10 +278,10 @@ mistakes one for a result.
 
 ## Current state
 
-**Five runs, both directions, every capability it was chosen for reached.** It is one of two independent
+**Six runs, both directions, every capability it was chosen for reached.** It is one of two independent
 codecs here, the only one that has read our -20 at session level, and the richest source of
-defects-per-message this project has: one of ours and **five** of theirs — the four below plus a shipped
-PKI that expired in 2022 — across 77 exchanges.
+defects-per-message this project has: one of ours and **six** of theirs — the four below, a shipped
+PKI that expired in 2022, and the charge loop's `DisplayParameters` dereference found on 2026-08-15.
 
 The fourth is the sharpest, and it is the mirror of the finding that started
 [`assumed-values-sweep.md`](assumed-values-sweep.md): their charge-loop handler guards with
@@ -286,6 +296,19 @@ findings beside it, in
 [`docs/reports/evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). With that
 fixed, this rig runs a **bidirectional Dynamic -20 session over mutual TLS 1.3 to its end** — which
 would be the most complete interop result this project has against anybody.
+
+**A sixth run, 2026-08-15, and it is the one that measured a filing rather than finding one.** Their SECC
+does not read the SessionID it is sent, which had been read out of their source on 2026-08-11 and never
+put on the wire: with `DEADBEEFDEADBEEF` and with eight zero bytes, **ten message types were answered
+`OK`** — `PowerDelivery` among them — in sessions identical to the control message for message. Their own
+debug log prints the id it received three lines above the answer carrying a different one, which is the
+shortest route into the issue and it is their record rather than our reading
+([`…-edf-session-id-460`](interop-runs/2026-08-15-edf-session-id-460/notes.md)).
+
+It also moved the count in this section: **six of theirs, not five**, the sixth being the
+`DisplayParameters` dereference in the charge loop — the same optional-element defect as the first, in a
+second file, and the first instance of it reached by a session that had done everything right. And it
+closed the last open measurement in `docs/reports/` for any counterparty.
 
 ---
 
@@ -308,7 +331,8 @@ upstream commit since 2023-04-17.
 | **Their SECC's authorization mode ignores its own service list** | `secc/states/process_authorization_setup_request.py:28-31` — the list comes from `data_model.authorization_services`, then `response.eim_asres_authorization_mode = ""` unconditionally, under their own `# TODO: given the services in authorization services, the response shall be eim or pnc`. `EVSEDataModel.authorization_services` (`secc/evse_controller.py:41`) is a declared `List[AuthorizationType]` and `AuthorizationType` has `PnC`, so the field is settable and unhonoured. `[V2G20-1219]` and `[V2G20-2568]` each require `PnC_ASResAuthorizationMode` once PnC is offered. **Unreachable in the shipped default**, hence a note on the filing rather than a finding |
 | **Their SECC cannot pause a session** | `secc/tcp_server.py:130-137` — `isinstance(reaction, PauseSession)` raises `NotImplementedError` on the send path, before any of the `TerminateSession` / `SendMessage` branches |
 | **Their SessionID is eight ASCII digits — 26,6 bits where 58 are required** | `secc/evse_session.py:111` — `str(secrets.randbelow(100000000)).zfill(8).encode('ascii')`. The generator is a CSPRNG, so `[V2G20-835]` is met; the **range** is 10⁸, so the 64-bit field carries log₂(10⁸) = 26,6 bits against `[V2G20-2621]`'s 58, and a station repeats an id after ~10 000 sessions. Every byte on the wire is in `0x30`–`0x39`. **Their own docstring cites the requirement** and says it *might have security issues*, so the report is the number and the one-line fix (`secrets.token_bytes(8)`). **Filed 2026-08-11**: [`evdriveflow-session-id-entropy.md`](reports/evdriveflow-session-id-entropy.md), from the [four-stack entropy audit](interop-runs/2026-08-11-everest-d20-rng-entropy/notes.md) that also caught EVerest's `-20` library at ≤ 32 bits. **Worth nothing until the row below is fixed** — a value nobody compares does not have to be hard to guess — and the filing says so rather than leaving it to be discovered. **Measured on the wire 2026-08-15**, 24 consecutive sessions against their SECC: 24 of 24 eight ASCII digits, 24 distinct, min 17 203 515, max 96 751 133 — and legible **without an EXI decoder**, since the field sits at a one-bit offset and one shift turns the payload into readable text ([run](interop-runs/2026-08-15-edf-session-id-entropy/notes.md), [tool](../tools/interop-evdriveflow/session-id-from-frames.py)). The first data point was already in this repository from 2026-08-01 and nobody had looked |
-| **Their SECC never reads the incoming SessionID** | All fifteen `secc/states/process_*_request.py` build the response header as `MessageHeaderType(self.session_parameters.session_id, int(time.time()))` and **none** reads `payload.header.session_id`; `FAILED_UnknownSession` appears nowhere outside `shared/xml_classes/`. So `[V2G20-460]` is unimplemented and any SessionID at all is served as the session owner's. **Filed 2026-08-11**: [`evdriveflow-session-id.md`](reports/evdriveflow-session-id.md). Source only — but the probe was first run against EVerest's `-20` station, which **refuses** the same all-zero id, so the instrument and the requirement are both demonstrated ([`…-iso20-session-id-probe`](interop-runs/2026-08-11-iso20-session-id-probe/notes.md)) |
+| **Their SECC never reads the incoming SessionID** | All fifteen `secc/states/process_*_request.py` build the response header as `MessageHeaderType(self.session_parameters.session_id, int(time.time()))` and **none** reads `payload.header.session_id`; `FAILED_UnknownSession` appears nowhere outside `shared/xml_classes/`. So `[V2G20-460]` is unimplemented and any SessionID at all is served as the session owner's. **Filed 2026-08-11**: [`evdriveflow-session-id.md`](reports/evdriveflow-session-id.md), and the probe was first run against EVerest's `-20` station, which **refuses** the same all-zero id ([`…-iso20-session-id-probe`](interop-runs/2026-08-11-iso20-session-id-probe/notes.md)). **Measured on their station 2026-08-15 and it is no longer source-only**: with `DEADBEEFDEADBEEF` and with eight zero bytes, **ten message types were answered `OK`** — `AuthorizationSetup`, `Authorization`, `ServiceDiscovery`, `ServiceDetail`, `ServiceSelection`, `DC_ChargeParameterDiscovery`, `ScheduleExchange`, `DC_CableCheck`, `DC_PreCharge`, `PowerDelivery` — in sessions identical to the control message for message. The grep was re-run **inside the container that answered**, so it is the code that was running. Ten of the thirteen handlers the rule applies to; `DC_WeldingDetection` and `SessionStop` sit behind the `display_parameters` row below ([run](interop-runs/2026-08-15-edf-session-id-460/notes.md)) |
+| **Their charge loop dereferences the optional `DisplayParameters`** | `secc/states/process_dc_charge_loop_request.py:114` (BPT) and `:176` (unidirectional) read `payload.display_parameters.present_soc` with no check. `DisplayParameters` is `minOccurs="0"` in `ChargeLoopReqType`; our EVCC omits it, and their station raises `AttributeError: 'NoneType' object has no attribute 'present_soc'` and drops the connection. **The same family as the `SupportedServiceIDs` row above, in a second file — and this one is reached by a car that has done everything right**: service selected from their catalogue, Dynamic negotiated, `CableCheck`/`PreCharge`/`PowerDelivery` all `OK`. Nobody had seen it because line 31 stops every session five messages earlier. Added to [`evdriveflow-service-discovery-filter.md`](reports/evdriveflow-service-discovery-filter.md) rather than filed separately: same one-line pattern, same sweep. Measured 2026-08-15 |
 
 Not checkable from the source: **why their EV terminates after `AuthorizationSetupRes`**. The wall above
 is recorded as an open question, and reading their state machine — rather than running more interop — is

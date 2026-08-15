@@ -114,7 +114,7 @@ public class EverestInteropTests
         // for it. Started *before* the session, because the window it has to answer in is 4,5 s wide and
         // opens the moment our CertificateInstallationReq arrives. Same process as the car on purpose:
         // two dotnet test runs racing a 4,5 s window is a coordination problem this does not need.
-        var backendDirectory = Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_BACKEND");
+        var backendDirectory = InteropEnvironment.Read("V2G_INTEROP_PROVISION_BACKEND");
         var backend = String.IsNullOrEmpty(backendDirectory)
                           ? null
                           : Iso2MoBackend.RunOnceAsync(backendDirectory, cts.Token);
@@ -158,6 +158,7 @@ public class EverestInteropTests
                                                             requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
                                                             silentInChargeLoop: InteropEnvironment.SilentInChargeLoop(),
                                                             sendSessionId: InteropEnvironment.SendSessionId(),
+                                                            supportedServiceIds: InteropEnvironment.SupportedServiceIds(),
                                                             certificateProvisioning: InteropEnvironment.CertificateProvisioningOrNull(),
                                                             renegotiate: InteropEnvironment.Renegotiate(),
                                                             ongoingTimeout: ongoing);
