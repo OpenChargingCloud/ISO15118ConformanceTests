@@ -102,6 +102,21 @@ certificates, a timeout longer than the standard's, a catalogue offering more th
 run cannot distinguish a peer that needed the generosity from one that did not. **Narrow it once, on
 purpose.** The result is either a stronger claim about the counterparty or a finding about yourself.
 
+A fifth shape is the **re-take**: the same session against the same peer, run again because the harness
+can now measure something it could not before. Two ran on 2026-08-15 and they had different causes worth
+telling apart. The `-20` EVerest cell
+([`…-d20-reverse-pnc-chain`](2026-08-15-everest-d20-reverse-pnc-chain/notes.md)) understated itself
+because a value our own side held could not be printed — the sixth such instance in three days. Josev's
+two cells ([`…-josev-reverse-pnc-chain`](2026-08-15-josev-reverse-pnc-chain/notes.md)) understated
+themselves because they were **six weeks older than the flag that would have measured it**: nothing was
+unreachable, the runs simply predated the capability and no one went back.
+
+The second cause is the quieter one, and it has no code to fix. **A capability the harness gains does not
+reach back through the matrix.** Every cell recorded before it keeps the wording it was written with,
+and that wording now claims less — or, as here, reads as more — than a run today would support. The guard
+is procedural rather than technical: **when a knob lands, the cells older than it are the ones to
+re-take**, and the cheapest ones first. Both re-takes above cost one variable and one control apiece.
+
 Two things generalise from the contactor-window run. The first is that the **positive control is the
 load-bearing half** here:
 five successes are what turn "it fails" into "it fails for this reason", and without them the run would

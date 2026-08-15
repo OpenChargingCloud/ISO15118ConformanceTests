@@ -181,10 +181,27 @@ signature checks without it — **the sixth instance in three days** of a value 
 that no caller could reach.
 
 **What is left of this is other people's PKIs.** Josev's and eVDriveFlow's `←SECC` Plug & Charge cells
-carry exactly the claim the EVerest one carried this morning, and the matrix now marks them `◐` rather
+carried exactly the claim the EVerest one carried this morning, and the matrix marked them `◐` rather
 than `✅`. Closing each is the same single variable pointed at that counterparty's own MO root, and a run
 apiece. **Earlier recordings are not retroactively upgraded** — what changed is that the claim can now
 match a run that validated the chain, not that the old runs did.
+
+**Josev's two closed the same night**, `-2` over unilateral TLS 1.2 and `-20` over mutual TLS 1.3, each
+with a control that refuses the chain while the signature still verifies
+([`…-josev-reverse-pnc-chain`](interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md)). **eVDriveFlow's
+is the last one left.** The Josev pair also cost nothing in code, and that is the finding rather than a
+footnote: the station has had `--trust-roots` since 2026-08-08 and every Josev Plug & Charge run is dated
+2026-07-22, so those cells were not blocked on anything — **the claim outlived the run that earned it by
+six weeks, and nothing flagged it.** A capability the harness gains does not reach back through the
+matrix, which is a second staleness mechanism beside *a value no caller could reach* and needs a
+different guard: when a knob lands, the cells older than it are the ones to re-take.
+
+The same run picked up an open question nobody asked for. Their car's **TLS client** credential is
+validated for the first time (`--require-client-cert` had been running accept-any) and anchors at their
+**OEM** root — right class per `[V2G20-2331]` and clause 7.3.1, and the inverse of what an EVerest
+station did. But the leaf is `CN=OEMProvCert`, the provisioning certificate, where `[V2G20-2339]` puts a
+vehicle certificate. **Not filed and not dismissed**: it needs their fork read beside upstream, and the
+row in [`josev-cross-validation.md`](josev-cross-validation.md) says exactly that.
 
 The item that closed took **three attempts, all of them ours**: a client chain one certificate short, a
 set of leftover credentials that could not have fitted, and their one-shot SDP. Each is written up in

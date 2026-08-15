@@ -1,0 +1,9 @@
+Trust roots: DC=OEM, C=UK, O=Switch, CN=OEMRootCA
+Presenting server certificate: DC=CPO, C=UK, O=Switch, CN=SECCCert (+2 intermediate(s)); requiring a client certificate and validating its chain
+SECC listening on [::]:55000 (protocol -20, DC, TLS Dotnet)...
+SDP: advertising [fe80::215:5dff:fedf:2f0c%2]:55000 (TLS) on eth0...
+TLS client: chain valid, anchored at DC=OEM, C=UK, O=Switch, CN=OEMRootCA.
+Plug & Charge: contract DC=MO, C=UK, O=Switch, CN=UKSWI123456791A; challenge OK, digest OK, signature OK (http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256, grammar=xmldsig-standalone); chain REJECTED — unable to get local issuer certificate.
+Energy transfer service: 2 (DC).
+
+✓ Station stopped after 13212 ms.
