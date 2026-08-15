@@ -180,16 +180,28 @@ one more line: `PnCAuthResult` had carried `Chain` all along and the `-20` repor
 signature checks without it — **the sixth instance in three days** of a value our own side already held
 that no caller could reach.
 
-**What is left of this is other people's PKIs.** Josev's and eVDriveFlow's `←SECC` Plug & Charge cells
-carried exactly the claim the EVerest one carried this morning, and the matrix marked them `◐` rather
-than `✅`. Closing each is the same single variable pointed at that counterparty's own MO root, and a run
-apiece. **Earlier recordings are not retroactively upgraded** — what changed is that the claim can now
-match a run that validated the chain, not that the old runs did.
+**What was left of this was one other stack's PKI.** Josev's two `←SECC` Plug & Charge cells carried
+exactly the claim the EVerest one carried this morning, and the matrix marked them `◐` rather than `✅`.
+Closing them was the same single variable pointed at their own MO root. **Earlier recordings are not
+retroactively upgraded** — what changed is that the claim can now match a run that validated the chain,
+not that the old runs did.
 
-**Josev's two closed the same night**, `-2` over unilateral TLS 1.2 and `-20` over mutual TLS 1.3, each
+**Both closed the same night**, `-2` over unilateral TLS 1.2 and `-20` over mutual TLS 1.3, each
 with a control that refuses the chain while the signature still verifies
-([`…-josev-reverse-pnc-chain`](interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md)). **eVDriveFlow's
-is the last one left.** The Josev pair also cost nothing in code, and that is the finding rather than a
+([`…-josev-reverse-pnc-chain`](interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md)). **That closes
+the item outright: every inbound Plug & Charge result in the matrix is now anchored** — Josev's two,
+EVerest's `-20`, and EVerest's `-2` from the same day. There is no fifth.
+
+> **Withdrawn 2026-08-15, hours after it was written.** Both notes of that day, this section, and the
+> matrix footnote said the eVDriveFlow `←SECC` PnC cell was the last one carrying the weaker claim. **It
+> does not exist.** They implement no Plug & Charge — established by [source audit on
+> 2026-08-11](interop-runs/2026-08-11-edf-pnc-source-audit/notes.md), recorded under *Structural* further
+> down **this same file**, and shown in the matrix as `— they implement none` since. The error was not a
+> stale claim overtaken by events; it was written already contradicted, four days late, by a document one
+> screen away. Corrected in place rather than deleted, because *"the last one left"* is precisely the kind
+> of sentence that gets believed on re-reading.
+
+The Josev pair also cost nothing in code, and that is the finding rather than a
 footnote: the station has had `--trust-roots` since 2026-08-08 and every Josev Plug & Charge run is dated
 2026-07-22, so those cells were not blocked on anything — **the claim outlived the run that earned it by
 six weeks, and nothing flagged it.** A capability the harness gains does not reach back through the

@@ -95,7 +95,12 @@ signed metering receipt, which no other counterparty has produced here.
 **Not settled:** the July recordings are not retroactively upgraded, and neither is anything else. The
 `-20` **forward** leg (we sign, their SECC verifies) is untouched by this run — their station's own
 chain check is [ruled out as a finding](../../josev-cross-validation.md) and unaffected either way.
-eVDriveFlow's `←SECC` cell is now the last one carrying the weaker claim.
+
+~~eVDriveFlow's `←SECC` cell is now the last one carrying the weaker claim.~~ **Withdrawn the same day.**
+There is no such cell — [they implement no Plug & Charge](../2026-08-11-edf-pnc-source-audit/notes.md),
+audited four days before this run, and the matrix has read `— they implement none` since. What is
+actually true is stronger and was available without checking anything: **with these two, every inbound
+Plug & Charge result in the matrix is anchored.** See the correction at the end.
 
 ## Reproduce
 
@@ -135,10 +140,35 @@ the same reason as this morning — a Plug & Charge recording carries a signatur
 
 Offline gate: **1 405 green**, four assemblies, exit code 0.
 
+## The correction this note needed, added hours after it was written
+
+**This note's *Next* named an eVDriveFlow `←SECC` Plug & Charge cell. There is none.** They implement no
+Plug & Charge in either role — no `CertificateInstallation` handler, the whole PnC vocabulary present
+only in generated bindings, both halves shipping `authorization_services = [EIM]` — established by
+[source audit on 2026-08-11](../2026-08-11-edf-pnc-source-audit/notes.md) and shown in the matrix as
+`— they implement none` ever since. The claim came from [this morning's EVerest
+note](../2026-08-15-everest-d20-reverse-pnc-chain/notes.md), which said it first, and was copied here
+without being checked against the table it described.
+
+**It is worth keeping rather than deleting, because of what it is not.** The whole subject of this note
+is a claim that outlived its evidence by six weeks with nothing to flag it. This one had nothing to
+outlive: it was **false when written**, contradicted by a document in the same directory, four days old,
+that this project had produced deliberately to answer exactly that question. A stale claim is a process
+gap. This was a **claim about a counterparty made from the shape of the sentence rather than from the
+matrix** — three cells sounded better than two, and *"the last one left"* is a satisfying way to end a
+run note.
+
+The check that would have caught it costs one grep and belongs in the routine: **before naming a next
+cell, read the cell.** The matrix says what is in it, including `—`.
+
+What is true instead is stronger and needed no run: with these two cells closed, **every inbound Plug &
+Charge result in the matrix is chain-anchored** — Josev `-2` and `-20` here, EVerest `-20` this morning,
+EVerest `-2` the same day. Four cells, two counterparties, each with its own control. There is no fifth
+because no other counterparty sends a signed `AuthorizationReq` at all.
+
 ## Next
 
-- **eVDriveFlow's `←SECC` PnC cell**, the last one still claiming the signature and reading as the
-  contract. Their PKI is P-521 and their rig is the Docker one, so it is a run rather than a repeat.
 - **Their car's TLS client leaf**: `CN=OEMProvCert` where `[V2G20-2339]` and clause 7.3.1 put a vehicle
   certificate. Read `security.py` against EVerest's fork before deciding whether it is a filing or a
   PKI-shape note — the anchor is right either way, so this is about the leaf's role and nothing else.
+  <br>This is the **only** item this run leaves, and it is an audit rather than a session.

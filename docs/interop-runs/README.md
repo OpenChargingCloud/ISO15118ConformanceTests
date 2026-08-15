@@ -117,6 +117,13 @@ and that wording now claims less — or, as here, reads as more — than a run t
 is procedural rather than technical: **when a knob lands, the cells older than it are the ones to
 re-take**, and the cheapest ones first. Both re-takes above cost one variable and one control apiece.
 
+One more rule came out of those two notes, from an error in both. Each ended by naming the *next* cell to
+re-take, and each named one at a counterparty that has no such cell — a stack audited four days earlier
+and recorded, in the matrix and in `open-work.md`, as implementing no Plug & Charge at all. Nothing was
+stale; the sentence was wrong when written, because three cells reads better than two and *"the last one
+left"* is a satisfying way to end. **A run note's *Next* is a claim about the matrix, so read the matrix
+before writing it** — including the cells that hold `—`, which are the ones nobody re-reads.
+
 Two things generalise from the contactor-window run. The first is that the **positive control is the
 load-bearing half** here:
 five successes are what turn "it fails" into "it fails for this reason", and without them the run would
