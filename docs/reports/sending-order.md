@@ -75,8 +75,9 @@ inference from Table 217's, and the two agree to 14 ms. Nothing left but posting
 
 **4.** [`josev-iso20-charge-loop-timeout`](josev-iso20-charge-loop-timeout.md) — SwitchEV. The
 constants already exist in their file and are referenced nowhere. **Send this within days of (3)**:
-same defect, two independent stacks, and each issue is more credible for the other existing. It is
-source-only and says so; the measurement is on EVerest.
+same defect, two independent stacks, and each issue is more credible for the other existing. **No longer
+source-only — run 2026-08-15**, four arms against their own SECC, and their log names the value it
+waited on. Lead with that line rather than with ours.
 
 **5.** [`josev-iso20-evcc-charge-loop-pacing`](josev-iso20-evcc-charge-loop-pacing.md) — SwitchEV, and
 the same file as (4) from the other side: their EVCC turns the charge loop around in ≈532 ms where

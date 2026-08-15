@@ -245,6 +245,7 @@ public class EverestInteropTests
         }
         finally
         {
+            InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
                                    "live interop: our EVCC against EVerest's EvseV2G / Evse15118D20",
                                    weAreTheEvcc: true));
@@ -397,6 +398,7 @@ public class EverestInteropTests
         }
         finally
         {
+            InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
                                    "live interop: EVerest's PyEvJosev against our SECC",
                                    weAreTheEvcc: false));

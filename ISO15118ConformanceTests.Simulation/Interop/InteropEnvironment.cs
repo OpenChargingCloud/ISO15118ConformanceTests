@@ -72,6 +72,82 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 internal static class InteropEnvironment
 {
 
+    /// <summary>Every <c>V2G_INTEROP_*</c> name this class has actually looked at during the run.</summary>
+    private static readonly HashSet<String> Consulted = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The one place a variable is read, so that <see cref="ReportUnconsulted"/> can tell a run that was
+    /// configured from a run that was configured and ignored.
+    /// </summary>
+    private static String? Read(String name)
+    {
+        lock (Consulted) Consulted.Add(name);
+        return Environment.GetEnvironmentVariable(name);
+    }
+
+    /// <summary>
+    /// Names every <c>V2G_INTEROP_*</c> variable that is set in the environment and that nothing in this
+    /// run consulted.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This exists because of a run that produced a clean, complete, entirely wrong result. On
+    /// 2026-08-15 a silent-charge-loop measurement was taken against Josev with
+    /// <c>V2G_INTEROP_SILENT=90</c> set — and <c>JosevInteropTests</c> reached four of the eleven
+    /// parameters its EVerest twin passes, so the car never went silent. The session completed
+    /// normally, both sides logged a textbook charge, and the only honest reading of that outcome would
+    /// have been *"their station does not time out"* — the opposite of what was true.
+    /// </para>
+    /// <para>
+    /// **A knob that is ignored is worse than a knob that is missing**, because the run still produces a
+    /// number. Six earlier instances of this shape were a value our own side already held that no caller
+    /// could reach; this seventh one is a value the caller passed and one call site dropped. The guard is
+    /// general on purpose: it does not know what any fixture intends, only that something was asked for
+    /// and nobody looked.
+    /// </para>
+    /// <para>
+    /// Deliberately a report and not a failure. A variable left over in a shell from the previous run is
+    /// ordinary, and a run that aborts on it would be worse than the problem — but a run whose log does
+    /// not mention it is how this class survives.
+    /// </para>
+    /// </remarks>
+    public static IReadOnlyList<String> ReportUnconsulted()
+    {
+        var ignored = new List<String>();
+
+        foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+        {
+            if (entry.Key is not String name || !name.StartsWith("V2G_INTEROP_", StringComparison.Ordinal))
+                continue;
+            if (String.IsNullOrEmpty(entry.Value as String))
+                continue;
+
+            bool consulted;
+            lock (Consulted) consulted = Consulted.Contains(name);
+            if (!consulted)
+                ignored.Add(name);
+        }
+
+        ignored.Sort(StringComparer.Ordinal);
+        return ignored;
+    }
+
+    /// <summary>
+    /// Prints <see cref="ReportUnconsulted"/> into the run's own output. Every interop fixture calls this
+    /// once, at the end, whatever the session did.
+    /// </summary>
+    public static void WarnIfIgnored()
+    {
+        var ignored = ReportUnconsulted();
+        if (ignored.Count == 0)
+            return;
+
+        TestContext.Out.WriteLine(
+            $"WARNING: set for this run and read by nothing — {String.Join(", ", ignored)}. " +
+             "Whatever they were meant to change did not change, so do not write the run up as though " +
+             "they had. Either the fixture does not pass them on, or the name is misspelled.");
+    }
+
     /// <summary>
     /// Their station's endpoint, parsed and checked before anything opens a socket.
     /// </summary>
@@ -86,7 +162,7 @@ internal static class InteropEnvironment
     public static V2GEndpoint SeccEndpointOrIgnore(String hint)
     {
 
-        var value = Environment.GetEnvironmentVariable("V2G_INTEROP_SECC");
+        var value = Read("V2G_INTEROP_SECC");
 
         if (String.IsNullOrWhiteSpace(value))
             Assert.Ignore($"set V2G_INTEROP_SECC=host:port to run this — {hint}");
@@ -99,7 +175,7 @@ internal static class InteropEnvironment
     public static Int32 ListenPortOrIgnore(String hint)
     {
 
-        var value = Environment.GetEnvironmentVariable("V2G_INTEROP_LISTEN");
+        var value = Read("V2G_INTEROP_LISTEN");
 
         if (String.IsNullOrWhiteSpace(value))
             Assert.Ignore($"set V2G_INTEROP_LISTEN=port to run this — {hint}");
@@ -114,7 +190,7 @@ internal static class InteropEnvironment
     /// <summary>-20 only: whether our station should offer the Dynamic control-mode parameter set first.
     /// <c>V2G_INTEROP_DYNAMIC=1</c>.</summary>
     public static Boolean PreferDynamic()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_DYNAMIC") == "1";
+        => Read("V2G_INTEROP_DYNAMIC") == "1";
 
 
     /// <summary>Our <b>station</b> asks the EV to renegotiate, once, mid-charge — `[V2G2-841]` for -2,
@@ -126,7 +202,7 @@ internal static class InteropEnvironment
     /// session. This makes such a run recordable like every other.
     /// </remarks>
     public static Boolean RequestRenegotiation()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_RENEG") == "1";
+        => Read("V2G_INTEROP_RENEG") == "1";
 
 
     /// <summary>-20 only: our EV sets <c>MeterInfoRequested</c> in every charge-loop request.
@@ -138,7 +214,7 @@ internal static class InteropEnvironment
     /// bytes it was recorded with.
     /// </remarks>
     public static Boolean RequestMeterInfo()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_METER") == "1";
+        => Read("V2G_INTEROP_METER") == "1";
 
 
     /// <summary>-20 only: after one charge-loop iteration our EV stops sending and holds the connection
@@ -158,7 +234,7 @@ internal static class InteropEnvironment
     /// </remarks>
     public static Byte[]? SendSessionId()
     {
-        var raw = Environment.GetEnvironmentVariable("V2G_INTEROP_SESSIONID");
+        var raw = Read("V2G_INTEROP_SESSIONID");
         if (String.IsNullOrWhiteSpace(raw))          return null;
         if (raw.Equals("zero", StringComparison.OrdinalIgnoreCase)) return new Byte[8];
         var hex = raw.Replace("0x", "", StringComparison.OrdinalIgnoreCase);
@@ -167,7 +243,7 @@ internal static class InteropEnvironment
 
 
     public static TimeSpan? SilentInChargeLoop()
-        => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_SILENT"), out var s) && s > 0
+        => Int32.TryParse(Read("V2G_INTEROP_SILENT"), out var s) && s > 0
                ? TimeSpan.FromSeconds(s)
                : null;
 
@@ -188,7 +264,7 @@ internal static class InteropEnvironment
     /// See <c>docs/interop-runs/2026-08-13-everest-d20-eim-rejection/</c>.
     /// </remarks>
     public static TimeSpan? OngoingTimeout()
-        => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_ONGOING"), out var s) && s > 0
+        => Int32.TryParse(Read("V2G_INTEROP_ONGOING"), out var s) && s > 0
                ? TimeSpan.FromSeconds(s)
                : null;
 
@@ -209,7 +285,7 @@ internal static class InteropEnvironment
     /// be quoted as a passing charge-loop conformance result.</para>
     /// </remarks>
     public static TimeSpan? ChargeLoopTimeout()
-        => Int32.TryParse(Environment.GetEnvironmentVariable("V2G_INTEROP_CHARGELOOP"), out var ms) && ms > 0
+        => Int32.TryParse(Read("V2G_INTEROP_CHARGELOOP"), out var ms) && ms > 0
                ? TimeSpan.FromMilliseconds(ms)
                : null;
 
@@ -223,7 +299,7 @@ internal static class InteropEnvironment
     /// <c>docs/interop-runs/2026-08-01-edf-iso20-dc-dynamic-reverse/</c>.
     /// </remarks>
     public static Boolean OfferPlugAndCharge()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_NO_PNC") != "1";
+        => Read("V2G_INTEROP_NO_PNC") != "1";
 
 
     /// <summary>
@@ -248,7 +324,7 @@ internal static class InteropEnvironment
     /// </para>
     /// </remarks>
     public static Boolean Mcs()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "mcs";
+        => Read("V2G_INTEROP_MODE") == "mcs";
 
 
     /// <summary>
@@ -280,14 +356,14 @@ internal static class InteropEnvironment
     /// </para>
     /// </remarks>
     public static Boolean BptFirst()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_BPT_FIRST") == "1" ||
-           Environment.GetEnvironmentVariable("V2G_INTEROP_MCS_FIRST") == "9";
+        => Read("V2G_INTEROP_BPT_FIRST") == "1" ||
+           Read("V2G_INTEROP_MCS_FIRST") == "9";
 
 
     public static (ProtocolVariant Protocol, PowerMode Mode) ProtocolAndMode()
     {
 
-        var requested = Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL");
+        var requested = Read("V2G_INTEROP_PROTOCOL");
 
         // MCS settles the protocol by construction: service ids 8 / 9 exist only in the -20 catalogue, and
         // a "both" offer that a mux routes to its -2 backend would leave the session with nothing to ask
@@ -308,7 +384,7 @@ internal static class InteropEnvironment
                     "20" or "both" => ProtocolVariant.Iso15118_20,
                     _              => ProtocolVariant.Iso15118_2,
                 },
-                Environment.GetEnvironmentVariable("V2G_INTEROP_MODE") == "dc"
+                Read("V2G_INTEROP_MODE") == "dc"
                     ? PowerMode.Dc
                     : PowerMode.Ac);
 
@@ -322,7 +398,7 @@ internal static class InteropEnvironment
     /// could not exercise while our EVCC offered exactly the protocol it was constructed for.
     /// </summary>
     public static Boolean OfferBothProtocols()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_PROTOCOL") == "both";
+        => Read("V2G_INTEROP_PROTOCOL") == "both";
 
 
     /// <summary>
@@ -358,12 +434,12 @@ internal static class InteropEnvironment
     public static PncEvccOptions? ContractCredentialsOrNull()
     {
 
-        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_CONTRACT_CERT");
+        var path = Read("V2G_INTEROP_CONTRACT_CERT");
         if (String.IsNullOrEmpty(path))
             return null;
 
         var collection = X509CertificateLoader.LoadPkcs12CollectionFromFile(
-                             path, Environment.GetEnvironmentVariable("V2G_INTEROP_CONTRACT_PASS"),
+                             path, Read("V2G_INTEROP_CONTRACT_PASS"),
                              X509KeyStorageFlags.Exportable);
 
         var leaf = collection.FirstOrDefault(c => c.HasPrivateKey)
@@ -420,13 +496,13 @@ internal static class InteropEnvironment
     /// capability this month that our car had and no run could use.
     /// </remarks>
     public static Boolean Renegotiate()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_RENEGOTIATE") == "1";
+        => Read("V2G_INTEROP_RENEGOTIATE") == "1";
 
 
     public static Iso2CertInstallOptions? CertificateProvisioningOrNull()
     {
 
-        var action = Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION");
+        var action = Read("V2G_INTEROP_PROVISION");
         if (String.IsNullOrEmpty(action))
             return null;
 
@@ -438,13 +514,13 @@ internal static class InteropEnvironment
                              $"V2G_INTEROP_PROVISION: expected 'install' or 'update', got '{action}'."),
         };
 
-        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_CERT")
+        var path = Read("V2G_INTEROP_PROVISION_CERT")
                        ?? throw new InvalidOperationException(
                               "V2G_INTEROP_PROVISION is set but V2G_INTEROP_PROVISION_CERT is not: the run "
                             + "needs the credential to sign the request with.");
 
         var collection = X509CertificateLoader.LoadPkcs12CollectionFromFile(
-                             path, Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_PASS"),
+                             path, Read("V2G_INTEROP_PROVISION_PASS"),
                              X509KeyStorageFlags.Exportable);
 
         var leaf = collection.FirstOrDefault(c => c.HasPrivateKey)
@@ -476,14 +552,14 @@ internal static class InteropEnvironment
 
         return new Iso2CertInstallOptions(
                    leaf.RawData, signKey, agreement, which,
-                   Environment.GetEnvironmentVariable("V2G_INTEROP_PROVISION_EMAID"),
+                   Read("V2G_INTEROP_PROVISION_EMAID"),
                    subCertificates.Length > 0 ? subCertificates : null);
 
     }
 
 
     public static SapOffer[] BothOffers(PowerMode mode)
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_SAP_FIRST") == "2"
+        => Read("V2G_INTEROP_SAP_FIRST") == "2"
                ? [new SapOffer(ProtocolVariant.Iso15118_2,  mode), new SapOffer(ProtocolVariant.Iso15118_20, mode)]
                : [new SapOffer(ProtocolVariant.Iso15118_20, mode), new SapOffer(ProtocolVariant.Iso15118_2,  mode)];
 
@@ -532,11 +608,11 @@ internal static class InteropEnvironment
     public static TlsOptions? DevTlsOrNull(ProtocolVariant protocol)
     {
 
-        if (Environment.GetEnvironmentVariable("V2G_INTEROP_TLS") != "1")
+        if (Read("V2G_INTEROP_TLS") != "1")
             return null;
 
-        var trustPath  = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_TRUST");
-        var clientSpec = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_CLIENT");
+        var trustPath  = Read("V2G_INTEROP_TLS_TRUST");
+        var clientSpec = Read("V2G_INTEROP_TLS_CLIENT");
 
         RemoteCertificateValidationCallback validation = (_, _, _, _) => true;   // dev default
 
@@ -672,7 +748,7 @@ internal static class InteropEnvironment
     public static TlsOptions? ServerTlsOrNull(ProtocolVariant protocol)
     {
 
-        var spec = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_SERVER");
+        var spec = Read("V2G_INTEROP_TLS_SERVER");
         if (String.IsNullOrWhiteSpace(spec))
             return null;
 
@@ -689,7 +765,7 @@ internal static class InteropEnvironment
         var chain    = new X509Certificate2Collection(
                            contents.Where(c => !ReferenceEquals(c, leaf)).ToArray());
 
-        var requireClient = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_REQUIRE_CLIENT") == "1";
+        var requireClient = Read("V2G_INTEROP_TLS_REQUIRE_CLIENT") == "1";
 
         TestContext.Out.WriteLine(
             $"TLS (station): presenting {leaf.Subject} (+{chain.Count} chain certificate(s)), " +
@@ -756,7 +832,7 @@ internal static class InteropEnvironment
     /// </remarks>
     public static V2GChainValidator? ContractRootsOrNull()
     {
-        var path = Environment.GetEnvironmentVariable("V2G_INTEROP_CONTRACT_ROOTS");
+        var path = Read("V2G_INTEROP_CONTRACT_ROOTS");
         return String.IsNullOrWhiteSpace(path)
                    ? null
                    : TrustRoots.Load(path!, "V2G_INTEROP_CONTRACT_ROOTS");
@@ -784,7 +860,7 @@ internal static class InteropEnvironment
     /// </para>
     /// </remarks>
     public static Boolean UnpinCipherSuites()
-        => Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_SUITES") == "platform";
+        => Read("V2G_INTEROP_TLS_SUITES") == "platform";
 
 
     private static Boolean IsSelfSigned(X509Certificate2 certificate)

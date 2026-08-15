@@ -100,7 +100,7 @@ public class EvDriveFlowInteropTests
 
         try
         {
-            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, transport: transport);
+            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode, transport: transport);
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
@@ -116,6 +116,7 @@ public class EvDriveFlowInteropTests
         }
         finally
         {
+            InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
                                    "live interop: our EVCC against EDF-Lab/eVDriveFlow's SECC",
                                    weAreTheEvcc: true));
@@ -217,6 +218,7 @@ public class EvDriveFlowInteropTests
                     $"Energy transfer service: {serviceId} ({InteropSession.ServiceName(serviceId)}) — " +
                     $"their EV's pick out of our catalogue.");
 
+            InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
                                    $"live interop: EDF-Lab/eVDriveFlow's EV against our SECC " +
                                    $"({(preferDynamic ? "Dynamic" : "Scheduled")} control mode)",

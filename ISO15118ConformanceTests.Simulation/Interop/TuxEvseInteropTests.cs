@@ -106,7 +106,7 @@ public class TuxEvseInteropTests
 
         try
         {
-            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, transport: transport);
+            await SapHandshake.RunEvccSideAsync(stream, protocol, cts.Token, mode, transport: transport);
 
             var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                             InteropEnvironment.PreferDynamic(),
@@ -123,6 +123,7 @@ public class TuxEvseInteropTests
         finally
         {
             // In the finally block deliberately: the run that threw is the run worth keeping.
+            InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
                                    "live interop: our EVCC against tux-evse/iso15118-simulator-rs (responder)",
                                    weAreTheEvcc: true));
@@ -215,6 +216,7 @@ public class TuxEvseInteropTests
         }
         finally
         {
+            InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
                                    "live interop: tux-evse/iso15118-simulator-rs (injector) against our SECC",
                                    weAreTheEvcc: false));

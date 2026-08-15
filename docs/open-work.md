@@ -692,8 +692,23 @@ also below.
   constant is shared, so DC settled AC **by construction**, and by construction is not by measurement.
   Table 216 carries its own requirement id. Run: **60,0160 s** after their `AcChargeLoopRes` against
   60,0025 s after `DcChargeLoopRes`, agreeing to 14 ms, one control each
-  ([run](interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md)). Numbers 1, 2 and 3 in the
-  sending order now have nothing left in them but a person.
+  ([run](interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md)).
+  <br>**Number 4 the same night, and it cost two fixes of ours to get there.**
+  `josev-iso20-charge-loop-timeout` was source-only by its own first checklist line; it is now measured
+  against their SECC — **60,061 s** (DC) and **60,060 s** (AC), with their log naming the value:
+  *"Waited for 60.0 s"* ([run](interop-runs/2026-08-15-josev-charge-loop-timeout/notes.md)). The first
+  silent arm produced a **complete, successful session**, because `JosevInteropTests` passed four of the
+  eleven parameters its EVerest twin does and `silentInChargeLoop` was not among them — the seventh
+  instance in a week of a value that existed and did not arrive, and the first where it was the
+  *caller's* value rather than our own state machine's. Then the AC arm could not negotiate at all,
+  because three of the four fixtures dropped the power mode before the SAP handshake and always offered
+  the DC namespace. Both fixed. **Numbers 1 through 4 in the sending order now have nothing left in them
+  but a person.**
+  <br>**A knob that is ignored is worse than a knob that is missing**, because the run still produces a
+  number — so `InteropEnvironment` now records what it consults and every fixture ends by naming any
+  `V2G_INTEROP_*` variable the run set and nothing read. It is a warning rather than a failure, and it
+  is honest about its own limit: it catches *asked for and nobody looked*, not *looked at and dropped on
+  the way*, which is exactly what the AC handshake bug was.
   <br>**[`reports/sending-order.md`](reports/sending-order.md)** now says in what order, and why: a
   crash first, then small measured fixes to buy the attention the hard ones need, the five orderings
   that would waste the work if reversed, and eVDriveFlow last as patches because nobody is there to
