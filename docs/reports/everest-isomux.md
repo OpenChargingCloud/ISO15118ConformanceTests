@@ -308,8 +308,17 @@ coupled, and fixing §4 alone would be unobservable from outside.
 > sends `trusted_ca_keys` — `[V2G2-651]` obliges every `-2` EV to, and ours had not, which this report
 > was in the odd position of relying on. The client that §4's failing case needs therefore exists, and
 > it speaks TLS **1.2**, which is what `IsoMux` serves — so §4 is reachable without §2 moving after all.
-> **It has not been run against your station yet**, and this paragraph will be replaced by what it shows
-> rather than by what it predicts.
+>
+> **Attempted the same night, and it did not decide anything.** Two arms — name root B and trust only B,
+> then the same for root A — both ended at our own `bad_certificate`, the control included, because on
+> the managed TLS backend our validation never receives the intermediates the station sends. A control
+> that fails is not a control. What the attempt *did* confirm: your station boots with
+> `trusted_ca_keys support disabled` on a **third** run, this time with two roots and a valid chain under
+> each; and the extension in a `-2` ClientHello does not upset your stack — the connection reaches your
+> `OcspCache::lookup` and the certificate exchange.
+> **So the state of §4 is: reachable, attempted, and blocked by a defect of ours**
+> ([run](../interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)). Which chain you serve to a
+> car that named a root is still unmeasured, and this paragraph will say what it shows when it does.
 
 **Two things are therefore impossible here, not one.** No chain ever enters the selectable list; and
 `get_leaf_certificate_info` returns the **newest single** chain rather than all valid ones, so even with

@@ -1,0 +1,57 @@
+Test run for /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/bin/Release/net10.0/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/i15118/ISO15118ConformanceTests.Simulation/bin/Release/net10.0/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/bin/Release/net10.0/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+Connecting to their SECC at [fe80::215:5dff:fe07:f821%2]:64110 ...
+
+NUnit Adapter 4.6.0.0: Test execution complete
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [181 ms]
+  Error Message:
+   Org.BouncyCastle.Tls.TlsFatalAlert : bad_certificate(42)
+  Stack Trace:
+     at cloud.charging.open.protocols.ISO15118.Transport.BouncyCastle.BcV2GTls.ValidatePeer(Certificate peer, Func`2 validateLeaf, Int16 missingAlert, Func`2 validateChain) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Transport/BouncyCastle/BcV2GTls.cs:line 208
+   at cloud.charging.open.protocols.ISO15118.Transport.BouncyCastle.BcV2GTlsClient.V2GAuthentication.NotifyServerCertificate(TlsServerCertificate serverCertificate) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Transport/BouncyCastle/BcV2GTlsClient.cs:line 96
+   at Org.BouncyCastle.Tls.TlsUtilities.ProcessServerCertificate(TlsClientContext clientContext, CertificateStatus serverCertificateStatus, TlsKeyExchange keyExchange, TlsAuthentication clientAuthentication, IDictionary`2 clientExtensions, IDictionary`2 serverExtensions)
+   at Org.BouncyCastle.Tls.TlsClientProtocol.HandleServerCertificate()
+   at Org.BouncyCastle.Tls.TlsClientProtocol.HandleHandshakeMessage(Int16 type, HandshakeMessageInput buf)
+   at Org.BouncyCastle.Tls.TlsProtocol.ProcessHandshakeQueue(ByteQueue queue)
+   at Org.BouncyCastle.Tls.TlsProtocol.ProcessRecord(Int16 protocol, Byte[] buf, Int32 off, Int32 len)
+   at Org.BouncyCastle.Tls.RecordStream.ReadRecord()
+   at Org.BouncyCastle.Tls.TlsProtocol.SafeReadRecord()
+   at Org.BouncyCastle.Tls.TlsProtocol.BlockForHandshake()
+   at Org.BouncyCastle.Tls.TlsClientProtocol.Connect(TlsClient tlsClient)
+   at cloud.charging.open.protocols.ISO15118.Transport.BouncyCastle.BcTlsTransport.<>c__DisplayClass1_0.<AuthenticateClientAsync>b__0() in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Transport/BouncyCastle/BcTlsTransport.cs:line 45
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at cloud.charging.open.protocols.ISO15118.Transport.BouncyCastle.BcTlsTransport.AuthenticateClientAsync(Stream inner, BcTlsOptions options, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Transport/BouncyCastle/BcTlsTransport.cs:line 45
+   at cloud.charging.open.protocols.ISO15118.Transport.TcpV2GClient.ConnectAsync(String host, Int32 port, TlsOptions tls, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Transport/TcpV2GClient.cs:line 47
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.OurEvcc_AgainstTheirEvseV2G_RunsToCompletion() in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 127
+   at NUnit.Framework.Internal.TaskAwaitAdapter.GenericAdapter`1.BlockUntilCompleted()
+   at NUnit.Framework.Internal.MessagePumpStrategy.NoMessagePumpStrategy.WaitForCompletion(AwaitAdapter awaiter)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await[TResult](Func`1 invoke)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await(Func`1 invoke)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.RunTestMethod(TestExecutionContext context)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.Execute(TestExecutionContext context)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.<>c__DisplayClass3_0.<PerformWork>b__0()
+   at NUnit.Framework.Internal.ContextUtils.<>c__DisplayClass1_0`1.<DoIsolated>b__0(Object _)
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated(ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated[T](Func`1 func)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.PerformWork()
+
+  Standard Output Messages:
+ Connecting to their SECC at [fe80::215:5dff:fe07:f821%2]:64110 ...
+
+
+
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 0.8640 Seconds

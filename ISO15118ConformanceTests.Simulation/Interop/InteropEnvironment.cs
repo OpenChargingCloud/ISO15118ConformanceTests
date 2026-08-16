@@ -778,11 +778,38 @@ internal static class InteropEnvironment
                                     contents.Where(c => !ReferenceEquals(c, clientCertificate)).ToArray());
         }
 
+        // -2 only: the V2G roots this car names in RFC 6066's trusted_ca_keys ([V2G2-651]). A PEM bundle,
+        // and only its self-signed entries — naming an intermediate is not what the requirement asks for.
+        // Setting it forces the BouncyCastle backend below, because SslStream cannot send the extension.
+        var trustedCaKeys = (IReadOnlyList<X509Certificate2>?) null;
+        var rootsPath     = Read("V2G_INTEROP_TRUSTED_CA_KEYS");
+
+        if (!String.IsNullOrWhiteSpace(rootsPath))
+        {
+            var bundle = new X509Certificate2Collection();
+            bundle.ImportFromPemFile(rootsPath);
+
+            trustedCaKeys = bundle.Where(IsSelfSigned).ToList();
+
+            if (trustedCaKeys.Count == 0)
+                throw new ArgumentException(
+                    $"V2G_INTEROP_TRUSTED_CA_KEYS: '{rootsPath}' holds no self-signed certificate, so there "
+                  + "is no V2G root to name. Point it at the root bundle, not at a chain.");
+        }
+
         return new TlsOptions
         {
             ServerCertificateValidation = validation,
             ClientCertificate           = clientCertificate,
             ClientCertificateChain      = clientChain,
+            TrustedCaKeys               = trustedCaKeys,
+
+            // Named roots force the managed backend: SslStream cannot put trusted_ca_keys in the
+            // ClientHello on any platform, and TcpV2GClient refuses the session rather than dropping the
+            // extension. Left at Auto otherwise, so no existing run changes backend by accident.
+            Backend                     = trustedCaKeys is not null
+                                              ? TlsBackend.BouncyCastle
+                                              : TlsBackend.Auto,
             // Pinned by protocol, as docs/pki-model.md pins it: -2 to TLS 1.2, -20 to TLS 1.3. This used to
             // offer both to both, which is the permissive choice TlsOptions itself warns about — and it cost
             // a run: EVerest's Evse15118D20 under `enforce_tls_1_3` refuses a ClientHello that still allows

@@ -1,0 +1,26 @@
+2026-08-16 03:12:25.506379 [INFO] iso15118_2:Evse  :: Module iso15118_2 initialized [2326ms]
+2026-08-16 03:12:25.548105 [INFO] iso15118_20:Evs  :: Module iso15118_20 initialized [2363ms]
+2026-08-16 03:12:25.615472 [INFO] iso_mux:IsoMux   :: Module iso_mux initialized [2419ms]
+2026-08-16 03:12:26.023928 [INFO] iso_mux:IsoMux   :: TLS server on eth0 is listening on port [fe80::215:5dff:fe07:f821%2]:64110
+2026-08-16 03:12:26.024037 [INFO] iso15118_2:Evse  :: TCP server on lo is listening on port [::1%0]:61341
+2026-08-16 03:12:26.024123 [INFO] iso15118_2:Evse  :: TLS server on lo is listening on port [::1%0]:64109
+2026-08-16 03:12:26.116707 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-16 03:12:26.116813 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+2026-08-16 03:12:26.116840 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: trusted_ca_keys support disabled
+2026-08-16 03:12:26.127349 [INFO] iso_mux:IsoMux   :: SDP socket setup succeeded
+2026-08-16 03:12:26.147076 [WARN] iso15118_2:Evse void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-16 03:12:26.786115 [INFO] iso15118_2:Evse  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-16 03:12:27.601308 [INFO] iso15118_20:Evs  :: Using ethernet interface: lo
+2026-08-16 03:12:27.601600 [WARN] iso15118_20:Evs module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: The supported energy services contain DC_BPT or MCS_BPT, but dc limits does not contain BPT limits. This can lead to session shutdowns.
+2026-08-16 03:12:27.602682 [INFO] iso15118_20:Evs  :: Created logfile at: /home/ahzf/everest/./260816_01-12-27.yaml
+2026-08-16 03:12:27.630028 [INFO] iso15118_2:Evse  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-16 03:13:46.140874 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-16 03:13:46.174791 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: SSL_ERROR_SYSCALL 104
+2026-08-16 03:13:47.877783 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-16 03:13:47.911074 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: SSL_ERROR_SYSCALL 104
+2026-08-16 03:14:55.039893 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-16 03:14:55.084203 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: OcspCache::lookup: not in cache: d8817041a94bb65646ea392c812fcb4978ae4cf6
+2026-08-16 03:14:55.180644 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: -1 1
+2026-08-16 03:14:56.719925 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-16 03:14:56.764685 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: OcspCache::lookup: not in cache: d8817041a94bb65646ea392c812fcb4978ae4cf6
+2026-08-16 03:14:56.856453 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_read: -1 1
