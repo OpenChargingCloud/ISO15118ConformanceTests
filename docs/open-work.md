@@ -281,19 +281,39 @@ backlog is that half of it turns out not to have been work.
   <br>**No recorded session changed**, checked rather than assumed: no `Vectors/*.trace.json` contains a
   renegotiation at all, so the wire-semantics worry this entry was parked on turned out to be empty.
 
-- **Our `-2` car does not send `trusted_ca_keys`, and `[V2G2-651]` obliges every `-2` EV to.**
-  `grep -rn trusted_ca_keys` matches nothing in the stack. Found on 2026-08-15 while trying to run
-  [`everest-isomux`](reports/everest-isomux.md) §4's failing case, which needs exactly such an EV — so it
-  is a gap of ours that is *also* the instrument for one of theirs. Two reasons to do it, and the first
-  one is the honest one: it is a `-2` requirement we do not meet.
-  <br>Worth knowing before starting: the extension is RFC 6066, TLS 1.2-era, and its point is to let the
-  car tell the station which roots it trusts so the station can serve a chain the car can verify —
-  `[V2G2-651]` on our side, `[V2G20-1006]`/`[V2G20-1007]` and `[V2G20-2379]` on theirs, which is what
-  [`everest-d20-client-auth`](reports/everest-d20-client-auth/issue-3-server-chain-selection.md) §3
-  measured against a station that ignores it. Building the sending half would let this project measure
-  the receiving half everywhere, and there are two stations here that get it wrong.
-  <br>**Not started**, and deliberately not folded into the isomux run: a probe written to produce one
-  line of somebody else's log is a bad reason to add a protocol feature.
+- ~~**Our `-2` car does not send `trusted_ca_keys`, and `[V2G2-651]` obliges every `-2` EV to.**~~
+  **Built 2026-08-16**, stack branch `iso2-trusted-ca-keys`. `grep -rn trusted_ca_keys` used to match
+  nothing in the stack; a *shall* on every `-2` EV was simply absent, and this project had filed
+  [`everest-isomux`](reports/everest-isomux.md) §4 about a station that disables support for it while
+  being unable to run the failing case for want of exactly this client.
+  <br>**The extension is RFC 6066, TLS 1.2-era, and that decided the design.** `SslStream` cannot add a
+  ClientHello extension on any platform, so the **BouncyCastle** backend — which existed for the `-20`
+  TLS 1.3 profile Schannel cannot serve — grew a `-2` profile: TLS 1.2 and the two `-2` cipher suites
+  (`BcTlsOptions.Iso2Profile`, read from `EnabledSslProtocols` rather than from a second switch that
+  could disagree with it). A `-2` session that names roots on the SslStream path is now **refused** with
+  a message naming the backend, rather than run without them: a requirement that silently does not
+  happen is the failure mode this repository keeps finding in other people's code.
+  <br>**Identifier type: `cert_sha1_hash`.** `[V2G2-651]` says only *"a list of V2G root certificates it
+  possesses … as defined in IETF RFC 6066"* and leaves the choice among the four open; this is the one
+  that names a certificate rather than a key or a subject, and it is the form EVerest's own server-side
+  parser documents in its worked example. Their parser accepts all four, so the choice costs no interop —
+  written down because a future disagreement about it will be about that line.
+  <br>Three tests in
+  [`BcTrustedCaKeysTests`](../ISO15118ConformanceTests.Simulation/E2E/BcTrustedCaKeysTests.cs) — the
+  station reads two named roots back off a live TLS 1.2 handshake, one root, and none — **two of the
+  three fail when the extension is removed**, checked by removing it; plus four in
+  `TlsOptionsBridgeTests`, one of which is an *old* test updated rather than deleted, because the
+  widening of the cipher-suite guard is exactly what it was written to catch.
+  <br>**It also cost a real fix underneath**: `BcV2GTls.BuildSigner` built the TLS 1.3 `CertificateEntry`
+  structure unconditionally, which a TLS 1.2 handshake answers with `internal_error(80)`. Its own comment
+  had described the 1.3 half of that rule since the `-20` work — half a rule reads as a complete one.
+  <br>**What this does *not* do:** our station records an arriving extension
+  (`BcTlsOptions.OnTrustedCaKeys`) and serves the chain it was configured with regardless. `[V2G2-871]`'s
+  selection duty is the station's, and nothing here implements it — said out loud so the callback is not
+  read as compliance.
+  <br>**Next, and it is now cheap:** [`everest-isomux`](reports/everest-isomux.md) §4's failing case.
+  Their mux caps TLS at 1.2 and boots with `trusted_ca_keys support disabled`; a `-2` EV that sends the
+  extension is exactly the client §4 said could not be built here.
 
 - ~~**Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
   checked too late to catch a station that never answers.**~~ **Fixed 2026-08-11**, stack branch

@@ -70,12 +70,34 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             {
                 ServerCertificate   = cert,
                 EnabledSslProtocols = SslProtocols.Tls13,
-                CipherSuites        = TlsProfiles.Iso2CipherSuites,   // -2 suites on a TLS 1.3 session
+                // Neither profile's pair. This used to be TlsProfiles.Iso2CipherSuites, and it was a fair
+                // example until 2026-08-16, when this backend grew ISO 15118-2's TLS 1.2 profile so that
+                // our EV could send `trusted_ca_keys` ([V2G2-651]) — which SslStream cannot. The test
+                // caught that widening, which is what it is for; updated rather than deleted so the
+                // guard it pins stays pinned.
+                CipherSuites        = [TlsCipherSuite.TLS_AES_128_GCM_SHA256],
             };
 
             Assert.That(() => TlsPlatform.ToBcServerOptions(tls),
                         Throws.InstanceOf<NotSupportedException>()
                               .With.Message.Contains("BouncyCastle"));
+        }
+
+
+        /// <summary>And the `-2` pair *is* honourable now — the same translation, the other answer.</summary>
+        [Test]
+        public void BouncyCastleFallback_AcceptsTheIso2Pin()
+        {
+            using var cert = TestCertificate.CreateSelfSigned();
+            var tls = new TlsOptions
+            {
+                ServerCertificate   = cert,
+                EnabledSslProtocols = SslProtocols.Tls12,
+                CipherSuites        = TlsProfiles.Iso2CipherSuites,
+            };
+
+            Assert.That(() => TlsPlatform.ToBcServerOptions(tls), Throws.Nothing);
+            Assert.That(TlsPlatform.ToBcServerOptions(tls).Iso2Profile, Is.True);
         }
 
         [Test]

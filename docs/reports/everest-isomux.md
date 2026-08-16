@@ -304,6 +304,13 @@ extension of RFC 6066, which `openssl` cannot send and our EVCC does not impleme
 version cap of §2 stands, §4 cannot be exercised even by a conformant `-2` EV** — the two sections are
 coupled, and fixing §4 alone would be unobservable from outside.
 
+> **Half of that stopped being true on 2026-08-16, and the half that stopped is ours.** Our `-2` EV now
+> sends `trusted_ca_keys` — `[V2G2-651]` obliges every `-2` EV to, and ours had not, which this report
+> was in the odd position of relying on. The client that §4's failing case needs therefore exists, and
+> it speaks TLS **1.2**, which is what `IsoMux` serves — so §4 is reachable without §2 moving after all.
+> **It has not been run against your station yet**, and this paragraph will be replaced by what it shows
+> rather than by what it predicts.
+
 **Two things are therefore impossible here, not one.** No chain ever enters the selectable list; and
 `get_leaf_certificate_info` returns the **newest single** chain rather than all valid ones, so even with
 a trust anchor there would be one chain to choose between. `EvseV2G` gets both right with the one call
