@@ -144,10 +144,11 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             // failure the live run first hit.
 
             // Unlike the other tests here, this one cannot borrow the macOS TLS 1.3 fallback: what it asserts is
-            // a property of SslStream itself — that a certificate context puts the intermediates on the wire —
-            // and BouncyCastle's peer validation is leaf-only (BcTlsOptions.ValidatePeerLeaf), so
-            // ValidateVehicleClientWireChainOnly would receive no wire chain to build a path from. Substituting
-            // the backend would leave the test green while testing something else, so it is skipped instead.
+            // a property of SslStream itself — that a certificate context puts the intermediates on the wire.
+            // Substituting the backend would leave the test green while testing something else, so it is
+            // skipped instead. (The second half of this note used to be "and BouncyCastle's peer validation is
+            // leaf-only", which stopped being true on 2026-08-16: TlsPlatform now bridges onto
+            // ValidatePeerChain, and the root-only case has its own arm in Iso20BackendOptInLoopbackTests.)
             if (!TlsPlatform.SslStreamSupportsTls13)
                 Assert.Ignore("Needs a TLS 1.3 SslStream session; this platform has none (see TlsPlatform). " +
                               "Covered on Windows/Linux, and the -20-faithful chain handling is covered on the " +

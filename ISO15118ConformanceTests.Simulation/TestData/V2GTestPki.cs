@@ -53,25 +53,49 @@ namespace ISO15118ConformanceTests.Simulation.TestData
         /// <b>send over the wire</b> for a root-only SECC (e.g. Josev, which loads just the OEM root) to verify it.</summary>
         public X509Certificate2Collection VehicleIntermediates => new(_vehicleIntermediates);
 
+        /// <summary>The SECC branch intermediate CAs (Sub-CA 2 then Sub-CA 1) — the same duty from the other
+        /// end, and the one `[V2G2-871]` puts on a station: send a chain the car can follow to a root it
+        /// named. Needed by any test whose car trusts the root alone.</summary>
+        public X509Certificate2Collection SeccIntermediates => new(_seccIntermediates);
+
         /// <summary>SECC-side callback that trusts <b>only</b> the V2G Root and builds the chain purely from the
         /// certificates the peer sent over the wire (no out-of-band intermediates) — so it succeeds only if the
         /// client actually transmitted its intermediate chain. Mirrors Josev's root-only client validation.</summary>
-        public RemoteCertificateValidationCallback ValidateVehicleClientWireChainOnly => (_, presented, wireChain, _) =>
+        public RemoteCertificateValidationCallback ValidateVehicleClientWireChainOnly => WireChainOnly;
+
+        /// <summary>The same, from the car's end: trust the V2G Root alone and judge the station on what it
+        /// put on the wire. The shape of every real trust store, and the shape that tells a station sending
+        /// its Sub-CAs apart from one sending a bare leaf — which is the only way to see whether <i>this</i>
+        /// side is reading them at all.</summary>
+        public RemoteCertificateValidationCallback ValidateSeccServerWireChainOnly => WireChainOnly;
+
+        private bool WireChainOnly(object _, X509Certificate? presented, X509Chain? wireChain, SslPolicyErrors __)
         {
             if (presented is not X509Certificate2 leaf || wireChain is null)
                 return false;
 
             using var chain = new X509Chain();
-            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-            chain.ChainPolicy.TrustMode      = X509ChainTrustMode.CustomRootTrust;
+            chain.ChainPolicy.RevocationMode              = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.DisableCertificateDownloads = true;
+            chain.ChainPolicy.TrustMode                   = X509ChainTrustMode.CustomRootTrust;
             chain.ChainPolicy.CustomTrustStore.Add(Root);
-            // Only the intermediates the peer transmitted (present in the SslStream-built chain) — nothing local.
+
+            // Only what the peer transmitted — nothing local. The two backends put it in different places:
+            // SslStream builds a path before calling, so the peer's certificates show up in ChainElements,
+            // while the managed backend builds none and hands them over in ChainPolicy.ExtraStore
+            // (TlsPlatform.Adapt, TrustRoots.PeerIntermediates). Reading both is what makes one callback
+            // usable on either backend; reading ChainElements alone is why this helper was SslStream-only
+            // until 2026-08-16.
             foreach (var element in wireChain.ChainElements)
                 if (!element.Certificate.Equals(leaf))
                     chain.ChainPolicy.ExtraStore.Add(element.Certificate);
 
+            foreach (var sent in wireChain.ChainPolicy.ExtraStore.OfType<X509Certificate2>())
+                if (!sent.Equals(leaf))
+                    chain.ChainPolicy.ExtraStore.Add(sent);
+
             return chain.Build(leaf);
-        };
+        }
 
         /// <summary>SECC-side callback: validate the presented Vehicle client cert against the shared V2G Root.</summary>
         public RemoteCertificateValidationCallback ValidateVehicleClient => Make(Root, _vehicleIntermediates);
