@@ -317,8 +317,11 @@ coupled, and fixing §4 alone would be unobservable from outside.
 > each; and the extension in a `-2` ClientHello does not upset your stack — the connection reaches your
 > `OcspCache::lookup` and the certificate exchange.
 > **So the state of §4 is: reachable, attempted, and blocked by a defect of ours**
-> ([run](../interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)). Which chain you serve to a
-> car that named a root is still unmeasured, and this paragraph will say what it shows when it does.
+> ([run](../interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)). That defect was fixed later
+> the same day — our TLS options now hand the peer's whole chain to the validating callback on either
+> backend, and the root-only case has an offline arm of its own. **The blocker is gone and the run has not
+> been re-made**: which chain you serve to a car that named a root is still unmeasured, and this paragraph
+> will say what it shows when it does.
 
 **Two things are therefore impossible here, not one.** No chain ever enters the selectable list; and
 `get_leaf_certificate_info` returns the **newest single** chain rather than all valid ones, so even with

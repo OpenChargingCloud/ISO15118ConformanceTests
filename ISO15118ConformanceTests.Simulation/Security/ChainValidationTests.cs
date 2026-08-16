@@ -24,6 +24,7 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.Security;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
+using cloud.charging.open.protocols.ISO15118.Transport;
 
 namespace ISO15118ConformanceTests.Simulation.Security
 {
@@ -275,6 +276,71 @@ namespace ISO15118ConformanceTests.Simulation.Security
                                 "the peer sent the path to the only trusted root, so the leaf validates");
                     Assert.That(validate(this, _leaf, nothing, SslPolicyErrors.None), Is.False,
                                 "and a station that really does send a bare leaf is still refused");
+                });
+
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS",       oldTls);
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS_TRUST", oldTrust);
+                try { File.Delete(pem); } catch { }
+            }
+
+        }
+
+        /// <summary>
+        /// The <em>same</em> callback again, one layer further out: carried onto the <b>managed</b> TLS
+        /// backend. Third costume of one defect, and the one that cost a measurement.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <c>TlsPlatform</c> used to bridge a <see cref="RemoteCertificateValidationCallback"/> onto
+        /// <c>BcTlsOptions.ValidatePeerLeaf</c> and invoke it with <c>chain: null</c> — so the fix directly
+        /// above, which reads that argument, had nothing to read the moment a run selected BouncyCastle. A
+        /// root-only anchor then refused every station on that backend.
+        /// </para>
+        /// <para>
+        /// Found 2026-08-16 by the isomux §4 attempt, where <em>both</em> arms died at
+        /// <c>bad_certificate(42)</c> — the control included, which is what said the fault was ours rather
+        /// than EVerest's. The run selected the managed backend for the first time in this project's history
+        /// because <c>trusted_ca_keys</c> cannot be sent any other way, so the defect had been unreachable
+        /// until then (<c>docs/interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/</c>).
+        /// </para>
+        /// </remarks>
+        [Test]
+        public void TheSameCallbackOnTheManagedBackend_ReadsWhatThePeerSentToo()
+        {
+
+            var pem      = Path.Combine(Path.GetTempPath(), $"chainvalidation-bc-root-{Guid.NewGuid():N}.pem");
+            var oldTls   = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS");
+            var oldTrust = Environment.GetEnvironmentVariable("V2G_INTEROP_TLS_TRUST");
+
+            try
+            {
+
+                File.WriteAllText(pem, _root.ExportCertificatePem());
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS",       "1");
+                Environment.SetEnvironmentVariable("V2G_INTEROP_TLS_TRUST", pem);
+
+                // The -2 profile, which is what forces this backend in the first place: trusted_ca_keys is a
+                // TLS 1.2 extension and SslStream cannot send it.
+                var managed = TlsPlatform.ToBcClientOptions(
+                                  Interop.InteropEnvironment.DevTlsOrNull(ProtocolVariant.Iso15118_2)!);
+
+                Assert.That(managed.ValidatePeerChain, Is.Not.Null,
+                            "a TlsOptions session must bridge onto the chain hook, not the leaf one");
+
+                Assert.Multiple(() =>
+                {
+                    // What BouncyCastle hands over: the peer's certificate list, leaf first.
+                    Assert.That(managed.ValidatePeerChain!([_leaf.RawData, _subCa2.RawData, _subCa1.RawData]), Is.True,
+                                "the station sent the path to the only trusted root, so its leaf validates");
+                    Assert.That(managed.ValidatePeerChain!([_leaf.RawData]), Is.False,
+                                "and a station that really does send a bare leaf is still refused");
+
+                    Assert.That(managed.ValidatePeerLeaf, Is.Null,
+                                "both hooks must pass when both are set, so a leaf-only copy of a "
+                              + "chain-checking callback would fail first — exactly the case being fixed");
                 });
 
             }

@@ -156,5 +156,101 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             Assert.That(evcc.Exchanges, Is.GreaterThan(0));
         }
 
+
+        #region A root-only car, on this backend
+
+        // A station that sends its Sub-CAs, which is what [V2G2-871] asks of one and what EVerest's EvseV2G
+        // and eVDriveFlow were both measured doing.
+        private static TlsOptions ChainSendingSeccTls(V2GTestPki pki) => SeccTls(pki) with
+        {
+            ServerCertificateChain = pki.SeccIntermediates
+        };
+
+        // …and a car whose trust store holds the V2G root ALONE, judging the station on what arrived.
+        private static TlsOptions RootOnlyEvccTls(V2GTestPki pki) => EvccTls(pki) with
+        {
+            ServerCertificateValidation = pki.ValidateSeccServerWireChainOnly
+        };
+
+        /// <summary>
+        /// The 2026-08-16 fix, end to end. Until then <c>TlsPlatform</c> bridged a <see cref="TlsOptions"/>
+        /// validation callback onto <c>BcTlsOptions.ValidatePeerLeaf</c> and passed it <c>chain: null</c>, so
+        /// a car asking "does this reach a root I trust" was handed a bare leaf — and with a root-only anchor
+        /// it refused <em>every</em> station on this backend, including one serving exactly the chain it had
+        /// been told to trust.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A trust bundle carrying the intermediates hides this completely, which is how it survived every
+        /// TLS run before it: only a <b>root-only</b> anchor can tell "the peer sent nothing" from "we read
+        /// nothing". The same narrowing exposed the same defect in the app's two peers on 2026-08-09 and in
+        /// the interop fixture's own callback on 2026-08-14 — this is its third costume, and the first one
+        /// found by a control arm rather than by a counterparty.
+        /// </para>
+        /// <para>
+        /// Found against EVerest's <c>IsoMux</c>, where it took down the control arm as well as the arm under
+        /// test and left isomux §4 unmeasured
+        /// (<c>docs/interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/</c>). This is that arm's shape
+        /// offline: our car, one anchor, a station that sends its chain.
+        /// </para>
+        /// </remarks>
+        [Test]
+        public async Task Iso20DcSession_RootOnlyCar_VerifiesTheStationFromWhatItSent()
+        {
+            using var pki      = NewPki();
+            using var cts      = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            var       seccTls  = ChainSendingSeccTls(pki);
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), seccTls);
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                var secc = new Secc20Dc(TimeSpan.FromSeconds(60), TimeProvider.System);
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync(
+                "localhost", listener.LocalEndpoint.Port, RootOnlyEvccTls(pki), cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+            var evcc     = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
+            var evccTask = evcc.RunAsync(cts.Token);
+            await Task.WhenAll(evccTask, seccTask);
+
+            Assert.That((await seccTask).IsDone, Is.True);
+            Assert.That(evcc.Exchanges, Is.GreaterThan(0));
+        }
+
+        /// <summary>
+        /// …and the control that keeps the test above honest: the same car, against a station that sends a
+        /// bare leaf, must still be refused. Without this, a fix that simply accepted everything would pass.
+        /// </summary>
+        [Test]
+        public void Iso20Session_RootOnlyCar_StillRefusesAStationThatSendsOnlyItsLeaf()
+        {
+            using var pki      = NewPki();
+            using var cts      = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), SeccTls(pki));
+
+            // The station has to be accepting for the handshake to get far enough to be refused; how its own
+            // side ends is not the assertion.
+            var seccTask = Task.Run(async () =>
+            {
+                try { using var s = await listener.AcceptAsync(cts.Token); }
+                catch { /* the client's alert arrives here as whatever the backend makes of it */ }
+            }, cts.Token);
+
+            Assert.That(async () => await TcpV2GClient.ConnectAsync(
+                            "localhost", listener.LocalEndpoint.Port, RootOnlyEvccTls(pki), cts.Token),
+                        Throws.Exception,
+                        "a leaf two hops below the only trusted root cannot reach it, and the car must say so");
+
+            Assert.That(async () => await seccTask, Throws.Nothing);
+        }
+
+        #endregion
+
     }
 }

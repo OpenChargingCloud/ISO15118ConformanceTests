@@ -252,21 +252,38 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **On the BouncyCastle backend our interop TLS validation never sees the peer's intermediates**, so a
+- ~~**On the BouncyCastle backend our interop TLS validation never sees the peer's intermediates**, so a
   run whose trust store holds a **root alone** refuses every station — including one serving exactly the
-  chain it was told to trust. Found 2026-08-16 by the isomux §4 attempt, whose *control* failed
+  chain it was told to trust.~~ **Fixed 2026-08-16**, stack branch `bc-validate-peer-chain`, the same day
+  it was found by the isomux §4 attempt, whose *control* failed
   ([run](interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)).
-  <br>`BcTlsOptions.ValidatePeerChain` exists for this — *"the whole chain as the peer sent it, leaf
-  first"* — and `TlsPlatform.ToBcClientOptions` sets only `ValidatePeerLeaf`. The callback it wraps then
-  builds its path from `TrustRoots.PeerIntermediates(chain)` with `chain: null`, because this backend has
-  no platform `X509Chain` to hand over.
+  <br>`BcTlsOptions.ValidatePeerChain` existed for this all along — *"the whole chain as the peer sent it,
+  leaf first"* — and `TlsPlatform` set only `ValidatePeerLeaf`, invoking the callback with `chain: null`.
+  Both directions now bridge onto the chain hook instead, and the peer's certificates arrive in
+  `ChainPolicy.ExtraStore`, which is where `SslStream` puts them and where `TrustRoots.PeerIntermediates`
+  reads them — **one callback, the same view on either backend**, which is the property that was missing
+  rather than a second code path.
+  <br>**The leaf hook is left unset on purpose**, and that is the part worth keeping: `ValidatePeer` runs
+  both when both are set and requires both to pass, so a leaf-only copy of a chain-checking callback would
+  refuse the handshake before the chain form ever ran — the exact failure being fixed, reintroduced by the
+  obvious "keep both for safety".
   <br>**Third costume of the 2026-08-14 defect.** That day the *SslStream* interop callback was found
   discarding the peer chain and fixed by routing it through `TrustRoots.PeerIntermediates`; the same
-  question — *where do the intermediates come from* — was never answered for the managed backend. Both
-  times a wider bundle hid it and narrowing the anchor to one root exposed it, which is the rule this
-  file already carries from 08-14 and did not apply before designing the arms.
-  <br>**Not started.** It blocks nothing but the §4 measurement, and it wants its own change with the
-  two arms as its test.
+  question — *where do the intermediates come from* — was never answered for the managed backend. All
+  three times a wider bundle hid it and narrowing the anchor to one root exposed it. The rule was already
+  in this file from 08-14 and was still not applied when the arms were designed, which is why the run that
+  found it is also the run that lost a measurement to it.
+  <br>**Eight tests, six of which fail when the fix is removed** — verified by reverting it, not asserted.
+  Five in `WWCP_ISO15118_Session_Tests/Transport/TlsOptionsBridgeTests.cs` pin the bridge in both
+  directions; `ChainValidationTests` gains the third layer of the same regression (the interop fixture's
+  own callback, now carried onto the managed backend); and
+  `Iso20BackendOptInLoopbackTests` runs it end to end — a car anchored at the V2G **root alone**, on this
+  backend, completing a `-20` DC session against a station that sends its Sub-CAs, plus the control that
+  keeps it honest: a station sending a bare leaf is still refused, which a fix that merely accepted
+  everything would fail.
+  <br>**What it does not do: the §4 measurement.** The blocker is gone and the run has not been made —
+  which chain `IsoMux` serves to a car that named a root is still unmeasured, and saying so is the
+  difference between a fix and a result.
 
 - ~~**Our `-2` car's DC renegotiation skips `CableCheck` and `PreCharge`, and the state table requires
   them.**~~ **Fixed 2026-08-15**, stack branch `iso2-renegotiation-isolation`, both halves. `Evcc2` ran
@@ -327,9 +344,14 @@ backlog is that half of it turns out not to have been work.
   (`BcTlsOptions.OnTrustedCaKeys`) and serves the chain it was configured with regardless. `[V2G2-871]`'s
   selection duty is the station's, and nothing here implements it — said out loud so the callback is not
   read as compliance.
-  <br>**Next, and it is now cheap:** [`everest-isomux`](reports/everest-isomux.md) §4's failing case.
-  Their mux caps TLS at 1.2 and boots with `trusted_ca_keys support disabled`; a `-2` EV that sends the
-  extension is exactly the client §4 said could not be built here.
+  <br>**It reached [`everest-isomux`](reports/everest-isomux.md) §4 the same evening, and did not settle
+  it.** Their mux caps TLS at 1.2 and boots with `trusted_ca_keys support disabled`; a `-2` EV that sends
+  the extension is exactly the client §4 said could not be built here, and it was built and pointed at
+  them. **Both arms died at `bad_certificate(42)` — the control included, which is what said the fault
+  was ours**: the managed backend was reachable for the first time in this project's history, and the
+  chain-validation defect waiting there had never been exercised. Fixed the same day, first entry above;
+  the §4 measurement is still not taken
+  ([attempt](interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)).
 
 - ~~**Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
   checked too late to catch a station that never answers.**~~ **Fixed 2026-08-11**, stack branch
