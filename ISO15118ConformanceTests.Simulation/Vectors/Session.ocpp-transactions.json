@@ -77,7 +77,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "6703a025d72f82b2add63dd419446c0d67b5b7a5416b04185c0ade0efaead47df9c1ec053d559a260a3fde5f8a22dc9e6f2b7dbee988f08d2f20e2795071fc5e",
+                "signedMeterData": "93982fbef58713f4e0a2e8fdbf21bf6700e0c496d177f6f1177d52f4e70bc7e928333799be9b99e09d890c032cd6d777243e8a0a8835abbdde4855a1f930025c",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -98,7 +98,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "d1a5d8f658129628804aeb6cb247f5da091bb8b82ee2edab5d9e8298c9664618808765fea3de67dbab56aa05b2774c7c9e41801d3253094a2784ef1a9b6b69c0",
+                "signedMeterData": "3134ff76a938000797c0580f147d21cf5059032d0144a1fef63789f3a6af91981dcea823c6de0eea4f415b038109d945c01e68a7accf1a774da68df27411c540",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -119,7 +119,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "61925e153e12b05e0222025ae01ad2d7b6845428c558be1183d5fc7034fa5789cd94d4911a7db101bf770a5d0f25e6be66af8100c8107d5acd9574cc0fcd1728",
+                "signedMeterData": "824f6571468d018a156a67e3aacc532faa8b1a4a5d8b25925accca2ac65e98d759b4d8bdfdc0ab80d34108967e3364ae3c8c58d5168d9a6110dab98ad3ba6928",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -241,6 +241,99 @@
       "schemaVersion": 1,
       "source": "station-recording",
       "transactionId": "TX-iso2-dc-eim",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "2400",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso2-dc-eim-battery": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-dc-eim-battery",
+      "evseId": "DE*ABC*E1",
+      "v2gSessionId": "0a0b0c0d0e0f1011",
+      "meterValues": [
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "800",
+              "context": "Sample.Periodic",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        },
+        {
+          "timestamp": "2026-01-01T00:00:00Z",
+          "sampledValue": [
+            {
+              "value": "1600",
+              "context": "Transaction.End",
+              "measurand": "Energy.Active.Import.Register",
+              "unitOfMeasure": {
+                "unit": "Wh",
+                "multiplier": 0
+              },
+              "location": "Outlet"
+            }
+          ]
+        }
+      ]
+    },
+    "iso2-dc-eim-renegotiate": {
+      "schemaVersion": 1,
+      "source": "station-recording",
+      "transactionId": "TX-iso2-dc-eim-renegotiate",
       "evseId": "DE*ABC*E1",
       "v2gSessionId": "0a0b0c0d0e0f1011",
       "meterValues": [
@@ -527,7 +620,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "3a425928914b8f2a863554386a235f3ec546ab54927c4ba002a33450c07f537b67c1d453e44ab5566e0f7f8d7d105741810f91db65f4ac639bc198c17ced676f",
+                "signedMeterData": "4ba5cd78fd704b13f9677b8417693df593eb5eda2714dc75032fdbbf81a61266a421b568e92d0f539f477ecc1ddcf203cabf19cef1ad8f0af62de20c74016ed5",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -548,7 +641,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "de0ba2723cebd1caf08052f6a8d476845650498e259f31ef23c5374dcec727b67613ac64d0b925364d8c4e9688159bd56964dcb7727ece1aac823037abf91b6b",
+                "signedMeterData": "3beeae1581e6587f978f4274013e97bcb804d88201cd47c9b3d8846338c7cfc25c4e1689418f023aec73faae6ee8ebf8ce467a8fe51659be22493a1ba8ab97ea",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
@@ -569,7 +662,7 @@
               },
               "location": "Outlet",
               "signedMeterValue": {
-                "signedMeterData": "452641c497f62be8ddad2a16a0b26db0b52c9b9836c3a7b38e7bddd18ccc8f14761798cd017aa99992789e8501ff971e96f71e1110b8aa28ee2516a2b3881970",
+                "signedMeterData": "87a4ce682d207acf6192c2e94d1a844962f8347709bf9f35842ed8037f3ad856f2e802f7f1fef2ee6ca57c34ea7c205de847d4a4cd531f15d797491545f57f48",
                 "signingMethod": "ECDSA-secp256r1-SHA256",
                 "encodingMethod": "V2G-METER-1",
                 "publicKey": "8df1dbff9ad6faf3951ee551fc3983c9b00c52e5ee37c1864698f1fbc8f4888441a9a14496be6e552fe391b91ae69bc0745f1a30a141be2fe1e830b38aa5cbea"
