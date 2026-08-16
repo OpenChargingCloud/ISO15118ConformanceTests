@@ -24,6 +24,7 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.Sap;
 using cloud.charging.open.protocols.ISO15118.Security;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
+using cloud.charging.open.protocols.ISO15118.Simulation;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
@@ -359,6 +360,150 @@ internal static class InteropEnvironment
         => Int32.TryParse(Read("V2G_INTEROP_CHARGELOOP"), out var ms) && ms > 0
                ? TimeSpan.FromMilliseconds(ms)
                : null;
+
+
+    /// <summary>
+    /// <c>V2G_INTEROP_CHARGE_INTERVAL=&lt;milliseconds&gt;</c> — what <b>our car</b> waits between
+    /// charge-loop iterations. Unset leaves the state machine's own 50 ms, which is what every recorded
+    /// run was taken at.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Not <see cref="ChargeLoopTimeout"/>, and the two are one letter apart in the worst way.</b>
+    /// <c>V2G_INTEROP_CHARGELOOP</c> is how long our <i>station</i> will wait for a peer's next request;
+    /// this is how long our <i>car</i> pauses before sending its own. One is a timeout we enforce, the
+    /// other is pacing we produce.
+    /// </para>
+    /// <para>
+    /// <b>What it is for: pulling the two clocks apart.</b> One charge-loop iteration stands for a minute
+    /// of simulated charging, so a physically sensible charge is tens of iterations and is over in about
+    /// a second of wall clock at 50 ms. A session somebody wants to watch against a live station — or to
+    /// leave running long enough for a counterparty's own timers to act — needs a real interval, and
+    /// <see cref="Battery"/> beside it decides how many iterations there are.
+    /// </para>
+    /// <para>
+    /// Seconds are ordinary here: ISO 15118-2 gives the SECC <c>V2G_SECC_SequenceTimeout</c> = 60 s. A
+    /// value approaching that is measuring the station's timeout, which is a different run.
+    /// </para>
+    /// </remarks>
+    public static TimeSpan? ChargeLoopInterval()
+        => Int32.TryParse(Read("V2G_INTEROP_CHARGE_INTERVAL"), out var ms) && ms > 0
+               ? TimeSpan.FromMilliseconds(ms)
+               : null;
+
+
+    /// <summary>
+    /// <c>V2G_INTEROP_BATTERY=kwh=60,soc=20,target=80,power=24</c> — a battery filling up, so the charge
+    /// loop runs until the car is done instead of the fixed three iterations. Unset (the default) keeps
+    /// every recorded run's shape.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The keys are <see cref="EvBattery"/>'s own, in the CLI's units:
+    /// <c>kwh</c> (capacity, default 60), <c>soc</c> (start %, default 20), <c>target</c> (target SoC %),
+    /// <c>energy</c> (kWh to deliver), <c>power</c> (kW the car asks for; 0 = whatever the station
+    /// offers), <c>minutes</c> (simulated charging-time limit), <c>minsoc</c> (what the driver needs —
+    /// reported, never a stop condition) and <c>taper</c> (the constant-current knee, default 80 %).
+    /// Naming none of the goals charges to full.
+    /// </para>
+    /// <para>
+    /// <b>An unreadable key throws rather than being ignored</b> — the same rule as the TLS backend knob,
+    /// and for the same reason: a run that silently kept the three-iteration default while the operator
+    /// believed a battery was configured produces a session that looks complete and measured something
+    /// else.
+    /// </para>
+    /// <para>
+    /// <b>The pack fills from what was metered, not from what was asked for</b> (see <c>EvBattery</c>), and
+    /// in `-2` DC the meter samples the car's own request because the standard gives a DC vehicle no
+    /// measured-inlet field. So a station that derates is visible as a slower charge only through the
+    /// limits it declares and our car reads back.
+    /// </para>
+    /// </remarks>
+    public static EvBattery? Battery()
+    {
+
+        var spec = Read("V2G_INTEROP_BATTERY");
+        if (String.IsNullOrWhiteSpace(spec))
+            return null;
+
+        double? capacity = null, startSoC = null, targetSoC = null, energyKWh = null,
+                powerKW  = null, minutes  = null, minimumSoC = null, taper     = null;
+        int?    maxLoops = null;
+
+        foreach (var entry in spec.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = entry.Split('=', 2);
+            if (parts.Length != 2 || !Double.TryParse(parts[1].Trim(),
+                                                      System.Globalization.NumberStyles.Float,
+                                                      System.Globalization.CultureInfo.InvariantCulture,
+                                                      out var value))
+                throw new ArgumentException(
+                    $"V2G_INTEROP_BATTERY: '{entry}' is not a key=number pair.");
+
+            switch (parts[0].Trim().ToLowerInvariant())
+            {
+                case "kwh":      capacity   = value; break;
+                case "soc":      startSoC   = value; break;
+                case "target":   targetSoC  = value; break;
+                case "energy":   energyKWh  = value; break;
+                case "power":    powerKW    = value; break;
+                case "minutes":  minutes    = value; break;
+                case "minsoc":   minimumSoC = value; break;
+                case "taper":    taper      = value; break;
+                case "loops":    maxLoops   = (int) value; break;
+                default:
+                    throw new ArgumentException(
+                        $"V2G_INTEROP_BATTERY: '{parts[0].Trim()}' is not a battery key. Expected one of "
+                      + "kwh, soc, target, energy, power, minutes, minsoc, taper, loops.");
+            }
+        }
+
+        return new EvBattery(capacity ?? EvBattery.DefaultCapacityKWh, startSoC ?? 20.0)
+               {
+                   // No goal named: full. The others are limits on top of it, whichever comes first —
+                   // the same rule the EVCC CLI's BuildBattery applies, so a run and a hand-driven car
+                   // configured alike behave alike.
+                   TargetSoC       = targetSoC ?? (energyKWh is null && minutes is null ? 100.0 : null),
+                   TargetEnergyWh  = energyKWh * 1000.0,
+                   MaxDuration     = minutes is { } m ? TimeSpan.FromMinutes(m) : null,
+                   MinimumSoC      = minimumSoC,
+                   RequestedPowerW = (powerKW ?? 0) * 1000.0,
+                   TaperFromSoC    = taper ?? 80.0,
+
+                   // Lower than EvBattery's own 5 000, and deliberately: that ceiling is a runaway guard
+                   // for a car driven by hand, where an hour of charging is the point. Here the loop is
+                   // pointed at somebody else's station, and a goal that turns out to be unreachable —
+                   // a supply that delivers nothing, a target above capacity — should end the arm in
+                   // minutes rather than occupy their rig. It is not silent when it bites: `Describe`
+                   // reports `LoopLimit` and says the goal was not reached.
+                   MaxIterations   = maxLoops ?? DefaultInteropIterations,
+               };
+
+    }
+
+    /// <summary>The iteration ceiling a battery-driven interop run gets when it names none — ten minutes
+    /// at one second apart. See <see cref="Battery"/> for why it is not <c>EvBattery</c>'s own.</summary>
+    public const int DefaultInteropIterations = 600;
+
+    /// <summary>
+    /// How long the whole session may take, derived rather than guessed: a battery-driven charge loop runs
+    /// until the car is done, and at a real <see cref="ChargeLoopInterval"/> that is minutes, not the
+    /// 180 s an ordinary run gets.
+    /// </summary>
+    /// <remarks>
+    /// The bound is the battery's own iteration ceiling times the interval, plus the ordinary budget for
+    /// everything around the loop. Computed, so a run cannot end on <i>our</i> clock while the operator
+    /// believes it ended on the car's goal — the same failure <see cref="OngoingTimeout"/> exists to avoid,
+    /// one layer out. Null when no battery is configured, leaving the caller's own default.
+    /// </remarks>
+    public static TimeSpan? ChargeSessionBudget()
+    {
+        if (Battery() is not { } battery)
+            return null;
+
+        var interval = ChargeLoopInterval() ?? TimeSpan.FromMilliseconds(50);
+        return battery.MaxIterations * interval + TimeSpan.FromSeconds(180);
+    }
 
 
     /// <summary>

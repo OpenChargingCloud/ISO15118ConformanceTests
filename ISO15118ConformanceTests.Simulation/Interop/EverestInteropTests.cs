@@ -105,10 +105,14 @@ public class EverestInteropTests
         // 180 s covers every ordinary run. A run that raises V2G_INTEROP_ONGOING is measuring a station
         // timer longer than that, so the budget has to clear it — and by a margin, or the run ends on
         // *our* deadline one message before theirs and reads as "the station never answered".
-        var ongoing  = InteropEnvironment.OngoingTimeout();
-        using var cts = new CancellationTokenSource(ongoing is { } pollBudget
-                                                        ? pollBudget + TimeSpan.FromSeconds(120)
-                                                        : TimeSpan.FromSeconds(180));
+        //
+        // A battery-driven charge loop needs the same consideration for the same reason: it runs until the
+        // car is done, at whatever interval the run set, so its budget is computed from the two.
+        var ongoing        = InteropEnvironment.OngoingTimeout();
+        var sessionBudget  = ongoing is { } pollBudget
+                                 ? pollBudget + TimeSpan.FromSeconds(120)
+                                 : InteropEnvironment.ChargeSessionBudget() ?? TimeSpan.FromSeconds(180);
+        using var cts = new CancellationTokenSource(sessionBudget);
 
         // Stand in as the certificate-provisioning backend their station publishes to, if the run asks
         // for it. Started *before* the session, because the window it has to answer in is 4,5 s wide and

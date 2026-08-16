@@ -518,6 +518,41 @@ either implementation
 only, Update being an explicit `TODO`, so the selection answers before the stub is reached. That is a fact
 about their catalogue, not a run nobody has done.
 
+### A session that charges rather than one that completes
+
+The charge loop is **three iterations** unless a battery says otherwise, and every recorded vector was
+taken at three. That is right for a conformance run and wrong for watching a station deliver energy:
+
+```bash
+V2G_INTEROP_BATTERY="kwh=60,soc=20,target=70,power=0,loops=200"   # 60 kWh pack, 20 % -> 70 %
+V2G_INTEROP_CHARGE_INTERVAL=1000                                  # ms between CurrentDemand pairs
+```
+
+Keys: `kwh`, `soc`, `target` (%), `energy` (kWh delivered), `power` (kW the car asks for; **0 = whatever
+the station offers**, which is what measures *them*), `minutes`, `minsoc`, `taper`, `loops`. Naming no
+goal charges to full. **A misspelled key throws** — a run that silently kept the three-iteration default
+while you believed a battery was configured looks complete and measured something else.
+
+**Two clocks, and mixing them up is the trap.** One iteration stands for a *simulated* minute, so a
+physically sensible charge is tens of iterations and is over in about a second of wall clock at the
+default 50 ms. `…_CHARGE_INTERVAL` sets the real one. It is **not** `V2G_INTEROP_CHARGELOOP`, which is
+how long *our station* waits for a peer — one is pacing we produce, the other a timeout we enforce.
+
+**Size it from a measurement, not from the config.** Run a short arm first (`target` a few percent above
+`soc`) and read `Battery: … kWh delivered … in N iteration(s)`; that gives Wh per iteration. Against
+`config-dc2-pnc-validator-ours.yaml` on 2026-08-16 it was **429 Wh** (≈25,7 kW) with ~134 ms per pair, so
+20 % → 70 % of a 60 kWh pack came to 81 iterations and 96 s of wall clock.
+
+The session budget is **derived** — `loops × interval + 180 s` — so a paced loop cannot end on our own
+deadline and read as a station that stopped answering.
+
+**Plug the SIL car in *after* the manager.** A `sil-car.sh` from an earlier station is subscribed to a
+broker whose station has restarted; its plug-in was consumed by the dead one, CP never reaches state C,
+and `CableCheck` ends in `MREC11CableCheckFault` → `Inoperative`, which poisons every following arm too.
+Our side sees only a 60 s `CableCheck` timeout, their side only an **empty car log** — check that the car
+log is non-empty before blaming the session
+([`…-iso2-pnc-charge`](../../docs/interop-runs/2026-08-16-everest-iso2-pnc-charge/notes.md)).
+
 ### Scenario order
 
 1. ✅ **-2 DC, EIM, `tls_security: allow`** — forward. Done 2026-08-02: a complete charge, 36/36 `OK`.
