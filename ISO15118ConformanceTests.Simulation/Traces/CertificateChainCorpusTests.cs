@@ -301,6 +301,19 @@ public class CertificateChainCorpusTests
 
         var now = DateTime.UtcNow.AddMinutes(-5);
 
+        // The two *current* CRLs get a decade, not a real CRL's week.
+        //
+        // They used to get `now.AddDays(7)`, which made this corpus a fixture with a fuse. Written
+        // 2026-07-31, it stopped being current on 2026-08-07, and from that day the Kotlin and Swift
+        // revocation gates failed on a genuine list that had simply aged out — invisible here,
+        // because C# *writes* this material and never reads it. Nine days later a Gradle wrapper made
+        // the Kotlin gate runnable again and that was the first thing it said.
+        //
+        // The stranger's CRL needs the same treatment, and more quietly: expired *and* from the wrong
+        // CA both read as Unknown, so an aged-out one would keep passing its test while checking
+        // nothing. `TheCorpusHasNotAgedOut` is what keeps both honest from now on.
+        var crlLifetime = TimeSpan.FromDays(365 * 10);
+
         return new
         {
             what = "A CRL from the MO Sub-CA 2 revoking the contract leaf, the leaf it revokes, a "
@@ -312,12 +325,12 @@ public class CertificateChainCorpusTests
             unrevokedLeaf   = Hex(hierarchy.VehicleLeaf.Certificate),
             crl             = Convert.ToHexString(
                                   Crl(issuer, [revoked.Certificate.SerialNumber],
-                                      now, now.AddDays(7))).ToLowerInvariant(),
+                                      now, now + crlLifetime)).ToLowerInvariant(),
             expiredCrl      = Convert.ToHexString(
                                   Crl(issuer, [revoked.Certificate.SerialNumber],
                                       now.AddDays(-30), now.AddDays(-23))).ToLowerInvariant(),
             crlFromStranger = Convert.ToHexString(
-                                  Crl(hierarchy.CpoSubCa2, [], now, now.AddDays(7))).ToLowerInvariant(),
+                                  Crl(hierarchy.CpoSubCa2, [], now, now + crlLifetime)).ToLowerInvariant(),
         };
     }
 
@@ -349,6 +362,64 @@ public class CertificateChainCorpusTests
             Assert.That(profileCase.GetProperty("trusted").GetBoolean(), Is.True,
                         "the chain is sound — that is exactly why the finding has to carry it");
             Assert.That(profileCase.GetProperty("findings").EnumerateArray().Count(), Is.EqualTo(1));
+        });
+
+    }
+
+
+    /// <summary>
+    /// The corpus is still valid *today* — the one thing a fixture full of dated material can stop
+    /// being without anybody touching it.
+    /// </summary>
+    /// <remarks>
+    /// This exists because it already happened. The genuine CRL was issued with a real CRL's
+    /// seven-day life, so seven days after each regeneration it read as expired — and an expired list
+    /// answers <c>Unknown</c>, which is exactly what the *other* two cases are built to require. The
+    /// failure landed on the Kotlin and Swift gates, which consume this material; nothing here did,
+    /// because this side only writes it. So the check belongs here, in the suite that runs offline
+    /// every time, rather than in the two that need a JDK and a Mac.
+    /// <para>
+    /// The headroom is deliberately generous. A year on the lists, ninety days on the certificates:
+    /// enough that this fails as a *reminder to regenerate*, long before anything downstream breaks,
+    /// and never because a machine's clock is a few hours out.
+    /// </para>
+    /// </remarks>
+    [Test]
+    public void TheCorpusHasNotAgedOut()
+    {
+
+        Assert.That(File.Exists(VectorPath), Is.True, $"corpus missing: {VectorPath} — run RegenerateTheCorpus");
+
+        var corpus     = JsonDocument.Parse(File.ReadAllText(VectorPath)).RootElement;
+        var revocation = corpus.GetProperty("revocation");
+        var now        = DateTime.UtcNow;
+
+        static byte[] Bytes(JsonElement parent, string name) =>
+            Convert.FromHexString(parent.GetProperty(name).GetString()!);
+
+        Assert.Multiple(() =>
+        {
+            // The two lists a test expects to be usable. `expiredCrl` is left out on purpose: being
+            // out of date is its entire job.
+            foreach (var name in new[] { "crl", "crlFromStranger" })
+            {
+                var crl = new Org.BouncyCastle.X509.X509CrlParser().ReadCrl(Bytes(revocation, name));
+
+                Assert.That(crl.NextUpdate, Is.GreaterThan(now.AddDays(365)),
+                            $"the '{name}' CRL is valid only until {crl.NextUpdate:u}. An aged-out list "
+                          + "reads as Unknown, which silently turns two revocation tests into tests of "
+                          + "nothing — run RegenerateTheCorpus.");
+            }
+
+            foreach (var name in new[] { "issuer", "revokedLeaf", "unrevokedLeaf" })
+            {
+                var certificate = new Org.BouncyCastle.X509.X509CertificateParser()
+                                      .ReadCertificate(Bytes(revocation, name));
+
+                Assert.That(certificate.NotAfter, Is.GreaterThan(now.AddDays(90)),
+                            $"the '{name}' certificate expires {certificate.NotAfter:u} — "
+                          + "run RegenerateTheCorpus before it takes the chain tests with it.");
+            }
         });
 
     }
