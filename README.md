@@ -90,7 +90,7 @@ how to read one.
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ⛔ `EV→` the sequence wall was ours and is gone; **their station now fails its own cable check and goes `Inoperative`**³⁰ | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ **`trusted_ca_keys` on the wire**, `[V2G2-651]`⁴³ | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
 
@@ -249,6 +249,24 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+⁴³ **`[V2G2-651]` implemented, fifteen months after this project started citing it at other people.**
+Every `-2` EV **shall** name the V2G roots it holds in RFC 6066's `trusted_ca_keys` ClientHello
+extension; `grep -rn trusted_ca_keys` matched nothing in our stack until 2026-08-16, which is the
+uncomfortable half of [`everest-isomux`](docs/reports/everest-isomux.md) §4 — we filed against a station
+that disables support for an extension we could not send.
+<br>**The extension decided the backend.** `SslStream` cannot add a ClientHello extension on any
+platform, so the managed BouncyCastle stack — until now the `-20` TLS 1.3 profile Schannel cannot serve —
+grew ISO 15118-2's transport: TLS 1.2 and the two `-2` suites. A `-2` session configured with roots on
+the SslStream path is **refused**, not quietly run without them. Identifier type `cert_sha1_hash`, the
+form EVerest's own parser documents; their parser takes all four, so nothing rides on it.
+<br>Three tests read the named roots back off a live TLS 1.2 handshake — **two fail when the extension is
+removed** — and one *old* cipher-suite test was updated rather than deleted, because catching the
+widening is what it was written for. It also uncovered a real fault underneath: `BuildSigner` built the
+TLS 1.3 certificate structure unconditionally, and TLS 1.2 answers that with `internal_error(80)`; its
+comment had described half the rule since the `-20` work.
+<br>**Their §4 is now reachable and has not been run.** `IsoMux` caps TLS at 1.2, which is exactly what
+this client speaks.
 
 ⁴² **The `-20` `[V2G20-460]` filing, measured — and a wall of theirs turned out to be one line of ours.**
 Their SECC never reads the SessionID it was sent: with `DEADBEEFDEADBEEF` and with eight zero bytes,
@@ -610,7 +628,7 @@ The offline run (`dotnet test`) needs no C toolchain, no Java and no network: th
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
 regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
-loopback E2Es run both peers in-process. 1 409 tests, all four assemblies green. The **live** cross-checks against a
+loopback E2Es run both peers in-process. 1 420 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 

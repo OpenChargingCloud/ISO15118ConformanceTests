@@ -343,6 +343,22 @@ ignores the extension is indistinguishable from one that honours it, because the
 choose. The requirement bites exactly where an operator holds two — mid-rotation, or serving two roots
 — and that is the configuration nobody tests.
 
+**Implemented on our side 2026-08-16**, after fifteen months in which this section described a duty our
+own car did not discharge. What the requirement leaves open, and how it was closed:
+
+- **Identifier type.** `[V2G2-651]` names RFC 6066 and stops there; RFC 6066 offers four
+  (`pre_agreed`, `key_sha1_hash`, `x509_name`, `cert_sha1_hash`). Our EV sends **`cert_sha1_hash`**, one
+  per root — the type that names a *certificate*, which is what the requirement's own words ask for,
+  and the form EVerest's server-side parser documents in its worked example. Their parser accepts all
+  four, so nothing rides on it; it is recorded because the next disagreement about this will be about
+  that choice.
+- **Which TLS stack can carry it.** Not `SslStream`, on any platform — it exposes no way to add a
+  ClientHello extension. So this is the second requirement (after the `-20` P-521/Ed448 profile) that
+  forces the managed BouncyCastle backend, and the first that forces it for `-2`.
+- **What our *station* does with one.** Records it, and serves the chain it was configured with.
+  `[V2G2-871]`'s selection duty is not implemented here and this file should not be read as claiming
+  otherwise.
+
 ### `-20` does **not** use `trusted_ca_keys` — it uses `certificate_authorities`, in both directions
 
 Read on 2026-08-12 to settle a question left open by the
