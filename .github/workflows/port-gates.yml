@@ -1,0 +1,59 @@
+# The port gates, from this side of the submodule boundary.
+#
+# The same suites the EVSimulatorApp repository runs on its own pushes, run here when the submodule
+# pointer moves — because a pointer bump changes which port commit this harness is paired with, and
+# that pairing is exactly what the gates check. One script defines them, in the submodule
+# (`libs/EVSimulatorApp/tools/port-gates.sh`), so the two workflows cannot drift into disagreeing
+# about what "the gates" are.
+#
+# What is deliberately absent: `dotnet test`. It needs the ISO schemas, which are ISO's and are not
+# redistributed — download-schemas.sh fetches them and running it is a person accepting a licence.
+# The offline gate stays a thing a maintainer runs, not something a robot accepts a licence for.
+# The gates below need no schema at all: every codec they exercise is generated and checked in.
+
+name: Port gates
+
+on:
+  push:
+    paths:
+      - 'libs/EVSimulatorApp'                          # the pointer itself
+      - 'ISO15118ConformanceTests.Simulation/Vectors/**'   # the corpus the ports are held to
+      - '.github/workflows/port-gates.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  jvm-and-node:
+    name: Kotlin · TypeScript · Capacitor · app
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - run: bash tools/port-gates.sh kotlin typescript capacitor app
+        working-directory: libs/EVSimulatorApp
+
+  swift:
+    name: Swift
+    runs-on: macos-latest
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - run: bash tools/port-gates.sh swift
+        working-directory: libs/EVSimulatorApp

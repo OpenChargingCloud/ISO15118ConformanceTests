@@ -41,6 +41,14 @@ session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our o
 reason as the codec tests: the offline gate is this solution), and the loopback E2Es run both peers
 in-process. Four assemblies, 1 451 tests.
 
+**The port gates are a second, separate suite** — the Kotlin, Swift and TypeScript back ends, held to
+the corpora this repository owns. `bash libs/EVSimulatorApp/tools/port-gates.sh` runs them (JDK, Node,
+and a Swift toolchain for the one that needs macOS); they need **no** ISO schemas, because every codec
+they exercise is generated and checked in. They only pass with this repository *above* the app — five
+Kotlin modules and five Swift targets read `ISO15118ConformanceTests.Simulation/Vectors/` directly.
+Both repositories run them in CI (`.github/workflows/port-gates.yml`); `dotnet test` is deliberately
+not in CI, because fetching the schemas is a person accepting a licence.
+
 **Read `dotnet test`'s exit code, not its summary lines.** When a test host crashes the run is aborted,
 but each assembly still prints a `Bestanden! : Fehler: 0, …` line for whatever it had finished — so an
 aborted run looks green and only the *total* is short (458 → 262 → 231 → 55 across four runs on
