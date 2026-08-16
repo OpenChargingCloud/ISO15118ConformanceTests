@@ -1,10 +1,13 @@
 # Draft report to EVerest (`EvseV2G`) — `CertificateUpdateRes` is sent from the union slot the previous response left behind
 
-Status: **draft, not sent**, and **not observed on the wire** — the first checklist item says so, and
-the instrument to do it exists as of the same day. Post it under your own name; see *Before sending*.
+Status: **draft, not sent** — and **observed on the wire as of 2026-08-16**, both halves. Post it under
+your own name; see *Before sending*.
 
 Evidence in this repository:
-[`2026-08-11-everest-iso2-cert-update-audit`](../interop-runs/2026-08-11-everest-iso2-cert-update-audit/notes.md).
+[`2026-08-11-everest-iso2-cert-update-audit`](../interop-runs/2026-08-11-everest-iso2-cert-update-audit/notes.md)
+(the source reading) and
+[`2026-08-16-everest-iso2-cert-update-live`](../interop-runs/2026-08-16-everest-iso2-cert-update-live/notes.md)
+(the session).
 
 ---
 
@@ -68,6 +71,24 @@ mandatory elements — `SAProvisioningCertificateChain`, `ContractSignatureCertC
 `ContractSignatureEncryptedPrivateKey`, `DHpublickey`, `eMAID` — reinterpreted from a differently
 typed struct.**
 
+> **Measured 2026-08-16, and it is exactly that.** A `-2` DC session over TLS 1.2 sent
+> `CertificateUpdateReq`; the response carried **`ResponseCode = OK`**, and the receiving car threw on
+> the next mandatory element it touched:
+>
+> ```
+> | 4 | CertificateUpdateReq | CertificateUpdateRes | OK |
+>
+> CryptographicException: DHpublickey: expected a 65-byte uncompressed P-256 point.
+> ```
+>
+> The timing is the second half of the evidence. In the same station, the **Installation** path logs
+> `CertificateInstallation-phase started` and waits **4 500 ms** for a backend before answering. The
+> Update path logs **no phase at all** and answers in **~134 ms** — the signature of a handler that
+> returns without doing anything.
+>
+> Of the two outcomes the paragraph below names, this is the **first**: the response encodes, reaches a
+> car, and claims success ([run](../interop-runs/2026-08-16-everest-iso2-cert-update-live/notes.md)).
+
 ### What it is *not*
 
 **Not a memory disclosure**, and this report should say so before someone reads it as one.
@@ -75,8 +96,9 @@ typed struct.**
 (`exi_basetypes_encoder.c:67-72`, `bytes_len > bytes_size → EXI_ERROR__BYTE_BUFFER_TOO_SMALL`), so a
 stale length that is out of range fails the encode rather than copying past the field. Which of the
 two happens — a garbage-but-encodable response, or an encode failure — depends on the bytes the
-previous message left, and **we have not run it**. Both are wrong in the same way at the requirement
-level; only the second is loud.
+previous message left. **Measured 2026-08-16: it is the first**, at least from a
+`PaymentServiceSelectionRes`. Both are wrong in the same way at the requirement level; the quiet one is
+the one that happens, and a car is told `OK`.
 
 ## What the standard asks
 
@@ -145,21 +167,25 @@ that — it is "answer the way you already answer everything else you cannot do"
 
 ## Before sending
 
-- [ ] **Put it on the wire — and there is a gate in front of it.** Still a source reading. The probe
-      exists as of 2026-08-11 and was taken to their station the same day, but the request cannot be
-      reached through the normal path: their `ServiceDiscoveryRes` advertises the certificate service
-      with **parameter-set-ID 1 only** —
+- [x] **Put it on the wire — done 2026-08-16, and the gate turned out to be ours.** Their
+      `ServiceDiscoveryRes` advertises the certificate service with **parameter-set-ID 1 only** —
       `const int16_t cert_parameter_set_id[] = {1}; // parameter-set-ID 1: "Installation" service.
       TODO: Support of the "Update" service (parameter-set-ID 2)`
-      (`charger/ISO15118_chargerImpl.cpp:226`) — so a car selecting set 2 is selecting a set that was
-      never offered, and `PaymentServiceSelection` answers before `handle_iso_certificate_update` is
-      ever called. Reaching the stub needs their advertisement changed, or the request injected past
-      the gate. **The neighbouring run went green on the installation path**
-      ([`…-iso2-cert-install`](../interop-runs/2026-08-11-everest-iso2-cert-install/notes.md)), which
-      is what establishes that the rest of the route works and only this message is walled off.
-      <br>Worth saying in the report itself: the handler is not merely unimplemented, it is
-      **unreachable in the shipped configuration** — which lowers the severity and should be stated
-      before a maintainer finds it and concludes the report was written without trying.
+      (`charger/ISO15118_chargerImpl.cpp:226`) — so a **conformant** car, which pairs *Update → set 2*,
+      is answered `FAILED_ServiceSelectionInvalid` and never reaches the handler. Ours was one.
+      <br>**Their own state table does not pair them.** The state after `SelectedPaymentOption =
+      Contract` is `WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD` (`iso_server.cpp:948`) and its mask admits
+      `V2G_CERTIFICATE_UPDATE_MSG` beside `V2G_CERTIFICATE_INSTALLATION_MSG` (`iso_server.hpp:87`, `:112`);
+      the state is chosen by the payment option and the dispatch keys on `CertificateUpdateReq_isUsed`
+      alone. Selecting the set they offer and sending the other message reaches the handler
+      ([run](../interop-runs/2026-08-16-everest-iso2-cert-update-live/notes.md)).
+      <br>**Say plainly in the issue that the probing car is off-profile there.** It names set 1 and sends
+      an Update, which no conformant EV does; what the handler then does is still theirs and would happen
+      to any car the moment set 2 is advertised. A report that hides the deviation is refutable in one
+      sentence, and this one does not.
+      <br>**Keep the severity note**: the handler is not merely unimplemented, it is **unreachable in the
+      shipped advertisement**, so no field EV meets it today. That belongs in the issue — before a
+      maintainer finds it and concludes the report was written without trying.
 - [x] **Check that the message is reachable at all.** Your dispatch handles `CertificateUpdateReq`
       explicitly and cites `[V2G2-556]`; it is not dead code behind a config flag.
 - [x] **Separate what is claimed from what is not.** Not a memory disclosure — the generated encoder

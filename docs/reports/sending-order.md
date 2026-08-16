@@ -4,11 +4,14 @@ Thirty-four sendable reports carrying **forty-eight issues** across six projects
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
-**Not one of them is waiting on a measurement.** The last open box was (37)'s *"run it against your
-station"*, taken on 2026-08-15; the only report still marked source-only,
-[`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md), is walled off by their own
-advertisement rather than by work nobody has done, and its checklist says so. Everything left in this
-directory is a decision a person makes.
+**Not one of them is waiting on a measurement, and since 2026-08-16 that is true without an exception.**
+The last open box was (37)'s *"run it against your station"*, taken on 2026-08-15. The one report still
+marked source-only after that, [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md),
+was described here as *walled off by their own advertisement rather than by work nobody has done* — and
+that was half right. Their advertisement pairs the parameter sets; their state table does not, so a car
+naming the set they offer while sending the other message reaches the handler. It was run, and the
+response came back `ResponseCode = OK` from an empty `// TODO`. **Everything left in this directory is a
+decision a person makes.**
 
 **The forty-ninth arrived on 2026-08-16 and belongs near the front**, though it is not slotted into the
 numbering below because the numbering is a suggestion and this one has a dependency the numbers cannot
@@ -214,8 +217,12 @@ that is the useful part — a filing that quotes the standard at length is a fil
 checking the standard.
 **21.** [`everest-d20-meter-info`](everest-d20-meter-info.md)
 **22.** [`everest-evsev2g-session-log-responses`](everest-evsev2g-session-log-responses.md)
-**23.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — source only, and
-its own checklist wants it on the wire first.
+**23.** [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md) — **on the wire
+since 2026-08-16**, `ResponseCode = OK` from an empty handler. Lead with that and with the timing
+contrast (their Installation path waits 4 500 ms, the Update path answers in 134 ms), then say in the
+same breath that the probing car named their advertised parameter set while sending the other message —
+off-profile on purpose, and their state table admits it. Saying it first is what stops the one-sentence
+rebuttal.
 **24.** [`pyevjosev-manifest-services`](pyevjosev-manifest-services.md) — one line, and the smallest
 thing in the directory. Good filler between two hard ones.
 

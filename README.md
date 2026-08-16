@@ -674,7 +674,7 @@ The offline run (`dotnet test`) needs no C toolchain, no Java and no network: th
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
 regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
-loopback E2Es run both peers in-process. 1 442 tests, all four assemblies green. The **live** cross-checks against a
+loopback E2Es run both peers in-process. 1 451 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 

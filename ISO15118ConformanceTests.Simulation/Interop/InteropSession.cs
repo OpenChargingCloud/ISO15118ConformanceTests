@@ -261,7 +261,13 @@ internal static class InteropSession
                                // every recorded interop session was taken at three iterations, 50 ms apart,
                                // and this must not change that by existing.
                                Battery            = InteropEnvironment.Battery(),
-                               ChargeLoopInterval = InteropEnvironment.ChargeLoopInterval()
+                               ChargeLoopInterval = InteropEnvironment.ChargeLoopInterval(),
+
+                               // Off-profile on purpose, and only when a run asks: naming the parameter
+                               // set a station *offers* while sending the other message is how a handler
+                               // behind an unadvertised set is reached at all.
+                               CertificateParameterSetId
+                                                  = InteropEnvironment.CertificateParameterSetId()
                            };
 
             if (ongoingTimeout is { } iso2Ongoing)

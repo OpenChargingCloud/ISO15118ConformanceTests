@@ -239,10 +239,16 @@ messages it buys: it is the difference between a result and a result with an ast
 **And it closed the last measurement box in `docs/reports/`.** Nothing in that directory now waits on a
 run: `evdriveflow-session-id`'s *"run it against your station"* was the one still open, and their station
 answered ten message types `OK` under a SessionID it never issued, `PowerDelivery` among them. What is
-left there is thirty-four reports and forty-eight issues waiting on a **person** — with one exception that
-is not a measurement either: [`everest-evsev2g-certificate-update`](reports/everest-evsev2g-certificate-update.md)
-is source-only because their advertisement gate offers parameter-set-ID 1 alone and answers before the
-stub can be reached, which is a fact about their catalogue rather than a run nobody has done.
+left there is thirty-four reports and forty-eight issues waiting on a **person**, and now with no
+exception at all. The one that stood out — [`everest-evsev2g-certificate-update`](reports/everest-evsev2g-certificate-update.md)
+— was called source-only *"because their advertisement gate offers parameter-set-ID 1 alone"*, a fact
+about their catalogue rather than a run nobody had done. **That reading was half right and it cost five
+days.** Their advertisement pairs the sets; their *state table* does not — the state after a Contract
+selection admits `CertificateUpdateReq` whatever set was selected. A car naming the set they offer and
+sending the other message reaches the handler, and on 2026-08-16 it did: `ResponseCode = OK` from an
+empty `// TODO`, and a `DHpublickey` that is not a P-256 point
+([run](interop-runs/2026-08-16-everest-iso2-cert-update-live/notes.md)). **Third time in two days that a
+wall turned out to be our instrument** — after isomux §4 and the Plug & Charge `CableCheck`.
 
 **The struck-through table below is the previous state**, kept because the shape of a day that empties a
 backlog is that half of it turns out not to have been work.

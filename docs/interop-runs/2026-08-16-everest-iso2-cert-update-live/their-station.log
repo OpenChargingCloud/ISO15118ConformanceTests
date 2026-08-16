@@ -1,0 +1,4 @@
+2026-08-16 05:46:27.108423 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-08-16 05:46:27.206880 [INFO] evse_manager:Ev  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-08-16 05:46:27.218830 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G CertificateUpdateReq
+2026-08-16 05:46:27.353276 [INFO] evse_manager:Ev  :: EVSE ISO V2G CertificateUpdateRes
