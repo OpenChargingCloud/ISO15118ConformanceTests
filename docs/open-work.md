@@ -252,6 +252,22 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
+- **On the BouncyCastle backend our interop TLS validation never sees the peer's intermediates**, so a
+  run whose trust store holds a **root alone** refuses every station — including one serving exactly the
+  chain it was told to trust. Found 2026-08-16 by the isomux §4 attempt, whose *control* failed
+  ([run](interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)).
+  <br>`BcTlsOptions.ValidatePeerChain` exists for this — *"the whole chain as the peer sent it, leaf
+  first"* — and `TlsPlatform.ToBcClientOptions` sets only `ValidatePeerLeaf`. The callback it wraps then
+  builds its path from `TrustRoots.PeerIntermediates(chain)` with `chain: null`, because this backend has
+  no platform `X509Chain` to hand over.
+  <br>**Third costume of the 2026-08-14 defect.** That day the *SslStream* interop callback was found
+  discarding the peer chain and fixed by routing it through `TrustRoots.PeerIntermediates`; the same
+  question — *where do the intermediates come from* — was never answered for the managed backend. Both
+  times a wider bundle hid it and narrowing the anchor to one root exposed it, which is the rule this
+  file already carries from 08-14 and did not apply before designing the arms.
+  <br>**Not started.** It blocks nothing but the §4 measurement, and it wants its own change with the
+  two arms as its test.
+
 - ~~**Our `-2` car's DC renegotiation skips `CableCheck` and `PreCharge`, and the state table requires
   them.**~~ **Fixed 2026-08-15**, stack branch `iso2-renegotiation-isolation`, both halves. `Evcc2` ran
   `PowerDelivery(Renegotiate)` → `ChargeParameterDiscovery` → `PowerDelivery(Start)` in **both** modes.
