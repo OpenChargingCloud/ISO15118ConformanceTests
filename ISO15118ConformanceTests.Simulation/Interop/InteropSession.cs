@@ -236,6 +236,11 @@ internal static class InteropSession
                                RenegotiationSkipsIsolationSequence
                                                   = InteropEnvironment.RenegotiationSkipsIsolation(),
 
+                               // The open arm of the 2026-08-15 re-run: does their supply ramp down once
+                               // the car stops claiming it is ready? Off unless a run asks for it.
+                               IsolationDeclaresNotReady
+                                                  = InteropEnvironment.IsolationDeclaresNotReady(),
+
 
                                // `Evcc2.SendSessionId` has existed since 2026-08-11 and this line had not:
                                // every -2 caller passing sendSessionId had it discarded here, so the one

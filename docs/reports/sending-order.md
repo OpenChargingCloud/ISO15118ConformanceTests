@@ -1,14 +1,23 @@
 # In what order to send them
 
-Thirty-three sendable reports carrying **forty-seven issues** across six projects, and none of them sent. The
+Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
-**As of 2026-08-15 not one of them is waiting on a measurement.** The last open box was (37)'s *"run it
-against your station"*, taken that evening; the only report still marked source-only,
+**Not one of them is waiting on a measurement.** The last open box was (37)'s *"run it against your
+station"*, taken on 2026-08-15; the only report still marked source-only,
 [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md), is walled off by their own
 advertisement rather than by work nobody has done, and its checklist says so. Everything left in this
 directory is a decision a person makes.
+
+**The forty-ninth arrived on 2026-08-16 and belongs near the front**, though it is not slotted into the
+numbering below because the numbering is a suggestion and this one has a dependency the numbers cannot
+express: [`everest-evsemanager-renegotiation-supply`](everest-evsemanager-renegotiation-supply.md) — a DC
+renegotiation leaves the charger `Inoperative` for the *following* sessions — should go out **with or
+after** an explicit mention that
+[`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) was ours and
+was wrong. Sent cold to a maintainer who saw neither, it reads as a second complaint about the same
+sequence from someone who has already been mistaken about it once. Its own checklist says so.
 
 It is a suggestion, not a queue to execute. The rules are given first so you can re-derive the order
 when something changes — and something will: `main` moves, projects wake up, and the first reply to any
