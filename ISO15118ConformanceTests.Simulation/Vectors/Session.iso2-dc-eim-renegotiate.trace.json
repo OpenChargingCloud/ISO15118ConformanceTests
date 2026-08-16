@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "iso2-dc-eim-renegotiate",
+  "protocol": "iso15118-2",
+  "mode": "dc",
+  "note": "DC, external payment, with one renegotiation ([V2G2-841]) \u2014 which on DC returns through CableCheck and PreCharge rather than straight back to the charge loop. Ported EVCCs have the reactive and proactive triggers; nothing has ever held them to the DC return path.",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupReqType",
+        "frame": "01fe800100000015809802000000000000000011d01aaf37bc04080c00"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupResType",
+        "frame": "01fe80010000001e8098020282c3034383c40451e0202d1114a905090ca914c4101e5ad940c0"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryReqType",
+        "frame": "01fe80010000000d8098020282c3034383c40451b8"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryResType",
+        "frame": "01fe8001000000178098020282c3034383c40451c00008004011110c050648"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionReqType",
+        "frame": "01fe8001000000108098020282c3034383c4045132001280"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionResType",
+        "frame": "01fe80010000000e8098020282c3034383c404514000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationReqType",
+        "frame": "01fe80010000000d8098020282c3034383c4045008"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationResType",
+        "frame": "01fe80010000000f8098020282c3034383c40450100000"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryReqType",
+        "frame": "01fe80010000001d8098020282c3034383c4045094ca400640618640088c40f40313205000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryResType",
+        "frame": "01fe8001000000368098020282c3034383c40450a00000000000240700c50a0560aa00004206186400820a130ea06207a0181860000620640088c3001100"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "CableCheckReqType",
+        "frame": "01fe8001000000108098020282c3034383c4045031001900"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "CableCheckResType",
+        "frame": "01fe8001000000128098020282c3034383c40450400000021000"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PreChargeReqType",
+        "frame": "01fe8001000000188098020282c3034383c40451710019018812006061801000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PreChargeResType",
+        "frame": "01fe8001000000168098020282c3034383c4045180000002103102180c00"
+      }
+    },
+    {
+      "index": 8,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe8001000000168098020282c3034383c4045150000000018a140ac2c0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe8001000000128098020282c3034383c40451600400010800"
+      }
+    },
+    {
+      "index": 9,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "CurrentDemandReqType",
+        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "CurrentDemandResType",
+        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200"
+      }
+    },
+    {
+      "index": 10,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe8001000000108098020282c3034383c4045152000600"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe8001000000128098020282c3034383c40451600400010800"
+      }
+    },
+    {
+      "index": 11,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryReqType",
+        "frame": "01fe80010000001d8098020282c3034383c4045094ca400640618640088c40f40313205000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryResType",
+        "frame": "01fe8001000000368098020282c3034383c40450a00000000000240700c50a0560aa00004206186400820a130ea06207a0181860000620640088c3001100"
+      }
+    },
+    {
+      "index": 12,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "CableCheckReqType",
+        "frame": "01fe8001000000108098020282c3034383c4045031001900"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "CableCheckResType",
+        "frame": "01fe8001000000128098020282c3034383c40450400000021000"
+      }
+    },
+    {
+      "index": 13,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PreChargeReqType",
+        "frame": "01fe8001000000188098020282c3034383c40451710019018812006061801000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PreChargeResType",
+        "frame": "01fe8001000000168098020282c3034383c4045180000002103102180c00"
+      }
+    },
+    {
+      "index": 14,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe8001000000168098020282c3034383c4045150000000018a140ac2c0"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe8001000000128098020282c3034383c40451600400010800"
+      }
+    },
+    {
+      "index": 15,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "CurrentDemandReqType",
+        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "CurrentDemandResType",
+        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200"
+      }
+    },
+    {
+      "index": 16,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "CurrentDemandReqType",
+        "frame": "01fe8001000000198098020282c3034383c40450d1001901860f0410c409003000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "CurrentDemandResType",
+        "frame": "01fe8001000000278098020282c3034383c40450e0000002103102400c0c3078000182d1114a905090ca914c400200"
+      }
+    },
+    {
+      "index": 17,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryReqType",
+        "frame": "01fe8001000000108098020282c3034383c4045151000600"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PowerDeliveryResType",
+        "frame": "01fe8001000000128098020282c3034383c40451600400010800"
+      }
+    },
+    {
+      "index": 18,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "WeldingDetectionReqType",
+        "frame": "01fe8001000000108098020282c3034383c4045211001900"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "WeldingDetectionResType",
+        "frame": "01fe8001000000158098020282c3034383c40452200000021031001400"
+      }
+    },
+    {
+      "index": 19,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionStopReqType",
+        "frame": "01fe80010000000e8098020282c3034383c40451f000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionStopResType",
+        "frame": "01fe80010000000e8098020282c3034383c404520000"
+      }
+    }
+  ]
+}

@@ -176,6 +176,52 @@ public class SessionTraceCorpusTests
                             Backend           = backend }.RunAsync(stream, ct);
             }),
 
+        // The two scenarios below were added on 2026-08-16, and they are the point of the exercise:
+        // everything above them records an EVCC that stopped changing on 2026-08-07, so the ports
+        // could be held to it and still be nine days behind. A recording is the only way a port
+        // learns that the car it mirrors has moved.
+
+        new("iso2-dc-eim-battery", "iso15118-2", "dc",
+            "DC, external payment, and the loop ends because the battery is full rather than after a " +
+            "fixed three cycles. Every session above this one charges for a count; this one charges " +
+            "to a state of charge, which is what the car actually does since 2026-08-08.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Dc);
+                await new Evcc2(stream, PowerMode.Dc, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          { Battery = new cloud.charging.open.protocols.ISO15118.Simulation.EvBattery(60.0, 20.0)
+                                      { TargetSoC = 22.0, MaxIterations = 100 } }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Dc);
+                await new Secc2(PowerMode.Dc, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso2-dc-eim-renegotiate", "iso15118-2", "dc",
+            "DC, external payment, with one renegotiation ([V2G2-841]) — which on DC returns through " +
+            "CableCheck and PreCharge rather than straight back to the charge loop. Ported EVCCs have " +
+            "the reactive and proactive triggers; nothing has ever held them to the DC return path.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Dc);
+                await new Evcc2(stream, PowerMode.Dc, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          { Renegotiate = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Dc);
+                await new Secc2(PowerMode.Dc, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
         new("iso20-ac-eim", "iso15118-20", "ac",
             "-20 AC, EIM. Crosses between the CommonMessages and AC message sets, which are separate " +
             "grammars with separate V2GTP payload types — a port that muddles the two is visible here " +
