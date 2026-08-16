@@ -68,9 +68,10 @@ replay offline as part of the suite too, so the matrix does not rot silently whe
 Evidence per cell lives under [`docs/interop-runs/`](docs/interop-runs/); the run-notes README explains
 how to read one.
 
-**Status:** ✅ complete live session &nbsp;·&nbsp; ◐ partial — ran to the stated point &nbsp;·&nbsp;
-⛔ blocked by a counterparty defect or limitation &nbsp;·&nbsp; ▢ not attempted yet &nbsp;·&nbsp;
-— not applicable / not implemented on their side
+**Status:** ✅ complete live session &nbsp;·&nbsp; ◐ partial — the session ran only to the stated point,
+**or** it ran through and one property is not checkable against that counterparty; the cell says which
+&nbsp;·&nbsp; ⛔ blocked by a counterparty defect or limitation &nbsp;·&nbsp; ▢ not attempted yet
+&nbsp;·&nbsp; — not applicable / not implemented on their side
 
 **Which side is ours** — the arrow points the way the session is driven, and the label names *our* role:
 
@@ -80,17 +81,31 @@ how to read one.
 | **`←SECC`** | *their* EV drives our C# **SECC**. The "reverse" direction: we are the charging station. |
 | **`EV→ ←SECC`** | both, in separate sessions. |
 
+**Transport rows and application rows** — the distinction that decides how two neighbouring cells relate.
+The TLS row of each table (`TLS 1.2 (unilateral)` for `-2`, `Mutual TLS 1.3` for `-20`) measures the
+**transport**: the version, the prescribed cipher suites, who authenticates, and whether the peer's chain
+builds to a root we trust. *Unilateral* means only the station presents a certificate, which is what `-2`
+prescribes; `-20` wants both sides and has its own row. Every other row is the **application layer riding
+on that transport**. So `Plug & Charge (over TLS)` is not a second TLS measurement: `-2` forbids
+`Contract` without TLS, so that row **presupposes** the transport row and measures the contract
+credential — `PaymentDetails`, the signed `AuthorizationReq`, the station's verdict.
+
+**One session can therefore be ✅ in the transport row and ◐ in the application row**, and against EVerest
+exactly that happens: the same `-2` PnC session proves the transport completely and leaves one
+application-layer property unmeasurable. Read the two cells as two questions, not as two verdicts on one
+thing.
+
 **ISO 15118-2**
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
 | AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 plain TCP · **×4 over TLS 1.2**³² · ✅ **`←SECC` their EV, EIM plain and Plug & Charge over TLS**³⁸ | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
 | DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
-| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; verdict now driven from our own backend — past `Authorization`, and `FAILED_CertificateRevoked` measured³ | — | — |
+| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` **the session works**: contract chain accepted and our signature verified on 2025.10.0 **and** 2026.02.1, `AuthorizationRes = OK`, on through `ChargeParameterDiscovery` into `CableCheck` — 408 frames, stopping for want of hardware simulation. `FAILED_CertificateRevoked` measured on the control arm, with our own backend supplying the verdict. **◐ *not* because anything failed, but because nothing validates the contract itself**: their decider is a stub that never reads the token³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ⛔ `EV→` the sequence wall was ours and is gone; **their station now fails its own cable check and goes `Inoperative`**³⁰ | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ **`trusted_ca_keys` on the wire**, `[V2G2-651]`⁴³ | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ **`trusted_ca_keys` on the wire**, `[V2G2-651]`⁴³ | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the **transport** of the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
 
@@ -138,7 +153,13 @@ FAILED_CertificateRevoked`, unreachable by any configuration of their SIL. The e
 one missing connection in the config, not a missing backend: only their two OCPP PnC configs join
 `EvseManager`'s `token_provider` to `auth`, and without it the contract token is published and dropped
 in silence ([`…-contract-validator`](docs/interop-runs/2026-08-13-everest-contract-validator/notes.md)).
-Still `◐`: what nothing checks, here or anywhere, is whether the *contract* is good.
+Still `◐`: what nothing checks, here or anywhere, is whether the *contract* is good — their decider is
+`DummyTokenValidator`, which returns a constant from its config and never reads the token, so standing in
+as the backend proves their plumbing **carries** a verdict, not that anything **forms** one.
+<br>**So: does `-2` Plug & Charge work against EVerest? Yes.** The flow runs and their station answers it
+correctly in both arms. The `◐` marks a property of their SIL that no session of ours can reach, not a
+failure of the session — and the transport it rides on is `✅` one row below, measured by this very
+session.
 
 ⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
 run notes — and 12 of our -20 messages decoded clean by a second independent codec.
