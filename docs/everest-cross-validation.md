@@ -621,9 +621,20 @@ section warns about in a different costume.
   with one V2G root nothing shows, with two the mux serves the first and an EV holding the other
   abandons the handshake per `[V2G2-924]`. Two log lines from 2026-08-06, unread until 2026-08-10
   ([`…-isomux-trusted-ca-keys`](interop-runs/2026-08-10-everest-isomux-trusted-ca-keys/notes.md)).
-  Filed: [`everest-isomux.md`](reports/everest-isomux.md). **The
-  failing case has not been run** — it needs two roots and an EV that sends the extension; ours does
-  not.
+  Filed: [`everest-isomux.md`](reports/everest-isomux.md).
+  <br>**The failing case is run, 2026-08-16, and it needed a conformance fix of ours first.** It wants
+  two roots and an EV that sends the extension, and ours did not — `[V2G2-651]` had been cited at other
+  people here for fifteen months while our own `-2` car sent nothing. With the extension built, the
+  second root installed and a valid SECC chain under each: naming root **B** while trusting only B is
+  refused; naming root **B** while trusting only **A** completes a full DC session; a control brackets
+  both. The `tcpdump` of that session shows the car naming exactly one authority,
+  `cert_sha1_hash EB:80:…:F5:A8` = `CN=V2GRootCA-B`, and the mux answering with a chain that verifies
+  under root **A** and fails under B, while `CN=SECCCert-B` sat installed and valid. **So the prediction
+  in the sentence above is now a measurement: the mux serves its configured chain and the extension
+  changes nothing.** The first attempt failed on *our* validation — control included — which is what
+  identified the defect as ours before it could be reported as theirs
+  ([attempt](interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md),
+  [run](interop-runs/2026-08-16-everest-isomux-section4/notes.md)).
 - **`IsoMux` reports that it could not read the message, and then handles it.** A failed
   `v2g_incoming_v2gtp()` is logged and not acted on, so a short or malformed V2GTP header still reaches
   `v2g_sniff_apphandshake`, still yields an `iso20` verdict, and the connection is still proxied — to

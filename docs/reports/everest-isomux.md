@@ -316,12 +316,34 @@ coupled, and fixing §4 alone would be unobservable from outside.
 > `trusted_ca_keys support disabled` on a **third** run, this time with two roots and a valid chain under
 > each; and the extension in a `-2` ClientHello does not upset your stack — the connection reaches your
 > `OcspCache::lookup` and the certificate exchange.
-> **So the state of §4 is: reachable, attempted, and blocked by a defect of ours**
-> ([run](../interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)). That defect was fixed later
-> the same day — our TLS options now hand the peer's whole chain to the validating callback on either
-> backend, and the root-only case has an offline arm of its own. **The blocker is gone and the run has not
-> been re-made**: which chain you serve to a car that named a root is still unmeasured, and this paragraph
-> will say what it shows when it does.
+> That defect was fixed later the same day — our TLS options now hand the peer's whole chain to the
+> validating callback on either backend — **and the run was re-made**
+> ([run](../interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md),
+> [re-run](../interop-runs/2026-08-16-everest-isomux-section4/notes.md)).
+>
+> **Measured, in four arms with the ClientHello on tape.** Each arm restarts the manager and re-plugs
+> the SIL car. Naming root A and trusting A completes a DC session; so does naming A and trusting A
+> again, last, so the controls bracket the measurement. Naming **root B** and trusting only B is
+> refused. Naming **root B** and trusting only **A** completes a full DC session — and that is the pair
+> that decides it:
+>
+> | arm | names | trusts | |
+> |---|---|---|---|
+> | a | A | A | complete DC session, 6 s |
+> | **b** | **B** | **B** | **refused, `bad_certificate(42)`, 178 ms** |
+> | **c** | **B** | **A** | **complete DC session, 6 s** |
+> | a2 | A | A | complete DC session, 6 s |
+>
+> The capture of arm c shows the car naming exactly one authority —
+> `cert_sha1_hash EB:80:14:8E:B9:6C:1E:72:E2:D8:C5:EA:4D:E6:EF:87:37:24:F5:A8`, which is
+> `CN=V2GRootCA-B` — and your station answering with `CN=SECCCert ← CPOSubCA2 ← CPOSubCA1 ←
+> CN=V2GRootCA`, which verifies under root **A** and fails under root **B**. `CN=SECCCert-B` was
+> installed, valid, and not served.
+>
+> **So §4's consequence is no longer a prediction from your boot line: `IsoMux` receives the extension
+> and serves the chain it was configured with regardless.** Two things this run deliberately did not
+> ask, because they only start to matter after a fix: what happens with *several* names, and with an
+> identifier type other than `cert_sha1_hash`.
 
 **Two things are therefore impossible here, not one.** No chain ever enters the selectable list; and
 `get_leaf_certificate_info` returns the **newest single** chain rather than all valid ones, so even with
@@ -432,18 +454,24 @@ Per finding, what is established and what is not:
       the version cap independently of our client.
 - [x] **§3 reproduced deliberately, with a control** — two `socat` connections six seconds apart
       differing by two bytes, no EV and no car simulation. A maintainer can run it in a minute.
-- [x] **§4's failing case — attempted 2026-08-15, and it cannot be run with any client here.** Say
-      *that* in the issue, which is a better sentence than the one this box used to ask for.
-      [`…-isomux-trusted-ca-keys-attempt`](../interop-runs/2026-08-15-everest-isomux-trusted-ca-keys-attempt/notes.md).
-      <br>**§2 closes the door on §4.** `openssl s_client -requestCAfile` sets the **TLS 1.3**
-      `certificate_authorities` extension — the instrument that measured chain selection against
-      `Evse15118D20` — and `IsoMux` refuses TLS 1.3 at the ClientHello, three times, with their own
-      `tls_early_post_process_client_hello: unsupported protocol`. The extension §4 is about is the
-      **TLS 1.2** RFC 6066 `trusted_ca_keys`, which `openssl` has no flag for and our own EVCC does not
-      implement. A `-2` EV that sends it is a capability we would have to build.
-      <br>**What the attempt did settle** is the arm §4 most needed: with a **second V2G root installed
-      and a valid SECC chain under each**, the station boots with the same two lines. The
-      *"then configure a trust anchor"* reading is now closed by measurement.
+- [x] **§4's failing case — run 2026-08-16, and it decided the section.** Four arms, each with a manager
+      restart and a fresh SIL plug-in: naming root **B** while trusting only B is refused
+      (`bad_certificate(42)`, 178 ms); naming root **B** while trusting only **A** completes a full DC
+      session; and the control — name A, trust A — completes, first *and* last, so the pair is bracketed.
+      The ClientHello capture shows one authority named,
+      `cert_sha1_hash EB:80:…:F5:A8` = `CN=V2GRootCA-B`, and the served chain verifying under root A and
+      failing under root B. `CN=SECCCert-B` was installed, valid and not served.
+      [`…-isomux-section4`](../interop-runs/2026-08-16-everest-isomux-section4/notes.md).
+      <br>**Two earlier states of this box are worth keeping**, because a reader of the issue may have
+      seen them. *2026-08-15*: the case *"cannot be run with any client here"* — `openssl s_client
+      -requestCAfile` sets the **TLS 1.3** `certificate_authorities` extension and `IsoMux` refuses TLS
+      1.3, while `trusted_ca_keys` is the **TLS 1.2** RFC 6066 extension `openssl` has no flag for and our
+      EVCC did not implement. We built it (`[V2G2-651]` obliged us to anyway). *2026-08-16, first
+      attempt*: both arms died on **our** validation, control included, and a control that fails is not a
+      control; that defect is fixed and the run above is the re-run.
+      <br>**Also settled, and it was the arm §4 most needed**: with a **second V2G root installed and a
+      valid SECC chain under each**, the station boots with the same two lines. The *"then configure a
+      trust anchor"* reading is closed by measurement, on five separate boots.
 - [x] **Every line reference re-read against the built 2026.02.1 tree**, on 2026-08-09 (§1, §2) and
       2026-08-10 (§3, §4): `IsoMux/v2g_server.cpp:30`, `:45-47`, `:48-51`, `:53-56`, `:118-142`,
       `:145-179`, `:172`, `:178`; `IsoMux/connection/connection.cpp:436-443`;

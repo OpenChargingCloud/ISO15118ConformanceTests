@@ -281,9 +281,10 @@ backlog is that half of it turns out not to have been work.
   backend, completing a `-20` DC session against a station that sends its Sub-CAs, plus the control that
   keeps it honest: a station sending a bare leaf is still refused, which a fix that merely accepted
   everything would fail.
-  <br>**What it does not do: the §4 measurement.** The blocker is gone and the run has not been made —
-  which chain `IsoMux` serves to a car that named a root is still unmeasured, and saying so is the
-  difference between a fix and a result.
+  <br>**And it unblocked the §4 measurement, which was taken the same day**: four arms, and the pair
+  that decides it is *names root B / trusts B* → refused against *names root B / trusts A* → complete DC
+  session. `IsoMux` receives the extension and serves its configured chain regardless
+  ([re-run](interop-runs/2026-08-16-everest-isomux-section4/notes.md)).
 
 - ~~**Our `-2` car's DC renegotiation skips `CableCheck` and `PreCharge`, and the state table requires
   them.**~~ **Fixed 2026-08-15**, stack branch `iso2-renegotiation-isolation`, both halves. `Evcc2` ran
@@ -349,9 +350,10 @@ backlog is that half of it turns out not to have been work.
   the extension is exactly the client §4 said could not be built here, and it was built and pointed at
   them. **Both arms died at `bad_certificate(42)` — the control included, which is what said the fault
   was ours**: the managed backend was reachable for the first time in this project's history, and the
-  chain-validation defect waiting there had never been exercised. Fixed the same day, first entry above;
-  the §4 measurement is still not taken
-  ([attempt](interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md)).
+  chain-validation defect waiting there had never been exercised. Fixed the same day, first entry above,
+  and **the re-run decided §4**: the car named root B on the wire and their station served the chain
+  under root A ([attempt](interop-runs/2026-08-16-everest-isomux-trusted-ca-keys/notes.md),
+  [re-run](interop-runs/2026-08-16-everest-isomux-section4/notes.md)).
 
 - ~~**Our `-20` car has one timeout for every response it waits for, and `-20` does not — and it is
   checked too late to catch a station that never answers.**~~ **Fixed 2026-08-11**, stack branch

@@ -1,0 +1,37 @@
+2026-08-16 04:11:29.013322 [INFO] iso15118_2:Evse  :: Module iso15118_2 initialized [2272ms]
+2026-08-16 04:11:29.013448 [INFO] iso15118_20:Evs  :: Module iso15118_20 initialized [2273ms]
+2026-08-16 04:11:29.046728 [INFO] iso_mux:IsoMux   :: Module iso_mux initialized [2299ms]
+2026-08-16 04:11:29.499584 [INFO] iso15118_2:Evse  :: TCP server on lo is listening on port [::1%0]:61341
+2026-08-16 04:11:29.499670 [INFO] iso15118_2:Evse  :: TLS server on lo is listening on port [::1%0]:64109
+2026-08-16 04:11:29.499993 [INFO] iso_mux:IsoMux   :: TLS server on eth0 is listening on port [fe80::215:5dff:fe07:f821%2]:64110
+2026-08-16 04:11:29.600066 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-16 04:11:29.600160 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: No trust anchors for certificate: C:DE CN:SECCCert DC:CPO O:EVerest
+2026-08-16 04:11:29.600184 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: trusted_ca_keys support disabled
+2026-08-16 04:11:29.611968 [INFO] iso_mux:IsoMux   :: SDP socket setup succeeded
+2026-08-16 04:11:29.621387 [WARN] iso15118_2:Evse void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-08-16 04:11:30.313129 [INFO] iso15118_2:Evse  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-16 04:11:31.074056 [INFO] iso15118_2:Evse  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-08-16 04:11:31.076946 [INFO] iso15118_20:Evs  :: Using ethernet interface: lo
+2026-08-16 04:11:31.077268 [WARN] iso15118_20:Evs module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: The supported energy services contain DC_BPT or MCS_BPT, but dc limits does not contain BPT limits. This can lead to session shutdowns.
+2026-08-16 04:11:31.077422 [INFO] iso15118_20:Evs  :: Created logfile at: /home/ahzf/everest/./260816_02-11-31.yaml
+2026-08-16 04:11:56.199579 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-08-16 04:11:56.244498 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: OcspCache::lookup: not in cache: d8817041a94bb65646ea392c812fcb4978ae4cf6
+2026-08-16 04:11:56.448157 [INFO] iso_mux:IsoMux   :: Handling SupportedAppProtocolReq
+2026-08-16 04:11:56.448280 [INFO] iso_mux:IsoMux   :: handshake_req: Namespace: urn:iso:15118:2:2013:MsgDef, Version: 2.0, SchemaID: 1, Priority: 1
+2026-08-16 04:11:56.448413 [INFO] iso_mux:IsoMux   :: Connected to proxy module for ISO-2/DIN
+2026-08-16 04:11:56.448435 [INFO] iso_mux:IsoMux   :: Multiplexer: Proxy TLS->TCP
+2026-08-16 04:11:56.448466 [INFO] iso15118_2:Evse  :: Incoming connection on lo from [a00:94b8::]:38072
+2026-08-16 04:11:56.448691 [INFO] iso15118_2:Evse  :: Started new TCP connection thread
+2026-08-16 04:11:56.448741 [INFO] iso15118_2:Evse  :: Handling SupportedAppProtocolReq
+2026-08-16 04:11:56.449146 [INFO] iso15118_2:Evse  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-08-16 04:11:56.472570 [INFO] iso15118_2:Evse  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+2026-08-16 04:11:56.472657 [INFO] iso15118_2:Evse  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+2026-08-16 04:11:56.472666 [INFO] iso15118_2:Evse  :: Created new session with id 0x4cdfdac2e83c6eb1
+2026-08-16 04:11:56.680506 [INFO] iso15118_2:Evse  :: SelectedPaymentOption: ExternalPayment
+2026-08-16 04:11:57.186483 [INFO] iso15118_2:Evse  :: Parameter-phase started
+2026-08-16 04:11:57.187418 [INFO] iso15118_2:Evse  :: Selected energy transfer mode: DC_extended
+2026-08-16 04:12:01.776965 [INFO] iso15118_2:Evse  :: Precharge-phase started
+2026-08-16 04:12:02.529462 [INFO] iso15118_2:Evse  :: Welding-phase started
+2026-08-16 04:12:02.728071 [INFO] iso15118_2:Evse  :: Closing TCP connection
+2026-08-16 04:12:02.782896 [INFO] iso_mux:IsoMux   :: connection_handle exited with 0
+2026-08-16 04:12:04.728437 [INFO] iso15118_2:Evse  :: TCP connection closed gracefully

@@ -265,8 +265,15 @@ removed** — and one *old* cipher-suite test was updated rather than deleted, b
 widening is what it was written for. It also uncovered a real fault underneath: `BuildSigner` built the
 TLS 1.3 certificate structure unconditionally, and TLS 1.2 answers that with `internal_error(80)`; its
 comment had described half the rule since the `-20` work.
-<br>**Their §4 is now reachable and has not been run.** `IsoMux` caps TLS at 1.2, which is exactly what
-this client speaks.
+<br>**And it decided their §4 the same day.** `IsoMux` caps TLS at 1.2, which is exactly what this client
+speaks — so the failing case ran at last, in four arms with the ClientHello on tape. Naming root **B**
+while trusting only B is refused; naming root **B** while trusting only **A** completes a full DC
+session; the control brackets both, first and last. The capture shows the car naming one authority,
+`cert_sha1_hash EB:80:…:F5:A8` = `CN=V2GRootCA-B`, and their station answering with a chain that verifies
+under root **A** — while `CN=SECCCert-B` sat installed and valid beside it. **§4's consequence is measured
+rather than predicted from their boot line: the extension arrives and changes nothing.** The first attempt
+that evening had failed on *our* validation, control included, which is what said the fault was ours
+before it was theirs. [`…-isomux-section4`](docs/interop-runs/2026-08-16-everest-isomux-section4/notes.md).
 
 ⁴² **The `-20` `[V2G20-460]` filing, measured — and a wall of theirs turned out to be one line of ours.**
 Their SECC never reads the SessionID it was sent: with `DEADBEEFDEADBEEF` and with eight zero bytes,

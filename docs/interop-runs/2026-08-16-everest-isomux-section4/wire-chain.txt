@@ -1,0 +1,31 @@
+# The certificate chain IsoMux served in that same session, off the same capture.
+
+3 certificate(s) in the capture, in wire order
+
+[0]
+    subject=CN=SECCCert, O=EVerest, C=DE, DC=CPO
+    issuer=CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+    sha1 Fingerprint=D8:81:70:41:A9:4B:B6:56:46:EA:39:2C:81:2F:CB:49:78:AE:4C:F6
+
+[1]
+    subject=CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+    issuer=CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+    sha1 Fingerprint=A0:A8:9F:E2:95:B9:88:2B:0A:B0:CD:66:F0:24:C0:1C:8F:39:62:58
+
+[2]
+    subject=CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+    issuer=CN=V2GRootCA, O=EVerest, C=DE, DC=V2G
+    sha1 Fingerprint=E7:90:EC:12:F7:08:C2:15:89:45:4E:0B:F0:86:F8:3D:49:2F:5C:10
+
+# Which root does it reach?
+#   under root A (their configured one): /tmp/isomux-s4/wire-0.pem: OK
+#   under root B (the one the car named): error /tmp/isomux-s4/wire-0.pem: verification failed
+
+# The two roots
+#   A subject=CN=V2GRootCA, O=EVerest, C=DE, DC=V2G sha1 Fingerprint=F6:BA:4E:BD:D2:D5:8D:71:1B:99:51:A8:39:65:C9:E3:34:4D:48:C4 
+#   B subject=CN=V2GRootCA-B, O=EVerest, C=DE, DC=V2G sha1 Fingerprint=EB:80:14:8E:B9:6C:1E:72:E2:D8:C5:EA:4D:E6:EF:87:37:24:F5:A8 
+
+# The B leaf that was installed, valid, and not served
+#   subject=CN=SECCCert-B, O=EVerest, C=DE, DC=CPO
+#   issuer=CN=CPOSubCA-B, O=EVerest, C=DE, DC=V2G
+#   sha1 Fingerprint=03:92:C1:6D:ED:D3:3A:2A:D5:40:45:56:A9:05:B1:E7:23:65:01:3C
