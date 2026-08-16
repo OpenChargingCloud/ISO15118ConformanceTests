@@ -55,10 +55,10 @@ evidence:
 | | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | [eVDriveFlow](tools/interop-evdriveflow/README.md) | [tux-evse](tools/interop-tux-evse/README.md) |
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
-| **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G**¹ (OpenV2G in the 2023 image) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
-| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again¹⁶ | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW)¹⁷ |
+| **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G** (OpenV2G in the 2023 image) ([details](docs/matrix/everest-iso2-dc-eim.md)) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
+| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again ([details](docs/matrix/josev-is-everests-ev.md)) | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW) ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
 | Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image · **`main` `fc51088`** (source build) |
-| Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something¹⁶ | `EV→ ←SECC` | `EV→ ←SECC` |
+| Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something ([details](docs/matrix/josev-is-everests-ev.md)) | `EV→ ←SECC` | `EV→ ←SECC` |
 
 The **Ours** column is our own C# stack against itself — a loopback E2E with both peers ours, which is
 what runs in the offline suite and what every counterparty column is measured against. It says the
@@ -86,573 +86,106 @@ The TLS row of each table (`TLS 1.2 (unilateral)` for `-2`, `Mutual TLS 1.3` for
 **transport**: the version, the prescribed cipher suites, who authenticates, and whether the peer's chain
 builds to a root we trust. *Unilateral* means only the station presents a certificate, which is what `-2`
 prescribes; `-20` wants both sides and has its own row. Every other row is the **application layer riding
-on that transport**. So `Plug & Charge (over TLS)` is not a second TLS measurement: `-2` forbids
-`Contract` without TLS, so that row **presupposes** the transport row and measures the contract
-credential — `PaymentDetails`, the signed `AuthorizationReq`, the station's verdict.
+on that transport**. So `Plug & Charge` is not a second TLS measurement: `-2` forbids `Contract` without
+TLS, so that row **presupposes** the transport row and measures the contract credential —
+`PaymentDetails`, the signed `AuthorizationReq`, the station's verdict. One session can be ✅ in the
+transport row and carry a second marker in the application row; read them as two questions, not two
+verdicts on one thing.
 
-**One session can therefore be ✅ in the transport row and ◐ in the application row**, and against EVerest
-exactly that happens: the same `-2` PnC session proves the transport completely and leaves one
-application-layer property unmeasurable. Read the two cells as two questions, not as two verdicts on one
-thing.
+**Two markers in one cell** mean the scenario runs and something in it does not: the first names what
+works, the second what is missing. `✅ complete charge · ▢ nothing validates the contract` is a session
+that ran end to end with one property nobody can check — not a failure, and not a clean pass either.
+
+---
+
+# We as an EVCC (Electric Vehicle)
+
+Our C# **EVCC** drives *their* station. `Ours` is the loopback, where the station is ours too.
 
 **ISO 15118-2**
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 plain TCP · **×4 over TLS 1.2**³² · ✅ **`←SECC` their EV, EIM plain and Plug & Charge over TLS**³⁸ | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
-| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
-| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` **a complete charge, 2026-08-16**: contract chain accepted, our signature verified, `AuthorizationRes = OK`, and **81 charge-loop iterations delivering 30,16 kWh — 20 % → 70 % — in 96 s**⁴⁴. `FAILED_CertificateRevoked` measured on the control arm, with our own backend supplying the verdict. **◐ *not* because anything failed, but because nothing validates the contract itself**: their decider is a stub that never reads the token, and the documented setup puts a CSMS there³ | — | — |
-| Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
-| Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
-| Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ⛔ `EV→` the sequence wall was ours and is gone; **their station now fails its own cable check and goes `Inoperative`**³⁰ | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ **`trusted_ca_keys` on the wire**, `[V2G2-651]`⁴³ | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the **transport** of the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ plain TCP · ✅ over TLS 1.2 ([details](docs/matrix/everest-iso2-ac-tls12.md)) | — | — |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ ([details](docs/matrix/everest-iso2-dc-eim.md)) | — | ◐ stops at `SessionSetup` ([details](docs/matrix/tux-iso2-dc-forward.md)) |
+| Plug & Charge | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ | ✅ 30,16 kWh charged, 81 loops · ▢ nothing validates the contract itself ([details](docs/matrix/everest-iso2-pnc-charge.md)) | — | — |
+| Contract provisioning | ✅ `Iso2LoopbackTests` — Install *and* Update, key unwrapped | — not implemented | ✅ Install, with our MO backend behind their station · ⛔ Update answers `OK` from an empty handler ([details](docs/matrix/everest-iso2-cert-update.md)) | — | — |
+| Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `OK_OldSessionJoined` | — | — | — |
+| Signed tariffs (SalesTariff) | ✅ E2E | ✅ their MO-signed tariff verified by us | — | — | — |
+| Renegotiation | ✅ `Iso2RenegotiationSequenceTests` (AC + DC through `CableCheck`) | ✅ AC, `[V2G2-841]` | ⛔ their station fails its own cable check and goes `Inoperative` ([details](docs/matrix/everest-iso2-renegotiation.md)) | — | — |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ `trusted_ca_keys` on the wire, `[V2G2-651]` ([details](docs/matrix/ours-iso2-trusted-ca-keys.md)) | ✅ | ✅ the prescribed suite, their full chain against the root alone ([details](docs/matrix/everest-iso2-ac-tls12.md)) | — | — |
 
 **ISO 15118-20**
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ `EV→ ←SECC` TCP + TLS | ✅ `EV→` ×2 sessions | ◐ `EV→` 12 exchanges, their SECC drops `DC_ChargeLoop`⁴ — **and since 2026-08-15 with their station unpatched**⁴² | — |
-| DC, Dynamic | ✅ `Evcc20DynamicModeTests` + `Secc20DynamicModeTests` | ✅ `←SECC` only — their EV adopts the mode our station offers¹³ | ✅ `EV→` · ✅ **`←SECC` ×2, with a Scheduled control arm that switches with the offer**³⁵ | ◐ `←SECC` 15 exchanges into the charge loop²⁰ | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ `←SECC` TCP + TLS | ✅ `EV→` ×3 plain TCP, **×2 over mutual TLS 1.3**⁵ · ✅ `←SECC` 56 exchanges, 44 charge loops³¹ — **over mutual TLS 1.3**³³ **and in Dynamic**³⁶ | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Secc20AcBptTests`, `Evcc20BptRankingTests` | ✅ `←SECC` their EV selects service 6 / 5 | ✅ `EV→` **DC_BPT ×2** (Scheduled + Dynamic), our discharge limit read back; **AC_BPT ×2 plain and ×2 over mutual TLS 1.3**¹¹ · ✅ **`←SECC` their EV picks AC_BPT *and* DC_BPT out of our catalogue**, each plain and over TLS³⁴ — **AC_BPT also in Dynamic, completing all four AC charge-loop variants**³⁷ | ✅ `←SECC` **DC_BPT**, both envelopes crossed²² | — |
-| Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ `EV→` · ✅ **`←SECC` contract chain anchored at their MO root, their TLS client chain at their OEM root**⁴⁰ | ✅ `←SECC` their EV's signed `AuthorizationReq` verified by our SECC¹⁰, **and its contract chain anchored at their MO root**³⁹ (`EV→`: commented out on their side) | — they implement none²⁸ | — |
-| CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, the EV unwraps a working contract key | ◐ `←SECC` our signed res verified; their impl ends at its own `NotImplementedError` | ◐ `←SECC` their EV's real OEM chain, built against their OEM root²⁶ — then the same wall | — | — |
-| Pause / Resume | ✅ `Iso20LoopbackTests` (`OK_OldSessionJoined`) | ⛔ `EV→` their -20 session context stays empty, so it degrades to a graceful new session¹⁴ | ✅ `EV→` paused and resumed end to end over mutual TLS (`OK_OldSessionJoined`), the resumed half opening at `DcChargeParameterDiscovery`²⁵ | — | — |
-| Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` — signature verified at the EV | ◐ `←SECC` their AC EVCC consumed our signed schedule; nothing external **verifies** it¹⁵ | — they send none, deliberately²⁹ | — | — |
-| Renegotiation | ✅ `Secc20DynamicModeTests` (re-entry at ServiceDiscovery) | ◐ `←SECC` their EV sends a real `SessionStopReq(ServiceRenegotiation)` [V2G20-1477], then drops the link anyway¹⁴ | ◐ `←SECC` the same, in **DC** and against their fork²⁷ | — | — |
-| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ `EV→` · ✅ **`←SECC` their EV's client chain validated, anchored at their OEM root**⁴⁰ (their P-256 PKI) | ✅ `EV→` full session ×2, our client on Windows⁶ · ✅ **`←SECC` their EV presents an OEM vehicle certificate to our station**³³ | ✅ `←SECC` **secp521r1 both ways**²¹ | — |
-| SDP discovery | ✅ `FullStackLoopbackTests` (SLAC→SDP→TLS→-20 DC) | ✅ `EV→ ←SECC` | ✅ `EV→` multicast (unicast: fixed in 2026.02.1) · `←SECC` **their EV discovers the recording fixture**⁸ | ✅ `←SECC` their EV found our SECC | — |
-| Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ `EV→` IsoMux, all four offer shapes⁷ — **and over TLS**, where it routes a -20 session onto TLS 1.2¹² | — | — |
-| WPT · ACDP | ▢ codec only — but the codec is now independently judged²⁴ | *no independent stack implements session state machines for them; the bytes are read by EXIficient* | | | |
-| MCS | ✅ `Secc20McsTests` | — | ✅ `EV→` ×3 (Scheduled ×2, Dynamic) · `←SECC` their EV picked service **8** out of our catalogue⁸ | — | — |
-| MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ `EV→` ×2 complete sessions under service **9**, our discharge limits read back by their station⁹ | — | — |
+| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | ✅ | ✅ 12 exchanges · ⛔ their SECC drops `DC_ChargeLoop` ([details](docs/matrix/edf-iso20-dc-scheduled.md)) | — |
+| DC, Dynamic | ✅ `Evcc20DynamicModeTests` | — | ✅ | — | — |
+| AC | ✅ `Iso20LoopbackTests` | — | ✅ plain TCP · ✅ over mutual TLS 1.3 ([details](docs/matrix/everest-iso20-ac-forward.md)) | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Evcc20BptRankingTests` | — | ✅ DC_BPT and AC_BPT, plain and over mutual TLS 1.3 ([details](docs/matrix/everest-iso20-bpt-forward.md)) | — | — |
+| Plug & Charge | ✅ `Iso20LoopbackTests` | ✅ | — commented out on their side | — they implement none ([details](docs/matrix/edf-iso20-pnc.md)) | — |
+| CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, contract key unwrapped | — | — | — | — |
+| Pause / Resume | ✅ `Iso20LoopbackTests` | ⛔ their `-20` session context stays empty ([details](docs/matrix/josev-iso20-session-context.md)) | ✅ over mutual TLS, resuming at `DcChargeParameterDiscovery` ([details](docs/matrix/everest-iso20-pause-resume.md)) | — | — |
+| Signed tariffs (AbsolutePriceSchedule) | ✅ signature verified at the EV | — | — they send none, deliberately ([details](docs/matrix/everest-iso20-tariffs.md)) | — | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ | ✅ our client on Windows ([details](docs/matrix/everest-iso20-mtls-forward.md)) | — | — |
+| SDP discovery | ✅ `FullStackLoopbackTests` | ✅ | ✅ multicast and unicast | — | — |
+| Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ all four offer shapes · ⛔ over TLS it routes a `-20` session onto TLS 1.2 ([details](docs/matrix/everest-isomux-sap.md)) | — | — |
+| WPT · ACDP | ▢ codec only, independently judged ([details](docs/matrix/ours-wpt-acdp.md)) | *no independent stack implements these state machines* | | | |
 
-Each note states the one fact its cell cannot hold. The reasoning, the run that produced it and the
-defects it turned up live on the counterparty's own page, linked under **Deeper reading** below.
+**ISO 15118-20 MCS**
 
-¹ Only the **2023.10.0** demo image was an independent-codec witness (OpenV2G). Current `EvseV2G` and
-`Evse15118D20` sit on **cbV2G**, our own corpus generator — so byte agreement there is agreement with
-ourselves, and the value of this column is behavioural. The independent byte judgement for `-2` comes
-from elsewhere: since 2026-08-07 the whole `-2` corpus round-trips through **EXIficient**, offline and
-on demand — see [`tools/interop-v2gdecoder/`](tools/interop-v2gdecoder/README.md).
+| Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|---|
+| MCS | ✅ `Secc20McsTests` | — | ✅ Scheduled and Dynamic | — | — |
+| MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ service **9**, our discharge limits read back ([details](docs/matrix/everest-mcs-bpt.md)) | — | — |
 
-² Their responder replays a captured car and refuses any request whose identifiers differ from the
-recording — a property of their tool, not an interop verdict.
+---
 
-³ Their rule *"no `Contract` without TLS"* was the first external check of that requirement against us.
-A complete charge and a PnC offer never came in the same session — but that is the **intended EIM path**,
-not a wall: their `EvseManager` offers `ExternalPayment` alone once a session is authorized, and their
-SIL's dummy token provider swipes at plug-in.
-<br>**The backend is ours as of 2026-08-13, and the session now gets past `Authorization`.** EVerest
-delegates the contract decision to whoever is wired as `token_validator` — the CSMS in a real
-deployment, a constant-returning dummy in their SIL — so
-[the arm](tools/interop-everest/contract-validator-arm.sh) supplies it over MQTT as a withheld
-standalone module, no patch to theirs. `Accepted` carried the session on to `ChargeParameterDiscovery`
-and `CableCheck`; `certificate_status: CertificateRevoked` produced `AuthorizationRes =
-FAILED_CertificateRevoked`, unreachable by any configuration of their SIL. The earlier dead end was
-one missing connection in the config, not a missing backend: only their two OCPP PnC configs join
-`EvseManager`'s `token_provider` to `auth`, and without it the contract token is published and dropped
-in silence ([`…-contract-validator`](docs/interop-runs/2026-08-13-everest-contract-validator/notes.md)).
-Still `◐`: what nothing checks, here or anywhere, is whether the *contract* is good — their decider is
-`DummyTokenValidator`, which returns a constant from its config and never reads the token, so standing in
-as the backend proves their plumbing **carries** a verdict, not that anything **forms** one.
-<br>**So: does `-2` Plug & Charge work against EVerest? Yes.** The flow runs and their station answers it
-correctly in both arms. The `◐` marks a property of their SIL that no session of ours can reach, not a
-failure of the session — and the transport it rides on is `✅` one row below, measured by this very
-session.
+# We as a SECC (Charging Station / EVSE)
 
-⁴ Their defect (optional element dereferenced; one more in the charge loop), three findings filed in the
-run notes — and 12 of our -20 messages decoded clean by a second independent codec.
+*Their* EV drives our C# **SECC**. `Ours` is the same loopback, seen from the station's side.
 
-⁵ **Green since 2026-08-13, after four months of reading the wall wrong.** Their `-20`
-`PowerDelivery` waits for a `ClosedContactor` *event* inside a 3 s window — `power_delivery.cpp:118`,
-gated on `is_ac_charger()`, which is why `-20` DC never meets it and `-2` does not either (`EvseV2G`
-latches the value in a loop that re-tests it, so an early `true` is remembered; `libiso15118` remembers
-nothing). Raising the car's CP line at plug-in put their own `PowerOn` **4,948 s before** the window,
-where it was produced and discarded. Firing it *into* the window instead gives `PowerOn` at +783…1005 ms
-against 3 000 ms and a complete session — five of them, with a control between that still fails at
-3,047 s. Nothing injected, nothing patched: their IEC layer, their `EvseManager`, their conclusion.
-[`…-d20-ac-contactor-window`](docs/interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md).
-<br>**And then over mutual TLS 1.3 the same day**, which is what makes the cell conformant rather than
-merely complete: every session up to that point was plain TCP, and `[V2G20-1237]` and `[V2G20-2356]`
-both forbid that. Two `AC` and two `AC_BPT` sessions with their `Handshake complete!` and
-`Verify certificate result is okay`, the window unchanged at +832…1048 ms because the handshake is
-spent before `PowerDelivery`
-([`…-d20-ac-tls13`](docs/interop-runs/2026-08-13-everest-d20-ac-tls13/notes.md)).
-Reading their source to explain the wall had already turned up something that *is* theirs, on the same
-code path and not the cause of it:
-[`everest-iso20-ac-contactor-latch.md`](docs/reports/everest-iso20-ac-contactor-latch.md).
+**ISO 15118-2**
 
-⁶ 59 and 68 exchanges to `SessionStop` from Windows, once the app let a session name its TLS backend.
-The session is real; **the curve is not the one -20 asks for, and that is theirs**:
-`create_certs.sh -v iso-20` emits P-256 — with their own `TODO` beside it — where ISO 15118-20
-prescribes secp521r1 or Ed448 for the PKI *and* the key exchange. Josev's -20 PKI is P-256 too. So for a
-long time this project's -20 TLS met only -2-grade material from counterparties; eVDriveFlow is the
-first that ships what the standard says (footnote ²¹).
+| Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|---|
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ their EV, EIM plain ([details](docs/matrix/everest-iso2-reverse.md)) | — | ✅ a real VW's route · ✅ two Porsche routes ([details](docs/matrix/tux-iso2-ac-reverse.md)) |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | — | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
+| Plug & Charge | ✅ `Iso2LoopbackTests` | ✅ signed auth *and* signed metering receipt verified, chain at their MO root ([details](docs/matrix/josev-pnc-chains.md)) | ✅ their EV over TLS ([details](docs/matrix/everest-iso2-reverse.md)) | — | — |
+| Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` | ✅ their EV consumed ours | — | — | — |
+| Renegotiation | ✅ `Iso2RenegotiationSequenceTests` | ✅ AC, `[V2G2-841]` | — | — | — |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ their EV validates our chain against their V2G root ([details](docs/matrix/josev-pnc-chains.md)) | — | — | ⛔ their configs offer neither prescribed suite · ◐ unpinned, 4 exchanges ([details](docs/matrix/tux-iso2-tls.md)) |
 
-⁷ `IsoMux` routes on *"mentions -20 anywhere"* and never reads SAP `Priority` — confirmed on the wire
-against 2025.10.0, 2026.02.1, and a third time over TLS, with the same request and answer bytes every
-time. `[V2G2-169]` and `[V2G20-169]` make selecting by the EV's ranking a *shall*, so it is a defect and
-not only a surprise: the **twentieth filing**,
-[`everest-isomux.md`](docs/reports/everest-isomux.md). Both modules behind
-their mux already implement the rule.
+**ISO 15118-20**
 
-⁸ The `←SECC` leg is the only one that tests **our** catalogue rather than theirs. It also needed two
-fixes of ours to be *readable* at all, one in the app and one in the fixture.
+| Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|---|
+| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | — | — | — |
+| DC, Dynamic | ✅ `Secc20DynamicModeTests` | ✅ their EV adopts the mode we offer ([details](docs/matrix/josev-iso20-dynamic-reverse.md)) | ✅ with a Scheduled control arm that switches with the offer ([details](docs/matrix/everest-iso20-dynamic-reverse.md)) | ✅ 15 exchanges into the charge loop ([details](docs/matrix/edf-iso20-dynamic-reverse.md)) | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | ✅ 56 exchanges, 44 charge loops — over mutual TLS 1.3 and in Dynamic ([details](docs/matrix/everest-iso20-ac-reverse.md)) | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Secc20AcBptTests` | ✅ their EV selects service 6 / 5 | ✅ AC_BPT *and* DC_BPT out of our catalogue, all four AC variants ([details](docs/matrix/everest-iso20-bpt-reverse.md)) | ✅ DC_BPT, both envelopes crossed ([details](docs/matrix/edf-iso20-bpt-reverse.md)) | — |
+| Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ contract chain at their MO root, TLS client chain at their OEM root ([details](docs/matrix/josev-pnc-chains.md)) | ✅ their EV's signed `AuthorizationReq` verified, chain at their MO root ([details](docs/matrix/everest-iso20-pnc-reverse.md)) | — they implement none ([details](docs/matrix/edf-iso20-pnc.md)) | — |
+| CertificateInstallation | ✅ `Iso20LoopbackTests` | ✅ our signed response verified · ⛔ their handler ends at `NotImplementedError` | ✅ their EV's real OEM chain, built against their OEM root · ⛔ the same wall ([details](docs/matrix/everest-iso20-certinstall.md)) | — | — |
+| Pause / Resume | ✅ `Iso20LoopbackTests` | — | — | — | — |
+| Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` | ✅ their AC EVCC consumed our signed schedule · ▢ nothing external verifies it ([details](docs/matrix/josev-iso20-tariffs-reverse.md)) | — | — | — |
+| Renegotiation | ✅ `Secc20DynamicModeTests` | ✅ a real `SessionStopReq(ServiceRenegotiation)`, `[V2G20-1477]` · ⛔ then drops the link ([details](docs/matrix/josev-iso20-session-context.md)) | ✅ the same, in **DC** · ⛔ the same drop ([details](docs/matrix/everest-iso20-renegotiation.md)) | — | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests` | ✅ their EV's client chain anchored at their OEM root · ⛔ the leaf is their OEM provisioning certificate, not a Vehicle one ([chain](docs/matrix/josev-pnc-chains.md), [credential](docs/matrix/josev-iso20-vehicle-cert.md)) | ✅ their EV presents an OEM vehicle certificate ([details](docs/matrix/everest-iso20-ac-reverse.md)) | ✅ secp521r1 both ways ([details](docs/matrix/edf-iso20-mtls.md)) | — |
+| SDP discovery | ✅ `FullStackLoopbackTests` | ✅ | ✅ their EV discovers the recording fixture ([details](docs/matrix/everest-sdp-and-mcs-reverse.md)) | ✅ their EV found our SECC | — |
 
-⁹ Green on the second attempt: the first was refused with `FAILED_WrongChargeParameter`, correctly, and
-that refusal is what proved the service/parameter coupling binds the EV too. Their `EvseManager` decoded
-`dc_ev_maximum_power_limit: 3750000.0` at 3000 A / 1250 V. Megawatt **power** stays out of reach — their
-MCS SIL is electrically a 22 kW charger.
+**ISO 15118-20 MCS**
 
-¹⁰ Their `Evse15118D20` has -20 PnC commented out, so the `EV→` leg is theirs to fix; the `←SECC` leg
-ran as a by-product of the MCS reverse session. The `EV→` result for **-2** is the separate cell above.
+| Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
+|---|---|---|---|---|---|
+| MCS | ✅ `Secc20McsTests` | — | ✅ their EV picked service **8** out of our catalogue ([details](docs/matrix/everest-sdp-and-mcs-reverse.md)) | — | — |
+| MCS_BPT | ✅ `Secc20McsTests` | — | — | — | — |
 
-¹¹ **Neither of their configs was changed for this**, which is the finding: their SIL had been
-advertising service 6 at every -20 DC run this project ever made, and our EV could not ask for it.
-The **AC_BPT** half followed on 2026-08-13 once the contactor window was understood (footnote ⁵) — two
-sessions, their log reading `EV selected service: AC_BPT`, through the charge loop to `SessionStop`.
+---
 
-¹² `IsoMux` terminates TLS at the **-2 profile** — 1.2 with the suite ISO 15118-2 prescribes, pinned in
-code it shares with `EvseV2G` — and only then routes on the SAP offer. So a dual-stack EV gets a complete
-**-20 session over TLS 1.2**, and a -20 EV that pins its own profile gets alert 70. It also corrected a
-mirror of that layering on our side. `[V2G20-2356]` forbids the station to select -20 there, and between
-the two halves their -20 backend is unreachable by any conformant EV: the **nineteenth filing**,
-[`everest-isomux.md`](docs/reports/everest-isomux.md). The offer that
-showed it was ours and broke the mirror requirement `[V2G20-1237]` — [our own item](docs/open-work.md).
 
-¹³ ✅ in both columns, but **disjoint halves**: Dynamic ran `←SECC` against Josev and `EV→` against
-EVerest, because our station could answer a Dynamic car long before our car could be one. Neither column
-covers the mode alone.
-
-¹⁴ Our side is complete for both; **theirs is the bound**. Josev's -20 states never fill the session
-context, so a -20 resume degrades to a new session; and its EVCC drops the link after a real
-`SessionStopReq(ServiceRenegotiation)` [V2G20-1477] that our SECC answers without ending the session — the
-renegotiation branch of their `SessionStop` state is the one transition in that file that never builds the
-message the next state needs, and their own framework refuses it. Filed:
-[`josev-iso20-renegotiation.md`](docs/reports/josev-iso20-renegotiation.md).
-
-¹⁵ The one cell where `◐` is a missing **verifier**, not a missing session: their EV consumed our signed
-`AbsolutePriceSchedule` and ran on it, but Josev's EVCC-side tariff check is a literal `# TODO`.
-
-¹⁶ **Their EV is Josev** — `PyEvJosev` wraps EVerest's fork of the same codebase the Josev column tests.
-So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a `←SECC` run here is
-largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
--2 reverse against EVerest has deliberately never been run.
-
-¹⁷ Their injector replays the capture at us with `expect` blocks reduced to protocol fields
-(`scenario-relax.py` — message type and response code stay checked; the stock file aborts at the first
-field our station legitimately answers differently, its recorded charger's EVSE ID). 25 exchanges,
-`SessionSetup` to `SessionStop`, every code OK, at their `main` built from source — which also carries
-our freshly-issued session id through every request, something the v0.1 image's player could not.
-
-¹⁸ The AC capture exists only at their HEAD, converted by their own `pcap-iso15118`. Under their
-`basic` compaction the route runs to `SessionStop` — including the VW stopping straight from the
-charging phase, where **the recorded charger answered `FAILED_SequenceError` and ours answers `OK`**,
-a divergence kept, not corrected. Uncompacted, the VW's double `Authorization` poll reached the arm of
-our sequence guard that closed the connection instead of answering `FAILED_SequenceError` on the wire —
-the first finding against us from this counterparty, and one only a replayer could produce: every
-other peer polls only while our station says `Ongoing`. **Fixed and re-run the same day**: the refusal
-now goes out in the request's own response type, and their injector decodes it.
-
-²³ Both Taycan captures ask for **11,040 W** in their `ChargingProfile` — 3 × 230 V × 16 A, the
-ubiquitous European AC charge point — and our station offered a rounded **11,000 W**, so [V2G2-761]
-refused `PowerDelivery` by 0.4 %. Correct by the letter on both sides, and a bad trade for a station
-built to test interoperability: it manufactures a failure no real charger would produce, at the last
-message before charging. **Fixed and re-run the same day**: the offer is now the physical number, in
-the plain schedule and in tuple 1 of the tariff offer, the recorded corpus moved with it (the offer,
-the profile, and the AC energies 549 → 552 Wh), and both captures then ran to `SessionStop` — ten
-exchanges, every response `OK`, their injector's own TAP reporting 12/12, and both flow reports ending
-"the order matches the declared flow exactly". It is also the first AC session here to reach the charge
-loop, which is how `charging_status_req` finally entered the verb table — from **their** converter and
-**their** TAP output, not from a guess. The unfolded runs of the same captures are the second and third
-real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the refusal goes out as
-`FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
-the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
-cannot reach it, and "changed nothing" is now a measurement instead of a claim.
-
-⁴⁴ **The first ISO 15118-2 Plug & Charge session here that actually charged**, and what stood in the way
-was a rig fault of ours rather than PnC or their station. Every earlier `-2` PnC run ended in
-`CableCheck`; the cause was the SIL car being plugged in **before** the manager, so its plug-in was
-consumed by a station that had since restarted — CP never reaches state C, the contactor never closes,
-and `EvseManager` ends in `MREC11CableCheckFault` → `Inoperative`, which poisons every following arm.
-The only symptom our side sees is a 60 s `CableCheck` timeout; the only symptom theirs shows is an
-**empty car log**.
-<br>**81 iterations, 30,16 kWh, 20 % → 70 %, 96 s of wall clock**, over TLS 1.2 with their own MO
-credential. The size is arithmetic, not a guess: a preceding arm measured **429 Wh per iteration** and
-~134 ms per `CurrentDemand` pair, and the estimate came out 13 % short of the 81 actually run.
-<br>**Two clocks that are not the same clock.** One iteration stands for a *simulated* minute
-(`ChargeLoopSample.Period`), so that session is 81 simulated minutes in 96 real seconds. Pulling them
-apart is `V2G_INTEROP_CHARGE_INTERVAL`, deliberately **not** `Evcc2.PollInterval` — that one also paces
-the authorization poll, `ChargeParameterDiscovery` and `CableCheck`, and those intervals are what the
-charge-loop pacing findings are measured against.
-<br>Their station asked the backend **once**, at `Authorization`; the 81 loops needed no further verdict.
-[`…-iso2-pnc-charge`](docs/interop-runs/2026-08-16-everest-iso2-pnc-charge/notes.md).
-
-⁴³ **`[V2G2-651]` implemented, fifteen months after this project started citing it at other people.**
-Every `-2` EV **shall** name the V2G roots it holds in RFC 6066's `trusted_ca_keys` ClientHello
-extension; `grep -rn trusted_ca_keys` matched nothing in our stack until 2026-08-16, which is the
-uncomfortable half of [`everest-isomux`](docs/reports/everest-isomux.md) §4 — we filed against a station
-that disables support for an extension we could not send.
-<br>**The extension decided the backend.** `SslStream` cannot add a ClientHello extension on any
-platform, so the managed BouncyCastle stack — until now the `-20` TLS 1.3 profile Schannel cannot serve —
-grew ISO 15118-2's transport: TLS 1.2 and the two `-2` suites. A `-2` session configured with roots on
-the SslStream path is **refused**, not quietly run without them. Identifier type `cert_sha1_hash`, the
-form EVerest's own parser documents; their parser takes all four, so nothing rides on it.
-<br>Three tests read the named roots back off a live TLS 1.2 handshake — **two fail when the extension is
-removed** — and one *old* cipher-suite test was updated rather than deleted, because catching the
-widening is what it was written for. It also uncovered a real fault underneath: `BuildSigner` built the
-TLS 1.3 certificate structure unconditionally, and TLS 1.2 answers that with `internal_error(80)`; its
-comment had described half the rule since the `-20` work.
-<br>**And it decided their §4 the same day.** `IsoMux` caps TLS at 1.2, which is exactly what this client
-speaks — so the failing case ran at last, in four arms with the ClientHello on tape. Naming root **B**
-while trusting only B is refused; naming root **B** while trusting only **A** completes a full DC
-session; the control brackets both, first and last. The capture shows the car naming one authority,
-`cert_sha1_hash EB:80:…:F5:A8` = `CN=V2GRootCA-B`, and their station answering with a chain that verifies
-under root **A** — while `CN=SECCCert-B` sat installed and valid beside it. **§4's consequence is measured
-rather than predicted from their boot line: the extension arrives and changes nothing.** The first attempt
-that evening had failed on *our* validation, control included, which is what said the fault was ours
-before it was theirs. [`…-isomux-section4`](docs/interop-runs/2026-08-16-everest-isomux-section4/notes.md).
-
-⁴² **The `-20` `[V2G20-460]` filing, measured — and a wall of theirs turned out to be one line of ours.**
-Their SECC never reads the SessionID it was sent: with `DEADBEEFDEADBEEF` and with eight zero bytes,
-**ten message types were answered `OK`** — `PowerDelivery`, the request that closes the contactor, among
-them — in sessions otherwise identical to the control, message for message. Their own debug log prints
-the id it received three lines above the answer carrying a different one.
-[`evdriveflow-session-id`](docs/reports/evdriveflow-session-id.md) was a source finding until this;
-EVerest refuses the identical bytes, which is what rules out the probe.
-<br>**Ten handlers rather than three, because our car learned to send a legal filter.** Every forward
-session ever driven against their SECC stopped at the fifth message on their unconditional dereference of
-the optional `SupportedServiceIDs` — the 2026-08-01 run got past it only by patching *their* code in a
-throwaway container. `Evcc20Base.SupportedServiceIds` sends the element instead, which Table 38 of
-`[V2G20-1248]` makes the EV's option, and their station then runs the whole DC sequence unpatched:
-`ServiceDetail`, `ServiceSelection`, `ChargeParameterDiscovery`, `ScheduleExchange`, `CableCheck`,
-`PreCharge`, `PowerDelivery`, all `OK`. So the cell above no longer rests on a modified station.
-<br>The run also found **their same defect one message later** — `display_parameters` dereferenced in the
-charge loop, hit by a car that has done everything right — and cost **two fixes of ours**: two fixtures
-still passing four of eleven parameters, and `RunEvccAsync`'s `-2` branch dropping `sendSessionId`
-entirely. The first is the class the 08-15 guard catches, and it caught it; the second is the class it
-cannot see, which its own documentation says.
-[`…-edf-session-id-460`](docs/interop-runs/2026-08-15-edf-session-id-460/notes.md).
-
-⁴¹ **The forty-eighth filing, and it corrected the fortieth.** Josev's EVCC loads its **OEM provisioning**
-chain as the TLS client credential (`security.py:209`), and the same leaf is the `OEMProvisioningCert` of
-`CertificateInstallationReq` — one leaf, two jobs, where `[V2G20-2339]` and `[V2G20-2342]` are two
-*shall*s for two credentials. `grep -c VEHICLE shared/security.py` returns **0** and nothing matches
-`vehicle_cert`/`VEHICLE_LEAF` anywhere under `iso15118/`: the class is absent, not mis-wired. `[V2G20-2598]`
-decides it — a vehicle certificate carries the **EVCCID** as Common Name, and this one reads
-`CN=OEMProvCert`. **Their own downstream fork `26f7988` already has the whole thing**, mints
-`CN=WMIV1234567890ABCDEX, O=Pionix` under the V2G root, so the ask is a port.
-<br>**And pointing the distinction at our own drafts broke one.** `everest-d20-trust-anchor.md` had
-called an OEM *provisioning* leaf "the vehicle credential" and concluded their station *"refuses vehicle
-certificates"* — but it loads the V2G root too, and EVerest's own vehicle chain is V2G-rooted, so a real
-one verifies. The OEM-rooted half stands and the generalisation does not; corrected in place. The
-measurement was right and the sentence ran past it — **a distinction is only as sharp as the third case
-you test it on**.
-[`…-josev-tls-vehicle-cert-audit`](docs/interop-runs/2026-08-15-josev-tls-vehicle-cert-audit/notes.md).
-
-⁴⁰ **Both Josev inbound Plug & Charge cells, re-taken — and these two were stale for a different reason
-than the one above.** `-2` over unilateral TLS 1.2 and `-20` over mutual TLS 1.3, each against a control:
-*chain valid, anchored at `CN=MORootCA`* with the MO root in the store, *REJECTED — unable to get local
-issuer certificate* without it, and the three signature checks identical in all four arms. Each pair of
-station logs differs in **exactly two lines**, the store and the verdict. The `-2` arm covers the signed
-`MeteringReceiptReq` as well, through the same contract key — no other counterparty has produced one.
-<br>**Nothing was unreachable here; the claim simply outlived the run that earned it.** Every Josev
-Plug & Charge run is dated 2026-07-22, and `--trust-roots` with the station's contract-chain validation
-arrived on 2026-08-08 — six weeks in which the cell read as more than it had ever measured, with nothing
-to flag it. **A capability the harness gains does not reach back through the matrix**, and that is a
-second staleness mechanism beside the *value no caller could reach* of the footnote below.
-<br>These two were also the **last** of it, which the footnote below got wrong on the same day and in
-the same breath as stating the rule: it named a third cell, at eVDriveFlow, that does not exist.
-<br>The `-20` arm settled one more thing unasked: with the store configured their car's **TLS client
-chain** is validated instead of accept-any, and it anchors at `CN=OEMRootCA` — the class `[V2G20-2331]`
-and clause 7.3.1 ask for, and the exact inverse of the [EVerest station](docs/reports/everest-d20-trust-anchor.md)
-that took a contract certificate for the job. The *leaf* was left open and **audited the same day**: it
-is `CN=OEMProvCert`, the provisioning certificate, where `[V2G20-2339]` and `[V2G20-2342]` put two
-different credentials — the class is absent from their stack entirely, their own downstream fork already
-implements it, and it is now the **forty-eighth filing**⁴¹.
-[`…-josev-reverse-pnc-chain`](docs/interop-runs/2026-08-15-josev-reverse-pnc-chain/notes.md).
-
-³⁹ **"Verified by our SECC" meant the signature.** Every inbound Plug & Charge result in this matrix was
-recorded with `ChainResult.NotConfigured` — the ECDSA signature checked against the leaf the car
-presented, with nobody asking who issued it — because both station classes have carried a
-`ContractChainValidator` that no interop run could set, and because the `-20` report line printed the
-three signature checks and not the chain. Both are fixed; the `-20` EVerest cell is **re-taken** over
-mutual TLS 1.3 with the anchor configured — *chain trusted, anchored at `CN=MORootCA`*, their EV's own
-`SubCertificates` walked to it — against a control at the **V2G** root that refuses the chain while the
-signature still verifies. **Earlier recordings are not retroactively upgraded**, and the Josev `←SECC`
-cells still carried the weaker claim, which is why they went `◐`: same one variable, against their own MO
-root. They were closed the same night⁴⁰, and with them **every inbound Plug & Charge result in this
-matrix is anchored** — the two Josev cells, this one, and the `-2` EVerest cell of the same day³⁸.
-<br>~~*and eVDriveFlow's*~~ — **withdrawn 2026-08-15, hours after it was written.** This footnote named
-an eVDriveFlow `←SECC` PnC cell as carrying the same overstatement. There is no such cell:
-[they implement no Plug & Charge](docs/interop-runs/2026-08-11-edf-pnc-source-audit/notes.md), established
-by source audit four days earlier, and the matrix row has said `— they implement none`²⁸ ever since. The
-claim never matched the table it was written under.
-[`…-d20-reverse-pnc-chain`](docs/interop-runs/2026-08-15-everest-d20-reverse-pnc-chain/notes.md).
-
-³⁸ **The first ISO 15118-2 reverse session against this counterparty, in any transport — and their car
-is a different car over TLS.** Same config, one variable (the SDP security byte): over plain TCP it
-authorizes by **EIM**; over **TLS 1.2** an extra `PaymentDetailsReq` appears, the `AuthorizationReq` is
-signed, and a `MeteringReceiptReq` arrives inside the charge loop. That is `-2`'s own *no Contract
-without TLS* rule, applied by the car — the same rule this project met from their **station** on
-2026-08-03, now seen from the other end. It needed no PKI regeneration: `-2` TLS is unilateral, and
-`enable_tls_1_3: false` is what makes their EV present no client certificate.
-<br>**Two things of ours came out of it.** `Secc2` verifies the contract signature and every signed
-metering receipt, and the interop fixture reported neither — so the run would have been judged on
-`IsDone`, which a session with an unverifiable signature reaches just as well (our station reports the
-verdict, it does not refuse on it). **Fifth instance in three days of *a value our own side already held
-that no caller could reach*, and the first where the discarded value is the result of the run.** And the
-first TLS arm then said `chain not validated`: both station classes have carried a
-`ContractChainValidator` all along and **no interop run could set it**, so *every* inbound Plug & Charge
-result in this matrix checked the signature against the leaf the car presented and never asked who issued
-it. `V2G_INTEROP_CONTRACT_ROOTS` now sets it — verdict *trusted, anchored at `CN=MORootCA`*, with the V2G
-root as a negative control that refuses the chain while the signature still verifies.
-[`…-iso2-ac-reverse-tls12`](docs/interop-runs/2026-08-15-everest-iso2-ac-reverse-tls12/notes.md).
-
-³⁷ **All four AC charge-loop control-mode variants have now met somebody else's car.** `Secc20Ac.ClResInKind`
-answers strictly in kind (`[V2G20-1600]`) and has four arms — Scheduled, BPT_Scheduled, Dynamic, and
-**BPT_Dynamic**, which this run supplied: service 5 in Dynamic, plain and over mutual TLS 1.3, with a
-BPT/Scheduled control. A wrong variant is a wire-type mismatch their Josev-derived EV does not survive, so
-44 completed loops per arm is the evidence. **It also refuted footnote 36's own explanation**: its Dynamic
-arms poll `PowerDelivery` once, not four or five times. Across ten AC reverse sessions the invariant holds
-every time and nothing measured predicts the variation.
-[`…-ac-bpt-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-ac-bpt-dynamic-reverse/notes.md).
-
-³⁶ **The AC charge loop's Dynamic answer, in front of a live peer for the first time — and an invariant
-that closed a three-day loose end.** `ScheduleExchange` is shared between the power modes; the
-charge-loop answer is not, and a Dynamic AC response carries a **mandatory** `EVSETargetActivePower` a
-Scheduled one does not, so 40 and 41 completed Dynamic loops are the evidence our AC side answers in kind
-(`[V2G20-1600]`) rather than only our DC side. The three arms are 56 exchanges each and differ in
-*composition*: 5 / 4 `PowerDeliveryReq` before the loop in Dynamic against 1 in the Scheduled control.
-Lined up with the two earlier AC reverse runs that makes five sessions in which **`PowerDelivery` before
-the loop plus charge loops = 45, every time** — the car simulator fixes the window, not the exchange
-count, so every message spent getting started is one not spent charging. That retires the extra
-`PowerDeliveryReq` [noted on 08-14](docs/interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md) and
-withdrawn on the same day: it is readiness polling, which our own `PowerOn` phase self-loops for and says
-so, and it was never the transport.
-[`…-ac-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-ac-dynamic-reverse/notes.md).
-<br>**The reading offered there — that Dynamic makes the polling larger — was itself refuted hours later**
-by the AC_BPT Dynamic run, whose Dynamic arms poll once. Across ten AC reverse sessions the invariant
-holds every time and the count is 1 or 2 in nine of them; **nothing measured predicts the variation**, and
-the `PowerOn` loop is designed to tolerate it. Two explanations refuted in two days from one three-line
-observation, both hedged when written and both refuted by the next run — *an explanation offered for a
-difference between two runs is a hypothesis about the next ten*.
-
-³⁵ **Three sessions no frame count can tell apart, and one of them is a different control mode.** Their EV
-ran Dynamic against our station plain and over mutual TLS 1.3; the **control arm**, the same rig with
-`V2G_INTEROP_DYNAMIC` removed so Scheduled is offered first, ran Scheduled — and all three carry
-identical counts: 53 exchanges, 33 charge loops, one CableCheck, two PreCharges, five WeldingDetections.
-`[V2G20-2656]` has the SECC advertise **both** modes always, so the preference only decides which comes
-first and an EV that takes the other one completes exactly as well; our station answers in kind
-(`[V2G20-1600]`) either way. It had branched on the car's choice since the mode existed and thrown the
-answer away — `Secc20Base.EvControlModeIsDynamic` now records it, the fixture asserts it, and the control
-arm proves the value tracks the peer rather than our flag. That control also **measures a claim this
-repository had only ever read off its own source**: their EV takes whichever parameter set is offered
-first. Fourth instance in three days of *a value our own side already held that no caller could reach*.
-[`…-dc-dynamic-reverse`](docs/interop-runs/2026-08-15-everest-d20-dc-dynamic-reverse/notes.md).
-
-³⁴ **Their car chose our bidirectional service**, which is the half of BPT no forward run can show: in
-`EV→` we rank AC_BPT first and their station answers, so what is tested is their *response*; here their
-EV picked service **5** out of `Secc20Ac`'s `{ 1, 5 }` on its own. One line changed on their side
-(`supported_d20_energy_services: AC_BPT`); 56 exchanges, 44 charge loops, all `OK`, **plain and again
-over mutual TLS 1.3**. Two things make it an AC_BPT result rather than a relabelled AC one: the fixture
-now **asserts** the negotiated id in this direction — an EV that quietly took service 1 would have
-completed identically, which is the trap the MCS guard has covered since 2026-08-06 — and the `OK` at
-charge-parameter discovery is only reachable if their request carried the bidirectional mode, since our
-station answers `FAILED_WrongChargeParameter` to a direction that contradicts the selected service. It
-also **withdrew an inference from the run before it**: the extra `PowerDeliveryReq` seen in both reverse
-TLS sessions does not appear here, so it was never the transport.
-[`…-d20-ac-bpt-reverse`](docs/interop-runs/2026-08-14-everest-d20-ac-bpt-reverse/notes.md).
-<br>**`DC_BPT` followed an hour later and cost no code at all** — one line in their config, everything
-else built by the four runs before it. Their EV picked service **6** out of `Secc20Dc`'s `{ 2, 6 }` and
-drove the whole DC sequence, CableCheck and PreCharge and WeldingDetection included, to `SessionStop`;
-53 exchanges plain, 52 over mutual TLS 1.3. Its charge-parameter check has the neatest provenance in the
-directory: our station only refuses a direction that contradicts the selected service **because
-everest-core refused ours that way on 2026-08-05**, so a counterparty's `FAILED_WrongChargeParameter`
-became our conformance check and the check then validated the counterparty.
-[`…-d20-dc-bpt-reverse`](docs/interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md).
-
-³³ **The first TLS session this project has run in the reverse direction, in any protocol** — and the
-reason there had never been one was **our fixture**, not the counterparties. Their EV discovered our
-station over SDP with the TLS security byte, handshook **mutual TLS 1.3** (`TLS_AES_256_GCM_SHA384`),
-presented an OEM vehicle certificate of its own (`CN=WMIV1234567890ABCDEX, O=Pionix`, P-256, issued by
-their `VehicleSubCA2`) against the CPO leaf we presented from their own PKI, and charged: **56 exchanges,
-every response `OK`, 43 charge loops to `SessionStop`**. `InteropEnvironment.ServerTlsOrNull` has existed
-since the tux-evse runs and the eVDriveFlow reverse fixture uses it; this one built a plain listener and
-advertised `tls: false` as a constant — the third instance in a week of *a capability we already held
-that no call site reached for*. It also **measured what [the forty-seventh filing](docs/reports/josev-iso20-evcc-charge-loop-pacing.md)
-had to leave open**: their EV's charge-loop pacing over TLS is **≈544 ms** against ≈532 ms on plain TCP,
-so the deviation a real `-20` deployment sees is the larger one.
-[`…-d20-ac-reverse-tls`](docs/interop-runs/2026-08-14-everest-d20-ac-reverse-tls/notes.md).
-
-³² **The last untried cell in this counterparty's column, and it found something in ours.** Four `-2` AC
-sessions over TLS 1.2, 13 exchanges each, every response `OK`, against `EvseV2G` with one line changed
-(`tls_security: force`). Their transport is conformant where it matters: **TLS 1.2 with
-`TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`** — one of the two ISO 15118-2 prescribes, and the one
-[tux-evse's configs do not offer](docs/reports/tux-evse-tls.md) — and they send their **whole chain**,
-unlike `Evse15118D20`. Being able to say that cost a fix: the arm anchored at the **V2G root alone** was
-refused by us and accepted by `openssl s_client -CAfile` against the same station minutes apart, because
-`InteropEnvironment.DevTlsOrNull` discarded the validation callback's `X509Chain` — **the same defect the
-app fixed on 2026-08-09, in a second copy the fixtures had of their own**. Every TLS run before today had
-its intermediates spoon-fed in the trust bundle, which passes either way; only a root-only anchor can tell
-them apart. Fixed through `TrustRoots.PeerIntermediates`, the root-only session then ran complete, and the
-regression is the one test of seven in `ChainValidationTests` that fails when the fix is removed. Negative
-control: their **MO** root as the anchor is refused (their log records our `SSL alert number 42`), and
-`EvseV2G` survives that refusal where `Evse15118D20`'s accept loop would not.
-[`…-iso2-ac-tls12`](docs/interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md).
-
-³¹ **The first AC session this project has run in the reverse direction, in either protocol** — and it
-cost two findings on the way. Ours: the reverse fixture passed no power mode to the SAP handshake, whose
-parameter *defaults* to DC, so every reverse `-20` run ever made announced a DC-only catalogue and it
-took an AC EV to notice. Theirs, measured rather than read: their `PyEvJosev` paces the AC charge loop at
-**≈532 ms** — 44 loops in 23,407 s from their own log — against the **500 ms** `[V2G20-1500]` and
-`[V2G20-1502]` allow a station to wait, so **2 of 2** runs with our conformant timer die on the *first*
-charge loop and the 56-exchange session above needed `V2G_INTEROP_CHARGELOOP` to relax it. **Decided and
-filed 2026-08-14, as the forty-seventh:** the EVCC *is* bound by the same table — Table 216 gives it
-**0,25 s** (`[V2G20-1499]`) — but Figure 212's legend sorts that threshold as a *performance* criterion
-where the station's is an *error* one, so it is a deviation of 2,1× and not a violated timeout, and the
-abort belongs to the station. [`josev-iso20-evcc-charge-loop-pacing.md`](docs/reports/josev-iso20-evcc-charge-loop-pacing.md);
-[`…-d20-ac-reverse`](docs/interop-runs/2026-08-13-everest-d20-ac-reverse/notes.md).
-
-³⁰ **Rewritten 2026-08-15: the filing behind this cell is withdrawn, and the defect is ours.** It read
-*"half-working rather than absent, which is the finding"* — their station accepts
-`PowerDeliveryReq(Renegotiate)` and the fresh `ChargeParameterDiscovery`, then answers the
-`PowerDeliveryReq(Start)` that restarts the charge with `FAILED_SequenceError`. That answer is
-**correct**. ISO 15118-2's SECC state table for DC goes from `Process ChargeParameterDiscoveryReq` to
-*Wait for CableCheckReq* — `[V2G2-565]`, `[V2G2-582]`, the ids `EvseV2G`'s own comment cites — with no
-renegotiation exception, so a DC renegotiation returns through `CableCheck` and `PreCharge` and our car
-sends neither.
-<br>**The argument that got it wrong is worth more than the finding was.** It rested on Annex I, whose
-two sequence diagrams carry `ChargingStatusReq/Res` — the **AC** charge loop, which has no CableCheck to
-skip. Checking that an informative annex was informative, and never checking which mode it described, is
-how a conformant station was written up as defective for four days. Two smaller errors rode along:
-`[V2G2-842]` constrains the *content* of the next `PowerDeliveryReq` rather than what precedes it, and
-the *"contactor stays closed"* NOTE belongs to the Control-Pilot block at `[V2G2-847]`–`[V2G2-849]`, not
-to `[V2G2-680]`.
-<br>**It was caught by the report's own unticked gate** — *check the 2014 wording before posting* —
-worked before sending rather than after, which is the whole argument for those checklists. Everything
-needed to refute it was in the same document it was written from. Withdrawn:
-[`everest-evsev2g-renegotiation-cablecheck.md`](docs/reports/everest-evsev2g-renegotiation-cablecheck.md);
-reasoning in [`normative-basis.md`](docs/normative-basis.md); the session is still a fact about
-2026.02.1 ([run](docs/interop-runs/2026-08-11-everest-iso2-renegotiation/notes.md)).
-<br>**Our loopback agreed with itself**, which is why nothing here saw it: `Secc2` accepted the short
-sequence our `Evcc2` sent, and both were built from the same reading. The AC half is unaffected and the
-Josev cells are AC.
-<br>**Both halves fixed the same day.** The car runs the isolation sequence again after a renegotiation;
-the station expects it and answers `FAILED_SequenceError` when it is skipped — the answer EVerest gave
-us, now from our own station, with `Secc2.IsolationSequences` counting the two CableChecks a DC
-renegotiation owes. Four tests, **three fail on the pre-fix code**, checked by putting both halves back.
-<br>**Re-run against their station the same evening, with a control three minutes apart**
-([`…-iso2-renegotiation-rerun`](docs/interop-runs/2026-08-15-everest-iso2-renegotiation-rerun/notes.md)).
-The pre-fix car reproduces `FAILED_SequenceError` on the same binary; the fixed car gets the renegotiated
-`CableCheckReq` **accepted**, four `OK`s — the message that was unreachable that morning. The session
-then dies four messages later inside their `EvseManager`: its cable check waits for the DC link to fall
-below 60 V, which does not happen during a renegotiation, and it raises `MREC11CableCheckFault` →
-`Inoperative` — which costs the **following** sessions too, not just this one.
-<br>**The deciding arm ran on 2026-08-16, and the second wall is theirs.** With `EVReady = false` in the
-isolation sequence the outcome is identical: nothing in that path reads the field. Their
-`ChargeProgress = Stop` publishes `current_demand_finished`, which `EvseManager.cpp:865` binds to
-`powersupply_DC_off()`; `ChargeProgress = Renegotiate` sets a flag and publishes **nothing**, and
-`grep -rn "enegotiat"` over `modules/EVSE/EvseManager/` matches nothing at all — so `cable_check()`, which
-*verifies* the safe voltage rather than establishing it, waits for something nobody commanded. **The
-forty-ninth filing**, and the third instance of one shape: the layer that is right sits under the layer
-that decides ([`everest-evsemanager-renegotiation-supply`](docs/reports/everest-evsemanager-renegotiation-supply.md),
-[run](docs/interop-runs/2026-08-16-everest-cablecheck-renegotiation/notes.md)).
-
-²⁹ **Established from their source and the frames already here, without a session — and no session would
-have moved it.** `create_default_scheduled_control_mode` builds the Scheduled response under the comment
-*"Providing no price schedule!"*, citing an agreement on `iso15118.elaad.io` that `[V2G20-2176]` — a
-*shall*: the SECC provides either an `AbsolutePriceSchedule` or a `PriceLevelSchedule` — *"is not
-required and should be ignored"*; the call site adds `// TODO(sl): Adding price schedule`. The Dynamic
-branch sets only departure time and SOC. Their **codec** converts `AbsolutePriceSchedule` in both
-directions, so grepping the type name is not an answer; their **station** never produces one. The bytes
-agree and predate the question: every `ScheduleExchangeRes` recorded from them, across six runs, is
-**28–44 bytes**. Deliberately **not filed** — a documented decision attributed to an industry agreement
-is not a defect to report back. [`…-d20-price-schedule-audit`](docs/interop-runs/2026-08-11-everest-d20-price-schedule-audit/notes.md).
-
-²⁸ **Structural, and now established rather than assumed.** This cell held a `▢` and a condition — *first find out whether they do contract certificates at all.* They do not: no `CertificateInstallation` handler in either role's state machine, and the whole Plug & Charge vocabulary (`ContractCertificateChain`, `PnC_AReqAuthorizationMode`, `SignedInstallationData`, `OEMProvisioningCert`) occurs only in the xsdata-generated bindings, ISO's schema and the Sphinx output of both — plus two Table 214 timeout keys with no handler to time. Their README's *Supported features* does not list it, and `PnC` appears nowhere in their documentation. Both halves ship `authorization_services = [EIM]`. The already-recorded bytes agree: their `AuthorizationSetupRes` is 20 payload bytes against our PnC-offering 38, with no room for a `GenChallenge` and none in it. The audit also turned up a latent SECC defect — the authorization *mode* is hardcoded to EIM whatever the configurable service list says, which `[V2G20-1219]` and `[V2G20-2568]` each forbid — recorded as a note on [the existing filing](docs/reports/evdriveflow-authorization-setup.md) rather than raised, since it is unreachable in their shipped configuration and they claim no PnC. [`…-edf-pnc-source-audit`](docs/interop-runs/2026-08-11-edf-pnc-source-audit/notes.md).
-
-²⁷ Their `PyEvJosev` EV is EVerest's fork of Josev, so this is the **same defect the Josev column carries**, now seen in **DC** and against the fork at `26f7988` rather than in AC against upstream. Our station signalled `ServiceRenegotiation` once mid-charge; their EV stopped the charge, ran welding detection and sent `SessionStopReq(ServiceRenegotiation)` — a frame *upstream cannot produce*, since its `DCWeldingDetection` hardcodes `Terminate` — and then closed the connection after our `SessionStopRes(OK)` left the session open. So the fork has fixed half of it. See [`…-iso20-renegotiation-reverse`](docs/interop-runs/2026-08-10-everest-iso20-renegotiation-reverse/notes.md) and [`josev-iso20-renegotiation.md`](docs/reports/josev-iso20-renegotiation.md).
-
-²² Their EV picks service **6** out of our `{2, 6}` — the choice is theirs — and
-`DC_ChargeParameterDiscovery` carried a real bidirectional envelope each way, each side's numbers read
-by the other's codec: their car **48 kW / 137 A** of discharge against our station's **50 kW / 200 A**,
-then a charge loop in `BPT_Dynamic_DC_CLReqControlMode`. No energy reverses — the session ends at their
-charge-loop defect first — so this is the negotiation, in full, and not a discharge. One deviation,
-recorded: their `ev_dummy_controller` starts at `present_soc = 0` (the GUI's field sets it), and an
-empty battery correctly declares zero discharge, so the run patches that one line to 60 in their copy.
-Both numbers are on file.
-
-²⁵ **Found broken here, fixed, and re-run the same day.** Their resume is gated on mutual TLS —
-`d20/state/session_setup.cpp` matches `SHA-512(session_id ‖ vehicle_cert_hash)` from the verified TLS
-peer certificate, and `ConnectionPlain` returns none — so no earlier EIM run could have reached it. It
-resumed on the first attempt with their minted vehicle credential; what failed was ours, replaying the
-opening sequence into a session already past it
-([first run](docs/interop-runs/2026-08-08-everest-pause-resume-tls/notes.md)). After the fix, **their own
-log shows the difference**: `SessionSetupReq → AuthorizationSetupReq → … → ServiceSelectionReq →
-DcChargeParameterDiscoveryReq` in the first half, `SessionSetupReq → DcChargeParameterDiscoveryReq` in
-the resumed one — the five skipped messages, counted by the counterparty
-([re-run](docs/interop-runs/2026-08-08-everest-pause-resume-tls-rerun/notes.md)). The station's binding
-is still only checked by them; ours computes the same construction but the two are never compared,
-because in this direction only their SECC's value is consulted.
-
-²⁶ The last chain our validator knew only from material we minted ourselves. Their `PyEvJosev` with
-`is_cert_install_needed: true` sends a signed `CertificateInstallationReq` carrying
-`OEMRootCA → OEMSubCA1 → OEMSubCA2 → OEMProvCert` — a **third** self-signed root in their PKI, after the
-V2G one their TLS uses and the MO one their contract chain is anchored at. Their OEM root **alone**
-suffices, because their car ships its Sub-CAs in the message; their two Sub-CAs **without** the root do
-not, `CustomRootTrust` refusing a non-self-signed anchor at message level exactly as it does at TLS; and
-their **V2G** root — which their own request names in `RootCertificateIDList` — is refused while the
-signature still verifies. That field is the car saying which roots it can check, not which root vouches
-for it. The wall after that is Josev's, in this fork as in SwitchEV's, and the contract key we wrap
-stays self-checked: their P-256 OEM leaf cannot join `-20`'s secp521r1 ECDH
-([`2026-08-08-everest-oem-provisioning-chain`](docs/interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)).
-
-²⁴ Still no session state machine anywhere but ours — but "codec only" no longer means "judged only by
-its own generator". Since 2026-08-07 every WPT and ACDP frame in the corpus is decoded and re-encoded by
-**EXIficient**, which shares no line with cbexigen, and since 2026-08-08 they agree to the octet. Getting
-there cost two deliberate changes: these were the only message sets where this codec had been
-reproducing cbexigen's grammar rather than ISO's, and where the two disagree we now follow the schema —
-[`2026-08-08-schema-conformant-acdp-wpt`](docs/interop-runs/2026-08-08-schema-conformant-acdp-wpt/notes.md).
-The failure that decision turned up is the reason it was not close: our `ACDP_ConnectRes` decoded
-**cleanly, as `ACDP_DisconnectReq`** — the wrong message, with nothing to report it. Both deviations are
-drafted for libcbv2g in [`docs/reports/`](docs/reports/libcbv2g-grammar-deviations.md).
-
-²¹ The capability this counterparty was chosen for, reached once the stdin wall fell:
-`TLS_AES_256_GCM_SHA384` under TLS 1.3, both peers authenticated — their EV verified our station
-against its own V2G root and presented `CN=VEHICLECert`, our station required and read it back — and
-**secp521r1 on both sides**. That last part is ordinary in the standard and rare in the field: -20
-prescribes secp521r1 (or Ed448) for the PKI and the key exchange, but **both other -20 counterparties
-here ship P-256 test material** (footnote ⁶), so this is the first peer whose -20 PKI is the one -20
-describes rather than -2's. There is a platform reason for the drift worth knowing: Schannel cannot do
-P-521 for TLS at all, which is why the app carries a second, managed TLS backend — and why our own
-Windows mutual-TLS tests use P-256. **That managed backend then carried the same session against them**
-(`V2G_TLS_BACKEND=BouncyCastle`), so the -20-faithful profile — TLS 1.3, the suite pair, P-521 both
-ways — has an external witness instead of only a loopback one. 15 exchanges either way, the same route
-as plain TCP. Their shipped
-certificates had to be regenerated with **their own** `generateCertificates.sh` first: the SECC leaf
-expired in October 2022 (60 days, as the standard requires) and `cpoSubCA1` the day before the run.
-
-²⁰ It used to read *"their EV quits at Authorization"*, recorded as an open question after two runs could
-not move it. Reading their state machine settled it on 2026-08-06: their EV arms a "press Enter to stop"
-listener on `sys.stdin` unconditionally, EOF returns immediately, and `process_reaction` then replaces the
-message the state machine built with `SessionStopReq` in the first state that permits it — which is the
-authorization one. The rig had started it with `docker exec -d`. **With stdin held open and nothing else
-changed, 4 exchanges became 15**, through ScheduleExchange, CableCheck, PreCharge ×3, PowerDelivery and
-into DC_ChargeLoop. It stops there on a defect of theirs: `hasattr` used as a presence test on an
-`Optional[int]` copies our legally omitted `TargetSOC` over their own default, and `None * int` ends it.
-Their EV also selects the **BPT** service on the way, so that cell is reachable now too.
-
-¹⁹ Both their shipped configs pin one GnuTLS priority string, and its ECDSA half holds AES-GCM, AES-CCM,
-ChaCha20 and two SHA-1 CBC suites — **not** `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256` or its ECDH twin,
-which is what ISO 15118-2 requires and what our station pins. Handshake: `no shared cipher`. Unpinned
-(`V2G_INTEROP_TLS_SUITES=platform`, a deviation the run states rather than hides) the session runs to
-`PaymentServiceSelection` and stops **on their side**: their EVCC signs the `AuthorizationReq` whenever
-a `pki` block is configured rather than when Contract was selected, so an EIM scenario dies at
-`no_challenge` — reproduced against **their own responder**, which means no scenario they ship runs over
-TLS today. Their car does present a client certificate when asked.
-
+The background behind a cell — what the run showed, what it did not, and which report it
+produced — is **one document per cell** under [`docs/matrix/`](docs/matrix/README.md). The
+reasoning and the defects live on the counterparty's own page, linked under **Deeper reading**
+below.
 
 ## Run
 
