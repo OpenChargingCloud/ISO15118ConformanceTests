@@ -89,7 +89,7 @@ how to read one.
 | Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` chain accepted + our signature verified, on 2025.10.0 **and** 2026.02.1; verdict now driven from our own backend — past `Authorization`, and `FAILED_CertificateRevoked` measured³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
-| Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ◐ `EV→` **the sequence wall is gone**: their station accepts the renegotiated `CableCheck`; the session then dies in their own cable-check self-test³⁰ | — | — |
+| Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ⛔ `EV→` the sequence wall was ours and is gone; **their station now fails its own cable check and goes `Inoperative`**³⁰ | — | — |
 | TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ `EV→` · ✅ `←SECC` their EV validates our server chain against their V2G root⁴⁰ | ✅ `EV→` the PnC session above · **AC ×4, the prescribed suite, and their full chain against the root alone**³² | — | ⛔ `←SECC` pinned to the profile's suites: **their configs offer neither**¹⁹ · ◐ unpinned, 4 exchanges (+ mutual TLS, their `CN=eMaid`) |
 
 **ISO 15118-20**
@@ -485,9 +485,16 @@ The pre-fix car reproduces `FAILED_SequenceError` on the same binary; the fixed 
 `CableCheckReq` **accepted**, four `OK`s — the message that was unreachable that morning. The session
 then dies four messages later inside their `EvseManager`: its cable check waits for the DC link to fall
 below 60 V, which does not happen during a renegotiation, and it raises `MREC11CableCheckFault` →
-`Inoperative`. **Deliberately not filed**: our `CableCheckReq` still carries `EVReady = true` and our car
-neither drops its demand nor models a contactor, so the likelier owner is us again. The arm that decides
-is named in the note and has not been run.
+`Inoperative` — which costs the **following** sessions too, not just this one.
+<br>**The deciding arm ran on 2026-08-16, and the second wall is theirs.** With `EVReady = false` in the
+isolation sequence the outcome is identical: nothing in that path reads the field. Their
+`ChargeProgress = Stop` publishes `current_demand_finished`, which `EvseManager.cpp:865` binds to
+`powersupply_DC_off()`; `ChargeProgress = Renegotiate` sets a flag and publishes **nothing**, and
+`grep -rn "enegotiat"` over `modules/EVSE/EvseManager/` matches nothing at all — so `cable_check()`, which
+*verifies* the safe voltage rather than establishing it, waits for something nobody commanded. **The
+forty-ninth filing**, and the third instance of one shape: the layer that is right sits under the layer
+that decides ([`everest-evsemanager-renegotiation-supply`](docs/reports/everest-evsemanager-renegotiation-supply.md),
+[run](docs/interop-runs/2026-08-16-everest-cablecheck-renegotiation/notes.md)).
 
 ²⁹ **Established from their source and the frames already here, without a session — and no session would
 have moved it.** `create_default_scheduled_control_mode` builds the Scheduled response under the comment

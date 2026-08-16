@@ -1,0 +1,77 @@
+# EvseManager.cpp — cable_check(), the first thing it does
+void EvseManager::cable_check() {
+
+    if (r_imd.empty()) {
+        // If no IMD is connected, we skip isolation checking.
+        EVLOG_info << "No IMD: skipping cable check.";
+        r_hlc[0]->call_update_isolation_status(types::iso15118::IsolationStatus::No_IMD);
+        r_hlc[0]->call_cable_check_finished(true);
+        return;
+    }
+
+    // start cable check in a seperate thread.
+    std::thread t([this]() {
+        session_log.evse(true, "Start cable check...");
+        charger->get_stopwatch().report_phase();
+        charger->get_stopwatch().mark_phase("CableCheck");
+
+        // Verify output is below 60V initially
+        if (not wait_powersupply_DC_below_voltage(CABLECHECK_SAFE_VOLTAGE)) {
+            std::ostringstream oss;
+            oss << "Voltage did not drop below " << CABLECHECK_SAFE_VOLTAGE << "V within timeout.";
+            fail_cable_check(oss.str());
+            return;
+        }
+        charger->get_stopwatch().mark("<60V");
+
+
+# EvseManager.cpp — wait_powersupply_DC_below_voltage(): it waits, it does not command
+bool EvseManager::wait_powersupply_DC_below_voltage(double target_voltage) {
+    // wait until the voltage is below the target voltage
+    Timeout timeout;
+    timeout.start(10s);
+    bool voltage_ok = false;
+    while (not timeout.reached()) {
+        if (cable_check_should_exit()) {
+            EVLOG_warning << "Cancel cable check wait below voltage";
+            power_supply_DC_charging_phase = types::power_supply_DC::ChargingPhase::Other;
+            powersupply_DC_off();
+            r_hlc[0]->call_cable_check_finished(false);
+            break;
+        }
+        types::power_supply_DC::VoltageCurrent m;
+        if (powersupply_measurement.wait_for(m, 2000ms)) {
+            if (m.voltage_V < target_voltage) {
+                voltage_ok = true;
+                break;
+            }
+        } else {
+            EVLOG_info << "Did not receive voltage measurement from power supply within 2 seconds.";
+            power_supply_DC_charging_phase = types::power_supply_DC::ChargingPhase::Other;
+            powersupply_DC_off();
+            break;
+        }
+    }
+    return voltage_ok;
+}
+
+
+# iso_server.cpp — handle_iso_power_delivery: Stop publishes, Renegotiate does not
+            // state is checked by other module
+            conn->ctx->p_charger->publish_ac_open_contactor(nullptr);
+        } else {
+            conn->ctx->p_charger->publish_current_demand_finished(nullptr);
+            conn->ctx->p_charger->publish_dc_open_contactor(nullptr);
+        }
+        break;
+
+    case iso2_chargeProgressType_Renegotiate:
+        conn->ctx->session.renegotiation_required = true;
+        break;
+
+    default:
+
+# EvseManager.cpp:865 — the only HLC hook that switches the supply off
+            // Current demand has finished - switch off DC supply
+            r_hlc[0]->subscribe_current_demand_finished([this] { powersupply_DC_off(); });
+

@@ -583,6 +583,19 @@ internal static class InteropEnvironment
         => Read("V2G_INTEROP_RENEG_SKIP_ISOLATION") == "1";
 
 
+    /// <summary>-2 DC only: our car declares <c>EVReady = false</c> in the isolation sequence's
+    /// <c>DC_EVStatus</c>. <c>V2G_INTEROP_ISOLATION_NOT_READY=1</c>.</summary>
+    /// <remarks>
+    /// For the arm left open by the 2026-08-15 renegotiation re-run: EVerest's station accepted the
+    /// renegotiated <c>CableCheckReq</c> and then failed its own cable check, which waits for the DC link
+    /// to fall below 60 V — while our car was announcing that it was ready to charge. Whether their
+    /// supply ramps down once the car says otherwise is what this measures. Off by default; see
+    /// <c>Evcc2.IsolationDeclaresNotReady</c> for why it is an instrument rather than a fix.
+    /// </remarks>
+    public static Boolean IsolationDeclaresNotReady()
+        => Read("V2G_INTEROP_ISOLATION_NOT_READY") == "1";
+
+
     public static Iso2CertInstallOptions? CertificateProvisioningOrNull()
     {
 

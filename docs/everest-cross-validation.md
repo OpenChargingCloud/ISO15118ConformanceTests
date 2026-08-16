@@ -297,8 +297,20 @@ sequence diagrams are AC. [Withdrawn](reports/everest-evsev2g-renegotiation-cabl
 pre-fix car still gets `FAILED_SequenceError`; the fixed car gets the renegotiated `CableCheckReq`
 **accepted**. The session then dies inside their `EvseManager` — its cable check waits for the DC link to
 fall below 60 V, which does not happen mid-renegotiation, and raises `MREC11CableCheckFault` →
-`Inoperative`. **Not filed**, because our `CableCheckReq` still declares `EVReady = true`: the deciding
-arm is ours to run first.
+`Inoperative`.
+
+**And that second wall is theirs — established 2026-08-16, by ruling ourselves out first**
+([`…-cablecheck-renegotiation`](interop-runs/2026-08-16-everest-cablecheck-renegotiation/notes.md)).
+Re-run with `EVReady = false` in the isolation sequence: identical outcome, because nothing in that path
+reads the field. The mechanism is one asymmetry — `ChargeProgress = Stop` publishes
+`current_demand_finished`, which their manager binds to `powersupply_DC_off()`; `ChargeProgress =
+Renegotiate` publishes nothing, and `EvseManager` has no notion of renegotiation at all — while
+`cable_check()` *verifies* the safe voltage instead of establishing it. **The forty-ninth filing**, and
+the third instance of the shape this page keeps finding:
+[`everest-evsemanager-renegotiation-supply`](reports/everest-evsemanager-renegotiation-supply.md).
+<br>Worth keeping in this section rather than moving it down to *What it found in them*: the whole chain
+started with a filing of ours that was wrong, and the correct finding only became visible after fixing
+our own car and then eliminating our own second suspicion.
 
 ## What it found in **them**
 
