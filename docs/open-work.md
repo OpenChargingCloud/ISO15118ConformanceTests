@@ -70,7 +70,12 @@ weaker claim than it looks and worth separating from "untested".
   What their station hands over: one call per session carrying the eMAID off the leaf's CN, the
   three-certificate chain in PEM, and `connectors` added by `EvseManager`. What it does with an answer:
   `Accepted` carried a `-2` PnC session **past `Authorization` for the first time in this project**, on
-  to `ChargeParameterDiscovery` and `CableCheck`; `Invalid` + `certificate_status: CertificateRevoked`
+  to `ChargeParameterDiscovery` and `CableCheck` — and on **2026-08-16 through it**: 81 charge-loop
+  iterations, 30,16 kWh, 20 % → 70 %, in 96 s of wall clock, the first `-2` Plug & Charge session here
+  that actually charged. The `CableCheck` wall was a rig fault of ours, not theirs and not PnC's — the
+  SIL car plugged in before the manager, so `EvseManager` ended in `MREC11CableCheckFault` →
+  `Inoperative` ([run](interop-runs/2026-08-16-everest-iso2-pnc-charge/notes.md)). `Invalid` +
+  `certificate_status: CertificateRevoked`
   produced **`AuthorizationRes = FAILED_CertificateRevoked`**, which no configuration of their SIL can
   reach — `DummyTokenValidator` cannot set `certificate_status` at all, so `evse_managerImpl.cpp:386`
   fills in `value_or(Accepted)` and that branch is dead.

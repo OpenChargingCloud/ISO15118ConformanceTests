@@ -17,6 +17,9 @@
 
 using System.Security.Cryptography.X509Certificates;
 
+using NUnit.Framework;
+
+using cloud.charging.open.protocols.ISO15118.Simulation;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
@@ -71,7 +74,12 @@ internal static class InteropSession
                                      UInt16? SelectedEnergyServiceId = null, Int32 MeterInfoResponses = 0,
                                      TimeSpan? SilenceEndedAfter = null,
                                      ProvisioningOutcome? Provisioning = null,
-                                     Int32 Renegotiations = 0);
+                                     Int32 Renegotiations = 0,
+                                     // Why the charge loop ended, when a battery decided it rather than
+                                     // the fixed three iterations. Null on every run that configured none,
+                                     // which is every recorded one.
+                                     ChargeStop? BatteryStop = null,
+                                     Double? DeliveredWh = null);
 
 
     /// <summary>
@@ -246,13 +254,26 @@ internal static class InteropSession
                                // every -2 caller passing sendSessionId had it discarded here, so the one
                                // stack whose `[V2G2-460]` behaviour was measured that day had to be probed
                                // with raw Python. Wired 2026-08-15.
-                               SendSessionId      = sendSessionId
+                               SendSessionId      = sendSessionId,
+
+                               // A charge loop that ends when the car is done rather than after three
+                               // iterations, and a real interval between them. Both null unless a run asks:
+                               // every recorded interop session was taken at three iterations, 50 ms apart,
+                               // and this must not change that by existing.
+                               Battery            = InteropEnvironment.Battery(),
+                               ChargeLoopInterval = InteropEnvironment.ChargeLoopInterval()
                            };
 
             if (ongoingTimeout is { } iso2Ongoing)
                 evcc.OngoingTimeout = iso2Ongoing;
 
             await evcc.RunAsync(ct);
+
+            // Where the pack ended up and why the loop stopped. Printed rather than merely returned,
+            // because a battery-driven arm's whole result is this line — a session that ran to the
+            // iteration ceiling and one that charged to its target look identical in the exchange count.
+            if (evcc.Battery is { } pack)
+                TestContext.Out.WriteLine(pack.Describe(evcc.BatteryStop ?? ChargeStop.Running));
 
             ProvisioningOutcome? provisioning = null;
             if (certificateProvisioning is { } request)
@@ -278,7 +299,9 @@ internal static class InteropSession
 
             return new EvccOutcome(evcc.Exchanges, evcc.AuthorizationMode, evcc.MeteringReceiptsSent,
                                    Provisioning:   provisioning,
-                                   Renegotiations: evcc.Renegotiations);
+                                   Renegotiations: evcc.Renegotiations,
+                                   BatteryStop:    evcc.BatteryStop,
+                                   DeliveredWh:    evcc.Battery?.DeliveredWh);
         }
 
         Evcc20Base evcc20 = (mode, mcs) switch

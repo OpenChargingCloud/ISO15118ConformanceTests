@@ -101,7 +101,7 @@ thing.
 |---|---|---|---|---|---|
 | AC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 plain TCP · **×4 over TLS 1.2**³² · ✅ **`←SECC` their EV, EIM plain and Plug & Charge over TLS**³⁸ | — | ✅ `←SECC` a real VW's route¹⁸ · ✅ two Porsche routes, after a 40 W finding²³ |
 | DC, EIM | ✅ `Iso2LoopbackTests` | ✅ `EV→ ←SECC` | ✅ `EV→` ×2 sessions¹ | — | ✅ `←SECC` the full captured-Audi session¹⁷ · ◐ `EV→` stops at `SessionSetup`² |
-| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` **the session works**: contract chain accepted and our signature verified on 2025.10.0 **and** 2026.02.1, `AuthorizationRes = OK`, on through `ChargeParameterDiscovery` into `CableCheck` — 408 frames, stopping for want of hardware simulation. `FAILED_CertificateRevoked` measured on the control arm, with our own backend supplying the verdict. **◐ *not* because anything failed, but because nothing validates the contract itself**: their decider is a stub that never reads the token³ | — | — |
+| Plug & Charge (over TLS) | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ `EV→` · ✅ **`←SECC` signed auth *and* signed metering receipt verified, contract chain anchored at their MO root**⁴⁰ | ◐ `EV→` **a complete charge, 2026-08-16**: contract chain accepted, our signature verified, `AuthorizationRes = OK`, and **81 charge-loop iterations delivering 30,16 kWh — 20 % → 70 % — in 96 s**⁴⁴. `FAILED_CertificateRevoked` measured on the control arm, with our own backend supplying the verdict. **◐ *not* because anything failed, but because nothing validates the contract itself**: their decider is a stub that never reads the token, and the documented setup puts a CSMS there³ | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `EV→` (`OK_OldSessionJoined`) | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` + E2E | ✅ `EV→` their MO-signed tariff verified by us · `←SECC` their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2LoopbackTests` + `Iso2RenegotiationSequenceTests` (EV- and SECC-triggered; **DC returns through CableCheck/PreCharge since 2026-08-15**)³⁰ | ✅ `EV→ ←SECC` [V2G2-841] — **AC** | ⛔ `EV→` the sequence wall was ours and is gone; **their station now fails its own cable check and goes `Inoperative`**³⁰ | — | — |
@@ -270,6 +270,24 @@ real car to poll `Authorization` twice, and both confirm the 2026-08-06 fix: the
 `FAILED_SequenceError` instead of a closed socket. They were re-run too and are **unchanged**, which is
 the answer rather than a gap — the session dies four messages before `PowerDelivery`, so a schedule fix
 cannot reach it, and "changed nothing" is now a measurement instead of a claim.
+
+⁴⁴ **The first ISO 15118-2 Plug & Charge session here that actually charged**, and what stood in the way
+was a rig fault of ours rather than PnC or their station. Every earlier `-2` PnC run ended in
+`CableCheck`; the cause was the SIL car being plugged in **before** the manager, so its plug-in was
+consumed by a station that had since restarted — CP never reaches state C, the contactor never closes,
+and `EvseManager` ends in `MREC11CableCheckFault` → `Inoperative`, which poisons every following arm.
+The only symptom our side sees is a 60 s `CableCheck` timeout; the only symptom theirs shows is an
+**empty car log**.
+<br>**81 iterations, 30,16 kWh, 20 % → 70 %, 96 s of wall clock**, over TLS 1.2 with their own MO
+credential. The size is arithmetic, not a guess: a preceding arm measured **429 Wh per iteration** and
+~134 ms per `CurrentDemand` pair, and the estimate came out 13 % short of the 81 actually run.
+<br>**Two clocks that are not the same clock.** One iteration stands for a *simulated* minute
+(`ChargeLoopSample.Period`), so that session is 81 simulated minutes in 96 real seconds. Pulling them
+apart is `V2G_INTEROP_CHARGE_INTERVAL`, deliberately **not** `Evcc2.PollInterval` — that one also paces
+the authorization poll, `ChargeParameterDiscovery` and `CableCheck`, and those intervals are what the
+charge-loop pacing findings are measured against.
+<br>Their station asked the backend **once**, at `Authorization`; the 81 loops needed no further verdict.
+[`…-iso2-pnc-charge`](docs/interop-runs/2026-08-16-everest-iso2-pnc-charge/notes.md).
 
 ⁴³ **`[V2G2-651]` implemented, fifteen months after this project started citing it at other people.**
 Every `-2` EV **shall** name the V2G roots it holds in RFC 6066's `trusted_ca_keys` ClientHello
@@ -656,7 +674,7 @@ The offline run (`dotnet test`) needs no C toolchain, no Java and no network: th
 cross-checks re-encode Josev's captured EXIficient frames through our codec
 (`WWCP_ISO15118_EXI_Tests`), the session corpus under `Vectors/` guards our own wire output against
 regression, the transport's own decisions are unit-tested in `WWCP_ISO15118_Session_Tests`, and the
-loopback E2Es run both peers in-process. 1 429 tests, all four assemblies green. The **live** cross-checks against a
+loopback E2Es run both peers in-process. 1 442 tests, all four assemblies green. The **live** cross-checks against a
 running Josev or EVerest are `[Explicit]` and stay out of the offline run — they need the other stack
 on the wire. What each of them has proven is the matrix above.
 

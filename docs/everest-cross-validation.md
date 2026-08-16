@@ -127,6 +127,13 @@ Everything below was unblocked by it.
   `auth` — everywhere else the token is published to a variable nobody subscribed to, and the session
   polls until `auth_timeout_pnc` and answers `FAILED` with no token in any log. One connection added,
   and the same session runs **past `Authorization`** to `ChargeParameterDiscovery` and `CableCheck`.
+  <br>**And on 2026-08-16 it charged**: 81 charge-loop iterations, 30,16 kWh, 20 % → 70 %, 96 s of wall
+  clock, over TLS 1.2 with their own MO credential. What had stopped every earlier attempt in
+  `CableCheck` was ours — the SIL car plugged in *before* the manager, so its plug-in was consumed by a
+  station that had since restarted and `EvseManager` ended in `MREC11CableCheckFault` → `Inoperative`.
+  Their station asked our validator **once**, at `Authorization`; the 81 loops needed no further verdict,
+  and `CurrentDemandRes` came back in ~100 ms throughout
+  ([run](interop-runs/2026-08-16-everest-iso2-pnc-charge/notes.md)).
   <br>With [the contract-validator arm](../tools/interop-everest/contract-validator-arm.sh) supplying
   the verdict their SIL has no backend for, `Invalid` + `certificate_status: CertificateRevoked` also
   produced **`AuthorizationRes = FAILED_CertificateRevoked`** — unreachable by any configuration of
