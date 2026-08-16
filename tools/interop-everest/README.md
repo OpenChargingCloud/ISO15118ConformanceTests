@@ -492,6 +492,32 @@ ends the moment our answer arrives, which is expected, not a failure of the run.
 before the response is sent —
 [`2026-08-08-everest-oem-provisioning-chain`](../../docs/interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md).
 
+### Our EVCC asking *their* station for a contract  (`-2`, forward)
+
+The other direction, and the one that needs a backend standing behind their station:
+
+```bash
+V2G_INTEROP_PROVISION=install            # or `update`
+V2G_INTEROP_PROVISION_CERT=<p12>         # the credential that plays the part, with its private key:
+                                         #   install -> the OEM provisioning certificate
+                                         #   update  -> the expiring contract certificate
+V2G_INTEROP_PROVISION_PASS=<password>
+V2G_INTEROP_PROVISION_EMAID=<emaid>      # `update` only — the message carries it
+V2G_INTEROP_PROVISION_BACKEND=<dir>      # stand in as the MO backend, see below
+```
+
+**`…_BACKEND` is what makes the run complete rather than time out.** Their station has no issuer of its
+own: it publishes our EXI over its MQTT interface and waits **4,5 s**. Point this at the directory their
+module forwards to and the fixture answers in that window, **in the same process as the car on purpose** —
+two `dotnet test` runs racing a 4,5 s window is a coordination problem this does not need. Leave it unset
+and their station is conformant and the session still fails, which is a fact about their SIL and not about
+either implementation
+([`…-iso2-cert-install`](../../docs/interop-runs/2026-08-11-everest-iso2-cert-install/notes.md)).
+
+`update` cannot be measured against them at all: their advertisement gate offers parameter-set-ID **1**
+only, Update being an explicit `TODO`, so the selection answers before the stub is reached. That is a fact
+about their catalogue, not a run nobody has done.
+
 ### Scenario order
 
 1. ✅ **-2 DC, EIM, `tls_security: allow`** — forward. Done 2026-08-02: a complete charge, 36/36 `OK`.
@@ -577,8 +603,8 @@ discovered session is a recorded one. Three things to get right:
    `Schemas/` relative to the default `bin/` layout, so `--artifacts-path` moves the output out from under
    it and all three `FullIso2SchemaSet_*` cases fail with `DirectoryNotFoundException`. Use a filter for
    interop work, and **verify the offline gate on Windows** — `dotnet test -c Release` there is the run
-   that means 1 405 green. Measured 2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows,
-   same commit.
+   whose figure counts (1 429 green as of 2026-08-16; `CLAUDE.md` carries the current one). Measured
+   2026-08-13: 3 failed under WSL with the flag, 0 without it on Windows, same commit.
    <br>**And it is a separate output tree from the Windows `bin/`, which `--no-build` will happily run.**
    A fixture change built on Windows is not in `~/wsl-artifacts`; the first reverse TLS attempt on
    2026-08-14 advertised `NoTLS` with `V2G_INTEROP_TLS_SERVER` set for exactly that reason, and everything
@@ -666,6 +692,26 @@ Confirmed on first contact, and no longer questions:
   every peer on its bare leaf; a bundle carrying the Sub-CAs passes either way, so only a root-only
   anchor could tell. Fixed, with the regression in `ChainValidationTests`
   ([`…-iso2-ac-tls12`](../../docs/interop-runs/2026-08-14-everest-iso2-ac-tls12/notes.md)).
+  <br>**The same defect had a third copy on the managed TLS backend**, found 2026-08-16 by an arm whose
+  *control* failed: `TlsPlatform` bridged the callback onto `ValidatePeerLeaf` with a null chain, so a
+  root-only anchor refused every station there too. Fixed the same day. **If a run on
+  `V2G_TLS_BACKEND=BouncyCastle` refuses a station you can verify with `openssl s_client -CAfile`, check
+  you are past that commit before writing it up as theirs.**
+- **`V2G_INTEROP_TRUSTED_CA_KEYS=<pem>` is a different variable from `V2G_INTEROP_TLS_TRUST`, and the
+  difference is the whole point of a chain-selection run.** `…_TLS_TRUST` is what *we* accept;
+  `…_TRUSTED_CA_KEYS` is what our car **names** in RFC 6066's `trusted_ca_keys` ClientHello extension
+  (`[V2G2-651]`). It takes a PEM bundle and uses only its **self-signed** entries — naming an
+  intermediate is not what the requirement asks — and it throws if there is none, rather than sending an
+  empty list.
+  <br>Setting it **forces the BouncyCastle backend**: `SslStream` cannot add a ClientHello extension on
+  any platform, and `TcpV2GClient` refuses the session rather than dropping the extension silently. That
+  also pins the session to **TLS 1.2**, ISO 15118-2's transport — so this is a `-2` instrument only; `-20`
+  names its roots through `certificate_authorities` instead.
+  <br>**Varying the two independently is how chain selection is measured.** Against `IsoMux` on
+  2026-08-16: *names B / trusts B* → refused, *names B / trusts A* → complete DC session, with *names A /
+  trusts A* as a control before and after. Set them to the same file and you have an ordinary anchored
+  run; set them apart and you are asking the station which chain it picks
+  ([`…-isomux-section4`](../../docs/interop-runs/2026-08-16-everest-isomux-section4/notes.md)).
 - **`enable_tls_key_logging: true` kills their -20 server here** — it binds a UDP socket to an interface
   and the call fails under qemu (`Could not set interface name:eth0`). Probably emulation rather than a
   defect; leave it off unless you are on x86-64.
