@@ -514,9 +514,23 @@ and their station is conformant and the session still fails, which is a fact abo
 either implementation
 ([`…-iso2-cert-install`](../../docs/interop-runs/2026-08-11-everest-iso2-cert-install/notes.md)).
 
-`update` cannot be measured against them at all: their advertisement gate offers parameter-set-ID **1**
-only, Update being an explicit `TODO`, so the selection answers before the stub is reached. That is a fact
-about their catalogue, not a run nobody has done.
+**`update` needs one more variable, and the reason is worth reading before using it.** Their
+advertisement offers parameter-set-ID **1** only — Update is an explicit `TODO` — so a car pairing
+*Update → set 2*, which is what a conformant one does and what ours does by default, is answered
+`FAILED_ServiceSelectionInvalid` and never reaches their handler. But their **state table does not pair
+them**: the state after a Contract selection is `WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD` and admits
+`CertificateUpdateReq` whatever set was selected.
+
+```bash
+V2G_INTEROP_PROVISION=update
+V2G_INTEROP_PROVISION_PARAMSET=1     # name the set they DO advertise, send the other message
+```
+
+**The car is deliberately non-conformant while this is set**, and any run or report using it has to say
+so — what the station does with the message is still the station's, but a filing that hides the deviation
+is refutable in one sentence. Measured on 2026-08-16: `CertificateUpdateRes` came back with
+`ResponseCode = OK` from an empty handler, and the `DHpublickey` was not a P-256 point
+([`…-cert-update-live`](../../docs/interop-runs/2026-08-16-everest-iso2-cert-update-live/notes.md)).
 
 ### A session that charges rather than one that completes
 

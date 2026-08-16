@@ -485,6 +485,33 @@ internal static class InteropEnvironment
     /// at one second apart. See <see cref="Battery"/> for why it is not <c>EvBattery</c>'s own.</summary>
     public const int DefaultInteropIterations = 600;
 
+
+    /// <summary>
+    /// <c>V2G_INTEROP_PROVISION_PARAMSET=&lt;n&gt;</c> — the parameter-set ID our car names when it selects
+    /// the certificate service, overriding the conformant pairing (Installation 1, Update 2). Unset (the
+    /// default) keeps the pairing, which is what every recorded run used.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>An off-profile probe with a specific target.</b> EVerest's <c>EvseV2G</c> advertises the
+    /// certificate service with **set 1 alone** — Update is an explicit <c>TODO</c> — so a car pairing
+    /// <i>Update → 2</i> is answered <c>FAILED_ServiceSelectionInvalid</c> and their
+    /// <c>handle_iso_certificate_update</c> is never called. Their own state after a Contract selection is
+    /// named <c>WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD</c> and admits the message whatever set was
+    /// selected, so <c>V2G_INTEROP_PROVISION=update</c> with this at <c>1</c> reaches the handler their
+    /// dispatch says should handle it.
+    /// </para>
+    /// <para>
+    /// <b>Say it in the run note and in the report.</b> The car is deliberately non-conformant while this
+    /// is set; what the station does next is still the station's. A filing that leaves that out invites
+    /// the one-sentence rebuttal it deserves.
+    /// </para>
+    /// </remarks>
+    public static short? CertificateParameterSetId()
+        => Int16.TryParse(Read("V2G_INTEROP_PROVISION_PARAMSET"), out var id) && id > 0
+               ? id
+               : null;
+
     /// <summary>
     /// How long the whole session may take, derived rather than guessed: a battery-driven charge loop runs
     /// until the car is done, and at a real <see cref="ChargeLoopInterval"/> that is minutes, not the
