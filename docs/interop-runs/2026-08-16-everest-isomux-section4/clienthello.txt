@@ -1,0 +1,16 @@
+# The ClientHello of arm c, off the wire (tcpdump -i any 'tcp port 64110')
+#
+# The car names ONE V2G root in RFC 6066's trusted_ca_keys, and it is root B.
+
+ClientHello at offset 472, 122 bytes of extensions
+
+  ext    22  encrypt_then_mac            0 bytes
+  ext    23  extended_master_secret      0 bytes
+  ext     5  status_request              5 bytes
+  ext    13  signature_algorithms       54 bytes
+  ext    10  supported_groups           10 bytes
+  ext    11  ec_point_formats            2 bytes
+  ext     3  trusted_ca_keys            23 bytes
+        raw: 001503eb80148eb96c1e72e2d8c5ea4de6ef873724f5a8
+        [0] cert_sha1_hash: EB:80:14:8E:B9:6C:1E:72:E2:D8:C5:EA:4D:E6:EF:87:37:24:F5:A8
+        1 authority/authorities named, list length 21

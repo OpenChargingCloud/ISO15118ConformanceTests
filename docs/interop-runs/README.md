@@ -58,6 +58,15 @@ agreed. Two managers on one MQTT prefix crash-shut-down in a way that reads exac
 whatever you changed last. An unexplained crash in a rig you just changed is your rig until proven
 otherwise.
 
+[`2026-08-16-everest-isomux-section4/`](2026-08-16-everest-isomux-section4/notes.md) is the same shape
+against a different module, and it adds the piece the two above argue from configuration instead of
+bytes: a **packet capture**, so *"our car asked for root B"* is the hex of the ClientHello extension and
+*"they answered with the other chain"* is three certificates lifted off the wire and run through
+`openssl verify` against each root. The first capture in this directory, and it took two attempts —
+traffic to the host's own link-local address goes through `lo`, not through the interface that owns the
+address, so `tcpdump -i eth0` recorded **0 packets** while the session completed. Use `-i any` with a
+port filter.
+
 A fourth shape has no counterparty artifact at all: an **audit of our own drafts** against the trees
 they cite. [`2026-08-11-reports-upstream-audit/`](2026-08-11-reports-upstream-audit/notes.md) re-reads
 every `file:line` in `docs/reports/` — 189 of them, all still correct — and then asks the question the

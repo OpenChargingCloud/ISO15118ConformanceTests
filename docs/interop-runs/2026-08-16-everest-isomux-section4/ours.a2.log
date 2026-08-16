@@ -1,0 +1,33 @@
+Test run for /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/bin/Release/net10.0/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/i15118/ISO15118ConformanceTests.Simulation/bin/Release/net10.0/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/bin/Release/net10.0/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+Connecting to their SECC at [fe80::215:5dff:fe07:f821%2]:64110 ...
+Authorization: eim
+Recorded:
+  /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.ev-to-station.bin
+  /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.station-to-ev.bin
+  /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.frames.log
+  /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.flow.md
+  /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.trace.json
+
+NUnit Adapter 4.6.0.0: Test execution complete
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [6 s]
+  Standard Output Messages:
+ Connecting to their SECC at [fe80::215:5dff:fe07:f821%2]:64110 ...
+ Authorization: eim
+ Recorded:
+   /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.ev-to-station.bin
+   /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.station-to-ev.bin
+   /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.frames.log
+   /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.flow.md
+   /tmp/isomux-s4/a2/everest-iso15118-2-dc-forward.trace.json
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 7.2137 Seconds
