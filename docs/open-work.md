@@ -864,6 +864,13 @@ also below.
   send `trusted_ca_keys`, and **ours does not**. Building it would close §4's box and fix a conformance
   gap of ours in the same change — which is the honest reason to do it, and why it is not smuggled in as
   a probe.
+  <br>**Done the next day, and the coupling above was wrong** — worth keeping because of *how* it was
+  wrong. `§2 and §4 are coupled` was a fact about our toolbox dressed as a fact about their module:
+  `openssl -requestCAfile` speaks the TLS **1.3** extension, so the 1.2 cap blocked *that instrument*,
+  not the measurement. A `-2` client sending RFC 6066 over TLS 1.2 walks straight through the cap, and
+  once ours existed §4 was measured with §2 exactly where it stood. **When a counterparty's defect
+  appears to be unobservable, check whether the obstacle is theirs or the tool's** — here it took one
+  more instrument, not one more fix from them.
   <br>**Number 37 in the sending order was the last one with a measurement in it**, and it was taken the
   same evening. `evdriveflow-session-id` said `[V2G20-460]` is unimplemented in their SECC and had *"run
   it against your station"* as its first open line; run, their station answered **ten message types `OK`

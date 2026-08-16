@@ -343,6 +343,13 @@ ignores the extension is indistinguishable from one that honours it, because the
 choose. The requirement bites exactly where an operator holds two — mid-rotation, or serving two roots
 — and that is the configuration nobody tests.
 
+**Measured on 2026-08-16**, which is why that paragraph is no longer only a reading: with two roots
+installed on EVerest's `IsoMux` and a valid SECC chain under each, a car naming root B in
+`trusted_ca_keys` was served the chain under root **A** — the ClientHello and the served certificates
+both off the wire ([run](interop-runs/2026-08-16-everest-isomux-section4/notes.md)). The discriminator
+is the pair *names B / trusts B* → refused against *names B / trusts A* → complete session, and it needs
+the two-root configuration to exist at all.
+
 **Implemented on our side 2026-08-16**, after fifteen months in which this section described a duty our
 own car did not discharge. What the requirement leaves open, and how it was closed:
 
