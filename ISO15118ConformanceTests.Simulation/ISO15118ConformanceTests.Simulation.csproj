@@ -31,9 +31,21 @@
     <ProjectReference Include="..\libs\EVSimulatorApp\libs\WWCP_ISO15118\WWCP_ISO15118_PKI\WWCP_ISO15118_PKIBuilder\WWCP_ISO15118_PKIBuilder.csproj" />
   </ItemGroup>
 
-  <!-- The meter-signing corpus, consumed by the Swift and Kotlin verifiers too. -->
+  <!-- The corpus these tests record and every port is held to. It lives in the EVSimulatorApp
+       submodule, in `vectors/`, because that is where the things held to it live: Swift, Kotlin,
+       TypeScript, the WebView app and the Capacitor plugin all read it, and reading it out of THIS
+       repository made a submodule depend on its own superproject. The regenerators here write
+       there; both sets are linked into one `Vectors` folder beside the assembly, so the read paths
+       in these tests are unchanged.
+
+       `Din.tesla-session.corpus.json` stays here: no port reads it, it belongs to the DIN interop
+       tests alone. -->
   <ItemGroup>
     <None Include="Vectors\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\libs\EVSimulatorApp\vectors\*.json">
+      <Link>Vectors\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

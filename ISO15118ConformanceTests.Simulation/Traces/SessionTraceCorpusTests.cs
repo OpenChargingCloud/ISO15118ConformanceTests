@@ -483,9 +483,18 @@ public class SessionTraceCorpusTests
     private static string TracePath(string name) =>
         Path.Combine(TestContext.CurrentContext.TestDirectory, "Vectors", FileName(name));
 
-    /// <summary>Where the regenerator writes it: the source tree. Writing to the output directory would
-    /// produce a corpus that vanishes on the next clean, and one the Kotlin and Swift suites — which read
-    /// it out of the source tree — would never see.</summary>
+    /// <summary>Where the regenerator writes it: <c>libs/EVSimulatorApp/vectors/</c>, the submodule's
+    /// source tree. Writing to the output directory would produce a corpus that vanishes on the next clean,
+    /// and one the Kotlin and Swift suites — which read it out of the source tree — would never see.
+    /// <para>
+    /// It writes DOWN into the submodule rather than beside these tests because that is where everything
+    /// held to it lives. The ports used to read it back up here as
+    /// <c>../../ISO15118ConformanceTests.Simulation/Vectors/</c>, which made a submodule depend on its own
+    /// superproject: EVSimulatorApp could not pass its own suite standalone, and its CI had to lay this
+    /// repository out first purely to put a directory of JSON above the tree under test. Regenerating now
+    /// dirties the submodule, so it takes a commit there and a gitlink bump here — which is the honest
+    /// shape of generated data crossing that boundary.
+    /// </para></summary>
     private static string SourceTracePath(string name)
     {
 
@@ -495,7 +504,7 @@ public class SessionTraceCorpusTests
 
         Assert.That(dir, Is.Not.Null, "could not find the test project directory");
 
-        var vectors = Path.Combine(dir!.FullName, "Vectors");
+        var vectors = Path.Combine(dir!.FullName, "..", "libs", "EVSimulatorApp", "vectors");
         Directory.CreateDirectory(vectors);
         return Path.Combine(vectors, FileName(name));
 
