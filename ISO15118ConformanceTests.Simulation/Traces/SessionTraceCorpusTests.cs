@@ -25,12 +25,17 @@ using cloud.charging.open.protocols.ISO15118_2.Generated;
 using cloud.charging.open.protocols.ISO15118.Metering;
 using EVSimulatorApp.Ocpp;
 using cloud.charging.open.protocols.ISO15118.Sap;
+using cloud.charging.open.protocols.ISO15118.Session;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.Timing;
 using cloud.charging.open.protocols.ISO15118.Transport;
 using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
+
+// ChargingSession is a stop reason on both protocols and a different generated enum on each.
+using I2ChargingSession  = cloud.charging.open.protocols.ISO15118_2.Generated.ChargingSession;
+using C20ChargingSession = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ChargingSession;
 
 namespace ISO15118ConformanceTests.Simulation.Traces;
 
@@ -77,6 +82,11 @@ public class SessionTraceCorpusTests
     /// included. Test material, never a live challenge.</summary>
     private static readonly byte[] RecordedGenChallenge =
         [0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F];
+
+    /// <summary>The id the refused resume is answered with. A second pinned value, because the station
+    /// refuses by assigning an id that is <em>not</em> the one offered — so the recording seam that
+    /// makes every other session reproducible cannot be handed the usual constant here.</summary>
+    private static readonly byte[] RefusedSessionId = [0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21];
 
     private static readonly TimeSpan SeccSequenceTimeout = TimeSpan.FromSeconds(60);
 
@@ -681,7 +691,175 @@ public class SessionTraceCorpusTests
             },
             SignedBy: OemMaterial.Iso20SignKey,
             FreshlyIssuedResponses: ["CertificateInstallationRes"]),
+
+        // ── pause and resume ──────────────────────────────────────────────
+        //
+        // Five recordings for one feature, because "resume" is two protocols doing genuinely
+        // different things under one name, and because the interesting half is what a resumed session
+        // does NOT send.
+        //
+        // -2 ([V2G2-740]) rejoins by putting the paused id in the opening SessionSetupReq header and
+        // then repeats everything: discovery, payment selection, authorization, charge parameters.
+        // The only other difference is on the wire in one field — [V2G2-743] reduces EAmount by what
+        // the paused session already charged.
+        //
+        // -20 rejoins the same way and then skips the whole opening block: no AuthorizationSetup, no
+        // AuthorizationReq, no ServiceDiscovery/Detail/Selection. It opens at
+        // ChargeParameterDiscovery. Our own two sides were wrong in the same direction here until
+        // 2026-08-08 — the EVCC replayed authorization and the SECC accepted it, so they agreed with
+        // each other and disagreed with EVerest, which answered FAILED_SequenceError.
+        //
+        // And the fifth: a -20 resume the station refuses, because the binding cannot be verified.
+        // That is what this harness's own plain-TCP interop runs actually get, and it is where the
+        // security property lives — a port that failed open there would pass all four others.
+
+        new("iso2-ac-eim-pause", "iso15118-2", "ac",
+            "AC, external payment, ended with SessionStopReq(Pause) rather than Terminate. The " +
+            "station keeps the session id instead of forgetting it, and the car may come back to it " +
+            "([V2G2-740]). Identical to iso2-ac-eim in every frame but the last request.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          { StopMode = I2ChargingSession.Pause }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso2-ac-eim-resume", "iso15118-2", "ac",
+            "The connection after that pause: the SessionSetupReq header carries the paused " +
+            "session's id instead of the all-zero one, and the station answers OK_OldSessionJoined " +
+            "([V2G2-740]). Everything else runs again — a -2 resume repeats discovery, payment " +
+            "selection and authorization — so the second visible difference is the only other one: " +
+            "EAmount asks for 22 kWh less the " + PausedSessionChargedWh + " Wh the paused session " +
+            "already took ([V2G2-743]).",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          {
+                              ResumeSessionId  = RecordedSessionId,
+                              AlreadyChargedWh = PausedSessionChargedWh,
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            ResumeSessionId   = RecordedSessionId,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-dc-eim-pause", "iso15118-20", "dc",
+            "-20 DC, ended with SessionStopReq(Pause). The station keeps both the session id and the " +
+            "binding that says which vehicle owns it; the pair is what the next connection is offered.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+                          {
+                              StopMode            = C20ChargingSession.Pause,
+                              SeccLeafCertificate = ResumeMaterial.SeccLeaf,
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId         = RecordedSessionId,
+                            FixedGenChallenge      = RecordedGenChallenge,
+                            VehicleLeafCertificate = ResumeMaterial.VehicleLeaf,
+                            Backend                = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-dc-eim-resume", "iso15118-20", "dc",
+            "The connection after that pause, and the shortest complete -20 session in the corpus: " +
+            "SessionSetup answers OK_OldSessionJoined and charging begins at " +
+            "DC_ChargeParameterDiscovery. No AuthorizationSetup, no AuthorizationReq, no service " +
+            "discovery, detail or selection — a resumed session repeats none of it, and the energy " +
+            "service it settled on travels with the session rather than being negotiated again.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                var evcc = new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+                {
+                    SeccLeafCertificate = ResumeMaterial.SeccLeaf,
+                };
+                // DC = service 2 (Table 204): what the paused session had settled on, carried over
+                // rather than renegotiated.
+                evcc.ResumeFrom(new ResumableSession(RecordedSessionId,
+                                    SessionBinding20.Compute(RecordedSessionId, ResumeMaterial.SeccLeaf), 2));
+                await evcc.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                var secc = new Secc20Dc(SeccSequenceTimeout, clock)
+                {
+                    FixedSessionId         = RecordedSessionId,
+                    FixedGenChallenge      = RecordedGenChallenge,
+                    VehicleLeafCertificate = ResumeMaterial.VehicleLeaf,
+                    Backend                = backend,
+                };
+                secc.OfferResume(new ResumableSession(RecordedSessionId,
+                                     SessionBinding20.Compute(RecordedSessionId, ResumeMaterial.VehicleLeaf), 2));
+                await secc.RunAsync(stream, ct);
+            }),
+
+        new("iso20-dc-eim-resume-refused", "iso15118-20", "dc",
+            "The same request, refused. The car offers the paused session's id and the station has " +
+            "no binding to check it against — which is what plain TCP always gives, since the " +
+            "binding is taken from the TLS handshake. The answer is a NEW session with a different " +
+            "id and OK_NewSessionEstablished, indistinguishable from a first visit: a rejection that " +
+            "said why would tell an attacker its guessed id was real. So the car drops everything " +
+            "the pause carried and runs the full opening sequence.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                var evcc = new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
+                // Offered without a binding on either side — exactly the shape of a plain-TCP resume.
+                evcc.ResumeFrom(new ResumableSession(RecordedSessionId, Binding: null, EnergyServiceId: 2));
+                await evcc.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                var secc = new Secc20Dc(SeccSequenceTimeout, clock)
+                {
+                    // A *different* pinned id, and it has to be different: the station refuses by
+                    // handing out an id that is not the one offered, so pinning it to that very id
+                    // would ask for the one value the refusal may not take.
+                    FixedSessionId         = RefusedSessionId,
+                    FixedGenChallenge      = RecordedGenChallenge,
+                    VehicleLeafCertificate = ResumeMaterial.VehicleLeaf,
+                    Backend                = backend,
+                };
+                secc.OfferResume(new ResumableSession(RecordedSessionId, Binding: null, EnergyServiceId: 2));
+                await secc.RunAsync(stream, ct);
+            }),
     ];
+
+
+    /// <summary>
+    /// What <c>iso2-ac-eim-pause</c> metered, and therefore what its successor may no longer ask for.
+    /// </summary>
+    /// <remarks>
+    /// A constant rather than a value threaded from one recording into the next, because the two are
+    /// recorded independently and a scenario cannot see its predecessor. It is not left to drift:
+    /// <see cref="TheResumedSessionAsksForWhatThePausedOneLeft"/> reads the paused session's own
+    /// transaction record and fails here if the two ever disagree.
+    /// </remarks>
+    private const double PausedSessionChargedWh = 552;
 
 
     private static IEnumerable<string> ScenarioNames => Scenarios.Select(s => s.Name);
@@ -747,6 +925,17 @@ public class SessionTraceCorpusTests
     public void RegenerateTheOemMaterial()
     {
         TestContext.Out.WriteLine($"wrote {OemMaterial.Regenerate()}");
+    }
+
+    /// <summary>
+    /// Writes the stand-in TLS leaves the recorded -20 resume is bound to. Explicit like its siblings,
+    /// and for a sharper reason: these bytes are hashed into a session binding, so changing them
+    /// invalidates the recorded resume without changing anything a reader would notice.
+    /// </summary>
+    [Test, Explicit("Regenerates Vectors/Session.resume-material.json — invalidates the -20 resume trace")]
+    public void RegenerateTheResumeMaterial()
+    {
+        TestContext.Out.WriteLine($"wrote {ResumeMaterial.Regenerate()}");
     }
 
 
@@ -1019,6 +1208,116 @@ public class SessionTraceCorpusTests
         if (old.MeterSignatureBytes is { } reading)   bytes = SignedFrame.WithMeterSignature(bytes, reading);
 
         return bytes;
+    }
+
+
+    /// <summary>
+    /// A resumed session names the session it is resuming — which is the one thing about a pause and
+    /// its successor that lives <em>between</em> two recordings rather than inside either.
+    /// </summary>
+    /// <remarks>
+    /// Read out of the paused trace rather than compared against the pinned constant, deliberately.
+    /// The constant is what the recorder was told; what the pair has to agree on is what actually
+    /// went on the wire, and a check against the constant would pass even if the two recordings had
+    /// drifted apart from each other.
+    /// </remarks>
+    [Test]
+    public void AResumedSessionCarriesThePausedSessionsId(
+        [Values("iso2-ac-eim", "iso20-dc-eim")] string family)
+    {
+
+        var paused  = SessionTrace.ReadFrom(TracePath($"{family}-pause"));
+        var resumed = SessionTrace.ReadFrom(TracePath($"{family}-resume"));
+
+        // The id the paused session ran under: the station assigns it in SessionSetupRes, and every
+        // later request carries it — so the request *after* SessionSetup is where to read it.
+        var pausedId = SessionIdOfRequest(paused, index: 2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(paused.Exchanges[^1].Request.Message, Does.Contain("SessionStop"),
+                        "a paused session must end with a SessionStopReq, or it did not pause");
+
+            // The opening SessionSetupReq of a fresh session carries the all-zero id; a resume puts
+            // the paused id there instead. That single field is the whole of [V2G2-740] on the wire.
+            Assert.That(SessionIdOfRequest(resumed, index: 1), Is.EqualTo(pausedId),
+                        "the resumed session's SessionSetupReq does not name the session it resumes");
+            Assert.That(SessionIdOfRequest(paused, index: 1), Is.Not.EqualTo(pausedId),
+                        "the paused session opened with the id it was later given, so this corpus " +
+                        "cannot tell a resume from a first visit");
+        });
+
+    }
+
+    /// <summary>The SessionID in a recorded request's header, whichever protocol it belongs to.</summary>
+    private static string SessionIdOfRequest(SessionTrace trace, int index)
+        => DecodedRequest(trace, index) switch
+        {
+            V2G_Message m
+                => Convert.ToHexString(m.Header.SessionID).ToLowerInvariant(),
+            cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.V2GRequestType r
+                => Convert.ToHexString(r.Header.SessionID).ToLowerInvariant(),
+            var other => throw new InvalidDataException(
+                             $"{trace.Name} exchange {index}: a {other?.GetType().Name} carries no SessionID."),
+        };
+
+    private static object? DecodedRequest(SessionTrace trace, int index)
+    {
+        if (!V2GTPDispatcher.TryDecode(trace.Exchanges[index].Request.Bytes, out _, out var message, out var error))
+            throw new InvalidDataException($"{trace.Name} exchange {index}: {error}");
+        return message;
+    }
+
+
+    /// <summary>
+    /// A resumed -2 session asks for what the paused one left, and not for the whole 22 kWh again
+    /// ([V2G2-743]).
+    /// </summary>
+    /// <remarks>
+    /// The number comes out of the paused session's <em>own</em> transaction record rather than out of
+    /// <see cref="PausedSessionChargedWh"/>, so the constant the recorder was configured with is held
+    /// to the recording it produced rather than being trusted. Two files that were regenerated apart
+    /// fail here.
+    /// </remarks>
+    [Test]
+    public void TheResumedSessionAsksForWhatThePausedOneLeft()
+    {
+
+        var charged = OcppEnergyOf("iso2-ac-eim-pause");
+
+        Assert.That(charged, Is.EqualTo(PausedSessionChargedWh).Within(1.0),
+                    "the paused recording metered a different amount than the resumed one was told " +
+                    "to subtract — one of the two was regenerated without the other");
+
+        var resumed = SessionTrace.ReadFrom(TracePath("iso2-ac-eim-resume"));
+        // From 1: exchange 0 is the SupportedAppProtocol handshake, which belongs to a different
+        // message set and is not a V2G_Message at all.
+        var request = Enumerable.Range(1, resumed.Exchanges.Count - 1)
+                                .Select(i => DecodedRequest(resumed, i))
+                                .OfType<V2G_Message>()
+                                .Select(m => m.Body.BodyElement)
+                                .OfType<ChargeParameterDiscoveryReqType>()
+                                .Single();
+
+        var eAmount = ((AC_EVChargeParameterType) request.EVChargeParameter!).EAmount;
+
+        Assert.That(eAmount.Value * Math.Pow(10, eAmount.Multiplier),
+                    Is.EqualTo(22_000 - charged).Within(1.0),
+                    "[V2G2-743]: a resumed session's EAmount must be the remainder, not the literal");
+
+    }
+
+    /// <summary>The energy a recorded session's station reported to its backend.</summary>
+    private static double OcppEnergyOf(string name)
+    {
+        var path = Path.Combine(TestContext.CurrentContext.TestDirectory, "Vectors", OcppFileName);
+        var root = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path)).RootElement;
+
+        var values = root.GetProperty("transactions").GetProperty(name).GetProperty("meterValues");
+        Assert.That(values.GetArrayLength(), Is.GreaterThan(0), $"{name}: the station metered nothing");
+
+        var last = values[values.GetArrayLength() - 1].GetProperty("sampledValue")[0].GetProperty("value");
+        return double.Parse(last.GetString()!, System.Globalization.CultureInfo.InvariantCulture);
     }
 
 
