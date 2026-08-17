@@ -63,8 +63,13 @@ public class TariffSignatureCorpusTests
 
     private const string FileName = "Tariff.signature.vectors.json";
 
-    /// <summary>The Mobility Operator's key, as far as this corpus is concerned.</summary>
-    private const string TariffKeyD =
+    /// <summary>The Mobility Operator's key, as far as this corpus is concerned.
+    /// <para>
+    /// Shared with the <c>iso2-ac-eim-tariff</c> session recording in <c>SessionTraceCorpusTests</c>, so the
+    /// signed offer in that trace and the offers in these cases carry one operator identity rather than two.
+    /// A port can therefore read the verify key out of this corpus and use it on that session.
+    /// </para></summary>
+    internal const string TariffKeyD =
         "5a1f3c8e7b2d94061fae83c5d72b0e94183fa6c2b95d07e4318cfa62d5079b13";
 
     /// <summary>A second, unrelated key — the one the <c>wrong-key</c> case verifies against.</summary>
@@ -176,6 +181,9 @@ public class TariffSignatureCorpusTests
             y = Convert.ToHexString(q.Y!).ToLowerInvariant(),
         };
     }
+
+    /// <summary>The Mobility Operator's signing key, for the corpus here and for the recorded session.</summary>
+    internal static ECDsa TariffKey() => KeyFrom(TariffKeyD);
 
     private static ECDsa KeyFrom(string d)
     {

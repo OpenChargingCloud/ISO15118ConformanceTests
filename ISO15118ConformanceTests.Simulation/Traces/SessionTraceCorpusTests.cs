@@ -92,7 +92,12 @@ public class SessionTraceCorpusTests
         Func<Stream, TimeProvider, CancellationToken, Task> RunEvcc,
         Func<Stream, TimeProvider, Func<string, OcppTransactionRecorder>?, CancellationToken, Task> RunSecc,
         bool                                              Signed  = false,
-        bool                                              Metered = false);
+        bool                                              Metered = false,
+        /// <summary>The station signs its SalesTariffs (§7.9.2.5). Like <paramref name="Signed"/> this makes
+        /// the recording randomised — ECDSA picks a fresh nonce per run — but it attaches no key to the
+        /// trace: the verify key lives in <c>Tariff.signature.vectors.json</c>, which the ports already read,
+        /// and duplicating it into the trace schema would give one operator identity two homes.</summary>
+        bool                                              TariffSigned = false);
 
 
     /// <summary>
@@ -396,6 +401,41 @@ public class SessionTraceCorpusTests
                             Backend           = backend }.RunAsync(stream, ct);
             },
             Metered: true),
+
+        // The offer stops being a formality here. Every other -2 session gets the plain single unsigned
+        // tuple; this station offers two, prices them, and signs both SalesTariffs into the response
+        // header (§7.9.2.5). So this is the only recorded session in which the EV's tuple choice is a
+        // *choice* — it picks tuple 2 on average price, 1.5 against 2.5 — and the only one whose header
+        // carries a signature the EV is expected to check rather than relay.
+        //
+        // What the trace can and cannot show: the bytes, and only the bytes. The verdict itself never
+        // reaches the wire, which is why Tariff.signature.vectors.json exists beside this. The two are
+        // deliberately signed by the same key, so a port can read the verify key out of that corpus and
+        // apply it to this session — one Mobility Operator, two kinds of evidence.
+        new("iso2-ac-eim-tariff", "iso15118-2", "ac",
+            "AC, EIM, with signed SalesTariffs: the station offers two priced tuples and signs both " +
+            "into the ChargeParameterDiscoveryRes header (one reference per tariff, §7.9.2.5). The EV " +
+            "picks the cheaper tuple on average EPriceLevel and shapes its ChargingProfile to it. The " +
+            "only recorded session where the schedule offer is a decision rather than a formality.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var verifyKey = TariffSignatureCorpusTests.TariffKey();
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          { TariffVerifyKey = verifyKey }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var signKey = TariffSignatureCorpusTests.TariffKey();
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            TariffSignKey     = signKey,
+                            Backend           = backend }.RunAsync(stream, ct);
+            },
+            TariffSigned: true),
 
         new("iso20-dc-eim-meter", "iso15118-20", "dc",
             "-20 DC, EIM, with the same meter fitted: the reading rides in MeterInfo.MeterSignature " +
@@ -760,7 +800,7 @@ public class SessionTraceCorpusTests
         // The half the substitution discards. Two runs must produce *different* random parts, or the
         // signing is not randomised and the whole mechanism was unnecessary; and a session with no
         // signer at all must reproduce exactly, which is what makes a re-record's diff readable.
-        if (scenario.Signed || scenario.Metered)
+        if (scenario.Signed || scenario.Metered || scenario.TariffSigned)
             Assert.That(randomised, Is.Not.Empty,
                         "two recordings came out byte-identical, so nothing here is actually " +
                         "randomised and the substitution is solving a problem that does not exist");
