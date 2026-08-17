@@ -67,7 +67,7 @@ public class CertificateChainCorpusTests
             dir = dir.Parent;
 
         Assert.That(dir, Is.Not.Null, "could not find the test project directory");
-        var vectors = Path.Combine(dir!.FullName, "Vectors");
+        var vectors = Path.Combine(dir!.FullName, "..", "libs", "EVSimulatorApp", "vectors");
         Directory.CreateDirectory(vectors);
         return Path.Combine(vectors, FileName);
     }
