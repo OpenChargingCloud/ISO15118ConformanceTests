@@ -293,6 +293,35 @@ public class SessionTraceCorpusTests
                             Backend           = backend }.RunAsync(stream, ct);
             }),
 
+        // The -20 counterpart of `iso2-dc-eim-renegotiate`, and the first recorded session in which a -20
+        // station changes its mind mid-charge. [V2G20-1477] is not the -2 renegotiation with different
+        // spelling: there the EV re-runs ChargeParameterDiscovery within the same phase, here the session
+        // goes all the way back to ServiceDiscovery and re-selects the energy service before it may charge
+        // again. What must NOT repeat is authorization — a car that re-authorized mid-session would be
+        // telling the station it might be a different car — and only a recording can hold that, because
+        // "authorization did not happen again" is a claim about bytes that are absent.
+        new("iso20-dc-eim-renegotiate", "iso15118-20", "dc",
+            "-20 DC, EIM, with a service renegotiation ([V2G20-1477]): the station puts " +
+            "EvseNotification.ServiceRenegotiation in its first charge-loop response, the EV stops power " +
+            "delivery and sends SessionStopReq(ServiceRenegotiation) — the one SessionStop that does not " +
+            "stop the session — and both sides return to ServiceDiscovery, re-select the service, " +
+            "re-negotiate charge parameters and the schedule, and charge again.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage).RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId       = RecordedSessionId,
+                            FixedGenChallenge    = RecordedGenChallenge,
+                            RequestRenegotiation = true,
+                            Backend              = backend }.RunAsync(stream, ct);
+            }),
+
         new("iso20-ac-eim-dynamic", "iso15118-20", "ac",
             "-20 AC, EIM, Dynamic control mode: as the DC one, on the AC message set — the arm " +
             "Evcc20Ac carries and the DC trace cannot reach.",
