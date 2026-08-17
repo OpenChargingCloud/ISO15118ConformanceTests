@@ -39,7 +39,7 @@ captured frames (`WWCP_ISO15118_EXI_Tests`, the stack's codec tests, carried in 
 session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our own wire output,
 `WWCP_ISO15118_Session_Tests` unit-tests the transport's own decisions (carried here for the same
 reason as the codec tests: the offline gate is this solution), and the loopback E2Es run both peers
-in-process. Four assemblies, 1 451 tests.
+in-process. Four assemblies, 1 462 tests.
 
 **The port gates are a second, separate suite** — the Kotlin, Swift and TypeScript back ends, held to
 the corpora this repository owns. `bash libs/EVSimulatorApp/tools/port-gates.sh` runs them (JDK, Node,
