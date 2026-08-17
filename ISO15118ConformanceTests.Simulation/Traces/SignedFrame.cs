@@ -73,8 +73,11 @@ internal static class SignedFrame
     /// Used at recording time to decide whether an exchange needs the signature-aware path at all.</summary>
     public static byte[]? SignatureValueOf(byte[] frame) => Decode(frame) switch
     {
-        I2.V2G_Message m     => m.Header.Signature?.SignatureValue.Value,
-        C.AuthorizationReq r => r.Header.Signature?.SignatureValue.Value,
+        I2.V2G_Message m               => m.Header.Signature?.SignatureValue.Value,
+        C.AuthorizationReq r           => r.Header.Signature?.SignatureValue.Value,
+        // The other signed request a -20 EV sends, and the only one it sends *before* it authorizes:
+        // the OEM provisioning chain, signed with the factory key.
+        C.CertificateInstallationReq r => r.Header.Signature?.SignatureValue.Value,
         // Anything else is, as far as the corpus is concerned, unsigned. Substitute() is the place
         // that refuses loudly, and it is reached only once an exchange has been marked as signed.
         _ => null,
@@ -96,8 +99,10 @@ internal static class SignedFrame
         var message = Decode(frame);
 
         // Both protocols sign in the standalone-xmldsig form — the shape a live Josev peer produces
-        // and accepts. -2 hashes with SHA-256; -20's mandatory suite is P-256/SHA-256 here too,
-        // because the contract key is P-256 (a P-521 contract key would want SHA-512).
+        // and accepts. -2 hashes with SHA-256 always. On -20 the hash follows the key: the contract
+        // key of a PnC session is P-256/SHA-256, an OEM provisioning key is P-521/SHA-512, and the
+        // frame says which it used. Reading it from the declared SignatureMethod rather than assuming
+        // is the difference between one signed -20 message type and two.
         return message switch
         {
             I2.V2G_Message m when m.Header.Signature is { } s
@@ -105,10 +110,19 @@ internal static class SignedFrame
 
             C.AuthorizationReq r when r.Header.Signature is { } s
                 => XmlDsigInteropVerify.VerifyStandaloneXmldsig(
-                       s.SignedInfo, s.SignatureValue.Value, publicKey, HashAlgorithmName.SHA256),
+                       s.SignedInfo, s.SignatureValue.Value, publicKey, HashOf(s)),
+
+            C.CertificateInstallationReq r when r.Header.Signature is { } s
+                => XmlDsigInteropVerify.VerifyStandaloneXmldsig(
+                       s.SignedInfo, s.SignatureValue.Value, publicKey, HashOf(s)),
 
             _ => false,
         };
+
+        static HashAlgorithmName HashOf(C.SignatureType s) =>
+            s.SignedInfo.SignatureMethod.Algorithm.Contains("sha256")
+                ? HashAlgorithmName.SHA256
+                : HashAlgorithmName.SHA512;
     }
 
 
@@ -260,6 +274,15 @@ internal static class SignedFrame
                     },
                 };
 
+            case C.CertificateInstallationReq r when r.Header.Signature is { } s:
+                return r with
+                {
+                    Header = r.Header with
+                    {
+                        Signature = s with { SignatureValue = new C.SignatureValueType(Id: null, Value: signatureValue) },
+                    },
+                };
+
             default:
                 throw new NotSupportedException(
                     $"the trace corpus does not model a signature on {message.GetType().Name}. " +
@@ -273,13 +296,17 @@ internal static class SignedFrame
         // reaches both protocols via type aliases, and a `using` alias does not bring a namespace's
         // extension methods into scope. Importing both namespaces outright would make SignatureType
         // and half a dozen others ambiguous — the very duplication SessionContext exists to manage.
-        var buffer = new byte[8192];
+        // A CertificateInstallationReq carries a whole certificate chain, so 8 KiB is not the
+        // comfortable margin it is for every other message here — it is the size the EVCC itself
+        // allocates for this exchange.
+        var buffer = new byte[16384];
         var ok = message switch
         {
-            I2.V2G_Message m          => I2.Iso2Codec.TryEncode(m, buffer, out var n) ? n : -1,
-            C.AuthorizationReq r      => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
-            Ac20.AC_ChargeLoopRes r   => Ac20.AcCodec.TryEncode(r, buffer, out var n) ? n : -1,
-            Dc20.DC_ChargeLoopRes r   => Dc20.DcCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            I2.V2G_Message m                 => I2.Iso2Codec.TryEncode(m, buffer, out var n) ? n : -1,
+            C.AuthorizationReq r             => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            C.CertificateInstallationReq r   => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            Ac20.AC_ChargeLoopRes r          => Ac20.AcCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            Dc20.DC_ChargeLoopRes r          => Dc20.DcCodec.TryEncode(r, buffer, out var n) ? n : -1,
             _ => throw new NotSupportedException($"cannot re-encode a {message.GetType().Name}."),
         };
 

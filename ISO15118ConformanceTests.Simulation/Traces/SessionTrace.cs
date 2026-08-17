@@ -29,10 +29,22 @@ namespace ISO15118ConformanceTests.Simulation.Traces;
 /// two-byte difference in the middle of a hex blob.</param>
 /// <param name="Message">The decoded message name (<c>SessionSetupReq</c>, …). A label for failure
 /// messages only — nothing is checked against it. The frame bytes are the oracle.</param>
-/// <summary>A P-256 public key, as the two field elements. Enough to verify a raw <c>r‖s</c>
-/// signature, and deliberately not a certificate: what is being checked is that the port signed the
-/// right octets with the right key, not that a chain validates.</summary>
-public sealed record TraceSigningKey(string X, string Y);
+/// <summary>A public key, as the two field elements. Enough to verify a raw <c>r‖s</c> signature, and
+/// deliberately not a certificate: what is being checked is that the port signed the right octets with
+/// the right key, not that a chain validates.</summary>
+/// <param name="Curve">Which curve the elements are on — <c>P-256</c> or <c>P-521</c>. Absent means
+/// <c>P-256</c>, which is what every trace recorded before contract provisioning existed used and what
+/// a contract key still uses. An OEM provisioning key on -20 is P-521, and a reader that assumed one
+/// curve would build a key from 66-byte coordinates as though they were 32-byte ones and report a
+/// perfectly good signature as invalid.</param>
+public sealed record TraceSigningKey(string X, string Y, string? Curve = null)
+{
+
+    /// <summary>The curve to build this key on, with the pre-provisioning default made explicit.</summary>
+    [JsonIgnore]
+    public string CurveName => Curve ?? "P-256";
+
+}
 
 
 /// <param name="Signature">The raw <c>r‖s</c> signature value this frame carried, when it carried one.
