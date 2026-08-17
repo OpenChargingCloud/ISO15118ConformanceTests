@@ -91,13 +91,49 @@ public class SessionTraceCorpusTests
         string                                            Note,
         Func<Stream, TimeProvider, CancellationToken, Task> RunEvcc,
         Func<Stream, TimeProvider, Func<string, OcppTransactionRecorder>?, CancellationToken, Task> RunSecc,
-        bool                                              Signed  = false,
-        bool                                              Metered = false,
-        /// <summary>The station signs its SalesTariffs (§7.9.2.5). Like <paramref name="Signed"/> this makes
+        /// <summary>The identity this car's requests are signed with, or <c>null</c> for a session that
+        /// signs nothing. Its public half goes into the trace so a replay can verify what a port signed —
+        /// the half the byte comparison deliberately discards.
+        /// <para>
+        /// A function rather than a flag because there is now more than one answer. A Plug &amp; Charge
+        /// session signs with its contract key; a car asking for its first contract has no contract and
+        /// signs with the OEM key it was built with; a renewal signs with the contract it is replacing. It
+        /// was a <c>bool</c> until contract provisioning, when the corpus stopped having one signer.
+        /// </para></summary>
+        Func<ECDsa>?                                      SignedBy = null,
+        bool                                              Metered  = false,
+        /// <summary>The station signs its SalesTariffs (§7.9.2.5). Like <see cref="SignedBy"/> this makes
         /// the recording randomised — ECDSA picks a fresh nonce per run — but it attaches no key to the
         /// trace: the verify key lives in <c>Tariff.signature.vectors.json</c>, which the ports already read,
         /// and duplicating it into the trace schema would give one operator identity two homes.</summary>
-        bool                                              TariffSigned = false);
+        bool                                              TariffSigned = false,
+        /// <summary>
+        /// Response message names whose bytes a second recording cannot reproduce, because the station
+        /// mints something new every time it answers.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Only contract provisioning is like this, and it is not a defect to be pinned down — it is
+        /// what the exchange <i>is</i>. Issuing a contract means minting a certificate and a key pair,
+        /// and wrapping that key means a fresh ephemeral ECDH pair and a fresh IV. A station that
+        /// answered two requests with the same bytes would be handing two cars the same private key.
+        /// </para>
+        /// <para>
+        /// So <see cref="RecordingTheCorpusAgainProducesTheSameBytes"/> skips these responses and
+        /// compares everything else, requests included — and the requests are what the ports are held
+        /// to, since a replay feeds them the recorded responses out of the file. What is given up is
+        /// the readability of a re-record's diff for three files, which is why the names are listed
+        /// here one by one rather than the whole scenario being waved through.
+        /// </para>
+        /// </remarks>
+        IReadOnlyList<string>?                            FreshlyIssuedResponses = null)
+    {
+
+        /// <summary>Whether this session's requests carry a signature — which is exactly whether it named
+        /// somebody to sign them.</summary>
+        public bool Signed => SignedBy is not null;
+
+    }
 
 
     /// <summary>
@@ -517,7 +553,7 @@ public class SessionTraceCorpusTests
                             FixedGenChallenge = RecordedGenChallenge,
                             Backend           = backend }.RunAsync(stream, ct);
             },
-            Signed: true),
+            SignedBy: PncMaterial.Key),
 
         new("iso20-dc-pnc", "iso15118-20", "dc",
             "-20 DC, Plug & Charge: the AuthorizationReq echoes the station's GenChallenge and " +
@@ -540,7 +576,111 @@ public class SessionTraceCorpusTests
                             FixedGenChallenge = RecordedGenChallenge,
                             Backend           = backend }.RunAsync(stream, ct);
             },
-            Signed: true),
+            SignedBy: PncMaterial.Key),
+
+        // ── contract provisioning ─────────────────────────────────────────
+        //
+        // The sessions of a car that does not yet have what every other signed session here starts
+        // with. Signed like the two above and for the same mechanical reason, but by a different
+        // identity — which is what turned Scenario.Signed from a bool into a signer.
+        //
+        // What these traces can and cannot show, as with the tariff recording: the sequence, and only
+        // the sequence. Whether the answer's four-reference signature held, and whether the unwrapped
+        // key is the one the operator issued, never reach the wire — Contract.provisioning.vectors.json
+        // is where those live. What is only recordable is *where in the session the exchange sits*: -2
+        // finds the certificate service in the ServiceList and selects it by id before PaymentDetails,
+        // and -20 asks before its first AuthorizationReq. A port that put either in the wrong place
+        // would still pass every corpus case.
+
+        new("iso2-ac-eim-certinstall", "iso15118-2", "ac",
+            "AC, external payment, and a car carrying only the certificate its manufacturer built it " +
+            "with. It finds the contract-certificate service in the station's ServiceList, selects it " +
+            "by id alongside the charge service, and sends a signed CertificateInstallationReq before " +
+            "PaymentDetails. The answer carries four separately signed elements and a contract private " +
+            "key ECDH-wrapped for the OEM key (§7.9.2.4).",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var signKey   = OemMaterial.Iso2SignKey();
+                using var agreement = OemMaterial.Iso2KeyAgreement();
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          {
+                              CertInstallRequest = new Iso2CertInstallOptions(
+                                                       OemMaterial.Iso2Certificate(), signKey, agreement),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId          = RecordedSessionId,
+                            FixedGenChallenge       = RecordedGenChallenge,
+                            OfferCertificateService = true,
+                            Backend                 = backend }.RunAsync(stream, ct);
+            },
+            SignedBy: OemMaterial.Iso2SignKey,
+            FreshlyIssuedResponses: ["CertificateInstallationResType"]),
+
+        new("iso2-ac-eim-certupdate", "iso15118-2", "ac",
+            "The renewal. Same shape as the installation and a different credential throughout: the " +
+            "car presents the contract that is running out, selects parameter set 2 rather than 1, " +
+            "and the answer is wrapped for the expiring contract's own key — which is what makes an " +
+            "update need no other proof of who is asking. The eMAID comes back unchanged: a renewal " +
+            "renews a contract, it does not issue a different one.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var signKey   = OemMaterial.Iso2ExpiringSignKey();
+                using var agreement = OemMaterial.Iso2ExpiringKeyAgreement();
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          {
+                              CertInstallRequest = new Iso2CertInstallOptions(
+                                                       OemMaterial.Iso2ExpiringCertificate(), signKey, agreement,
+                                                       Iso2CertificateAction.Update,
+                                                       OemMaterial.Iso2ExpiringEmaid()),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId          = RecordedSessionId,
+                            FixedGenChallenge       = RecordedGenChallenge,
+                            OfferCertificateService = true,
+                            Backend                 = backend }.RunAsync(stream, ct);
+            },
+            SignedBy: OemMaterial.Iso2ExpiringSignKey,
+            FreshlyIssuedResponses: ["CertificateUpdateResType"]),
+
+        new("iso20-dc-eim-certinstall", "iso15118-20", "dc",
+            "-20 DC, and the same errand by an entirely different route: no value-added service to " +
+            "discover and select, just a flag in AuthorizationSetupRes, and the request goes out " +
+            "BEFORE the first AuthorizationReq rather than after service selection. One signed " +
+            "element instead of four, on a P-521 key with SHA-512 — the first recorded session whose " +
+            "signing identity is not P-256.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                using var signKey   = OemMaterial.Iso20SignKey();
+                using var agreement = OemMaterial.Iso20KeyAgreement();
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+                          {
+                              CertInstallRequest = new CertInstallEvccOptions(
+                                                       OemMaterial.Iso20Certificate(), [], signKey, agreement),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            },
+            SignedBy: OemMaterial.Iso20SignKey,
+            FreshlyIssuedResponses: ["CertificateInstallationRes"]),
     ];
 
 
@@ -596,6 +736,17 @@ public class SessionTraceCorpusTests
     public void RegenerateThePncMaterial()
     {
         TestContext.Out.WriteLine($"wrote {PncMaterial.Regenerate()}");
+    }
+
+    /// <summary>
+    /// Creates the factory identities the provisioning sessions ask with — the same deliberate,
+    /// separate, idempotent step as <see cref="RegenerateThePncMaterial"/>, and invalidating a
+    /// different set of traces. See <see cref="OemMaterial"/> for why there are three of them.
+    /// </summary>
+    [Test, Explicit("Regenerates Vectors/Session.oem-material.json — invalidates every provisioning trace")]
+    public void RegenerateTheOemMaterial()
+    {
+        TestContext.Out.WriteLine($"wrote {OemMaterial.Regenerate()}");
     }
 
 
@@ -688,10 +839,10 @@ public class SessionTraceCorpusTests
         await Task.WhenAll(scenario.RunEvcc(recordingStream, clock, cts.Token), seccTask);
 
         TraceSigningKey? signingKey = null;
-        if (scenario.Signed)
+        if (scenario.SignedBy is { } signer)
         {
-            using var publicKey = PncMaterial.PublicKey();
-            signingKey = PublicHalfOf(publicKey);
+            using var key = signer();
+            signingKey = PublicHalfOf(key);
         }
 
         TraceSigningKey? meterKey = null;
@@ -711,11 +862,15 @@ public class SessionTraceCorpusTests
     }
 
 
+    /// <summary>The public half of a signing identity, with the curve named. Written down rather than
+    /// inferred from the coordinate width: a reader that guessed would be right only until a third curve
+    /// arrived, and would then be wrong silently.</summary>
     private static TraceSigningKey PublicHalfOf(ECDsa key)
     {
         var q = key.ExportParameters(includePrivateParameters: false).Q;
         return new TraceSigningKey(Convert.ToHexString(q.X!).ToLowerInvariant(),
-                                   Convert.ToHexString(q.Y!).ToLowerInvariant());
+                                   Convert.ToHexString(q.Y!).ToLowerInvariant(),
+                                   key.KeySize == 521 ? "P-521" : "P-256");
     }
 
 
@@ -810,6 +965,18 @@ public class SessionTraceCorpusTests
                 if (fresh.Signature      != old.Signature)      randomised.Add($"{i} {direction} signature");
                 if (fresh.MeterSignature != old.MeterSignature) randomised.Add($"{i} {direction} meter");
 
+                // A response that issues a contract cannot be reproduced and must not be — see
+                // Scenario.FreshlyIssuedResponses. Its identity is still checked, so a session that
+                // silently sent a different message here would not slip through under this exemption.
+                if (direction == "response" &&
+                    (scenario.FreshlyIssuedResponses?.Contains(old.Message) ?? false))
+                {
+                    Assert.That(fresh.Message,     Is.EqualTo(old.Message),     $"exchange {i} {direction}");
+                    Assert.That(fresh.PayloadType, Is.EqualTo(old.PayloadType), $"exchange {i} {direction}");
+                    randomised.Add($"{i} {direction} issued material");
+                    continue;
+                }
+
                 // Substitute the recorded random parts back in, then require everything — payload
                 // type, message name, and every other byte — to be identical.
                 var comparable = fresh with
@@ -903,13 +1070,18 @@ public class SessionTraceCorpusTests
                 Assert.That(payloadTypes, Has.Count.GreaterThan(1),
                             "a -20 trace whose frames all carry one payload type never left CommonMessages");
 
-            // A trace named for Plug & Charge that recorded no signature would be an EIM session with
-            // a misleading name — and the signature-aware comparison would never run on it.
-            var isPnc = name.EndsWith("-pnc");
-            Assert.That(trace.Exchanges.Any(e => e.Request.IsSigned), Is.EqualTo(isPnc),
-                        isPnc ? "a PnC trace with no signed request is an EIM session under another name"
-                              : "an EIM trace should carry no signatures");
-            Assert.That(trace.SigningKey is not null, Is.EqualTo(isPnc),
+            // A trace named for something the car signs — Plug & Charge, or asking for a contract —
+            // that recorded no signature would be an EIM session with a misleading name, and the
+            // signature-aware comparison would never run on it.
+            //
+            // This was `name.EndsWith("-pnc")` until contract provisioning, which is the same mistake
+            // the Scenario record made: it read the name as though PnC were the only reason a car
+            // signs. A car that has no contract yet signs with the key it was built with.
+            var signs = Scenarios.Single(s => s.Name == name).Signed;
+            Assert.That(trace.Exchanges.Any(e => e.Request.IsSigned), Is.EqualTo(signs),
+                        signs ? "a trace whose scenario names a signer recorded no signed request"
+                              : "a session that names no signer must carry no signatures");
+            Assert.That(trace.SigningKey is not null, Is.EqualTo(signs),
                         "the signing key and the signatures must appear together, or verification is skipped");
 
             // And the same pairing for the meter. A trace named for a signing meter that recorded no
@@ -1179,10 +1351,12 @@ public class SessionTraceCorpusTests
     }
 
 
+    /// <summary>A recorded public key, on the curve the trace names. Contract keys are P-256 and a -20
+    /// OEM provisioning key is P-521, so the curve cannot be assumed here any more.</summary>
     private static ECDsa KeyOf(TraceSigningKey key) =>
         ECDsa.Create(new ECParameters
         {
-            Curve = ECCurve.NamedCurves.nistP256,
+            Curve = key.CurveName == "P-521" ? ECCurve.NamedCurves.nistP521 : ECCurve.NamedCurves.nistP256,
             Q = new ECPoint
             {
                 X = Convert.FromHexString(key.X),
@@ -1271,21 +1445,14 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public void TheSignatureAwareComparisonActuallyBites(
-        [Values("iso2-ac-pnc", "iso20-dc-pnc")] string name)
+        [Values("iso2-ac-pnc", "iso20-dc-pnc",
+                "iso2-ac-eim-certinstall", "iso2-ac-eim-certupdate", "iso20-dc-eim-certinstall")] string name)
     {
 
         var trace  = SessionTrace.ReadFrom(TracePath(name));
         var signed = trace.Exchanges.First(e => e.Request.IsSigned);
 
-        var key = ECDsa.Create(new ECParameters
-        {
-            Curve = ECCurve.NamedCurves.nistP256,
-            Q = new ECPoint
-            {
-                X = Convert.FromHexString(trace.SigningKey!.X),
-                Y = Convert.FromHexString(trace.SigningKey.Y),
-            },
-        });
+        var key = KeyOf(trace.SigningKey!);
 
         using (key)
         {
@@ -1298,8 +1465,11 @@ public class SessionTraceCorpusTests
                 Assert.That(SignedFrame.VerifiesWith(signed.Request.Bytes, key), Is.True,
                             "the recorded signature must verify against the recorded key");
 
-                // A different key does not.
-                using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+                // A different key does not — on the same curve, so this fails because the key is wrong
+                // and not because the parameters were.
+                using var otherKey = ECDsa.Create(
+                    trace.SigningKey!.CurveName == "P-521" ? ECCurve.NamedCurves.nistP521
+                                                           : ECCurve.NamedCurves.nistP256);
                 Assert.That(SignedFrame.VerifiesWith(signed.Request.Bytes, otherKey), Is.False,
                             "any key must not do — that would make the verification decorative");
 
