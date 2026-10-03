@@ -167,7 +167,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System, new ImmediateAsyncDelay(),
                                  LoopbackTimeouts.PerMessage);
 
-            var aborted = Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
+            var aborted = await Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
 
             Assert.Multiple(() =>
             {

@@ -96,12 +96,12 @@ public class InteropSdpTests
     /// recoverable in seconds if the alternatives are printed and expensive if they are not.
     /// </remarks>
     [Test]
-    public void UnknownInterface_IsRefusedAndSaysWhatThisMachineHas()
+    public async Task UnknownInterface_IsRefusedAndSaysWhatThisMachineHas()
     {
 
         Environment.SetEnvironmentVariable(Variable, "no-such-interface-42");
 
-        var thrown = Assert.ThrowsAsync<ArgumentException>(
+        var thrown = await Assert.ThrowsAsync<ArgumentException>(
                          async () => await InteropSdp.AdvertiseOrNullAsync(55000, tls: false));
 
         Assert.That(thrown!.Message, Does.Contain("no-such-interface-42"));

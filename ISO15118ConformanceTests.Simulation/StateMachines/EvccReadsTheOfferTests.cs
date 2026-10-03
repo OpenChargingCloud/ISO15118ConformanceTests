@@ -183,11 +183,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
 
         [Test]
-        public void Iso20_ADcCarAtAnAcOnlyStationIsRefusedByName()
+        public async Task Iso20_ADcCarAtAnAcOnlyStationIsRefusedByName()
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-            var thrown = Assert.ThrowsAsync<SessionAborted>(async () =>
+            var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                 await RunIso20SessionAsync((t, c) => new AcOnlySecc20(t, c), cts.Token));
 
             Assert.Multiple(() =>
@@ -201,11 +201,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
 
         [Test]
-        public void Iso20_AnEimCarAtAPncOnlyStationIsRefusedByName()
+        public async Task Iso20_AnEimCarAtAPncOnlyStationIsRefusedByName()
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-            var thrown = Assert.ThrowsAsync<SessionAborted>(async () =>
+            var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                 await RunIso20SessionAsync((t, c) => new PncOnlySecc20(t, c), cts.Token));
 
             Assert.Multiple(() =>
@@ -246,7 +246,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
                                                                     (TlsOptions?) null, cts.Token);
 
-            var thrown = Assert.ThrowsAsync<SessionAborted>(async () =>
+            var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                 await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token, PowerMode.Ac));
 
             Assert.That(thrown!.Message, Does.Contain("SchemaID 7"));

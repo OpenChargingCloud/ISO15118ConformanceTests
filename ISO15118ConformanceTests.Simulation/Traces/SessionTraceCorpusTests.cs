@@ -1339,8 +1339,8 @@ public class SessionTraceCorpusTests
             Assert.That(messages[0], Does.StartWith("SupportedAppProtocol"),
                         "every session starts with the SAP handshake, and the ports need it recorded");
 
-            Assert.That(messages, Has.Some.Matches<string>(m => m.StartsWith("SessionSetupReq")));
-            Assert.That(messages, Has.Some.Matches<string>(m => m.StartsWith("SessionStopReq")),
+            Assert.That(messages, Has.Some.Matches<string>(m => m is not null && m.StartsWith("SessionSetupReq")));
+            Assert.That(messages, Has.Some.Matches<string>(m => m is not null && m.StartsWith("SessionStopReq")),
                         "a trace that never reaches SessionStop is a truncated session");
 
             // The DC-only phases. Their absence from an AC trace is equally part of the shape: an EVCC

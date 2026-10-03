@@ -71,11 +71,11 @@ public class PncEmaidTests
 
 
     [Test]
-    public void ACommonNameTooLongToBeAnEmaidIsRefusedBeforeTheSessionOpens()
+    public async Task ACommonNameTooLongToBeAnEmaidIsRefusedBeforeTheSessionOpens()
     {
         var credential = CredentialWithCommonName("TraceCorpusContract");   // 19 — the original sin
 
-        var aborted = Assert.ThrowsAsync<SessionAborted>(async () => await EvccWith(credential).RunAsync());
+        var aborted = await Assert.ThrowsAsync<SessionAborted>(async () => await EvccWith(credential).RunAsync());
 
         Assert.Multiple(() =>
         {
@@ -85,9 +85,9 @@ public class PncEmaidTests
     }
 
     [Test]
-    public void ACommonNameTooShortIsRefusedToo()
+    public async Task ACommonNameTooShortIsRefusedToo()
     {
-        var aborted = Assert.ThrowsAsync<SessionAborted>(
+        var aborted = await Assert.ThrowsAsync<SessionAborted>(
             async () => await EvccWith(CredentialWithCommonName("DE8AA1A2B3C4")).RunAsync());   // 12
 
         Assert.That(aborted!.Message, Does.Contain("12 characters"));

@@ -180,7 +180,7 @@ public class TeslaDinHandshakeTests
     /// </para>
     /// </remarks>
     [Test]
-    public void OurStationRefusesTheRealOfferOnTheWire()
+    public async Task OurStationRefusesTheRealOfferOnTheWire()
     {
 
         var request = Convert.FromHexString(Padded(TeslaOfferFrame));
@@ -189,7 +189,7 @@ public class TeslaDinHandshakeTests
         wire.Write(request, 0, request.Length);
         wire.Position = 0;
 
-        Assert.ThrowsAsync<SessionAborted>(async () =>
+        await Assert.ThrowsAsync<SessionAborted>(async () =>
             await SapHandshake.RunSeccSideAsync(wire,
                 [new SapOffer(ProtocolVariant.Iso15118_2,  PowerMode.Dc),
                  new SapOffer(ProtocolVariant.Iso15118_20, PowerMode.Dc)]),

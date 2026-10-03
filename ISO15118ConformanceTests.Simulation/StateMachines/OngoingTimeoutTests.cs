@@ -131,7 +131,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                                  LoopbackTimeouts.PerMessage)
                        { OngoingTimeout = Limit };
 
-            var aborted = Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
+            var aborted = await Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
 
             Assert.Multiple(() =>
             {
@@ -191,7 +191,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                                     LoopbackTimeouts.PerMessage)
                        { OngoingTimeout = Limit };
 
-            var aborted = Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
+            var aborted = await Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
 
             Assert.That(aborted!.Message, Does.Contain("Authorization").And.Contain("Ongoing"));
 

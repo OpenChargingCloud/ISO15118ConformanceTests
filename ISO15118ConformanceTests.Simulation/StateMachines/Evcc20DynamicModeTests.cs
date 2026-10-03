@@ -228,11 +228,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         /// negotiates one mode and then asks in the other. The EVCC cannot silently fall back: the parameter
         /// set it selects is what the station answers in kind against for the rest of the session.</summary>
         [Test]
-        public void Dc_DynamicAgainstAScheduledOnlyStation_IsRefusedByName()
+        public async Task Dc_DynamicAgainstAScheduledOnlyStation_IsRefusedByName()
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-            var thrown = Assert.ThrowsAsync<SessionAborted>(async () => await RunSessionAsync(
+            var thrown = await Assert.ThrowsAsync<SessionAborted>(async () => await RunSessionAsync(
                 (t, c) => new ScheduledOnlySecc20Dc(t, c),
                 stream => new Evcc20Dc(stream, TimeProvider.System, new ImmediateAsyncDelay(),
                                        LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true },

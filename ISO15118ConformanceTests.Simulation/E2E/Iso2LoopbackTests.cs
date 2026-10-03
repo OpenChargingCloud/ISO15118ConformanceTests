@@ -160,7 +160,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
                     "the SECC demands exactly one receipt per session (a Josev EVCC loops forever otherwise)");
                 Assert.That(secc.MeteringReceipts, Has.Count.EqualTo(1));
                 Assert.That(secc.MeteringReceipts, Has.All.Matches<Iso2ReceiptResult>(
-                    r => r.DigestOk && r.SignatureOk && r.SignatureGrammar == "xmldsig-standalone"));
+                    r => r is not null && r.DigestOk && r.SignatureOk && r.SignatureGrammar == "xmldsig-standalone"));
             });
         }
 

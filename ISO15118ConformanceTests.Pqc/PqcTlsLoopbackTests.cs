@@ -97,13 +97,13 @@ namespace ISO15118ConformanceTests.Pqc
         }
 
         [Test]
-        public void MlKemOnlyClient_AgainstClassicalOnlyServer_FailsTheHandshake()
+        public async Task MlKemOnlyClient_AgainstClassicalOnlyServer_FailsTheHandshake()
         {
             var creds = SelfSignedP521();
             var secc = new BcTlsOptions { OwnCredentials = creds };   // BC defaults: classical groups only
             var evcc = new BcTlsOptions { OwnCredentials = creds, ExperimentalNamedGroups = new[] { NamedGroup.MLKEM1024 } };
 
-            Assert.CatchAsync(async () =>
+            await Assert.CatchAsync(async () =>
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), secc);

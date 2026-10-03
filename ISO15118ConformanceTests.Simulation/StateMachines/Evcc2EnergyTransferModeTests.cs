@@ -154,11 +154,11 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
 
         [Test]
-        public void AnAcCarAgainstADcOnlyStation_IsRefusedByName()
+        public async Task AnAcCarAgainstADcOnlyStation_IsRefusedByName()
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-            var thrown = Assert.ThrowsAsync<SessionAborted>(async () =>
+            var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                 await RunSessionAsync(PowerMode.Ac, [EnergyTransferMode.DC_extended], cts.Token));
 
             Assert.Multiple(() =>

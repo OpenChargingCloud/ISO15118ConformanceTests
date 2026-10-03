@@ -177,7 +177,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             var seccTask = Task.Run(async () =>
             {
                 using var seccStream = await listener.AcceptAsync(cts.Token);
-                var thrown = Assert.ThrowsAsync<SessionAborted>(async () =>
+                var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                     await SapHandshake.RunSeccSideAsync(seccStream,
                         [new SapOffer(ProtocolVariant.Iso15118_20, PowerMode.Dc)], cts.Token));
                 Assert.That(thrown!.Message, Does.Contain("offered none of"));
@@ -186,7 +186,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
                                                                      (TlsOptions?) null, cts.Token))
             {
-                var thrown = Assert.ThrowsAsync<SessionAborted>(async () =>
+                var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                     await SapHandshake.RunEvccSideAsync(evccStream,
                         [new SapOffer(ProtocolVariant.Iso15118_2, PowerMode.Ac)], cts.Token));
                 Assert.That(thrown!.Message, Does.Contain("Failed_NoNegotiation"));

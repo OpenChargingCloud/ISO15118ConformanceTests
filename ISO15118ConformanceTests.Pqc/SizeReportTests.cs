@@ -42,7 +42,7 @@ namespace ISO15118ConformanceTests.Pqc
             Assert.Multiple(() =>
             {
                 // EXI beats compact JSON in every variant (it always will — that's not in question) …
-                Assert.That(rows, Has.All.Matches<PqcSizeRow>(r => r.ExiSavingBytes > 0));
+                Assert.That(rows, Has.All.Matches<PqcSizeRow>(r => r is not null && r.ExiSavingBytes > 0));
 
                 // … but the saving is structural and roughly constant, while the PQC signature adds
                 // ~4.5 KB to BOTH encodings: the ML-DSA message is dominated by its signature …
@@ -63,7 +63,7 @@ namespace ISO15118ConformanceTests.Pqc
                     "signature + SignedInfo overhead, nothing else");
 
                 // CBOR — the binary-clean alternative — sits between EXI and JSON in every variant …
-                Assert.That(rows, Has.All.Matches<PqcSizeRow>(r => r.ExiBytes < r.CborBytes && r.CborBytes < r.JsonBytes));
+                Assert.That(rows, Has.All.Matches<PqcSizeRow>(r => r is not null && r.ExiBytes < r.CborBytes && r.CborBytes < r.JsonBytes));
 
                 // … and once byte strings stay raw, EXI's advantage collapses to structural overhead:
                 // against CBOR, EXI saves only a fraction of what it saves against base64-JSON …

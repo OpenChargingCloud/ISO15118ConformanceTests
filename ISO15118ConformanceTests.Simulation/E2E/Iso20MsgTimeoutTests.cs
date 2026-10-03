@@ -95,7 +95,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
 
             var watch = Stopwatch.StartNew();
-            var abort = Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
+            var abort = await Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
             watch.Stop();
 
             Assert.Multiple(() =>
@@ -152,7 +152,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             };
 
             var watch = Stopwatch.StartNew();
-            var ended = Assert.CatchAsync(async () => await evcc.RunAsync(cts.Token));
+            var ended = await Assert.CatchAsync(async () => await evcc.RunAsync(cts.Token));
             watch.Stop();
 
             Assert.Multiple(() =>
@@ -196,7 +196,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
 
             var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
 
-            Assert.DoesNotThrowAsync(async () => await evcc.RunAsync(cts.Token));
+            await Assert.DoesNotThrowAsync(async () => await evcc.RunAsync(cts.Token));
 
             Assert.Multiple(() =>
             {
