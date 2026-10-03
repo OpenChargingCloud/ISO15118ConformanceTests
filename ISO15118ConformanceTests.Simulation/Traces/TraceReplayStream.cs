@@ -70,9 +70,19 @@ public sealed class TraceReplayStream(SessionTrace trace) : Stream
                 $"trace '{trace.Name}' carries a signed exchange but no signing key. " +
                  "SessionTrace.Build refuses to produce that, so this file was hand-edited.");
 
+        // The curve the trace names: an OEM provisioning key on -20 is P-521, and its
+        // 66-byte coordinates are no P-256 point. Absent means P-256 (see TraceSigningKey).
+        var curve = key.Curve switch
+        {
+            null or "P-256" => ECCurve.NamedCurves.nistP256,
+            "P-521"         => ECCurve.NamedCurves.nistP521,
+            var other       => throw new TraceMismatch(
+                                   $"trace '{trace.Name}' signs on curve '{other}', which this reader does not know.")
+        };
+
         signingKey = ECDsa.Create(new ECParameters
         {
-            Curve = ECCurve.NamedCurves.nistP256,
+            Curve = curve,
             Q = new ECPoint { X = Convert.FromHexString(key.X), Y = Convert.FromHexString(key.Y) },
         });
         return signingKey;
