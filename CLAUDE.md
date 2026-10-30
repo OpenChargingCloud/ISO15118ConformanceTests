@@ -36,16 +36,16 @@ fresh clone has only the placeholder `README.md` in each `Schemas/` and the buil
 
 Must pass green without a C toolchain, Java, or network — the record-mode cross-checks replay Josev's
 captured frames (`WWCP_ISO15118_EXI_Tests`, the stack's codec tests, carried in this solution), the
-session corpus under `ISO15118ConformanceTests.Simulation/Vectors/` guards our own wire output,
+session corpus in `libs/EVSimulatorApp/vectors/` guards our own wire output,
 `WWCP_ISO15118_Session_Tests` unit-tests the transport's own decisions (carried here for the same
 reason as the codec tests: the offline gate is this solution), and the loopback E2Es run both peers
-in-process. Four assemblies, 1 462 tests.
+in-process. Four assemblies, 1 548 tests.
 
 **The port gates are a second, separate suite** — the Kotlin, Swift and TypeScript back ends, held to
 the corpora this repository owns. `bash libs/EVSimulatorApp/tools/port-gates.sh` runs them (JDK, Node,
 and a Swift toolchain for the one that needs macOS); they need **no** ISO schemas, because every codec
-they exercise is generated and checked in. They only pass with this repository *above* the app — five
-Kotlin modules and five Swift targets read `ISO15118ConformanceTests.Simulation/Vectors/` directly.
+they exercise is generated and checked in. Since the corpus moved into the submodule's own
+`vectors/`, they no longer need this repository *above* the app: a standalone checkout passes them.
 Both repositories run them in CI (`.github/workflows/port-gates.yml`); `dotnet test` is deliberately
 not in CI, because fetching the schemas is a person accepting a licence.
 
