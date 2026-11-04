@@ -1,5 +1,10 @@
 # Draft report to EVerest (`EvseManager` + `EvseV2G`) — a DC renegotiation asks for a CableCheck the station cannot pass, and leaves it `Inoperative`
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent**, and **measured on the wire twice**, with the mechanism read from the tree
 that ran. Post it under your own name; see *Before sending* at the bottom.
 

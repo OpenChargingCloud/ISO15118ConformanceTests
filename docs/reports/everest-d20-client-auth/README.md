@@ -1,5 +1,12 @@
 # `everest-d20-client-auth`, split into the three issues it should be filed as
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — one of the
+> three is fixed and one has changed shape.** Issue **3** (server chain selection) is
+> **fixed**: chains are now tagged `ChainTlsVersion` and selected on the negotiated version.
+> Issue **1** is **not** fixed but is now a documented switch, `enforce_tls_1_3`, defaulting
+> to `false` — so it has to be re-argued around the default. Issue **2** is unchanged.
+> Details and the moved locations: the [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 The [full report](../everest-d20-client-auth.md) is the account: how each finding was reached, what was
 measured on which build, what was ruled out, and what we got wrong on the way. **It is not what you
 post.** These three are.

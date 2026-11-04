@@ -1,5 +1,12 @@
 # Draft report to EVerest — a DC-configured `Evse15118D20` accepts the ISO 15118-20 **AC** message set
 
+> **OBSOLETE — fixed upstream by the SAP rewrite in `session/secc_sap.cpp`. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. **`sending-order.md` has recorded this as fixed since August**,
+> while this file still said *"draft, not sent"* at the top — that is what the banner resolves.
+> See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: three handshake arms with a control, and one session carried through
 to the point where it breaks. Post it under your own name; see *Before sending* at the bottom.

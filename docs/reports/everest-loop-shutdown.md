@@ -1,5 +1,10 @@
 # Draft report to EVerest — one exception from any poll callback ends `Evse15118D20`'s V2G loop, permanently and silently
 
+> **OBSOLETE — fixed upstream by explicit throw-containment in the poll manager, SDP and TLS accept. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** The failure mode was **measured** on everest-core 2026.02.1, three times,
 one attempt each — including against their own shipped `config-sil-dc-d20.yaml`, unmodified. The claim
 that it survives on `main` is a **source reading**, not a run, and this report keeps those apart

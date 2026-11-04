@@ -1,5 +1,10 @@
 # Issue 2 of 3 — the `-20` `CertificateRequest` carries no `certificate_authorities`, and the TLS profile stops at cipher suites
 
+> **Re-read on 2026-11-04 against `main` (`5d83027`) — live, unchanged.** Still no
+> `SSL_CTX_set1_sigalgs*`, no `set1_groups`/`set1_curves` and no `set_client_CA_list`/
+> `add_client_CA` anywhere in `lib/everest/tls` or `lib/everest/iso15118`. See the
+> [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 > **Post this as-is under your own name, or edit freely.** It is one of three
 > ([index](README.md)). This one is the conformance-profile issue; it survives whatever you decide
 > about issue 1.

@@ -1,5 +1,10 @@
 # What is open
 
+> **EVerest: ten of the drafted reports went obsolete between 2026-08-16 and 2026-11-04.** They were
+> fixed upstream while we held them unsent. Nothing in the matrix changes — a fix on `main` is not a
+> scenario of ours turning green — but *"has a drafted report"* no longer means *"is waiting on
+> them"* for those ten. The re-read: [`2026-11-04-everest-main-resweep`](interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 The interop matrix in [`README.md`](../README.md) says what is **proven**. This says what is not, why,
 and who it is waiting on. It is the inverse of the same table and nothing else — every entry here is a
 matrix cell that is not `✅`.
@@ -94,14 +99,18 @@ weaker claim than it looks and worth separating from "untested".
   **absent** on a chain that verified (`OcspCache::lookup: not in cache`), so a backend is handed no
   revocation material at all. That is the far end of
   [`everest-evse-security-ocsp-dropped`](reports/everest-evse-security-ocsp-dropped.md) and worth
-  re-measuring once that lands.
+  re-measuring once that lands. **It landed — upstream, without us, by 2026-11-04**: the conversion
+  now carries `ocsp`, and `Evse15118D20` forwards it into the TLS chain config. So this is no longer
+  a thing to wait for; it is a measurement to take ([re-sweep](interop-runs/2026-11-04-everest-main-resweep/notes.md)).
   <br>**The arm's second run turned into the forty-fifth filing.** Pointed at their `-20` station it
   found that a *rejected* verdict reaches `Evse15118D20` not at all — `EvseManager` forwards them for
   Plug & Charge only, and that module offers no PnC — so their station answers `Ongoing` for 180 s and
   then the wrong code, where `[V2G20-2230]` allows 1,5 s. The `-2` control run the same day is what
   makes it sendable: `EvseV2G` does the identical thing and is **right** to, because `[V2G2-854]`
   inverts the rule. [`everest-d20-eim-rejection`](reports/everest-d20-eim-rejection.md),
-  [run](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md).
+  [run](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md). **Fixed upstream by 2026-11-04**
+  — `handle_authorization_response` now sends the control event whatever the verdict, so the filing is
+  obsolete and the 180 s wait is worth re-measuring instead.
 
 ## Untested, and nothing is stopping us
 

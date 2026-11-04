@@ -1,5 +1,10 @@
 # Draft report to EVerest (`libiso15118`) — one sequence timeout for every message, where the charge loop gets 0,5 s
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire against **everest-core 2026.02.1** (`b61bb12b8`),
 `Evse15118D20`, ISO 15118-20 over plain TCP — **DC on 2026-08-11 and AC on 2026-08-15**, each with a
 control. Post it under your own name; see *Before sending* at the bottom.

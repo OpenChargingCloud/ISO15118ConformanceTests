@@ -1,5 +1,12 @@
 # Draft report to EVerest — a `-20`-only station inherits ISO 15118-2's client-auth leniency, so the EV decides whether the EV is authenticated
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — one of the
+> three is fixed and one has changed shape.** Issue **3** (server chain selection) is
+> **fixed**: chains are now tagged `ChainTlsVersion` and selected on the negotiated version.
+> Issue **1** is **not** fixed but is now a documented switch, `enforce_tls_1_3`, defaulting
+> to `false` — so it has to be re-argued around the default. Issue **2** is unchanged.
+> Details and the moved locations: the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: two `openssl s_client` handshakes against their stock configuration —
 no EV, no client PKI, nothing of ours in the first two arms — and then a two-frame replay showing what

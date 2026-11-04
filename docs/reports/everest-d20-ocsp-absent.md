@@ -1,5 +1,10 @@
 # Draft report to EVerest — `Evse15118D20` has the OCSP stapling machinery wired up and passes it an empty list
 
+> **OBSOLETE — fixed upstream by the new `evse_security_ssl_config.cpp`. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured 2026-08-10 against everest-core **2026.02.1** (`b61bb12b8`) built
 from source: `openssl s_client -status` against their `-20` station on both TLS versions, plus a control
 that proves the request reached them. No EV, no session, no client PKI. **Re-argued 2026-08-11 against

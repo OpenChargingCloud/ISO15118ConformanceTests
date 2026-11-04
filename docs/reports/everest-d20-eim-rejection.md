@@ -1,5 +1,10 @@
 # Draft report to EVerest (`everest-core`) — a rejected EIM authorization is never reported to the `-20` stack
 
+> **OBSOLETE — fixed upstream by `handle_authorization_response` sending the control event either way. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire 2026-08-13 against **everest-core 2026.02.1**
 (`b61bb12`), `Evse15118D20`, ISO 15118-20 DC over plain TCP, with an ISO 15118-2 control on the same
 station. Post it under your own name; see *Before sending* at the bottom.

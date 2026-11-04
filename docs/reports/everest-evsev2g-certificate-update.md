@@ -1,5 +1,10 @@
 # Draft report to EVerest (`EvseV2G`) — `CertificateUpdateRes` is sent from the union slot the previous response left behind
 
+> **OBSOLETE — fixed upstream by every body branch now calling its `init_iso2_*ResType`. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent** — and **observed on the wire as of 2026-08-16**, both halves. Post it under
 your own name; see *Before sending*.
 

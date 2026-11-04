@@ -1,5 +1,10 @@
 # Draft report to EVerest — `to_everest(CertificateInfo)` drops `ocsp`, so no station ever staples
 
+> **OBSOLETE — fixed upstream by `to_everest(CertificateInfo)` now copying `ocsp`. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured 2026-08-10 against everest-core **2026.02.1** (`b61bb12b8`) built
 from source: their own MQTT reply, their own boot warning, their own test PKI, no EV and no session
 required — and a control in which OCSP responses are installed through their own `update_ocsp_cache`
