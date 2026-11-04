@@ -1,5 +1,10 @@
 # Draft report to EVerest — `Evse15118D20` trusts the MO root for TLS client authentication, so it accepts contract certificates and refuses **OEM-rooted** vehicle certificates
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 > **Corrected 2026-08-15, before sending.** This draft called arm A's leaf *"the vehicle credential"* and
 > concluded that the station *"refuses vehicle certificates"*. Arm A's leaf is `client/oem/OEM_LEAF.pem`
 > — `CN=OEMProvCert`, the OEM **provisioning** certificate, which `[V2G20-2342]` makes a different

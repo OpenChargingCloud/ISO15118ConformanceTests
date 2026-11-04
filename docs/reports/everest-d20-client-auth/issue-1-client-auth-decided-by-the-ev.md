@@ -1,5 +1,14 @@
 # Issue 1 of 3 — `Evse15118D20` asks for a vehicle certificate only when the EV offers TLS 1.3
 
+> **Re-read on 2026-11-04 against `main` (`5d83027`) — the behaviour stands, the argument must
+> change.** `verify_client = false` with `verify_client_on_tls13 = true` is still exactly this
+> mechanism. What is new is `enforce_tls_1_3`, which pins the minimum version and the
+> client-certificate elevation — and defaults to **`false`**, with the `Evse15118D20` manifest
+> stating the consequence itself: *"Set to false to offer TLS 1.2 … no client-certificate
+> request."* So this is no longer an inherited behaviour nobody named; it is a default. Rewrite
+> around that, and note that one module now serves `-2`, DIN and `-20`, so no single default
+> fits all three. See the [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 > **Post this as-is under your own name, or edit freely.** It is one of three
 > ([index](README.md)); each is a different direction through the same handshake and has a different
 > fix. This one has the smallest fix in the set.

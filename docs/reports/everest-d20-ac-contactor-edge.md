@@ -1,5 +1,10 @@
 # Draft report to EVerest — `-20` AC waits for a contactor *edge* it may already have missed
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Read against `everest-core` **`main` (`ebcd36d`)** and **2026.02.1
 (`b61bb12`)** on 2026-08-13, and **measured against a running station the same day**, with a positive
 control that succeeds — [`2026-08-13-everest-d20-ac-contactor-window`](../interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md).

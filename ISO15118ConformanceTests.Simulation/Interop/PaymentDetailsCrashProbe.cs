@@ -57,6 +57,13 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 /// <b>It is not a fuzzer</b> and deliberately sends one shape: 64 bytes that cannot be DER. The claim
 /// under test is a use-before-check on one line, not a survey of parser inputs.
 /// </para>
+/// <para>
+/// <b>Fixed upstream on 2026-10-27</b> (their PR #3047): on <c>everest-core</c> <c>main</c> the parse
+/// result is checked before the certificate is used, so this probe no longer finds anything there.
+/// It is kept, and still worth running, for two reasons: no <i>release</i> carries the fix yet —
+/// <c>2026.10.0-rc1</c> predates the merge — and the shape it sends is a robustness probe any
+/// station should survive, not a test of one commit.
+/// </para>
 /// </remarks>
 [TestFixture]
 [Category("Interop")]

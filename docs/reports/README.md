@@ -1,7 +1,16 @@
 # Findings written up for the counterparty they belong to
 
+> **EVerest re-swept 2026-11-04 — ten of these are obsolete.** Every EVerest report was re-read
+> against `everest-core` `main` (`5d83027`): ten are **fixed upstream and must not be sent**, two are
+> fixed in part, seven are still live, and one stays withdrawn. Each says which at its own top; the
+> measurement is in
+> [`2026-11-04-everest-main-resweep`](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **The other five counterparties have not been re-swept** and are unverified since August — so the
+> one-liners below are as of when they were written, not as of today.
+
 Everything this suite found *in somebody else's stack*, drafted as a report they could act on. All of
-them are **drafts, not sent**: they are written to be posted by a person, under their own name, in
+them are **drafts, not sent** — and for EVerest, ten are now drafts that never will be: they are
+written to be posted by a person, under their own name, in
 their own words — every one ends with a *Before sending* checklist whose unticked items are the parts
 only a human can do.
 
@@ -13,8 +22,10 @@ was our own configuration we bent.
 
 **In what order to send them: [`sending-order.md`](sending-order.md).** The table below is how you find
 a report; that file is how you work through them — thirty-four sendable reports, forty-eight issues, six
-projects, with the rules that produced the order, the five hard dependencies, and the one anti-dependency
-that would blur two findings into one.
+projects, with the rules that produced the order, the hard dependencies, and the one anti-dependency
+that would blur two findings into one. Those counts are the August figures and are **not** adjusted
+for the 2026-11-04 EVerest re-sweep; the OCSP dependency, which was the sharpest of the five, is now
+void because both halves are fixed.
 
 ## What is here
 

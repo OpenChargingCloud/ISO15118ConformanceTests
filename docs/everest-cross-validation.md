@@ -1,5 +1,11 @@
 # EVerest cross-validation, in detail
 
+> **Re-swept against `main` (`5d83027`) on 2026-11-04.** Of the twenty-four reports this column
+> produced, **ten are fixed upstream**, two in part, seven still live, one withdrawn — and
+> `EvseV2G` and `IsoMux`, which eight of them are against, are **deprecated in 2026.10.0** in favour
+> of `Evse15118D20` now running `-2` and DIN on the C++ stack too. What this column *found* is
+> unchanged; what it is still owed is much smaller. [`2026-11-04-everest-main-resweep`](interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 The long form of the EVerest column in the [interop matrix](../README.md#the-interop-matrix--who-we-test-against-and-what-happened):
 every scenario that has run against **everest-core**, what each one caught, and what stays out of reach.
 It has a page of its own for the opposite reason to [Josev's](josev-cross-validation.md). Josev is the

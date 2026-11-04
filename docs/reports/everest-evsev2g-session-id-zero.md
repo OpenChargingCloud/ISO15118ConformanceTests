@@ -1,5 +1,10 @@
 # Draft report to EVerest (`EvseV2G`) — a SessionID of zero passes the `[V2G2-460]` check
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire 2026-08-11 against **everest-core 2026.02.1**
 (`b61bb12b8`), `EvseV2G`, ISO 15118-2 DC over plain TCP; the line is unchanged on upstream `main`
 (`a22c7e1c`, checked the same day). Post it under your own name; see *Before sending* at the bottom.

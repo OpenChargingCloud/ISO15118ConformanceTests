@@ -1,5 +1,10 @@
 # Draft report to EVerest (libiso15118) — the SessionID and the PnC GenChallenge carry 32 bits, whatever their width
 
+> **OBSOLETE — fixed upstream by the new `detail/random.hpp` CSPRNG helper. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Post it under your own name; see *Before sending* at the bottom.
 
 Evidence in this repository:

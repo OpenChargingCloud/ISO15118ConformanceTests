@@ -1,5 +1,10 @@
 # Draft report to EVerest (`EvseV2G`) — the signed-metering path is open at both ends
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Post it under your own name; see *Before sending* at the bottom.
 
 Evidence in this repository:

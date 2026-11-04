@@ -1,5 +1,10 @@
 # Draft report to EVerest (`EvseV2G`) — a malformed contract certificate in `PaymentDetailsReq` crashes the V2G module (null dereference)
 
+> **OBSOLETE — fixed on 2026-10-27 by PR #3047. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent** — and **reproduced against a running station on 2026-08-15**, twice. One
 frame from an unauthenticated peer aborts the module, and their manager then terminates every other
 module and exits. This is a **remotely-triggerable denial of service**; treat it as the security report

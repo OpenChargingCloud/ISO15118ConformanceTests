@@ -1,5 +1,10 @@
 # Draft report to EVerest — `Evse15118D20` never returns `MeterInfo`, even when the EV asks for it
 
+> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
+> live.** The `file:line` citations below are stale; the current locations, and what was
+> checked to confirm the defect by content rather than by line, are in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: a complete 70-exchange ISO 15118-20 DC session against their SIL with
 `MeterInfoRequested = true` on every charge-loop request, and a control session without it. Post it under

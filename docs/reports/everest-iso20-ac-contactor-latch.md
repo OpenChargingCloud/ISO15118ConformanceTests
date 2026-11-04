@@ -1,5 +1,12 @@
 # Draft report to EVerest — `-20` AC treats "contactor did **not** close" as "closed"
 
+> **OBSOLETE — fixed upstream by the `d20/state/power_delivery.cpp` rewrite. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. **`sending-order.md` has recorded this as fixed since August**,
+> while this file still said *"draft, not sent"* at the top — that is what the banner resolves.
+> See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Read out of `everest-core` **2026.02.1** (`b61bb12`) on 2026-08-09 and
 then **reproduced against a running station the same day, 2 of 2, with a control** —
 [`2026-08-09-everest-ac-contactor-injection`](../interop-runs/2026-08-09-everest-ac-contactor-injection/notes.md).

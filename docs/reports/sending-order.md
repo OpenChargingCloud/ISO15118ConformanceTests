@@ -1,10 +1,20 @@
 # In what order to send them
 
+> **Stale for EVerest as of 2026-11-04, and read this first.** Every EVerest entry below was
+> re-read against `everest-core` `main` (`5d83027`, 2026-11-03):
+> [`2026-11-04-everest-main-resweep`](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Ten of the EVerest reports are fixed upstream and must not be sent**, two more are fixed in
+> part, and **hard dependency 1 below no longer exists**. The numbered order is kept rather than
+> renumbered — the voided entries are listed in *What is deliberately not in this order*. The five
+> other counterparties have **not** been re-swept, so their entries stand unverified since August.
+
 Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
 **Not one of them is waiting on a measurement, and since 2026-08-16 that is true without an exception.**
+*(For EVerest, 2026-11-04 adds a different kind of gate: ten of them are waiting on nothing because
+there is nothing left to report.)*
 The last open box was (37)'s *"run it against your station"*, taken on 2026-08-15. The one report still
 marked source-only after that, [`everest-evsev2g-certificate-update`](everest-evsev2g-certificate-update.md),
 was described here as *walled off by their own advertisement rather than by work nobody has done* — and
@@ -46,7 +56,7 @@ of these changes what the next one should be.
 
 | | before | after | why |
 |---|---|---|---|
-| **1** | [`everest-evse-security-ocsp-dropped`](everest-evse-security-ocsp-dropped.md) | [`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md) | Neither fix alone produces a staple. Landing the second first invites *"we already fixed OCSP"* and closes both. |
+| ~~**1**~~ | ~~[`everest-evse-security-ocsp-dropped`](everest-evse-security-ocsp-dropped.md)~~ | ~~[`everest-d20-ocsp-absent`](everest-d20-ocsp-absent.md)~~ | **Void 2026-11-04 — both halves are fixed upstream.** `to_everest(CertificateInfo)` carries `ocsp`, and the new `evse_security_ssl_config.cpp` forwards it into the TLS chain config. The sharpest constraint in this file, closed without us. |
 | **2** | client-auth [issue 1](everest-d20-client-auth/issue-1-client-auth-decided-by-the-ev.md) | [issue 3](everest-d20-client-auth/issue-3-server-chain-selection.md), then [issue 2](everest-d20-client-auth/issue-2-certificaterequest-contents.md) | Issue 1 has an answer available that would close its framing without touching the others; send it while it is still its own conversation. |
 | **3** | eVDriveFlow issue **1** (`stdin`) | issue **2** | Fixing 1 is what reveals 2. Report 2 reads as a duplicate until 1 is understood. |
 | **4** | [`josev-iso20-pki-curve`](josev-iso20-pki-curve.md) → `ext-switchev-iso15118` | → `SwitchEV/iso15118` | Same file in two live trees; the fork is the one that will move, and the upstream issue can then cite it. |
@@ -284,6 +294,15 @@ as the report does.
   [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) is the third
   and the only one withdrawn because it was **wrong** rather than overtaken; it stays for the same
   reason and for one more, that its four citation errors are a better checklist than any list of rules.
+- **The EVerest entries voided by the 2026-11-04 re-sweep.** Fixed upstream, do not send: **1**
+  (`paymentdetails-crash`, their PR #3047), **7** (client-auth issue 3), **9** (`d20-eim-rejection`),
+  **11** and **12** (the whole OCSP chain), **13** (`d20-rng-entropy`), **15** (`loop-shutdown`),
+  **22** (`session-log-responses`, their PR #2566) and **23** (`certificate-update`). Of **16**
+  (`isomux`) only issues 1 and 4 survive, and issue 2 belongs to **6** now. That leaves **2**, **3**,
+  **6**, **8**, **10**, **17**, **19**, **21** and the two `isomux` remnants as the live EVerest set —
+  and **6** has to be re-argued around a default rather than a mechanism. Each report says so at its
+  own top; the reasoning is in the
+  [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 - **Anything that needs a decision only you can make.** Several entries above have one — whether to
   include §1's `2026.02.1` replay, what shape `IsoMux` takes, whether the `-2` caveat survives a look at
   the 2014 text. Those are gates on individual filings, not on the order.

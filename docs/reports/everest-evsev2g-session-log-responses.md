@@ -1,5 +1,10 @@
 # Draft report to EVerest — `session_logging` records every response with the wrong length
 
+> **OBSOLETE — fixed on 2026-09-16 by PR #2566. Do not send.** Re-read against `everest-core`
+> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
+> The measurement and the reasoning below stand as the record of what was found; what they
+> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+
 Status: **draft, not sent.** Measured on the wire against **everest-core 2026.02.1** (`b61bb12b8`) on
 2026-08-10 — a complete ISO 15118-2 DC charge, 43 responses, all 43 wrong. First seen 2026-08-02
 against the `everest-demo` manager image; the three lines that cause it are identical in both. Post it
