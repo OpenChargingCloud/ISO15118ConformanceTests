@@ -1,5 +1,9 @@
 # Draft report to EDF Lab (eVDriveFlow) — the SECC never compares the SessionID it was sent
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** `EDF-Lab/eVDriveFlow` `main` is still **`60249c30c` (2023-04-17)** — the exact commit this
+> report pinned, with no commit in three and a half years.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent**, and **measured on your station on 2026-08-15**. It was a source finding
 until then; it is now three arms against a running `start_evse.py`, and your station served a complete
 DC sequence — `PowerDelivery` included — under a SessionID it never issued. Post it under your own

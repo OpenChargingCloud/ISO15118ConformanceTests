@@ -4,6 +4,11 @@
 > fixed upstream while we held them unsent. Nothing in the matrix changes — a fix on `main` is not a
 > scenario of ours turning green — but *"has a drafted report"* no longer means *"is waiting on
 > them"* for those ten. The re-read: [`2026-11-04-everest-main-resweep`](interop-runs/2026-11-04-everest-main-resweep/notes.md).
+>
+> **The other five counterparties: almost nothing moved.** One fixed, one half fixed, eighteen live —
+> and `EDF-Lab/eVDriveFlow` plus all three tux-evse repositories sit at the exact commits the reports
+> pinned, eVDriveFlow's untouched since 2023-04-17. For those four, holding the reports cost nothing;
+> what is owed is sending them. [`2026-11-04-counterparties-resweep`](interop-runs/2026-11-04-counterparties-resweep/notes.md).
 
 The interop matrix in [`README.md`](../README.md) says what is **proven**. This says what is not, why,
 and who it is waiting on. It is the inverse of the same table and nothing else — every entry here is a

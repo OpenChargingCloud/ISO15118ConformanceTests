@@ -1,5 +1,9 @@
 # Draft report to EVerest — `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`
 
+> **Re-read on 2026-11-04 against everest-core `main` (`5d83027`) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Found 2026-08-06 while configuring their own `config-sil-mcs.yaml` for a
 reverse interop run. Post it under your own name; see *Before sending* at the bottom.
 

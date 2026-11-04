@@ -5,8 +5,10 @@
 > fixed in part, seven are still live, and one stays withdrawn. Each says which at its own top; the
 > measurement is in
 > [`2026-11-04-everest-main-resweep`](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
-> **The other five counterparties have not been re-swept** and are unverified since August — so the
-> one-liners below are as of when they were written, not as of today.
+> **The other five were re-swept the same day** and almost nothing moved: of their twenty reports,
+> **one is fixed** (libcbv2g issue C), **one is half fixed** (issue B) and **eighteen are live** —
+> `EDF-Lab/eVDriveFlow`, and all three tux-evse repositories, are at the exact commits the reports
+> pinned. [`2026-11-04-counterparties-resweep`](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
 
 Everything this suite found *in somebody else's stack*, drafted as a report they could act on. All of
 them are **drafts, not sent** — and for EVerest, ten are now drafts that never will be: they are

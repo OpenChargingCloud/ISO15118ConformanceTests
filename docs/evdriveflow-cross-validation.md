@@ -1,5 +1,11 @@
 # eVDriveFlow cross-validation, in detail
 
+> **Re-checked 2026-11-04 — all five findings still live, and the project has not moved since 2023.**
+> `EDF-Lab/eVDriveFlow` `main` is **`60249c30c` (2023-04-17)**, the exact commit every report here
+> pinned: no commit, no push, in three and a half years. Nothing needed re-reading. That makes
+> `sending-order.md`'s rule for this counterparty — *a dormant project gets a PR, not an issue* — a
+> measurement rather than an impression. [Re-sweep](interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 The long form of the eVDriveFlow column in the [interop matrix](../README.md#the-interop-matrix--who-we-test-against-and-what-happened):
 every scenario that has run against **EDF-Lab/eVDriveFlow**, what each one caught, and what stays out of
 reach.

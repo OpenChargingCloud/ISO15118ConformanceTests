@@ -1,5 +1,11 @@
 # tux-evse cross-validation, in detail
 
+> **Re-checked 2026-11-04 — all three reports still live, all three repositories frozen.**
+> `iso15118-simulator-rs` `fc51088bd`, `iso15118-network-rs` `f1ab3385b` and
+> `iso15118-encoders-rs` `fe6c0aa9b` are the exact commits the reports pinned, the newest of them
+> 2025-03-07. Six issues, including the 200 000-line-per-second log spin, unchanged.
+> [Re-sweep](interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 The long form of the tux-evse column in the [interop matrix](../README.md#the-interop-matrix--who-we-test-against-and-what-happened):
 what has run against **tux-evse/iso15118-simulator-rs**, what it caught, and what stands in the way.
 

@@ -1,5 +1,14 @@
 # Issue C — post-ready
 
+> **OBSOLETE — fixed. Do not send.** Re-read on 2026-11-04 against everest-core's regenerated
+> `lib/everest/cbv2g`: every `LOOP` state in `iso20_WPT_Encoder.c` now carries a second production,
+> and a search for this report's defect shape — a `LOOP` whose only production is the loop — returns
+> nothing. The three types named below are now `ID=76; LOOP (PulseSequenceOrder), START
+> (PulseSeparationTime)`, `ID=84; LOOP (TxSpecData), START (TxPackageSpecData), END Element` and
+> `ID=93; LOOP (RxSpecData), END Element`. Note it is fixed *in the regeneration*: the unmoved
+> `EVerest/libcbv2g` `main` still contains it, and that repository is being archived.
+> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 > Paste everything below the line. Self-contained: it does not refer to the other two filings except
 > by name, and the one place it has to (B masking C) is written so it stands alone.
 

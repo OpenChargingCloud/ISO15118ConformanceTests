@@ -1,5 +1,12 @@
 # Josev cross-validation, in detail
 
+> **Re-swept 2026-11-04 — all six findings still live.** `SwitchEV/iso15118` has moved
+> (`d645255c` → `1d29f539`), so each was re-read by content: the unreferenced charge-loop timeouts,
+> the `-20` pause/resume comparing the live connection instead of the preserved context, the `-2`
+> curve on the `iso-20` PKI branch, the renegotiation that never calls `create_next_message`, the OEM
+> certificate used as the TLS client credential, and the absent EVCC performance time. Only the line
+> numbers moved. [Re-sweep](interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 The long form of the Josev column in the [interop matrix](../README.md#the-interop-matrix--who-we-test-against-and-what-happened):
 every scenario that has run against **Josev**, what each one caught, and what stays out of reach.
 Josev is the counterparty with the most history here — the first independent stack this suite met, and

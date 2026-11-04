@@ -1,5 +1,9 @@
 # Draft report to SwitchEV (iso15118) — a paused ISO 15118-20 session can never be rejoined
 
+> **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Observed 2026-07-22 against **SwitchEV/iso15118 @ `d645255`** ("Pydantic
 upgrade to v2", #455), SECC in Docker host-mode, plain TCP; source re-read against that commit on
 2026-08-08. Post under your own name; see *Before sending* at the bottom.

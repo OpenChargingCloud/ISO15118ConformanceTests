@@ -1,5 +1,11 @@
 # Draft report to FlUxIuS (V2Gdecoder) — a decode that cannot fail returns a wrong answer instead
 
+> **Re-checked on 2026-11-04 — still live, and the pinned jar is now two releases old.** `v1.2`
+> (`6c26c817`) and `v1.3` (`ab2c2ea0`) have shipped since `v1.1`. `v1.2` looked like it might have
+> overtaken this — its subject is *"…parsing corrupted data"* — but it changes `server/WorkerRunnable.java`
+> only, +2/-2; everything else since is Dependabot and a `pom` fix. `dataprocess.fuzzyExiDecoded` and
+> `V2Gdecoder.java` are untouched. Say that v1.3 exists before sending. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Observed 2026-08-07 against the **v1.1 release jar** (the one
 `tools/docker/decoder/Dockerfile` downloads), OpenJDK 21, Debian 13, with the schema sets shipped in
 the repository. Post under your own name; see *Before sending* at the bottom.

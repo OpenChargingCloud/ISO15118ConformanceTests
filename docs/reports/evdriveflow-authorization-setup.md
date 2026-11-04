@@ -1,5 +1,9 @@
 # Draft report to EDF Lab — a station offering PnC *and* EIM ends their EV's session
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** `EDF-Lab/eVDriveFlow` `main` is still **`60249c30c` (2023-04-17)** — the exact commit this
+> report pinned, with no commit in three and a half years.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Observed on the wire 2026-08-01 against `eVDriveFlow` at `60249c3`, in
 the reverse direction (their EV, our SECC), and **re-observed on 2026-08-10 with their `stdin` bug out
 of the way** — which is the run that makes this report stand on its own. Source re-read at the same

@@ -1,5 +1,9 @@
 # Draft report to SwitchEV (Josev) — the charge-loop sequence timeouts are defined and never used
 
+> **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Read on **upstream `master` `d645255c`** (2026-05-19, "Pydantic upgrade to
 v2"), not only on the copy EVerest fetches — and **measured on the wire against that SECC on
 2026-08-15**, AC and DC, each with a control. Post it under your own name; see *Before sending* at the
