@@ -1,6 +1,10 @@
 # Issue C — post-ready
 
-> **OBSOLETE — fixed. Do not send.** Re-read on 2026-11-04 against everest-core's regenerated
+> **Fixed on `main` only — live in the newest release.** The release axis was checked on
+> 2026-11-05: everest-core **2026.02.2** predates the 2026-10-20 regeneration (#3181), and its vendored
+> `iso20_WPT_Encoder.c` still has `PulseSequenceOrder`'s state as a `LOOP` with no other production —
+> this report's defect shape, verbatim. So it is a backport ask, not obsolete. The `main` side, as
+> first recorded: re-read on 2026-11-04 against everest-core's regenerated
 > `lib/everest/cbv2g`: every `LOOP` state in `iso20_WPT_Encoder.c` now carries a second production,
 > and a search for this report's defect shape — a `LOOP` whose only production is the loop — returns
 > nothing. The three types named below are now `ID=76; LOOP (PulseSequenceOrder), START

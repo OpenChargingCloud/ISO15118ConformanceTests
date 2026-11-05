@@ -12,7 +12,10 @@
 > `iso20-ac-contactor-latch`, both halves of the OCSP chain, and `d20-eim-rejection` — the last for a
 > different cause than its report gives), `loop-shutdown` is half fixed there, and
 > `paymentdetails-crash` is the one that genuinely shipped — on the day it was checked. So the drafted
-> EVerest set did not shrink by ten; it shrank by one. **One** of the
+> EVerest set did not shrink by ten; it shrank by one. And on `main` itself one of the ten —
+> `certificate-update` — was never fixed: the init call read as the fix writes none of the response's
+> mandatory members. Mechanically re-checked, three trees, in the
+> [reports audit](interop-runs/2026-11-05-reports-audit/notes.md). **One** of the
 > ten was meanwhile reported by someone else and closed with credit to them (`paymentdetails-crash`),
 > and so was one of the two that were only half fixed (`isomux` issue 3). That is what holding a report
 > costs, and it is measured rather than feared now. The cross-check, including the twenty-four reports

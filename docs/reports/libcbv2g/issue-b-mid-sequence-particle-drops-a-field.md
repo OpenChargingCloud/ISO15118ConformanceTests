@@ -7,7 +7,11 @@
 > reachable. But the **no-items state still drops the field**: `ID=181` is
 > `START (VendorSpecificDataContainer), END Element` with no `START (WPT_LF_DataPackageList)`, so a
 > document with an empty list and a present `WPT_LF_DataPackageList` still cannot be encoded. Rewrite
-> around that half.
+> around that half. **The 2026.02.2 release is in the same state** (checked 2026-11-05): its vendored
+> encoder has the looping state with an exit (`ID=185`) and the no-items state that drops the field
+> (`ID=184`, `START (VendorSpecificDataContainer), END Element`). So the cap at two is absent from both
+> live trees — it is a property of the archived standalone repository — and the half that remains is
+> live in both.
 > `EVerest/libcbv2g` itself has **not** moved (`main` is still `03350be04`) and is being
 > **archived** — its open PR #24 adds *"This repository is now archived… integrated into
 > EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the

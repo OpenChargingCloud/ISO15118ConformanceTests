@@ -1,11 +1,18 @@
 # Draft report to EVerest (`EvseV2G`) — `CertificateUpdateRes` is sent from the union slot the previous response left behind
 
-> **Fixed on `main` only — live in the newest release, so this is a backport ask rather than an
-> obsolete draft.** Checked in the **2026.02.2** tag on 2026-11-05: `handle_iso_certificate_update`
-> is still `// TODO: implement CertificateUpdate handling` with a bare `return V2G_EVENT_NO_EVENT`,
-> and the dispatch still calls it, so every word below describes shipped code. What the 2026-11-04
-> re-sweep found — every body branch calling its `init_iso2_*ResType` before the handler — is on
-> `main` and did not reach the 2026.02 line. See the 
+> **Live on `main` and in the newest release — the "fix" the re-sweep found does not fix it.**
+> In **2026.02.2** `handle_iso_certificate_update` is still `// TODO: implement CertificateUpdate
+> handling` with a bare `return V2G_EVENT_NO_EVENT`. On **`main`** the dispatch now sets
+> `CertificateUpdateRes_isUsed = 1u` and calls `init_iso2_CertificateUpdateResType` before the same
+> TODO handler — which the 2026-11-04 re-sweep read as the fix. It is not one. The generated init
+> function is, in full, `CertificateUpdateResType->RetryCounter_isUsed = 0u;` (cbv2g
+> `iso2_msgDefDatatypes.c:376-378`): it resets one optional flag and writes neither `ResponseCode` nor
+> any of the five mandatory elements, and the per-message `init_iso2_BodyType` only clears the
+> `*_isUsed` flags. So on `main` the response is still the previous message's bytes in the union slot,
+> with the previous `ResponseCode` — exactly what this report says, and what it anticipated in so many
+> words: *"none of the three inits touches its members"*. `main` added a fourth init that does not
+> either. Corrected 2026-11-05 by the [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md), whose upstream checker now
+> tests the handler for a `ResponseCode` write instead of testing for the TODO. See the 
 > [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
 > [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 

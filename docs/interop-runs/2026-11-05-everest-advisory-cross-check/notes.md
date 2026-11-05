@@ -44,7 +44,7 @@ Three things made the difference between this and the 2026-11-04 re-sweep, which
 | our report | the advisory | in 2026.02.2 |
 |---|---|---|
 | [`everest-evsev2g-paymentdetails-crash`](../../reports/everest-evsev2g-paymentdetails-crash.md) | **GHSA-qg7p-grpm-cg3f**, medium 6.5, `Mehrrun` | fixed: `if (err != 0)` now precedes `getEmaidFromContractCert`, and the `assert(conn->pubkey)` is an `if` |
-| [`everest-isomux`](../../reports/everest-isomux.md) issue 3 | **GHSA-9cfv-mjv8-x4fw** (7.1, `pavanchow`) and **GHSA-qvxq-v3r8-rmmv** (7.1, `kwlee2025cpp`) | fixed: the header read tests `rv < 0`, treats `rv == 0` as a peer close, rejects a short read, and adds overflow and buffer-size guards |
+| [`everest-isomux`](../../reports/everest-isomux.md) issue 3 | **GHSA-9cfv-mjv8-x4fw** (7.1, `pavanchow`) and **GHSA-qvxq-v3r8-rmmv** (7.1, `kwlee2025cpp`) | fixed in the **caller**: `v2g_detect_iso20_support()` now returns `HandshakeResult::Failed` where 2026.02.1 logged and carried on (the header read's own checks were already in 2026.02.1; corrected by the [reports audit](../2026-11-05-reports-audit/notes.md)) |
 | [`everest-loop-shutdown`](../../reports/everest-loop-shutdown.md), the TLS-accept trigger | — | fixed: `connection_ssl.cpp:480` returns instead of throwing, with the comment *"Throwing here would end the controller loop, only tear down connection instead."* |
 
 The first two were reported by other people between August and November, and the credits are theirs.
@@ -121,7 +121,7 @@ One fundamental, two sites, one reported and closed as a High, one held and stil
 |---|---|---|
 | `paymentdetails-crash` | fixed | **fixed, and released** — the guard precedes the use, the pubkey `assert` is an `if` |
 | `d20-rng-entropy` | fixed | **live** — no `detail/random.hpp` in the tree, `std::mt19937` at three sites |
-| `evsev2g-certificate-update` | fixed | **live** — still `// TODO: implement CertificateUpdate handling` |
+| `evsev2g-certificate-update` | **not fixed either** — the new `init_iso2_CertificateUpdateResType` resets `RetryCounter_isUsed` and nothing else | **live** — still `// TODO: implement CertificateUpdate handling` |
 | `evsev2g-session-log-responses` | fixed (#2566) | **live** — still `conn->payload_len`, no `exi_bitstream_get_length` |
 | `d20-ac-namespace` | fixed (SAP rewrite) | **live** — `supported_app_protocol.cpp:28-34` takes every `-20:AC` and `-20:DC` entry unconditionally; no `secc_sap.cpp` in the tree |
 | `iso20-ac-contactor-latch` | fixed (one `*`) | **live** — `d20/state/power_delivery.cpp:53` is `ac_connector_closed = control_data`, the pointer |
@@ -132,7 +132,9 @@ One fundamental, two sites, one reported and closed as a High, one held and stil
 
 Plus, outside the ten: `isomux` issue 3 is **fixed and released**, and `client-auth` issue 3 — which
 the re-sweep recorded as fixed — is **live** (`tls.cpp:936-941` still uses `cfg.chains[0]`, and
-`ChainTlsVersion` is not in the tree).
+`ssl_config_builder.cpp`, where `main` chooses the chain, does not exist in that tree). And the
+mechanical re-check in the [reports audit](../2026-11-05-reports-audit/notes.md) found the `main` column
+wrong once too: `evsev2g-certificate-update` was never fixed there.
 
 **So the 2026.02 maintenance line received exactly one of our findings' fixes, and it is the one
 somebody else filed.** The `-20` ones have a structural reason — `lib/everest/iso15118` there is the

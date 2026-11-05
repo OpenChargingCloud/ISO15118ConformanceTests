@@ -313,7 +313,10 @@ as the report does.
   (`paymentdetails-crash`, their PR #3047), **7** (client-auth issue 3), **9** (`d20-eim-rejection`),
   **11** and **12** (the whole OCSP chain), **13** (`d20-rng-entropy`), **15** (`loop-shutdown`),
   **22** (`session-log-responses`, their PR #2566) and **23** (`certificate-update`). Of **16**
-  (`isomux`) only issues 1 and 4 survive, and issue 2 belongs to **6** now. That leaves **2**, **3**,
+  (`isomux`) only issues 1 and 4 survive, and issue 2 belongs to **6** now. *(Corrected
+  2026-11-05: wrong. Issue 2 is live on its own — IsoMux still caps TLS at 1.2 through an empty TLS 1.3
+  suite list — and issues 1, 2 and 4 survive; see the
+  [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md).)* That leaves **2**, **3**,
   **6**, **8**, **10**, **17**, **19**, **21** and the two `isomux` remnants as the live EVerest set —
   and **6** has to be re-argued around a default rather than a mechanism. Each report says so at its
   own top; the reasoning is in the
@@ -335,6 +338,12 @@ as the report does.
   which changes both its channel and its weight. So the live EVerest set is **much larger** than the
   re-sweep left it, every claim in it now says *fixed where* — `main` or a release — and the two
   entries retired in August on the strength of `main` are sendable again as backport asks.
+  **And the `main` column was wrong once as well:** **23** (`certificate-update`) is not fixed there
+  either — the init call the re-sweep read as the fix resets one optional flag and leaves
+  `ResponseCode` and the mandatory elements to the union slot, which is the report's own claim. It is
+  sendable as a defect against `main`, not only as a backport ask. Found by the
+  [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md), whose checker now runs against
+  `main` and a release tag and tests ordering and writes rather than bare substrings.
   [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 - **Anything that needs a decision only you can make.** Several entries above have one — whether to
   include §1's `2026.02.1` replay, what shape `IsoMux` takes, whether the `-2` caveat survives a look at

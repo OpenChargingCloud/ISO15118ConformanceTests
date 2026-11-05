@@ -24,11 +24,13 @@
 >    distinguishes them — so the ask is not *flip the default*, it is **make it per protocol**:
 >    whatever TLS 1.2 needs for `-2`/DIN, a `-20` session must not complete without a client
 >    certificate.
-> 3. **The same default decides IsoMux's version, which is where §2 of the IsoMux report went.**
->    `IsoMux` never sets `enforce_tls_1_3` either, so its old TLS 1.2 cap is gone and the version is
->    now the EV's choice — which means the `-20`-over-TLS-1.2 case that report described is reached
->    through *this* default, not through a cap. Send the two together or send this one only; do not
->    send IsoMux §2 separately.
+> 3. ~~**The same default decides IsoMux's version, which is where §2 of the IsoMux report went.**~~
+>    **Withdrawn the same evening — this point was wrong, and it is the re-sweep's error copied.**
+>    `IsoMux` does not reach TLS 1.3 at all: it sets `config.ciphersuites = ""`, which
+>    `lib/everest/tls` turns into a TLS 1.2 maximum, on `main` and in 2026.02.2 alike. So
+>    `enforce_tls_1_3` is an `Evse15118D20` question only, and IsoMux §2 is a separate, live finding
+>    that goes out separately. Caught by the upstream checker in the
+>    [reports audit](../../interop-runs/2026-11-05-reports-audit/notes.md).
 >
 > Also worth knowing before this goes out: **issue 3 of this set is fixed on `main` and live in
 > 2026.02.2** (`lib/everest/tls/src/tls.cpp:941` still configures the server from `cfg.chains[0]`, and

@@ -1,20 +1,30 @@
 # Draft report to EVerest — four findings in `IsoMux`
 
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — one of the four is
-> fixed, one has collapsed into another report, two are live.** **3** (ignored V2GTP header read) is
-> **fixed** by #3028 — and, checked in the tag on 2026-11-05, **released in 2026.02.2**: the header
-> read now tests `rv < 0`, treats `rv == 0` as a peer close, rejects a short read, and adds an
-> overflow and a buffer-size guard. Two advisories in that release cover it, both from other
-> reporters:
+> fixed, one has collapsed into another report, two are live** — corrected 2026-11-05: **one is
+> fixed and three are live**; §2 never collapsed into anything. **3** (ignored V2GTP header read) is
+> **fixed** and **released in 2026.02.2** — in the caller, where §3 locates it:
+> `v2g_detect_iso20_support()` now reads
+> `if (v2g_incoming_v2gtp(conn) != 0 or …) { dlog(…"v2g_incoming_v2gtp() failed"); return HandshakeResult::Failed; }`
+> where 2026.02.1 logged and carried on. (An earlier version of this banner credited the fix to the
+> header read's own `rv < 0`, peer-close, short-read, overflow and buffer-size checks; **all five were
+> already in 2026.02.1**, line for line — the one change in that function is that the
+> `V2GTP_ReadHeader` result is now tested for any error rather than only `-1`.) Two advisories in that
+> release cover the area, both from other reporters:
 > [GHSA-9cfv-mjv8-x4fw](https://github.com/EVerest/EVerest/security/advisories/GHSA-9cfv-mjv8-x4fw)
 > (*missing `read()` error check causes a SIZE_MAX write*, 7.1) and
 > [GHSA-qvxq-v3r8-rmmv](https://github.com/EVerest/EVerest/security/advisories/GHSA-qvxq-v3r8-rmmv)
 > (*heap out-of-bounds read via an unvalidated V2GTP payload length*, 7.1).
 >
-> **2** (TLS capped at 1.2) is **reshaped**: the cap is gone, but
-> `enforce_tls_1_3` is never set either, so the version is the EV's choice — that is now part of
-> [client-auth issue 1](everest-d20-client-auth/issue-1-client-auth-decided-by-the-ev.md) and should
-> not be sent separately. **1** (`Priority` still only logged) and **4** (`trusted_ca_keys support
+> **2** (TLS capped at 1.2) is **live, on `main` and in the release, exactly as written** — and the
+> 2026-11-04 re-sweep's *"the cap is gone … now part of client-auth issue 1"* was wrong.
+> `IsoMux/connection/tls_connection.cpp:282` still sets `config.ciphersuites = "";     // disable TLS
+> 1.3`, and `lib/everest/tls` turns an empty TLS 1.3 suite list into
+> `SSL_CTX_set_max_proto_version(ctx, TLS1_2_VERSION)` — on `main` with a comment saying so
+> (`tls.cpp:668-673`), in 2026.02.2 at `tls.cpp:442-446`. The re-sweep looked for version pinning in
+> `IsoMux/` and found none, because the pin happens one library down. §2 is therefore **not** part of
+> client-auth issue 1 and is sent on its own. Found by the
+> [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md) on 2026-11-05. **1** (`Priority` still only logged) and **4** (`trusted_ca_keys support
 > disabled`) are live — and **§4's mechanism was re-read in the 2026.02.2 tag on 2026-11-05, with the
 > result that the report is right exactly as written.** The 2026-11-04 re-sweep said the condition had
 > become "the per-chain `trust_anchor` PEM of the multi-chain config" and that §4 needed re-reading

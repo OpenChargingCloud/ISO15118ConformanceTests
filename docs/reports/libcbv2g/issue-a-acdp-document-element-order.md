@@ -7,8 +7,11 @@
 > `EVerest/libcbv2g` itself has **not** moved (`main` is still `03350be04`) and is being
 > **archived** — its open PR #24 adds *"This repository is now archived… integrated into
 > EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the
-> repository named above.
-> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+> repository named above. **Live in the 2026.02.2 release as well** (checked 2026-11-05): its vendored
+> `iso20_ACDP_Decoder.c:7051-7053` decodes document code `case 1` as `ACDP_DisconnectReq`, with the
+> `ConnectReqType` decoder.
+> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md),
+> [reports audit](../../interop-runs/2026-11-05-reports-audit/notes.md).
 
 > Paste everything below the line. Self-contained.
 >

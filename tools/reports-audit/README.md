@@ -83,15 +83,34 @@ roughly 150 clean citations would turn ambiguous, and a local `main` checkout dr
 
 ## `check_upstream.py` — has anybody fixed it since we wrote it down
 
-> *"Check whether `main` has moved."*
+> *"Check whether `main` has moved."* — and whether the release has.
 
-Fetches each cited file at the project's default branch and tests the marker that makes the defect
-true. No checkout, no build, network only.
+Fetches each cited file at a ref and tests the marker that makes the defect true. No checkout, no
+build, network only.
 
 ```bash
-python3 check_upstream.py          # EVerest/everest-core @ main -- the live tree
-python3 check_upstream.py --lib    # EVerest/libiso15118 @ main -- history only, see below
+python3 check_upstream.py                    # EVerest/everest-core @ main -- the development tree
+python3 check_upstream.py --ref 2026.02.2    # ... @ the newest release -- what anyone can install
+python3 check_upstream.py --ref 2026.02.1    # ... @ the tree the findings were measured on -- the control
+python3 check_upstream.py --lib              # EVerest/libiso15118 @ main -- history only, see below
 ```
+
+**Run it on three trees and read them as columns.** A fix on `main` is not a fix anyone has: on
+2026-11-05 the pair `main` / newest release turned the re-sweep's *"ten fixed"* into *"one fixed in a
+release"*. The third tree is the **control** — the release most findings were measured on. Every
+marker must fire there; one that does not is a broken marker, not a fixed defect, and that is how the
+`client-auth` §1 entry was caught pointing at the wrong file
+([reports audit](../../docs/interop-runs/2026-11-05-reports-audit/notes.md)).
+
+**A marker must not survive its own fix.** Three entries did, and reported `STILL PRESENT` on `main`
+for defects fixed there: the PaymentDetails crash (the fix *reorders* two lines that both survive),
+the OCSP conversion (the marker was the function's own signature) and IsoMux §3 (the log line
+survives; what changed is the `return` after it). Entries can therefore carry a **predicate** —
+`fn(get) -> (present, detail)` — instead of a substring: an ordering check, a function-body check, a
+two-location check for code that moved between trees, and, for `certificate-update`, a test for
+whether the handler writes a `ResponseCode` at all. That last one is why the checker now disagrees
+with the 2026-11-04 re-sweep and is right to: the init call the re-sweep read as the fix resets one
+optional flag.
 
 **`--lib` does not report status.** Standalone `EVerest/libiso15118` is **not maintained**; the live
 code is everest-core's vendored `lib/everest/iso15118/`. The mirror answers, has a `main`, and returns

@@ -183,6 +183,30 @@ Neither touches the finding: every ISO 15118-20 and -2 message still lands on th
 report's *proposed fix* is better for it — the lookup it asked for already exists, so only the
 charge-loop rows are missing. Corrected in the report.
 
+### Corrections 3 and 4 — found by the mechanical audit the same evening
+
+The repaired upstream checker ([reports audit](../2026-11-05-reports-audit/notes.md)) disagreed with
+this note twice, and both times the checker was right.
+
+**Correction 3 — IsoMux §2's cap is not gone, and §3 was fixed somewhere else than this note says.**
+*"The cap is gone — no version pinning is left anywhere in `IsoMux/` or `EvseV2G/`"* is wrong.
+`IsoMux/connection/tls_connection.cpp:282` sets `config.ciphersuites = ""`, and `lib/everest/tls`
+turns an empty TLS 1.3 list into a TLS 1.2 maximum — the pinning is one library down, which is why a
+search inside `IsoMux/` found nothing. §2 is live as written and does not belong to client-auth
+issue 1. And §3's fix is not in `v2g_server.cpp:53-67`, whose return-value, overflow and buffer-size
+checks were all already in 2026.02.1: it is in the caller, `v2g_detect_iso20_support()`, which now
+returns `HandshakeResult::Failed` instead of carrying on.
+
+**Correction 4 — `certificate-update` is not fixed on `main`.** The table above lists it as fixed
+because every body branch now *"sets `_isUsed` and calls the matching `init_iso2_*ResType`"*. The
+generated `init_iso2_CertificateUpdateResType` is one line, `RetryCounter_isUsed = 0u;`, so
+`ResponseCode` and the five mandatory elements are still whatever the union held — the report's
+claim, which it had anticipated: *"none of the three inits touches its members."*
+
+Together with Correction 1 (metering-chain) and the `isomux` §4 instruction, that is **four** places
+where acting on this note would have damaged a report that was right. The checker that caught the last
+two runs in a minute.
+
 ### The `d2/` follow-up, measured
 
 The first bullet under *Next* is answered. Of the `-2` findings, three of four did not survive into

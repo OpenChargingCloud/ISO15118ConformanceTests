@@ -5,7 +5,8 @@
 > `ssl_config_builder.cpp:35-44` → `tls.cpp:1242-1251` selects on the negotiated version, giving this
 > report's own reason back: *"one leaf cannot serve both."* **Checked in the 2026.02.2 tag on
 > 2026-11-05: none of that is there.** `tls.cpp:936-941` still configures the server context from
-> `cfg.chains[0]`, and the string `ChainTlsVersion` does not occur in the tree — so a station holding
+> `cfg.chains[0]`, and `ssl_config_builder.cpp`, where `main` makes the choice, does not exist in
+> that tree — so a station holding
 > two roots still presents the first one, which is the finding below. See the
 > [advisory cross-check](../../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
 > [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
