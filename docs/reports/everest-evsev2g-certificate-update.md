@@ -187,10 +187,11 @@ that — it is "answer the way you already answer everything else you cannot do"
       `ServiceDiscoveryRes` advertises the certificate service with **parameter-set-ID 1 only** —
       `const int16_t cert_parameter_set_id[] = {1}; // parameter-set-ID 1: "Installation" service.
       TODO: Support of the "Update" service (parameter-set-ID 2)`
-      (`charger/ISO15118_chargerImpl.cpp:226`) — so a **conformant** car, which pairs *Update → set 2*,
+      (`EvseV2G/charger/ISO15118_chargerImpl.cpp:227-228`; written as `:226` until the 2026-11-05 citation audit) — so a
+      **conformant** car, which pairs *Update → set 2*,
       is answered `FAILED_ServiceSelectionInvalid` and never reaches the handler. Ours was one.
       <br>**Their own state table does not pair them.** The state after `SelectedPaymentOption =
-      Contract` is `WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD` (`iso_server.cpp:948`) and its mask admits
+      Contract` is `WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD` (`iso_server.cpp:942-943`; written as `:948` until the 2026-11-05 citation audit, which is the *ExternalPayment* branch) and its mask admits
       `V2G_CERTIFICATE_UPDATE_MSG` beside `V2G_CERTIFICATE_INSTALLATION_MSG` (`iso_server.hpp:87`, `:112`);
       the state is chosen by the payment option and the dispatch keys on `CertificateUpdateReq_isUsed`
       alone. Selecting the set they offer and sending the other message reaches the handler

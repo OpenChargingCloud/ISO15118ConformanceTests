@@ -130,14 +130,77 @@ from this table carry weight:
 
   Issue C was banner-marked *obsolete* on 2026-11-04; it is a backport ask like the EVerest ones.
 
+## The citations — the second half, done the same night
+
+**294 `file:line` citations in `docs/reports/`; 292 point where they say, two did not, both corrected.**
+
+**The trees.** Every citation was resolved on the WSL rig against the tree it was written for, and
+every one of those trees was checked first for local edits that could shift a line:
+
+| root | tree | local edits |
+|---|---|---|
+| everest-core | `2026.02.1` (`b61bb12b8`) — the `[tag]` / "2026.02.1 line numbers" citations | none |
+| everest-core | `main` @ `ebcd36d` (2026-08-11) — the August `[main]` citations | none (new worktree) |
+| everest-core | `2026.02.2` (`45dba2c0`) — today's banners | none (new worktree) |
+| everest-core | `main` @ `01f36de1` — the 2026-11-04/05 re-reads | none |
+| Josev | `d645255c2`; EVerest's fork `26f79889e` | `template.Dockerfile` only |
+| eVDriveFlow | `60249c30c` | 26 regenerated test certificates and keys; **no source file** — the five cited EDF ranges are byte-identical to the pinned blob |
+| libcbv2g, tux-evse (×2) | the pins | none |
+| V2Gdecoder | `v1.1`, fetched for the purpose — the report cites the v1.1 jar | — |
+
+The two `main` worktrees and the `2026.02.2` one live beside `core-main` and `core-rc` in `~/everest/`
+and are kept for the next audit. A first attempt at the `ebcd36d` worktree resolved the SHA through an
+unauthenticated API call that failed and silently checked out **today's HEAD** instead; it was caught
+by the log line and rebuilt from the full SHA. A tree that is not the one you asked for looks exactly
+like one that is.
+
+**How the reading job was narrowed.** [`triage_citations.py`](../../../tools/reports-audit/triage_citations.py),
+new tonight, takes the identifiers a report quotes near each citation and looks for them at the cited
+line, then within ±15 lines. Run once per tree and joined:
+
+| verdict | citations |
+|---|---|
+| an identifier quoted beside the citation is on the cited line, in one of the four trees | **187** |
+| read by hand against the source, because the heuristic could not decide | **107** |
+| — of those, correct for the tree their report names | 105 |
+| — of those, **wrong** | **2** |
+
+A match in *some* tree is not yet a match in the tree the report names, so the nine citations that
+matched only on today's `main` were checked against their labels: seven are labelled `main` or a
+2026-10/11 commit, and the other two — `iso2_msgDefDatatypes.c:418-420` and `power_delivery.hpp:21`,
+both in August bodies citing 2026.02.1 — were read on 2026.02.1 and are right there too; the tool had
+resolved them to a sibling file.
+
+The 107 were mostly the heuristic's blind spots, not the reports': a checklist line that lists twelve
+citations gives all twelve the same tokens; a log quote (*"`openssl_util.cpp:775`: Assertion…"*) has
+the compiler's `__LINE__` and no identifier; a table row quotes the *next* column's subject. Six were
+accepted on the cited line alone, because the report quotes nothing to compare it with — they sit in
+*Before sending* checklists (`client-auth` `config.hpp:26-27` and `:34`, `isomux` `v2g_server.cpp:30`,
+`session-log-responses` `ISO15118_chargerImpl.cpp:131` and `v2g_ctx.cpp:317`, `authorization-setup`
+`ev_dummy_controller.py:111`), and each lands on a line that fits its neighbours.
+
+**The two that were wrong, both in [`everest-evsev2g-certificate-update`](../../reports/everest-evsev2g-certificate-update.md)**
+and both copied from its run note
+[`2026-08-16-everest-iso2-cert-update-live`](../2026-08-16-everest-iso2-cert-update-live/notes.md):
+
+- *"`WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD` (`iso_server.cpp:948`)"* — line 948 of 2026.02.1 is in
+  the **ExternalPayment** branch, which goes to `WAIT_FOR_AUTHORIZATION`. The Contract branch's state
+  assignment is **`:942-943`**. The claim was right; the line pointed at the branch that disproves it.
+- *"`TODO: Support of the "Update" service` (`charger/ISO15118_chargerImpl.cpp:226`)"* — the comment is
+  on **`:227-228`**, and the bare path matches four modules' `charger/ISO15118_chargerImpl.cpp`. Now
+  `EvseV2G/charger/ISO15118_chargerImpl.cpp:227-228`.
+
+Both were in the August sweep's *"all 189 verified"*. Neither affects the finding; both would have
+been the first thing a maintainer checked.
+
+**What the citations do not say, and this pass does not change:** most EVerest citations name
+2026.02.1 or August `main`, and both have moved. They are correct *for the tree they name*, which is
+the repository's convention and what a maintainer can open — `git show 2026.02.1:<path>` — but a
+report sent today against `main` or 2026.02.2 should re-point its anchors on the day it is posted. The
+banners added on 2026-11-05 already carry the current numbers for the lines that decide each finding.
+
 ## Not done in this pass
 
-- **The citations.** [`check_citations.py`](../../../tools/reports-audit/check_citations.py) resolves
-  every `file:line` against local checkouts and prints the line it lands on; its last full run was
-  2026-08-11 to -13 on the rig. Several banners now carry 2026.02.2 line numbers, but the citations
-  in the report **bodies** were not re-resolved, and many have drifted — the 2026-11-04 re-sweep
-  already noted that every EVerest line number is stale. That is a reading job of a few hundred lines
-  and needs the trees at the cited revisions.
 - **Findings without a marker.** IsoMux §1 (a return expression), `loop-shutdown`'s mechanism half
   (the `catch` that ends the loop), and every non-EVerest finding, which the 2026-11-04 re-sweep read
   by content; none of those HEADs has moved since.

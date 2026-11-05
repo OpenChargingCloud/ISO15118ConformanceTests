@@ -14,14 +14,15 @@ it."* **The gate was ours.** The report is now confirmed in both halves, measure
 
 The report said the handler is *"unreachable in the shipped configuration"*, because their
 `ServiceDiscoveryRes` advertises the certificate service with **parameter-set-ID 1 only** (`Update` is an
-explicit `TODO` at `ISO15118_chargerImpl.cpp:226`), so a car selecting set 2 is answered
+explicit `TODO` at `EvseV2G/charger/ISO15118_chargerImpl.cpp:227-228` — written as `:226` until the 2026-11-05 citation audit), so a car
+selecting set 2 is answered
 `FAILED_ServiceSelectionInvalid` at `PaymentServiceSelection`.
 
 That is true of a **conformant** car, and our car is one: `Evcc2` paired *Update → set 2*. But their own
 state table does not pair them. The state after `SelectedPaymentOption = Contract` is called
 
 ```cpp
-iso_dc_state_id::WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD    // iso_server.cpp:948
+iso_dc_state_id::WAIT_FOR_PAYMENTDETAILS_CERTINST_CERTUPD    // iso_server.cpp:942-943 (was :948, the ExternalPayment branch; corrected 2026-11-05)
 ```
 
 and its mask admits `V2G_CERTIFICATE_UPDATE_MSG` alongside `V2G_CERTIFICATE_INSTALLATION_MSG`

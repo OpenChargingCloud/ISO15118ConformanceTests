@@ -81,6 +81,37 @@ root would silence the warning and cost more than it saves: every basename would
 roughly 150 clean citations would turn ambiguous, and a local `main` checkout drifts from the real one
 — a citation resolving against a stale clone is the `--lib` trap below wearing a different hat.
 
+## `triage_citations.py` — which of those lines need a human
+
+`check_citations.py` prints the line each citation lands on; whether that line *says what the report
+claims* is still reading. This narrows the reading: it takes the identifiers quoted beside each
+citation and looks for them on the cited line, then within ±15 lines, and writes one TSV row per
+citation — `MATCH`, `DRIFT` (with the offset), `MISS`, `NOTOKEN`, `AMBIGUOUS`, `OUT_OF_RANGE`,
+`UNRESOLVED`. Same `TREE_*` variables; it imports `check_citations.py`'s index and resolver.
+
+```bash
+TREE_EVEREST=~/everest/everest-core … python3 triage_citations.py > t_0221.tsv
+TREE_EVEREST=~/everest/core-ebcd    … python3 triage_citations.py > t_ebcd.tsv   # August main
+```
+
+**Run it once per tree a citation can mean and join the runs on (report, citation).** The reports
+label their citations `[tag]`, `[main]`, *"2026.02.1 line numbers"* or a commit, so one tree can never
+verify all of them. A citation is verified when it `MATCH`es on the tree its report names; what
+matches on no tree is the list to read. On 2026-11-05 four everest-core trees turned 294 citations into
+107 to read, and those held the two that were wrong
+([reports audit](../../docs/interop-runs/2026-11-05-reports-audit/notes.md)).
+
+**A verdict decides what to read first, never what to conclude.** The identifiers come from the
+surrounding paragraph, which often quotes the next citation's subject; a checklist line that lists a
+dozen citations gives all of them the same tokens; a log quote carries the compiler's `__LINE__` and
+no identifier. Most `MISS` rows are correct citations — and a correct-looking `MATCH` can still sit on
+the wrong branch of an `if`, which is exactly what one of the two errors did.
+
+**Check the tree before trusting it.** Before resolving anything, run `git status` in every root: a
+rig tree carries probes and patches, and a patched file shifts every line below the patch. And verify
+the commit a new worktree actually landed on — a failed SHA lookup that falls back to `HEAD` gives you
+a tree that is not the one you asked for and looks exactly like it.
+
 ## `check_upstream.py` — has anybody fixed it since we wrote it down
 
 > *"Check whether `main` has moved."* — and whether the release has.
