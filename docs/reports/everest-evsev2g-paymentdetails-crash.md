@@ -1,14 +1,22 @@
 # Draft report to EVerest (`EvseV2G`) — a malformed contract certificate in `PaymentDetailsReq` crashes the V2G module (null dereference)
 
-> **Fixed on `main`. Still live in every release — so the question is a backport, not whether to send.**
+> **Fixed on `main`, and released — so the backport this banner used to ask for has happened.**
+> **2026.02.2 (2026-11-05) carries the fix**, and the defect was reported independently of us as
+> [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f)
+> (credited to `Mehrrun`), so **this report is overtaken as a report**. What is still sendable is
+> [the advisory amendment](everest-evsev2g-paymentdetails-advisory-amendment.md): that advisory
+> describes the consequence as *"stops charging"*, and names a second patched version, 2026.10.0,
+> which does not exist yet. The measurements below are what the amendment is built on.
 > PR #3047 (2026-10-27) reordered the guard in `handle_iso_payment_details` so a leaf that fails to
-> parse never reaches the helper. **Both halves of that heading are measured, not read.** On 2026-11-05
+> parse never reaches the helper. **Both builds below were measured, not read.** On 2026-11-05
 > the same probe, the same station config and the same machine were pointed at two from-source builds
 > within one hour. `main` (`01f36de1`) answered the unparseable certificate `FAILED_CertChainError` and
 > was still running afterwards. `2026.10.0-rc1` (`f45ba0d0`, 2026-10-22 — five days before the merge)
 > aborted: `signal=6`, `Assertion 'cert != nullptr' failed` at `openssl_util.cpp:799`, manager exited,
-> liveness arm refused. The newest *stable* release, `2026.02.1`, is where the original 2026-08-15 runs
-> happened. So the reasoning below still describes shipped code; what it no longer describes is `main`.
+> liveness arm refused. `2026.02.1`, where the original 2026-08-15 runs happened, is still shipped
+> code for anyone who has not taken 2026.02.2 — and for the pre-2026.02 line the advisory's own
+> named fix, 2026.10.0, has not been released at all. What the reasoning below no longer describes
+> is `main` and 2026.02.2.
 > See the [A/B run](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md) and the
 > [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 

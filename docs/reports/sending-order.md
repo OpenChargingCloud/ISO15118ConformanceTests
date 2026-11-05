@@ -87,6 +87,17 @@ every module and exits"*. So the caveat this entry used to carry is gone, and **
 between this report and a maintainer is a person deciding how to send it**. Report it the way a crash
 should be reported: their security policy first, not a public issue.
 
+**Overtaken on 2026-11-05, and replaced in this slot by an amendment.** Someone else reported the
+same defect (`Mehrrun`,
+[GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f)),
+their PR #3047 fixed it, and **2026.02.2 released it the same day this entry still called it
+urgent**. So nothing in the report below is owed to a maintainer any more — except a correction to
+that advisory, which is
+[`everest-evsev2g-paymentdetails-advisory-amendment`](everest-evsev2g-paymentdetails-advisory-amendment.md)
+and inherits this position. It keeps the position for the same kind of reason the report had it: the
+advisory has no CVE assigned and no global-database entry yet, so its present wording is the wording
+that will propagate into both.
+
 ### Then — small, measured, and to a project that will act
 
 Four issues, two projects — two and two — over a week or two. Each is a one-line or one-value fix with a
