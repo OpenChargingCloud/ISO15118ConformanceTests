@@ -100,7 +100,7 @@ given so the next reader does not have to re-do this.
 | [`everest-d20-sequence-timeout`](../../reports/everest-d20-sequence-timeout.md) | one `TIMEOUT_SEQUENCE = 60 s` for every message, returned unconditionally by `session/iso.cpp:53`. The enum has grown (CPSTATE, STOP_CHARGING, EMERGENCY_SHUTDOWN) but no per-message table exists | `timeout.hpp:37` (was `:30`) |
 | [`everest-d20-ac-contactor-edge`](../../reports/everest-d20-ac-contactor-edge.md) | `PowerDelivery::ac_connector_closed{false}` is per-state and only a `ClosedContactor` event *during* the state sets it; `EvseManager` emits `call_ac_contactor_closed(true)` **only** on a `CPEvent::PowerOn` edge, and `subscribe_ac_close_contactor` merely sets a permission flag | `power_delivery.hpp:21`; `EvseManager.cpp:1262-1264` and `:467-470` (was `:1123-1143`, `:396-399`) |
 | [`everest-d20-trust-anchor`](../../reports/everest-d20-trust-anchor.md) | still only `CaCertificateType::MO` reaches the TLS verify store. **And the issue-3 fix made this sharper**: with client auth required once 1.3 is negotiated, a station trusting only the MO root *refuses* the OEM-provisioning certificate that `CertificateInstallation` exists to replace | `ISO15118_chargerImpl.cpp:788`; `connection_ssl.cpp:64-71` (was `:201-202`, `:269-276`) |
-| [`everest-evsev2g-metering-chain`](../../reports/everest-evsev2g-metering-chain.md) | both halves. Outgoing: no `MeterSignature` is ever set. Incoming: **the wording needs correcting** — `handle_iso_metering_receipt` is no longer an empty function; it publishes the request, logs eight fields and answers `OK`. It still never verifies the signature, which is the finding, but *"reaches an empty function"* is now false and must not be sent | `iso_server.cpp:2606-2609` and the handler below it |
+| [`everest-evsev2g-metering-chain`](../../reports/everest-evsev2g-metering-chain.md) | both halves, and **the report is right as written** — this row said otherwise on 2026-11-04 and was wrong; see the correction at the end of this note. Outgoing: no `MeterSignature` is ever set. Incoming: the receipt signature is never verified | `iso_server.cpp:2606-2609`; the single `check_iso2_signature` call site is now `:1394` (was `:1187`) |
 | [`everest-evsemanager-renegotiation-supply`](../../reports/everest-evsemanager-renegotiation-supply.md) | the DC renegotiation branch resets `evse_processing[PHASE_ISOLATION]` and `evse_isolation_status` — both **internal** V2G context — and publishes nothing. `renegotiation_required` never leaves `EvseV2G` (`v2g.hpp:358`; two writers, both internal) | `iso_server.cpp:1897-1915` (was `:1588-1598`) |
 
 [`everest-evsev2g-renegotiation-cablecheck`](../../reports/everest-evsev2g-renegotiation-cablecheck.md)
@@ -122,12 +122,102 @@ stays **withdrawn**; nothing in this sweep changes that.
 
 ## Next
 
-- Re-read the `-2` findings against the **new C++ `d2/` path** rather than against deprecated
-  `EvseV2G`. That is where a `-2` defect now matters, and it is unmeasured.
+- ~~Re-read the `-2` findings against the **new C++ `d2/` path** rather than against deprecated
+  `EvseV2G`.~~ **Measured 2026-11-05**, see *The `d2/` follow-up* below: three of four did not
+  carry over into the new path, one did.
 - Rewrite client-auth issue 1 around the `enforce_tls_1_3` **default**, and fold `isomux` 2 into it.
-- Correct `everest-evsev2g-metering-chain`'s *"empty function"* before it goes anywhere.
+- ~~Correct `everest-evsev2g-metering-chain`'s *"empty function"*~~ — **this instruction was
+  itself wrong**; the report is right as written. See *Correction 1* below.
 - Re-read `isomux` 4's mechanism against the multi-chain `trust_anchor` config.
 - ~~The same sweep is owed to the other five counterparties; this run covers EVerest only.~~
   **Done the same day:** [`2026-11-04-counterparties-resweep`](../2026-11-04-counterparties-resweep/notes.md)
   — and the result is the mirror of this one. Of their twenty reports, **one fixed, one half fixed,
   eighteen live**, three of the five upstreams not having moved a single commit since we wrote them.
+
+## Re-read 2026-11-05 — and two of this note's own claims were wrong
+
+`main` had moved again before this note was a day old: `5d83027` (the base above) to `01f36de1`,
+thirteen commits, three of them in `lib/everest/iso15118/`.
+
+**None of the seven was closed.** Established by path rather than by re-reading each: of the thirteen
+commits, the only ones touching anything the seven cite are `#3286` (`Evse15118D20/manifest.yaml`,
+a description only), the three `iso15118` fixes, and `#3370`/`#3369` in `EvseManager/ErrorHandling.cpp`
+and its docs. `EvseV2G/iso_server.cpp`, `EvseManager.cpp`, `d20/state/ac_charge_loop.cpp` and
+`dc_charge_loop.cpp` were not touched at all. `#3342` is adjacent to the trust anchor but orthogonal:
+it takes PnC out of **unsecured** `-20` sessions, and our finding is about the TLS case.
+
+### Correction 1 — the metering-chain row was wrong, and would have weakened a correct report
+
+This note told the next reader that `everest-evsev2g-metering-chain`'s phrase *"reaches an empty
+function"* was false and must not be sent. It read that phrase as being about
+`handle_iso_metering_receipt`. The report says it about the **publish** function — and that one is
+still empty at `01f36de1`:
+
+```cpp
+// modules/EVSE/EvseV2G/iso_server.cpp:686
+static void publish_iso_metering_receipt_req(struct iso2_MeteringReceiptReqType const* const ...) {
+    // TODO: publish PnC only
+}
+```
+
+The report is right as written. Only one citation in it was stale: the single `check_iso2_signature`
+call site is `:1394`, not `:1187`. Anyone following this note would have cut a true sentence out of a
+correct report — which is worse than leaving the report alone.
+
+### Correction 2 — "no per-message table exists" was already wrong when written
+
+`everest-d20-sequence-timeout` said `TIMEOUT_SEQUENCE` is returned *unconditionally*, and this note
+repeated it as "no per-message table exists". Since `#2485` (2026-10-05) — three weeks **before**
+the sweep — the duration goes through `sequence_timeout_after_response()`, which special-cases DIN
+`CurrentDemandRes`. `SEQUENCE` is also armed in a second place (`iso.cpp:649`, guarding the wait for
+the first request).
+
+Neither touches the finding: every ISO 15118-20 and -2 message still lands on the 60 s constant. The
+report's *proposed fix* is better for it — the lookup it asked for already exists, so only the
+charge-loop rows are missing. Corrected in the report.
+
+### The `d2/` follow-up, measured
+
+The first bullet under *Next* is answered. Of the `-2` findings, three of four did not survive into
+the new C++ path:
+
+| `-2` finding | in the new `d2/` path at `01f36de1` |
+|---|---|
+| zero `SessionId` passes `[V2G2-460]` | **not carried over.** `d2/state/session_setup.cpp:19` has `session_is_zero`, used both to generate a non-zero id (`[V2G2-835]`) and to guard the resume match. A zero id simply means "not a resume" and a new session is opened, which is correct |
+| the metering receipt signature is never verified | **not carried over.** `d2/crypto.cpp:436` implements `verify_metering_receipt_signature`: fragment re-encode, digest comparison, signature check |
+| `MeterInfo` is left a `TODO` | **not carried over.** `res.meter_info` is filled in both `d2` charge loops; the `-20` TODO stands |
+| outgoing `MeterSignature` is never set | **carried over.** No `MeterSignature` anywhere in `d2/`, nor in `d20/` |
+
+The PaymentDetails null dereference has no counterpart there. `#3343` hardened the opposite
+direction: a leaf issued below the V2G root that is not a contract certificate is now refused
+(`[V2G2-108]` for the CommonName syntax, `[V2G2-656]` for the SubCertificate count).
+
+### The PaymentDetails crash: "fixed" meant fixed on `main`, and the release caught up mid-afternoon
+
+The list of ten above files the PaymentDetails null dereference under *fixed*, and for `main` that is
+right. Measured 2026-11-05: `2026.10.0-rc1` (`f45ba0d0`, 2026-10-22) predates PR #3047 by five days and
+**aborts** — the control answered `OK`, the probe closed the connection mid-frame, the liveness arm was
+refused, `signal=6` at `openssl_util.cpp:799`, manager gone. `main`, built from source the same
+afternoon, answers those same bytes `FAILED_CertChainError` and stays up. So the fix is observed to
+work.
+
+**What this section first concluded from that — that it was observed to be in no release — was wrong by
+fifty-one seconds.** `2026.02.2` was published at 15:38:02Z with the fix; the commit saying otherwise is
+stamped 15:38:53Z. And the defect had been reported independently as `GHSA-qg7p-grpm-cg3f`, credited to
+`Mehrrun`, published the same day. So the report is overtaken as a report, not turned into a backport
+question, and what remains sendable is an amendment to that advisory — which the measurement above still
+carries, because the advisory names `2026.10.0` for the pre-2026.02 line and no such version exists.
+[`2026-11-05-everest-rc-paymentdetails-crash`](../2026-11-05-everest-rc-paymentdetails-crash/notes.md).
+
+**And the general lesson, which applies to all ten.** This sweep read `main`, so *fixed* in the table
+above means "fixed on `main`" throughout — not one of the ten was checked against a release. For a
+defect whose only cost is a stale report of ours, that distinction does not matter. For a
+remotely-triggerable pre-auth crash it is the whole difference between "nothing to do" and "ask for a
+backport", and we nearly filed the first.
+
+### Worth knowing about the counterparty
+
+Two of the three new `lib/everest/iso15118/` commits name Claude as co-author — `#3343` with
+Fable 5.1, `#3342` with Opus 5.5, both signed off by a Pionix maintainer. That is an argument for
+sending rather than holding: the reports are written for a reader who can act on a precise
+file-and-clause citation, and that reader now demonstrably works that way.

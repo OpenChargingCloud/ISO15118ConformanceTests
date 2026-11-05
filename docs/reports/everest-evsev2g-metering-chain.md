@@ -83,7 +83,7 @@ static void publish_iso_metering_receipt_req(struct iso2_MeteringReceiptReqType 
 
 Three facts follow, each checkable in one grep:
 
-- **`check_iso2_signature` has exactly one call site in the whole module** — `iso_server.cpp:1187`,
+- **`check_iso2_signature` has exactly one call site in the whole module** — `iso_server.cpp:1394`,
   the `AuthorizationReq`. Nothing verifies the receipt.
 - **`FAILED_MeteringSignatureNotValid` occurs nowhere in production code** — only in
   `tests/din_server_test.cpp:414`, as a value assigned to a temporary.

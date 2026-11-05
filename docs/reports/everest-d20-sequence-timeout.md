@@ -25,11 +25,22 @@ for 60 s where Tables 216/217 give the SECC 0,5 s
 ## The defect
 
 ```cpp
-// include/iso15118/d20/timeout.hpp:30
+// include/iso15118/d20/timeout.hpp:37
 constexpr auto TIMEOUT_SEQUENCE = 1000 * 60;
 
-// src/iso15118/session/iso.cpp — Session::send_response(), the only place SEQUENCE is armed
-timeouts.start_timeout(d20::TimeoutType::SEQUENCE, d20::TIMEOUT_SEQUENCE);
+// src/iso15118/session/iso.cpp:621 — armed after a response. The duration goes through a lookup
+// that special-cases exactly one message and falls through to the constant for every other one:
+timeouts.start_timeout(d20::TimeoutType::SEQUENCE, sequence_timeout_after_response(response_type));
+
+// src/iso15118/session/iso.cpp:47 — the lookup, as of #2485 (2026-10-05)
+static uint32_t sequence_timeout_after_response(const V2gMessageType& response_type) {
+    if (const auto* din_type = std::get_if<message_din::Type>(&response_type)) {
+        if (*din_type == message_din::Type::CurrentDemandRes) {
+            return DIN_SEQUENCE_TIMEOUT_CURRENT_DEMAND_MS;
+        }
+    }
+    return d20::TIMEOUT_SEQUENCE;   // every ISO 15118-20 and -2 message lands here
+}
 ```
 
 The arming and disarming are right: `send_response()` starts the timer, and the next request stops it
@@ -104,16 +115,19 @@ It is the same line on both paths: AC and DC print it identically, which is expe
 
 ## Suggested direction
 
-`start_timeout` already takes a duration, so nothing structural has to change — the call in
-`send_response()` needs the value for the message type it just sent:
+`start_timeout` already takes a duration, and since #2485 the value already comes from a lookup:
+`sequence_timeout_after_response()`. The place to decide the duration therefore exists already — what
+is missing is the rows for the charge loop:
 
 ```cpp
-timeouts.start_timeout(d20::TimeoutType::SEQUENCE, sequence_timeout_for(stored_response_type));
+static uint32_t sequence_timeout_after_response(const V2gMessageType& response_type) {
+    // DIN CurrentDemandRes is already special-cased here. The ISO 15118-20 charge-loop responses
+    // need the same treatment, with Tables 216/217's 0,5 s in place of Table 215's 60 s.
 ```
 
-with the charge-loop responses mapping to 500 ms and everything else to `TIMEOUT_SEQUENCE`. Whether the
-lookup belongs beside the message types or in `timeout.hpp` is yours to pick; the response type is
-already in hand at that point.
+so the charge-loop responses map to 500 ms and everything else keeps `TIMEOUT_SEQUENCE`. Nothing
+structural has to change: the response type is already in hand, and the single point that decides the
+duration is already factored out.
 
 ## Context, and our own side
 
@@ -147,8 +161,12 @@ is the value on the wire, not the design — and ours has never been measured by
       variable, with its own control:
       [`…-sequence-timeout-ac`](../interop-runs/2026-08-15-everest-d20-sequence-timeout-ac/notes.md).
       Both rows of the table above are now measured rather than one measured and one inferred.
-- [x] **Check whether `main` has moved — checked 2026-08-11 against upstream, not against the clone.**
-      `EVerest/everest-core` `main` is `ebcd36d` (2026-08-11), well ahead of the `2026.02.1` tag this was
+- [x] **Check whether `main` has moved — re-checked 2026-11-05 against upstream, not against the clone.**
+      `EVerest/everest-core` `main` is `01f36de1` (2026-11-05), far ahead of the `2026.02.1` tag this was
       read from — **and the constant is unchanged there**: `constexpr auto TIMEOUT_SEQUENCE = 1000 * 60;`
-      still, one value, one call site. The finding is live on `main`, not only in the release.
+      still. Two things around it did change, and are corrected above: the duration now goes through
+      `sequence_timeout_after_response()` (#2485, 2026-10-05), which special-cases DIN `CurrentDemandRes`
+      and nothing else, and SEQUENCE is armed in a second place as well (`iso.cpp:649`, guarding the wait
+      for the first request). Neither touches the finding: every ISO 15118-20 message still gets 60 s.
+      Live on `main`, not only in the release.
 - [ ] **Post under your own name, in your own words.**

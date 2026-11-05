@@ -1,9 +1,24 @@
 # Draft report to EVerest (libiso15118) — the SessionID and the PnC GenChallenge carry 32 bits, whatever their width
 
-> **OBSOLETE — fixed upstream by the new `detail/random.hpp` CSPRNG helper. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Not obsolete — fixed on `main` only, and live in the newest release. Send it.** The 2026-11-04
+> re-sweep filed this under *fixed*, on the strength of the new `detail/random.hpp` CSPRNG helper.
+> That is right for `main` and wrong for anything anyone can install. Checked in the **2026.02.2**
+> tag on 2026-11-05: `lib/everest/iso15118/include/iso15118/detail/` contains **no** `random.hpp`,
+> and `d20/session.cpp` still reads `std::random_device rd; std::mt19937 generator(rd());` at
+> **three** sites (lines 87, 100, 109). The SessionID and the `GenChallenge` still carry 32 bits.
+>
+> **And the identical defect class was closed as a High in that very release.** `realsung` reported
+> the same construction in `EvseSlac` — one `std::random_device` read seeding `std::mt19937`, every
+> NMK byte drawn from it — as
+> [GHSA-f35j-hqfr-4p6p](https://github.com/EVerest/EVerest/security/advisories/GHSA-f35j-hqfr-4p6p)
+> (CVSS 7.1, CWE-331/338), with the 2^32 seed recovered by exhaustive search against the unmodified
+> upstream function; 2026.02.2 ships the fix as *"EvseSlac: full-entropy session NMK"*. So the
+> argument this report has to make is no longer *that 32 bits is too few* — their own release says so,
+> in another module, at High — but that the same generator still seeds two `-20` values next door.
+> That makes this the strongest EVerest report left in this directory and the cheapest for them to
+> accept. See the 
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Post it under your own name; see *Before sending* at the bottom.
 

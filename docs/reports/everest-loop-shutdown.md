@@ -1,9 +1,31 @@
 # Draft report to EVerest — one exception from any poll callback ends `Evse15118D20`'s V2G loop, permanently and silently
 
-> **OBSOLETE — fixed upstream by explicit throw-containment in the poll manager, SDP and TLS accept. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Half obsolete — and the surviving half is the one this report was re-pitched around in August.**
+> Checked in the **2026.02.2** tag on 2026-11-05, not only on `main`.
+>
+> **The TLS-accept trigger is fixed and released.** `io/connection_ssl.cpp:480` now carries the
+> comment *"Throwing here would end the controller loop, only tear down connection instead."* and
+> returns instead of throwing — this report's own suggestion, in their words.
+>
+> **The mechanism is not fixed.** `tbd_controller.cpp` still ends the loop on anything that escapes a
+> poll callback: `try { poll_manager.poll(...) } catch (const std::runtime_error& e) {
+> logf_error("Shutdown loop() because of: %s"); break; }`. It is no longer *silent* — there is a log
+> line now — but it is still permanent, still for the life of the process, and the catch takes
+> `std::runtime_error` **only**, so anything else leaves `loop()` entirely. Of the two halves this
+> report keeps apart, the trigger it stopped leading with is closed and the consequence it leads with
+> is live in the newest release.
+>
+> Three things to do before sending: drop *"and silently"* from the title and the heading — the log
+> line is new and a reviewer on 2026.02.2 would check that word first; re-point the
+> *"Where it is still reachable"* table at 2026.02.2;
+> and add one sentence to the framing — their own 2026-11-05 batch contains three framework-level
+> versions of exactly this shape, from three other reporters: GHSA-4c89-v794-gr7v (*a single MQTT
+> message crashes the whole station*), GHSA-p8m7-56jf-rj6m (*malformed `msg_type` ends the module via
+> `exit(1)`*) and GHSA-m9p9-wr92-vx49 (*peer-controlled JSON reaches `std::terminate`*). The argument
+> that an uncaught throw on a peer-reachable path is a security matter is now theirs, not ours to
+> make. See the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** The failure mode was **measured** on everest-core 2026.02.1, three times,
 one attempt each — including against their own shipped `config-sil-dc-d20.yaml`, unmodified. The claim

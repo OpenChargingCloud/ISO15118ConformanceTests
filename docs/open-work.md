@@ -5,6 +5,16 @@
 > scenario of ours turning green — but *"has a drafted report"* no longer means *"is waiting on
 > them"* for those ten. The re-read: [`2026-11-04-everest-main-resweep`](interop-runs/2026-11-04-everest-main-resweep/notes.md).
 >
+> **Corrected the next day: four of those ten are not fixed in any release.** *Fixed* in that
+> re-read meant *fixed on `main`*, which is the wrong axis for a finding someone has to act on.
+> Checked in the 2026.02.2 tag on 2026-11-05: `d20-rng-entropy`, `certificate-update` and
+> `session-log-responses` are live in the newest release, `loop-shutdown` is half fixed there, and
+> `paymentdetails-crash` is the one that genuinely shipped — on the day it was checked. **One** of the
+> ten was meanwhile reported by someone else and closed with credit to them (`paymentdetails-crash`),
+> and so was one of the two that were only half fixed (`isomux` issue 3). That is what holding a report
+> costs, and it is measured rather than feared now. The cross-check, including the twenty-four reports
+> against seventy-two published advisories: [`2026-11-05-everest-advisory-cross-check`](interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+>
 > **The other five counterparties: almost nothing moved.** One fixed, one half fixed, eighteen live —
 > and `EDF-Lab/eVDriveFlow` plus all three tux-evse repositories sit at the exact commits the reports
 > pinned, eVDriveFlow's untouched since 2023-04-17. For those four, holding the reports cost nothing;
