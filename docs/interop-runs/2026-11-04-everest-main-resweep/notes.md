@@ -201,12 +201,12 @@ refused, `signal=6` at `openssl_util.cpp:799`, manager gone. `main`, built from 
 afternoon, answers those same bytes `FAILED_CertChainError` and stays up. So the fix is observed to
 work.
 
-**What this section first concluded from that — that it was observed to be in no release — was wrong by
-fifty-one seconds.** `2026.02.2` was published at 15:38:02Z with the fix; the commit saying otherwise is
-stamped 15:38:53Z. And the defect had been reported independently as `GHSA-qg7p-grpm-cg3f`, credited to
-`Mehrrun`, published the same day. So the report is overtaken as a report, not turned into a backport
-question, and what remains sendable is an amendment to that advisory — which the measurement above still
-carries, because the advisory names `2026.10.0` for the pre-2026.02 line and no such version exists.
+**What this section first concluded from that — that the fix was observed to be in no release — was
+wrong by fifty-one seconds**, and the report is overtaken as a report rather than turned into a backport
+question: `2026.02.2` carries the fix, and the defect was reported independently the same day. The
+[advisory cross-check](../2026-11-05-everest-advisory-cross-check/notes.md) has that in full, across all twenty-four reports; the timing is in the
+[RC run note](../2026-11-05-everest-rc-paymentdetails-crash/notes.md). What stays sendable is an
+amendment to that advisory, and the measurement above is what it rests on.
 [`2026-11-05-everest-rc-paymentdetails-crash`](../2026-11-05-everest-rc-paymentdetails-crash/notes.md).
 
 **And the general lesson, which applies to all ten.** This sweep read `main`, so *fixed* in the table

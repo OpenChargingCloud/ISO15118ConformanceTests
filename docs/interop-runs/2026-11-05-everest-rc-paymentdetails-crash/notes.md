@@ -1,17 +1,32 @@
 # EVerest PaymentDetails crash: `2026.10.0-rc1` aborts, `main` answers
 
 > **Correction, written the same evening.** This note first concluded that the crash was *"still in
-> every release"*. That was wrong within the hour, and the margin is worth stating exactly:
-> **`2026.02.2` was published at 15:38:02Z carrying PR #3047, and the commit asserting otherwise was
-> made at 15:38:53Z — fifty-one seconds later.** The defect had also been reported independently as
-> [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f) (credited to `Mehrrun`), published 15:53:52Z the same day, which
-> nothing in `docs/` knew because nothing in `docs/` had ever read their advisory database.
+> every release"*. `2026.02.2` shipped the fix hours later, and the defect had already been reported
+> independently as [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f). The whole picture — all twenty-four reports
+> against the 72 advisories, who got the credit, and why the advisory's second patched version does
+> not exist — is in the [advisory cross-check](../2026-11-05-everest-advisory-cross-check/notes.md); that is the document to read for it, not
+> this one.
 >
-> **The measurements below are unaffected** — the RC build did abort, `main` did answer — but what
-> they prove is narrower than this note first claimed, and more useful than a backport request: the
-> advisory names `2026.10.0` as the fix for the pre-2026.02 line, and **that version does not exist**.
-> `2026.10.0-rc1` is the newest artifact on that line and it is the build measured aborting here. That
-> is what the [advisory amendment](../../reports/everest-evsev2g-paymentdetails-advisory-amendment.md) rests on.
+> What belongs here is the **margin**, because this run is where it is sharpest:
+>
+> | | |
+> |---|---|
+> | `2026.02.2` published, with PR #3047 in it | **15:38:02Z** |
+> | the commit asserting *"still in every release"* | **15:38:53Z** |
+> | the RC measurement below | 15:33Z, five minutes *before* the release |
+>
+> Fifty-one seconds — and the margin is not the excuse, it is the point. The inference read the
+> release *list*, took `2026.10.0-rc1` for the newest release, and never asked the maintenance line at
+> all. This is the sharpest instance of the cross-check's second lesson, *"fixed" needs an axis: fixed
+> where*, which ran in both directions the same day: one report wrongly live-in-every-release, four
+> wrongly fixed.
+>
+> A trap for whoever re-measures it: the `2026.02.2` tag was **created** at 12:18:18Z and **published**
+> at 15:38:02Z. Reading `created_at` gives a different number and a different story.
+>
+> **The measurements below are unaffected** — the RC build did abort, `main` did answer. What changed
+> is what they are for: not a backport request, but the evidence under the
+> [advisory amendment](../../reports/everest-evsev2g-paymentdetails-advisory-amendment.md).
 
 An A/B on one machine within one hour: the same probe and the same station config against two
 trees, `2026.10.0-rc1` and `main`. One aborts, one answers correctly.
@@ -123,9 +138,8 @@ still running when the probe finished.
 | `main` | `01f36de1`, 2026-11-05 | **answered `FAILED_CertChainError`** | up, and answered the liveness arm `OK` |
 
 Neither half rests on reading their source any more. What that pair is *for* changed the same evening:
-with `2026.02.2` out, it is no longer a backport request but the evidence under the advisory amendment —
-the fix demonstrably works, and the version the advisory names for the other line is not a thing you can
-install.
+with `2026.02.2` out, it is no longer a backport request but the evidence under the advisory amendment,
+for the reason set out in the [cross-check](../2026-11-05-everest-advisory-cross-check/notes.md).
 
 **A detail worth keeping.** The report's *"show it is not universal"* box records that Josev and our
 own station both survive these bytes but that **neither answers `FAILED_CertChainError`** for the
