@@ -1,9 +1,13 @@
 # Draft report to EVerest (`EvseV2G`) — `CertificateUpdateRes` is sent from the union slot the previous response left behind
 
-> **OBSOLETE — fixed upstream by every body branch now calling its `init_iso2_*ResType`. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Fixed on `main` only — live in the newest release, so this is a backport ask rather than an
+> obsolete draft.** Checked in the **2026.02.2** tag on 2026-11-05: `handle_iso_certificate_update`
+> is still `// TODO: implement CertificateUpdate handling` with a bare `return V2G_EVENT_NO_EVENT`,
+> and the dispatch still calls it, so every word below describes shipped code. What the 2026-11-04
+> re-sweep found — every body branch calling its `init_iso2_*ResType` before the handler — is on
+> `main` and did not reach the 2026.02 line. See the 
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent** — and **observed on the wire as of 2026-08-16**, both halves. Post it under
 your own name; see *Before sending*.

@@ -1,9 +1,13 @@
 # Draft report to EVerest — `session_logging` records every response with the wrong length
 
-> **OBSOLETE — fixed on 2026-09-16 by PR #2566. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Fixed on `main` by PR #2566 (2026-09-16) — not in the newest release.** Checked in the
+> **2026.02.2** tag on 2026-11-05: `EvseV2G/v2g_server.cpp` still publishes with `conn->payload_len`
+> and `exi_bitstream_get_length` appears nowhere in it, so the 43-of-43 measurement below still
+> describes shipped code. Whether that is worth sending is a judgement rather than a question of
+> whether it is live: this is the one finding here whose consequence stays inside the station's own
+> session record. See the 
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Measured on the wire against **everest-core 2026.02.1** (`b61bb12b8`) on
 2026-08-10 — a complete ISO 15118-2 DC charge, 43 responses, all 43 wrong. First seen 2026-08-02

@@ -16,7 +16,10 @@ Evidence in this repository:
 [`2026-08-15-everest-paymentdetails-crash-live`](../interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md)
 (two runs on 2026.02.1) and
 [`2026-11-05-everest-rc-paymentdetails-crash`](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md)
-(the A/B: `2026.10.0-rc1` against `main`, same probe, same machine, forty minutes apart).
+(the A/B: `2026.10.0-rc1` against `main`, same probe, same machine, forty minutes apart), and
+[`2026-11-05-everest-advisory-cross-check`](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+— all twenty-four EVerest reports against their seventy-two published advisories and the
+2026.02.2 tag, which is where the release-list and advisory claims above were checked.
 
 ---
 

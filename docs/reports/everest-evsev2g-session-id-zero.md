@@ -1,8 +1,23 @@
 # Draft report to EVerest (`EvseV2G`) — a SessionID of zero passes the `[V2G2-460]` check
 
-> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
-> live.** The `file:line` citations below are stale; the current locations, and what was
-> checked to confirm the defect by content rather than by line, are in the
+> **This is an incomplete fix of CVE-2025-68140, and that is how it should be sent.** Re-read on
+> 2026-11-05: live on `main` (`01f36de1`, `iso_server.cpp:107`) **and in the newest release**,
+> 2026.02.2 (`:98`) — the first time this finding was checked against a release rather than against
+> `main`. **And it was their own patch that created it.** Quarkslab's OSTIF-sponsored audit reported
+> the opposite direction of this same check as
+> [CVE-2025-68140](https://github.com/EVerest/EVerest/security/advisories/GHSA-w385-3jwp-x47x)
+> (*"Null session ID bypasses session ID verification"*, published 2026-01-20): with no session
+> registered the stored id defaults to 0, so a request carrying 0 matched it. The fix —
+> [PR #1403](https://github.com/EVerest/everest-core/pull/1403), commit `7e3b03dc`, 2025-10-08,
+> *"EvseV2G: ensure that session id is != 0"* — **added the term `received_session_id != 0`**, and the
+> code the advisory quotes is exactly that commit's parent. So a zero id went from *matching the unset
+> default* to **skipping the check altogether**, mid-session included, which is what this report
+> describes. Two consequences for sending it: it goes through their security policy as an advisory
+> referencing CVE-2025-68140, not as a bug report — the wording precedent is in their own 2026-11-05
+> batch, where GHSA-fc82-8hg4-wwj5 is filed as *"incomplete fix of CVE-2025-68133"* — and it needs no
+> argument that the behaviour matters, because they already accepted that argument once. The
+> `file:line` citations below are stale; see the 
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
 > [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Measured on the wire 2026-08-11 against **everest-core 2026.02.1**

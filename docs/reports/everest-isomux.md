@@ -2,13 +2,23 @@
 
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — one of the four is
 > fixed, one has collapsed into another report, two are live.** **3** (ignored V2GTP header read) is
-> **fixed** by #3028. **2** (TLS capped at 1.2) is **reshaped**: the cap is gone, but
+> **fixed** by #3028 — and, checked in the tag on 2026-11-05, **released in 2026.02.2**: the header
+> read now tests `rv < 0`, treats `rv == 0` as a peer close, rejects a short read, and adds an
+> overflow and a buffer-size guard. Two advisories in that release cover it, both from other
+> reporters:
+> [GHSA-9cfv-mjv8-x4fw](https://github.com/EVerest/EVerest/security/advisories/GHSA-9cfv-mjv8-x4fw)
+> (*missing `read()` error check causes a SIZE_MAX write*, 7.1) and
+> [GHSA-qvxq-v3r8-rmmv](https://github.com/EVerest/EVerest/security/advisories/GHSA-qvxq-v3r8-rmmv)
+> (*heap out-of-bounds read via an unvalidated V2GTP payload length*, 7.1).
+>
+> **2** (TLS capped at 1.2) is **reshaped**: the cap is gone, but
 > `enforce_tls_1_3` is never set either, so the version is the EV's choice — that is now part of
 > [client-auth issue 1](everest-d20-client-auth/issue-1-client-auth-decided-by-the-ev.md) and should
 > not be sent separately. **1** (`Priority` still only logged) and **4** (`trusted_ca_keys support
 > disabled`, now reached through the per-chain `trust_anchor`) are live. And the module itself is
 > **deprecated in 2026.10.0, removal no earlier than 2027.04.0**. See the
-> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Four defects in one module, found between 2026-08-03 and 2026-08-10 across
 everest-core **2025.10.0** and **2026.02.1**, all re-read in the built 2026.02.1 source (`b61bb12b8`)

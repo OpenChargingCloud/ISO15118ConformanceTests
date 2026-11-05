@@ -10,7 +10,9 @@
 > [`2026-11-04-counterparties-resweep`](../interop-runs/2026-11-04-counterparties-resweep/notes.md) — only `libcbv2g` issue C is void, and issue B
 > is half wrong and must be rewritten before it is sent.
 
-Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent. The
+Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent —
+plus, since 2026-11-05, one **advisory amendment**, which is neither a report nor a finding of ours and
+is first in the order for a reason given at its entry. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
 through them.
 
@@ -315,6 +317,22 @@ as the report does.
   **6**, **8**, **10**, **17**, **19**, **21** and the two `isomux` remnants as the live EVerest set —
   and **6** has to be re-argued around a default rather than a mechanism. Each report says so at its
   own top; the reasoning is in the
+
+  **Corrected 2026-11-05 — that list had one axis and it was the wrong one.** It was read off `main`.
+  Checked in the 2026.02.2 tag the next day, four of its entries are **not** fixed in anything
+  installable: **13** (`d20-rng-entropy`) is live — no `detail/random.hpp`, `std::mt19937` at three
+  sites — while the *same defect class* shipped a **High** advisory in that very release
+  (GHSA-f35j-hqfr-4p6p, `EvseSlac`); **23** (`certificate-update`) is live, still a bare `// TODO`;
+  **22** (`session-log-responses`) is live, still `conn->payload_len`; and **15** (`loop-shutdown`) is
+  half fixed — TLS accept contained, the poll-callback mechanism still ending `loop()`. **1**
+  (`paymentdetails-crash`) *is* released, in 2026.02.2, and is superseded in this file by
+  [`everest-evsev2g-paymentdetails-advisory-amendment`](everest-evsev2g-paymentdetails-advisory-amendment.md);
+  **16** issue 3 is released too. **2** (`session-id-zero`) moves the other way: not merely live, but
+  the regression left by the fix for CVE-2025-68140, which changes both its channel and its weight.
+  So the live EVerest set is **larger** than the re-sweep left it, and every claim in it now has to
+  say *fixed where* — `main` or a release — because for a security finding those are different
+  answers. Nothing here was re-verified against the release except the entries named in this
+  paragraph; for the rest, *live* still means live on `main`.
   [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 - **Anything that needs a decision only you can make.** Several entries above have one — whether to
   include §1's `2026.02.1` replay, what shape `IsoMux` takes, whether the `-2` caveat survives a look at

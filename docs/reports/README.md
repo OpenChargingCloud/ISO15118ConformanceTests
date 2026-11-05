@@ -22,9 +22,24 @@ appears to come from, why we think it is worth fixing, and a suggested fix offer
 asserted. Where we worked around something to keep going, the workaround is named — including when it
 was our own configuration we bent.
 
+**One check belongs in that shape and was missing from all of it until 2026-11-05: the counterparty's
+own advisory database.** Before a report is written, held, re-read or sent, ask whether the defect, or
+the check it is about, already has a GHSA or a CVE — `gh api repos/<org>/<repo>/security-advisories
+--paginate` carries the summary, the severity, the credited reporter, the affected ranges and the
+patched versions, so it is one call. For EVerest that returns **72** published advisories, including a
+whole Quarkslab audit sponsored by OSTIF, and until that date nothing in `docs/` referenced a single
+one of them. It changes three things about a report: whether it is new at all (two of ours were
+reported by other people while we held them), what document it should be (`session-id-zero` is the
+regression left by the fix for CVE-2025-68140 — an advisory, not a bug report), and which arguments
+the counterparty has already accepted or already refused in public (they fixed a 32-bit `mt19937`
+seed as a High in `EvseSlac`; they declined to change the `terminate_connection_on_failed_response`
+default and said so in CVE-2025-68139). The second check it implies is just as cheap and was missing
+too: read the **release** tree, not only `main` — a fix on `main` is not a fix anyone can install, and
+the 2026.02 maintenance line did not get most of them.
+
 **In what order to send them: [`sending-order.md`](sending-order.md).** The table below is how you find
-a report; that file is how you work through them — thirty-four sendable reports, forty-eight issues, six
-projects, with the rules that produced the order, the hard dependencies, and the one anti-dependency
+a report; that file is how you work through them — thirty-four sendable reports carrying forty-eight
+issues across six projects, plus the one advisory amendment that is not a report, with the rules that produced the order, the hard dependencies, and the one anti-dependency
 that would blur two findings into one. Those counts are the August figures and are **not** adjusted
 for the 2026-11-04 EVerest re-sweep; the OCSP dependency, which was the sharpest of the five, is now
 void because both halves are fixed.
@@ -225,10 +240,11 @@ fixed it since* — were run across all thirty-two drafts at once for the first 
 [audit notes](../interop-runs/2026-08-11-reports-upstream-audit/notes.md).
 
 **That "thirty-two" is the file count on 2026-08-11 and is not the "thirty-four" above.** There are
-**thirty-seven** report files now — the forty-fifth to forty-ninth filings were written on
-08-12, 08-13, 08-14, 08-15 and 08-16 — of which **three are withdrawn** and thirty-four are sendable. The
-arithmetic is written out here so nobody has to rediscover it: 37 files − 3 withdrawn = 34 sendable,
-carrying 48 issues. (On 2026-08-11 the file count and the sendable count were both thirty-two, which was
+**thirty-eight** files in this directory now — the forty-fifth to forty-ninth filings were written on
+08-12, 08-13, 08-14, 08-15 and 08-16, and the thirty-eighth file is the advisory amendment of
+2026-11-05, which is not a filing of a finding at all — of which **three are withdrawn** and
+thirty-four are sendable reports. The arithmetic is written out here so nobody has to rediscover it:
+38 files − 3 withdrawn − 1 amendment = 34 sendable reports, carrying 48 issues. (On 2026-08-11 the file count and the sendable count were both thirty-two, which was
 a coincidence and is no longer one.)
 
 **The third withdrawal is a different kind from the first two, and the difference is the point.** Those
