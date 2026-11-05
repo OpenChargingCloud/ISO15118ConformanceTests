@@ -5,11 +5,14 @@
 > scenario of ours turning green — but *"has a drafted report"* no longer means *"is waiting on
 > them"* for those ten. The re-read: [`2026-11-04-everest-main-resweep`](interop-runs/2026-11-04-everest-main-resweep/notes.md).
 >
-> **Corrected the next day: four of those ten are not fixed in any release.** *Fixed* in that
-> re-read meant *fixed on `main`*, which is the wrong axis for a finding someone has to act on.
-> Checked in the 2026.02.2 tag on 2026-11-05: `d20-rng-entropy`, `certificate-update` and
-> `session-log-responses` are live in the newest release, `loop-shutdown` is half fixed there, and
-> `paymentdetails-crash` is the one that genuinely shipped — on the day it was checked. **One** of the
+> **Corrected the same week: exactly one of those ten is fixed in a release.** *Fixed* in that
+> re-read meant *fixed on `main`*, which is the wrong axis for a finding someone has to act on. All ten
+> were then checked in the 2026.02.2 tag: **eight are live in the newest release**
+> (`d20-rng-entropy`, `certificate-update`, `session-log-responses`, `d20-ac-namespace`,
+> `iso20-ac-contactor-latch`, both halves of the OCSP chain, and `d20-eim-rejection` — the last for a
+> different cause than its report gives), `loop-shutdown` is half fixed there, and
+> `paymentdetails-crash` is the one that genuinely shipped — on the day it was checked. So the drafted
+> EVerest set did not shrink by ten; it shrank by one. **One** of the
 > ten was meanwhile reported by someone else and closed with credit to them (`paymentdetails-crash`),
 > and so was one of the two that were only half fixed (`isomux` issue 3). That is what holding a report
 > costs, and it is measured rather than feared now. The cross-check, including the twenty-four reports

@@ -9,6 +9,33 @@
 > around that, and note that one module now serves `-2`, DIN and `-20`, so no single default
 > fits all three. See the [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
+> **The rewritten argument, 2026-11-05 — and it holds for the release, not only for `main`.**
+> `enforce_tls_1_3` is in **2026.02.2** too (`io/connection_ssl.cpp:54`, `bool enforce_tls_1_3{false}`),
+> so this is a shipped default and not a `main` experiment. Three points, in this order:
+>
+> 1. **`[V2G20-2400]` puts the `CertificateRequest` on the SECC unconditionally.** With the default as
+>    shipped, an EV that offers TLS 1.2 is never asked for a certificate and still gets a complete
+>    ISO 15118-20 session. That is the finding, unchanged, and the body below measures it.
+> 2. **The default cannot be right for all three protocols the module now serves.** Since #2485 one
+>    `Evse15118D20` runs DIN SPEC 70121, ISO 15118-2 **and** ISO 15118-20, and the manifest justifies
+>    `false` with the first two: *"Set to false to offer TLS 1.2 (cipher ECDHE-ECDSA-AES128-SHA256, no
+>    client-certificate request), which is required for ISO 15118-2 / DIN SPEC 70121."* That
+>    justification is correct for `-2` and DIN and wrong for `-20`, and nothing in the handshake path
+>    distinguishes them — so the ask is not *flip the default*, it is **make it per protocol**:
+>    whatever TLS 1.2 needs for `-2`/DIN, a `-20` session must not complete without a client
+>    certificate.
+> 3. **The same default decides IsoMux's version, which is where §2 of the IsoMux report went.**
+>    `IsoMux` never sets `enforce_tls_1_3` either, so its old TLS 1.2 cap is gone and the version is
+>    now the EV's choice — which means the `-20`-over-TLS-1.2 case that report described is reached
+>    through *this* default, not through a cap. Send the two together or send this one only; do not
+>    send IsoMux §2 separately.
+>
+> Also worth knowing before this goes out: **issue 3 of this set is fixed on `main` and live in
+> 2026.02.2** (`lib/everest/tls/src/tls.cpp:941` still configures the server from `cfg.chains[0]`, and
+> `ChainTlsVersion` does not exist in that tree), so the set is two live issues against a release, not
+> one. See the
+> [advisory cross-check](../../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md).
+
 > **Post this as-is under your own name, or edit freely.** It is one of three
 > ([index](README.md)); each is a different direction through the same handshake and has a different
 > fix. This one has the smallest fix in the set.

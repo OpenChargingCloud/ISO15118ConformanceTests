@@ -319,20 +319,22 @@ as the report does.
   own top; the reasoning is in the
 
   **Corrected 2026-11-05 — that list had one axis and it was the wrong one.** It was read off `main`.
-  Checked in the 2026.02.2 tag the next day, four of its entries are **not** fixed in anything
-  installable: **13** (`d20-rng-entropy`) is live — no `detail/random.hpp`, `std::mt19937` at three
-  sites — while the *same defect class* shipped a **High** advisory in that very release
-  (GHSA-f35j-hqfr-4p6p, `EvseSlac`); **23** (`certificate-update`) is live, still a bare `// TODO`;
-  **22** (`session-log-responses`) is live, still `conn->payload_len`; and **15** (`loop-shutdown`) is
-  half fixed — TLS accept contained, the poll-callback mechanism still ending `loop()`. **1**
-  (`paymentdetails-crash`) *is* released, in 2026.02.2, and is superseded in this file by
-  [`everest-evsev2g-paymentdetails-advisory-amendment`](everest-evsev2g-paymentdetails-advisory-amendment.md);
-  **16** issue 3 is released too. **2** (`session-id-zero`) moves the other way: not merely live, but
-  the regression left by the fix for CVE-2025-68140, which changes both its channel and its weight.
-  So the live EVerest set is **larger** than the re-sweep left it, and every claim in it now has to
-  say *fixed where* — `main` or a release — because for a security finding those are different
-  answers. Nothing here was re-verified against the release except the entries named in this
-  paragraph; for the rest, *live* still means live on `main`.
+  All ten entries have since been checked in the **2026.02.2** tag, and **exactly one of them is fixed
+  in a release**: **1** (`paymentdetails-crash`), which is also the one somebody else filed, and which
+  is superseded in this file by
+  [`everest-evsev2g-paymentdetails-advisory-amendment`](everest-evsev2g-paymentdetails-advisory-amendment.md).
+  Eight are **live in the newest release** — **13** (`d20-rng-entropy`, while the *same defect class*
+  shipped a **High** advisory in that very release, GHSA-f35j-hqfr-4p6p for `EvseSlac`), **23**
+  (`certificate-update`), **22** (`session-log-responses`), **9** (`d20-eim-rejection`, live for a
+  different cause than the report gives), **11** and **12** (the OCSP chain, both halves), and the two
+  that `sending-order` itself had recorded as fixed since August, `d20-ac-namespace` and
+  `iso20-ac-contactor-latch` — the latter being a one-character fix that never left `main`. **15**
+  (`loop-shutdown`) is half fixed. Outside the ten, **16** issue 3 is released, and **7**
+  (`client-auth` issue 3) is live in the release although fixed on `main`. **2** (`session-id-zero`)
+  moves the other way again: not merely live, but the regression left by the fix for CVE-2025-68140,
+  which changes both its channel and its weight. So the live EVerest set is **much larger** than the
+  re-sweep left it, every claim in it now says *fixed where* — `main` or a release — and the two
+  entries retired in August on the strength of `main` are sendable again as backport asks.
   [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 - **Anything that needs a decision only you can make.** Several entries above have one — whether to
   include §1's `2026.02.1` replay, what shape `IsoMux` takes, whether the `-2` caveat survives a look at

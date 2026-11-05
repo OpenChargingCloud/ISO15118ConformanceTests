@@ -1,9 +1,14 @@
 # Draft report to EVerest — `Evse15118D20` has the OCSP stapling machinery wired up and passes it an empty list
 
-> **OBSOLETE — fixed upstream by the new `evse_security_ssl_config.cpp`. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Fixed on `main` only — live in the newest release.** Checked in the **2026.02.2** tag on
+> 2026-11-05: the string `ocsp` does not occur anywhere in
+> `modules/EVSE/Evse15118D20/charger/ISO15118_chargerImpl.cpp`, and there is **no**
+> `evse_security_ssl_config` translation unit in that tree. The forwarding of `chain.ocsp[].ocsp_path`
+> into `ocsp_response_files` that the 2026-11-04 re-sweep found on `main`, unit test and all, is
+> `main`-only. The `-20` station still hands `lib/everest/tls` an empty list.
+> See the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Measured 2026-08-10 against everest-core **2026.02.1** (`b61bb12b8`) built
 from source: `openssl s_client -status` against their `-20` station on both TLS versions, plus a control

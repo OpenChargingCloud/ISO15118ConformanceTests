@@ -15,7 +15,15 @@
 > `enforce_tls_1_3` is never set either, so the version is the EV's choice — that is now part of
 > [client-auth issue 1](everest-d20-client-auth/issue-1-client-auth-decided-by-the-ev.md) and should
 > not be sent separately. **1** (`Priority` still only logged) and **4** (`trusted_ca_keys support
-> disabled`, now reached through the per-chain `trust_anchor`) are live. And the module itself is
+> disabled`) are live — and **§4's mechanism was re-read in the 2026.02.2 tag on 2026-11-05, with the
+> result that the report is right exactly as written.** The 2026-11-04 re-sweep said the condition had
+> become "the per-chain `trust_anchor` PEM of the multi-chain config" and that §4 needed re-reading
+> before sending. It did not: `Server::init_certificates` loads `trust_anchor_file` **and**
+> `trust_anchor_pem`, merges them, and drops the whole chain when the merge is empty — which is the
+> path §4 describes, in the release as on `main`. Only the line numbers drifted (`if (!tas.empty())`
+> `:1048` → `:1045`, the warning `:1062` → `:1058`, the disabled line `:1077-1080` → `:1076-1078`).
+> One thing §4 does not yet say and could: a chain that *has* trust anchors but fails
+> `openssl::verify_chain` is dropped just as silently, with no message of its own. And the module itself is
 > **deprecated in 2026.10.0, removal no earlier than 2027.04.0**. See the
 > [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
 > and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).

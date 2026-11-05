@@ -1,9 +1,21 @@
 # Draft report to EVerest (`EvseV2G`) — the signed-metering path is open at both ends
 
-> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
-> live.** The `file:line` citations below are stale; the current locations, and what was
-> checked to confirm the defect by content rather than by line, are in the
-> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Still live — and the only one of the four `-2` findings that survives `EvseV2G`'s removal.**
+> Re-read against `main` (`5d83027`) on 2026-11-04, and against the **new C++ `d2/` path** on
+> 2026-11-05. `EvseV2G` and `IsoMux` are deprecated in 2026.10.0 with removal no earlier than
+> **2027.04.0** (#3044), superseded by `Evse15118D20`, which since #2485 runs DIN SPEC 70121,
+> ISO 15118-2 and ISO 15118-20 on the C++ stack. Of the four `-2` findings in this directory, three did
+> **not** carry over into `d2/` — the zero `SessionId` is handled, the metering-receipt signature is
+> verified in `d2/crypto.cpp:436`, `MeterInfo` is filled in both `d2` charge loops. **This one did:**
+> there is no `MeterSignature` anywhere in `d2/` or in `d20/`. So the outgoing half below describes
+> both the deprecated module and its replacement, which is what makes it worth sending after the
+> others have become archaeology; the incoming half (the receipt signature never verified) is
+> `EvseV2G`-only and ends with the module. The `file:line` citations below are stale — current
+> locations in the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md), which also records that its own
+> first instruction about this report was wrong: the phrase *"reaches an empty function"* is about the
+> **publish** function, `iso_server.cpp:686`, and is correct as written. See also the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md).
 
 Status: **draft, not sent.** Post it under your own name; see *Before sending* at the bottom.
 

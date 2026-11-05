@@ -1,11 +1,17 @@
 # Draft report to EVerest — `-20` AC treats "contactor did **not** close" as "closed"
 
-> **OBSOLETE — fixed upstream by the `d20/state/power_delivery.cpp` rewrite. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. **`sending-order.md` has recorded this as fixed since August**,
-> while this file still said *"draft, not sent"* at the top — that is what the banner resolves.
-> See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Not obsolete and not withdrawable: the missing `*` is still in the newest release.** Checked in
+> the **2026.02.2** tag on 2026-11-05:
+> `lib/everest/iso15118/src/iso15118/d20/state/power_delivery.cpp:53` reads
+> `ac_connector_closed = control_data;` — the **pointer**, exactly as described below, so
+> `ClosedContactor{false}` still latches the session to *closed* and the station still answers
+> `PowerDeliveryRes(OK)`. The one-character fix is on `main`, which is what `sending-order.md` and the
+> 2026-11-04 re-sweep recorded; the 2026.02 line never received it. This report was retired as
+> *fixed upstream* twice — it is a **backport ask** instead, and the measurement below is the one that
+> makes it one.
+> See the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Read out of `everest-core` **2026.02.1** (`b61bb12`) on 2026-08-09 and
 then **reproduced against a running station the same day, 2 of 2, with a control** —

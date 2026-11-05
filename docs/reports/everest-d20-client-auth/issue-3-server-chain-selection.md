@@ -1,9 +1,13 @@
 # Issue 3 of 3 — the station never reads the EV's `certificate_authorities`, so it serves a chain the EV cannot verify
 
-> **OBSOLETE — fixed upstream. Do not send.** Re-read on 2026-11-04 against `main` (`5d83027`):
-> `config::ChainTlsVersion` now tags each chain `ANY`, `TLS_1_2` or `TLS_1_3`, and
-> `ssl_config_builder.cpp:35-44` -> `tls.cpp:1242-1251` selects on the negotiated version. The
-> header gives this report's own reason back: *"one leaf cannot serve both."* See the
+> **Fixed on `main` only — live in the newest release, so this is a backport ask.** On `main`
+> (`5d83027`) `config::ChainTlsVersion` tags each chain `ANY`, `TLS_1_2` or `TLS_1_3` and
+> `ssl_config_builder.cpp:35-44` → `tls.cpp:1242-1251` selects on the negotiated version, giving this
+> report's own reason back: *"one leaf cannot serve both."* **Checked in the 2026.02.2 tag on
+> 2026-11-05: none of that is there.** `tls.cpp:936-941` still configures the server context from
+> `cfg.chains[0]`, and the string `ChainTlsVersion` does not occur in the tree — so a station holding
+> two roots still presents the first one, which is the finding below. See the
+> [advisory cross-check](../../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md) and the
 > [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 > **Post this as-is under your own name, or edit freely.** It is one of three

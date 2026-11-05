@@ -1,9 +1,14 @@
 # Draft report to EVerest — `to_everest(CertificateInfo)` drops `ocsp`, so no station ever staples
 
-> **OBSOLETE — fixed upstream by `to_everest(CertificateInfo)` now copying `ocsp`. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Fixed on `main` only — live in the newest release.** Checked in the **2026.02.2** tag on
+> 2026-11-05: `lib/everest/conversions/evse_security/src/conversions.cpp:429-438` is still
+> `to_everest(evse_security::CertificateInfo)` copying `key`, `certificate_root`, `certificate`,
+> `certificate_single`, `password` and `certificate_count` — six members, and **not** `ocsp`, which is
+> the member this report is about. So no station on the 2026.02 line staples, for the reason given
+> below.
+> See the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Measured 2026-08-10 against everest-core **2026.02.1** (`b61bb12b8`) built
 from source: their own MQTT reply, their own boot warning, their own test PKI, no EV and no session

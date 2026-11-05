@@ -112,24 +112,34 @@ construction in `lib/everest/iso15118`, for the 64-bit SessionID and the 128-bit
 
 One fundamental, two sites, one reported and closed as a High, one held and still shipping.
 
-## Four of the ten the re-sweep called "fixed" are not fixed in any release
+## Of the ten the re-sweep called "fixed", exactly one is fixed in a release
 
-*Fixed* meant *fixed on `main`* throughout that note. Checked in the tag:
+*Fixed* meant *fixed on `main`* throughout that note. All ten are now checked in the **2026.02.2** tag
+— the last five on 2026-11-05, completing the pass:
 
 | report | on `main` | in 2026.02.2 |
 |---|---|---|
-| `d20-rng-entropy` | fixed | **live** — no `random.hpp`, `mt19937` ×3 |
+| `paymentdetails-crash` | fixed | **fixed, and released** — the guard precedes the use, the pubkey `assert` is an `if` |
+| `d20-rng-entropy` | fixed | **live** — no `detail/random.hpp` in the tree, `std::mt19937` at three sites |
 | `evsev2g-certificate-update` | fixed | **live** — still `// TODO: implement CertificateUpdate handling` |
 | `evsev2g-session-log-responses` | fixed (#2566) | **live** — still `conn->payload_len`, no `exi_bitstream_get_length` |
+| `d20-ac-namespace` | fixed (SAP rewrite) | **live** — `supported_app_protocol.cpp:28-34` takes every `-20:AC` and `-20:DC` entry unconditionally; no `secc_sap.cpp` in the tree |
+| `iso20-ac-contactor-latch` | fixed (one `*`) | **live** — `d20/state/power_delivery.cpp:53` is `ac_connector_closed = control_data`, the pointer |
+| `evse-security-ocsp-dropped` | fixed | **live** — `conversions.cpp:429-438` copies six members and not `ocsp` |
+| `d20-ocsp-absent` | fixed | **live** — no `ocsp` in `Evse15118D20/charger/ISO15118_chargerImpl.cpp`, no `evse_security_ssl_config` in the tree |
+| `d20-eim-rejection` | fixed (handler) | **live, other cause** — the handler does send either verdict here, but `EvseManager` calls it only with `Unknown` (plug-in timeout) and `Accepted`; no site forwards a rejection |
 | `loop-shutdown` | fixed | **half** — TLS accept contained; `poll_manager.poll()` still `break`s out of `loop()`, and the catch takes `std::runtime_error` only |
-| `paymentdetails-crash` | fixed | **fixed**, and released |
-| `isomux` issue 3 | fixed | **fixed**, and released |
 
-The `-20` ones have a structural reason: `lib/everest/iso15118` in the 2026.02 line is the pre-#2485
-tree, so the whole `d2/` rewrite and everything that came with it is `main`-only. The five remaining
-reports of the ten (`d20-ac-namespace`, `iso20-ac-contactor-latch`, `evse-security-ocsp-dropped`,
-`d20-ocsp-absent`, `d20-eim-rejection`) were not re-checked against the release here; for them *fixed*
-still means *fixed on `main`*, and saying so is the point of this note.
+Plus, outside the ten: `isomux` issue 3 is **fixed and released**, and `client-auth` issue 3 — which
+the re-sweep recorded as fixed — is **live** (`tls.cpp:936-941` still uses `cfg.chains[0]`, and
+`ChainTlsVersion` is not in the tree).
+
+**So the 2026.02 maintenance line received exactly one of our findings' fixes, and it is the one
+somebody else filed.** The `-20` ones have a structural reason — `lib/everest/iso15118` there is the
+pre-#2485 tree, so the whole `d2/` rewrite and everything that came with it is `main`-only — but
+`evse-security-ocsp-dropped` and `evsev2g-certificate-update` are not `-20` and not in it either.
+Eight live reports came back from a list that had retired them, which is the single largest change this
+pass made to what is open.
 
 ## What they have already refused in public — which is an input to two of our reports
 

@@ -1,11 +1,16 @@
 # Draft report to EVerest — a DC-configured `Evse15118D20` accepts the ISO 15118-20 **AC** message set
 
-> **OBSOLETE — fixed upstream by the SAP rewrite in `session/secc_sap.cpp`. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. **`sending-order.md` has recorded this as fixed since August**,
-> while this file still said *"draft, not sent"* at the top — that is what the banner resolves.
-> See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Fixed on `main` only — live in the newest release, so this is a backport ask and not an obsolete
+> draft.** Checked in the **2026.02.2** tag on 2026-11-05:
+> `lib/everest/iso15118/src/iso15118/d20/state/supported_app_protocol.cpp:28-34` still writes every
+> `-20:DC` and every `-20:AC` entry into `ev_supported_protocols` unconditionally, and `handle_request`
+> takes nothing but the request and an optional `custom_protocol_namespace` — the station's configured
+> energy modes are not a parameter of that function. **There is no `secc_sap.cpp` in the 2026.02 tree at
+> all**, so the SAP rewrite that `sending-order.md` and the 2026-11-04 re-sweep both recorded as the fix
+> never reached the maintenance line. Every word below describes shipped code.
+> See the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: three handshake arms with a control, and one session carried through

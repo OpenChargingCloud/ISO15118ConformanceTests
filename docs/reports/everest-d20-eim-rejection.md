@@ -1,9 +1,17 @@
 # Draft report to EVerest (`everest-core`) — a rejected EIM authorization is never reported to the `-20` stack
 
-> **OBSOLETE — fixed upstream by `handle_authorization_response` sending the control event either way. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Live in the newest release — and for a different reason than this report gives.** Checked in the
+> **2026.02.2** tag on 2026-11-05. The half the 2026-11-04 re-sweep saw *is* in the release:
+> `Evse15118D20`'s `handle_authorization_response` sends
+> `AuthorizationResponse{authorized}` whatever the verdict. But **nothing ever calls it with a negative
+> one.** `EvseManager.cpp` invokes `call_authorization_response` at exactly two places — the plug-in
+> timeout, with `AuthorizationStatus::Unknown`, and the already-authorised EIM path, with `Accepted` —
+> and no site forwards a rejection. So the `-20` stack still never learns that an EIM token was refused,
+> which is the finding; the mechanism paragraph below needs re-pointing at the caller rather than at the
+> handler before this goes out.
+> See the
+> [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
+> and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent.** Measured on the wire 2026-08-13 against **everest-core 2026.02.1**
 (`b61bb12`), `Evse15118D20`, ISO 15118-20 DC over plain TCP, with an ISO 15118-2 control on the same

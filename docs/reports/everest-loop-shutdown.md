@@ -1,4 +1,4 @@
-# Draft report to EVerest — one exception from any poll callback ends `Evse15118D20`'s V2G loop, permanently and silently
+# Draft report to EVerest — one exception from any poll callback ends `Evse15118D20`'s V2G loop for the life of the process
 
 > **Half obsolete — and the surviving half is the one this report was re-pitched around in August.**
 > Checked in the **2026.02.2** tag on 2026-11-05, not only on `main`.
@@ -15,9 +15,10 @@
 > report keeps apart, the trigger it stopped leading with is closed and the consequence it leads with
 > is live in the newest release.
 >
-> Three things to do before sending: drop *"and silently"* from the title and the heading — the log
-> line is new and a reviewer on 2026.02.2 would check that word first; re-point the
-> *"Where it is still reachable"* table at 2026.02.2;
+> Two things left to do before sending (*"and silently"* is out of the title as of 2026-11-05 — the
+> log line is new and a reviewer on 2026.02.2 would check that word first; the **Title:** field below
+> never claimed it, it says *"the process stays healthy"*, which is still exactly what happens):
+> re-point the *"Where it is still reachable"* table at 2026.02.2;
 > and add one sentence to the framing — their own 2026-11-05 batch contains three framework-level
 > versions of exactly this shape, from three other reporters: GHSA-4c89-v794-gr7v (*a single MQTT
 > message crashes the whole station*), GHSA-p8m7-56jf-rj6m (*malformed `msg_type` ends the module via
