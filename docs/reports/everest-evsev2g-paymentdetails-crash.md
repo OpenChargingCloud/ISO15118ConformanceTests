@@ -1,9 +1,15 @@
 # Draft report to EVerest (`EvseV2G`) — a malformed contract certificate in `PaymentDetailsReq` crashes the V2G module (null dereference)
 
-> **OBSOLETE — fixed on 2026-10-27 by PR #3047. Do not send.** Re-read against `everest-core`
-> `main` (`5d83027`, 2026-11-03) on 2026-11-04: the defect this report describes is gone.
-> The measurement and the reasoning below stand as the record of what was found; what they
-> no longer describe is the code. See the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **Fixed on `main`. Still live in every release — so the question is a backport, not whether to send.**
+> PR #3047 (2026-10-27) reordered the guard in `handle_iso_payment_details` so a leaf that fails to
+> parse never reaches the helper. Verified on `main` twice: `5d83027` on 2026-11-04 and `01f36de1` on
+> 2026-11-05. **But no release carries it.** The newest release, `2026.10.0-rc1` (`f45ba0d0`), is dated
+> 2026-10-22 — five days before the merge — and was built from source and measured on 2026-11-05: the
+> station still aborts, `signal=6`, `Assertion 'cert != nullptr' failed` at `openssl_util.cpp:799`, and
+> the manager still exits. The newest *stable* release, `2026.02.1`, is where the original runs happened.
+> The reasoning below therefore still describes shipped code; what it no longer describes is `main`.
+> See the [RC run](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md) and the
+> [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent** — and **reproduced against a running station on 2026-08-15**, twice. One
 frame from an unauthenticated peer aborts the module, and their manager then terminates every other
@@ -214,6 +220,17 @@ security report rather than a style note.
       alive. And a **liveness arm** afterwards, which is what turned "the module dies" into "the manager
       terminates every module and exits":
       [`…-paymentdetails-crash-live`](../interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md).
+- [x] **Check whether any release carries the fix — measured 2026-11-05, and none does.** The newest
+      release is `2026.10.0-rc1` (`f45ba0d0`, 2026-10-22), five days older than PR #3047. Built from
+      source and run against the same config as the 2026-08-15 runs, all three arms: the control
+      answered `OK`, the probe got the connection closed mid-frame, and the liveness arm three seconds
+      later got `Connection refused`. `iso15118_charger (signal=6)`, the assert now at
+      `openssl_util.cpp:799` (was `:775`), `Unexpected module exit; manager is exiting`. The RC wraps
+      this in new crash-recovery machinery that names each module's signal — a better log, the same
+      outcome. The fix is a reordering in the caller, not a hardening: `certificate_subject` and
+      `getEmaidFromContractCert` are byte-identical between the RC and `main`, so the next caller that
+      forgets will abort again.
+      [`…-everest-rc-paymentdetails-crash`](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md).
 - [ ] **Report it the way a crash should be reported.** It is remotely triggerable and pre-auth at the
       application layer; use their security policy / private disclosure before a public issue. This is
       the box that now decides when it goes out — everything technical is closed, and it is number **1**

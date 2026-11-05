@@ -192,6 +192,22 @@ The PaymentDetails null dereference has no counterpart there. `#3343` hardened t
 direction: a leaf issued below the V2G root that is not a contract certificate is now refused
 (`[V2G2-108]` for the CommonName syntax, `[V2G2-656]` for the SubCertificate count).
 
+### The PaymentDetails crash: "fixed" turns out to mean fixed on `main`
+
+The list of ten above files the PaymentDetails null dereference under *fixed*, and for `main` that is
+right. It is not right for anything anyone can install. Measured 2026-11-05: `2026.10.0-rc1`
+(`f45ba0d0`, 2026-10-22) predates PR #3047 by five days and **still aborts** — the control answered
+`OK`, the probe closed the connection mid-frame, the liveness arm was refused, `signal=6` at
+`openssl_util.cpp:799`, manager gone. That report is therefore not obsolete; it has become a backport
+question, and its banner now says so.
+[`2026-11-05-everest-rc-paymentdetails-crash`](../2026-11-05-everest-rc-paymentdetails-crash/notes.md).
+
+**And the general lesson, which applies to all ten.** This sweep read `main`, so *fixed* in the table
+above means "fixed on `main`" throughout — not one of the ten was checked against a release. For a
+defect whose only cost is a stale report of ours, that distinction does not matter. For a
+remotely-triggerable pre-auth crash it is the whole difference between "nothing to do" and "ask for a
+backport", and we nearly filed the first.
+
 ### Worth knowing about the counterparty
 
 Two of the three new `lib/everest/iso15118/` commits name Claude as co-author — `#3343` with
