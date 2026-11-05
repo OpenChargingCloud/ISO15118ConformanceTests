@@ -1,4 +1,17 @@
-# EVerest PaymentDetails crash: fixed on `main`, still in every release — both measured
+# EVerest PaymentDetails crash: `2026.10.0-rc1` aborts, `main` answers
+
+> **Correction, written the same evening.** This note first concluded that the crash was *"still in
+> every release"*. That was wrong within the hour, and the margin is worth stating exactly:
+> **`2026.02.2` was published at 15:38:02Z carrying PR #3047, and the commit asserting otherwise was
+> made at 15:38:53Z — fifty-one seconds later.** The defect had also been reported independently as
+> [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f) (credited to `Mehrrun`), published 15:53:52Z the same day, which
+> nothing in `docs/` knew because nothing in `docs/` had ever read their advisory database.
+>
+> **The measurements below are unaffected** — the RC build did abort, `main` did answer — but what
+> they prove is narrower than this note first claimed, and more useful than a backport request: the
+> advisory names `2026.10.0` as the fix for the pre-2026.02 line, and **that version does not exist**.
+> `2026.10.0-rc1` is the newest artifact on that line and it is the build measured aborting here. That
+> is what the [advisory amendment](../../reports/everest-evsev2g-paymentdetails-advisory-amendment.md) rests on.
 
 An A/B on one machine within one hour: the same probe and the same station config against two
 trees, `2026.10.0-rc1` and `main`. One aborts, one answers correctly.
@@ -11,11 +24,16 @@ repository so it reaches the station's link-local address directly.
 
 ## Why this run exists
 
-[`everest-evsev2g-paymentdetails-crash`](../../reports/everest-evsev2g-paymentdetails-crash.md) claims two
+[`everest-evsev2g-paymentdetails-crash`](../../reports/everest-evsev2g-paymentdetails-crash.md) claimed two
 things. The first — fixed on `main` by their PR #3047 (2026-10-27) — was read out of their source. The
-second — **no release carries the fix** — was an inference from two dates: the newest release is
-`2026.10.0-rc1` from 2026-10-22, five days older than the merge. An inference from dates is not a
-measurement, and this run replaces it with one.
+second — that no release carried the fix — was an inference from two dates: `2026.10.0-rc1` from
+2026-10-22 looked like the newest release, five days older than the merge. An inference from dates is
+not a measurement, and this run replaced it with one.
+
+The inference was also **wrong on its own terms**, and in a way this run could not have caught: it took
+the release *list* for the release *situation*, and never asked the maintenance line. `2026.02.2` shipped
+the fix hours later. What the run does establish is the half that survives — the specific build the
+advisory points the pre-2026.02 line at does not exist, and the newest one that does, aborts.
 
 ## The three arms, as the probe printed them
 
@@ -104,8 +122,10 @@ still running when the probe finished.
 | `2026.10.0-rc1` | `f45ba0d0`, 2026-10-22 | no answer, connection closed mid-frame | **gone** — SIGABRT, manager exited |
 | `main` | `01f36de1`, 2026-11-05 | **answered `FAILED_CertChainError`** | up, and answered the liveness arm `OK` |
 
-Neither half rests on reading their source any more, and that is the pair a maintainer needs in order
-to decide a backport: the fix demonstrably works, and nothing anyone can install has it.
+Neither half rests on reading their source any more. What that pair is *for* changed the same evening:
+with `2026.02.2` out, it is no longer a backport request but the evidence under the advisory amendment —
+the fix demonstrably works, and the version the advisory names for the other line is not a thing you can
+install.
 
 **A detail worth keeping.** The report's *"show it is not universal"* box records that Josev and our
 own station both survive these bytes but that **neither answers `FAILED_CertChainError`** for the

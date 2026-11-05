@@ -192,16 +192,21 @@ The PaymentDetails null dereference has no counterpart there. `#3343` hardened t
 direction: a leaf issued below the V2G root that is not a contract certificate is now refused
 (`[V2G2-108]` for the CommonName syntax, `[V2G2-656]` for the SubCertificate count).
 
-### The PaymentDetails crash: "fixed" turns out to mean fixed on `main`
+### The PaymentDetails crash: "fixed" meant fixed on `main`, and the release caught up mid-afternoon
 
 The list of ten above files the PaymentDetails null dereference under *fixed*, and for `main` that is
-right. It is not right for anything anyone can install. Measured 2026-11-05: `2026.10.0-rc1`
-(`f45ba0d0`, 2026-10-22) predates PR #3047 by five days and **still aborts** — the control answered
-`OK`, the probe closed the connection mid-frame, the liveness arm was refused, `signal=6` at
-`openssl_util.cpp:799`, manager gone. And `main`, built from source the same afternoon, answers those
-same bytes `FAILED_CertChainError` and stays up — so the fix is observed to work and observed to be
-in no release. That report is therefore not obsolete; it has become a backport question, and its
-banner now says so.
+right. Measured 2026-11-05: `2026.10.0-rc1` (`f45ba0d0`, 2026-10-22) predates PR #3047 by five days and
+**aborts** — the control answered `OK`, the probe closed the connection mid-frame, the liveness arm was
+refused, `signal=6` at `openssl_util.cpp:799`, manager gone. `main`, built from source the same
+afternoon, answers those same bytes `FAILED_CertChainError` and stays up. So the fix is observed to
+work.
+
+**What this section first concluded from that — that it was observed to be in no release — was wrong by
+fifty-one seconds.** `2026.02.2` was published at 15:38:02Z with the fix; the commit saying otherwise is
+stamped 15:38:53Z. And the defect had been reported independently as `GHSA-qg7p-grpm-cg3f`, credited to
+`Mehrrun`, published the same day. So the report is overtaken as a report, not turned into a backport
+question, and what remains sendable is an amendment to that advisory — which the measurement above still
+carries, because the advisory names `2026.10.0` for the pre-2026.02 line and no such version exists.
 [`2026-11-05-everest-rc-paymentdetails-crash`](../2026-11-05-everest-rc-paymentdetails-crash/notes.md).
 
 **And the general lesson, which applies to all ten.** This sweep read `main`, so *fixed* in the table
