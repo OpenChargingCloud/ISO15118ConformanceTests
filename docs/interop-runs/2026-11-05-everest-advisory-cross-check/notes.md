@@ -9,9 +9,12 @@ question: *are our EVerest findings mentioned and fixed in 2026.02.2?*
 **The answer as asked: not one of them is mentioned.** The release credits 25 contributors; the batch
 credits 14 named reporters (`realsung`, `Mehrrun`, `pavanchow`, `kwlee2025cpp`, `LYHyoung`,
 `OsamaMohammed`, `F0rt2`, `kta1kri`, `alx01011`, `ByungwooChoi`, `SebaLukas`, `hikinggrass`, `djchhp`,
-plus anonymous entries). None of them is ours, for the reason the 2026-11-04 re-sweep already recorded:
-nothing was ever filed with them. **Which is not the same as nothing being public** — see *What we
-cannot establish* below. The inverse held too — `grep -rn 'CVE-20\|GHSA-\|Quarkslab\|OSTIF' docs/` was
+plus anonymous entries). None of them is ours. The 2026-11-04 re-sweep explained that by our
+silence, and that explanation does not hold: **nothing was ever *filed* with them** — no issue, no
+advisory — but the drafts have been **public** in this repository since August, and individual findings
+were named to the project directly, on the record, in the Open Charge Alliance's **Cyber Security Task
+Group** (minuted, recorded). Not filed is not the same as not known; see *What we cannot establish*
+below for what that does and does not license us to say. The inverse held too — `grep -rn 'CVE-20\|GHSA-\|Quarkslab\|OSTIF' docs/` was
 **empty** before this run.
 
 **But three of our findings are fixed in that release, two of them because somebody else reported
@@ -148,11 +151,14 @@ still means *fixed on `main`*, and saying so is the point of this note.
    remotely-triggerable pre-auth defect it is the difference between *nothing to do* and *ask for a
    backport* — and it ran both ways today: one report was wrongly filed as live-in-every-release, four
    were wrongly filed as fixed.
-3. **A public report that was never filed is not a report.** Two of ours were reported by other
-   people while we held them, and the credit is theirs. The lesson is not *send faster so we get
-   credit*: it is that publishing did none of the work. The file was there, findable, with the fix in
-   it, for three months — what counted was somebody opening an advisory. Whether either reporter ever
-   saw ours is not knowable from here, and this note does not guess.
+3. **Only a filed report is a report.** Two of ours were reported by other people while we held
+   them, and the credit is theirs. The lesson is not *send faster so we get credit*. It is that
+   neither of the two channels we did use moved anything: the file was public, findable and carried
+   the fix for three months, and the findings were named to the project in an OCA Cyber Security Task
+   Group session that keeps minutes and recordings. What counted was somebody opening an advisory in
+   their own tracker. Whether either reporter ever saw our drafts is not knowable from here, and this
+   note does not guess — but the project's knowing is not guesswork, and it did not produce a
+   reference either.
 4. **An advisory's text outlives its number.** GHSA-qg7p-grpm-cg3f has no CVE and no global-database
    entry yet, so its *"stops charging"* is still editable — and will not be once it propagates.
 

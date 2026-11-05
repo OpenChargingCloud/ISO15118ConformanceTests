@@ -138,6 +138,18 @@ specifically unparseable case.
   2026-08-11, so neither of us can establish from outside whether that mattered — and nothing here
   depends on the answer. We are offering the station measurements, nothing else.
 
+## One closing observation, and deliberately the last word
+
+Everything above was produced from your own published artefacts: a release, the thirty-four advisories
+published with it, two tags read out of the object database, one `blame`, and a probe pointed at two
+builds of your own station. No privileged access, no inside knowledge, one afternoon. That interval —
+between an advisory being published and a stranger having read it, checked its claims against the tree,
+found a patched version that does not exist, and compared its consequence sentence to a measurement — is
+now short, and it is getting shorter. Which makes the *text* of an advisory part of your security
+process rather than paperwork after it: that text is what gets read, mirrored into a CVE record, and
+tested against the code within a day. The four requests above are, in that sense, measurements of the
+process and not only of this one null dereference.
+
 ## Before sending
 
 - [x] **Measure the consequence, not just the crash.** Three arms incl. a control that differs only in

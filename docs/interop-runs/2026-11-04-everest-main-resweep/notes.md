@@ -111,9 +111,16 @@ stays **withdrawn**; nothing in this sweep changes that.
 1. **"Unchanged on `main`" is a measurement with a date on it, and ours had expired.** Every report
    carried one and every one was three months old. The claim needs the commit *and* the date, and
    re-reading it is cheap — this whole sweep was one shallow clone and an afternoon.
-2. **Nobody is going to tell us.** Every one of these was closed by a fix that references no issue of
-   ours, because we never sent them. The lesson is not *"send faster so we get credit"*; it is that an
-   unsent report has no way of learning it is obsolete.
+2. **Nobody is going to tell us — and "because we never sent them" was the wrong explanation.**
+   Every one of these was closed by a fix that references no issue of ours. This note put that down to
+   our silence. **Corrected 2026-11-05:** the reports were never *filed* as issues or advisories, but
+   individual findings were raised with the project directly and on the record, in the Open Charge
+   Alliance's Cyber Security Task Group, which keeps minutes and recordings. So the thing to learn is
+   not that an unsent report cannot learn it is obsolete — true, but not what happened here. It is that
+   a finding can be public in a repository, named to the project in a standards-body session that
+   minutes it, and still be closed without reference, while the only reliable way we found out was
+   re-reading their source ourselves. Everything a project acts on routinely comes through its own
+   intake: an issue, or an advisory.
 3. **Ten of the twenty-four report files describe code that no longer exists.** The reports were right —
    the code moved the way they said it should. What they bought, held, was nothing.
 4. **A fact recorded in one file is not recorded.** Two reports were known-fixed in `sending-order.md`

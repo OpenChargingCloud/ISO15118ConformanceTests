@@ -22,6 +22,15 @@ appears to come from, why we think it is worth fixing, and a suggested fix offer
 asserted. Where we worked around something to keep going, the workaround is named — including when it
 was our own configuration we bent.
 
+**What "draft, not sent" at the top of each file means, exactly:** not filed with the project — no
+issue, no pull request, no security advisory. It does **not** mean the counterparty has never heard of
+the finding. This repository is public, so every file here has been readable since August; and for
+EVerest, individual findings have been raised directly and on the record in the Open Charge Alliance's
+Cyber Security Task Group, which minutes and records its sessions. Both of those happened, and neither
+produced a fix that references us or an acknowledgement we could point at — which is the evidence for
+the rule above rather than an argument against it. A report counts when it is in the project's own
+intake.
+
 **One check belongs in that shape and was missing from all of it until 2026-11-05: the counterparty's
 own advisory database.** Before a report is written, held, re-read or sent, ask whether the defect, or
 the check it is about, already has a GHSA or a CVE — `gh api repos/<org>/<repo>/security-advisories
