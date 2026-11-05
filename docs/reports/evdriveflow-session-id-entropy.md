@@ -1,5 +1,9 @@
 # Draft report to EDF Lab (eVDriveFlow) — the SessionID is eight ASCII digits, so 26,6 bits where 58 are required
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** `EDF-Lab/eVDriveFlow` `main` is still **`60249c30c` (2023-04-17)** — the exact commit this
+> report pinned, with no commit in three and a half years.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** The finding is in one line of your source and needs no session to see —
 and it was taken off the wire anyway on 2026-08-15, **24 sessions against your own station**. Post it
 under your own name; see *Before sending* at the bottom.

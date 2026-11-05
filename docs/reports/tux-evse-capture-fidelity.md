@@ -1,5 +1,10 @@
 # Draft report to IoT.bzh (tux-evse) — the one thing a capture knows that a config cannot, and the pipeline drops it
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** All three tux-evse repositories are at exactly the commits pinned here —
+> `iso15118-simulator-rs` `fc51088bd`, `iso15118-network-rs` `f1ab3385b`,
+> `iso15118-encoders-rs` `fe6c0aa9b`, the newest of them 2025-03-07.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Found 2026-08-07 on `iso15118-simulator-rs` **`main` @ `fc51088`** built
 from source, while mining their `tesla-3-din.pcap` for the parts a project without DIN 70121 can still
 read. Post under your own name; see *Before sending* at the bottom.

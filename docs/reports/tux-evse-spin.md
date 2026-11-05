@@ -1,5 +1,10 @@
 # Draft report to IoT.bzh (tux-evse) — one connection that closes makes the binder log 200,000 lines a second
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** All three tux-evse repositories are at exactly the commits pinned here —
+> `iso15118-simulator-rs` `fc51088bd`, `iso15118-network-rs` `f1ab3385b`,
+> `iso15118-encoders-rs` `fe6c0aa9b`, the newest of them 2025-03-07.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Reproduced 2026-08-06 on `iso15118-simulator-rs` **`main` @ `fc51088`**
 built from source, with their own shipped scenario and no third-party stack in the loop; re-measured
 2026-08-07. Post under your own name; see *Before sending* at the bottom.

@@ -1,5 +1,9 @@
 # Draft report to SwitchEV — the EVCC presents its **OEM provisioning** certificate as the TLS client credential, because the stack has no vehicle certificate at all
 
+> **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Source audit of **`SwitchEV/iso15118` @ `d645255`** (still `origin/main`),
 corroborated on the wire: measured 2026-08-15 against a live TLS 1.3 session in which our station
 validated their EV's client chain and printed the leaf it got. Post it under your own name; see

@@ -127,4 +127,7 @@ stays **withdrawn**; nothing in this sweep changes that.
 - Rewrite client-auth issue 1 around the `enforce_tls_1_3` **default**, and fold `isomux` 2 into it.
 - Correct `everest-evsev2g-metering-chain`'s *"empty function"* before it goes anywhere.
 - Re-read `isomux` 4's mechanism against the multi-chain `trust_anchor` config.
-- The same sweep is owed to the other five counterparties; this run covers EVerest only.
+- ~~The same sweep is owed to the other five counterparties; this run covers EVerest only.~~
+  **Done the same day:** [`2026-11-04-counterparties-resweep`](../2026-11-04-counterparties-resweep/notes.md)
+  — and the result is the mirror of this one. Of their twenty reports, **one fixed, one half fixed,
+  eighteen live**, three of the five upstreams not having moved a single commit since we wrote them.

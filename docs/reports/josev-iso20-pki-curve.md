@@ -1,5 +1,9 @@
 # Draft report to EVerest (`ext-switchev-iso15118`) and SwitchEV (`iso15118`) — the `iso-20` certificate branch emits ISO 15118-**2** key material
 
+> **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Found 2026-08-08 against `EVerest/ext-switchev-iso15118` @ **`26f7988`** (the
 Josev fork `everest-core` **2026.02.1** builds and ships) and confirmed present in
 `SwitchEV/iso15118` @ **`d645255`**. Post under your own name; see *Before sending* at the bottom.

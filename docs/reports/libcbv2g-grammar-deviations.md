@@ -1,5 +1,15 @@
 # Draft report to EVerest (libcbv2g / cbexigen) — three generated grammars
 
+> **Re-read on 2026-11-04, and the three have diverged — read each before sending anything.**
+> `EVerest/cbexigen` moved to `6b91be009` and everest-core regenerated its vendored
+> `lib/everest/cbv2g` at it (#3181). Against that regenerated code: **issue C is fixed**, **issue B
+> is half fixed** (the cap at two is gone, the dropped field is not) and **issue A is live**.
+> `EVerest/libcbv2g` itself has **not** moved (`main` is still `03350be04`) and is being
+> **archived** — its open PR #24 adds *"This repository is now archived… integrated into
+> EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the
+> repository named above.
+> [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Three filings, written out ready to post in
 [`libcbv2g/`](libcbv2g/) — this file is the account of how they were found and what is owed alongside
 them. Post under your own name; see *Before sending* at the bottom.

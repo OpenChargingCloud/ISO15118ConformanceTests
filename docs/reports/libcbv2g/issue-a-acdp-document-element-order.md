@@ -1,5 +1,15 @@
 # Issue A — post-ready
 
+> **Re-read on 2026-11-04 against everest-core's regenerated `lib/everest/cbv2g` — live,
+> unchanged.** `iso20_ACDP_Decoder.c` still dispatches `ConnectReq(0), DisconnectReq(1),
+> ConnectRes(2), DisconnectRes(3)` — grouped by type, where EXI §8.5.1's local-name order puts
+> `ACDP_ConnectRes` at 1 and `ACDP_DisconnectReq` at 2. The two still swap identity.
+> `EVerest/libcbv2g` itself has **not** moved (`main` is still `03350be04`) and is being
+> **archived** — its open PR #24 adds *"This repository is now archived… integrated into
+> EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the
+> repository named above.
+> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 > Paste everything below the line. Self-contained.
 >
 > Of the three filings this is the one written as a **question**: we reproduced this numbering

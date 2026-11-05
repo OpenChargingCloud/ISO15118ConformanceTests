@@ -1,5 +1,9 @@
 # Draft report to EDF Lab — an omitted `SupportedServiceIDs` ends the session
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** `EDF-Lab/eVDriveFlow` `main` is still **`60249c30c` (2023-04-17)** — the exact commit this
+> report pinned, with no commit in three and a half years.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Found on the wire 2026-08-01 against `eVDriveFlow` at `60249c3`, and the
 source re-read at that same commit on 2026-08-10 — it is unchanged, and it is their `main`. Post it
 under your own name; see *Before sending* at the bottom.

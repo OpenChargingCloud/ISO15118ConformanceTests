@@ -1,5 +1,9 @@
 # Draft report to EVerest (`PyEvJosev`) — the `-20` EV turns the charge loop around in ≈0,53 s
 
+> **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 > **Re-aimed 2026-08-15, and this used to be addressed to SwitchEV first.** §4 said the ≈0,5 s had not
 > been localized and named the py4j/JVM codec round-trip as the first place to look. It was looked at:
 > **the codec costs ~30 ms per direction**, and **Josev's own EVCC turns the same charge loop around in

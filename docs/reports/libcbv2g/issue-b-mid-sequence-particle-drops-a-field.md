@@ -1,5 +1,19 @@
 # Issue B — post-ready
 
+> **Re-read on 2026-11-04 — half of this is now wrong, so do not send it as it stands.** Against
+> everest-core's regenerated `lib/everest/cbv2g`: the **cap at two is gone** — `ID=182` and `ID=188`
+> are now `LOOP (VendorSpecificDataContainer), START (WPT_LF_DataPackageList), END Element`, which is
+> this report's own "state B" done right, so a third item *and* the following particle are both
+> reachable. But the **no-items state still drops the field**: `ID=181` is
+> `START (VendorSpecificDataContainer), END Element` with no `START (WPT_LF_DataPackageList)`, so a
+> document with an empty list and a present `WPT_LF_DataPackageList` still cannot be encoded. Rewrite
+> around that half.
+> `EVerest/libcbv2g` itself has **not** moved (`main` is still `03350be04`) and is being
+> **archived** — its open PR #24 adds *"This repository is now archived… integrated into
+> EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the
+> repository named above.
+> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 > Paste everything below the line. Self-contained.
 
 ---

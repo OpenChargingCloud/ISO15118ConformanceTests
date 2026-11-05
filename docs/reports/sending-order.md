@@ -5,8 +5,10 @@
 > [`2026-11-04-everest-main-resweep`](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 > **Ten of the EVerest reports are fixed upstream and must not be sent**, two more are fixed in
 > part, and **hard dependency 1 below no longer exists**. The numbered order is kept rather than
-> renumbered — the voided entries are listed in *What is deliberately not in this order*. The five
-> other counterparties have **not** been re-swept, so their entries stand unverified since August.
+> renumbered — the voided entries are listed in *What is deliberately not in this order*. **The five
+> other counterparties were re-swept the same day** and their order stands almost untouched:
+> [`2026-11-04-counterparties-resweep`](../interop-runs/2026-11-04-counterparties-resweep/notes.md) — only `libcbv2g` issue C is void, and issue B
+> is half wrong and must be rewritten before it is sent.
 
 Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work

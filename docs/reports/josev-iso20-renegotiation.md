@@ -1,5 +1,9 @@
 # Draft report to SwitchEV — the ISO 15118-20 EVCC asks for renegotiation and then kills its own session
 
+> **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
+> `file:line` citations have moved, and the current locations are in the
+> [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Observed live on 2026-07-22 against **`SwitchEV/iso15118` @ `d645255`**, with
 their own error message naming the invariant that broke; source re-read on **2026-08-10** against
 upstream `master` and against EVerest's fork **`EVerest/ext-switchev-iso15118` @ `26f7988`**. Post it

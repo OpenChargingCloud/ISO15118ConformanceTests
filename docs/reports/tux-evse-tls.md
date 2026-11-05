@@ -1,5 +1,10 @@
 # Draft report to IoT.bzh (tux-evse) — two things that stop an ISO 15118-2 session over TLS
 
+> **Re-checked on 2026-11-04 — still live, and nothing upstream has changed.** All three tux-evse repositories are at exactly the commits pinned here —
+> `iso15118-simulator-rs` `fc51088bd`, `iso15118-network-rs` `f1ab3385b`,
+> `iso15118-encoders-rs` `fe6c0aa9b`, the newest of them 2025-03-07.
+> So every word below still describes the current code. [Re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+
 Status: **draft, not sent.** Found 2026-08-06 against `iso15118-simulator-rs` **`main` @ `fc51088`**
 built from source (their `oci-15118/Dockerfile_almalinux_source` recipe, natively, plus
 `injector-binding-rs` @ `5fb66e4` which that recipe omits). Post under your own name; see
