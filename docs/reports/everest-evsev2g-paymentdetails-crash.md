@@ -1,9 +1,10 @@
 # Draft report to EVerest (`EvseV2G`) — a malformed contract certificate in `PaymentDetailsReq` crashes the V2G module (null dereference)
 
 > **Fixed on `main`, and released — so the backport this banner used to ask for has happened.**
-> **2026.02.2 (2026-11-05) carries the fix**, and the defect was reported independently of us as
+> **2026.02.2 (2026-11-05) carries the fix**, and the defect was filed with them by somebody else as
 > [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f)
-> (credited to `Mehrrun`), so **this report is overtaken as a report**. What is still sendable is
+> (credited to `Mehrrun`; whether that was independent of this public draft is not knowable from here,
+> and nothing below depends on it), so **this report is overtaken as a report**. What is still sendable is
 > [the advisory amendment](everest-evsev2g-paymentdetails-advisory-amendment.md): that advisory
 > describes the consequence as *"stops charging"*, and names a second patched version, 2026.10.0,
 > which does not exist yet. The measurements below are what the amendment is built on.

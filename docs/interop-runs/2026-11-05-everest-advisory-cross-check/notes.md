@@ -10,7 +10,8 @@ question: *are our EVerest findings mentioned and fixed in 2026.02.2?*
 credits 14 named reporters (`realsung`, `Mehrrun`, `pavanchow`, `kwlee2025cpp`, `LYHyoung`,
 `OsamaMohammed`, `F0rt2`, `kta1kri`, `alx01011`, `ByungwooChoi`, `SebaLukas`, `hikinggrass`, `djchhp`,
 plus anonymous entries). None of them is ours, for the reason the 2026-11-04 re-sweep already recorded:
-nothing was ever sent. The inverse held too — `grep -rn 'CVE-20\|GHSA-\|Quarkslab\|OSTIF' docs/` was
+nothing was ever filed with them. **Which is not the same as nothing being public** — see *What we
+cannot establish* below. The inverse held too — `grep -rn 'CVE-20\|GHSA-\|Quarkslab\|OSTIF' docs/` was
 **empty** before this run.
 
 **But three of our findings are fixed in that release, two of them because somebody else reported
@@ -43,9 +44,22 @@ Three things made the difference between this and the 2026-11-04 re-sweep, which
 | [`everest-isomux`](../../reports/everest-isomux.md) issue 3 | **GHSA-9cfv-mjv8-x4fw** (7.1, `pavanchow`) and **GHSA-qvxq-v3r8-rmmv** (7.1, `kwlee2025cpp`) | fixed: the header read tests `rv < 0`, treats `rv == 0` as a peer close, rejects a short read, and adds overflow and buffer-size guards |
 | [`everest-loop-shutdown`](../../reports/everest-loop-shutdown.md), the TLS-accept trigger | — | fixed: `connection_ssl.cpp:480` returns instead of throwing, with the comment *"Throwing here would end the controller loop, only tear down connection instead."* |
 
-The first two are the measurable cost of holding a report: both were reported by other people between
-August and November, out of a source reading in at least one case (`Mehrrun`'s PoC section says *"I did
-not send this on the wire"*), while ours sat finished with a live station behind it.
+The first two were reported by other people between August and November, and the credits are theirs.
+
+### What we cannot establish, and an earlier draft of this note claimed anyway
+
+Whether either reporter arrived at the finding independently of us. **This repository is public** —
+created 2026-08-04, the PaymentDetails report in it since 2026-08-11 — so that file, with its
+`file:line` analysis, its two station runs and its suggested fix, has been readable and
+code-searchable the whole time. What is checkable says little in either direction: nobody from EVerest
+or Pionix stars or watches this repository (the three stargazers are `ahzf`, `kwoyhope`, `KyotoFox`;
+the single watcher is `kwoyhope`), no issue or pull request in the EVerest organisation references it,
+and none of the 72 advisories mentions us in any field. But reading needs no star, and `Mehrrun`'s
+*"I did not send this on the wire"* says how they tested, not where they looked.
+
+So the only defensible statement is the narrow one: **they filed it, we did not, and the route is not
+knowable from here.** The first draft of this note and of the amendment both said *"found it
+independently of us"*, which we had no way to know; corrected on the user's challenge the same day.
 
 **The PaymentDetails backport question, asked this morning, is closed by the same batch.** 2026.02.2
 carries the fix, so *"still live in every release"* was true for about six hours. What is left of that
@@ -134,8 +148,11 @@ still means *fixed on `main`*, and saying so is the point of this note.
    remotely-triggerable pre-auth defect it is the difference between *nothing to do* and *ask for a
    backport* — and it ran both ways today: one report was wrongly filed as live-in-every-release, four
    were wrongly filed as fixed.
-3. **Holding a finished report has a measured price now.** Two of ours were reported by other people
-   while we held them. Neither of those reporters had a running station; one says so in the advisory.
+3. **A public report that was never filed is not a report.** Two of ours were reported by other
+   people while we held them, and the credit is theirs. The lesson is not *send faster so we get
+   credit*: it is that publishing did none of the work. The file was there, findable, with the fix in
+   it, for three months — what counted was somebody opening an advisory. Whether either reporter ever
+   saw ours is not knowable from here, and this note does not guess.
 4. **An advisory's text outlives its number.** GHSA-qg7p-grpm-cg3f has no CVE and no global-database
    entry yet, so its *"stops charging"* is still editable — and will not be once it propagates.
 

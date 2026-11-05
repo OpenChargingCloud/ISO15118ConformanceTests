@@ -8,9 +8,11 @@ correction to the advisory's *description*, to one of its two patched versions, 
 on the strength of three measurements against running stations that the advisory does not have. Post it
 under your own name; see *Before sending*.
 
-We held the same finding as an unsent draft since 2026-08-11
-([`everest-evsev2g-paymentdetails-crash`](everest-evsev2g-paymentdetails-crash.md)). That is context for
-where the logs come from, **not** a claim on the credit — `Mehrrun` reported it, it is theirs.
+We have held the same finding as a draft since 2026-08-11
+([`everest-evsev2g-paymentdetails-crash`](everest-evsev2g-paymentdetails-crash.md)) — in a public
+repository, and without filing it with you. That is context for where the measurements below come from
+and nothing more. `Mehrrun` reported it and the credit is theirs; **we make no claim about how the
+finding reached them**, because that is not something we can know.
 
 Evidence in this repository:
 [`2026-08-15-everest-paymentdetails-crash-live`](../interop-runs/2026-08-15-everest-paymentdetails-crash-live/notes.md)
@@ -131,8 +133,10 @@ specifically unparseable case.
 - **Not an exposure claim for the 2026.02 line.** 2026.02.2 carries the fix. What this affects is how
   operators still on 2026.02.0/2026.02.1 — and on anything older, whose named fix version is not out —
   and anyone reading the CVE record later, judge the urgency.
-- **Not a credit request.** `Mehrrun` found it independently of us and reported it, which we did not;
-  we are offering the station measurements, nothing else.
+- **Not a credit request, and not a claim about anyone's route to the finding.** `Mehrrun` filed it,
+  we did not, and the credit is theirs. Our own draft has been readable in a public repository since
+  2026-08-11, so neither of us can establish from outside whether that mattered — and nothing here
+  depends on the answer. We are offering the station measurements, nothing else.
 
 ## Before sending
 
