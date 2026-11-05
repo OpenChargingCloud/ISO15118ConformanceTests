@@ -2,13 +2,14 @@
 
 > **Fixed on `main`. Still live in every release — so the question is a backport, not whether to send.**
 > PR #3047 (2026-10-27) reordered the guard in `handle_iso_payment_details` so a leaf that fails to
-> parse never reaches the helper. Verified on `main` twice: `5d83027` on 2026-11-04 and `01f36de1` on
-> 2026-11-05. **But no release carries it.** The newest release, `2026.10.0-rc1` (`f45ba0d0`), is dated
-> 2026-10-22 — five days before the merge — and was built from source and measured on 2026-11-05: the
-> station still aborts, `signal=6`, `Assertion 'cert != nullptr' failed` at `openssl_util.cpp:799`, and
-> the manager still exits. The newest *stable* release, `2026.02.1`, is where the original runs happened.
-> The reasoning below therefore still describes shipped code; what it no longer describes is `main`.
-> See the [RC run](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md) and the
+> parse never reaches the helper. **Both halves of that heading are measured, not read.** On 2026-11-05
+> the same probe, the same station config and the same machine were pointed at two from-source builds
+> within one hour. `main` (`01f36de1`) answered the unparseable certificate `FAILED_CertChainError` and
+> was still running afterwards. `2026.10.0-rc1` (`f45ba0d0`, 2026-10-22 — five days before the merge)
+> aborted: `signal=6`, `Assertion 'cert != nullptr' failed` at `openssl_util.cpp:799`, manager exited,
+> liveness arm refused. The newest *stable* release, `2026.02.1`, is where the original 2026-08-15 runs
+> happened. So the reasoning below still describes shipped code; what it no longer describes is `main`.
+> See the [A/B run](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md) and the
 > [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 Status: **draft, not sent** — and **reproduced against a running station on 2026-08-15**, twice. One
@@ -213,7 +214,9 @@ security report rather than a style note.
 - [x] **Show it is not universal.** Josev and our own station both **survive** the same bytes — Josev
       terminates the session via the framework catch-all, we return `OK` and fail a message later.
       Neither crashes, and neither sends `FAILED_CertChainError` for the unparseable case; the report
-      says so rather than tidying it into "both answer FAILED".
+      says so rather than tidying it into "both answer FAILED". **Since 2026-11-05 there is a third
+      data point, and it is not ours: fixed EVerest `main` does answer `FAILED_CertChainError` here.**
+      On this one narrow point their station is now the most correct of the three.
 - [x] **Put it on a running station — done 2026-08-15, twice.** SIGABRT at `openssl_util.cpp:775`, on
       their own SIL config with one line changed, from a peer that presented no client certificate. With
       a **control arm** whose only difference is that its certificate parses: answered `OK`, station
@@ -231,6 +234,12 @@ security report rather than a style note.
       `getEmaidFromContractCert` are byte-identical between the RC and `main`, so the next caller that
       forgets will abort again.
       [`…-everest-rc-paymentdetails-crash`](../interop-runs/2026-11-05-everest-rc-paymentdetails-crash/notes.md).
+- [x] **Watch the fix work, so the ask rests on two measurements — done 2026-11-05.** `main`
+      (`01f36de1`) built from source and probed in the same hour as the RC, same binary, same config:
+      control `OK`, the unparseable certificate answered **`FAILED_CertChainError`**, liveness `OK`,
+      station still up, and nothing in its log but three `SelectedPaymentOption: Contract` lines — all
+      three arms reached the handler and none of them hurt it. The A/B is in the same run note. What
+      this report asks for is therefore not "please fix this" but "your fix is in no release".
 - [ ] **Report it the way a crash should be reported.** It is remotely triggerable and pre-auth at the
       application layer; use their security policy / private disclosure before a public issue. This is
       the box that now decides when it goes out — everything technical is closed, and it is number **1**

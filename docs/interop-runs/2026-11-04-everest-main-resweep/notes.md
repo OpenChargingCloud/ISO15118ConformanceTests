@@ -198,8 +198,10 @@ The list of ten above files the PaymentDetails null dereference under *fixed*, a
 right. It is not right for anything anyone can install. Measured 2026-11-05: `2026.10.0-rc1`
 (`f45ba0d0`, 2026-10-22) predates PR #3047 by five days and **still aborts** — the control answered
 `OK`, the probe closed the connection mid-frame, the liveness arm was refused, `signal=6` at
-`openssl_util.cpp:799`, manager gone. That report is therefore not obsolete; it has become a backport
-question, and its banner now says so.
+`openssl_util.cpp:799`, manager gone. And `main`, built from source the same afternoon, answers those
+same bytes `FAILED_CertChainError` and stays up — so the fix is observed to work and observed to be
+in no release. That report is therefore not obsolete; it has become a backport question, and its
+banner now says so.
 [`2026-11-05-everest-rc-paymentdetails-crash`](../2026-11-05-everest-rc-paymentdetails-crash/notes.md).
 
 **And the general lesson, which applies to all ten.** This sweep read `main`, so *fixed* in the table

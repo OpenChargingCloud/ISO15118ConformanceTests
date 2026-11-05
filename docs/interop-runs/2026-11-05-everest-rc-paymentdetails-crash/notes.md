@@ -1,4 +1,7 @@
-# EVerest 2026.10.0-rc1: the PaymentDetails crash is still in the newest release
+# EVerest PaymentDetails crash: fixed on `main`, still in every release — both measured
+
+An A/B on one machine within one hour: the same probe and the same station config against two
+trees, `2026.10.0-rc1` and `main`. One aborts, one answers correctly.
 
 **2026-11-05.** everest-core **`2026.10.0-rc1`** (`f45ba0d0`, tagged 2026-10-22), built from source in
 WSL2 and installed beside the 2026.02.1 rig. Station config: `configs-ours/config-dc2-pnc-crashprobe.yaml`
@@ -72,17 +75,43 @@ to parse reaches the helper as a null pointer. The report's phrase *"the guard n
 exactly right, and the fix is a reordering rather than a hardening: the helper would abort again for any
 future caller that forgets.
 
-## What this settles, and what it does not
+## The same probe against `main`
 
-**Settled.** The report may now say the crash reproduces on the newest release as a measurement, naming
-`f45ba0d0` and this run, instead of arguing from the tag date. That is the sentence a maintainer reads
-when deciding whether a backport is needed, so it was worth measuring.
+`main` (`01f36de1`) was built from source the same afternoon — fresh build directory, because the
+existing one was configured from `ebcd36d` (2026-08-11), before the modules moved under
+`modules/EVSE/` and before the layered package build — and installed to its own prefix, so the stale
+`dist-main` stays what it was. Configure 84 s, build 6 min 31 s, install clean, 22 modules, `EvseV2G`
+among them. It needs the same `-DEVEREST_DEPENDENCY_ENABLED_LIBOCPP=ON` as the RC.
 
-**Not settled, and not claimed.** We have *not* watched the fix work. `~/everest/dist-main` is built from
-`ebcd36d` (2026-08-11), which predates #3047 by two and a half months, so running the probe against it
-would only reproduce the crash a third time and prove nothing about the fix. Measuring that needs a build
-of current `main` (`01f36de1`); until then "fixed on `main`" stays what it has always been — read out of
-their source, not observed.
+Same probe binary, same config file, same machine, forty minutes after the RC run:
+
+```
+control (well-formed, untrusted)       ANSWERED  — answered OK
+probe (non-empty, unparseable)         ANSWERED  — answered FAILED_CertChainError
+liveness (control, repeated)           ANSWERED  — answered OK
+```
+
+The station logged `SelectedPaymentOption: Contract` three times — all three arms reached
+`handle_iso_payment_details` — and then nothing: no assertion, no signal, no module exit. It was
+still running when the probe finished.
+
+## What this settles
+
+**Both halves are observations now**, which is the point of running it as one A/B:
+
+| station | tree | the probe arm | the station afterwards |
+|---|---|---|---|
+| `2026.10.0-rc1` | `f45ba0d0`, 2026-10-22 | no answer, connection closed mid-frame | **gone** — SIGABRT, manager exited |
+| `main` | `01f36de1`, 2026-11-05 | **answered `FAILED_CertChainError`** | up, and answered the liveness arm `OK` |
+
+Neither half rests on reading their source any more, and that is the pair a maintainer needs in order
+to decide a backport: the fix demonstrably works, and nothing anyone can install has it.
+
+**A detail worth keeping.** The report's *"show it is not universal"* box records that Josev and our
+own station both survive these bytes but that **neither answers `FAILED_CertChainError`** for the
+unparseable case. Fixed EVerest does. On this one narrow point their `main` is now the most correct of
+the three stations we have measured, and the report says so rather than leaving the comparison where it
+was.
 
 ## Rig notes
 
@@ -105,6 +134,7 @@ Four things cost time and are worth writing down:
 
 ## Artefacts
 
-On the rig, not in this repository: `~/everest/rcprobe/station2.log` (the station's own log, including
+On the rig, not in this repository: `~/everest/rcprobe/station2.log` (the RC station's log, including
 the assertion), `~/everest/rcprobe/probe2.log` (the three arms), `~/everest/rc-station2.sh` and
-`~/everest/rc-probe2.sh` (the two stages, re-runnable).
+`~/everest/rc-probe2.sh` (the two RC stages); and `~/everest/mainprobe/` with
+`~/everest/build-main.sh` and `~/everest/main-probe.sh` for the `main` arm. All re-runnable.
