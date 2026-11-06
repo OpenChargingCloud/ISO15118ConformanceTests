@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-2-dc-reverse",
+  "protocol": "iso15118-2",
+  "mode": "dc",
+  "note": "live interop: EVerest\u0027s EV (PyEvJosev or Ev15118) against our SECC",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000248000ebab9371d34b9b79d189a98989c1d191d191818999d26b9b3a232b30020000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupReqType",
+        "frame": "01fe800100000015809802000000000000000011d01800557591735000"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SessionSetupResType",
+        "frame": "01fe80010000001e8098023ab8ef76dc07da4591e0202d1114a905090ca914c41d9896dae0c0"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryReqType",
+        "frame": "01fe80010000000d8098023ab8ef76dc07da4591b8"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ServiceDiscoveryResType",
+        "frame": "01fe8001000000178098023ab8ef76dc07da4591c00008004011110c050648"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionReqType",
+        "frame": "01fe8001000000108098023ab8ef76dc07da459132001280"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "PaymentServiceSelectionResType",
+        "frame": "01fe80010000000e8098023ab8ef76dc07da45914000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationReqType",
+        "frame": "01fe80010000000d8098023ab8ef76dc07da459008"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "AuthorizationResType",
+        "frame": "01fe80010000000f8098023ab8ef76dc07da4590100000"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryReqType",
+        "frame": "01fe8001000000288098023ab8ef76dc07da45909018191ff440a0000f01061702e05143702c0840a84601060f02e180"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "ChargeParameterDiscoveryResType",
+        "frame": "01fe8001000000368098023ab8ef76dc07da4590a00000000000240700c50a0560aa00004206186400820a130ea06207a0181860000620640088c3001100"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "CableCheckReqType",
+        "frame": "01fe8001000000108098023ab8ef76dc07da459031000f00"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "CableCheckResType",
+        "frame": "01fe8001000000128098023ab8ef76dc07da4590400000021000"
+      }
+    }
+  ]
+}

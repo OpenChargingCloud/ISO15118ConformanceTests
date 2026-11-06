@@ -1,0 +1,40 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 6.3.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fe64:5cd4%2]:60793 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::215:5dff:fe64:5cd4%2]:60793 with [fe80::215:5dff:fe64:5cd4%2]:55000 (NoTLS, TCP), 28 byte(s).
+SDP: advertising [fe80::215:5dff:fe64:5cd4%2]:55000 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their EV on [::]:55000 (plain TCP) ...
+SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+Energy transfer service: 2 (DC) — their EV's pick out of our catalogue.
+Control mode: Scheduled — read off their ScheduleExchangeReq, not off our offer.
+Recorded:
+  /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.ev-to-station.bin
+  /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.station-to-ev.bin
+  /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.frames.log
+  /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.flow.md
+  /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.trace.json
+
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [29 s]
+  Standard Output Messages:
+ SDP: advertising [fe80::215:5dff:fe64:5cd4%2]:55000 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their EV on [::]:55000 (plain TCP) ...
+ SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+ Energy transfer service: 2 (DC) — their EV's pick out of our catalogue.
+ Control mode: Scheduled — read off their ScheduleExchangeReq, not off our offer.
+ Recorded:
+   /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.ev-to-station.bin
+   /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.station-to-ev.bin
+   /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.frames.log
+   /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.flow.md
+   /home/ahzf/everest/run/ev15118/dc20-strict/rec/everest-iso15118-20-dc-reverse.trace.json
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 30.1117 Seconds

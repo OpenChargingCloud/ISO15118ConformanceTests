@@ -260,9 +260,14 @@ public class EverestInteropTests
 
 
     /// <summary>
-    /// Their car (<c>PyEvJosev</c>) against our charger.
+    /// Their car (<c>PyEvJosev</c>, or <c>Ev15118</c>) against our charger.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// The name predates <c>Ev15118</c>, the C++ EV that everest-core #3031 puts in every config in place
+    /// of <c>PyEvJosev</c>. Nothing here is specific to either: both take a <c>device</c> and find a
+    /// station by SDP on it, so the fixture runs unchanged against whichever module the manager loads.
+    /// </para>
     /// <para>
     /// Their EV module's <c>device</c> is documented as "any local interface that has an ipv6 link-local
     /// and a MAC addr", and it finds a station by SDP on that interface — it is not bound to EVerest's own
@@ -286,7 +291,7 @@ public class EverestInteropTests
     {
 
         var listenPort       = InteropEnvironment.ListenPortOrIgnore(
-                                   "the port our SECC should listen on for their PyEvJosev");
+                                   "the port our SECC should listen on for their EV (PyEvJosev or Ev15118)");
         var (protocol, mode) = InteropEnvironment.ProtocolAndMode();
         var (protocolName, modeName) = InteropEnvironment.ProtocolAndModeNames();
         var preferDynamic    = InteropEnvironment.PreferDynamic();
@@ -317,7 +322,7 @@ public class EverestInteropTests
         await using var sdp = await InteropSdp.AdvertiseOrNullAsync(listener.LocalEndpoint.Port,
                                                                      tls: serverTls is not null, cts.Token);
 
-        TestContext.Out.WriteLine($"Waiting for their PyEvJosev on [::]:{listenPort} " +
+        TestContext.Out.WriteLine($"Waiting for their EV on [::]:{listenPort} " +
                                   $"({(serverTls is null ? "plain TCP" : "TLS")}) ...");
 
         using var socket = await listener.AcceptAsync(cts.Token);
@@ -405,7 +410,7 @@ public class EverestInteropTests
         {
             InteropEnvironment.WarnIfIgnored();
             Report(recording?.Save(protocolName, modeName,
-                                   "live interop: EVerest's PyEvJosev against our SECC",
+                                   "live interop: EVerest's EV (PyEvJosev or Ev15118) against our SECC",
                                    weAreTheEvcc: false));
         }
 

@@ -28,6 +28,7 @@ prefixed `*-everest-*`; counted 2026-08-11).
 | `Evse15118D20` | station, ISO 15118-20 | libiso15118 + libcbV2G |
 | `IsoMux` | one endpoint in front of both, routing on the SAP offer | its own -2-era TLS termination |
 | `PyEvJosev` | **car** — Josev in a wrapper | EXIficient |
+| `Ev15118` | **car**, from PR #3031 on — EVerest's own, in C++ | libiso15118 + libcbV2G |
 
 **"Works against EVerest" is closer to a market claim than to a test result**, and that is the reason to
 do it. It is also why the evidence here is a different kind from Josev's: at HEAD both station modules sit
@@ -42,6 +43,15 @@ station we meet cbV2G, and being driven by *their* car we meet EXIficient. A `�
 therefore an independent-codec result — and also, mostly, a re-run of the Josev reverse column. That is
 why the reverse direction was spent only where it buys something neither a forward run nor a Josev run
 can, and why -2 reverse against EVerest has deliberately never been run.
+
+**That stops being true with [#3031](https://github.com/EVerest/everest-core/pull/3031)**, unmerged as
+of 2026-11-06: it replaces `PyEvJosev` in every config with `Ev15118`, an EV on `libiso15118` — cbV2G in
+both directions, and a state machine that is EVerest's own rather than Josev's. Run against its head the
+same day, seven scenarios: six complete under our conformant timers, the ≈532 ms charge-loop turnaround
+becomes a deliberate **25,8 ms**, and `-2` DC stops after `CableCheck` because our station never sends
+the optional `EVSEIsolationStatus` that this car insists on
+([`…-everest-ev15118`](interop-runs/2026-11-06-everest-ev15118/notes.md)). Once it merges, a `←SECC`
+run here is a result the Josev column cannot give.
 
 With one accidental exception, and it is worth the paragraph:
 

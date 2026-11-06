@@ -1,0 +1,89 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 6.3.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fe64:5cd4%2]:55288 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::215:5dff:fe64:5cd4%2]:55288 with [fe80::215:5dff:fe64:5cd4%2]:55000 (NoTLS, TCP), 28 byte(s).
+SDP: advertising [fe80::215:5dff:fe64:5cd4%2]:55000 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their EV on [::]:55000 (plain TCP) ...
+Recorded:
+  /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.ev-to-station.bin
+  /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.station-to-ev.bin
+  /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.frames.log
+  /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.flow.md
+  /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.trace.json
+
+  Failed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [11 s]
+  Error Message:
+   System.IO.InvalidDataException : V2GTP frame: connection closed before a full 8-byte header arrived.
+  ----> System.IO.EndOfStreamException : Unable to read beyond the end of the stream.
+  Stack Trace:
+     at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadRawFrameAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 63
+   at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadFrameAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 40
+   at cloud.charging.open.protocols.ISO15118.StateMachines.Iso2.Secc2.RunAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/StateMachines/Iso2/Secc2.cs:line 337
+   at ISO15118ConformanceTests.Simulation.Interop.InteropSession.RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode, CancellationToken ct, Boolean preferDynamic, Boolean offerPlugAndCharge, Boolean mcs, Action`1 observed, Boolean requestRenegotiation) in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/InteropSession.cs:line 411
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion() in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 353
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion() in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 412
+   at NUnit.Framework.Internal.TaskAwaitAdapter.GenericAdapter`1.BlockUntilCompleted()
+   at NUnit.Framework.Internal.MessagePumpStrategy.NoMessagePumpStrategy.WaitForCompletion(AwaitAdapter awaiter)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await[TResult](TestExecutionContext context, Func`1 invoke)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await(TestExecutionContext context, Func`1 invoke)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.RunTestMethod(TestExecutionContext context)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.Execute(TestExecutionContext context)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.<>c__DisplayClass3_0.<PerformWork>b__0()
+   at NUnit.Framework.Internal.ContextUtils.<>c__DisplayClass1_0`1.<DoIsolated>b__0(Object _)
+   at NUnit.Framework.Internal.ContextUtils.<>c__DisplayClass2_0.<DoIsolated>b__0(Object s)
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated(ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated[T](Func`1 func)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.PerformWork()
+--EndOfStreamException
+   at System.IO.Stream.ReadAtLeastAsyncCore(Memory`1 buffer, Int32 minimumBytes, Boolean throwOnEndOfStream, CancellationToken cancellationToken)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadRawFrameAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 59
+1)    at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadRawFrameAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 63
+   at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadFrameAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 40
+   at cloud.charging.open.protocols.ISO15118.StateMachines.Iso2.Secc2.RunAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/StateMachines/Iso2/Secc2.cs:line 337
+   at ISO15118ConformanceTests.Simulation.Interop.InteropSession.RunSeccAsync(Stream stream, ProtocolVariant protocol, PowerMode mode, CancellationToken ct, Boolean preferDynamic, Boolean offerPlugAndCharge, Boolean mcs, Action`1 observed, Boolean requestRenegotiation) in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/InteropSession.cs:line 411
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion() in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 353
+   at ISO15118ConformanceTests.Simulation.Interop.EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion() in /home/ahzf/i15118/ISO15118ConformanceTests.Simulation/Interop/EverestInteropTests.cs:line 412
+   at NUnit.Framework.Internal.TaskAwaitAdapter.GenericAdapter`1.BlockUntilCompleted()
+   at NUnit.Framework.Internal.MessagePumpStrategy.NoMessagePumpStrategy.WaitForCompletion(AwaitAdapter awaiter)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await[TResult](TestExecutionContext context, Func`1 invoke)
+   at NUnit.Framework.Internal.AsyncToSyncAdapter.Await(TestExecutionContext context, Func`1 invoke)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.RunTestMethod(TestExecutionContext context)
+   at NUnit.Framework.Internal.Commands.TestMethodCommand.Execute(TestExecutionContext context)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.<>c__DisplayClass3_0.<PerformWork>b__0()
+   at NUnit.Framework.Internal.ContextUtils.<>c__DisplayClass1_0`1.<DoIsolated>b__0(Object _)
+   at NUnit.Framework.Internal.ContextUtils.<>c__DisplayClass2_0.<DoIsolated>b__0(Object s)
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated(ContextCallback callback, Object state)
+   at NUnit.Framework.Internal.ContextUtils.DoIsolated[T](Func`1 func)
+   at NUnit.Framework.Internal.Execution.SimpleWorkItem.PerformWork()
+--EndOfStreamException
+   at System.IO.Stream.ReadAtLeastAsyncCore(Memory`1 buffer, Int32 minimumBytes, Boolean throwOnEndOfStream, CancellationToken cancellationToken)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at cloud.charging.open.protocols.ISO15118.Framing.V2GTPStream.ReadRawFrameAsync(Stream stream, CancellationToken ct) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Framing/V2GTPStream.cs:line 59
+
+  Standard Output Messages:
+ SDP: advertising [fe80::215:5dff:fe64:5cd4%2]:55000 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their EV on [::]:55000 (plain TCP) ...
+ Recorded:
+   /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.ev-to-station.bin
+   /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.station-to-ev.bin
+   /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.frames.log
+   /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.flow.md
+   /home/ahzf/everest/run/ev15118/dc2-plain/rec/everest-iso15118-2-dc-reverse.trace.json
+
+
+
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 12.4040 Seconds

@@ -742,7 +742,25 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
 
 Not gaps in coverage — things a counterparty's behaviour raised about us, which are not settled.
 
-**Currently none.** The one raised on 2026-08-10 — their `EvseManager` warning *"EV ignores new EVSE max
+- **Should our `-2` station state the result of the isolation test it claims to have run?** Raised
+  2026-11-06 by EVerest's next EV, `Ev15118` (PR #3031), and it is the whole reason the `-2` DC reverse
+  cell is ◐ rather than ✅ ([run](interop-runs/2026-11-06-everest-ev15118/notes.md)). `Secc2` builds every
+  `DC_EVSEStatus` without `EVSEIsolationStatus` (`Secc2.cs:1474`), including the `CableCheckRes` that
+  answers `Finished` in one step (`:1264`). Their EV refuses an absent element on purpose and stops after
+  `CableCheck`, 2 of 2; with a copy of our station patched to report `Valid`, it charges to
+  `SessionStop`, 2 of 2.
+  <br>**Not settled by the standard we have.** ISO 15118-2 makes the element optional and defers its
+  handling to IEC 61851-23, which is not in `onlyLocalDoNotCommit/`; the 2019 manual's worked
+  `CableCheckRes` carries `Valid`, which is practice, not obligation. So neither side is in defect.
+  <br>**The case for changing ours:** a simulator whose `CableCheck` says *Finished* without saying what
+  it found is the less useful peer, and a real station with an IMD says. **The cost:** it moves our `-2`
+  DC wire output, and with it the three corpus traces that pin a `CableCheckRes`
+  (`Session.iso2-dc-eim`, `…-battery`, `…-renegotiate` in `libs/EVSimulatorApp/vectors/`). Narrowest form:
+  `Valid` in `CableCheckRes` only; wider: in every `DC_EVSEStatus` from `CableCheck` on, which is closer to
+  isolation *monitoring*. A decision, then a change in the stack, a corpus regeneration, and the `-2` DC
+  reverse arm again.
+
+**None other.** The one raised on 2026-08-10 — their `EvseManager` warning *"EV ignores new EVSE max
 limits"*, 47 times across our runs — was decoded from the recorded frames the same day and became a
 defect with an owner; it is in *Ours to fix*, below. The one before it was the ISO 15118-20
 vehicle-certificate binding, open from the 2026-08-08 EVerest run until the requirement text settled it,

@@ -689,6 +689,31 @@ key that is theirs, so `SessionTrace.Build` refuses the recording rather than su
 signature and verify nothing. Add `V2G_INTEROP_NO_PNC=1` for a second, EIM run if the run is meant to
 produce a corpus entry — keep both, they are different evidence.
 
+### Timing a run on the wire  ([`v2gtp-turnaround.py`](v2gtp-turnaround.py))
+
+The recording has no clock — every `*.flow.md` says so — and a peer's own log times what that peer thinks
+it did. For a number about **turnaround**, capture the session and read both peers' times off the one
+clock they share:
+
+```bash
+sudo timeout 300 tcpdump -i any -nn -U -w run.pcap 'tcp port 55000 or udp port 15118' &   # -i any, not eth0
+# … the run …
+python3 tools/interop-everest/v2gtp-turnaround.py run.pcap rec/<name>.flow.md [--port 55000] [--csv out.csv]
+```
+
+Per request type: the **EV's** turnaround (last byte of the previous response out → first byte of this
+request in) and **ours** (request in → response out), median and range. Names come from the flow by
+position, and the script refuses a capture whose frame count disagrees with it rather than mislabel rows.
+Plaintext only — a TLS capture has no V2GTP headers to find. Its first use reproduced the 2026-08-13
+`PyEvJosev` figure from their log to within 3 ms (535 vs 532), which is what made its `Ev15118` number
+comparable ([`2026-11-06-everest-ev15118`](../../docs/interop-runs/2026-11-06-everest-ev15118/notes.md)).
+
+**And the WSL copy's trap when a run patches it.** Restoring `~/i15118` with `rsync -a` puts the original
+file back *with its original mtime*, older than the patched build's output, so MSBuild skips the
+compile and `--no-build` — or even a plain build, exit 0 — runs the **patched** binary. Check the DLL's
+timestamp after a restore, or `touch` the restored file. It turned one 2026-11-06 control into a second
+diagnostic arm, caught only because it passed when it should not have.
+
 ## Known friction (expect these first)
 
 - **`PyEvJosev` supports nothing by default.** Every `supported_*` key defaults to `false`. A car that

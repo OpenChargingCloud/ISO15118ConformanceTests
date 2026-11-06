@@ -56,8 +56,8 @@ evidence:
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
 | **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G** (OpenV2G in the 2023 image) ([details](docs/matrix/everest-iso2-dc-eim.md)) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
-| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again ([details](docs/matrix/josev-is-everests-ev.md)) | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW) ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
-| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) | `60249c3` | v0.1 image · **`main` `fc51088`** (source build) |
+| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again ([details](docs/matrix/josev-is-everests-ev.md)) · **`Ev15118`** once [#3031](https://github.com/EVerest/everest-core/pull/3031) merges — `libiso15118`, so **cbV2G** ([details](docs/matrix/everest-ev15118-reverse.md)) | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW) ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
+| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) · PR #3031 head `35d3eda` for `Ev15118` | `60249c3` | v0.1 image · **`main` `fc51088`** (source build) |
 | Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something ([details](docs/matrix/josev-is-everests-ev.md)) | `EV→ ←SECC` | `EV→ ←SECC` |
 
 The **Ours** column is our own C# stack against itself — a loopback E2E with both peers ours, which is
@@ -150,7 +150,7 @@ Our C# **EVCC** drives *their* station. `Ours` is the loopback, where the statio
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
 | AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ their EV, EIM plain ([details](docs/matrix/everest-iso2-reverse.md)) | — | ✅ a real VW's route · ✅ two Porsche routes ([details](docs/matrix/tux-iso2-ac-reverse.md)) |
-| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | — | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ◐ `Ev15118` (PR #3031) stops after `CableCheck`: our station omits the optional `EVSEIsolationStatus` — with it, a full session ([details](docs/matrix/everest-ev15118-reverse.md)) | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
 | Plug & Charge | ✅ `Iso2LoopbackTests` | ✅ signed auth *and* signed metering receipt verified, chain at their MO root ([details](docs/matrix/josev-pnc-chains.md)) | ✅ their EV over TLS ([details](docs/matrix/everest-iso2-reverse.md)) | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` | ✅ their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2RenegotiationSequenceTests` | ✅ AC, `[V2G2-841]` | — | — | — |

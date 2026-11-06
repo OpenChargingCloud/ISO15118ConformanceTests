@@ -1,5 +1,16 @@
 # Draft report to EVerest (`PyEvJosev`) — the `-20` EV turns the charge loop around in ≈0,53 s
 
+> **Re-measured 2026-11-06, and the module it is about is on its way out.** A same-day control on
+> 2026.02.1, read off a packet capture instead of their log, gave **535 ms** median over 43 loops — the
+> number below, by a second instrument. But [everest-core#3031](https://github.com/EVerest/everest-core/pull/3031)
+> (unmerged, head `35d3eda52`) replaces `PyEvJosev` in every config with `Ev15118`, a C++ EV on
+> `libiso15118`, and that EV turns the same charge loop around in **25,8 ms** against the same station —
+> a deliberate 25 ms send delay plus under a millisecond of its own
+> ([run](../interop-runs/2026-11-06-everest-ev15118/notes.md)). So this stays true of every released tree
+> (2026.02.1, 2026.02.2 and `main` all still ship `modules/EV/PyEvJosev/`) and has nothing to say about
+> `main` once #3031 merges. **Decide before sending:** a release-line issue now, or nothing — and if it
+> goes, say in the first paragraph that #3031 already replaces the module, or the maintainer will.
+
 > **Re-read on 2026-11-04 against `SwitchEV/iso15118` `main` (`1d29f539`, 2026-10-13) — still live.** The defect is unchanged; only the
 > `file:line` citations have moved, and the current locations are in the
 > [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).

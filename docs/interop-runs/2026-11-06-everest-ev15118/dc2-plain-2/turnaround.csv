@@ -1,0 +1,8 @@
+index,request,ev_turnaround_ms,secc_response_ms
+0,SupportedAppProtocolReq,,9.929
+1,SessionSetupReq,100.810,8.353
+2,ServiceDiscoveryReq,100.684,2.541
+3,PaymentServiceSelectionReq,100.670,1.535
+4,AuthorizationReq,100.652,1.375
+5,ChargeParameterDiscoveryReq,100.586,5.230
+6,CableCheckReq,379.764,0.799

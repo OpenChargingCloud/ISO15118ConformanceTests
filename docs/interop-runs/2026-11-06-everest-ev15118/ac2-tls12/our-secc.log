@@ -1,0 +1,40 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 6.3.0.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fe64:5cd4%2]:55064 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::215:5dff:fe64:5cd4%2]:55064 with [fe80::215:5dff:fe64:5cd4%2]:55000 (TLS, TCP), 28 byte(s).
+TLS (station): presenting DC=CPO, C=DE, O=EVerest, CN=SECCCert (+2 chain certificate(s)), TLS 1.2
+SDP: advertising [fe80::215:5dff:fe64:5cd4%2]:55000 (TLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their EV on [::]:55000 (TLS) ...
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, client certificate none.
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, we presented DC=CPO, C=DE, O=EVerest, CN=SECCCert
+Recorded:
+  /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.ev-to-station.bin
+  /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.station-to-ev.bin
+  /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.frames.log
+  /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.flow.md
+  /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.trace.json
+
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [35 s]
+  Standard Output Messages:
+ TLS (station): presenting DC=CPO, C=DE, O=EVerest, CN=SECCCert (+2 chain certificate(s)), TLS 1.2
+ SDP: advertising [fe80::215:5dff:fe64:5cd4%2]:55000 (TLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their EV on [::]:55000 (TLS) ...
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, client certificate none.
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, we presented DC=CPO, C=DE, O=EVerest, CN=SECCCert
+ Recorded:
+   /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.ev-to-station.bin
+   /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.station-to-ev.bin
+   /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.frames.log
+   /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.flow.md
+   /home/ahzf/everest/run/ev15118/ac2-tls12/rec/everest-iso15118-2-ac-reverse-tls.trace.json
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 36.0594 Seconds

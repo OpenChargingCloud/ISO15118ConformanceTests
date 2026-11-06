@@ -135,6 +135,12 @@ together" means two issues in two trackers on the same day, not a pair to one ma
 sentence that stayed SwitchEV's — the absent `V2G_EVCC_SEQUENCE_PERFORMANCE_TIME` — travels with (4)
 instead, which is the tidier home for it anyway.
 
+**And since 2026-11-06 it has an expiry date.** EVerest's PR #3031 replaces `PyEvJosev` in every config
+with `Ev15118`, which turns the same loop around in 25,8 ms against our station — so once it merges this
+is a release-line issue at most, and sent before, it has to say in its first paragraph that the
+replacement is already under review. Same-day control: `PyEvJosev` still at 535 ms
+([run](../interop-runs/2026-11-06-everest-ev15118/notes.md)).
+
 **Say what it is not.** It is a *performance* criterion, not a timeout anyone may abort on — Figure
 212's legend sorts the two thresholds on that interval differently — and the report leads with that
 distinction. Posting it as "your EV violates a 0,25 s timeout" is the one framing that gets a correct
