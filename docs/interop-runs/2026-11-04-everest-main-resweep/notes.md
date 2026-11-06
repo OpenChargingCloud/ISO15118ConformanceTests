@@ -203,7 +203,14 @@ generated `init_iso2_CertificateUpdateResType` is one line, `RetryCounter_isUsed
 `ResponseCode` and the five mandatory elements are still whatever the union held — the report's
 claim, which it had anticipated: *"none of the three inits touches its members."*
 
-Together with Correction 1 (metering-chain) and the `isomux` §4 instruction, that is **four** places
+**Correction 5 — `d20-eim-rejection` is not fixed on `main` either** (2026-11-06). The table above
+credits `ISO15118_chargerImpl.cpp:1786-1801`, which sends a control event whatever the verdict. That is
+the receiving end. The sending end is `EvseManager/evse/evse_managerImpl.cpp`'s `} else if (pnc) {` —
+*"we only send authorization responses to the HLC for PnC rejections"* — and it is in every tree,
+`main` `852ff1859` included (`:466`). No EIM verdict reaches the handler, so its new branch is
+unreachable, which is precisely what the report says of the `-20` library's `Rejected` branch.
+
+Together with Correction 1 (metering-chain) and the `isomux` §4 instruction, that is **five** places
 where acting on this note would have damaged a report that was right. The checker that caught the last
 two runs in a minute.
 

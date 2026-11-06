@@ -9,11 +9,12 @@
 > re-read meant *fixed on `main`*, which is the wrong axis for a finding someone has to act on. All ten
 > were then checked in the 2026.02.2 tag: **eight are live in the newest release**
 > (`d20-rng-entropy`, `certificate-update`, `session-log-responses`, `d20-ac-namespace`,
-> `iso20-ac-contactor-latch`, both halves of the OCSP chain, and `d20-eim-rejection` — the last for a
-> different cause than its report gives), `loop-shutdown` is half fixed there, and
+> `iso20-ac-contactor-latch`, both halves of the OCSP chain, and `d20-eim-rejection`), `loop-shutdown`
+> is half fixed there, and
 > `paymentdetails-crash` is the one that genuinely shipped — on the day it was checked. So the drafted
-> EVerest set did not shrink by ten; it shrank by one. And on `main` itself one of the ten —
-> `certificate-update` — was never fixed: the init call read as the fix writes none of the response's
+> EVerest set did not shrink by ten; it shrank by one. And on `main` itself two of the ten were never
+> fixed: `d20-eim-rejection`, whose `else if (pnc)` gate is still in every tree, and
+> `certificate-update`, where the init call read as the fix writes none of the response's
 > mandatory members. Mechanically re-checked, three trees, in the
 > [reports audit](interop-runs/2026-11-05-reports-audit/notes.md). **One** of the
 > ten was meanwhile reported by someone else and closed with credit to them (`paymentdetails-crash`),
@@ -129,9 +130,11 @@ weaker claim than it looks and worth separating from "untested".
   then the wrong code, where `[V2G20-2230]` allows 1,5 s. The `-2` control run the same day is what
   makes it sendable: `EvseV2G` does the identical thing and is **right** to, because `[V2G2-854]`
   inverts the rule. [`everest-d20-eim-rejection`](reports/everest-d20-eim-rejection.md),
-  [run](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md). **Fixed upstream by 2026-11-04**
-  — `handle_authorization_response` now sends the control event whatever the verdict, so the filing is
-  obsolete and the 180 s wait is worth re-measuring instead.
+  [run](interop-runs/2026-08-13-everest-d20-eim-rejection/notes.md). ~~**Fixed upstream by
+  2026-11-04**~~ **Not fixed — corrected 2026-11-06.** `handle_authorization_response` now sends the
+  control event whatever the verdict, but `EvseManager`'s `} else if (pnc) {` gate, still present on
+  `main` and in 2026.02.2, never calls it with an EIM verdict. The filing is live as written, and the
+  180 s wait is still what an EV gets ([reports audit](interop-runs/2026-11-05-reports-audit/notes.md)).
 
 ## Untested, and nothing is stopping us
 

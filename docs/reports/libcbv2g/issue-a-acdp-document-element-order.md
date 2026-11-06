@@ -9,7 +9,10 @@
 > EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the
 > repository named above. **Live in the 2026.02.2 release as well** (checked 2026-11-05): its vendored
 > `iso20_ACDP_Decoder.c:7051-7053` decodes document code `case 1` as `ACDP_DisconnectReq`, with the
-> `ConnectReqType` decoder.
+> `ConnectReqType` decoder. **Measured as well, 2026-11-06:** the
+> [probe](../../../tools/cbv2g-defect-probe/README.md) compiled against the vendored sources writes
+> `ACDP_ConnectRes` as element code **2** and `ACDP_DisconnectReq` as **1** on both 2026.02.2 and
+> `main` — the swap this report describes, on both live trees.
 > [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md),
 > [reports audit](../../interop-runs/2026-11-05-reports-audit/notes.md).
 

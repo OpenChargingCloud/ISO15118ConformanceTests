@@ -1,14 +1,24 @@
 # Draft report to EVerest (`everest-core`) — a rejected EIM authorization is never reported to the `-20` stack
 
-> **Live in the newest release — and for a different reason than this report gives.** Checked in the
-> **2026.02.2** tag on 2026-11-05. The half the 2026-11-04 re-sweep saw *is* in the release:
-> `Evse15118D20`'s `handle_authorization_response` sends
-> `AuthorizationResponse{authorized}` whatever the verdict. But **nothing ever calls it with a negative
-> one.** `EvseManager.cpp` invokes `call_authorization_response` at exactly two places — the plug-in
-> timeout, with `AuthorizationStatus::Unknown`, and the already-authorised EIM path, with `Accepted` —
-> and no site forwards a rejection. So the `-20` stack still never learns that an EIM token was refused,
-> which is the finding; the mechanism paragraph below needs re-pointing at the caller rather than at the
-> handler before this goes out.
+> **Live on `main` and in the newest release, exactly as written below.** The gate this report
+> names — `} else if (pnc) {` in `EvseManager/evse/evse_managerImpl.cpp`, with its comment *"we only
+> send authorization responses to the HLC for PnC rejections"* — is in **every** tree: 2026.02.1 `:381`,
+> `main` of August `:448`, **2026.02.2 `:381`**, `main` `01f36de1` `:466`, and `main` `852ff1859` of
+> 2026-11-05 `:466`. The other four call sites, all in `EvseManager.cpp`, send `Unknown` on a plug-in
+> timeout or `Accepted`; none sends an EIM rejection.
+>
+> **The 2026-11-04 re-sweep called this fixed, and it is not.** What changed is the receiving end:
+> `Evse15118D20`'s `handle_authorization_response` now sends its control event whatever the verdict.
+> That is necessary and not sufficient — the gate above never calls it with an EIM verdict, so the
+> handler's new branch is as unreachable as the `-20` library's own `Rejected` branch the report
+> already describes. A change next to the defect, read as its fix: the same pattern as
+> `certificate-update`.
+>
+> **And a banner of ours said otherwise for a day.** On 2026-11-05 this banner claimed the report gave
+> the wrong cause and that its mechanism paragraph needed re-pointing at the caller. It had searched
+> `EvseManager.cpp` for the call sites and missed `evse_managerImpl.cpp`, which is where the report
+> had pointed all along. The paragraph below is right; nothing in it needs changing. Corrected
+> 2026-11-06 by the [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md).
 > See the
 > [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
 > and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).

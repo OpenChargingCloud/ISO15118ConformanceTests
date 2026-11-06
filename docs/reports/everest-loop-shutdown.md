@@ -15,16 +15,12 @@
 > report keeps apart, the trigger it stopped leading with is closed and the consequence it leads with
 > is live in the newest release.
 >
-> Two things left to do before sending (*"and silently"* is out of the title as of 2026-11-05 — the
-> log line is new and a reviewer on 2026.02.2 would check that word first; the **Title:** field below
-> never claimed it, it says *"the process stays healthy"*, which is still exactly what happens):
-> re-point the *"Where it is still reachable"* table at 2026.02.2;
-> and add one sentence to the framing — their own 2026-11-05 batch contains three framework-level
-> versions of exactly this shape, from three other reporters: GHSA-4c89-v794-gr7v (*a single MQTT
-> message crashes the whole station*), GHSA-p8m7-56jf-rj6m (*malformed `msg_type` ends the module via
-> `exit(1)`*) and GHSA-m9p9-wr92-vx49 (*peer-controlled JSON reaches `std::terminate`*). The argument
-> that an uncaught throw on a peer-reachable path is a security matter is now theirs, not ours to
-> make. See the
+> The three pre-send edits this banner asked for are done (2026-11-05/06): *"and silently"* is out of
+> the title — the log line is new and a reviewer on 2026.02.2 would check that word first; the
+> **Title:** field never claimed it, it says *"the process stays healthy"*, which is still exactly what
+> happens. The reachability table below now names its sites **in 2026.02.2** — six of the eight still
+> end the loop there. And the summary now says that their own 2026-11-05 batch made the
+> security argument for this shape three times. See the
 > [advisory cross-check](../interop-runs/2026-11-05-everest-advisory-cross-check/notes.md)
 > and the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
@@ -128,6 +124,14 @@ module process and the manager both stay alive, so nothing supervising them noti
 **That combination is the defect**: not one bad input, but a design in which any unexpected condition
 on any watched descriptor is fatal to the service and invisible to everything outside it.
 
+**You have already classed this shape as a security matter, three times in one batch.** Your
+2026-11-05 advisories include three framework-level instances of it from three other reporters —
+GHSA-4c89-v794-gr7v (*a single MQTT message crashes the whole station*), GHSA-p8m7-56jf-rj6m
+(*an unknown `msg_type` ends the module through `exit(1)`*) and GHSA-m9p9-wr92-vx49 (*peer-controlled
+JSON reaches `std::terminate`*). This report is the same shape one layer down: a throw on a
+peer-reachable path that ends a service. The difference is only that here the process survives and
+says nothing, which makes it the harder one to notice, not the milder one.
+
 ## The measurement — 2026.02.1, and what it proves
 
 The trigger we used is fixed. The *consequence* it demonstrates is the part that still applies, and it
@@ -187,28 +191,38 @@ if (parse_sdp_result != V2GTP_ERROR__NO_ERROR) {
 The question we are raising is why it stops there — two earlier exits from the same function, on the
 same datagram, still do exactly what the comment warns against.
 
-## Where it is still reachable on `main`
+## Where it is still reachable — in 2026.02.2, and on `main`
 
-Read from `main` (`ebcd36d`) on 2026-08-11; **not run**. Every site below is inside a function that is,
-or is called from, a callback registered with `PollManager`, so a throw from it reaches `poll_once()`
-and ends the loop.
+First read from `main` (`ebcd36d`) on 2026-08-11; re-pointed at the newest release, **2026.02.2**
+(`45dba2c0`), on 2026-11-06 by reading the tag. **Not run** on either. In the 2026.02 line every live
+site below is inside a function that is, or is called from, a callback registered with `PollManager`,
+so a `std::runtime_error` from it reaches `poll_manager.poll()` in `TbdController::loop()`
+(`tbd_controller.cpp:50-54`), which logs *"Shutdown loop() because of: …"* and `break`s.
 
-| # | site on `main` | condition | registered at |
-|---|---|---|---|
-| 1 | `sdp_server.cpp:125` | `recvfrom()` returns `<= 0` — including a **zero-length datagram** | `tbd_controller.cpp:60` |
-| 2 | `sdp_server.cpp:129` | `peer_addr_len > sizeof(peer_address)` | as above |
-| 3 | `connection_ssl.cpp:219` | `::accept()` returns `< 0` | `connection_ssl.cpp:143` |
-| 4 | `connection_ssl.cpp:245` | `wrap_accepted_fd()` returns `nullptr` | as above |
-| 5 | `connection_ssl.cpp:278` | the `default:` arm of the handshake switch | `connection_ssl.cpp:249` |
-| 6 | `connection_plain.cpp:118` | `accept4()` fails | `connection_plain.cpp:34` |
-| 7 | `connection_plain.cpp:128` | the peer address will not render as a string | as above |
-| 8 | `sdp_server.cpp:179-230` | six throw sites in the `TlsKeyLoggingServer` constructor, built from `connection_ssl.cpp:96` when `enable_tls_key_logging` is set — i.e. **in the accept path** | as above |
+| # | condition | 2026.02.2 | registered at, 2026.02.2 | `main` `ebcd36d`, as first read |
+|---|---|---|---|---|
+| 1 | `recvfrom()` returns `<= 0` — including a **zero-length datagram** | `sdp_server.cpp:106` | `tbd_controller.cpp:33` | `sdp_server.cpp:125` |
+| 2 | `peer_addr_len > sizeof(peer_address)` | `sdp_server.cpp:110` | as above | `sdp_server.cpp:129` |
+| 3 | accepting on the listening socket fails | `connection_ssl.cpp:430-431` (`BIO_accept_ex`) | `connection_ssl.cpp:368` | `connection_ssl.cpp:219` (`::accept()`) |
+| 4 | `wrap_accepted_fd()` returns `nullptr` | — no such step in the 2026.02 design | — | `connection_ssl.cpp:245` |
+| 5 | the TLS handshake fails | **contained**: `connection_ssl.cpp:480-483` logs, closes, returns | — | `connection_ssl.cpp:278` |
+| 6 | `accept4()` fails | `connection_plain.cpp:114` | `connection_plain.cpp:63` | `connection_plain.cpp:118` |
+| 7 | the peer address will not render as a string | `connection_plain.cpp:120` | as above | `connection_plain.cpp:128` |
+| 8 | six throw sites in the `TlsKeyLoggingServer` constructor, built **in the accept path** when key logging is on | `sdp_server.cpp:166-209`, built at `connection_ssl.cpp:455` | `connection_ssl.cpp:368` | `sdp_server.cpp:179-230`, built at `connection_ssl.cpp:96` |
+
+**So in the newest release six of the eight still end the loop**, one is contained — the handshake,
+which is this report's original trigger — and one does not exist in that design. On `main`
+(`01f36de1`) it looks different again, and better: the SDP callback is wrapped
+(`tbd_controller.cpp:93-97`, with a comment that describes this report's failure mode) and the accept
+paths no longer throw, which is why the 2026-11-04 re-sweep could call the mechanism fixed *there*.
+The ask is therefore a backport of that containment to the line people run.
 
 Two of them deserve a sentence each.
 
 **Site 1 is the one we would look at first.** It is in **the same function** as the `FIXME` fix quoted
 earlier — seventeen lines above it, on the same datagram, in the same read. `handle_sdp_server_input()`
-(`tbd_controller.cpp:320-321`) calls `get_peer_request()` with no `try`, and the only three `catch`
+(`tbd_controller.cpp:320-321` on August `main`, `:158-159` in 2026.02.2) calls `get_peer_request()`
+with no `try`, and the only three `catch`
 blocks in that file are `poll_once()`'s, the per-session one, and the connection-factory one. So a
 read failure on the SDP socket still ends the loop, and it is the trigger we saw on 2025.10.0
 (`EAGAIN` on a non-blocking socket). We could **not** reproduce it on 2026.02.1 — 0 of 2 attempts,
@@ -218,8 +232,9 @@ outside. We are saying the guard is missing where the neighbouring one was added
 **Site 8 is the `enable_tls_key_logging` trigger** we saw on 2025.10.0
 (`Could not set interface name:eth0 (reason: Protocol not available)`). That run was under
 `qemu-x86_64`, where `SO_BINDTODEVICE` may simply not be implemented, so it is a weak trigger — but
-the constructor still throws from inside the accept path on `main`, so it is the same shape, and a
-config flag should not be able to end the loop.
+the constructor still throws from inside the accept path — on August `main`, and in 2026.02.2 at
+`connection_ssl.cpp:455` — so it is the same shape, and a config flag should not be able to end the
+loop.
 
 ## The asymmetry, in your own code
 

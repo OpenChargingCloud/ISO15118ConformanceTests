@@ -1,11 +1,18 @@
 # Draft report to EVerest — a `-20`-only station inherits ISO 15118-2's client-auth leniency, so the EV decides whether the EV is authenticated
 
-> **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — one of the
-> three is fixed and one has changed shape.** Issue **3** (server chain selection) is
-> **fixed**: chains are now tagged `ChainTlsVersion` and selected on the negotiated version.
-> Issue **1** is **not** fixed but is now a documented switch, `enforce_tls_1_3`, defaulting
-> to `false` — so it has to be re-argued around the default. Issue **2** is unchanged.
-> Details and the moved locations: the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> **All three are live in the newest release; one is fixed on `main`.** Re-read against `main`
+> (`5d83027`) on 2026-11-04 and against **2026.02.2** on 2026-11-05:
+>
+> - Issue **3** (server chain selection) is **fixed on `main` only** — chains are tagged
+>   `ChainTlsVersion` and selected on the negotiated version there, but 2026.02.2 still configures the
+>   server from `cfg.chains[0]` and has no `ssl_config_builder.cpp`. A backport ask, not obsolete.
+> - Issue **1** is **not** fixed on either tree. It is a documented switch now, `enforce_tls_1_3`,
+>   defaulting to `false` in both, and [issue 1](everest-d20-client-auth/issue-1-client-auth-decided-by-the-ev.md) is re-argued around that default: the ask is a
+>   per-protocol decision, not a flipped default. IsoMux is **not** part of it — IsoMux caps TLS at 1.2
+>   one library down and is a separate finding.
+> - Issue **2** is unchanged on both.
+>
+> Details: the [re-sweep](../interop-runs/2026-11-04-everest-main-resweep/notes.md) and the [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md).
 
 Status: **draft, not sent.** Measured on the wire 2026-08-10 against everest-core **2026.02.1**
 (`b61bb12b8`) built from source: two `openssl s_client` handshakes against their stock configuration —

@@ -54,13 +54,14 @@ fire there, and every one does.
 | `iso20-ac-contactor-latch` | present | present | fixed |
 | `loop-shutdown` (TLS-accept trigger only) | present | **fixed** | fixed |
 | `d20-ac-namespace` | present | present | fixed |
+| `d20-eim-rejection` *(entry added 2026-11-06)* | present | present | **present** |
 | `d20-meter-info` | present | present | present |
 | `d20-trust-anchor` | present | present | present |
 | `d20-rng-entropy` | present | present | fixed |
 | `d20-ocsp-absent` | present | present | fixed |
 | `client-auth` §1 | present | present | present |
 | `client-auth` §2 | present | present | present |
-| *totals* | *20 / 0* | *17 / 3* | *11 / 9* |
+| *totals* | *21 / 0* | *18 / 3* | *12 / 9* |
 
 The totals include one row not shown, `evsev2g-renegotiation-cablecheck`, present on all three — which
 is correct, because that report is **withdrawn**: their behaviour is right and ours was not, so the
@@ -68,7 +69,8 @@ marker tracks a behaviour that should stay.
 
 **Where the cross-check had read a file by hand, the release column agrees — eleven of eleven.** Claims
 made that day one file at a time are now reproduced by one command; the two hand-read release claims
-without a marker, `d20-eim-rejection` and `client-auth` issue 3, stay hand-read. The other eight rows of
+without a marker, `d20-eim-rejection` and `client-auth` issue 3, stayed hand-read — and one of those two
+was wrong in its reasoning (see *Correction, 2026-11-06* below); `d20-eim-rejection` has a marker now. The other eight rows of
 the release column are facts nobody had checked against a release before — all eight present. That is
 what makes the column usable; the two findings that follow are the reason it was worth building.
 
@@ -198,6 +200,52 @@ been the first thing a maintainer checked.
 the repository's convention and what a maintainer can open — `git show 2026.02.1:<path>` — but a
 report sent today against `main` or 2026.02.2 should re-point its anchors on the day it is posted. The
 banners added on 2026-11-05 already carry the current numbers for the lines that decide each finding.
+
+## Correction, 2026-11-06 — the checker's blind spot was ours as well
+
+Working through the pre-send edits the banners asked for, the one for `d20-eim-rejection` — *"the
+mechanism paragraph needs re-pointing at the caller"* — turned out to be the error. The cross-check
+had verified that release claim by hand: it listed every `call_authorization_response` in
+`EvseManager.cpp`, found only `Unknown` and `Accepted`, and concluded the report named the wrong
+cause. The report names `evse_managerImpl.cpp`, a different file of the same module, where
+`} else if (pnc) {` forwards verdicts for PnC only. That gate is in every tree, the newest `main`
+included, so:
+
+- the report is **right as written**, and the banner that said otherwise for a day is corrected;
+- the 2026-11-04 re-sweep's *"fixed"* for it is wrong as well — **the fifth** such verdict
+  (metering-chain, isomux §4, isomux §2, certificate-update, and this): it credited the receiving
+  handler's new branch, which nothing ever calls with an EIM verdict;
+- [`check_upstream.py`](../../../tools/reports-audit/check_upstream.py) gains an entry for it, with the
+  gate itself as the marker, so the next pass does not depend on someone searching the right file.
+
+The lesson is the one this note already draws, applied to us: **a hand check is a marker too, and it
+can look in the wrong file.** The checker would have caught this one if it had had an entry; it did
+not, because the claim felt settled.
+
+## The libcbv2g issues, measured on the trees that ship them (2026-11-06)
+
+The three libcbv2g reports had been measured against the archived standalone repository at
+`03350be04` and *read* against everest-core's vendored copy. For the pre-send rewrite of issue B the
+[probe](../../../tools/cbv2g-defect-probe/README.md) was compiled — same sources, same flags as its
+`build.sh` — against `lib/everest/cbv2g` of **2026.02.2** and of **`main`** `01f36de1`, which is after
+the 2026-10-20 regeneration:
+
+| | 2026.02.2 | `main` |
+|---|---|---|
+| **A** — document codes: `ACDP_ConnectRes` / `ACDP_DisconnectReq` | written as 2 / 1 — **live** | 2 / 1 — **live** |
+| **B** — field after an empty list | 23 B with and without it — **live** | 23 B with and without it — **live** |
+| **C** — the three `minOccurs="2"` cases | all three `-150` — **live** | all three encode — **fixed** |
+| *the probe's control in C's part: one container, nothing after it* | *encodes, 28 B* | ***fails, `-150`, 27 B*** |
+
+Every report claim held where the reports said it would, and B's rewrite now cites these numbers
+instead of the standalone's.
+
+**The last row is not explained, and is deliberately not a finding yet.** A `WPT_FinePositioningSetupRes`
+with exactly one `VendorSpecificDataContainer` and no `LF_SystemSetupData` is schema-valid, encodes on
+2026.02.2 and on the standalone, and fails on `main` after the regeneration. That could be a regression
+the regeneration introduced while fixing C, or the probe — written against the old generated API —
+filling a structure whose meaning changed. Which one is a reading job in the regenerated encoder's
+state for that type, and it is open.
 
 ## Not done in this pass
 

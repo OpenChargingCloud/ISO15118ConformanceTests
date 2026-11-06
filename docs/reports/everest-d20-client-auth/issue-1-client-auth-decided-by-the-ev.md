@@ -5,9 +5,9 @@
 > mechanism. What is new is `enforce_tls_1_3`, which pins the minimum version and the
 > client-certificate elevation — and defaults to **`false`**, with the `Evse15118D20` manifest
 > stating the consequence itself: *"Set to false to offer TLS 1.2 … no client-certificate
-> request."* So this is no longer an inherited behaviour nobody named; it is a default. Rewrite
-> around that, and note that one module now serves `-2`, DIN and `-20`, so no single default
-> fits all three. See the [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
+> request."* So this is no longer an inherited behaviour nobody named; it is a default. **Rewritten
+> around that on 2026-11-06** — the body now carries a fix for each tree, because one module now
+> serves `-2`, DIN and `-20` on `main` and no single default fits all three. See the [re-sweep](../../interop-runs/2026-11-04-everest-main-resweep/notes.md).
 
 > **The rewritten argument, 2026-11-05 — and it holds for the release, not only for `main`.**
 > `enforce_tls_1_3` is in **2026.02.2** too (`io/connection_ssl.cpp:54`, `bool enforce_tls_1_3{false}`),
@@ -45,9 +45,11 @@
 **Title:** `Evse15118D20` configures `lib/everest/tls`'s ISO 15118-2 client-auth behaviour, so an EV
 that offers TLS 1.2 is never sent a `CertificateRequest` — and is then served ISO 15118-20 anyway
 
-**Version:** everest-core `main` (`ebcd36d`) built from source, and `2026.02.1` (`b61bb12b8`) before
-it. `Evse15118D20` alone, no `IsoMux`. `config-sil-dc-d20.yaml` as shipped, your own test PKI,
-`enforce_tls_1_3` at its manifest default `false`. Debian 13, OpenSSL 3.5.6.
+**Version:** measured on everest-core `main` (`ebcd36d`) built from source, and `2026.02.1`
+(`b61bb12b8`) before it. `Evse15118D20` alone, no `IsoMux`. `config-sil-dc-d20.yaml` as shipped, your
+own test PKI, `enforce_tls_1_3` at its manifest default `false`. Debian 13, OpenSSL 3.5.6. Re-read,
+not re-run, on **2026.02.2** (`45dba2c0`) and `main` (`01f36de1`) on 2026-11-06: the behaviour is
+unchanged on both, and the two trees need different fixes — see *Suggested fix*.
 
 ## What happens
 
@@ -91,7 +93,10 @@ out.verify_client = false; // verify_client_on_tls13 upgrades to require a peer 
 out.verify_client_on_tls13 = true;
 ```
 
-`Evse15118D20` has no ISO 15118-2 peers to be lenient for.
+In the 2026.02 line `Evse15118D20` has no ISO 15118-2 peers to be lenient for — its library has a
+`d20/` and nothing else. **On `main` that changed with #2485:** one `Evse15118D20` now serves DIN SPEC
+70121, ISO 15118-2 and ISO 15118-20 (`d2/`, `din/`, `d20/`), and the TLS policy is chosen before the
+protocol is. That changes the fix, not the finding.
 
 **And the assumption behind the comment is never checked downstream.** *"15118-2 mandates TLS 1.2"* is
 a statement about what a conformant `-2` peer does, not a test that this peer is one. The same station
@@ -113,27 +118,40 @@ that declined to authenticate the peer *because it looked like `-2`* then answer
 Requirement identifiers and a paraphrase of what they oblige; we do not reproduce the text. All `-20`
 identifiers, no revision caveat.
 
-## Suggested fix — one line, at the call site
+## Suggested fix — one per tree, because the module changed underneath it
+
+**In the 2026.02 line — one line at the call site.** The module serves `-20` and nothing else, so it
+has no peer to be lenient for:
 
 ```cpp
-// connection_ssl.cpp:89 — a -20-only station has no -2 peers to be lenient for
+// connection_ssl.cpp — a -20-only station: ask every EV for its certificate
 out.verify_client = true;
 ```
 
 `verify_client_on_tls13` can stay exactly as it is; it is right for `EvseV2G`, which is what it was
 written for. **Do not change the version test in the library** — that would break the `-2` module.
+Setting `enforce_tls_1_3: true` closes the same hole by refusing TLS 1.2 altogether, but in 2026.02.2
+the manifest says it *"only applies if `tls_negotiation_strategy` is `ENFORCE_TLS`"*, so as shipped it
+is not a switch an operator reaches by accident — which is the case for making the safe answer the
+default rather than an option.
 
-**It costs no conformant interop.** `[V2G20-1237]` and `[V2G20-2356]` put a conformant `-20` EV on
-TLS 1.3 anyway, so the connections this newly refuses are exactly the ones `[V2G20-2356]` says the
-station should not have been serving `-20` on.
+**On `main` — the decision has to be per protocol, and it can only be made after the handshake.** The
+manifest now says it in so many words: `enforce_tls_1_3` *"Set to true for ISO 15118-20 (mandates
+TLS 1.3 mTLS). Set to false to offer TLS 1.2 … no client-certificate request, which is required for
+ISO 15118-2 / DIN SPEC 70121."* Both halves are right, and one module now serves both halves, so a
+single default — either value — is wrong for one of them. Flipping it to `true` would refuse every
+conformant `-2` and DIN car. What closes the hole without that cost is the other end:
 
-Two alternatives if you would rather not change the default:
+- **Refuse `-20` at protocol negotiation on a connection that is not TLS 1.3 with a verified client
+  certificate.** `[V2G20-2356]` already says the SECC shall not select `-20` below TLS 1.3, so this is
+  the standard's own rule, enforced where the protocol is actually chosen. Today it cannot be: neither
+  the negotiated version nor the peer-certificate state reaches `session/secc_sap.cpp` (read on
+  `01f36de1`: no reference to either in that file).
 
-1. **Make it configurable and default it closed.** `enforce_tls_1_3` already exists in the manifest; a
-   second value gating client authentication would at least make the current behaviour something an
-   operator chose rather than something an EV chose.
-2. **Or close the other half instead** — refuse `-20` on a connection that is not TLS 1.3. That needs
-   the negotiated version to reach `d20/state/supported_app_protocol.cpp`, which today it does not.
+**It costs no conformant interop, on either tree.** `[V2G20-1237]` and `[V2G20-2356]` put a conformant
+`-20` EV on TLS 1.3 with a certificate anyway, so the connections this refuses are exactly the ones
+`[V2G20-2356]` says the station should not have been serving `-20` on — and a `-2` or DIN car on
+TLS 1.2 is untouched.
 
 ## The other two issues
 
@@ -148,6 +166,8 @@ Fixing this one leaves both of those standing.
 ### Before you post
 
 - [ ] Re-read the three `main` line numbers on the day — `main` moves daily.
+- [ ] **Decide which tree you are filing against, and keep only that half of *Suggested fix*.** If
+      both, say which change belongs to which: the one-line `verify_client` fix is wrong for `main`.
 - [ ] Decide whether to include the *"what it costs"* paragraph, which is measured on `2026.02.1`
       only. If you keep it, keep the sentence saying so.
 - [ ] Two `openssl s_client` calls reproduce the whole thing. Say that early; it is what gets an issue

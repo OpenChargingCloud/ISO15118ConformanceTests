@@ -318,8 +318,9 @@ as the report does.
   suite list — and issues 1, 2 and 4 survive; see the
   [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md).)* That leaves **2**, **3**,
   **6**, **8**, **10**, **17**, **19**, **21** and the two `isomux` remnants as the live EVerest set —
-  and **6** has to be re-argued around a default rather than a mechanism. Each report says so at its
-  own top; the reasoning is in the
+  and **6** has to be re-argued around a default rather than a mechanism *(done 2026-11-06: issue 1 now
+  carries a fix per tree, because one module serves DIN, `-2` and `-20` on `main` but only `-20` in the
+  2026.02 line)*. Each report says so at its own top; the reasoning is in the
 
   **Corrected 2026-11-05 — that list had one axis and it was the wrong one.** It was read off `main`.
   All ten entries have since been checked in the **2026.02.2** tag, and **exactly one of them is fixed
@@ -328,8 +329,7 @@ as the report does.
   [`everest-evsev2g-paymentdetails-advisory-amendment`](everest-evsev2g-paymentdetails-advisory-amendment.md).
   Eight are **live in the newest release** — **13** (`d20-rng-entropy`, while the *same defect class*
   shipped a **High** advisory in that very release, GHSA-f35j-hqfr-4p6p for `EvseSlac`), **23**
-  (`certificate-update`), **22** (`session-log-responses`), **9** (`d20-eim-rejection`, live for a
-  different cause than the report gives), **11** and **12** (the OCSP chain, both halves), and the two
+  (`certificate-update`), **22** (`session-log-responses`), **9** (`d20-eim-rejection`), **11** and **12** (the OCSP chain, both halves), and the two
   that `sending-order` itself had recorded as fixed since August, `d20-ac-namespace` and
   `iso20-ac-contactor-latch` — the latter being a one-character fix that never left `main`. **15**
   (`loop-shutdown`) is half fixed. Outside the ten, **16** issue 3 is released, and **7**
@@ -338,8 +338,11 @@ as the report does.
   which changes both its channel and its weight. So the live EVerest set is **much larger** than the
   re-sweep left it, every claim in it now says *fixed where* — `main` or a release — and the two
   entries retired in August on the strength of `main` are sendable again as backport asks.
-  **And the `main` column was wrong once as well:** **23** (`certificate-update`) is not fixed there
-  either — the init call the re-sweep read as the fix resets one optional flag and leaves
+  **And the `main` column was wrong twice as well.** **9** (`d20-eim-rejection`) is not fixed on
+  `main`: the `-20` handler now sends either verdict, but `EvseManager`'s `} else if (pnc) {` gate — in
+  every tree, newest `main` included — never passes it an EIM one; the report is right as written
+  (corrected 2026-11-06, after a banner of ours had briefly said otherwise). And **23**
+  (`certificate-update`) is not fixed there either — the init call the re-sweep read as the fix resets one optional flag and leaves
   `ResponseCode` and the mandatory elements to the union slot, which is the report's own claim. It is
   sendable as a defect against `main`, not only as a backport ask. Found by the
   [reports audit](../interop-runs/2026-11-05-reports-audit/notes.md), whose checker now runs against

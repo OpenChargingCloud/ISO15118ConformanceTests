@@ -3,7 +3,13 @@
 > **Fixed on `main` only — live in the newest release.** The release axis was checked on
 > 2026-11-05: everest-core **2026.02.2** predates the 2026-10-20 regeneration (#3181), and its vendored
 > `iso20_WPT_Encoder.c` still has `PulseSequenceOrder`'s state as a `LOOP` with no other production —
-> this report's defect shape, verbatim. So it is a backport ask, not obsolete. The `main` side, as
+> this report's defect shape, verbatim. So it is a backport ask, not obsolete. **Measured as well,
+> 2026-11-06:** the [probe](../../../tools/cbv2g-defect-probe/README.md), compiled against the vendored
+> sources, fails all three `minOccurs="2"` cases with `UNKNOWN_EVENT_CODE` (-150) on 2026.02.2 and
+> encodes all three on `main`. One result of the `main` run is unexplained and recorded in the
+> [reports audit](../../interop-runs/2026-11-05-reports-audit/notes.md) rather than here: the probe's
+> own control in that part — one container, nothing after it — fails there with -150, where 2026.02.2
+> encodes it in 28 B. Not filed until it is traced. The `main` side, as
 > first recorded: re-read on 2026-11-04 against everest-core's regenerated
 > `lib/everest/cbv2g`: every `LOOP` state in `iso20_WPT_Encoder.c` now carries a second production,
 > and a search for this report's defect shape — a `LOOP` whose only production is the loop — returns

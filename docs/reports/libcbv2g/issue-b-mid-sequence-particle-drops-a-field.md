@@ -1,28 +1,23 @@
 # Issue B — post-ready
 
-> **Re-read on 2026-11-04 — half of this is now wrong, so do not send it as it stands.** Against
-> everest-core's regenerated `lib/everest/cbv2g`: the **cap at two is gone** — `ID=182` and `ID=188`
-> are now `LOOP (VendorSpecificDataContainer), START (WPT_LF_DataPackageList), END Element`, which is
-> this report's own "state B" done right, so a third item *and* the following particle are both
-> reachable. But the **no-items state still drops the field**: `ID=181` is
-> `START (VendorSpecificDataContainer), END Element` with no `START (WPT_LF_DataPackageList)`, so a
-> document with an empty list and a present `WPT_LF_DataPackageList` still cannot be encoded. Rewrite
-> around that half. **The 2026.02.2 release is in the same state** (checked 2026-11-05): its vendored
-> encoder has the looping state with an exit (`ID=185`) and the no-items state that drops the field
-> (`ID=184`, `START (VendorSpecificDataContainer), END Element`). So the cap at two is absent from both
-> live trees — it is a property of the archived standalone repository — and the half that remains is
-> live in both.
-> `EVerest/libcbv2g` itself has **not** moved (`main` is still `03350be04`) and is being
-> **archived** — its open PR #24 adds *"This repository is now archived… integrated into
-> EVerest… now read-only"*. So this belongs to **everest-core** and `cbexigen`, not to the
-> repository named above.
-> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md).
+> **Rewritten 2026-11-06 around the half that is live, and measured on the live trees.** The original
+> filed two defects in one construct: the list capped at two items, and the field after the list
+> dropped when the list is empty. The cap is **gone** from everest-core's vendored
+> `lib/everest/cbv2g` — the looping state now has an exit (`ID=185` in 2026.02.2, `ID=182`/`ID=188` on
+> `main`) — and was a property of the archived standalone `EVerest/libcbv2g` at `03350be04`. The empty
+> case is **live on both trees**: [`tools/cbv2g-defect-probe/probe.c`](../../../tools/cbv2g-defect-probe/README.md),
+> compiled against the vendored sources of **2026.02.2** (`45dba2c0`) and of **`main`** (`01f36de1`,
+> after the 2026-10-20 regeneration), encodes the message with the field and the message without it to
+> the same 23 bytes on both. So this goes to **everest-core** and **cbexigen**; the standalone repository
+> is being archived (its open PR #24) and is not where to file it.
+> [Re-sweep](../../interop-runs/2026-11-04-counterparties-resweep/notes.md),
+> [reports audit](../../interop-runs/2026-11-05-reports-audit/notes.md).
 
 > Paste everything below the line. Self-contained.
 
 ---
 
-**Title:** WPT FinePositioning: an optional element after an optional list is silently dropped, and the list is capped at two
+**Title:** WPT FinePositioning: when `VendorSpecificDataContainer` is empty, the optional element after it is silently dropped
 
 ### Summary
 
@@ -34,55 +29,55 @@ ISO's schema, in all four `WPT_FinePositioning{,Setup}Req/ResType`:
 ```
 
 Two independently optional particles, the first repeating up to sixteen times. The generated grammar
-in `lib/cbv2g/iso_20/iso20_WPT_Encoder.c` unrolls only two list positions and reaches the second
-particle only from the one-item state:
+in `lib/everest/cbv2g/lib/cbv2g/iso_20/iso20_WPT_Encoder.c` handles the list correctly once it has an
+item, and has no way past it when it has none:
 
 ```
-generated  id 178 (no items):   SE(list)=0                 EE=1
-           id 179 (one item):   LOOP=0  SE(LF list)=1      EE=2
-           id 180 (two items):          SE(LF list)=0      EE=1     <- no third item, ever
+generated  no items  (2026.02.2 ID=184; main ID=181, ID=187):  START(VendorSpecificDataContainer)  END
+           n items   (2026.02.2 ID=185; main ID=182, ID=188):  LOOP  START(WPT_LF_DataPackageList)  END
 
-schema     state A (no items):  SE(list)=0  SE(LF list)=1  EE=2
-           state B (n items):   LOOP=0      SE(LF list)=1  EE=2     <- loops to maxOccurs
+schema     state A (no items):  SE(list)=0  SE(following element)=1  EE=2
+           state B (n items):   LOOP=0      SE(following element)=1  EE=2
 ```
 
-Two documents ISO permits therefore cannot be represented:
-
-1. **A third `VendorSpecificDataContainer`.** Id 180 has no production for another item. The struct
-   array is sized 16, so the ceiling is in the grammar rather than the storage.
-2. **`WPT_LF_DataPackageList` (or `LF_SystemSetupData`) with an empty container.** Id 178 offers only
-   the list and the end-element.
+State B matches the schema. State A is missing the production for the following element, so a document
+ISO permits cannot be represented: **`WPT_LF_DataPackageList` (or `LF_SystemSetupData`) present with an
+empty `VendorSpecificDataContainer`.**
 
 ### The part we would fix first: it fails silently
 
-Case 2 does not return an error. Set `LF_SystemSetupData` on a `WPT_FinePositioningSetupRes`, leave
-`VendorSpecificDataContainer` empty, and call `encode_iso20_wpt_exiDocument` against `03350be048b3`:
+The encoder does not return an error. Set `LF_SystemSetupData` on a `WPT_FinePositioningSetupRes`, leave
+`VendorSpecificDataContainer` empty, and call `encode_iso20_wpt_exiDocument` — the same probe, compiled
+against the vendored sources of both trees:
 
 ```
-control, field not set   -> encoded (0)  23 B
-LF_SystemSetupData set   -> encoded (0)  23 B     <- byte-identical to not setting it
+                         2026.02.2 (45dba2c0)     main (01f36de1)
+control, field not set   encoded (0)  23 B        encoded (0)  23 B
+LF_SystemSetupData set   encoded (0)  23 B        encoded (0)  23 B     <- byte-identical to not setting it
 ```
 
 The encoder returns success and drops the field. Same length as the message that never carried it: no
 error, nothing short, nothing for a caller to check. Probe source:
 <https://github.com/OpenChargingCloud/ISO15118ConformanceTests/tree/master/tools/cbv2g-defect-probe>
 
-It also masks a second defect. Because the encoder never descends into `LF_SystemSetupData` in this
-state, the `minOccurs="2"` failure inside it (filed separately) cannot be reached until this is fixed.
+In the 2026.02 line it also masks a second defect. Because the encoder never descends into
+`LF_SystemSetupData` in this state, the `minOccurs="2"` failure inside it (filed separately) cannot be
+reached until this is fixed. On `main` that second defect is fixed by the regeneration, so the masking
+is a release-line concern only.
 
 ### The visible part: one event code
 
-With both particles absent the encoder writes **1** for the end-element where the schema grammar has
-**2**. A schema-informed EXI processor reads that `1` as a start element, finds no content, and reports
-`Premature EOS`. That is what happened to all four `WPT_FinePositioning*` frames of ours and to nothing
-else in the set; the sibling `WPT_AlignmentCheckReq` — an ordinary bounded list with nothing after it —
-round-trips byte-exact.
+With both particles absent, the no-items state has two productions where the schema grammar has three,
+so the encoder writes the end-element as **1** where a schema-informed processor expects **2**. That
+processor reads the `1` as a start element, finds no content, and reports `Premature EOS`. That is what
+happened to all four `WPT_FinePositioning*` frames of ours and to nothing else in the set; the sibling
+`WPT_AlignmentCheckReq` — an ordinary bounded list with nothing after it — round-trips byte-exact.
 
 ### Suggested fix
 
-Emit the schema's grammar for this construct: loop to `maxOccurs`, and keep the following particle
-reachable from every state including the empty one. In our own generator the schema-conformant emitter
-is *shorter* than the cbexigen-compatible one, because there is nothing to unroll.
+Emit the schema's grammar for the empty state too: the following particle has to be reachable from the
+state before the first item, as it already is from the state after it. Since the regeneration fixed
+state B, this looks like the same rule applied one state earlier.
 
 ### Context, and what we changed on our side
 

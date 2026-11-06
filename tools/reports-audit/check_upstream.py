@@ -182,6 +182,11 @@ CORE_CHECKS = [
      'log_and_raise_openssl_error("Failed to SSL_accept()', "handshake failure throws out of the poll loop"),
     ("everest-d20-ac-namespace", None, ac_namespace_gate,
      "no capability filter before the priority map"),
+    # The sending end, not the receiving one: on 2026-11-04 the -20 handler's new "either verdict"
+    # branch was read as the fix, and a hand check the next day searched EvseManager.cpp and missed
+    # this file. The gate itself is the marker.
+    ("everest-d20-eim-rejection", "modules/EVSE/EvseManager/evse/evse_managerImpl.cpp",
+     "} else if (pnc) {", "verdicts forwarded to the HLC for PnC only"),
     ("everest-d20-meter-info", "lib/everest/iso15118/src/iso15118/d20/state/dc_charge_loop.cpp",
      "// TODO(sl): Setting EvseStatus, MeterInfo, Receipt", "meter_info never set on the response"),
     ("everest-d20-trust-anchor", "lib/everest/iso15118/src/iso15118/io/connection_ssl.cpp",

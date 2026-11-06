@@ -127,7 +127,7 @@ One fundamental, two sites, one reported and closed as a High, one held and stil
 | `iso20-ac-contactor-latch` | fixed (one `*`) | **live** — `d20/state/power_delivery.cpp:53` is `ac_connector_closed = control_data`, the pointer |
 | `evse-security-ocsp-dropped` | fixed | **live** — `conversions.cpp:429-438` copies six members and not `ocsp` |
 | `d20-ocsp-absent` | fixed | **live** — no `ocsp` in `Evse15118D20/charger/ISO15118_chargerImpl.cpp`, no `evse_security_ssl_config` in the tree |
-| `d20-eim-rejection` | fixed (handler) | **live, other cause** — the handler does send either verdict here, but `EvseManager` calls it only with `Unknown` (plug-in timeout) and `Accepted`; no site forwards a rejection |
+| `d20-eim-rejection` | **not fixed either** — the handler now sends either verdict, but the `else if (pnc)` gate never passes it an EIM one | **live** — `evse_managerImpl.cpp:381`, `} else if (pnc) {`, as the report says (an earlier version of this row said *"other cause"*; it had missed that file — [reports audit](../2026-11-05-reports-audit/notes.md)) |
 | `loop-shutdown` | fixed | **half** — TLS accept contained; `poll_manager.poll()` still `break`s out of `loop()`, and the catch takes `std::runtime_error` only |
 
 Plus, outside the ten: `isomux` issue 3 is **fixed and released**, and `client-auth` issue 3 — which
