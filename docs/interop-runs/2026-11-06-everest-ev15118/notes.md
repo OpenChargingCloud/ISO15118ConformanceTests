@@ -16,7 +16,7 @@ existed. This run puts the replacement in front of our SECC before it merges.
 | Configs | derived from the PR's **own** `config-sil-{ac,dc}-d20-plaintext.yaml`, changed only where the reverse direction needs it — each change is listed in the file's header: [`config-ac20-reverse-ev15118.yaml`](config-ac20-reverse-ev15118.yaml), [`…-dc20-…`](config-dc20-reverse-ev15118.yaml), [`…-ac20-dynamic-…`](config-ac20-dynamic-reverse-ev15118.yaml), [`…-ac20-tls-…`](config-ac20-tls-reverse-ev15118.yaml), [`…-ac2-…`](config-ac2-reverse-ev15118.yaml), [`…-ac2-tls-…`](config-ac2-tls-reverse-ev15118.yaml), [`…-dc2-…`](config-dc2-reverse-ev15118.yaml) |
 | Ours | `EverestInteropTests.TheirPyEvJosev_AgainstOurSecc_RunsToCompletion` — the name predates `Ev15118`, nothing in it is specific to either module; listening on `eth0:55000`, advertising over SDP, inside WSL |
 | Clock | a packet capture of every arm (`tcpdump -i any`, as root), read by the new [`v2gtp-turnaround.py`](../../../tools/interop-everest/v2gtp-turnaround.py) |
-| Outcome | **6 of 7 scenarios complete under our conformant timers.** `-2` DC stops after `CableCheck`, 2 of 2, on an optional element our station never sends — and completes, 2 of 2, once a patched copy of our station sends it |
+| Outcome | **7 of 7 scenarios complete under our conformant timers** — six against our station as it stood. `-2` DC stopped after `CableCheck`, 2 of 2, on an optional element our station never sent; it completes, 2 of 2, since our station sends it, which was [decided and changed the same day](#decided-the-same-day-our-station-says-what-it-found) |
 
 ## The arms
 
@@ -30,6 +30,7 @@ existed. This run puts the replacement in front of our SECC before it merges.
 | [`ac2-tls12`](ac2-tls12/) | `-2` AC, EIM | **TLS 1.2** | ✅ | 236 | — (encrypted) |
 | [`dc2-plain`](dc2-plain/), [`dc2-plain-2`](dc2-plain-2/) | `-2` DC, EIM | plain | ⛔ **2 of 2** stop after `CableCheck` | 0 | — |
 | [`dc2-diag-isolation-valid`](dc2-diag-isolation-valid/), [`…-2`](dc2-diag-isolation-valid-2/) | `-2` DC, EIM — **our station patched**, see below | plain | ✅ 2 of 2 | 177 | **100,8 ms** (100,6–148,3) |
+| [`dc2-states-valid`](dc2-states-valid/), [`…-2`](dc2-states-valid-2/) | `-2` DC, EIM — **our station as changed the same day**, no patch | plain | ✅ 2 of 2 | 177 | **100,8 ms** (100,6–171,4) |
 | [`ac20-pyevjosev-control`](ac20-pyevjosev-control/) | `-20` AC — **`PyEvJosev`, 2026.02.1** | plain | ✅ with our charge-loop timer at 20 s | 43 | **535,0 ms** (526,5–578,2) |
 
 Every `Ev15118` arm ran with our station at its **conformant** timers — `V2G_SECC_Sequence_Timeout`
@@ -103,7 +104,47 @@ So: **not a filing in either direction.** Refusing to energise without a stated 
 defensible safety choice for a car; a schema-valid station that never states one is legal and, for a
 simulator whose `CableCheck` claims to have finished a test, the less useful peer. A real station would
 say what it found. Whether ours should — it moves our `-2` DC wire output, and with it the session
-corpus — is in [`open-work`](../../open-work.md), not decided here.
+corpus — went to [`open-work`](../../open-work.md) as an open question, and was decided the same day.
+
+## Decided the same day: our station says what it found
+
+The answer was yes, in the wider of the two forms the question offered. Since stack branch
+`secc2-states-isolation-result` (`bd26b77`), `Secc2` states `EVSEIsolationStatus = Valid` in **every**
+`DC_EVSEStatus` from the `CableCheckRes` on, and in none before it.
+
+- **From `CableCheck` on, not only in its response**, because that is how a station with an insulation
+  monitor behaves. EVerest's own station is the nearest example: `EvseV2G` copies its monitor's latest
+  reading into the `DC_EVSEStatus` of `ChargeParameterDiscoveryRes`, `CableCheckRes`, `PreChargeRes`,
+  `PowerDeliveryRes`, `CurrentDemandRes` and `WeldingDetectionRes` alike
+  (`modules/EVSE/EvseV2G/iso_server.cpp`, one `handle_iso_*` each, same PR tree).
+- **Nothing before it**, because no test has run yet: `Invalid` in the first `ChargeParameterDiscoveryRes`
+  would be a measurement our station never made.
+- **Two differences from `EvseV2G`, both deliberate.** Theirs starts from `Invalid` (`v2g_ctx.cpp`) and
+  goes back to `Invalid` when a DC renegotiation starts. Ours says nothing before its first test, and
+  keeps `Valid` until the second `CableCheck` restates it.
+
+**Its bytes have a reference now.** None of the 39 cbV2G vectors the codec is held to carried the
+element: every `DC_EVSEStatus` in them left it out, as ours did. A fortieth, `CableCheckRes_IsolationValid`,
+emitted by `tools/cbv2g-ref` against the pinned libcbv2g `03350be`, matches our encoder byte for byte.
+That is 19 octets, the length the diagnostic arm's `CableCheckRes` already had.
+
+**What moved on the wire is exactly that.** Regenerating the session corpus changed three traces, and in
+them only the responses from `CableCheckRes` on: 8, 7 and 13 frames in `Session.iso2-dc-eim`, `…-battery`
+and `…-renegotiate`, and no request anywhere. Every other change the regeneration produced was ECDSA nonce
+churn, and it was restored. The renegotiation trace shows both halves of the rule: its first
+`ChargeParameterDiscoveryRes` is unchanged, and its second carries `Valid`.
+
+**And the arm that stopped now runs.** [`dc2-states-valid`](dc2-states-valid/) and
+[`…-2`](dc2-states-valid-2/) are the plain `-2` DC arm again, against the committed station with no
+patch. Both run to `SessionStop`, with 177 `CurrentDemand` pairs each. Decoded from the recording, each
+session's 183 `DC_EVSEStatus` from `CableCheck` on say `Valid`: `CableCheckRes`, `PreChargeRes`, two
+`PowerDeliveryRes`, 177 `CurrentDemandRes` and `WeldingDetectionRes`. The one before, in
+`ChargeParameterDiscoveryRes`, says nothing. Their EV's pace is unchanged at 100,8 ms, and ours answers
+a `CurrentDemandReq` in 0,3 ms median.
+
+Four tests in [`Iso2IsolationStatusTests`](../../../ISO15118ConformanceTests.Simulation/StateMachines/Iso2IsolationStatusTests.cs)
+pin it. Three of them **fail against the stack as it was** — run, not asserted. The fourth passes either
+way, because it pins the other half of the decision: nothing is claimed before a test has run.
 
 ## A trap of ours that nearly produced a false control
 
@@ -163,7 +204,10 @@ Per arm: `V2G_INTEROP_PROTOCOL=2` for the `-2` arms, `V2G_INTEROP_MODE=dc` for D
 `-20` TLS arm. The control: `~/everest/dist/bin/manager` with
 [the 2026-08-13 config](../2026-08-13-everest-d20-ac-reverse/config-ac20-reverse-ours.yaml) and
 `V2G_INTEROP_CHARGELOOP=20000` — **a run that used it is not a passing charge-loop result**, which is the
-point of that arm.
+point of that arm. The diagnostic arms are the `-2` DC arm after `~/everest/diag-isolation.sh` has
+patched the WSL copy of our station. The two `dc2-states-valid` arms are the `-2` DC arm, unpatched,
+after `~/everest/sync-build-i15118.sh` mirrored the tree with the stack branch checked out. The session
+DLL's timestamp was checked before either of them ran.
 
 ## Artifacts
 
@@ -175,6 +219,7 @@ bytes are encrypted.
 
 ## Next
 
-- **Decide whether our `-2` station states its isolation result** — [`open-work`](../../open-work.md).
+- ~~**Decide whether our `-2` station states its isolation result**~~ — decided and done the same day,
+  [above](#decided-the-same-day-our-station-says-what-it-found).
 - **Decide what the pacing report becomes** once #3031 merges: a release-line note or nothing.
 - **Re-run when #3031 merges**, against `main`: this ran a PR head, and the head will move.

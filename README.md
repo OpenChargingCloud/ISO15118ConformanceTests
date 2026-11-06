@@ -150,7 +150,7 @@ Our C# **EVCC** drives *their* station. `Ours` is the loopback, where the statio
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
 | AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ their EV, EIM plain ([details](docs/matrix/everest-iso2-reverse.md)) | — | ✅ a real VW's route · ✅ two Porsche routes ([details](docs/matrix/tux-iso2-ac-reverse.md)) |
-| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ◐ `Ev15118` (PR #3031) stops after `CableCheck`: our station omits the optional `EVSEIsolationStatus` — with it, a full session ([details](docs/matrix/everest-ev15118-reverse.md)) | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ `Ev15118` (PR #3031), since our station states the optional `EVSEIsolationStatus` this car requires ([details](docs/matrix/everest-ev15118-reverse.md)) | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
 | Plug & Charge | ✅ `Iso2LoopbackTests` | ✅ signed auth *and* signed metering receipt verified, chain at their MO root ([details](docs/matrix/josev-pnc-chains.md)) | ✅ their EV over TLS ([details](docs/matrix/everest-iso2-reverse.md)) | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` | ✅ their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2RenegotiationSequenceTests` | ✅ AC, `[V2G2-841]` | — | — | — |

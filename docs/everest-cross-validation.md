@@ -47,9 +47,10 @@ can, and why -2 reverse against EVerest has deliberately never been run.
 **That stops being true with [#3031](https://github.com/EVerest/everest-core/pull/3031)**, unmerged as
 of 2026-11-06: it replaces `PyEvJosev` in every config with `Ev15118`, an EV on `libiso15118` — cbV2G in
 both directions, and a state machine that is EVerest's own rather than Josev's. Run against its head the
-same day, seven scenarios: six complete under our conformant timers, the ≈532 ms charge-loop turnaround
-becomes a deliberate **25,8 ms**, and `-2` DC stops after `CableCheck` because our station never sends
-the optional `EVSEIsolationStatus` that this car insists on
+same day, all seven scenarios complete under our conformant timers, and the ≈532 ms charge-loop
+turnaround becomes a deliberate **25,8 ms**. `-2` DC completed only after a change on our side. It
+first stopped after `CableCheck`, because our station never sent the optional `EVSEIsolationStatus` this
+car insists on. Our station has stated it since that afternoon
 ([`…-everest-ev15118`](interop-runs/2026-11-06-everest-ev15118/notes.md)). Once it merges, a `←SECC`
 run here is a result the Josev column cannot give.
 
