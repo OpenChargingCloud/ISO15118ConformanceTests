@@ -129,7 +129,7 @@ public class EverestInteropTests
         TestContext.Out.WriteLine($"Connecting to their SECC at {endpoint} ...");
 
         using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
-                                                           InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
+                                                           InteropEnvironment.DevTlsOrNull(protocol), ct: cts.Token);
 
         var transport = InteropEnvironment.ReportTransport(socket, protocol,
                                                            InteropEnvironment.OfferBothProtocols());

@@ -12,7 +12,7 @@ IFACE="${1:-eth0}"
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/bin/Release/net10.0/WWCP_ISO15118_EVCC.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_EVCC/bin/Release/net11.0/WWCP_ISO15118_EVCC.dll"
 SECC_LOG=/tmp/josev-secc-tariff.log
 EVCC_LOG=/tmp/our-evcc-tariff.log
 

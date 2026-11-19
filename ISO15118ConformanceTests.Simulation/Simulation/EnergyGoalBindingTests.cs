@@ -405,7 +405,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             }, cts.Token);
 
             using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                (TlsOptions?) null, cts.Token))
+                                                                (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, cts.Token, mode);
                 await new Evcc2(stream, mode, TimeProvider.System, new ImmediateAsyncDelay(),
@@ -438,7 +438,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             }, cts.Token);
 
             using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                (TlsOptions?) null, cts.Token))
+                                                                (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, cts.Token, mode);
                 var evcc = makeEvcc(stream);

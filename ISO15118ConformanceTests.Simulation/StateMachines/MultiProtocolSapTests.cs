@@ -75,7 +75,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             }, cts.Token);
 
             using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                     (TlsOptions?) null, cts.Token))
+                                                                     (TlsOptions?) null, ct: cts.Token))
             {
                 var accepted = await SapHandshake.RunEvccSideAsync(evccStream, Both(PowerMode.Ac), cts.Token);
 
@@ -108,7 +108,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             }, cts.Token);
 
             using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                     (TlsOptions?) null, cts.Token))
+                                                                     (TlsOptions?) null, ct: cts.Token))
             {
                 var accepted = await SapHandshake.RunEvccSideAsync(evccStream, Both(PowerMode.Dc), cts.Token);
 
@@ -149,7 +149,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             }, cts.Token);
 
             using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                     (TlsOptions?) null, cts.Token))
+                                                                     (TlsOptions?) null, ct: cts.Token))
             {
                 var accepted = await SapHandshake.RunEvccSideAsync(evccStream,
                     [new SapOffer(ProtocolVariant.Iso15118_2,  PowerMode.Ac),    // priority 1
@@ -184,7 +184,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             }, cts.Token);
 
             using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                     (TlsOptions?) null, cts.Token))
+                                                                     (TlsOptions?) null, ct: cts.Token))
             {
                 var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>
                     await SapHandshake.RunEvccSideAsync(evccStream,

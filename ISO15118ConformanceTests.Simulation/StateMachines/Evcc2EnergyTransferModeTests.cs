@@ -108,7 +108,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             }, ct);
 
             using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                     (TlsOptions?) null, ct))
+                                                                     (TlsOptions?) null, ct: ct))
             {
                 await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, ct, mode);
                 await new Evcc2(evccStream, mode, TimeProvider.System, new ImmediateAsyncDelay(),

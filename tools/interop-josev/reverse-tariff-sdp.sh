@@ -23,7 +23,7 @@ TARIFF=$([ "$PROTO" = "2" ] && echo /tmp/tariff2.p12 || echo /tmp/tariff20.p12)
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$here/../.." && pwd)"
-DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net10.0/WWCP_ISO15118_SECC.dll"
+DLL="$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net11.0/WWCP_ISO15118_SECC.dll"
 SECC_LOG=/tmp/secc-tariff-$PROTO.log
 EVCC_LOG=/tmp/evcc-tariff-$PROTO.log
 

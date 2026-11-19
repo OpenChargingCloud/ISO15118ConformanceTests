@@ -184,7 +184,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
                 await seccStream.FlushAsync(cts.Token);
             }, cts.Token);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, cts.Token))
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, ct: cts.Token))
             {
                 await evccStream.WriteAsync(new Byte[] { 0x42 }, cts.Token);
                 await evccStream.FlushAsync(cts.Token);

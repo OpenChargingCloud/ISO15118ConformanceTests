@@ -29,7 +29,7 @@ RUN="${TUX_RUN:-$T/run/chain}"
 SCENARIO="${TUX_SCENARIO:-$T/run/audi-relaxed-autorun.json}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="${CONFORMANCE_REPO:-$(cd "$here/../.." && pwd)}"
-SECC="${SECC_DLL:-$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net10.0/WWCP_ISO15118_SECC.dll}"
+SECC="${SECC_DLL:-$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net11.0/WWCP_ISO15118_SECC.dll}"
 mkdir -p "$RUN"
 
 # Their SDP client binds without SO_REUSEADDR and would collide with our SDP server on one stack.

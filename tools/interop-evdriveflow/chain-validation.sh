@@ -26,7 +26,7 @@ C="$E/shared/certificates"
 RUN="${EDF_RUN:-$HOME/edf/run}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="${CONFORMANCE_REPO:-$(cd "$here/../.." && pwd)}"
-SECC="${SECC_DLL:-$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net10.0/WWCP_ISO15118_SECC.dll}"
+SECC="${SECC_DLL:-$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net11.0/WWCP_ISO15118_SECC.dll}"
 mkdir -p "$RUN"
 
 # Their EV verifies our station against their own v2gRootCACert, so we serve THEIR SECC chain — the

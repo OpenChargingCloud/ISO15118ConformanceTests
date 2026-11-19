@@ -645,7 +645,7 @@ because the fixture could only bind a socket and their EV cannot be pointed at o
 closes that: the fixture runs a `SECC_SDPServer` beside its listener, on the port it actually bound, so a
 discovered session is a recorded one. Three things to get right:
 
-1. **Run `dotnet test` inside WSL.** SDP is multicast on the EV's link and Windows is not on it. .NET 10 is
+1. **Run `dotnet test` inside WSL.** SDP is multicast on the EV's link and Windows is not on it. .NET 11 is
    there; pass `--artifacts-path ~/wsl-artifacts` so the Linux build does not fight the Windows `bin/`+`obj/`
    in the same working tree.
    <br>**That flag costs three red tests, and they are not real.** `SchemaSetIntegrationTests` resolves

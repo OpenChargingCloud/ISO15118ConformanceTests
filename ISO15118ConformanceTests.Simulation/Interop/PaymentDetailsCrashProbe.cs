@@ -120,7 +120,7 @@ public class PaymentDetailsCrashProbe
         try
         {
             using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
-                                                               InteropEnvironment.DevTlsOrNull(ProtocolVariant.Iso15118_2), ct);
+                                                               InteropEnvironment.DevTlsOrNull(ProtocolVariant.Iso15118_2), ct: ct);
 
             await SapHandshake.RunEvccSideAsync(socket, ProtocolVariant.Iso15118_2, ct);
 

@@ -235,7 +235,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             SessionAborted? evccError = null;
 
             using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                               (TlsOptions?) null, cts.Token))
+                                                               (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, cts.Token, PowerMode.Dc);
 

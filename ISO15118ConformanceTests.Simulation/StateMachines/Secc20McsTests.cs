@@ -65,7 +65,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 return secc;
             }, cts.Token);
 
-            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var evcc = new Evcc20Mcs(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
@@ -117,7 +117,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 return secc;
             }, cts.Token);
 
-            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             // The same thing the interop fixture asks for: Evcc20Mcs's { 8, 9 }, ranked the other way. This
@@ -154,7 +154,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 return secc;
             }, cts.Token);
 
-            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, ct: cts.Token);
 
             // Wrapped from before the SAP handshake, so the recorded frames pair up the way SessionTrace
             // expects (SAP is exchange 0) and `Sent` is exactly what the vehicle put on the wire.
@@ -204,7 +204,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 return secc;
             }, cts.Token);
 
-            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, cts.Token);
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, (TlsOptions?) null, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var evcc = new Evcc20Mcs(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
