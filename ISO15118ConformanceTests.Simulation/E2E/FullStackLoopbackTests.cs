@@ -118,7 +118,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
 
                 var endpoint = await discovery.DiscoverAsync(cts.Token);
 
-                using var stream = await TcpV2GClient.ConnectAsync(endpoint.Host, endpoint.Port, evccBcTls, cts.Token);
+                using var stream = await TcpV2GClient.ConnectAsync(endpoint.Host, endpoint.Port, evccBcTls, ct: cts.Token);
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, cts.Token);
                 var evcc = new Evcc20Dc(stream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
                 await evcc.RunAsync(cts.Token);

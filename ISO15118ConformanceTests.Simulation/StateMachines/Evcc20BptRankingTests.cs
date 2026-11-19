@@ -100,7 +100,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
-                                                                   (TlsOptions?) null, cts.Token);
+                                                                   (TlsOptions?) null, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token, mode);
 
             Evcc20Base evcc = mode == PowerMode.Dc

@@ -37,7 +37,7 @@ RUN="${EVEREST_RUN:-$HOME/everest/run}"
 # The repository root, two levels up from this script -- not a path on one particular machine.
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="${CONFORMANCE_REPO:-$(cd "$here/../.." && pwd)}"
-SECC="${SECC_DLL:-$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net10.0/WWCP_ISO15118_SECC.dll}"
+SECC="${SECC_DLL:-$REPO/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_SECC/bin/Release/net11.0/WWCP_ISO15118_SECC.dll}"
 mkdir -p "$RUN"
 
 # Our station has to sit on the same link as their car for SDP to reach it, so both run inside WSL.

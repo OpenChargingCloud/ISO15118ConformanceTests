@@ -56,7 +56,7 @@ namespace ISO15118ConformanceTests.Simulation.Interop
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 
             using var socket = await TcpV2GClient.ConnectAsync(endpoint.ConnectHost, endpoint.Port,
-                                                               InteropEnvironment.DevTlsOrNull(protocol), cts.Token);
+                                                               InteropEnvironment.DevTlsOrNull(protocol), ct: cts.Token);
 
             var transport = InteropEnvironment.ReportTransport(socket, protocol);
 

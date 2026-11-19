@@ -24,7 +24,7 @@ cleanup
 
 echo ">>> building CLI under WSL"
 dotnet build "$CLI" -c Release --nologo >/tmp/cli-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/cli-build.log; exit 1; }
-DLL="$CLI/bin/Release/net10.0/WWCP_ISO15118_SECC.dll"
+DLL="$CLI/bin/Release/net11.0/WWCP_ISO15118_SECC.dll"
 ls -la "$DLL" || exit 1
 
 echo ">>> starting redis (host net)"

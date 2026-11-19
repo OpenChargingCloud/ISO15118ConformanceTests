@@ -81,7 +81,7 @@ namespace ISO15118ConformanceTests.Pqc
                 return machine;
             }, cts.Token);
 
-            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, cts.Token);
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var machine = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateDelay(), TimeSpan.FromSeconds(5));
@@ -108,7 +108,7 @@ namespace ISO15118ConformanceTests.Pqc
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), secc);
                 var accept = Task.Run(async () => { using var s = await listener.AcceptAsync(cts.Token); }, cts.Token);
-                using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, cts.Token);
+                using var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, ct: cts.Token);
             }, "no common key-exchange group — the handshake must not silently fall back");
         }
     }

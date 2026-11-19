@@ -83,7 +83,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
                 "localhost", listener.LocalEndpoint.Port,
-                ClientTls(cert, SslProtocols.Tls12, TlsProfiles.Iso2CipherSuites), cts.Token);
+                ClientTls(cert, SslProtocols.Tls12, TlsProfiles.Iso2CipherSuites), ct: cts.Token);
             TlsAssert.NegotiatedVersion(evccStream, SslProtocols.Tls12);
             TlsAssert.NegotiatedCipherSuite(evccStream, TlsProfiles.Iso2CipherSuites);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
@@ -118,7 +118,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
                 "localhost", listener.LocalEndpoint.Port,
-                ClientTls(cert, SslProtocols.Tls13, TlsProfiles.Iso20CipherSuites), cts.Token);
+                ClientTls(cert, SslProtocols.Tls13, TlsProfiles.Iso20CipherSuites), ct: cts.Token);
             TlsAssert.NegotiatedVersion(evccStream, SslProtocols.Tls13);
             TlsAssert.NegotiatedCipherSuite(evccStream, TlsProfiles.Iso20CipherSuites);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
