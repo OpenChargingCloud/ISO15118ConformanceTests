@@ -1,13 +1,18 @@
 # 2026-11-26 — EVerest 2026.10.0 is released: every finding against the release tag
 
-**What this run is:** a static sweep, with no session on the wire. On release day, every EVerest finding
-was checked against the **`2026.10.0`** tag (`74845c57`, tagged 2026-11-25), with **`2026.02.2`**
-(`45dba2c0`) and **`main`** (`4fa0fa2c`, 2026-11-26) beside it. Two instruments were used:
+**What this run is:** a static sweep **and a live run** on release day. Every EVerest finding was
+checked against the **`2026.10.0`** tag (`74845c57`, tagged 2026-11-25), with **`2026.02.2`**
+(`45dba2c0`) and **`main`** (`4fa0fa2c`, 2026-11-26) beside it; then the tag was **built from source in
+the WSL rig** and the 2026-11-06 reverse arms and the PaymentDetails crash probe were re-run against it.
+Three instruments:
 
 - [`tools/reports-audit/check_upstream.py --ref <tag>`](../../../tools/reports-audit/check_upstream.py)
   for the twenty-one findings that have a marker.
 - A shallow fetch of the three refs, read out of the object database with `git grep` / `git show`, for
   the findings that have no marker. Every check was made by content; the cited lines are this tag's.
+- The rig: `~/everest/dist-2610` (22 modules, 12 min from a clean worktree), their `Ev15118` EV against
+  our SECC over SDP, and their `EvseV2G` station against our PaymentDetails probe. The
+  [live section](#live-against-the-release-the-ev-charges-and-the-crash-is-fixed) has it.
 
 **The headline:** for every finding the checker covers, **the release and `main` give the same
 verdict**, and the hand-read ones agree wherever both trees were read. So
@@ -20,7 +25,11 @@ the picture from the [2026-11-04 re-sweep](../2026-11-04-everest-main-resweep/no
 - **Fifteen are still present**: ten with a marker and five read by hand. That count leaves out
   `isomux` §4, which was not re-read, and the withdrawn `evsev2g-renegotiation-cablecheck`, whose
   marker is meant to stay present.
-- `Ev15118` is in the release, and `PyEvJosev` is gone from it entirely.
+- `Ev15118` is in the release, and `PyEvJosev` is gone from it entirely. On the wire it charges our
+  SECC to `SessionStop` in all eight arms, at the same 25,8 ms / 100,8 ms cadence as the PR head.
+- **The PaymentDetails crash is fixed on the wire against the release**, not only in review: the probe's
+  malformed certificate draws `FAILED_CertChainError` and the station stays up. First time this has been
+  observed against a release — `2026.10.0-rc1` aborted on the same bytes on 2026-11-05.
 - Nothing new was published in the advisory database.
 
 ---
@@ -55,7 +64,8 @@ the picture from the [2026-11-04 re-sweep](../2026-11-04-everest-main-resweep/no
 **The PaymentDetails crash is now fixed in a release of the 2026.10 line**, not only on `main`. The
 predicate checks the order of the parse guard and the first use. `2026.10.0-rc1` aborted on these bytes
 on 2026-11-05 ([run](../2026-11-05-everest-rc-paymentdetails-crash/notes.md)); the final tag has the
-order the fix (#3047) put there. This was not measured on the wire against the release.
+order the fix (#3047) put there, and the [live probe below](#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)
+confirms it on the wire.
 
 ## By hand: the findings without a marker
 
@@ -104,6 +114,54 @@ most one release cycle. For each one, the question that matters is whether it li
 `Evse15118D20`. Of the `-2` findings, only the outgoing `MeterSignature` does (above, and
 [the `d2/` follow-up](../2026-11-04-everest-main-resweep/notes.md#the-d2-follow-up-measured)).
 
+## Live against the release: the EV charges, and the crash is fixed
+
+The tag was built from source (`build-2610.sh`, the PR #3031 build's module list and flags, 22 modules,
+12 min) as `~/everest/dist-2610`, and the 2026-11-06 reverse arms were re-run against it, our SECC
+unchanged at its committed `Valid` isolation behaviour and its conformant timers. Every arm's turnaround
+is from a packet capture, computed by [`v2gtp-turnaround.py`](../../../tools/interop-everest/v2gtp-turnaround.py).
+
+| arm | protocol, mode | transport | result | loops | their EV turnaround, median (min–max) |
+|---|---|---|---|---:|---|
+| [`ac20-strict`](ac20-strict/) | `-20` AC, Scheduled | plain | ✅ `SessionStop` | 881 | **25,9 ms** (25,6–76,3) |
+| [`dc20-strict`](dc20-strict/) | `-20` DC, Scheduled | plain | ✅ | 694 | **25,8 ms** (25,6–26,8) |
+| [`ac20-dynamic`](ac20-dynamic/) | `-20` AC, **Dynamic** | plain | ✅ | 922 | **25,7 ms** (25,5–26,7) |
+| [`ac20-tls13`](ac20-tls13/) | `-20` AC, Scheduled | **mutual TLS 1.3** | ✅ | — | — (encrypted) |
+| [`ac2-plain`](ac2-plain/) | `-2` AC, EIM | plain | ✅ | 237 | **100,9 ms** (100,6–193,8) |
+| [`ac2-tls12`](ac2-tls12/) | `-2` AC, EIM | **TLS 1.2** | ✅ | — | — (encrypted) |
+| [`dc2-plain`](dc2-plain/), [`…-2`](dc2-plain-2/) | `-2` DC, EIM | plain | ✅ **2 of 2** | 177 | **100,8 ms** (100,6–166,8) |
+
+- **The `-2` DC arm that stopped against the PR head now runs here with no patch.** Our committed
+  station states `EVSEIsolationStatus=Valid` from `CableCheck` on, both plain `-2` DC arms reach
+  `SessionStop` with 177 `CurrentDemand` pairs each, and the `CableCheckRes` is 19 bytes — the length and
+  content of the `CableCheckRes_IsolationValid` cbV2G reference vector. So the 2026-11-06 decision holds
+  against the released EV, not only the PR head.
+- **The pacing is identical to the PR head**: 25,8 ms for `-20`, 100,8 ms for `-2`, our own responses
+  0,2–0,4 ms median. The `#3391` schedule-bound fix between the PR head and the tag (the one EV-side
+  commit this release adds over `35d3eda52`) changed none of it.
+- **Mutual TLS 1.3 over `-20`**: `TLS_AES_256_GCM_SHA384`, their EV presenting `CN=WMIV1234567890ABCDEX`
+  (issuer `VehicleSubCA2`), our station serving the build's own `SECCCert`. **TLS 1.2 over `-2`**:
+  `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, no client certificate. Both as on the PR head.
+
+**The PaymentDetails crash probe: fixed on the wire.** The same three-arm probe as the 2026-11-05 rc1/main
+A/B, against the release's `EvseV2G` over `-2` TLS 1.2 Plug & Charge
+([`paymentdetails-probe/`](paymentdetails-probe/)):
+
+| arm | bytes | the release answers | the station |
+|---|---|---|---|
+| control | a well-formed, untrusted contract cert | `ResponseCode = OK` reaching PaymentDetails | up |
+| probe | 64 unparseable bytes as the contract cert | **`FAILED_CertChainError`** | **up** |
+| liveness | the control again | `OK` | up |
+
+Where `2026.10.0-rc1` aborted (`signal=6`, manager gone — [rc run](../2026-11-05-everest-rc-paymentdetails-crash/notes.md)),
+the release parses the bytes, refuses them with the response code the fix intends, and keeps serving. The
+manager is still alive after the probe. This is the first time the fix has been observed working on the
+wire against a *release*; 2026-11-05 observed it on `main` and watched rc1 crash.
+
+*(The release ships no `PyEvJosev`, so the idle car in the crash-probe config and the reverse arms is
+`Ev15118` on `lo` — the same module under test, parked. `config-dc2-pnc-crashprobe-2610.yaml` carries
+that one change from the rc1 config.)*
+
 ## The advisory database: nothing new
 
 `EVerest/EVerest` still lists **72** published advisories, all of them already in the
@@ -116,15 +174,17 @@ sentence and the CVSS 4.0 vector are untouched by the release, and remain the am
 
 ## What this did not do
 
-- **Nothing ran on the wire.** The WSL rig still has `2026.10.0-rc1` (`~/everest/dist-rc`), not the
-  release. "Fixed" above means fixed in the source of the tag. For the PaymentDetails crash, that
-  confirms a fix already observed working on `main`; for the others it is the first look at a release.
-- `isomux` §4, as above.
+- **Only two findings were exercised on the wire** — the PaymentDetails crash and, through the reverse
+  arms, the isolation-status interaction. "Fixed" and "present" for the other twenty-one mean fixed or
+  present in the source of the tag; the live run did not drive the thirteen still-present findings to
+  reproduce them, which would be a session each against the release.
+- `isomux` §4 was not re-read; its mechanism against the multi-chain `trust_anchor` config is the open
+  item carried from 2026-11-04.
 
 ## Next
 
-- Build `2026.10.0` in the rig and run it: `-2` DC against `Ev15118` reverse, plus the PaymentDetails
-  probe as a release control. Roughly nine minutes of build and one session per scenario.
 - Rewrite the advisory amendment without its point 2 before it is sent.
 - Decide `josev-iso20-evcc-charge-loop-pacing` and `pyevjosev-manifest-services`: they are now
   2026.02-line reports or nothing.
+- If any of the thirteen still-present findings is to be filed, a live reproduction against the release
+  is now one `dist-2610` session away.
