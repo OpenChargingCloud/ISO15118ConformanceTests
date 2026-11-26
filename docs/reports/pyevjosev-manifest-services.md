@@ -1,5 +1,9 @@
 # Draft report to EVerest — `PyEvJosev`'s manifest under-documents `supported_d20_energy_services`
 
+> **2026-11-26: the module is gone from the release.** 2026.10.0 replaces `PyEvJosev` with `Ev15118`
+> in every config and ships no `PyEvJosev` manifest at all. What is left is the 2026.02 line
+> ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+
 > **Re-read on 2026-11-04 against everest-core `main` (`5d83027`) — still live.** The defect is unchanged; only the
 > `file:line` citations have moved, and the current locations are in the
 > [re-sweep](../interop-runs/2026-11-04-counterparties-resweep/notes.md).

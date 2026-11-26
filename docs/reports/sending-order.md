@@ -1,5 +1,11 @@
 # In what order to send them
 
+> **2026-11-26 — EVerest 2026.10.0 is released, and it agrees with `main` on every finding.** Ten are
+> fixed in the release, seven of them not in 2026.02.2. Fifteen are live. `PyEvJosev` is gone, so (5)
+> and the manifest report are 2026.02-line issues at most. The advisory amendment that holds slot (1)
+> has lost its point 2 and needs a rewrite before it goes.
+> [Release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md).
+
 > **Stale for EVerest as of 2026-11-04, and read this first.** Every EVerest entry below was
 > re-read against `everest-core` `main` (`5d83027`, 2026-11-03):
 > [`2026-11-04-everest-main-resweep`](../interop-runs/2026-11-04-everest-main-resweep/notes.md).

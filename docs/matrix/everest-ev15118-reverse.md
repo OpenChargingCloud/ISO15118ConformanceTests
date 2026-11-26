@@ -6,10 +6,15 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **Released in 2026.10.0 (2026-11-25).** #3031 is in the release, every config there runs `Ev15118`,
+> and no `PyEvJosev` is left in the tree. The cells beside this one describe the 2026.02 line from now
+> on. The measurements below were taken against the PR head and have not yet been repeated against
+> the tag ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+
 **EVerest is replacing `PyEvJosev`.** [everest-core#3031](https://github.com/EVerest/everest-core/pull/3031)
 adds an EV side to `libiso15118` and a module around it, `Ev15118`, in every config; #3034 drops Josev
-from the build. Unmerged as of 2026-11-06, so every released tree — 2026.02.1, 2026.02.2, `main` — still
-runs `PyEvJosev`, and the cells beside this one still describe that module. Run against the PR head
+from the build. Unmerged as of 2026-11-06, so every released tree at the time — 2026.02.1, 2026.02.2, `main` — still
+ran `PyEvJosev`. Run against the PR head
 `35d3eda52` on 2026-11-06: seven scenarios, plus a diagnostic arm and a `PyEvJosev` control
 ([run](../interop-runs/2026-11-06-everest-ev15118/notes.md)):
 

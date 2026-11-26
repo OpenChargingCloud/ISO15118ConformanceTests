@@ -1,5 +1,12 @@
 # Draft amendment to a published EVerest advisory — GHSA-qg7p-grpm-cg3f understates its own consequence
 
+> **2026-11-26: point 2 below is void — rewrite before sending.** `2026.10.0` was released on
+> 2026-11-25 and carries the fix (the parse guard precedes the first use in the tag), so the advisory's
+> *`< 2026.02.0` → `2026.10.0`* row now names a released version that is patched. The advisory itself
+> is unchanged since publication: no CVE, `updated_at` still 2026-11-05. Points 1, 3 and 4 stand. Drop
+> point 2, the matching *Before sending* box, and the closing observation's "a patched version that
+> does not exist" ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+
 Status: **draft, not sent.** This is **not a new finding.** The defect is
 [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f)
 (medium, CVSS:3.1 6.5, credited to `Mehrrun`, published 2026-11-05), and it is **fixed** — by their
