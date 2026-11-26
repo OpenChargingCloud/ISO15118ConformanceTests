@@ -1,0 +1,35 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v11.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 6.3.1.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+SDP: request from [fe80::215:5dff:fefd:8161%2]:52179 — ISO_15118_2, TLS, TCP
+SDP: answered [fe80::215:5dff:fefd:8161%2]:52179 with [fe80::215:5dff:fefd:8161%2]:55000 (NoTLS, TCP), 28 byte(s).
+SDP: advertising [fe80::215:5dff:fefd:8161%2]:55000 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+Waiting for their EV on [::]:55000 (plain TCP) ...
+Recorded:
+  /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.ev-to-station.bin
+  /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.station-to-ev.bin
+  /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.frames.log
+  /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.flow.md
+  /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.trace.json
+
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [35 s]
+  Standard Output Messages:
+ SDP: advertising [fe80::215:5dff:fefd:8161%2]:55000 (NoTLS) on eth0 — their EV should discover this station rather than be pointed at it.
+ Waiting for their EV on [::]:55000 (plain TCP) ...
+ Recorded:
+   /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.ev-to-station.bin
+   /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.station-to-ev.bin
+   /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.frames.log
+   /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.flow.md
+   /home/ahzf/everest/run/2610/ac2-plain/rec/everest-iso15118-2-ac-reverse.trace.json
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 36.4974 Seconds
+VSTEST_ARTIFACTS_DIRECTORY environment variable was not found, falling back to a user-private temporary directory. This is most likely caused by an outdated Microsoft.NET.Test.Sdk package reference in the test project.

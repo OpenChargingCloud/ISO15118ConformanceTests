@@ -1,5 +1,10 @@
 # Draft report to EVerest (`PyEvJosev`) — the `-20` EV turns the charge loop around in ≈0,53 s
 
+> **2026-11-26: the replacement is released.** 2026.10.0 ships #3031: `Ev15118` in every config, and
+> no `PyEvJosev` anywhere in the tree. So this report is now about the **2026.02 line only**, and the
+> decision below is down to one question: a maintenance-line issue, or nothing
+> ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+
 > **Re-measured 2026-11-06, and the module it is about is on its way out.** A same-day control on
 > 2026.02.1, read off a packet capture instead of their log, gave **535 ms** median over 43 loops — the
 > number below, by a second instrument. But [everest-core#3031](https://github.com/EVerest/everest-core/pull/3031)

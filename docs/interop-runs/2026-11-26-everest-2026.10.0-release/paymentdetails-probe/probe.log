@@ -1,0 +1,27 @@
+Test run for /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll (.NETCoreApp,Version=v11.0)
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+NUnit Adapter 6.3.1.0: Test execution started
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+
+=== what their station did ===
+  control (well-formed, untrusted)       ANSWERED  — answered OK
+  probe (non-empty, unparseable)         ANSWERED  — answered FAILED_CertChainError
+  liveness (control, repeated)           ANSWERED  — answered OK
+
+  Passed MalformedContractCertificate_AgainstTheirEvseV2G [1 s]
+  Standard Output Messages:
+ 
+ === what their station did ===
+   control (well-formed, untrusted)       ANSWERED  — answered OK
+   probe (non-empty, unparseable)         ANSWERED  — answered FAILED_CertChainError
+   liveness (control, repeated)           ANSWERED  — answered OK
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 2.0647 Seconds
+VSTEST_ARTIFACTS_DIRECTORY environment variable was not found, falling back to a user-private temporary directory. This is most likely caused by an outdated Microsoft.NET.Test.Sdk package reference in the test project.

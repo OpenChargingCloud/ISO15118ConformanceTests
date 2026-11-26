@@ -17,5 +17,7 @@ both directions** and a state machine that is EVerest's own rather than Josev's.
 2026-11-06, all seven scenarios complete and the ≈532 ms charge-loop turnaround is gone. The seventh,
 `-2` DC, completed only once our station stated an optional element it had never sent
 ([details](everest-ev15118-reverse.md)). Once it merges, a `←SECC` run against EVerest measures
-something the Josev column does not. *(The paragraph above also predates 2026-08-15, when `-2` AC did run
+something the Josev column does not. **It is merged and released: 2026.10.0 (2026-11-25) ships
+`Ev15118` in every config and `PyEvJosev` nowhere**, so this premise now holds for the 2026.02 line
+only ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)). *(The paragraph above also predates 2026-08-15, when `-2` AC did run
 in reverse against `PyEvJosev` — the matrix row carries it.)*
