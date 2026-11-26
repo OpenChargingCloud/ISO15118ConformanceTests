@@ -1,0 +1,53 @@
+ac2                s1 PASS  13 pairs,   3 loops, last SessionStopReq/OK                          
+ac2                s2 PASS  13 pairs,   3 loops, last SessionStopReq/OK                          
+ac2-tls12          s1 PASS  13 pairs,   3 loops, last SessionStopReq/OK                          
+ac20-bpt-dyn-trigger s1 FAIL  14 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+ac20-bpt-trigger   s1 FAIL  10 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+ac20-cp            s1 FAIL  11 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+ac20-dyn-trigger   s1 FAIL  15 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+ac20-tls13         s1 FAIL  10 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+ac20-tls13-dyn     s1 FAIL  14 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+ac20-trigger       s1 FAIL  10 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+ac20-trigger       s2 FAIL  10 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+d20                s1 FAIL  55 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+d20                s2 FAIL  63 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+d20-bpt            s1 FAIL  53 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+d20-bpt-dyn        s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+d20-dyn2           s1 PASS  61 pairs,   3 loops, last SessionStopReq/OK                          
+d20-dyn2           s2 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+d20-dynamic        s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+d20-tls13          s1 FAIL  56 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+d20-tls13          s2 FAIL  53 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+d20-tls13-dyn      s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+dc2                s1 PASS  45 pairs,   3 loops, last SessionStopReq/OK                          
+dc2                s2 PASS  43 pairs,   3 loops, last SessionStopReq/OK                          
+dc2-pnc-plain      s1 FAIL 403 pairs,   0 loops, last AuthorizationReq/OK                        cloud.charging.open.protocols.ISO15118.Session.SessionAborted : Authorization: the station kept answering 'Ongoing' for 60 s (limit 60 s); the session ends here.
+dc2-pnc-tls        s1 FAIL 369 pairs,   0 loops, last AuthorizationReq/FAILED                  non-OK: AuthorizationRes=FAILED  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered AuthorizationResType with FAILED; the session ends here.
+fix-ac20-bpt-trigger s1 FAIL  14 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+fix-ac20-tls13     s1 FAIL  14 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+fix-ac20-trigger   s1 FAIL  14 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+fix-ac20-trigger   s2 FAIL  14 pairs,   3 loops, last PowerDeliveryReq/FAILED_ContactorError   non-OK: PowerDeliveryRes=FAILED_ContactorError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_ContactorError; the session ends here.
+fix-d20            s1 PASS  71 pairs,   3 loops, last SessionStopReq/OK                          
+fix-d20            s2 PASS  59 pairs,   3 loops, last SessionStopReq/OK                          
+fix-d20-bpt        s1 PASS  71 pairs,   3 loops, last SessionStopReq/OK                          
+fix-d20-tls13      s1 PASS  58 pairs,   3 loops, last SessionStopReq/OK                          
+fix-d20-tls13      s2 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+fix-mcs            s1 PASS  70 pairs,   3 loops, last SessionStopReq/OK                          
+fix-mcs-bpt        s1 PASS  61 pairs,   3 loops, last SessionStopReq/OK                          
+fix-mux-both-2first s1 PASS  74 pairs,   3 loops, last SessionStopReq/OK                          
+fix-mux-iso20      s1 PASS  70 pairs,   3 loops, last SessionStopReq/OK                          
+fix-mux-tls-both   s1 PASS  64 pairs,   3 loops, last SessionStopReq/OK                          
+mcs                s1 FAIL  66 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+mcs-bpt            s1 FAIL  53 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+mcs-bpt-dyn        s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+mcs-dyn            s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+mux-both-20first   s1 FAIL  57 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+mux-both-2first    s1 FAIL  67 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+mux-both-2first-dyn s1 PASS  64 pairs,   3 loops, last SessionStopReq/OK                          
+mux-iso2           s1 PASS  45 pairs,   3 loops, last SessionStopReq/OK                          
+mux-iso20          s1 FAIL  57 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+mux-iso20-dyn      s1 PASS  64 pairs,   3 loops, last SessionStopReq/OK                          
+mux-tls-both       s1 FAIL  54 pairs,   0 loops, last PowerDeliveryReq/FAILED_EVPowerProfileInvalid non-OK: PowerDeliveryRes=FAILED_EVPowerProfileInvalid  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered PowerDeliveryRes with FAILED_EVPowerProfileInvalid; the session ends here.
+mux-tls-both-dyn   s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
+mux-tls-iso2       s1 PASS  46 pairs,   3 loops, last SessionStopReq/OK                          
+mux-tls-iso20      s1 FAIL   0 pairs,   0 loops, last -                                          System.Security.Authentication.AuthenticationException : Authentication failed, see inner exception.

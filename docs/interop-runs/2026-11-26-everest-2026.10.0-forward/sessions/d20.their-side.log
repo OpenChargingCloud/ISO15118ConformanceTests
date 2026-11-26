@@ -1,0 +1,617 @@
+2026-11-26 23:31:26.215246 [INFO] manager          :: Manager state transition: Idle -> Initializing
+2026-11-26 23:31:26.224609 [INFO] manager          ::   ________      __                _   
+2026-11-26 23:31:26.224721 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-11-26 23:31:26.224742 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-11-26 23:31:26.224751 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-11-26 23:31:26.224760 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-11-26 23:31:26.224768 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-11-26 23:31:26.224775 [INFO] manager          :: 
+2026-11-26 23:31:26.224783 [INFO] manager          :: everest-framework 0.26.0-dev 2026.10.0
+2026-11-26 23:31:26.224791 [INFO] manager          :: everest-core 2026.10.0-dev 2026.10.0
+2026-11-26 23:31:26.224799 [INFO] manager          :: 
+2026-11-26 23:31:26.224811 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-11-26 23:31:26.225710 [INFO] manager          :: Migration files to apply:
+2026-11-26 23:31:26.225743 [INFO] manager          :: Migration file [up] version 1, path: /home/ahzf/everest/dist-2610/share/everest/migrations/1_up-initial.sql
+2026-11-26 23:31:26.225758 [INFO] manager          :: Migration file [up] version 2, path: /home/ahzf/everest/dist-2610/share/everest/migrations/2_up-forward-exceptions.sql
+2026-11-26 23:31:26.225765 [INFO] manager          :: Migration file [up] version 3, path: /home/ahzf/everest/dist-2610/share/everest/migrations/3_up-access_config.sql
+2026-11-26 23:31:26.225772 [INFO] manager          :: Migration file [up] version 4, path: /home/ahzf/everest/dist-2610/share/everest/migrations/4_up-multi_config.sql
+2026-11-26 23:31:26.242770 [INFO] manager          :: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/configs-2610/config-d20-fwd2610.yaml"
+2026-11-26 23:31:26.293301 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-2610/config-d20-fwd2610.yaml
+2026-11-26 23:31:26.662411 [INFO] manager          :: Module configs written to database successfully
+2026-11-26 23:31:26.717618 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-26 23:31:27.141479 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-26 23:31:27.473551 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-26 23:31:27.779288 [INFO] manager          :: Config loading completed in 332ms
+2026-11-26 23:31:27.780311 [INFO] manager          :: Manager state transition: Initializing -> StartingModules
+2026-11-26 23:31:27.780543 [INFO] manager          :: Starting 18 modules
+2026-11-26 23:31:30.261122 [INFO] imd:IMDSimulato  :: Module imd initialized [2346ms]
+2026-11-26 23:31:30.264497 [INFO] grid_connection  :: Module grid_connection_point initialized [2351ms]
+2026-11-26 23:31:30.266690 [INFO] api_sink:Energy  :: Module api_sink initialized [2374ms]
+2026-11-26 23:31:30.282642 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-11-26 23:31:30.282830 [INFO] error_history:E  :: Checking database
+2026-11-26 23:31:30.286398 [INFO] error_history:E  :: Module error_history initialized [2367ms]
+2026-11-26 23:31:30.309063 [INFO] slac:SlacSimula  :: Module slac initialized [2346ms]2026-11-26 23:31:30.309153 [WARN] ev_api:EvAPI    void module::EvAPI::init() :: DEPRECATED MODULE
+  component       : EvAPI
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : none, the module is removed without a replacement
+
+2026-11-26 23:31:30.309772 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2403ms]
+2026-11-26 23:31:30.312537 [INFO] energy_manager:  :: Module energy_manager initialized [2410ms]
+2026-11-26 23:31:30.312930 [INFO] yeti_driver:Yet  :: Module yeti_driver initialized [2334ms]
+2026-11-26 23:31:30.312322 [INFO] powersupply_dc:  :: Module powersupply_dc initialized [2377ms]
+2026-11-26 23:31:30.313770 [WARN] api:API         void module::API::init() :: DEPRECATED MODULE
+  component       : API
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : use the EVerest API modules (evse_manager_consumer_API and others)
+2026-11-26 23:31:30.313769 [INFO] iso15118_car:Ev  :: Module iso15118_car initialized [2391ms]
+2026-11-26 23:31:30.314555 [INFO] token_validator  :: Module token_validator initialized [2354ms]
+2026-11-26 23:31:30.314912 [INFO] api:API          :: Module api initialized [2416ms]
+2026-11-26 23:31:30.315613 [INFO] evse_security:E  :: Module evse_security initialized [2404ms]
+2026-11-26 23:31:30.334781 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2380ms]
+2026-11-26 23:31:30.351380 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2439ms]
+2026-11-26 23:31:30.352954 [INFO] auth:Auth        :: Module auth initialized [2440ms]
+2026-11-26 23:31:30.376730 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2468ms]
+2026-11-26 23:31:30.381132 [INFO] token_provider:  :: Module token_provider initialized [2418ms]
+2026-11-26 23:31:30.419459 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-11-26 23:31:30.420284 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2639ms] 🚙🚙🚙
+2026-11-26 23:31:30.420357 [INFO] manager          :: Manager state transition: StartingModules -> Running
+2026-11-26 23:31:30.427091 [INFO] iso15118_car:Ev  :: Ev15118: using the EVCC MAC of interface lo
+2026-11-26 23:31:30.463718 [INFO] ev_manager:EvMa  :: SLAC state: UNMATCHED
+2026-11-26 23:31:30.470607 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-26 23:31:30.507828 [INFO] iso15118_car:Ev  :: Ev15118: set_dc_params
+2026-11-26 23:31:30.515667 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-26 23:31:30.561043 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-26 23:31:30.563623 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-26 23:31:30.563900 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-26 23:31:30.583184 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-11-26 23:31:30.616238 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-26 23:31:30.659234 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G20
+2026-11-26 23:31:30.660191 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Could not find valid certificate
+2026-11-26 23:31:30.703384 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-26 23:31:30.703512 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::ready() :: Evse15118D20: ISO 15118-20 is offered but no secp521r1 / Ed448 SECC leaf certificate is installed; TLS 1.3 sessions will be presented the ISO 15118-2 (secp256r1) leaf, which ISO 15118-20 EVs may reject
+2026-11-26 23:31:30.930992 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-26 23:31:31.063406 [INFO] iso15118_charge  :: debug_mode enabled: publishing v2g_messages (message id plus the raw V2GTP frame as hex and base64) and ev_app_protocol
+2026-11-26 23:31:31.106537 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-26 23:31:31.155805 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-26 23:31:31.199610 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-26 23:31:31.243768 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-26 23:31:31.291335 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-26 23:31:31.292674 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-26 23:31:31.292893 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-26 23:31:31.334950 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-26 23:31:31.375282 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G20
+2026-11-26 23:31:31.376322 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Could not find valid certificate
+2026-11-26 23:31:31.379155 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-26 23:31:31.379251 [INFO] iso15118_charge  :: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-26 23:31:31.380241 [INFO] iso15118_charge  :: Network device eth0 appeared
+2026-11-26 23:31:31.429068 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-11-26 23:31:31.429206 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-11-26 23:31:31.471717 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-11-26 23:31:31.696003 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-11-26 23:31:36.380770 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-26 23:31:36.643186 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-26 23:31:36.643299 [INFO] ev_manager:EvMa  :: Finished simulation. The vehicle keeps its state until a stop or unplug.
+2026-11-26 23:31:36.643368 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: Disconnected -> A
+2026-11-26 23:31:40.395760 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-26 23:31:40.395903 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-26 23:31:40.571426 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-26 23:31:42.572974 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_slac_matched
+2026-11-26 23:31:42.751533 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: A -> B
+2026-11-26 23:31:43.135597 [INFO] ev_manager:EvMa  :: SLAC state: MATCHING
+2026-11-26 23:31:43.309328 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-11-26 23:31:43.309725 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-11-26 23:31:43.311572 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-11-26 23:31:43.311589 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-26 23:31:43.313239 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-26 23:31:43.359532 [INFO] token_validator  :: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-11-26 23:31:43.609894 [INFO] token_validator  :: Returning validation status: Accepted
+2026-11-26 23:31:43.612361 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-11-26 23:31:43.810698 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-11-26 23:31:43.901933 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-11-26 23:31:43.955912 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-11-26 23:31:43.999506 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-11-26 23:31:44.000086 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-11-26 23:31:44.000172 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-11-26 23:31:44.357679 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-26 23:31:44.357766 [INFO] iso15118_charge  :: Ignoring SDP request because dlink is not ready
+2026-11-26 23:31:45.435352 [INFO] ev_manager:EvMa  :: SLAC state: MATCHED
+2026-11-26 23:31:45.435652 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-11-26 23:31:45.435902 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-11-26 23:31:45.488906 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+2026-11-26 23:31:45.727305 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-26 23:31:45.815388 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: B -> C
+2026-11-26 23:31:46.167305 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-11-26 23:31:46.871239 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-26 23:31:52.117999 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:fefd:8161%eth0]:56142
+2026-11-26 23:31:52.118142 [INFO] iso15118_charge  :: Accepted connection on port 50000
+2026-11-26 23:31:52.118182 [INFO] iso15118_charge  :: V2G communication setup timeout anchored at TCP/TLS establishment
+2026-11-26 23:31:52.138676 [WARN] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Negotiated ISO 15118-20 (urn:iso:std:iso:15118:-20:DC) on an unsecured connection. ISO 15118-20 mandates TLS [V2G20-2356], so this session is not standard-conformant
+2026-11-26 23:31:52.140053 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-11-26 23:31:52.240076 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-11-26 23:31:52.269090 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-11-26 23:31:52.269504 [INFO] iso15118_charge  :: New session created with session_id: 0xB8, 0x60, 0xA8, 0x8A, 0xBE, 0xD4, 0x06, 0xD7
+2026-11-26 23:31:52.269585 [INFO] iso15118_charge  :: V2G session established (SessionSetupReq received); communication setup timeout cancelled
+2026-11-26 23:31:52.283392 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-11-26 23:31:52.350548 [INFO] iso15118_charge  :: Timestamp: 1795732312
+2026-11-26 23:31:52.407466 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-11-26 23:31:52.410753 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-11-26 23:31:52.444268 [WARN] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Timeout 2 is not started
+2026-11-26 23:31:52.455615 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-11-26 23:31:52.499365 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-26 23:31:52.543879 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-26 23:31:52.544156 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-11-26 23:31:52.640758 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-11-26 23:31:52.645888 [INFO] iso15118_charge  :: Requested info about ServiceID: 2
+2026-11-26 23:31:52.683310 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-11-26 23:31:52.740754 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-11-26 23:31:52.743784 [INFO] iso15118_charge  :: Selected DC service parameters: control mode: Scheduled, mobility needs mode: ProvidedByEvcc
+2026-11-26 23:31:52.789710 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-11-26 23:31:52.790087 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: DC
+2026-11-26 23:31:52.840771 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-11-26 23:31:52.845250 [INFO] iso15118_charge  :: Max charge current 200.000000A
+2026-11-26 23:31:52.884690 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcChargeParameterDiscoveryReq
+2026-11-26 23:31:52.884825 [INFO] evse_manager:Ev  :: Received EV maximum limits: {
+    "dc_ev_maximum_current_limit": 200.0,
+    "dc_ev_maximum_power_limit": 50000.0,
+    "dc_ev_maximum_voltage_limit": 500.0
+}
+2026-11-26 23:31:52.975434 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcChargeParameterDiscoveryRes
+2026-11-26 23:31:52.975759 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-11-26 23:31:53.063303 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-11-26 23:31:53.063640 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.063835 [INFO] evse_manager:Ev  :: EVSE ISO Start cable check...
+2026-11-26 23:31:53.064113 [INFO] evse_manager:Ev  ::                                     CAR ISO DC HLC Close contactor (in CableCheck)
+2026-11-26 23:31:53.117967 [INFO] evse_manager:Ev  :: IEC allow_power_on requested: true (reason DCCableCheck)
+2026-11-26 23:31:53.118097 [INFO] evse_manager:Ev  :: IEC allow_power_on forwarded to BSP: true
+2026-11-26 23:31:53.163523 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.207397 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.251283 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.295337 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-11-26 23:31:53.295591 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.364773 [INFO] evse_manager:Ev  :: EV reports 500 V as maximum voltage
+2026-11-26 23:31:53.365048 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 500.00V/2.00A, requested was 500.00V/2.00A.
+2026-11-26 23:31:53.366484 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.479102 [INFO] evse_manager:Ev  :: CableCheck: Using 500 V
+2026-11-26 23:31:53.479271 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.479520 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply: switch ON called, ChargingPhase: CableCheck
+2026-11-26 23:31:53.479806 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.481187 [INFO] powersupply_dc:  :: Set mode: Export ChargingPhase: CableCheck
+2026-11-26 23:31:53.527494 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.575076 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.627367 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.671467 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.715343 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.759298 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.807908 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.851459 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:53.895234 [INFO] evse_manager:Ev  :: CableCheck: IMD self test started.
+2026-11-26 23:31:53.943349 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:53.943693 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.035153 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.079263 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.125615 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.173819 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.223342 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.267343 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.315401 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.359217 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.447125 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.447788 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.496818 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.543231 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.631426 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.675088 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.719379 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.763309 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.807307 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.850965 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:54.896060 [INFO] evse_manager:Ev  :: EVSE ISO Change HLC Limits: 22080W/200A, target_voltage 0, actual_voltage 500, bpt_active false
+2026-11-26 23:31:54.939626 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:54.983307 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.031454 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.123622 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.123994 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.167642 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.211288 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.255314 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.299296 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.363315 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.455106 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.455568 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.499482 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.587024 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.631324 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.675316 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.719315 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.763411 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.807746 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:55.851595 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:55.939231 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.030748 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.031198 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.121987 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.122417 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.173244 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.220465 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.263287 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.315141 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.367184 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.455277 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.455685 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.499300 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.587408 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.631345 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.675364 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.719186 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.763612 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.816082 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.864737 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.951144 [INFO] evse_manager:Ev  :: EVSE IEC Isolation monitor self test result: true
+2026-11-26 23:31:56.951493 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:56.951836 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:56.953020 [INFO] imd:IMDSimulato  :: Started simulated isolation monitoring with 1000 ms interval
+2026-11-26 23:31:56.995164 [INFO] evse_manager:Ev  :: CableCheck: Waiting for 1 isolation measurement sample(s)
+2026-11-26 23:31:56.995360 [INFO] evse_manager:Ev  :: EVSE IEC Isolation measurement Ok R_F 900000.
+2026-11-26 23:31:56.995951 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:57.083245 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply OFF
+2026-11-26 23:31:57.083562 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:57.084761 [INFO] powersupply_dc:  :: Set mode: Off ChargingPhase: CableCheck
+2026-11-26 23:31:57.127663 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:57.171460 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:57.215323 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:57.259460 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:57.303565 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:57.363373 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:57.363382 [INFO] evse_manager:Ev  :: CableCheck done, output is below 60V
+2026-11-26 23:31:57.407904 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:31:57.455579 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:31:57.455932 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcPreChargeReq
+2026-11-26 23:31:57.456096 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 400.00V/2.00A, requested was 400.00V/0.00A.
+2026-11-26 23:31:57.543290 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply: switch ON called, ChargingPhase: PreCharge
+2026-11-26 23:31:57.587789 [INFO] powersupply_dc:  :: Set mode: Export ChargingPhase: PreCharge
+2026-11-26 23:31:57.631058 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcPreChargeRes
+2026-11-26 23:31:57.657542 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-11-26 23:31:57.658607 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-11-26 23:31:57.751208 [INFO] iso15118_charge  :: TCP connection closed by the peer
+2026-11-26 23:31:57.751303 [INFO] iso15118_charge  :: Closing TCP connection
+2026-11-26 23:31:57.751407 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-11-26 23:31:57.751423 [INFO] iso15118_charge  :: Connection is closed
+2026-11-26 23:31:57.753522 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-11-26 23:31:57.753838 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:31:57.795586 [INFO] evse_manager:Ev  :: EVSE IEC D-LINK_ERROR with 5 percent PWM: X1, E/F for T_step_EF, then X1/nominal
+2026-11-26 23:31:57.817753 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->T_step_X1
+2026-11-26 23:31:57.818167 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_X1
+2026-11-26 23:31:57.818253 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:31:57.863863 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-11-26 23:31:57.864132 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-11-26 23:31:58.210968 [INFO] evse_manager:Ev  :: EVSE ISO Change HLC Limits: 22080W/55.2A, target_voltage 400, actual_voltage 400, bpt_active false
+2026-11-26 23:31:58.909277 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_X1: unmatched, go to E/F
+2026-11-26 23:31:58.909613 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_X1->T_step_EF
+2026-11-26 23:31:58.909688 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-11-26 23:31:58.909743 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-11-26 23:31:59.068558 [INFO] evse_manager:Ev  :: IEC allow_power_on forwarded to BSP: false
+2026-11-26 23:31:59.367264 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-11-26 23:31:59.367564 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-11-26 23:32:02.692666 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-26 23:32:02.871248 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-26 23:32:02.871402 [INFO] ev_manager:EvMa  :: Finished simulation. The vehicle keeps its state until a stop or unplug.
+2026-11-26 23:32:02.871488 [INFO] ev_manager:EvMa  :: SLAC state: UNMATCHED
+2026-11-26 23:32:02.974816 [INFO] evse_manager:Ev  :: EVSE IEC Pause in X1 for EV READY regulations
+2026-11-26 23:32:02.975156 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:32:03.371402 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-11-26 23:32:03.371597 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_EF: [EV unplugged]
+2026-11-26 23:32:03.371682 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:32:03.415445 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_EF->Wait for Auth
+2026-11-26 23:32:03.459702 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->Finished
+2026-11-26 23:32:03.459993 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply OFF
+2026-11-26 23:32:03.461602 [INFO] powersupply_dc:  :: Set mode: Off ChargingPhase: PreCharge
+2026-11-26 23:32:03.505015 [INFO] imd:IMDSimulato  :: Stopped simulated isolation monitoring
+2026-11-26 23:32:03.635882 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.0023055555820465086 kWh)
+2026-11-26 23:32:03.723462 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-11-26 23:32:03.723709 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-11-26 23:32:03.811718 [INFO] evse_manager:Ev  :: All errors cleared
+2026-11-26 23:32:03.811918 [INFO] evse_manager:Ev  :: All errors cleared
+2026-11-26 23:32:06.873948 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-26 23:32:06.874054 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-26 23:32:07.055211 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-26 23:32:07.055365 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: C -> A
+2026-11-26 23:32:09.056960 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_slac_matched
+2026-11-26 23:32:09.147630 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: A -> B
+2026-11-26 23:32:09.487578 [INFO] ev_manager:EvMa  :: SLAC state: MATCHING
+2026-11-26 23:32:09.728739 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-11-26 23:32:09.729013 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-11-26 23:32:09.730816 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-11-26 23:32:09.730901 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-26 23:32:09.732527 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-26 23:32:09.775520 [INFO] token_validator  :: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-11-26 23:32:10.025895 [INFO] token_validator  :: Returning validation status: Accepted
+2026-11-26 23:32:10.028762 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-11-26 23:32:10.229916 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-11-26 23:32:10.325620 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-11-26 23:32:10.375653 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-11-26 23:32:10.463685 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0.0023055555820465086 kWh)
+2026-11-26 23:32:10.480752 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-11-26 23:32:10.496707 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-11-26 23:32:10.714359 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-26 23:32:10.714457 [INFO] iso15118_charge  :: Ignoring SDP request because dlink is not ready
+2026-11-26 23:32:11.953413 [INFO] ev_manager:EvMa  :: SLAC state: MATCHED
+2026-11-26 23:32:11.967535 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-11-26 23:32:11.967862 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-11-26 23:32:11.993383 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+2026-11-26 23:32:12.107271 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-26 23:32:12.195406 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: B -> C
+2026-11-26 23:32:12.511466 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-11-26 23:32:13.227103 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-26 23:32:18.434370 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:fefd:8161%eth0]:54132
+2026-11-26 23:32:18.434509 [INFO] iso15118_charge  :: Accepted connection on port 50000
+2026-11-26 23:32:18.434533 [INFO] iso15118_charge  :: V2G communication setup timeout anchored at TCP/TLS establishment
+2026-11-26 23:32:18.436465 [WARN] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Negotiated ISO 15118-20 (urn:iso:std:iso:15118:-20:DC) on an unsecured connection. ISO 15118-20 mandates TLS [V2G20-2356], so this session is not standard-conformant
+2026-11-26 23:32:18.487092 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-11-26 23:32:18.538404 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-11-26 23:32:18.607084 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-11-26 23:32:18.607523 [INFO] iso15118_charge  :: New session created with session_id: 0x23, 0x9A, 0x35, 0xCC, 0x83, 0x48, 0x0A, 0x3A
+2026-11-26 23:32:18.607585 [INFO] iso15118_charge  :: V2G session established (SessionSetupReq received); communication setup timeout cancelled
+2026-11-26 23:32:18.608850 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-11-26 23:32:18.649761 [INFO] iso15118_charge  :: Timestamp: 1795732338
+2026-11-26 23:32:18.655842 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-11-26 23:32:18.656357 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationSetupReq
+2026-11-26 23:32:18.738206 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationSetupRes
+2026-11-26 23:32:18.742016 [WARN] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Timeout 2 is not started
+2026-11-26 23:32:18.783334 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-26 23:32:18.878491 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-26 23:32:18.879022 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-11-26 23:32:18.942282 [INFO] iso15118_charge  :: Requested info about ServiceID: 2
+2026-11-26 23:32:18.971590 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+2026-11-26 23:32:19.016157 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDetailReq
+2026-11-26 23:32:19.042081 [INFO] iso15118_charge  :: Selected DC service parameters: control mode: Scheduled, mobility needs mode: ProvidedByEvcc
+2026-11-26 23:32:19.061547 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDetailRes
+2026-11-26 23:32:19.061936 [INFO] evse_manager:Ev  ::                                     CAR ISO EV selected service: DC
+2026-11-26 23:32:19.062297 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceSelectionReq
+2026-11-26 23:32:19.143171 [INFO] iso15118_charge  :: Max charge current 200.000000A
+2026-11-26 23:32:19.157637 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceSelectionRes
+2026-11-26 23:32:19.157759 [INFO] evse_manager:Ev  :: Received EV maximum limits: {
+    "dc_ev_maximum_current_limit": 200.0,
+    "dc_ev_maximum_power_limit": 50000.0,
+    "dc_ev_maximum_voltage_limit": 500.0
+}
+2026-11-26 23:32:19.158031 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcChargeParameterDiscoveryReq
+2026-11-26 23:32:19.238993 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcChargeParameterDiscoveryRes
+2026-11-26 23:32:19.283202 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ScheduleExchangeReq
+2026-11-26 23:32:19.339192 [INFO] evse_manager:Ev  :: EVSE ISO V2G ScheduleExchangeRes
+2026-11-26 23:32:19.350632 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:19.350969 [INFO] evse_manager:Ev  :: EVSE ISO Start cable check...
+2026-11-26 23:32:19.351236 [INFO] evse_manager:Ev  ::                                     CAR ISO DC HLC Close contactor (in CableCheck)
+2026-11-26 23:32:19.424636 [INFO] evse_manager:Ev  :: IEC allow_power_on requested: true (reason DCCableCheck)
+2026-11-26 23:32:19.424833 [INFO] evse_manager:Ev  :: IEC allow_power_on forwarded to BSP: true
+2026-11-26 23:32:19.467489 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:19.511138 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:19.555426 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:19.599320 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:19.643154 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:19.687764 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-11-26 23:32:19.735239 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:19.768638 [INFO] evse_manager:Ev  :: EV reports 500 V as maximum voltage
+2026-11-26 23:32:19.768864 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 500.00V/2.00A, requested was 500.00V/2.00A.
+2026-11-26 23:32:19.770630 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:19.822734 [INFO] evse_manager:Ev  :: CableCheck: Using 500 V
+2026-11-26 23:32:19.822888 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:19.823200 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply: switch ON called, ChargingPhase: CableCheck
+2026-11-26 23:32:19.824851 [INFO] powersupply_dc:  :: Set mode: Export ChargingPhase: CableCheck
+2026-11-26 23:32:19.867947 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:19.911382 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:19.955388 [INFO] evse_manager:Ev  :: CableCheck: IMD self test started.
+2026-11-26 23:32:19.999118 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:19.999479 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.043186 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.094255 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.140444 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.227186 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.271271 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.315269 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.351704 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.395223 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.487152 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.537464 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.583273 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.627222 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.671266 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.715217 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.759188 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.803494 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.847083 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:20.892053 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:20.935928 [INFO] evse_manager:Ev  :: EVSE ISO Change HLC Limits: 22080W/200A, target_voltage 0, actual_voltage 500, bpt_active false
+2026-11-26 23:32:21.023098 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.023640 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.111169 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.111602 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.159032 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.203228 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.247213 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.293499 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.342736 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.395620 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.483541 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.527669 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.571501 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.615232 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.659490 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.703424 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.747253 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.794396 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.843261 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:21.979198 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:21.979810 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.023475 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.067356 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.119124 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.167286 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.255259 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.255683 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.303406 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.351196 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.399381 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.452090 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.499275 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.547355 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.597742 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.644356 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.731326 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.775419 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.819324 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:22.867376 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:22.911454 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.001667 [INFO] evse_manager:Ev  :: EVSE IEC Isolation monitor self test result: true
+2026-11-26 23:32:23.001929 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.002275 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.003240 [INFO] imd:IMDSimulato  :: Started simulated isolation monitoring with 1000 ms interval
+2026-11-26 23:32:23.047272 [INFO] evse_manager:Ev  :: CableCheck: Waiting for 1 isolation measurement sample(s)
+2026-11-26 23:32:23.047383 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.097953 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.145072 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.231395 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.319024 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.319414 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.354694 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.399574 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.487246 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.575076 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.575369 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.663114 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.663472 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.751194 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.751458 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.799329 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.847038 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:23.896424 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:23.983175 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.027286 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:24.027669 [INFO] evse_manager:Ev  :: EVSE IEC Isolation measurement Ok R_F 900000.
+2026-11-26 23:32:24.115032 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.115387 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply OFF
+2026-11-26 23:32:24.115608 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:24.117096 [INFO] powersupply_dc:  :: Set mode: Off ChargingPhase: CableCheck
+2026-11-26 23:32:24.159457 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.203477 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:24.247008 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.339379 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:24.355540 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.399129 [INFO] evse_manager:Ev  :: CableCheck done, output is below 60V
+2026-11-26 23:32:24.399416 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:24.487591 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.539505 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcCableCheckReq
+2026-11-26 23:32:24.583385 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcCableCheckRes
+2026-11-26 23:32:24.583732 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G DcPreChargeReq
+2026-11-26 23:32:24.583965 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply set: 400.00V/2.00A, requested was 400.00V/0.00A.
+2026-11-26 23:32:24.627467 [INFO] evse_manager:Ev  :: EVSE IEC DC power supply: switch ON called, ChargingPhase: PreCharge
+2026-11-26 23:32:24.631009 [INFO] powersupply_dc:  :: Set mode: Export ChargingPhase: PreCharge
+2026-11-26 23:32:24.671673 [INFO] evse_manager:Ev  :: EVSE ISO V2G DcPreChargeRes
+2026-11-26 23:32:24.672056 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PowerDeliveryReq
+2026-11-26 23:32:24.766401 [INFO] evse_manager:Ev  :: EVSE ISO V2G PowerDeliveryRes
+2026-11-26 23:32:24.835296 [INFO] iso15118_charge  :: TCP connection closed by the peer
+2026-11-26 23:32:24.835396 [INFO] iso15118_charge  :: Closing TCP connection
+2026-11-26 23:32:24.835520 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-11-26 23:32:24.835539 [INFO] iso15118_charge  :: Connection is closed
+2026-11-26 23:32:24.837686 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-11-26 23:32:24.838034 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:32:24.927383 [INFO] evse_manager:Ev  :: EVSE IEC D-LINK_ERROR with 5 percent PWM: X1, E/F for T_step_EF, then X1/nominal
+2026-11-26 23:32:24.927791 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->T_step_X1
+2026-11-26 23:32:24.927938 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_X1
+2026-11-26 23:32:24.928020 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:32:24.971598 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-11-26 23:32:24.972006 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-11-26 23:32:25.345243 [INFO] evse_manager:Ev  :: EVSE ISO Change HLC Limits: 22080W/55.2A, target_voltage 400, actual_voltage 400, bpt_active false
+2026-11-26 23:32:26.021473 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_X1: unmatched, go to E/F
+2026-11-26 23:32:26.021944 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_X1->T_step_EF
+2026-11-26 23:32:26.022050 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-11-26 23:32:26.022121 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-11-26 23:32:26.184412 [INFO] evse_manager:Ev  :: IEC allow_power_on forwarded to BSP: false
+2026-11-26 23:32:26.563432 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-11-26 23:32:26.563720 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-11-26 23:32:30.071237 [INFO] evse_manager:Ev  :: EVSE IEC Pause in X1 for EV READY regulations
+2026-11-26 23:32:30.071678 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-26 23:32:30.781091 [INFO] manager          :: SIGINT/SIGTERM received
+2026-11-26 23:32:30.781197 [INFO] manager          :: Manager state transition: Running -> ShutdownRequested
+2026-11-26 23:32:30.781592 [INFO] manager          :: Shutting down modules...
+2026-11-26 23:32:30.781618 [INFO] manager          :: Manager state transition: ShutdownRequested -> ForceTerminating
+2026-11-26 23:32:30.781628 [INFO] manager          :: Terminating modules (graceful shutdown not enabled)...
+2026-11-26 23:32:30.782459 [INFO] manager          :: SIGTERM of child: api (pid: 956361) succeeded.
+2026-11-26 23:32:30.782692 [INFO] manager          :: SIGTERM of child: api_sink (pid: 956362) succeeded.
+2026-11-26 23:32:30.782889 [INFO] manager          :: SIGTERM of child: auth (pid: 956363) succeeded.
+2026-11-26 23:32:30.783066 [INFO] manager          :: SIGTERM of child: energy_manager (pid: 956364) succeeded.
+2026-11-26 23:32:30.783212 [INFO] manager          :: SIGTERM of child: error_history (pid: 956365) succeeded.
+2026-11-26 23:32:30.783409 [INFO] manager          :: SIGTERM of child: ev_api (pid: 956366) succeeded.
+2026-11-26 23:32:30.783612 [INFO] manager          :: SIGTERM of child: ev_manager (pid: 956367) succeeded.
+2026-11-26 23:32:30.783841 [INFO] manager          :: SIGTERM of child: evse_manager (pid: 956368) succeeded.
+2026-11-26 23:32:30.784034 [INFO] manager          :: SIGTERM of child: evse_security (pid: 956369) succeeded.
+2026-11-26 23:32:30.784211 [INFO] manager          :: SIGTERM of child: grid_connection_point (pid: 956370) succeeded.
+2026-11-26 23:32:30.784376 [INFO] manager          :: SIGTERM of child: imd (pid: 956371) succeeded.
+2026-11-26 23:32:30.784535 [INFO] manager          :: SIGTERM of child: iso15118_car (pid: 956377) succeeded.
+2026-11-26 23:32:30.784748 [INFO] manager          :: SIGTERM of child: iso15118_charger (pid: 956378) succeeded.
+2026-11-26 23:32:30.784881 [INFO] manager          :: SIGTERM of child: powersupply_dc (pid: 956393) succeeded.
+2026-11-26 23:32:30.785019 [INFO] manager          :: SIGTERM of child: slac (pid: 956419) succeeded.
+2026-11-26 23:32:30.785173 [INFO] manager          :: SIGTERM of child: token_provider (pid: 956431) succeeded.
+2026-11-26 23:32:30.785309 [INFO] manager          :: SIGTERM of child: token_validator (pid: 956432) succeeded.
+2026-11-26 23:32:30.785451 [INFO] manager          :: SIGTERM of child: yeti_driver (pid: 956433) succeeded.
+2026-11-26 23:32:30.785533 [INFO] manager          :: Module api_sink (pid 956362) shutdown [4ms] with status: signal=15
+2026-11-26 23:32:30.785584 [INFO] manager          :: Module auth (pid 956363) shutdown [4ms] with status: signal=15
+2026-11-26 23:32:30.785631 [INFO] manager          :: Module energy_manager (pid 956364) shutdown [4ms] with status: signal=15
+2026-11-26 23:32:30.785664 [INFO] manager          :: Module ev_api (pid 956366) shutdown [4ms] with status: signal=15
+2026-11-26 23:32:30.785712 [INFO] manager          :: Module error_history (pid 956365) shutdown [4ms] with status: signal=15
+2026-11-26 23:32:30.785744 [INFO] manager          :: Module ev_manager (pid 956367) shutdown [4ms] with status: signal=15
+2026-11-26 23:32:30.786643 [INFO] manager          :: Module grid_connection_point (pid 956370) shutdown [5ms] with status: signal=15
+2026-11-26 23:32:30.786701 [INFO] manager          :: Module imd (pid 956371) shutdown [5ms] with status: signal=15
+2026-11-26 23:32:30.787102 [INFO] manager          :: Module evse_security (pid 956369) shutdown [5ms] with status: signal=15
+2026-11-26 23:32:30.787161 [INFO] manager          :: Module token_provider (pid 956431) shutdown [5ms] with status: signal=15
+2026-11-26 23:32:30.787197 [INFO] manager          :: Module token_validator (pid 956432) shutdown [6ms] with status: signal=15
+2026-11-26 23:32:30.787882 [INFO] manager          :: Module powersupply_dc (pid 956393) shutdown [6ms] with status: signal=15
+2026-11-26 23:32:30.788641 [INFO] manager          :: Module yeti_driver (pid 956433) shutdown [7ms] with status: signal=15
+2026-11-26 23:32:30.789592 [INFO] manager          :: Module iso15118_car (pid 956377) shutdown [8ms] with status: signal=15
+2026-11-26 23:32:30.789648 [INFO] manager          :: Module slac (pid 956419) shutdown [8ms] with status: signal=15
+2026-11-26 23:32:30.790306 [INFO] manager          :: Module iso15118_charger (pid 956378) shutdown [9ms] with status: signal=15
+2026-11-26 23:32:30.791598 [INFO] manager          :: Module evse_manager (pid 956368) shutdown [10ms] with status: signal=15
+2026-11-26 23:32:30.792350 [INFO] manager          :: Module api (pid 956361) shutdown [11ms] with status: signal=15
+2026-11-26 23:32:30.792387 [INFO] manager          :: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-26 23:32:30.792863 [WARN] manager         std::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&) :: Modules that did not shut down cleanly: api_sink (signal=15) auth (signal=15) energy_manager (signal=15) ev_api (signal=15) error_history (signal=15) ev_manager (signal=15) grid_connection_point (signal=15) imd (signal=15) evse_security (signal=15) token_provider (signal=15) token_validator (signal=15) powersupply_dc (signal=15) yeti_driver (signal=15) iso15118_car (signal=15) slac (signal=15) iso15118_charger (signal=15) evse_manager (signal=15) api (signal=15)
+2026-11-26 23:32:30.793007 [INFO] manager          :: 👋👋👋 EVerest manager is exiting [11ms] 👋👋👋
+2026-11-26 23:32:30.793031 [INFO] manager          :: Manager state transition: ShutdownFinalizing -> Exiting

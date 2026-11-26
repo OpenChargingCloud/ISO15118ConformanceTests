@@ -296,6 +296,25 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
+- **Our `-20` EVCC anchored its `EVPowerProfile` at `TimeAnchor` 0, which is 1970**, and EVerest 2026.10.0
+  refused every Scheduled `-20` session for it with `FAILED_EVPowerProfileInvalid`, 16 of 16
+  ([run](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)). The station was right
+  (`[V2G20-1861]`, `[V2G20-1559]`, `[V2G20-1811]`). **Fixed on branch `evcc20-power-profile-anchor`**:
+  stack `3d99345`, and EVSimulatorApp `e1247de` for the Kotlin and Swift ports and the corpus.
+  The anchor is now the station's latest `TimeStamp` in µs, and the entries follow the offered schedule.
+  After the fix 10 of 10 DC, MCS and IsoMux arms complete against the release. **Open until both PRs are
+  merged and the pointers bumped**, and until the Swift half is green in macOS CI.
+- **Our `-20` SECC offers its schedule at `TimeAnchor` 0 too**: `Secc20Base.ScheduleExchange`,
+  3600 s at 100 W, anchored in 1970. It is the station-side half of the item above. Under
+  `[V2G20-1811]` the offer is zero power at any present time, so the corrected car answers it with a
+  0-W profile. Anchor it at the present; the session corpus changes with it
+  ([run, finding 2](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-2--our-own-secc-offers-its-schedule-at-timeanchor-0-too)).
+- **`-20` AC against EVerest 2026.10.0 stops at `PowerDelivery(Stop)` with `FAILED_ContactorError`**,
+  7 of 7 sessions. The release waits 1400 ms for the AC contactor to *open*, and the SIL car holds CP at
+  state C. Probably the rig's to fix: a state-B trigger on `Waiting for contactor is opened`, the mirror
+  of `carsim-on-trigger.sh`. Not yet tried, so not yet a finding against anyone
+  ([run, finding 3](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-3---20-ac-now-waits-for-the-contactor-to-open-at-powerdeliverystop)).
+
 - ~~**On the BouncyCastle backend our interop TLS validation never sees the peer's intermediates**, so a
   run whose trust store holds a **root alone** refuses every station — including one serving exactly the
   chain it was told to trust.~~ **Fixed 2026-08-16**, stack branch `bc-validate-peer-chain`, the same day
