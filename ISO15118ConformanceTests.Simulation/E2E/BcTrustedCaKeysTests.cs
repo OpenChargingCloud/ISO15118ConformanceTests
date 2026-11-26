@@ -25,6 +25,7 @@ using Org.BouncyCastle.Security;
 using cloud.charging.open.protocols.ISO15118.PKI;
 using cloud.charging.open.protocols.ISO15118.Transport;
 using cloud.charging.open.protocols.ISO15118.Transport.BouncyCastle;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.E2E
 {
@@ -184,7 +185,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
                 await seccStream.FlushAsync(cts.Token);
             }, cts.Token);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port, evcc, ct: cts.Token))
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port), evcc, ct: cts.Token))
             {
                 await evccStream.WriteAsync(new Byte[] { 0x42 }, cts.Token);
                 await evccStream.FlushAsync(cts.Token);

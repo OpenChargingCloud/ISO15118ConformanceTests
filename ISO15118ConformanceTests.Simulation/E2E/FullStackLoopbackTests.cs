@@ -37,6 +37,7 @@ using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.TestData;
 using ISO15118ConformanceTests.Simulation.Timing;
 using cloud.charging.open.protocols.ISO15118.Transport;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.E2E
 {
@@ -84,7 +85,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             // ── The SECC's TCP endpoint (what SDP would advertise) ─────────────────────────────────
             using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0), seccBcTls);
             ISeccDiscovery discovery = new FixedSeccDiscovery(
-                new SeccEndpoint(IPAddress.Loopback, listener.LocalEndpoint.Port, Tls: true));
+                new SeccEndpoint(IPAddress.Loopback, IPPort.Parse(listener.LocalEndpoint.Port), Tls: true));
 
             // EVSE-side SLAC must be listening before the EV starts pairing.
             await using var slacEvse = new SlacEvseStage(slacEvseTransport,

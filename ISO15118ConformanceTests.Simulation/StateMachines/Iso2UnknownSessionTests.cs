@@ -30,6 +30,7 @@ using cloud.charging.open.protocols.ISO15118_2;
 using cloud.charging.open.protocols.ISO15118_2.Generated;
 
 using ISO15118ConformanceTests.Simulation.Timing;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 #endregion
 
@@ -234,7 +235,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
 
             SessionAborted? evccError = null;
 
-            using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, cts.Token, PowerMode.Dc);

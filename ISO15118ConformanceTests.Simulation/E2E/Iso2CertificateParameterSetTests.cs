@@ -28,6 +28,7 @@ using cloud.charging.open.protocols.ISO15118.Transport;
 
 using ISO15118ConformanceTests.Simulation.Interop;
 using ISO15118ConformanceTests.Simulation.Timing;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.E2E
 {
@@ -99,7 +100,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                                       IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+                                       IPAddress.Loopback.ToString(), IPPort.Parse(listener.LocalEndpoint.Port), ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
 
             var evcc = new Evcc2(evccStream, PowerMode.Ac, TimeProvider.System,

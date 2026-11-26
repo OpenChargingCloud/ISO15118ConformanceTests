@@ -20,6 +20,7 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.SECC;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Cli
 {
@@ -43,7 +44,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             {
                 Assert.That(a.OfferBoth,  Is.True, "a station takes whatever drives up");
                 Assert.That(a.Protocol,   Is.EqualTo(ProtocolVariant.Iso15118_20), "-20 is the top preference");
-                Assert.That(a.ListenPort, Is.EqualTo(15118), "the IANA-registered V2G port");
+                Assert.That(a.ListenPort, Is.EqualTo(IPPort.Parse(15118)), "the IANA-registered V2G port");
                 Assert.That(a.TlsStack, Is.EqualTo(TlsStack.None));
             });
         }
@@ -77,7 +78,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             var a = SeccOptions.Parse(["--listen", "5555", "--mode", "dc"]);
             Assert.Multiple(() =>
             {
-                Assert.That(a.ListenPort, Is.EqualTo(5555));
+                Assert.That(a.ListenPort, Is.EqualTo(IPPort.Parse(5555)));
                 Assert.That(a.Mode,       Is.EqualTo(PowerMode.Dc));
             });
         }
@@ -134,7 +135,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             Assert.Multiple(() =>
             {
                 Assert.That(a.UseSlac,        Is.True);
-                Assert.That(a.SlacListenPort, Is.EqualTo(15118));
+                Assert.That(a.SlacListenPort, Is.EqualTo(IPPort.Parse(15118)));
             });
 
             Assert.That(() => SeccOptions.Parse(["--listen", "5555", "--slac"]),

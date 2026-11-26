@@ -27,6 +27,7 @@ using cloud.charging.open.protocols.ISO15118.Transport;
 
 using ISO15118ConformanceTests.Simulation.TestData;
 using ISO15118ConformanceTests.Simulation.Timing;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.E2E
 {
@@ -114,7 +115,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port, evccTls, ct: cts.Token);
+                "localhost", IPPort.Parse(listener.LocalEndpoint.Port), evccTls, ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var evcc     = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
@@ -145,7 +146,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port, EvccTls(pki), ct: cts.Token);
+                "localhost", IPPort.Parse(listener.LocalEndpoint.Port), EvccTls(pki), ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var evcc     = new Evcc20Ac(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
@@ -212,7 +213,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port, RootOnlyEvccTls(pki), ct: cts.Token);
+                "localhost", IPPort.Parse(listener.LocalEndpoint.Port), RootOnlyEvccTls(pki), ct: cts.Token);
             await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
 
             var evcc     = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage);
@@ -243,7 +244,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             Assert.That(async () => await TcpV2GClient.ConnectAsync(
-                            "localhost", listener.LocalEndpoint.Port, RootOnlyEvccTls(pki), ct: cts.Token),
+                            "localhost", IPPort.Parse(listener.LocalEndpoint.Port), RootOnlyEvccTls(pki), ct: cts.Token),
                         Throws.Exception,
                         "a leaf two hops below the only trusted root cannot reach it, and the car must say so");
 

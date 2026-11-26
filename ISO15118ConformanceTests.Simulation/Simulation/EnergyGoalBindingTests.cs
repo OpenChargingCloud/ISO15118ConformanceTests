@@ -37,6 +37,7 @@ using Ac20         = cloud.charging.open.protocols.ISO15118_20.AC.Generated;
 using Dc20Rational = cloud.charging.open.protocols.ISO15118_20.DC.RationalNumber;
 using Ac20Rational = cloud.charging.open.protocols.ISO15118_20.AC.RationalNumber;
 using Rational20   = cloud.charging.open.protocols.ISO15118_20.CommonMessages.RationalNumber;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Simulation
 {
@@ -404,7 +405,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
                 catch (Exception e) { secc.Failure = e; }
             }, cts.Token);
 
-            using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                 (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, cts.Token, mode);
@@ -437,7 +438,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
                 catch (Exception e) { secc.Failure = e; }
             }, cts.Token);
 
-            using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                 (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, cts.Token, mode);

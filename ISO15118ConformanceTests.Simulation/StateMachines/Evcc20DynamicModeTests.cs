@@ -30,6 +30,7 @@ using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
 using Ac20 = cloud.charging.open.protocols.ISO15118_20.AC.Generated;
 using Dc20 = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.StateMachines
 {
@@ -122,7 +123,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 catch { /* the EV may hang up first; the assertions are on what was received */ }
             }, ct);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                      (TlsOptions?) null, ct: ct))
             {
                 await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, ct);

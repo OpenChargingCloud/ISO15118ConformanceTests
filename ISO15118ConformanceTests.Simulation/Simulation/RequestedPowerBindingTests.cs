@@ -29,6 +29,7 @@ using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using cloud.charging.open.protocols.ISO15118.Transport;
 
 using ISO15118ConformanceTests.Simulation.Timing;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Simulation
 {
@@ -257,7 +258,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             }, cts.Token);
 
             Evcc2 evcc;
-            using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                 (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, cts.Token, mode);
@@ -301,7 +302,7 @@ namespace ISO15118ConformanceTests.Simulation.Simulation
             }, cts.Token);
 
             Evcc20Base evcc;
-            using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                 (TlsOptions?) null, ct: cts.Token))
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, cts.Token, mode);

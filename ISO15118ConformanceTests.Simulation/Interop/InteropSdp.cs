@@ -24,6 +24,7 @@ using cloud.charging.open.protocols.ISO15118.SDP.Server;
 
 using cloud.charging.open.protocols.ISO15118.SECC;
 using cloud.charging.open.protocols.ISO15118.Discovery;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Interop;
 
@@ -100,7 +101,7 @@ internal static class InteropSdp
         // reason nothing prints. Program.BuildSdpOptions gets that right and SeccSdpOptionsTests holds
         // it there, so the fixture and `secc --sdp` advertise identically by construction and a run through
         // one is comparable with a run through the other.
-        var server = new SECC_SDPServer(Program.BuildSdpOptions(iface, tcpPort, noTls: !tls));
+        var server = new SECC_SDPServer(Program.BuildSdpOptions(iface, IPPort.Parse(tcpPort), noTls: !tls));
 
         // Whether their EV probed at all is the first question of every reverse run that times out, and
         // until now it could only be answered with tcpdump. Progress rather than Out: these arrive on the

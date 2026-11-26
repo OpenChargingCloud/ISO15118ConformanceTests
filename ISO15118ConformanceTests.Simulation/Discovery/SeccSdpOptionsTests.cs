@@ -23,6 +23,7 @@ using cloud.charging.open.protocols.ISO15118.NetworkInterfaces;
 using cloud.charging.open.protocols.ISO15118.SDP.Messages;
 
 using cloud.charging.open.protocols.ISO15118.SECC;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Discovery
 {
@@ -41,21 +42,21 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
         [Test]
         public void PlaintextSecc_OffersNoTls_AndAnswersNoTlsRequests()
         {
-            var opt = Program.BuildSdpOptions(Iface, 55000, noTls: true);
+            var opt = Program.BuildSdpOptions(Iface, IPPort.Parse(55000), noTls: true);
 
             Assert.Multiple(() =>
             {
                 Assert.That(opt.OfferedSecurity, Is.EqualTo(SDP_Security.NoTLS));
                 Assert.That(opt.RejectNoTlsRequests, Is.False,
                     "a plaintext SECC must answer plaintext SDP_Requests, or --sdp discovery silently fails");
-                Assert.That(opt.SeccPort, Is.EqualTo(55000));
+                Assert.That(opt.SeccPort, Is.EqualTo(IPPort.Parse(55000)));
             });
         }
 
         [Test]
         public void TlsSecc_OffersTls_AndRejectsNoTlsDowngradeRequests()
         {
-            var opt = Program.BuildSdpOptions(Iface, 55000, noTls: false);
+            var opt = Program.BuildSdpOptions(Iface, IPPort.Parse(55000), noTls: false);
 
             Assert.Multiple(() =>
             {

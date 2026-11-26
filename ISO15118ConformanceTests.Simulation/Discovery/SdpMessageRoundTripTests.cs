@@ -21,6 +21,7 @@ using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.SDP.Messages;
 using cloud.charging.open.protocols.ISO15118.V2GTP;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Discovery
 {
@@ -48,7 +49,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
         {
             var response = new SDP_Response(
                                SeccIPAddress:     IPAddress.Parse("fe80::2"),
-                               SeccPort:          15118,
+                               SeccPort:          IPPort.Parse(15118),
                                Security:          SDP_Security.TLS,
                                TransportProtocol: SDP_TransportProtocol.TCP);
 
@@ -59,7 +60,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
             Assert.Multiple(() =>
             {
                 Assert.That(decoded.SeccIPAddress, Is.EqualTo(IPAddress.Parse("fe80::2")));
-                Assert.That(decoded.SeccPort, Is.EqualTo(15118));
+                Assert.That(decoded.SeccPort, Is.EqualTo(IPPort.Parse(15118)));
                 Assert.That(decoded.Security, Is.EqualTo(SDP_Security.TLS));
                 Assert.That(decoded.TransportProtocol, Is.EqualTo(SDP_TransportProtocol.TCP));
             });

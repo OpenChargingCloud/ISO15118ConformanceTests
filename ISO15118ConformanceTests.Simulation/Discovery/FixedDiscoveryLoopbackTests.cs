@@ -25,6 +25,7 @@ using cloud.charging.open.protocols.ISO15118.StateMachines;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.Timing;
 using cloud.charging.open.protocols.ISO15118.Transport;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Discovery
 {
@@ -53,7 +54,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
 
             // Discovery stage → endpoint (here fixed; the SDP client yields the same SeccEndpoint shape).
             ISeccDiscovery discovery = new FixedSeccDiscovery(
-                new SeccEndpoint(IPAddress.Loopback, listener.LocalEndpoint.Port, Tls: false));
+                new SeccEndpoint(IPAddress.Loopback, IPPort.Parse(listener.LocalEndpoint.Port), Tls: false));
             var endpoint = await discovery.DiscoverAsync(cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(endpoint.Host, endpoint.Port, ct: cts.Token);

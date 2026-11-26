@@ -23,6 +23,7 @@ using cloud.charging.open.protocols.ISO15118.SDP.Client;
 using cloud.charging.open.protocols.ISO15118.SDP.Messages;
 
 using cloud.charging.open.protocols.ISO15118.Discovery;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Discovery
 {
@@ -35,7 +36,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
     public class SeccDiscoveryMappingTests
     {
         private static SDP_Response Response(string addr, ushort port, SDP_Security security)
-            => new(IPAddress.Parse(addr), port, security, SDP_TransportProtocol.TCP);
+            => new(IPAddress.Parse(addr), IPPort.Parse(port), security, SDP_TransportProtocol.TCP);
 
         [Test]
         public void Success_MapsAddressPortTls_AndAttachesLinkLocalScope()
@@ -52,7 +53,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
 
             Assert.Multiple(() =>
             {
-                Assert.That(endpoint.Port, Is.EqualTo(15118));
+                Assert.That(endpoint.Port, Is.EqualTo(IPPort.Parse(15118)));
                 Assert.That(endpoint.Tls, Is.True);
                 Assert.That(endpoint.Address.ScopeId, Is.EqualTo(12), "the discovery interface scope must be attached to a link-local address");
             });
@@ -67,7 +68,7 @@ namespace ISO15118ConformanceTests.Simulation.Discovery
             {
                 Assert.That(endpoint.Tls, Is.False);
                 Assert.That(endpoint.Address.ScopeId, Is.EqualTo(0));
-                Assert.That(endpoint.Port, Is.EqualTo(8443));
+                Assert.That(endpoint.Port, Is.EqualTo(IPPort.Parse(8443)));
             });
         }
 

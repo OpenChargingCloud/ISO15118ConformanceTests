@@ -26,6 +26,7 @@ using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.Timing;
 using cloud.charging.open.protocols.ISO15118.Transport;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.StateMachines
 {
@@ -74,7 +75,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 await secc.RunAsync(seccStream, cts.Token);
             }, cts.Token);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                      (TlsOptions?) null, ct: cts.Token))
             {
                 var accepted = await SapHandshake.RunEvccSideAsync(evccStream, Both(PowerMode.Ac), cts.Token);
@@ -107,7 +108,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 await secc.RunAsync(seccStream, cts.Token);
             }, cts.Token);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                      (TlsOptions?) null, ct: cts.Token))
             {
                 var accepted = await SapHandshake.RunEvccSideAsync(evccStream, Both(PowerMode.Dc), cts.Token);
@@ -148,7 +149,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 await secc.RunAsync(seccStream, cts.Token);
             }, cts.Token);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                      (TlsOptions?) null, ct: cts.Token))
             {
                 var accepted = await SapHandshake.RunEvccSideAsync(evccStream,
@@ -183,7 +184,7 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 Assert.That(thrown!.Message, Does.Contain("offered none of"));
             }, cts.Token);
 
-            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+            using (var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                                      (TlsOptions?) null, ct: cts.Token))
             {
                 var thrown = await Assert.ThrowsAsync<SessionAborted>(async () =>

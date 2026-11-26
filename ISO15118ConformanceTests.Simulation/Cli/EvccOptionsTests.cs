@@ -20,6 +20,7 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.EVCC;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Cli
 {
@@ -77,7 +78,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             Assert.Multiple(() =>
             {
                 Assert.That(a.ConnectHost, Is.EqualTo("127.0.0.1"));
-                Assert.That(a.ConnectPort, Is.EqualTo(5555));
+                Assert.That(a.ConnectPort, Is.EqualTo(IPPort.Parse(5555)));
                 Assert.That(a.Protocol,    Is.EqualTo(ProtocolVariant.Iso15118_20));
                 Assert.That(a.Mode,        Is.EqualTo(PowerMode.Dc));
             });
@@ -181,7 +182,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
             {
                 Assert.That(a.UseSlac,      Is.True);
                 Assert.That(a.SlacPeerHost, Is.EqualTo("127.0.0.1"));
-                Assert.That(a.SlacPeerPort, Is.EqualTo(15118));
+                Assert.That(a.SlacPeerPort, Is.EqualTo(IPPort.Parse(15118)));
             });
 
             Assert.That(() => EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--slac"]),
@@ -236,7 +237,7 @@ namespace ISO15118ConformanceTests.Simulation.Cli
                 // The zone survives as a number all the way to the socket, which is the whole point:
                 // fe80::1 without it does not say which wire to put the packet on.
                 Assert.That(a.ConnectHost, Is.EqualTo("fe80::1%12"));
-                Assert.That(a.ConnectPort, Is.EqualTo(5555));
+                Assert.That(a.ConnectPort, Is.EqualTo(IPPort.Parse(5555)));
             });
         }
 

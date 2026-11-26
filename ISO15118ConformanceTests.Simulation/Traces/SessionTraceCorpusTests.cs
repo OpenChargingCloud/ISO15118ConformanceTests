@@ -36,6 +36,7 @@ using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 // ChargingSession is a stop reason on both protocols and a different generated enum on each.
 using I2ChargingSession  = cloud.charging.open.protocols.ISO15118_2.Generated.ChargingSession;
 using C20ChargingSession = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ChargingSession;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Traces;
 
@@ -1022,7 +1023,7 @@ public class SessionTraceCorpusTests
         }, cts.Token);
 
         using var socket = await TcpV2GClient.ConnectAsync(
-                                     IPAddress.Loopback.ToString(), listener.LocalEndpoint.Port, ct: cts.Token);
+                                     IPAddress.Loopback.ToString(), IPPort.Parse(listener.LocalEndpoint.Port), ct: cts.Token);
 
         var recordingStream = new RecordingStream(socket);
         await Task.WhenAll(scenario.RunEvcc(recordingStream, clock, cts.Token), seccTask);

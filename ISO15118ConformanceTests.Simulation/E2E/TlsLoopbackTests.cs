@@ -29,6 +29,7 @@ using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.TestData;
 using ISO15118ConformanceTests.Simulation.Timing;
 using cloud.charging.open.protocols.ISO15118.Transport;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.E2E
 {
@@ -82,7 +83,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port,
+                "localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                 ClientTls(cert, SslProtocols.Tls12, TlsProfiles.Iso2CipherSuites), ct: cts.Token);
             TlsAssert.NegotiatedVersion(evccStream, SslProtocols.Tls12);
             TlsAssert.NegotiatedCipherSuite(evccStream, TlsProfiles.Iso2CipherSuites);
@@ -117,7 +118,7 @@ namespace ISO15118ConformanceTests.Simulation.E2E
             }, cts.Token);
 
             using var evccStream = await TcpV2GClient.ConnectAsync(
-                "localhost", listener.LocalEndpoint.Port,
+                "localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                 ClientTls(cert, SslProtocols.Tls13, TlsProfiles.Iso20CipherSuites), ct: cts.Token);
             TlsAssert.NegotiatedVersion(evccStream, SslProtocols.Tls13);
             TlsAssert.NegotiatedCipherSuite(evccStream, TlsProfiles.Iso20CipherSuites);

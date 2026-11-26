@@ -22,6 +22,7 @@ using System.Net.Sockets;
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.Transport;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Transport;
 
@@ -68,7 +69,7 @@ public class V2GEndpointTests
         Assert.Multiple(() =>
         {
             Assert.That(endpoint.Host,        Is.EqualTo("station.local"));
-            Assert.That(endpoint.Port,        Is.EqualTo(15118));
+            Assert.That(endpoint.Port,        Is.EqualTo(IPPort.Parse(15118)));
             Assert.That(endpoint.Zone,        Is.Null);
             Assert.That(endpoint.Address,     Is.Null, "a name is resolved by the socket layer, not here");
             Assert.That(endpoint.ConnectHost, Is.EqualTo("station.local"));
@@ -83,7 +84,7 @@ public class V2GEndpointTests
         Assert.Multiple(() =>
         {
             Assert.That(endpoint.Address, Is.EqualTo(IPAddress.Parse("192.0.2.7")));
-            Assert.That(endpoint.Port,    Is.EqualTo(15118));
+            Assert.That(endpoint.Port,    Is.EqualTo(IPPort.Parse(15118)));
             Assert.That(endpoint.ToString(), Is.EqualTo("192.0.2.7:15118"));
         });
     }

@@ -27,6 +27,7 @@ using cloud.charging.open.protocols.ISO15118.StateMachines.Iso2;
 using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using ISO15118ConformanceTests.Simulation.Timing;
 using cloud.charging.open.protocols.ISO15118.Transport;
+using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Metering;
 
@@ -214,7 +215,7 @@ public class EvMeterTests
         }, cts.Token);
 
         Evcc20Dc evcc;
-        using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+        using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                             (TlsOptions?) null, ct: cts.Token))
         {
             await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, cts.Token, PowerMode.Dc);
@@ -251,7 +252,7 @@ public class EvMeterTests
         }, cts.Token);
 
         Evcc2 evcc;
-        using (var stream = await TcpV2GClient.ConnectAsync("localhost", listener.LocalEndpoint.Port,
+        using (var stream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
                                                             (TlsOptions?) null, ct: cts.Token))
         {
             await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, cts.Token, mode);
