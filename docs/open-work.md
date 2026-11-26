@@ -296,14 +296,14 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **Our `-20` EVCC anchored its `EVPowerProfile` at `TimeAnchor` 0, which is 1970**, and EVerest 2026.10.0
-  refused every Scheduled `-20` session for it with `FAILED_EVPowerProfileInvalid`, 16 of 16
+- ~~**Our `-20` EVCC anchored its `EVPowerProfile` at `TimeAnchor` 0, which is 1970**~~, and EVerest
+  2026.10.0 refused every Scheduled `-20` session for it with `FAILED_EVPowerProfileInvalid`, 16 of 16
   ([run](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)). The station was right
-  (`[V2G20-1861]`, `[V2G20-1559]`, `[V2G20-1811]`). **Fixed on branch `evcc20-power-profile-anchor`**:
-  stack `3d99345`, and EVSimulatorApp `e1247de` for the Kotlin and Swift ports and the corpus.
+  (`[V2G20-1861]`, `[V2G20-1559]`, `[V2G20-1811]`). **Fixed 2026-11-27**:
+  WWCP_ISO15118#53 (`ca864e5`) for the C# car, and EVSimulatorApp#43 (`7a80a0f`) for the Kotlin and
+  Swift ports and the corpus. All three replay the same bytes, and Swift is green in macOS CI.
   The anchor is now the station's latest `TimeStamp` in µs, and the entries follow the offered schedule.
-  After the fix 10 of 10 DC, MCS and IsoMux arms complete against the release. **Open until both PRs are
-  merged and the pointers bumped**, and until the Swift half is green in macOS CI.
+  After the fix 10 of 10 DC, MCS and IsoMux arms complete against the release.
 - **Our `-20` SECC offers its schedule at `TimeAnchor` 0 too**: `Secc20Base.ScheduleExchange`,
   3600 s at 100 W, anchored in 1970. It is the station-side half of the item above. Under
   `[V2G20-1811]` the offer is zero power at any present time, so the corrected car answers it with a
