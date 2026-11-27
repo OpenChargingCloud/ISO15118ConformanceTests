@@ -160,7 +160,9 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
 
 - ~~**`-20` Plug & Charge against EVerest 2026.10.0, forward.**~~ **Run 2026-11-27, ✅ 3 of 3** after
   three fixes of ours (*Ours to fix*, below). The expected validator wall did not appear: `-20` asks
-  `DummyTokenValidator` directly. What it needed was a P-521 contract chain, since the release's own MO
+  `DummyTokenValidator` through the same `token_provider` hop `-2` needs (corrected 2026-11-27: the `-2`
+  config of that run lacked it, [`…-iso2-pnc`](interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/notes.md)).
+  What it needed was a P-521 contract chain, since the release's own MO
   test PKI is P-256 and fails its station's `-20` profile check
   ([run, finding 4](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
 
@@ -185,6 +187,13 @@ the requirement `[V2G20-1237]` puts `-20` in the TLS 1.3 row alone, and it is th
 was fixed against on 2026-08-10. It is not filed because this run configured their car and then offered
 it the downgrade; the arm that would settle it is a **station of theirs** answering `NoTLS` to a `-20` EV,
 which is a different run and a cheap one.
+<br>**Run 2026-11-27 against 2026.10.0, and it is theirs.** `PyEvJosev` is gone from the release, so the
+EV is `Ev15118`, against their own `Evse15118D20` with `ENFORCE_NO_TLS`. With `tls: prefer` it asks for
+TLS, gets `0x10`, connects over plain TCP and offers `-20:DC` first. Its offer is narrowed after a TLS
+handshake and not on plain TCP. `require` refuses, and a TLS station gets TLS 1.3. The station warns;
+the car does not. **The fiftieth filing**:
+[`everest-ev15118-plaintext-iso20-offer`](reports/everest-ev15118-plaintext-iso20-offer.md),
+[run](interop-runs/2026-11-27-everest-2026.10.0-notls/notes.md).
 
 **The table emptied and then produced work that was not in it.** `AC_BPT` in reverse — carried only in
 the 08-13 run note's `Next`, never in this file — ran the same afternoon and is the half of BPT no
@@ -893,8 +902,8 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
 
 ## Not in the matrix at all
 
-- **Forty-eight issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
-  in thirty-four sendable reports. Each ends with a *Before sending* checklist whose unticked items are
+- **Forty-nine issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
+  in thirty-five sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin: *Ours to fix* is empty, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.
