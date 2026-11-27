@@ -336,8 +336,8 @@ backlog is that half of it turns out not to have been work.
 ## Ours to fix
 
 - ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
-  **Fixed 2026-11-27 on stack branch `evcc2-receipt-last-meterinfo` (`8e6fd3e`)**. It is not on
-  master until that branch is merged and EVSimulatorApp and this repository follow it. Found the same
+  **Fixed 2026-11-27**: stack `8e6fd3e`, merged as `a6259a4`, followed by EVSimulatorApp `8fccda1`
+  and by this repository the same evening. Found the same
   day against EVerest 2026.10.0 with `ev_receipt_required` on. Their `CurrentDemandRes`
   carried `ReceiptRequired = true` and no `MeterInfo` (their flag is one-shot). `Evcc2.cs:467` signed a
   receipt only over a `MeterInfo` it was just given, so the car went on to `PowerDeliveryReq` and got
@@ -924,7 +924,7 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
 - **Forty-nine issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
   in thirty-five sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin: *Ours to fix* holds one item, fixed and waiting for its merge, *Open questions about our own stack* has none, and
+  and by a wide margin: *Ours to fix* is empty again, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That

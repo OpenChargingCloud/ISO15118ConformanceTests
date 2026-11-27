@@ -249,6 +249,11 @@ internal static class InteropSession
                                IsolationDeclaresNotReady
                                                   = InteropEnvironment.IsolationDeclaresNotReady(),
 
+                               // Receipts signed over other bytes than they carry, for a station's
+                               // `[V2G2-904]` check. Off unless a run asks for it.
+                               TamperMeteringReceipt
+                                                  = InteropEnvironment.TamperMeteringReceipt(),
+
 
                                // `Evcc2.SendSessionId` has existed since 2026-08-11 and this line had not:
                                // every -2 caller passing sendSessionId had it discarded here, so the one

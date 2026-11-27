@@ -166,6 +166,84 @@ namespace ISO15118ConformanceTests.Simulation.E2E
         }
 
         /// <summary>
+        /// `[V2G2-790]` (DC) and `[V2G2-408]` (AC): once a status response says <c>ReceiptRequired = true</c>,
+        /// the EVCC owes a <c>MeteringReceiptReq</c>, and neither requirement conditions that on the
+        /// response carrying a <c>MeterInfo</c>. The station here asks a second time with no record, the way
+        /// EVerest 2026.10.0's one-shot <c>meter_info_is_used</c> flag does. The car must answer it, signing
+        /// the last record it was given.
+        /// </summary>
+        /// <remarks>Until 2026-11-27 our car skipped that receipt, and EVerest answered the next
+        /// <c>PowerDeliveryReq</c> with <c>FAILED_SequenceError</c>
+        /// (<c>docs/interop-runs/2026-11-27-everest-2026.10.0-findings-live/</c>).</remarks>
+        [TestCase(PowerMode.Ac)]
+        [TestCase(PowerMode.Dc)]
+        public async Task PncSession_ReceiptRequestedWithoutMeterInfo_SignsThePreviousRecord(PowerMode mode)
+        {
+            var (evcc, secc) = await RunPncReceiptSession(mode, tamper: false);
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True, "the session reaches SessionStop");
+                Assert.That(evcc.MeteringReceiptsSent, Is.EqualTo(2), "one receipt per request, the record-less one included");
+                Assert.That(evcc.ReceiptsOverPreviousMeterInfo, Is.EqualTo(1));
+                Assert.That(secc.MeteringReceipts, Has.Count.EqualTo(2));
+                Assert.That(secc.MeteringReceipts, Has.All.Matches<Iso2ReceiptResult>(r => r.DigestOk && r.SignatureOk),
+                    "both receipts verify, so the second one signed the bytes it carried");
+            });
+        }
+
+        /// <summary>
+        /// The instrument for `[V2G2-904]`: with <see cref="Evcc2.TamperMeteringReceipt"/> the receipt's
+        /// digest covers a different <c>MeterReading</c> from the one it carries. A station that verifies
+        /// sees the mismatch. Ours records it, which is what tells it apart from one that does not look.
+        /// </summary>
+        [Test]
+        public async Task PncSession_TamperedReceipt_FailsTheDigestAtTheSecc()
+        {
+            var (evcc, secc) = await RunPncReceiptSession(PowerMode.Ac, tamper: true);
+            Assert.Multiple(() =>
+            {
+                Assert.That(evcc.MeteringReceiptsSent, Is.EqualTo(1));
+                Assert.That(secc.MeteringReceipts, Has.Count.EqualTo(1));
+                Assert.That(secc.MeteringReceipts[0].DigestOk, Is.False, "the digest was taken over other bytes");
+            });
+        }
+
+        private static async Task<(Evcc2 Evcc, Secc2 Secc)> RunPncReceiptSession(PowerMode mode, bool tamper)
+        {
+            using var contractKey = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+            using var contract = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+                    "CN=UKSWI123456791A", contractKey, System.Security.Cryptography.HashAlgorithmName.SHA256)
+                .CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_2, cts.Token);
+                var secc = new Secc2(mode, TimeSpan.FromSeconds(60), TimeProvider.System)
+                {
+                    DemandReceiptWithoutMeterInfo = !tamper,
+                };
+                await secc.RunAsync(seccStream, cts.Token);
+                return secc;
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync(
+                IPAddress.Loopback.ToString(), IPPort.Parse(listener.LocalEndpoint.Port), ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_2, cts.Token);
+
+            var evcc = new Evcc2(evccStream, mode, TimeProvider.System, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+            {
+                Pnc = new cloud.charging.open.protocols.ISO15118.StateMachines.Iso20.PncEvccOptions(contract.RawData, new[] { contract.RawData }, contractKey),
+                TamperMeteringReceipt = tamper,
+            };
+            await Task.WhenAll(evcc.RunAsync(cts.Token), seccTask);
+            return (evcc, await seccTask);
+        }
+
+        /// <summary>
         /// Pause/resume across two real TCP connections ([V2G2-740]): session 1 ends with
         /// <c>ChargingSession.Pause</c> (SECC parks the session id), session 2 reconnects, re-runs SAP, and
         /// rejoins with the old id — the SECC answers <c>OK_OldSessionJoined</c> and the session completes.

@@ -208,7 +208,7 @@ deprecated in this release. It stays a note unless someone wants a fifty-first f
 ## Next
 
 - ~~Our car: send the `[V2G2-790]` receipt over the last `MeterInfo`~~ and ~~the tamper knob~~: done
-  the same evening (above). What is left is merging stack branch `evcc2-receipt-last-meterinfo` and
-  the two pointer bumps.
+  the same evening (above). Merged as stack `a6259a4`, followed by EVSimulatorApp `8fccda1` and by this
+  repository.
 - Update `everest-d20-eim-rejection` (55 s) and `everest-evsemanager-renegotiation-supply` (clears at
   the unplug) before either is sent. Done in this change; see the reports' banners.

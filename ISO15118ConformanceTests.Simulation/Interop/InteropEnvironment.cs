@@ -779,6 +779,18 @@ internal static class InteropEnvironment
         => Read("V2G_INTEROP_ISOLATION_NOT_READY") == "1";
 
 
+    /// <summary>-2 Plug &amp; Charge only: our car signs every <c>MeteringReceiptReq</c> over a
+    /// <c>MeterReading</c> one higher than the one it sends. <c>V2G_INTEROP_RECEIPT_TAMPER=1</c>.</summary>
+    /// <remarks>
+    /// `[V2G2-904]` lets a station verify receipts, and a validly signed receipt is answered <c>OK</c>
+    /// whether it is checked or not. A receipt whose digest does not match its body tells the two apart.
+    /// Built for the incoming half of <c>docs/reports/everest-evsev2g-metering-chain.md</c>; see
+    /// <c>Evcc2.TamperMeteringReceipt</c>. A run that sets it is measuring a station's check, not charging.
+    /// </remarks>
+    public static Boolean TamperMeteringReceipt()
+        => Read("V2G_INTEROP_RECEIPT_TAMPER") == "1";
+
+
     public static Iso2CertInstallOptions? CertificateProvisioningOrNull()
     {
 
