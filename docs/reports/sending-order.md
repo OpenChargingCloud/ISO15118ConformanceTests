@@ -2,7 +2,7 @@
 
 > **2026-11-27 — the live EVerest set is reproduced against the release, not only read in it.** Every
 > still-present finding a session can reach was driven on the wire against 2026.10.0, and every one
-> reproduces: (2), (3), (6), (8), (9), (10), (16) §1 and §2, (17), (19) both halves, (21), (23), and
+> reproduces: (2), (3), (6), (8), (9), (10), (16) §1, §2 and §4, (17), (19) both halves, (21), (23), and
 > the forty-ninth. Two do so with the release's own numbers, which the reports now carry:
 > - (9) ends its `Ongoing` loop at **55 s**, not 180 s.
 > - The forty-ninth **no longer leaves the station `Inoperative`** for the next session.
@@ -28,7 +28,7 @@
 > is half wrong and must be rewritten before it is sent.
 
 Thirty-five sendable reports carrying **forty-nine issues** across six projects, and none of them sent.
-**Thirty-seven of those issues are live in the newest version** of their counterparty (counted
+**Thirty-eight of those issues are live in the newest version** of their counterparty (counted
 2026-11-27; the [index](README.md) has the table). The rest are backport asks, fixed, or due for a
 rewrite —
 plus, since 2026-11-05, one **advisory amendment**, which is neither a report nor a finding of ours and

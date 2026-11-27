@@ -1,0 +1,4 @@
+ClientHello extensions: 22 23 5 13 10 11 3 
+trusted_ca_keys extension: 00150328537d28c2d29c08e9b9a63a81b97d4eb38af2ae
+  cert_sha1_hash 28537d28c2d29c08e9b9a63a81b97d4eb38af2ae
+server Certificate: 2 certificate(s) -> /home/ahzf/everest/run/2610-isomux4/capture-a/acap.served-chain.pem

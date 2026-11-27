@@ -1,0 +1,23 @@
+A total of 1 test files matched the specified pattern.
+/home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+Running selected tests in /home/ahzf/wsl-artifacts/bin/ISO15118ConformanceTests.Simulation/release/ISO15118ConformanceTests.Simulation.dll
+   NUnit3TestExecutor discovered 1 of 1 NUnit test cases using Current Discovery mode, Explicit run
+Connecting to their SECC at [fe80::215:5dff:fefd:8161%2]:64110 ...
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [315 ms]
+  Error Message:
+   Org.BouncyCastle.Tls.TlsFatalAlert : bad_certificate(42)
+  AlertDescription: 42
+  Stack Trace:
+--- End of stack trace from previous location ---
+--- End of stack trace from previous location ---
+--- End of stack trace from previous location ---
+1)    at cloud.charging.open.protocols.ISO15118.Transport.BouncyCastle.BcV2GTls.ValidatePeer(Certificate peer, Func`2 validateLeaf, Int16 missingAlert, Func`2 validateChain) in /home/ahzf/i15118/libs/EVSimulatorApp/libs/WWCP_ISO15118/WWCP_ISO15118_Session/Transport/BouncyCastle/BcV2GTls.cs:line 226
+--- End of stack trace from previous location ---
+--- End of stack trace from previous location ---
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Connecting to their SECC at [fe80::215:5dff:fefd:8161%2]:64110 ...
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 1.4999 Seconds
