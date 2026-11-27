@@ -1,0 +1,363 @@
+2026-11-27 16:48:13.565223 [INFO] manager          :: Manager state transition: Idle -> Initializing
+2026-11-27 16:48:13.571842 [INFO] manager          ::   ________      __                _   
+2026-11-27 16:48:13.571882 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-11-27 16:48:13.571888 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-11-27 16:48:13.571893 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-11-27 16:48:13.571898 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-11-27 16:48:13.571903 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-11-27 16:48:13.571908 [INFO] manager          :: 
+2026-11-27 16:48:13.571913 [INFO] manager          :: everest-framework 0.26.0-dev 2026.10.0
+2026-11-27 16:48:13.571918 [INFO] manager          :: everest-core 2026.10.0-dev 2026.10.0
+2026-11-27 16:48:13.571923 [INFO] manager          :: 
+2026-11-27 16:48:13.571929 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-11-27 16:48:13.572466 [INFO] manager          :: Migration files to apply:
+2026-11-27 16:48:13.572484 [INFO] manager          :: Migration file [up] version 1, path: /home/ahzf/everest/dist-2610/share/everest/migrations/1_up-initial.sql
+2026-11-27 16:48:13.572494 [INFO] manager          :: Migration file [up] version 2, path: /home/ahzf/everest/dist-2610/share/everest/migrations/2_up-forward-exceptions.sql
+2026-11-27 16:48:13.572500 [INFO] manager          :: Migration file [up] version 3, path: /home/ahzf/everest/dist-2610/share/everest/migrations/3_up-access_config.sql
+2026-11-27 16:48:13.572505 [INFO] manager          :: Migration file [up] version 4, path: /home/ahzf/everest/dist-2610/share/everest/migrations/4_up-multi_config.sql
+2026-11-27 16:48:13.579048 [INFO] manager          :: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/configs-2610/config-notls-require.yaml"
+2026-11-27 16:48:13.596009 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-2610/config-notls-require.yaml
+2026-11-27 16:48:13.731136 [INFO] manager          :: Module configs written to database successfully
+2026-11-27 16:48:13.747696 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-27 16:48:13.873753 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-27 16:48:13.997075 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-27 16:48:14.110772 [INFO] manager          :: Config loading completed in 125ms
+2026-11-27 16:48:14.111667 [INFO] manager          :: Manager state transition: Initializing -> StartingModules
+2026-11-27 16:48:14.111902 [INFO] manager          :: Starting 18 modules
+2026-11-27 16:48:16.417136 [INFO] api_sink:Energy  :: Module api_sink initialized [2280ms]
+2026-11-27 16:48:16.428070 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2280ms]
+2026-11-27 16:48:16.431894 [WARN] api:API         void module::API::init() :: DEPRECATED MODULE
+  component       : API
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : use the EVerest API modules (evse_manager_consumer_API and others)
+2026-11-27 16:48:16.432275 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-11-27 16:48:16.439809 [INFO] iso15118_car:Ev  :: Module iso15118_car initialized [2285ms]
+2026-11-27 16:48:16.440839 [INFO] grid_connection  :: Module grid_connection_point initialized [2288ms]2026-11-27 16:48:16.449021 [INFO] error_history:E  :: Checking database
+
+2026-11-27 16:48:16.449548 [INFO] powersupply_dc:  :: Module powersupply_dc initialized [2291ms]
+2026-11-27 16:48:16.441182 [INFO] evse_security:E  :: Module evse_security initialized [2289ms]
+2026-11-27 16:48:16.450315 [INFO] api:API          :: Module api initialized [2313ms]
+2026-11-27 16:48:16.451649 [INFO] error_history:E  :: Module error_history initialized [2309ms]
+2026-11-27 16:48:16.451869 [INFO] slac:SlacSimula  :: Module slac initialized [2289ms]
+2026-11-27 16:48:16.452603 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2294ms]
+2026-11-27 16:48:16.461656 [INFO] imd:IMDSimulato  :: Module imd initialized [2309ms]
+2026-11-27 16:48:16.484746 [INFO] energy_manager:  :: Module energy_manager initialized [2340ms]
+2026-11-27 16:48:16.512524 [INFO] auth:Auth        :: Module auth initialized [2375ms]
+2026-11-27 16:48:16.513935 [INFO] token_validator  :: Module token_validator initialized [2348ms]
+2026-11-27 16:48:16.515540 [WARN] ev_api:EvAPI    void module::EvAPI::init() :: DEPRECATED MODULE
+  component       : EvAPI
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : none, the module is removed without a replacement
+2026-11-27 16:48:16.516250 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2374ms]
+2026-11-27 16:48:16.525969 [INFO] token_provider:  :: Module token_provider initialized [2363ms]
+2026-11-27 16:48:16.526388 [INFO] yeti_driver:Yet  :: Module yeti_driver initialized [2361ms]
+2026-11-27 16:48:16.553074 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2403ms]
+2026-11-27 16:48:16.595303 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-11-27 16:48:16.595941 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2484ms] 🚙🚙🚙
+2026-11-27 16:48:16.596020 [INFO] manager          :: Manager state transition: StartingModules -> Running
+2026-11-27 16:48:16.598335 [INFO] iso15118_car:Ev  :: Search for the first available ipv6 interface
+2026-11-27 16:48:16.598731 [INFO] iso15118_car:Ev  :: Ev15118: using the EVCC MAC of interface eth0
+2026-11-27 16:48:16.646096 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-27 16:48:16.647306 [INFO] iso15118_car:Ev  :: Ev15118: set_dc_params
+2026-11-27 16:48:16.691043 [INFO] ev_manager:EvMa  :: SLAC state: UNMATCHED
+2026-11-27 16:48:16.691598 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-27 16:48:16.775648 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-27 16:48:16.777213 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-11-27 16:48:16.778322 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-27 16:48:16.778685 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-27 16:48:16.915568 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-27 16:48:16.919228 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G20
+2026-11-27 16:48:16.920270 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Could not find valid certificate
+2026-11-27 16:48:16.959443 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-27 16:48:16.959546 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::ready() :: Evse15118D20: supported_ISO15118_20 is set together with tls_negotiation_strategy ENFORCE_NO_TLS. ISO 15118-20 mandates TLS [V2G20-2677], so any negotiated -20 session will not be standard-conformant. Set supported_ISO15118_20 to false to offer only ISO 15118-2 / DIN SPEC 70121 on unsecured connections
+2026-11-27 16:48:17.178530 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-27 16:48:17.178645 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-27 16:48:17.178938 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-27 16:48:17.399296 [INFO] iso15118_charge  :: debug_mode enabled: publishing v2g_messages (message id plus the raw V2GTP frame as hex and base64) and ev_app_protocol
+2026-11-27 16:48:17.487258 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-27 16:48:17.487398 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: Disconnected -> A
+2026-11-27 16:48:17.562978 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-27 16:48:17.607650 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-27 16:48:17.651585 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-27 16:48:17.695722 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-27 16:48:17.743314 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-27 16:48:17.744680 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-27 16:48:17.744947 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-27 16:48:17.797062 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-27 16:48:17.839433 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G20
+2026-11-27 16:48:17.840574 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Could not find valid certificate
+2026-11-27 16:48:17.847239 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-27 16:48:17.847359 [INFO] iso15118_charge  :: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-27 16:48:17.847436 [INFO] iso15118_charge  :: Search for the first available ipv6 interface
+2026-11-27 16:48:17.847801 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-11-27 16:48:17.847881 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-11-27 16:48:18.075546 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-11-27 16:48:18.295932 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-11-27 16:48:20.489963 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_slac_matched
+2026-11-27 16:48:20.623431 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: A -> B
+2026-11-27 16:48:21.007349 [INFO] ev_manager:EvMa  :: SLAC state: MATCHING
+2026-11-27 16:48:21.235738 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-11-27 16:48:21.235985 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-11-27 16:48:21.237530 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-11-27 16:48:21.237526 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-27 16:48:21.239111 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-27 16:48:21.283464 [INFO] token_validator  :: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-11-27 16:48:21.533775 [INFO] token_validator  :: Returning validation status: Accepted
+2026-11-27 16:48:21.536061 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-11-27 16:48:21.736715 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-11-27 16:48:21.867962 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-11-27 16:48:21.879506 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-11-27 16:48:21.967519 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-11-27 16:48:21.968026 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-11-27 16:48:21.968137 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-11-27 16:48:23.355290 [INFO] ev_manager:EvMa  :: SLAC state: MATCHED
+2026-11-27 16:48:23.355370 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-11-27 16:48:23.355657 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-11-27 16:48:23.403858 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+2026-11-27 16:48:23.510515 [INFO] iso15118_car:Ev  :: Ev15118: start_charging requested (DepartureTime 86400 s, EAmount 0 kWh)
+2026-11-27 16:48:23.511821 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:23.512402 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:23.555249 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_pwr_ready
+2026-11-27 16:48:23.762036 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:23.762121 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:23.762276 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:24.012211 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:24.012311 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:24.012554 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:24.262048 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:24.262142 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:24.262272 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:24.512052 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:24.512145 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:24.512351 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:24.762130 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:24.762233 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:24.762413 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:25.011850 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:25.011929 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:25.012061 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:25.262147 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:25.262252 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:25.262441 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:25.511894 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:25.511985 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:25.512182 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:25.762143 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:25.762246 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:25.762427 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:26.011870 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:26.011954 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:26.012077 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:26.262165 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:26.262271 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:26.262497 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:26.511938 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:26.512081 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:26.512255 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:26.762160 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:26.762307 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:26.762533 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:27.011948 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:27.012038 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:27.012200 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:27.262160 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:27.262269 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:27.262455 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:27.511936 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:27.512022 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:27.512181 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:27.762134 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:27.762230 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:27.762412 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:28.011905 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:28.011991 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:28.012133 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:28.262005 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:28.262105 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:28.262265 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:28.512075 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:28.512183 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:28.512369 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:28.762189 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:28.762301 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:28.762504 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:29.012052 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:29.012159 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:29.012339 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:29.262460 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:29.262692 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:29.262946 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:29.512081 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:29.512186 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:29.512405 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:29.762185 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:29.762303 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:29.762504 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:30.012030 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:30.012136 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:30.012329 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:30.262178 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:30.262300 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:30.262504 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:30.512066 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:30.512173 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:30.512357 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:30.762060 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:30.762163 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:30.762290 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:31.012070 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:31.012177 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:31.012371 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:31.261918 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:31.262056 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:31.262325 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:31.512044 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:31.512157 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:31.512340 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:31.761929 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:31.762029 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:31.762149 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:32.011997 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:32.012132 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:32.012267 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:32.261960 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:32.262064 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:32.262196 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:32.511908 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:32.511997 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:32.512101 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:32.761943 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:32.762031 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:32.762236 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:33.011941 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:33.012026 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:33.012145 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:33.262109 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:33.262210 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:33.262326 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:33.511884 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:33.511963 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:33.512070 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:33.761944 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:33.762040 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:33.762254 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:34.011907 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:34.011990 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:34.012117 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:34.262096 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:34.262210 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:34.262386 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:34.511902 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:34.512001 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:34.512099 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:34.762172 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:34.762259 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:34.762416 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:35.012052 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:35.012137 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:35.012253 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:35.262091 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:35.262193 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:35.262410 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:35.512091 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:35.512193 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:35.512377 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:35.762071 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 16:48:35.762177 [INFO] iso15118_charge  :: Repeated SDP request before the EV connected; sending the SDP response again
+2026-11-27 16:48:35.762334 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SECC offers no TLS but tls is require; ignoring the SDP response
+2026-11-27 16:48:36.011736 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EV Controller: SDP_max_request (50) reached without a usable response
+2026-11-27 16:48:36.011866 [INFO] iso15118_car:Ev  :: Ev15118: session stopped
+2026-11-27 16:48:36.064501 [ERRO] ev_manager:EvMa module::main::car_simulatorImpl::SequenceProgress module::main::car_simulatorImpl::run_simulation_loop(uint64_t&) :: iso_wait_pwr_ready failed: V2G session ended before the EV was ready for power - dropping the remaining commands of this simulation
+2026-11-27 16:48:36.064704 [INFO] ev_manager:EvMa  :: Finished simulation. A command failed and ended it
+2026-11-27 16:48:41.415720 [WARN] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: V2G communication setup timeout (18s) expired before the V2G session was established
+2026-11-27 16:48:41.415812 [INFO] iso15118_charge  :: Closing TCP connection
+2026-11-27 16:48:41.415868 [INFO] iso15118_charge  :: TCP connection closed gracefully
+2026-11-27 16:48:41.415878 [INFO] iso15118_charge  :: Connection is closed
+2026-11-27 16:48:41.417409 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-11-27 16:48:41.417573 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 16:48:41.463450 [INFO] evse_manager:Ev  :: EVSE IEC D-LINK_ERROR with 5 percent PWM: X1, E/F for T_step_EF, then X1/nominal
+2026-11-27 16:48:41.503767 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->T_step_X1
+2026-11-27 16:48:41.504038 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_X1
+2026-11-27 16:48:41.504103 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 16:48:41.504995 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-11-27 16:48:41.505195 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-11-27 16:48:42.540675 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_X1: unmatched, go to E/F
+2026-11-27 16:48:42.541000 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_X1->T_step_EF
+2026-11-27 16:48:42.541135 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-11-27 16:48:42.541194 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-11-27 16:48:42.887520 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-11-27 16:48:46.593584 [INFO] evse_manager:Ev  :: EVSE IEC Pause in X1 for EV READY regulations
+2026-11-27 16:48:46.593871 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 16:48:46.847217 [INFO] evse_manager:Ev  ::                                     CAR IEC Event EFtoBCD
+2026-11-27 16:48:47.348329 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_EF
+2026-11-27 16:48:47.348634 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 16:48:47.390920 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_EF->Wait for Auth
+2026-11-27 16:48:47.935476 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-11-27 16:48:47.978828 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-11-27 16:48:47.978991 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-11-27 16:48:47.979055 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-11-27 16:49:28.578268 [INFO] manager          :: SIGINT/SIGTERM received
+2026-11-27 16:49:28.578365 [INFO] manager          :: Manager state transition: Running -> ShutdownRequested
+2026-11-27 16:49:28.578722 [INFO] manager          :: Shutting down modules...
+2026-11-27 16:49:28.578792 [INFO] manager          :: Manager state transition: ShutdownRequested -> ForceTerminating
+2026-11-27 16:49:28.578805 [INFO] manager          :: Terminating modules (graceful shutdown not enabled)...
+2026-11-27 16:49:28.579406 [INFO] manager          :: SIGTERM of child: api (pid: 1676446) succeeded.
+2026-11-27 16:49:28.579607 [INFO] manager          :: SIGTERM of child: api_sink (pid: 1676447) succeeded.
+2026-11-27 16:49:28.579837 [INFO] manager          :: SIGTERM of child: auth (pid: 1676448) succeeded.
+2026-11-27 16:49:28.580029 [INFO] manager          :: SIGTERM of child: energy_manager (pid: 1676449) succeeded.
+2026-11-27 16:49:28.580195 [INFO] manager          :: SIGTERM of child: error_history (pid: 1676450) succeeded.
+2026-11-27 16:49:28.580382 [INFO] manager          :: SIGTERM of child: ev_api (pid: 1676451) succeeded.
+2026-11-27 16:49:28.580581 [INFO] manager          :: SIGTERM of child: ev_manager (pid: 1676452) succeeded.
+2026-11-27 16:49:28.580690 [INFO] manager          :: SIGTERM of child: evse_manager (pid: 1676453) succeeded.
+2026-11-27 16:49:28.580761 [INFO] manager          :: SIGTERM of child: evse_security (pid: 1676454) succeeded.
+2026-11-27 16:49:28.580835 [INFO] manager          :: SIGTERM of child: grid_connection_point (pid: 1676455) succeeded.
+2026-11-27 16:49:28.580910 [INFO] manager          :: SIGTERM of child: imd (pid: 1676466) succeeded.
+2026-11-27 16:49:28.580987 [INFO] manager          :: SIGTERM of child: iso15118_car (pid: 1676472) succeeded.
+2026-11-27 16:49:28.581059 [INFO] manager          :: SIGTERM of child: iso15118_charger (pid: 1676473) succeeded.
+2026-11-27 16:49:28.581129 [INFO] manager          :: SIGTERM of child: powersupply_dc (pid: 1676483) succeeded.
+2026-11-27 16:49:28.581200 [INFO] manager          :: SIGTERM of child: slac (pid: 1676490) succeeded.
+2026-11-27 16:49:28.581318 [INFO] manager          :: SIGTERM of child: token_provider (pid: 1676491) succeeded.
+2026-11-27 16:49:28.581420 [INFO] manager          :: SIGTERM of child: token_validator (pid: 1676496) succeeded.
+2026-11-27 16:49:28.582372 [INFO] manager          :: SIGTERM of child: yeti_driver (pid: 1676503) succeeded.
+2026-11-27 16:49:28.582609 [INFO] manager          :: Module api_sink (pid 1676447) shutdown [4ms] with status: signal=15
+2026-11-27 16:49:28.582704 [INFO] manager          :: Module auth (pid 1676448) shutdown [4ms] with status: signal=15
+2026-11-27 16:49:28.582733 [INFO] manager          :: Module energy_manager (pid 1676449) shutdown [4ms] with status: signal=15
+2026-11-27 16:49:28.582860 [INFO] manager          :: Module api (pid 1676446) shutdown [4ms] with status: signal=15
+2026-11-27 16:49:28.583847 [INFO] manager          :: Module ev_api (pid 1676451) shutdown [5ms] with status: signal=15
+2026-11-27 16:49:28.583902 [INFO] manager          :: Module error_history (pid 1676450) shutdown [5ms] with status: signal=15
+2026-11-27 16:49:28.584571 [INFO] manager          :: Module ev_manager (pid 1676452) shutdown [6ms] with status: signal=15
+2026-11-27 16:49:28.584987 [INFO] manager          :: Module token_provider (pid 1676491) shutdown [6ms] with status: signal=15
+2026-11-27 16:49:28.585033 [INFO] manager          :: Module powersupply_dc (pid 1676483) shutdown [6ms] with status: signal=15
+2026-11-27 16:49:28.585250 [INFO] manager          :: Module evse_security (pid 1676454) shutdown [6ms] with status: signal=15
+2026-11-27 16:49:28.585290 [INFO] manager          :: Module slac (pid 1676490) shutdown [6ms] with status: signal=15
+2026-11-27 16:49:28.585719 [INFO] manager          :: Module imd (pid 1676466) shutdown [7ms] with status: signal=15
+2026-11-27 16:49:28.586264 [INFO] manager          :: Module evse_manager (pid 1676453) shutdown [7ms] with status: signal=15
+2026-11-27 16:49:28.587098 [INFO] manager          :: Module token_validator (pid 1676496) shutdown [8ms] with status: signal=15
+2026-11-27 16:49:28.587298 [INFO] manager          :: Module iso15118_car (pid 1676472) shutdown [8ms] with status: signal=15
+2026-11-27 16:49:28.587807 [INFO] manager          :: Module grid_connection_point (pid 1676455) shutdown [9ms] with status: signal=15
+2026-11-27 16:49:28.588148 [INFO] manager          :: Module iso15118_charger (pid 1676473) shutdown [9ms] with status: signal=15
+2026-11-27 16:49:28.588653 [INFO] manager          :: Module yeti_driver (pid 1676503) shutdown [10ms] with status: signal=15
+2026-11-27 16:49:28.588676 [INFO] manager          :: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-27 16:49:28.588961 [WARN] manager         std::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&) :: Modules that did not shut down cleanly: api_sink (signal=15) auth (signal=15) energy_manager (signal=15) api (signal=15) ev_api (signal=15) error_history (signal=15) ev_manager (signal=15) token_provider (signal=15) powersupply_dc (signal=15) evse_security (signal=15) slac (signal=15) imd (signal=15) evse_manager (signal=15) token_validator (signal=15) iso15118_car (signal=15) grid_connection_point (signal=15) iso15118_charger (signal=15) yeti_driver (signal=15)
+2026-11-27 16:49:28.588986 [INFO] manager          :: 👋👋👋 EVerest manager is exiting [10ms] 👋👋👋
+2026-11-27 16:49:28.588995 [INFO] manager          :: Manager state transition: ShutdownFinalizing -> Exiting
