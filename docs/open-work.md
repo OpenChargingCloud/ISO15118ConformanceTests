@@ -372,12 +372,14 @@ backlog is that half of it turns out not to have been work.
   The same change stops the EVCC printing `accepting ANY station certificate` when `--trust-roots` checks
   the station's chain.
 
-- **`Secc2.DemandReceiptWithoutMeterInfo` has no effect when a signing meter is installed.** The switch
-  is meant to make one receipt request carry no `MeterInfo`, but `CurrentDemand()` and
-  `ChargingStatus()` report one whenever `InstalledMeter` is set, that request included. So the
-  EVerest shape it copies, a signing meter and a bare receipt request, cannot be recorded, and
-  `iso2-ac-pnc-norecord` was recorded without a meter. A test instrument only, off by default, and no
-  car is affected. Found 2026-11-28 while recording that trace.
+- ~~**`Secc2.DemandReceiptWithoutMeterInfo` has no effect when a signing meter is installed.**~~
+  **Fixed 2026-11-28**: a receipt request now decides whether its response carries a `MeterInfo`, so the
+  record-less one carries none even at a metered station. Every other response still carries the
+  meter's reading. `Iso2ReceiptRequestTests` in the stack holds it for AC and DC, with a control
+  without the switch; with the old line put back, the two cases with the switch fail. No recorded
+  trace changed: `iso2-ac-pnc-norecord` has no meter, and no other scenario sets the switch. The
+  EVerest shape, a signing meter and a bare receipt request, can now be recorded; that trace is still
+  the meterless one. Found 2026-11-28 while recording it.
 - ~~**The Kotlin and Swift `-2` cars still skip a receipt asked for without a new `MeterInfo`.**~~
   **Fixed 2026-11-28**: the C# change (`8e6fd3e`, next entry) ported to `Evcc2.kt` and `Evcc2.swift`:
   the last `MeterInfo` is kept and signed when a receipt request carries none, and an EIM session or a
