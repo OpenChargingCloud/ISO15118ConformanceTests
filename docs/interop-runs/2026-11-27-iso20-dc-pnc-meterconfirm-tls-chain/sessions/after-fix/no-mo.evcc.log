@@ -1,0 +1,6 @@
+Trust roots: CN=V2G Root CA, DC=Root, DC=V2G, O=V2G PKI, C=DE
+Presenting your Vehicle chain; validating the station's chain against --trust-roots (no leaf to pin without --pki-dir).
+TLS station: chain valid, anchored at CN=V2G Root CA, DC=Root, DC=V2G, O=V2G PKI, C=DE.
+PnC: contract cert CN=Contract, DC=MO, DC=V2G, O=V2G PKI, C=DE (+2 sub-CA(s)), key 521-bit EC.
+
+✗ Session aborted: the station answered MeteringConfirmationRes with FAILED_MeteringSignatureNotValid; the session ends here.
