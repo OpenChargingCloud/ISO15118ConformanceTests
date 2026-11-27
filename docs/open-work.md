@@ -135,6 +135,17 @@ weaker claim than it looks and worth separating from "untested".
   control event whatever the verdict, but `EvseManager`'s `} else if (pnc) {` gate, still present on
   `main` and in 2026.02.2, never calls it with an EIM verdict. The filing is live as written, and the
   180 s wait is still what an EV gets ([reports audit](interop-runs/2026-11-05-reports-audit/notes.md)).
+- **Metering confirmation, -20** (nobody) — not in the matrix because no counterparty has it: no
+  independent stack signs or verifies a `MeteringConfirmationReq` today, so the signed fragment is the
+  reference encoder's choice (cbV2G's `iso20_exiFragment`) and has not been met on the wire. **Recorded
+  in the corpus on 2026-11-27** as `iso20-dc-pnc-meterconfirm`: our car and station, two confirmations
+  on the `0x8102` side stream, each signed by the car over a reading the station's meter signed — the
+  first recording with two signers in one message, which took a digest-aware comparison to replay
+  (`SignedFrame.WithSignatureFrom`). **What it does not yet hold anybody to:** the Kotlin and Swift cars
+  have the codec for it but no state machine that answers the notification, so the trace is named in
+  neither port's replay list; the four bridges route `0x8102` and the event corpus carries the session.
+  The `-2` twin, a signed `MeteringReceiptReq` over a meter-signed reading, is still unrecorded, and
+  `OnlyAMeteringConfirmationIsSignedOverAMeterSignature` fails the day somebody records one.
 
 ## Untested, and nothing is stopping us
 
