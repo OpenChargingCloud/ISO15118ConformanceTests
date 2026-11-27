@@ -1,0 +1,8 @@
+Trust roots: CN=V2G Root CA, DC=Root, DC=V2G, O=V2G PKI, C=DE
+WARNING: presenting your Vehicle chain and accepting ANY station certificate — nothing to pin against without --pki-dir. Dev tool only.
+TLS station: chain valid, anchored at CN=V2G Root CA, DC=Root, DC=V2G, O=V2G PKI, C=DE.
+PnC: contract cert CN=Contract, DC=MO, DC=V2G, O=V2G PKI, C=DE (+2 sub-CA(s)), key 521-bit EC.
+  19 exchanges, 4004 bytes on the wire (request side), auth: pnc-signed, session setup: OK_NewSessionEstablished.
+  MeteringConfirmation: signed 2, last 2400 Wh at VAN*M1 (this vehicle counted 2400 Wh); answers: OK, OK.
+
+✓ Session complete in 1102 ms.

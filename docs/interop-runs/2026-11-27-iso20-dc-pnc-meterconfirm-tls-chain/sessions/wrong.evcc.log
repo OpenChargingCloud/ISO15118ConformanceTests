@@ -1,0 +1,5 @@
+Trust roots: CN=MO Root CA, DC=MO, DC=V2G, O=V2G PKI, C=DE
+WARNING: presenting your Vehicle chain and accepting ANY station certificate — nothing to pin against without --pki-dir. Dev tool only.
+TLS station: chain REJECTED — Eine Zertifikatkette zu einer vertrauenswürdigen Stammzertifizierungsstelle konnte nicht aufgebaut werden.
+
+✗ Session aborted: bad_certificate(42)

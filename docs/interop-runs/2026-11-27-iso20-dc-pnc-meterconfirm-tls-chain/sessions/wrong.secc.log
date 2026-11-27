@@ -1,0 +1,5 @@
+Trust roots: CN=MO Root CA, DC=MO, DC=V2G, O=V2G PKI, C=DE, CN=OEM Root CA, DC=OEM, DC=V2G, O=V2G PKI, C=DE
+Presenting server certificate: CN=SECC, DC=CPO, DC=V2G, O=V2G PKI, C=DE (+2 intermediate(s)); requiring a client certificate and validating its chain
+SECC listening on [::]:15243 (protocol -20, DC, TLS BouncyCastle)...
+
+✗ Session aborted: bad_certificate(42)
