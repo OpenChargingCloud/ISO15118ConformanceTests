@@ -146,9 +146,11 @@ weaker claim than it looks and worth separating from "untested".
   in the corpus on 2026-11-27** as `iso20-dc-pnc-meterconfirm`: our car and station, two confirmations
   on the `0x8102` side stream, each signed by the car over a reading the station's meter signed — the
   first recording with two signers in one message, which took a digest-aware comparison to replay
-  (`SignedFrame.WithSignatureFrom`). **What it does not yet hold anybody to:** the Kotlin and Swift cars
-  have the codec for it but no state machine that answers the notification, so the trace is named in
-  neither port's replay list; the four bridges route `0x8102` and the event corpus carries the session.
+  (`SignedFrame.WithSignatureFrom`). **The ports answer it too since 2026-11-27**: the Kotlin and
+  Swift cars sign and send the confirmation, and both replay the trace byte for byte with their own
+  signatures verified against the corpus key; both also verify C#'s recorded confirmations, digest
+  included, under their own encoders. The four bridges route `0x8102` and the event corpus carries
+  the session. Still ours alone, so still in this section.
   The `-2` twin, a signed `MeteringReceiptReq` over a meter-signed reading, is still unrecorded, and
   `OnlyAMeteringConfirmationIsSignedOverAMeterSignature` fails the day somebody records one.
 
