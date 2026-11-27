@@ -1,0 +1,6 @@
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, their station DC=CPO, C=DE, O=EVerest, CN=SECCCert
+Authorization: pnc-signed
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [9 s]
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, their station DC=CPO, C=DE, O=EVerest, CN=SECCCert
+ Authorization: pnc-signed
+     Passed: 1

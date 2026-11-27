@@ -117,13 +117,18 @@ weaker claim than it looks and worth separating from "untested".
   <br>**Still not verified by anything but us:** whether the *contract* is good. Nothing on either side
   of this checks that, and nothing can while the decider is a test double — the arm proves their
   station asks correctly and carries the verdict correctly, which is the whole of what a backend is
-  answerable for. One observation left deliberately unfiled: `iso15118CertificateHashData` came back
+  answerable for. ~~One observation left deliberately unfiled: `iso15118CertificateHashData` came back
   **absent** on a chain that verified (`OcspCache::lookup: not in cache`), so a backend is handed no
-  revocation material at all. That is the far end of
-  [`everest-evse-security-ocsp-dropped`](reports/everest-evse-security-ocsp-dropped.md) and worth
-  re-measuring once that lands. **It landed — upstream, without us, by 2026-11-04**: the conversion
-  now carries `ocsp`, and `Evse15118D20` forwards it into the TLS chain config. So this is no longer
-  a thing to wait for; it is a measurement to take ([re-sweep](interop-runs/2026-11-04-everest-main-resweep/notes.md)).
+  revocation material at all.~~ **Measured 2026-11-27, and the reading was wrong.** The chain had never
+  verified: their `verify_contract_cert_chain` defaults to `false`, and no config here set it. The
+  `OcspCache` line is the TLS handshake's, for their own chain. With the flag on, 2026.10.0 hands the
+  backend three hash-data entries, one per certificate of the contract chain. So it never depended on
+  [`everest-evse-security-ocsp-dropped`](reports/everest-evse-security-ocsp-dropped.md)
+  ([run, finding 2](interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/notes.md)).
+  <br>**The same run put `-2` PnC on the release.** The 2026-11-26 forward run had it stalled in
+  `Authorization` and blamed the missing validator. It was the `token_provider` hop above, missing from
+  that one config. With it: 2 of 2 against their own dummy, 30,16 kWh with ours, and
+  `FAILED_CertificateRevoked` carried 2 of 2.
   <br>**The arm's second run turned into the forty-fifth filing.** Pointed at their `-20` station it
   found that a *rejected* verdict reaches `Evse15118D20` not at all — `EvseManager` forwards them for
   Plug & Charge only, and that module offers no PnC — so their station answers `Ongoing` for 180 s and

@@ -1,0 +1,9 @@
+[2026-11-27 15:52:53.636248] [0x000079d9c09d4780] [info]    everestpy: Usage of the old RuntimeSession ctor detected, config should be loaded via MQTT not via the provided config_file. For this please set the appropriate environment variables and call RuntimeSession()
+14:52:55.945 registered as token_validator/main against /home/ahzf/everest/dist-2610
+14:52:55.945 answering Invalid, certificate_status=CertificateRevoked
+2026-11-27 15:52:55.945897 [[1;37mINFO[0m] [1;32mpython3.13     [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m initialized [2307ms]
+14:52:55.946 ready sent -- the manager can now start the remaining modules
+14:53:13.575 #1 <- PlugAndCharge eMAID=UKSWI123456791A  chain=3 certs, 2694 B  ocsp_hash_data=absent  connectors=[1]
+14:53:13.576 #1 -> Invalid / certificate_status=CertificateRevoked   (logged to /home/ahzf/everest/run/2610-pnc2/val-revoked/tokens.jsonl)
+14:53:30.979 #2 <- PlugAndCharge eMAID=UKSWI123456791A  chain=3 certs, 2694 B  ocsp_hash_data=absent  connectors=[1]
+14:53:30.979 #2 -> Invalid / certificate_status=CertificateRevoked   (logged to /home/ahzf/everest/run/2610-pnc2/val-revoked/tokens.jsonl)

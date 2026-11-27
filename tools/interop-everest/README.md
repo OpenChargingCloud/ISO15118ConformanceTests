@@ -312,11 +312,18 @@ against their broker is the fastest way to learn any wiring this README does not
 
 ### Deciding a Plug & Charge contract  ([`contract-validator-arm.sh`](contract-validator-arm.sh))
 
-**Their SIL does not decide whether a contract is good, and that is by design.** `EvseV2G` verifies the
-chain against the MO root locally and hands the whole token — eMAID, chain in PEM, OCSP hash data — to
-whoever is wired as `token_validator`. In every SIL config that is `DummyTokenValidator`, which returns
-a value from its own config file and never reads the token. In a real deployment the decider is the
-CSMS, through their OCPP module.
+**Their SIL does not decide whether a contract is good, and that is by design.** `EvseV2G` hands the
+whole token — eMAID, chain in PEM and, if it verified the chain, OCSP hash data — to whoever is wired as
+`token_validator`. In every SIL config that is `DummyTokenValidator`, which returns a value from its own
+config file and never reads the token. In a real deployment the decider is the CSMS, through their OCPP
+module.
+
+**Whether `EvseV2G` verifies the chain at all is `verify_contract_cert_chain`, default `false`** (every
+tree up to 2026.10.0). Off, it checks our signature against the leaf and forwards the chain unverified,
+and the token has **no** `iso15118CertificateHashData`. On, it checks the chain against its MO root and
+derives one hash-data entry per certificate, with the AIA responder URL. With their test PKI that is
+three entries ([`…-2026.10.0-iso2-pnc`](../../docs/interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/notes.md),
+finding 2). Set it when the hash data is what you are measuring.
 
 This arm is that backend, minus the CSMS: the manager is started with the validator **withheld** and
 [`contract-validator.py`](contract-validator.py) answers on its topics over MQTT, using their own
@@ -351,8 +358,14 @@ meant it. **Every `-20` run up to 2026.02 is EIM-only**: `Evse15118D20` offers n
 (`ISO15118_chargerImpl.cpp:713`), so pair the arm with
 [`mqtt-authorize.sh`](mqtt-authorize.sh) — that supplies the token, this supplies the verdict.
 
-**From 2026.10.0 on, `-20` does offer PnC** (`ISO15118_chargerImpl.cpp:1684`). It asks
-`DummyTokenValidator` directly, so this arm is not needed for an `Accepted` verdict. Three things are:
+**The hop is all an `Accepted` verdict needs.** With it, `DummyTokenValidator` accepts a `-2` PnC token
+and the session charges; this arm is needed only to record the token or to answer something else. On
+2026-11-26 a `-2` PnC config without the hop was written up as *"no validator behind their SIL"*; the
+hop alone made it 2 of 2 the next day
+([`…-2026.10.0-iso2-pnc`](../../docs/interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/notes.md), finding 1).
+
+**From 2026.10.0 on, `-20` does offer PnC** (`ISO15118_chargerImpl.cpp:1684`), through the same hop and
+the same dummy. Three more things are needed:
 
 - `payment_enable_contract` on, EIM off, and the parked token provider moved away
   ([`make-d20-pnc.py`](../../docs/interop-runs/2026-11-26-everest-2026.10.0-forward/scripts/make-d20-pnc.py)).
@@ -763,6 +776,10 @@ diagnostic arm, caught only because it passed when it should not have.
   and nowhere else, so everywhere else the contract token is published and dropped — and the session
   fails on the auth timeout with nothing in any log to say why. EIM is unaffected, which is what makes
   it hard to see. See [the contract-validator arm](#deciding-a-plug--charge-contract--contract-validator-armsh).
+- **`Set PWM On` is not proof of the next plug-in.** After a refused session their station switches PWM
+  on once more while the car unplugs, before the next plug-in. A driver that counts PWM lines then probes
+  SDP while `SDP request discarded: dlink not ready`, and the session looks unanswered. Wait for a new
+  `SDP dlink_ready set to true` as well ([`fwd-2610v.sh`](../../docs/interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/scripts/fwd-2610v.sh)).
 
 Confirmed on first contact, and no longer questions:
 

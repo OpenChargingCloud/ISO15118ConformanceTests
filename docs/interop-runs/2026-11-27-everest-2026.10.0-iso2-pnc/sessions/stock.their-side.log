@@ -1,0 +1,975 @@
+2026-11-27 15:44:23.420377 [INFO] manager          :: Manager state transition: Idle -> Initializing
+2026-11-27 15:44:23.458793 [INFO] manager          ::   ________      __                _   
+2026-11-27 15:44:23.458868 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-11-27 15:44:23.458877 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-11-27 15:44:23.458885 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-11-27 15:44:23.458892 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-11-27 15:44:23.458899 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-11-27 15:44:23.458906 [INFO] manager          :: 
+2026-11-27 15:44:23.458942 [INFO] manager          :: everest-framework 0.26.0-dev 2026.10.0
+2026-11-27 15:44:23.458951 [INFO] manager          :: everest-core 2026.10.0-dev 2026.10.0
+2026-11-27 15:44:23.458958 [INFO] manager          :: 
+2026-11-27 15:44:23.458969 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-11-27 15:44:23.460290 [INFO] manager          :: Migration files to apply:
+2026-11-27 15:44:23.460339 [INFO] manager          :: Migration file [up] version 1, path: /home/ahzf/everest/dist-2610/share/everest/migrations/1_up-initial.sql
+2026-11-27 15:44:23.460353 [INFO] manager          :: Migration file [up] version 2, path: /home/ahzf/everest/dist-2610/share/everest/migrations/2_up-forward-exceptions.sql
+2026-11-27 15:44:23.460359 [INFO] manager          :: Migration file [up] version 3, path: /home/ahzf/everest/dist-2610/share/everest/migrations/3_up-access_config.sql
+2026-11-27 15:44:23.460365 [INFO] manager          :: Migration file [up] version 4, path: /home/ahzf/everest/dist-2610/share/everest/migrations/4_up-multi_config.sql
+2026-11-27 15:44:23.468050 [INFO] manager          :: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/configs-2610/config-dc2-pnc-fwd2610.yaml"
+2026-11-27 15:44:23.488929 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-2610/config-dc2-pnc-fwd2610.yaml
+2026-11-27 15:44:23.651063 [INFO] manager          :: Module configs written to database successfully
+2026-11-27 15:44:23.669598 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-27 15:44:23.818955 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-27 15:44:23.979102 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-27 15:44:24.132340 [INFO] manager          :: Config loading completed in 168ms
+2026-11-27 15:44:24.133433 [INFO] manager          :: Manager state transition: Initializing -> StartingModules
+2026-11-27 15:44:24.133684 [INFO] manager          :: Starting 19 modules
+2026-11-27 15:44:26.507106 [WARN] api:API         void module::API::init() :: DEPRECATED MODULE
+  component       : API
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : use the EVerest API modules (evse_manager_consumer_API and others)
+2026-11-27 15:44:26.508402 [INFO] api:API          :: Module api initialized [2334ms]
+2026-11-27 15:44:26.567981 [INFO] auth:Auth        :: Module auth initialized [2382ms]
+2026-11-27 15:44:26.569145 [INFO] api_sink:Energy  :: Module api_sink initialized [2389ms]
+2026-11-27 15:44:26.573206 [INFO] grid_connection  :: Module grid_connection_point initialized [2348ms]
+2026-11-27 15:44:26.577403 [INFO] evse_security:E  :: Module evse_security initialized [2355ms]
+2026-11-27 15:44:26.588530 [INFO] energy_manager:  :: Module energy_manager initialized [2392ms]
+2026-11-27 15:44:26.590288 [INFO] iso15118_car:Ev  :: Module iso15118_car initialized [2349ms]
+2026-11-27 15:44:26.597219 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2372ms]
+2026-11-27 15:44:26.607047 [WARN] ev_api:EvAPI    void module::EvAPI::init() :: DEPRECATED MODULE
+  component       : EvAPI
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : none, the module is removed without a replacement
+2026-11-27 15:44:26.607811 [INFO] ev_api:EvAPI     :: Module ev_api initialized [2407ms]
+2026-11-27 15:44:26.608947 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-11-27 15:44:26.609115 [INFO] error_history:E  :: Checking database
+2026-11-27 15:44:26.612835 [INFO] error_history:E  :: Module error_history initialized [2416ms]
+2026-11-27 15:44:26.613910 [INFO] powersupply_dc:  :: Module powersupply_dc initialized [2349ms]
+2026-11-27 15:44:26.615998 [INFO] token_validator  :: Module token_validator initialized [2335ms]
+2026-11-27 15:44:26.617036 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2410ms]
+2026-11-27 15:44:26.617179 [INFO] imd:IMDSimulato  :: Module imd initialized [2384ms]
+2026-11-27 15:44:26.617179 [INFO] slac:SlacSimula  :: Module slac initialized [2347ms]
+2026-11-27 15:44:26.656858 [INFO] ovm:OVMSimulato  :: Can control the over voltage measurement values over the topic: everest_api/ovm/cmd/set_over_voltage_measurement_V via MQTT
+2026-11-27 15:44:26.657197 [INFO] ovm:OVMSimulato  :: Module ovm initialized [2404ms]
+2026-11-27 15:44:26.679958 [INFO] yeti_driver:Yet  :: Module yeti_driver initialized [2398ms]
+2026-11-27 15:44:26.707193 [WARN] iso15118_charge void module::EvseV2G::init() :: DEPRECATED MODULE
+  component       : EvseV2G
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : Migrate from EvseV2G and IsoMux to Evse15118D20
+2026-11-27 15:44:26.707808 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2447ms]
+2026-11-27 15:44:26.718609 [INFO] token_provider:  :: Module token_provider initialized [2448ms]
+2026-11-27 15:44:26.751098 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-11-27 15:44:26.751661 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2618ms] 🚙🚙🚙
+2026-11-27 15:44:26.751727 [INFO] manager          :: Manager state transition: StartingModules -> Running
+2026-11-27 15:44:26.755190 [INFO] iso15118_car:Ev  :: Ev15118: using the EVCC MAC of interface lo
+
+2026-11-27 15:44:26.795320 [INFO] iso15118_charge  :: TCP server on eth0 is listening on port [fe80::215:5dff:fefd:8161%2]:61341
+
+2026-11-27 15:44:26.795499 [INFO] iso15118_charge  :: TLS server on eth0 is listening on port [fe80::215:5dff:fefd:8161%2]:64109
+2026-11-27 15:44:26.803696 [INFO] iso15118_car:Ev  :: Ev15118: set_dc_params
+2026-11-27 15:44:26.839833 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-27 15:44:26.844990 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-27 15:44:26.845235 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-27 15:44:26.850500 [INFO] ev_manager:EvMa  :: SLAC state: UNMATCHED
+2026-11-27 15:44:26.892720 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+
+2026-11-27 15:44:26.904057 [INFO] iso15118_charge  :: SDP socket setup succeeded
+
+2026-11-27 15:44:27.123197 [INFO] iso15118_charge  :: Ignoring bidirectional SupportedEnergyTransferMode
+2026-11-27 15:44:27.299356 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-27 15:44:27.431189 [INFO] ovm:OVMSimulato  :: Over voltage monitoring: stopped.
+2026-11-27 15:44:28.175229 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-11-27 15:44:28.351884 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-11-27 15:44:32.620552 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-27 15:44:32.838853 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-27 15:44:32.838944 [INFO] ev_manager:EvMa  :: Finished simulation. The vehicle keeps its state until a stop or unplug.
+2026-11-27 15:44:32.839006 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: Disconnected -> A
+2026-11-27 15:44:36.591431 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-27 15:44:36.591528 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-27 15:44:36.770991 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-27 15:44:38.772302 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_slac_matched
+2026-11-27 15:44:38.946936 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: A -> B
+2026-11-27 15:44:39.331172 [INFO] ev_manager:EvMa  :: SLAC state: MATCHING
+2026-11-27 15:44:39.332046 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-11-27 15:44:39.332284 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-11-27 15:44:39.334117 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-11-27 15:44:39.334302 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "connectors": [
+        2
+    ],
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-27 15:44:39.335885 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "connectors": [
+        2
+    ],
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-27 15:44:39.336085 [WARN] auth:Auth       module::AuthHandler::get_referenced_evses(const types::authorization::ProvidedIdToken&)::<lambda(int)> :: Provided token included references to evse_id that does not exist
+2026-11-27 15:44:39.336282 [WARN] auth:Auth       module::AuthHandler::get_referenced_evses(const types::authorization::ProvidedIdToken&)::<lambda(int)> :: Provided token included references to evse_id that does not exist
+2026-11-27 15:44:39.336448 [INFO] auth:Auth        :: Result for token: [redacted] hash: CE55F71752B68164: NO_CONNECTOR_AVAILABLE
+2026-11-27 15:44:39.514097 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHING
+2026-11-27 15:44:39.833210 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+
+2026-11-27 15:44:40.506675 [INFO] iso15118_charge  :: Received packet from [fe80::215:5dff:fefd:8161]:15119 with security 0x00 and protocol 0x00
+
+2026-11-27 15:44:40.506731 [INFO] iso15118_charge  :: SDP request discarded: dlink not ready
+2026-11-27 15:44:41.765422 [INFO] ev_manager:EvMa  :: SLAC state: MATCHED
+2026-11-27 15:44:41.765588 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-11-27 15:44:41.765842 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+
+2026-11-27 15:44:41.767020 [INFO] iso15118_charge  :: SDP dlink_ready set to true
+2026-11-27 15:44:41.922937 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-27 15:44:42.010741 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: B -> C
+2026-11-27 15:44:42.415010 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+
+2026-11-27 15:44:43.016437 [INFO] iso15118_charge  :: Received packet from [fe80::215:5dff:fefd:8161]:15119 with security 0x00 and protocol 0x00
+
+2026-11-27 15:44:43.016504 [INFO] iso15118_charge  :: SDP requested TLS, announcing TLS
+
+2026-11-27 15:44:43.016675 [INFO] iso15118_charge  :: sendto([fe80::215:5dff:fefd:8161]:15119) succeeded
+
+2026-11-27 15:44:45.907431 [INFO] iso15118_charge  :: Incoming TLS connection
+
+2026-11-27 15:44:45.918350 [INFO] iso15118_charge  :: V2G TCP/TLS connection established, SDP communication setup timeout cancelled
+2026-11-27 15:44:45.968812 [ERRO] iso15118_charge void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: OcspCache::lookup: not in cache: bef420041294d98e028b32d66ea6107aabe8fbe0
+
+2026-11-27 15:44:46.099674 [INFO] iso15118_charge  :: Handling SupportedAppProtocolReq
+
+2026-11-27 15:44:46.100235 [INFO] iso15118_charge  :: Protocol negotiation was successful. Selected protocol is ISO15118
+2026-11-27 15:44:46.101525 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-11-27 15:44:46.155556 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+
+2026-11-27 15:44:46.223490 [INFO] iso15118_charge  :: SessionSetupReq.EVCCID: AB:CD:EF:01:02:03
+
+2026-11-27 15:44:46.223593 [INFO] iso15118_charge  :: No session_id found or not equal to the id from the preceding v2g session. Generating random session id.
+
+2026-11-27 15:44:46.223622 [INFO] iso15118_charge  :: Created new session with id 0x0a206a5f7d47dc56
+2026-11-27 15:44:46.251547 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-11-27 15:44:46.324256 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-11-27 15:44:46.419376 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G ServiceDiscoveryReq
+2026-11-27 15:44:46.495438 [INFO] evse_manager:Ev  :: EVSE ISO V2G ServiceDiscoveryRes
+
+2026-11-27 15:44:46.521257 [INFO] iso15118_charge  :: SelectedPaymentOption: Contract
+2026-11-27 15:44:46.538966 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PaymentServiceSelectionReq
+2026-11-27 15:44:46.621883 [INFO] evse_manager:Ev  :: EVSE ISO V2G PaymentServiceSelectionRes
+2026-11-27 15:44:46.667880 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G PaymentDetailsReq
+2026-11-27 15:44:46.759246 [INFO] evse_manager:Ev  :: EVSE ISO V2G PaymentDetailsRes
+2026-11-27 15:44:46.803479 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:46.891981 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:46.943471 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.011978 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.064415 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.195925 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.243771 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.313477 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.403564 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.491526 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.535379 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.614268 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.703705 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.764757 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.817009 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:47.916190 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:47.970325 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.068530 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:48.121450 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.255256 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:48.299364 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.395532 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:48.439301 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.551342 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:48.595192 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.716878 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:48.759309 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.828579 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:48.914769 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:48.979629 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.032777 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:49.131643 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.219003 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:49.283277 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.338317 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:49.436826 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.493865 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:49.612474 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.655513 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:49.759033 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.802766 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:49.902806 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:49.949849 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.048267 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:50.101296 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.243103 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:50.287005 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.350224 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:50.439417 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.499043 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:50.548301 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.675103 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:50.718253 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.797960 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:50.850064 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:50.947770 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.001565 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:51.099255 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.152576 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:51.250280 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.301643 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:51.406889 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.452866 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:51.552014 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.604991 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:51.719528 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.763168 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:51.856068 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:51.943340 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.007262 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.060541 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.243183 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.243778 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.307733 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.360738 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.458525 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.509235 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.607503 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.720364 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.763051 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.851522 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:52.939084 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:52.983393 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.061837 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:53.112633 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.211804 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:53.265695 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.364632 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:53.455169 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.516255 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:53.568617 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.711142 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:53.720524 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.818968 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:53.910944 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:53.972754 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.026301 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:54.124607 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.254904 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:54.299195 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.343261 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:54.431143 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.474696 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:54.573009 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.628321 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:54.763175 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.807265 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:54.875004 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:54.962997 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.051307 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.094810 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.246728 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.247303 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.326929 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.379993 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.477955 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.533481 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.631782 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.722209 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.782537 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.837638 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:55.936006 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:55.989015 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.150694 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:56.151005 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.239322 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:56.335008 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.427053 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:56.471231 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.539878 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:56.592887 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.767257 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:56.767712 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.844484 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:56.931104 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:56.996170 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.048207 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:57.145697 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.278913 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:57.322936 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.366924 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:57.458590 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.502606 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:57.595813 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.648137 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:57.767153 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.811078 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:57.930820 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:57.975102 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.047959 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.101027 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.246647 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.247927 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.345498 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.439045 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.494811 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.545101 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.642596 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.724756 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.792154 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.844174 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:58.943083 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:58.993639 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.092137 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:59.143196 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.274909 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:59.319042 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.406779 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:59.450669 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.539838 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:59.592485 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.725352 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:59.766979 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.841540 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:44:59.892894 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:44:59.991407 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.044649 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:00.143221 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.274766 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:00.318766 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.362765 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:00.450605 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.539183 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:00.594714 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.645613 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:00.766917 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.810920 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:00.895929 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:00.982937 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.045845 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:01.096882 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.250666 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:01.251098 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.347911 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:01.398585 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.497404 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:01.587195 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.648190 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:01.727068 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.799781 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:01.851839 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:01.949319 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.000548 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.098853 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.153082 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.283198 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.326840 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.400137 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.452126 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.550937 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.642924 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.728051 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.771218 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.846478 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:02.897567 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:02.996186 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.047096 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:03.144711 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.278854 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:03.322928 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.366961 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:03.458621 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.502778 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:03.600240 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.653614 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:03.814710 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.815224 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:03.902850 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:03.990993 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.053997 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:04.104493 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.254729 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:04.298936 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.356355 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:04.407229 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.505197 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:04.560450 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.658736 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:04.729353 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.823309 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:04.866774 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:04.955192 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.008292 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:05.106071 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.161149 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:05.295100 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.338936 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:05.454582 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.498883 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:05.564012 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.617284 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:05.770691 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.770955 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:05.879196 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:05.922930 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.012089 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:06.065361 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.163769 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:06.294820 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.338909 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:06.383063 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.470687 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:06.521133 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.618924 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:06.667853 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.775216 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:06.822805 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:06.935037 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.022953 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.066886 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.117279 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.218907 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.264074 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.361952 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.412828 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.511234 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.563859 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.662654 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.731417 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.811785 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:07.864515 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:07.962990 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.051298 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:08.110858 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.161583 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:08.295189 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.338970 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:08.410668 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.502914 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:08.560718 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.613723 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:08.715271 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.774978 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:08.862670 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:08.912240 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.009461 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.060511 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.191157 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.278929 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.322884 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.366661 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.466754 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.513453 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.611837 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.664928 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.775011 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.818710 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:09.911900 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:09.998814 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.063844 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:10.116823 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.291035 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:10.291589 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.362357 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:10.412846 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.510351 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:10.564451 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.662940 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:10.733524 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.814496 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:10.864936 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:10.970670 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.014717 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:11.111891 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.164215 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:11.299355 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.343202 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:11.411021 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.498718 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:11.563972 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.616912 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:11.734300 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.779162 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:11.866354 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:11.917583 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.016048 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:12.068312 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.166923 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:12.298910 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.342972 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:12.387141 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.474973 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:12.524424 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.622305 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:12.675887 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.779408 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:12.824833 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:12.922186 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.011369 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.076255 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.129336 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.263028 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.307131 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.374061 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.425622 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.559330 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.646960 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.690945 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.735970 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.826813 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:13.876043 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:13.978652 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.024509 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:14.123576 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.177856 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:14.276699 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.329458 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:14.427893 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.514735 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:14.610877 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.698688 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:14.736791 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.780068 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:14.877842 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:14.928731 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.027237 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:15.080163 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.178535 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:15.233358 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.331950 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:15.384698 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.483281 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:15.536352 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.634822 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:15.723323 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.822907 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:15.870540 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:15.933404 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.022927 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.082193 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.133166 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.266995 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.310980 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.378819 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.429452 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.527909 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.580264 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.679156 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.786884 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.830794 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:16.880699 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:16.986679 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.030828 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:17.127824 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.180747 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:17.279473 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.332903 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:17.431283 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.518922 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:17.584015 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.635028 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:17.738677 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.784032 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:17.886930 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:17.932482 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.031186 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.085939 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.227078 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.271014 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.334758 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.384199 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.481476 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.571014 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.631677 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.739382 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.784206 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.837187 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:18.938883 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:18.983611 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.082564 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:19.134126 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.271481 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:19.315469 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.382852 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:19.434152 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.532776 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:19.585577 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.683106 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:19.775579 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.831906 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:19.885354 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:19.995278 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.038866 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:20.133096 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.185029 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:20.284001 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.337385 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:20.435873 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.523475 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:20.589064 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.642718 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:20.741207 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.793535 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:20.891091 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:20.942181 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.040535 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:21.126839 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.275055 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:21.275834 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.344079 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:21.398287 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.502810 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:21.549292 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.647644 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:21.742266 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.800405 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:21.854060 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:21.952503 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.039523 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:22.102754 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.191447 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:22.279392 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.323381 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:22.403976 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.457313 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:22.556012 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.610291 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:22.743166 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.787623 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:22.860803 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:22.912775 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.011035 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.062338 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.160898 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.335062 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.335449 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.379322 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.460351 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.547323 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.612742 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.665844 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.787317 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.831162 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:23.915769 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:23.969750 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.067452 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:24.120539 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.279363 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:24.280052 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.438791 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:24.439339 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.527134 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:24.571169 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.668800 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:24.744984 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.819903 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:24.873514 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:24.971434 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.059237 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:25.120060 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.173912 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:25.271198 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.322569 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:25.420823 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.510975 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:25.573042 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.625602 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:25.745843 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.791573 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:25.872264 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:25.925599 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.022720 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.073670 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.172608 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.267531 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.324070 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.377681 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.474945 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.563048 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.651011 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.694860 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.791215 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.835331 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:26.923478 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:26.974685 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.072360 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:27.125558 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.286986 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:27.287874 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.374165 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:27.426273 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.527180 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:27.578243 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.711342 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:27.771755 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.827446 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:27.879054 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:27.977997 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.067320 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:28.128294 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.179750 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:28.311532 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.355498 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:28.427917 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.481271 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:28.579520 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.634369 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:28.748489 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.827408 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:28.884269 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:28.936726 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.074935 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:29.118982 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.182758 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:29.315127 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.359354 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:29.403207 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.484108 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:29.571397 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.635542 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:29.688829 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.791000 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:29.923014 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:29.967015 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.011225 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:30.091246 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.144361 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:30.243192 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.293753 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:30.391352 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.440626 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:30.539009 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.589662 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:30.687470 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.791106 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:30.835016 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:30.886202 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.023207 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.067471 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.135288 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.184937 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.315547 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.359484 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.431449 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.485117 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.583436 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.638434 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.743429 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.795149 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:31.886792 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:31.941267 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.083174 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.127163 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.191327 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.323253 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.367132 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.411021 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.491199 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.579086 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.638358 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.689243 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.795269 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.838977 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:32.935532 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:32.988868 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.087550 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:33.175561 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.306960 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:33.307740 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.392646 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:33.444949 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.543769 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:33.631377 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.695732 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:33.794954 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.847763 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:33.901134 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:33.999565 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.087065 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:34.149845 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.239183 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:34.299798 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.353561 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:34.452200 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.505319 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:34.604104 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.657524 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:34.794943 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.838921 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:34.903990 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:34.957236 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.054851 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:35.106429 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.203769 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:35.335049 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.379074 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:35.422779 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.508546 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:35.594861 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.660275 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:35.754405 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.809984 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:35.860891 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:35.959561 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.054827 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:36.112512 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.164512 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:36.295034 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.339088 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:36.435128 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.478884 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:36.566888 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.616164 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:36.754773 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.799121 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:36.864054 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:36.918339 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.015519 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.103251 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.167917 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.303049 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.346989 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.391073 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.491189 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.535350 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.620656 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.672854 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.771097 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.823893 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:37.922233 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:37.973092 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.070708 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:38.124035 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.294832 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:38.295496 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.370937 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:38.421178 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.550924 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:38.594918 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.670694 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:38.757156 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.818559 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:38.869697 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:38.968064 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.020656 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:39.118911 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.173092 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:39.271593 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.324445 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:39.421541 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.472597 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:39.571072 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.659107 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:39.757133 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.799254 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:39.875615 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:39.929478 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.066977 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.114922 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.178735 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.310837 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.354941 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.398959 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.479860 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.566885 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.630868 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.680158 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.819564 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.862822 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:40.927721 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:40.980205 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:41.078784 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:41.129746 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:41.299287 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:41.299924 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:41.380529 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:41.432842 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:41.571156 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:41.614803 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+2026-11-27 15:45:41.683677 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+
+2026-11-27 15:45:41.736143 [ERRO] iso15118_charge void dlog_func(dloglevel_t, const char*, int, const char*, const char*, ...) :: Failed response code detected for message "Authorization", error: Response FAILED
+2026-11-27 15:45:41.759913 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G AuthorizationReq
+
+2026-11-27 15:45:41.835232 [INFO] iso15118_charge  :: v2g_dispatch_connection exited with 0
+2026-11-27 15:45:41.898978 [INFO] evse_manager:Ev  :: EVSE ISO SessionStopRes sent, arming CP oscillator retain timer [V2G-DC-968]
+2026-11-27 15:45:41.899251 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-11-27 15:45:41.899468 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 15:45:41.899626 [INFO] evse_manager:Ev  :: EVSE ISO V2G AuthorizationRes
+2026-11-27 15:45:41.943387 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 15:45:41.987066 [INFO] evse_manager:Ev  :: EVSE IEC D-LINK_ERROR with 5 percent PWM: X1, E/F for T_step_EF, then X1/nominal
+2026-11-27 15:45:41.987371 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->T_step_X1
+2026-11-27 15:45:41.987504 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_X1
+2026-11-27 15:45:41.987578 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 15:45:42.031022 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-11-27 15:45:42.031304 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+
+2026-11-27 15:45:42.128308 [INFO] iso15118_charge  :: SDP dlink_ready set to false
+2026-11-27 15:45:43.028523 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_X1: unmatched, go to E/F
+2026-11-27 15:45:43.028877 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_X1->T_step_EF
+2026-11-27 15:45:43.028954 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-11-27 15:45:43.029005 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-11-27 15:45:43.575227 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-11-27 15:45:47.081106 [INFO] evse_manager:Ev  :: EVSE IEC Pause in X1 for EV READY regulations
+2026-11-27 15:45:47.081430 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 15:45:47.559354 [INFO] manager          :: SIGINT/SIGTERM received
+2026-11-27 15:45:47.559427 [INFO] manager          :: Manager state transition: Running -> ShutdownRequested
+2026-11-27 15:45:47.559655 [INFO] manager          :: Shutting down modules...
+2026-11-27 15:45:47.559672 [INFO] manager          :: Manager state transition: ShutdownRequested -> ForceTerminating
+2026-11-27 15:45:47.559679 [INFO] manager          :: Terminating modules (graceful shutdown not enabled)...
+2026-11-27 15:45:47.560187 [INFO] manager          :: SIGTERM of child: api (pid: 1486283) succeeded.
+2026-11-27 15:45:47.560371 [INFO] manager          :: SIGTERM of child: api_sink (pid: 1486284) succeeded.
+2026-11-27 15:45:47.560544 [INFO] manager          :: SIGTERM of child: auth (pid: 1486285) succeeded.
+2026-11-27 15:45:47.560713 [INFO] manager          :: SIGTERM of child: energy_manager (pid: 1486286) succeeded.
+2026-11-27 15:45:47.560860 [INFO] manager          :: SIGTERM of child: error_history (pid: 1486292) succeeded.
+2026-11-27 15:45:47.561048 [INFO] manager          :: SIGTERM of child: ev_api (pid: 1486298) succeeded.
+2026-11-27 15:45:47.561248 [INFO] manager          :: SIGTERM of child: ev_manager (pid: 1486299) succeeded.
+2026-11-27 15:45:47.561504 [INFO] manager          :: SIGTERM of child: evse_manager (pid: 1486305) succeeded.
+2026-11-27 15:45:47.561684 [INFO] manager          :: SIGTERM of child: evse_security (pid: 1486320) succeeded.
+2026-11-27 15:45:47.561766 [INFO] manager          :: SIGTERM of child: grid_connection_point (pid: 1486326) succeeded.
+2026-11-27 15:45:47.561861 [INFO] manager          :: SIGTERM of child: imd (pid: 1486328) succeeded.
+2026-11-27 15:45:47.561915 [INFO] manager          :: SIGTERM of child: iso15118_car (pid: 1486329) succeeded.
+2026-11-27 15:45:47.562049 [INFO] manager          :: SIGTERM of child: iso15118_charger (pid: 1486333) succeeded.
+2026-11-27 15:45:47.562242 [INFO] manager          :: SIGTERM of child: ovm (pid: 1486346) succeeded.
+2026-11-27 15:45:47.562404 [INFO] manager          :: SIGTERM of child: powersupply_dc (pid: 1486352) succeeded.
+2026-11-27 15:45:47.562648 [INFO] manager          :: SIGTERM of child: slac (pid: 1486354) succeeded.
+2026-11-27 15:45:47.562789 [INFO] manager          :: SIGTERM of child: token_provider (pid: 1486360) succeeded.
+2026-11-27 15:45:47.562928 [INFO] manager          :: SIGTERM of child: token_validator (pid: 1486365) succeeded.
+2026-11-27 15:45:47.563057 [INFO] manager          :: SIGTERM of child: yeti_driver (pid: 1486367) succeeded.
+2026-11-27 15:45:47.563117 [INFO] manager          :: Module api (pid 1486283) shutdown [3ms] with status: signal=15
+2026-11-27 15:45:47.563813 [INFO] manager          :: Module energy_manager (pid 1486286) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.563894 [INFO] manager          :: Module api_sink (pid 1486284) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.563925 [INFO] manager          :: Module auth (pid 1486285) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.563957 [INFO] manager          :: Module error_history (pid 1486292) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.563996 [INFO] manager          :: Module ev_api (pid 1486298) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.564026 [INFO] manager          :: Module ev_manager (pid 1486299) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.564063 [INFO] manager          :: Module ovm (pid 1486346) shutdown [4ms] with status: signal=15
+2026-11-27 15:45:47.564538 [INFO] manager          :: Module evse_security (pid 1486320) shutdown [5ms] with status: signal=15
+2026-11-27 15:45:47.565164 [INFO] manager          :: Module yeti_driver (pid 1486367) shutdown [5ms] with status: signal=15
+2026-11-27 15:45:47.565298 [INFO] manager          :: Module token_provider (pid 1486360) shutdown [5ms] with status: signal=15
+2026-11-27 15:45:47.565473 [INFO] manager          :: Module powersupply_dc (pid 1486352) shutdown [6ms] with status: signal=15
+2026-11-27 15:45:47.565830 [INFO] manager          :: Module token_validator (pid 1486365) shutdown [6ms] with status: signal=15
+2026-11-27 15:45:47.565954 [INFO] manager          :: Module grid_connection_point (pid 1486326) shutdown [6ms] with status: signal=15
+2026-11-27 15:45:47.566107 [INFO] manager          :: Module slac (pid 1486354) shutdown [6ms] with status: signal=15
+2026-11-27 15:45:47.566573 [INFO] manager          :: Module iso15118_car (pid 1486329) shutdown [7ms] with status: signal=15
+2026-11-27 15:45:47.566605 [INFO] manager          :: Module iso15118_charger (pid 1486333) shutdown [7ms] with status: signal=15
+2026-11-27 15:45:47.567018 [INFO] manager          :: Module evse_manager (pid 1486305) shutdown [7ms] with status: signal=15
+2026-11-27 15:45:47.567474 [INFO] manager          :: Module imd (pid 1486328) shutdown [8ms] with status: signal=15
+2026-11-27 15:45:47.567514 [INFO] manager          :: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-27 15:45:47.567780 [WARN] manager         std::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&) :: Modules that did not shut down cleanly: api (signal=15) energy_manager (signal=15) api_sink (signal=15) auth (signal=15) error_history (signal=15) ev_api (signal=15) ev_manager (signal=15) ovm (signal=15) evse_security (signal=15) yeti_driver (signal=15) token_provider (signal=15) powersupply_dc (signal=15) token_validator (signal=15) grid_connection_point (signal=15) slac (signal=15) iso15118_car (signal=15) iso15118_charger (signal=15) evse_manager (signal=15) imd (signal=15)
+2026-11-27 15:45:47.567836 [INFO] manager          :: 👋👋👋 EVerest manager is exiting [8ms] 👋👋👋
+2026-11-27 15:45:47.567851 [INFO] manager          :: Manager state transition: ShutdownFinalizing -> Exiting

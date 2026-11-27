@@ -96,6 +96,13 @@ One `validate_token` call per PnC session, logged whole:
 The eMAID is read off the contract leaf's CN, the chain is the leaf plus `MO_SUB_CA2` and `MO_SUB_CA1`
 in PEM, and `connectors` was added by `EvseManager`.
 
+> **Corrected 2026-11-27: the explanation below is wrong.** Their station never verified the chain:
+> `verify_contract_cert_chain` defaults to `false`, and this config did not set it. Hash data is derived
+> only inside that branch. The `OcspCache` line is the TLS handshake's lookup for their own chain. With
+> the flag set, 2026.10.0 hands over three entries, one per certificate
+> ([`…-2026.10.0-iso2-pnc`](../2026-11-27-everest-2026.10.0-iso2-pnc/notes.md), finding 2). The text
+> is kept as written.
+
 **`iso15118CertificateHashData` is absent** — the key is not in the object at all, on a chain that
 verified. `EvseV2G` fills it from `call_get_mo_ocsp_request_data(contract_cert_chain_pem)` on the
 success branch (`iso_server.cpp:1108-1110`), and their own log says why it came back empty:

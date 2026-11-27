@@ -1,0 +1,8 @@
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, their station DC=CPO, C=DE, O=EVerest, CN=SECCCert
+Battery: 70.3 % of 60.0 kWh (started at 20.0 %, 30.16 kWh delivered) after 81 min simulated in 81 iteration(s) — target 70 % reached.
+Authorization: pnc-signed
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [1 m 38 s]
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, their station DC=CPO, C=DE, O=EVerest, CN=SECCCert
+ Battery: 70.3 % of 60.0 kWh (started at 20.0 %, 30.16 kWh delivered) after 81 min simulated in 81 iteration(s) — target 70 % reached.
+ Authorization: pnc-signed
+     Passed: 1
