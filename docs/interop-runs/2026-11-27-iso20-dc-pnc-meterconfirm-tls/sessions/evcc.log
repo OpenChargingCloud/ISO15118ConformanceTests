@@ -1,0 +1,5 @@
+PnC: contract cert O=ISO15118ConformanceTests eMSP (test), CN=DEOCCC521000001 (+2 sub-CA(s)), key 521-bit EC.
+  19 exchanges, 3970 bytes on the wire (request side), auth: pnc-signed, session setup: OK_NewSessionEstablished.
+  MeteringConfirmation: signed 2, last 2400 Wh at VAN*M1 (this vehicle counted 2400 Wh); answers: OK, OK.
+
+✓ Session complete in 787 ms.
