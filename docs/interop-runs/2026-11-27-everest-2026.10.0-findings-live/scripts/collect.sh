@@ -10,7 +10,7 @@ mkdir -p "$OUT/configs" "$OUT/scripts" "$OUT/tls" "$OUT/sessions" "$OUT/isomux"
 cp $E/configs-2610/config-d20-tls-default-2610.yaml $E/configs-2610/config-d20-eim-reject-2610.yaml \
    $E/configs-2610/config-dc2-pnc-receipt-2610.yaml "$OUT/configs/"
 cp $SP/station-2610.sh $SP/tls-arms-2610.sh $SP/evcc-arms-2610.sh $SP/meterinfo-decode.sh $SP/isomux-extract.sh \
-   $SP/collect.sh $SP/inspect.sh $SP/theirs.sh $SP/theirs2.sh $SP/receipt-decode.sh $SP/meter-compare.sh $E/fwd-2610.sh $E/fwd-2610v.sh "$OUT/scripts/"
+   $SP/collect.sh $SP/inspect.sh $SP/theirs.sh $SP/theirs2.sh $SP/receipt-decode.sh $SP/meter-compare.sh $SP/receipt-check.sh $SP/receipt-check2.sh $SP/sync-build.sh $E/fwd-2610.sh $E/fwd-2610v.sh "$OUT/scripts/"
 cp $R/isomux/* "$OUT/isomux/"
 for a in ca12 ca12-replay ca13 ta-oem ta-mo ta-vehicle; do
   d=$R/tls/$a; [ -d "$d" ] || continue
@@ -19,7 +19,7 @@ for a in ca12 ca12-replay ca13 ta-oem ta-mo ta-vehicle; do
   [ -f "$d/replay.out" ] && xxd "$d/replay.out" > "$OUT/tls/$a.station-answered.hex"
   [ -f "$d/req-sap.bin" ] && { xxd "$d/req-sap.bin"; xxd "$d/req-sessionsetup.bin"; } > "$OUT/tls/$a.sent.hex"
 done
-for a in meter-ctl meter seqto-dc seqto-ac eim-reject contactor-edge sid-zero sid-wrong certupd receipt reneg reneg-fwd; do
+for a in meter-ctl meter seqto-dc seqto-ac eim-reject contactor-edge sid-zero sid-wrong certupd receipt receipt-fixed receipt-tamper reneg reneg-fwd; do
   d=$R/$a; [ -d "$d" ] || continue
   for s in 1 2; do
     [ -f "$d/our-evcc-$s.log" ] || continue

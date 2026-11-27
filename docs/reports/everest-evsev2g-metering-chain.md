@@ -1,9 +1,15 @@
 # Draft report to EVerest (`EvseV2G`) — the signed-metering path is open at both ends
 
-> **The outgoing half reproduced on the 2026.10.0 release, 2026-11-27:** `MeterInfo` with `MeterID`
-> and `MeterReading` only, decoded by V2Gdecoder. The incoming half stays a source reading: with
-> `ev_receipt_required` on, the release answered our two signed receipts `OK`, which a verifying
-> station would do too. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#the-receipt-arm-one-thing-of-ours).
+> **Both halves are on the wire against the 2026.10.0 release, 2026-11-27.** Going out: `MeterInfo`
+> with `MeterID` and `MeterReading` only, decoded by V2Gdecoder. Coming back: with `ev_receipt_required`
+> on, three receipts **signed over different bytes than they carried** were each answered
+> `MeteringReceiptRes = OK`, and the session completed. A verifier rejects such a receipt; ours does in
+> the loopback test that pins the instrument. The incoming half had been a source reading until then.
+> Keep the weighting below: `[V2G2-904]` makes the check a *may*.
+> [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#after-the-fix-the-receipt-arms-again).
+> Worth one sentence when sending: on that release the configured receipt is asked for only in the
+> first session after boot, because `EvseV2G` clears `receipt_required` at every session end (same
+> run).
 
 > **Still live — and the only one of the four `-2` findings that survives `EvseV2G`'s removal.**
 > Re-read against `main` (`5d83027`) on 2026-11-04, and against the **new C++ `d2/` path** on

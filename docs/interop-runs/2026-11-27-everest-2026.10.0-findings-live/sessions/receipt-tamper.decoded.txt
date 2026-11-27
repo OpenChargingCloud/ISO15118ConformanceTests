@@ -1,0 +1,56 @@
+########## [43] MeteringReceiptReq payloadType=0x8001 bytes=325
+<ns4:DigestValue>vriQIGPprSA5nDlTqRzmyU7a3CJ3wdv66ymk5YAIoBU=</ns4:DigestValue>
+<ns4:SignatureValue>bvOOB44hUrYgDDm9wR4wwr0Tm829DXNd5mSX+n1fi+xmFgr62XUc+g5WxQzE7DGYh9+G+ixE+zs2lfU35YMZ5g==</ns4:SignatureValue>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>0</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [45] MeteringReceiptReq payloadType=0x8001 bytes=325
+<ns4:DigestValue>/5nmizIno63YRc9IM0zAIwxbD1HlUocCxj/6pxc1IZM=</ns4:DigestValue>
+<ns4:SignatureValue>8sfRQgcIAhgdzvFMDH8TRrAc0Vmy//ZPsYKRKB7WABuZSHPx3XlGdQeTza3dTBbsJFjXT3u4WHFXAmXh2Bfq3Q==</ns4:SignatureValue>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>1</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [47] MeteringReceiptReq payloadType=0x8001 bytes=325
+<ns4:DigestValue>/5nmizIno63YRc9IM0zAIwxbD1HlUocCxj/6pxc1IZM=</ns4:DigestValue>
+<ns4:SignatureValue>eStChjua5SK96mCQoostCq+K/fXVM9XT5YgPhk9iFBaJmEo+8icePKlGgLGmFalDnUYNPGoUU2ICq/3vTcLI1g==</ns4:SignatureValue>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>1</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [41] PowerDeliveryRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+########## [42] CurrentDemandRes (OK) payloadType=0x8001 bytes=84
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>0</ns6:MeterReading>
+</ns5:MeterInfo>
+<ns5:ReceiptRequired>true</ns5:ReceiptRequired>
+########## [43] MeteringReceiptRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+########## [44] CurrentDemandRes (OK) payloadType=0x8001 bytes=85
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>1</ns6:MeterReading>
+</ns5:MeterInfo>
+<ns5:ReceiptRequired>true</ns5:ReceiptRequired>
+########## [45] MeteringReceiptRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+########## [46] CurrentDemandRes (OK) payloadType=0x8001 bytes=68
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+<ns5:ReceiptRequired>true</ns5:ReceiptRequired>
+########## [47] MeteringReceiptRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+########## [48] PowerDeliveryRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>

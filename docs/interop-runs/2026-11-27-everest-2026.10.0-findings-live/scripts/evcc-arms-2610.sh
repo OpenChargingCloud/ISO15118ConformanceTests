@@ -49,6 +49,10 @@ want certupd       && run certupd       env SDPSEC=00 $FV certupd             $C
 sed '/^      charge_mode: DC/a\      ev_receipt_required: true' $C/config-dc2-pnc-hop-fwd2610.yaml > $C/config-dc2-pnc-receipt-2610.yaml
 grep -q "^      ev_receipt_required: true" $C/config-dc2-pnc-receipt-2610.yaml || { echo "FAIL: receipt config"; exit 1; }
 want receipt       && run receipt       env SDPSEC=00 $FV receipt             $C/config-dc2-pnc-receipt-2610.yaml $TLS $PNC
+# after our [V2G2-790] fix (stack evcc2-receipt-last-meterinfo): the same arm, twice, and then the
+# receipts signed over a MeterReading one higher than the one sent ([V2G2-904], the coming-back half)
+want receipt-fixed && run receipt-fixed env SDPSEC=00 SESSIONS=2 $FV receipt-fixed $C/config-dc2-pnc-receipt-2610.yaml $TLS $PNC
+want receipt-tamper && run receipt-tamper env SDPSEC=00 SESSIONS=2 $FV receipt-tamper $C/config-dc2-pnc-receipt-2610.yaml $TLS $PNC V2G_INTEROP_RECEIPT_TAMPER=1
 # evsemanager-renegotiation-supply: EV-initiated renegotiation with CableCheck; second session shows Inoperative
 want reneg         && run reneg         env PROTO=2 MODE=dc SESSIONS=2 $FV reneg $C/config-dc2-fwd2610.yaml V2G_INTEROP_RENEGOTIATE=1
 echo "=== EVCC ARMS DONE $(date -Is)"

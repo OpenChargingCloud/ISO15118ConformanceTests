@@ -335,16 +335,19 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**
-  Found 2026-11-27 against EVerest 2026.10.0 with `ev_receipt_required` on. Their `CurrentDemandRes`
-  carried `ReceiptRequired = true` and no `MeterInfo` (their flag is one-shot). `Evcc2.cs:467` signs a
+- ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
+  **Fixed 2026-11-27 on stack branch `evcc2-receipt-last-meterinfo` (`8e6fd3e`)**. It is not on
+  master until that branch is merged and EVSimulatorApp and this repository follow it. Found the same
+  day against EVerest 2026.10.0 with `ev_receipt_required` on. Their `CurrentDemandRes`
+  carried `ReceiptRequired = true` and no `MeterInfo` (their flag is one-shot). `Evcc2.cs:467` signed a
   receipt only over a `MeterInfo` it was just given, so the car went on to `PowerDeliveryReq` and got
   `FAILED_SequenceError`. `[V2G2-790]` makes the receipt unconditional after `ReceiptRequired = TRUE`,
-  so the car should sign the last `MeterInfo` it received. `ChargingStatusRes` has the same branch
-  (`:481`). The fix lives in the stack (`WWCP_ISO15118_Session/StateMachines/Iso2/Evcc2.cs`). It should
-  bring a knob that signs a receipt over the wrong bytes: that is what decides the coming-back half of
+  so the car now signs the last `MeterInfo` it received, on both the DC and the AC branch. The same
+  commit brings `TamperMeteringReceipt` (`V2G_INTEROP_RECEIPT_TAMPER=1`), which signs a receipt over the
+  wrong bytes. Against the release, the fixed car runs to `SessionStop`, and three tampered receipts get
+  `OK`. That put the coming-back half of
   [`everest-evsev2g-metering-chain`](reports/everest-evsev2g-metering-chain.md) on the wire
-  ([run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#the-receipt-arm-one-thing-of-ours)).
+  ([run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#after-the-fix-the-receipt-arms-again)).
 - ~~**The Kotlin and Swift cars still sign `-20` in Josev's `ecdsa-sha256`, and still continue past a
   WARNING in `AuthorizationRes`.**~~ **Fixed 2026-11-27**, the same day as the C# car (below).
   `V2GSigner` now takes the hash from its caller, and both ports have an `XmlDsigSuite` with `Iso20` as
@@ -921,12 +924,12 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
 - **Forty-nine issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
   in thirty-five sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin: *Ours to fix* holds one item, *Open questions about our own stack* has none, and
+  and by a wide margin: *Ours to fix* holds one item, fixed and waiting for its merge, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
   covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,
-  eim-rejection, ac-contactor-edge, session-id-zero, certificate-update, and the outgoing half of
+  eim-rejection, ac-contactor-edge, session-id-zero, certificate-update, and both halves of
   metering-chain. Every one reproduces. Two do so with different numbers, and their reports now say
   so. eim-rejection's tail is 55 s, not 180 s. renegotiation-supply still fails, but the release
   clears `Inoperative` at the unplug, so its lead sentence is a 2026.02 statement

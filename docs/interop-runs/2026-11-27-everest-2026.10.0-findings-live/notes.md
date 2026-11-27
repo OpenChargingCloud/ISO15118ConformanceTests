@@ -6,7 +6,7 @@ hand. It also said what it had not done: *"the live run did not drive the thirte
 to reproduce them, which would be a session each against the release."* This run is those sessions. Every
 arm ran against `~/everest/dist-2610` (`74845c578`, 22 modules), one manager start per arm.
 
-**The headline:** **every finding that was driven reproduces on the release**, eleven of them, plus the
+**The headline:** **every finding that was driven reproduces on the release**, twelve of them, plus the
 two `isomux` sections already on tape from the [forward run](../2026-11-26-everest-2026.10.0-forward/notes.md).
 Two of them reproduce **with different numbers**, and the reports have to say so:
 
@@ -19,8 +19,10 @@ Two of them reproduce **with different numbers**, and the reports have to say so
   leads with, is no longer true of 2026.10.0.
 
 One side observation is **ours**, not theirs: with `ev_receipt_required` on, their station asks for a
-receipt in a `CurrentDemandRes` that carries no `MeterInfo`. Our car then skips the receipt, which
-`[V2G2-790]` does not allow (below, and in *Ours to fix*).
+receipt in a `CurrentDemandRes` that carries no `MeterInfo`. Our car then skipped the receipt, which
+`[V2G2-790]` does not allow. **Fixed the same evening.** With the fix, and with a new knob that signs a
+receipt over the wrong bytes, the receipt half of `evsev2g-metering-chain` went on the wire too: three
+tampered receipts, all answered `OK` ([below](#after-the-fix-the-receipt-arms-again)).
 
 | | |
 |---|---|
@@ -48,7 +50,7 @@ receipt in a `CurrentDemandRes` that carries no `MeterInfo`. Our car then skips 
 | `evsev2g-session-id-zero` | `sid-zero`, `sid-wrong` | SessionID of eight zero bytes on every request after `SessionSetup`: **44 exchanges to `SessionStop`, all `OK`**. Control, a wrong non-zero id: `FAILED_UnknownSession` at the first request | ✅ same, and stronger: a whole session, not one request |
 | `evsev2g-certificate-update` | `certupd` | `CertificateUpdateReq` under parameter set 1: **`CertificateUpdateRes = OK`**, and a `DHpublickey` that is not a P-256 point | ✅ same |
 | `evsev2g-metering-chain`, going out | forward `dc2`, `receipt` | `MeterInfo` carries `MeterID` and `MeterReading`, **nothing else** — decoded by V2Gdecoder (RISE-V2G + EXIficient), not by us | ✅ same |
-| `evsev2g-metering-chain`, coming back | `receipt` | two signed `MeteringReceiptReq` answered `OK` | ➖ **not decidable on the wire with this car**: our receipts are validly signed, so `OK` is what a verifying station would say too |
+| `evsev2g-metering-chain`, coming back | `receipt-tamper` | three receipts whose digest does not match their body, **all answered `OK`**, session to `SessionStop` | ✅ on the wire for the first time ([below](#after-the-fix-the-receipt-arms-again)) |
 | `evsemanager-renegotiation-supply` | `reneg-fwd`, `reneg` | renegotiated `CableCheck` → `FAILED`, `MREC11CableCheckFault`, `Inoperative`, *Initiating error shutdown* — then **both errors cleared at the unplug**, and the second session is served | ⚠️ the failure, **not** the lasting `Inoperative` |
 
 `manager alive at end: 1` on every arm.
@@ -130,10 +132,46 @@ meet it by signing the last `MeterInfo` it received. That is **ours to fix** (`C
 same branch at `Evcc2.cs:481`). That the station asks for a receipt with nothing to sign is odd, but the
 text read here does not forbid it, so it is not filed.
 
-The other half of `evsev2g-metering-chain`, *the receipt's signature is never checked*, stays a source
-reading. Both of our receipts were validly signed, so `MeteringReceiptRes = OK` is what a verifying
-station would have answered too. Deciding it on the wire needs a car that can sign over the wrong bytes,
-and ours cannot do that yet.
+This arm could not decide the other half of `evsev2g-metering-chain`, *the receipt's signature is never
+checked*. Both of our receipts were validly signed, so `MeteringReceiptRes = OK` is what a verifying
+station would have answered too. The next section decides it.
+
+## After the fix: the receipt arms again
+
+The car was fixed the same evening, on stack branch `evcc2-receipt-last-meterinfo` (`8e6fd3e`).
+`Evcc2` now keeps the last `MeterInfo` of the session and signs that when the response asking for a
+receipt carries none. It aborts with a stated reason when it cannot comply: no `MeterInfo` yet, or
+`ReceiptRequired` under EIM. The same commit adds the missing instrument, `Evcc2.TamperMeteringReceipt`
+(interop: `V2G_INTEROP_RECEIPT_TAMPER=1`): a receipt whose signature covers a `MeterReading` one higher
+than the one it carries. Three new loopback tests cover both, AC and DC, and the tampered one shows our
+own SECC's `[V2G2-904]` check failing the digest. The full offline suite passed with exit 0, 1 605 tests.
+
+Re-run against the same release, the same config, two sessions per manager start, with
+[`fwd-2610v.sh`](scripts/fwd-2610v.sh):
+
+| arm | session 1 | session 2 |
+|---|---|---|
+| `receipt-fixed` | 3 receipts: [42] `MeterInfo` 0, [44] `MeterInfo` 1, **[46] no `MeterInfo` → our receipt over 1**, all `OK`; then `PowerDelivery OK`, `WeldingDetection`, **`SessionStop OK`** | no receipt asked for (below), `SessionStop OK` |
+| `receipt-tamper` | 3 receipts **signed over other bytes than they carry**, **all `MeteringReceiptRes = OK`**, `SessionStop OK` | no receipt asked for, `SessionStop OK` |
+
+Decoded with V2Gdecoder: [`receipt-fixed.decoded.txt`](sessions/receipt-fixed.decoded.txt) and
+[`receipt-tamper.decoded.txt`](sessions/receipt-tamper.decoded.txt). The station's log for the tampered
+receipts has nothing but the `CAR ISO V2G MeteringReceiptReq` / `EVSE ISO V2G MeteringReceiptRes` pairs.
+
+- **`[V2G2-790]` is met**, and the session that ended in `FAILED_SequenceError` now completes.
+- **The coming-back half of `evsev2g-metering-chain` is on the wire.** `[V2G2-904]` makes the check a
+  *may*, so this is the report's weaker half, as it says itself. But the claim is now a measurement:
+  a receipt the car did not sign as sent gets the same `OK` as one it did. That a tampered receipt
+  really fails a verifier rests on the loopback test, where our own SECC verifies it. The live arm
+  shows the release does not tell the two apart.
+
+**A side observation about their station, not filed.** Session 2 of both arms was never asked for a
+receipt. `EvseManager` hands `ev_receipt_required` to the HLC once, at module start
+(`EvseManager.cpp:1096`, `call_receipt_is_required`), and `EvseV2G` clears it at the end of every
+session: `v2g_ctx_init_charging_session` (`connection.cpp:500`) calls `v2g_ctx_init_charging_values`,
+which sets `receipt_required = 0` (`v2g_ctx.cpp:329`; `:248` in 2026.02.1). So the configured receipt is
+asked for in the first session after boot and in none after it. It is `EvseV2G`-only, and that module is
+deprecated in this release. It stays a note unless someone wants a fifty-first filing.
 
 ## Smaller differences from August, none of them a change of verdict
 
@@ -169,9 +207,8 @@ and ours cannot do that yet.
 
 ## Next
 
-- Our car: send the `[V2G2-790]` receipt over the last `MeterInfo` when the station asks without a new
-  one (*Ours to fix*), then re-run the `receipt` arm.
-- The coming-back half of `evsev2g-metering-chain` needs a receipt signed over the wrong bytes. That is
-  a knob in the stack, and it should arrive with the fix above.
+- ~~Our car: send the `[V2G2-790]` receipt over the last `MeterInfo`~~ and ~~the tamper knob~~: done
+  the same evening (above). What is left is merging stack branch `evcc2-receipt-last-meterinfo` and
+  the two pointer bumps.
 - Update `everest-d20-eim-rejection` (55 s) and `everest-evsemanager-renegotiation-supply` (clears at
   the unplug) before either is sent. Done in this change; see the reports' banners.
