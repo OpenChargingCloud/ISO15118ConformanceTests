@@ -590,6 +590,47 @@ public class SessionTraceCorpusTests
             },
             SignedBy: PncMaterial.Key),
 
+        // The meter's signature and the car's, in one message, and the shape this corpus said it could
+        // not compare until it was recorded (2026-11-27). The station asks with
+        // EVSENotification = MeteringConfirmation ([V2G20-1083]) from its second charge-loop response
+        // on; the car signs the reading it was just shown with its contract key ([V2G20-1808]) and sends
+        // it on the side stream, payload type 0x8102 ([V2G20-1084]), which is answered on the same type
+        // ([V2G20-1085]). Two of the session's frames are therefore not on any of the four message-set
+        // payload types every other recording uses.
+        //
+        // The station is strict here (RequireValidMeteringConfirmation): a confirmation that did not
+        // bind the right session, reading, control mode, digest and key would be answered FAILED and end
+        // the recording, so a trace that exists is one the station checked.
+        new("iso20-dc-pnc-meterconfirm", "iso15118-20", "dc",
+            "-20 DC, Plug & Charge, at a station with a signing meter that asks for metering " +
+            "confirmations: from the second DC_ChargeLoopRes on, EVSENotification is " +
+            "MeteringConfirmation, and after each the car sends a MeteringConfirmationReq on payload " +
+            "type 0x8102 — the reading it was shown, meter signature included, signed with its " +
+            "contract key. The only recorded message signed by two parties.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                using var contractKey = PncMaterial.Key();
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
+                          {
+                              Pnc = new PncEvccOptions(PncMaterial.Certificate(),
+                                                       [PncMaterial.Certificate()], contractKey),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId                   = RecordedSessionId,
+                            FixedGenChallenge                = RecordedGenChallenge,
+                            InstalledMeter                   = Meter(clock),
+                            MeteringConfirmationEvery        = 1,
+                            RequireValidMeteringConfirmation = true,
+                            Backend                          = backend }.RunAsync(stream, ct);
+            },
+            SignedBy: PncMaterial.Key,
+            Metered:  true),
+
         // ── contract provisioning ─────────────────────────────────────────
         //
         // The sessions of a car that does not yet have what every other signed session here starts
@@ -1156,6 +1197,23 @@ public class SessionTraceCorpusTests
                 if (fresh.Signature      != old.Signature)      randomised.Add($"{i} {direction} signature");
                 if (fresh.MeterSignature != old.MeterSignature) randomised.Add($"{i} {direction} meter");
 
+                // A frame signed over a reading somebody else signed: Restore takes the recorded
+                // digest along with the recorded reading, so the digests are checked here instead,
+                // each against its own body, and the fresh signature against the corpus key.
+                if (old.IsSigned && old.CarriesMeterSignature)
+                {
+                    using var key = KeyOf(onDisk.SigningKey!);
+                    Assert.Multiple(() =>
+                    {
+                        Assert.That(SignedFrame.DigestHolds(fresh.Bytes), Is.True,
+                                    $"exchange {i} {direction}: the fresh digest is not over its own body");
+                        Assert.That(SignedFrame.DigestHolds(old.Bytes), Is.True,
+                                    $"exchange {i} {direction}: the recorded digest is not over its own body");
+                        Assert.That(SignedFrame.VerifiesWith(fresh.Bytes, key), Is.True,
+                                    $"exchange {i} {direction}: the fresh signature does not verify");
+                    });
+                }
+
                 // A response that issues a contract cannot be reproduced and must not be — see
                 // Scenario.FreshlyIssuedResponses. Its identity is still checked, so a session that
                 // silently sent a different message here would not slip through under this exemption.
@@ -1203,6 +1261,13 @@ public class SessionTraceCorpusTests
     private static byte[] Restore(TraceFrame fresh, TraceFrame old)
     {
         var bytes = fresh.Bytes;
+
+        // Both at once: the meter's signature is inside what the car digested, so the recorded digest
+        // belongs with the recorded reading and the whole Signature element is taken — see
+        // SignedFrame.WithSignatureFrom. The caller holds each side's digest to its own body.
+        if (old.IsSigned && old.CarriesMeterSignature)
+            return SignedFrame.WithSignatureFrom(SignedFrame.WithMeterSignature(bytes, old.MeterSignatureBytes!),
+                                                 old.Bytes);
 
         // Order does not matter: the two live in different fields — one in the message header, one
         // in the body's MeterInfo — and each substitution decodes and re-encodes the whole frame.
@@ -1389,7 +1454,9 @@ public class SessionTraceCorpusTests
             // reading would be an ordinary session under a promising name — and the app, which reads
             // this corpus to show a station's signed reading, would have nothing to show and no way
             // to tell that apart from a station that simply has no meter.
-            var isMetered = name.EndsWith("-meter");
+            // The scenario's flag rather than the name's suffix, for the reason `signs` above stopped
+            // reading the name: the metering-confirmation session is metered and is not a "-meter".
+            var isMetered = Scenarios.Single(s => s.Name == name).Metered;
             Assert.That(trace.Exchanges.Any(e => e.Response.CarriesMeterSignature), Is.EqualTo(isMetered),
                         isMetered ? "a metered trace whose responses carry no meter signature recorded "
                                   + "a station without a meter"
@@ -1421,28 +1488,99 @@ public class SessionTraceCorpusTests
     /// arrive out of band, which is the pairing code's job (<c>docs/CONCEPT.md</c> §4.5).
     /// </para>
     /// </remarks>
+    /// <remarks>
+    /// Both directions: in the metering-confirmation session the car echoes each reading back inside
+    /// its MeteringConfirmationReq, and that copy has to verify as well as the one it was shown.
+    /// </remarks>
     [Test]
     public void EveryRecordedMeterReadingVerifies(
-        [Values("iso2-ac-eim-meter", "iso20-dc-eim-meter")] string name)
+        [Values("iso2-ac-eim-meter", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm")] string name)
     {
 
         var trace   = SessionTrace.ReadFrom(TracePath(name));
-        var metered = trace.Exchanges.Where(e => e.Response.CarriesMeterSignature).ToList();
+        var metered = trace.Exchanges.SelectMany(e => new[] { (e.Index, Frame: e.Request), (e.Index, Frame: e.Response) })
+                                     .Where(f => f.Frame.CarriesMeterSignature)
+                                     .ToList();
 
-        Assert.That(metered, Is.Not.Empty, "no meter reading in a trace recorded with a meter fitted");
+        Assert.That(trace.Exchanges.Any(e => e.Response.CarriesMeterSignature), Is.True,
+                    "no meter reading in a trace recorded with a meter fitted");
 
         using var key = KeyOf(trace.MeterKey!);
 
         Assert.Multiple(() =>
         {
-            foreach (var exchange in metered)
+            foreach (var (index, frame) in metered)
             {
-                Assert.That(exchange.Response.MeterSignatureBytes, Has.Length.EqualTo(64),
-                            $"exchange {exchange.Index}: the field holds 64 bytes — one raw P-256 r‖s pair");
-                Assert.That(SignedFrame.MeterReadingVerifiesWith(exchange.Response.Bytes, key), Is.True,
-                            $"exchange {exchange.Index} ({exchange.Response.Message}): the recorded " +
+                Assert.That(frame.MeterSignatureBytes, Has.Length.EqualTo(64),
+                            $"exchange {index}: the field holds 64 bytes — one raw P-256 r‖s pair");
+                Assert.That(SignedFrame.MeterReadingVerifiesWith(frame.Bytes, key), Is.True,
+                            $"exchange {index} ({frame.Message}): the recorded " +
                              "reading does not verify against the trace's own meter key");
             }
+        });
+
+    }
+
+
+    /// <summary>
+    /// The metering-confirmation session confirms the readings it was shown: one MeteringConfirmationReq
+    /// after every response that asked, on the side stream, carrying that response's reading unchanged,
+    /// signed with the contract key over a digest of its own body.
+    /// </summary>
+    /// <remarks>
+    /// Read out of the recording rather than out of the state machines' counters, because the claim is
+    /// about what crossed the wire. The tampering half is the one worth having: a car that signed a
+    /// reading other than the one it was shown must not produce a frame whose digest still holds.
+    /// </remarks>
+    [Test]
+    public void TheCarConfirmsTheReadingsItWasShown()
+    {
+
+        var trace = SessionTrace.ReadFrom(TracePath("iso20-dc-pnc-meterconfirm"));
+
+        var confirmations = trace.Exchanges.Where(e => e.Request.Message == "MeteringConfirmationReq").ToList();
+
+        Assert.That(confirmations, Has.Count.GreaterThanOrEqualTo(2),
+                    "the station asks from its second charge-loop response on, and the car charges for three");
+
+        using var contractKey = KeyOf(trace.SigningKey!);
+        using var meterKey    = KeyOf(trace.MeterKey!);
+
+        Assert.Multiple(() =>
+        {
+            foreach (var confirmation in confirmations)
+            {
+                var asked = trace.Exchanges[confirmation.Index - 1].Response;
+
+                Assert.That(confirmation.Request.PayloadType,  Is.EqualTo("0x8102"), $"exchange {confirmation.Index}: [V2G20-1084]");
+                Assert.That(confirmation.Response.PayloadType, Is.EqualTo("0x8102"), $"exchange {confirmation.Index}: [V2G20-1085]");
+                Assert.That(confirmation.Response.Message,     Is.EqualTo("MeteringConfirmationRes"));
+                Assert.That(asked.Message,                     Is.EqualTo("DC_ChargeLoopRes"),
+                            $"exchange {confirmation.Index}: a confirmation must follow the response that asked for it");
+
+                Assert.That(confirmation.Request.MeterSignature, Is.EqualTo(asked.MeterSignature),
+                            $"exchange {confirmation.Index}: the car confirmed a reading other than the one it was shown");
+
+                Assert.That(SignedFrame.VerifiesWith(confirmation.Request.Bytes, contractKey), Is.True,
+                            $"exchange {confirmation.Index}: the confirmation does not verify against the contract key");
+                Assert.That(SignedFrame.MeterReadingVerifiesWith(confirmation.Request.Bytes, meterKey), Is.True,
+                            $"exchange {confirmation.Index}: the reading inside the confirmation does not verify");
+            }
+
+            // A different reading under the same signature: the digest no longer describes the body.
+            var first     = confirmations[0].Request;
+            var otherRead = first.MeterSignatureBytes!;
+            otherRead[0] ^= 0x01;
+            var tampered  = SignedFrame.WithMeterSignature(first.Bytes, otherRead);
+
+            Assert.That(SignedFrame.DigestHolds(tampered), Is.False,
+                        "a confirmation whose reading was changed after signing still has a matching digest");
+            Assert.That(SignedFrame.VerifiesWith(tampered, contractKey), Is.False,
+                        "…and still verifies, so the verification is not looking at the body at all");
+
+            using var otherKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            Assert.That(SignedFrame.VerifiesWith(first.Bytes, otherKey), Is.False,
+                        "any key must not do — that would make the verification decorative");
         });
 
     }
@@ -1489,26 +1627,26 @@ public class SessionTraceCorpusTests
 
 
     /// <summary>
-    /// No frame carries a meter signature *and* a header signature at once.
+    /// Only a -20 <c>MeteringConfirmationReq</c> carries a meter signature <i>and</i> a header signature.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This is a limit written down as a running check rather than as a comment. In a Plug &amp; Charge
-    /// session the EV echoes the station's <c>MeterInfo</c> back inside a <b>signed</b>
-    /// <c>MeteringReceiptReq</c>, so the meter's 64 random bytes land inside the fragment the EV
-    /// digests. Substituting the recorded meter signature would then leave the digest in
-    /// <c>SignedInfo</c> describing a body that no longer exists, and the comparison would fail on
-    /// the digest rather than on anything real.
+    /// A limit written down as a running check rather than as a comment. When the car signs a message
+    /// that carries the station's <c>MeterInfo</c>, the meter's 64 random bytes land inside the fragment
+    /// the car digests. Substituting the recorded meter signature then leaves the digest in
+    /// <c>SignedInfo</c> describing a body that no longer exists.
     /// </para>
     /// <para>
-    /// Solvable — verify each side's digest against its own body instead of substituting — and not
-    /// solved here, because the metered scenarios are EIM and never reach that shape. If someone
-    /// records a metered PnC session this fails immediately, which is the point: the alternative is
-    /// a corpus that quietly compares nothing for exactly the session that motivated it.
+    /// Solved for the -20 <c>MeteringConfirmationReq</c> since 2026-11-27: the comparison takes the
+    /// recorded <c>Signature</c> element whole and holds each side's digest to its own body
+    /// (<see cref="SignedFrame.WithSignatureFrom"/>, <see cref="SignedFrame.DigestHolds"/>). Not solved
+    /// for the -2 <c>MeteringReceiptReq</c>, which is the same shape on the other protocol: no
+    /// recording has it yet, and when one does this fails, rather than letting the comparison
+    /// quietly check nothing for exactly the session that motivated it.
     /// </para>
     /// </remarks>
     [Test]
-    public void TheMeterSignatureIsNotInsideASignedFragment(
+    public void OnlyAMeteringConfirmationIsSignedOverAMeterSignature(
         [ValueSource(nameof(ScenarioNames))] string name)
     {
 
@@ -1516,11 +1654,11 @@ public class SessionTraceCorpusTests
 
         foreach (var exchange in trace.Exchanges)
             foreach (var frame in new[] { exchange.Request, exchange.Response })
-                Assert.That(frame.IsSigned && frame.CarriesMeterSignature, Is.False,
-                            $"exchange {exchange.Index} ({frame.Message}) carries both a header " +
-                             "signature and a meter signature. The substitution cannot handle that " +
-                             "yet: the meter's bytes are inside the fragment the header signature " +
-                             "digests, so replacing them invalidates the digest.");
+                if (frame.IsSigned && frame.CarriesMeterSignature)
+                    Assert.That(frame.Message, Is.EqualTo("MeteringConfirmationReq"),
+                                $"exchange {exchange.Index} ({frame.Message}) carries both a header " +
+                                 "signature and a meter signature, and only the -20 MeteringConfirmationReq " +
+                                 "has the digest-aware comparison. Model this message in SignedFrame first.");
 
     }
 
@@ -1547,7 +1685,7 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public async Task TheBackendRecordCarriesTheSameSignedValuesTheCarSaw(
-        [Values("iso2-ac-eim-meter", "iso20-dc-eim-meter")] string name)
+        [Values("iso2-ac-eim-meter", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm")] string name)
     {
 
         var (trace, ocpp) = await RecordWithBackendAsync(Scenarios.Single(s => s.Name == name));
@@ -1746,7 +1884,7 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public void TheSignatureAwareComparisonActuallyBites(
-        [Values("iso2-ac-pnc", "iso20-dc-pnc",
+        [Values("iso2-ac-pnc", "iso20-dc-pnc", "iso20-dc-pnc-meterconfirm",
                 "iso2-ac-eim-certinstall", "iso2-ac-eim-certupdate", "iso20-dc-eim-certinstall")] string name)
     {
 

@@ -78,6 +78,10 @@ internal static class SignedFrame
         // The other signed request a -20 EV sends, and the only one it sends *before* it authorizes:
         // the OEM provisioning chain, signed with the factory key.
         C.CertificateInstallationReq r => r.Header.Signature?.SignatureValue.Value,
+        // The third, and the only one sent on a side stream (0x8102): the car's contract-key
+        // signature over a reading the station's meter signed. See WithSignatureFrom for why this
+        // one needs more than the value substituted when it is re-recorded.
+        C.MeteringConfirmationReq r    => r.Header.Signature?.SignatureValue.Value,
         // Anything else is, as far as the corpus is concerned, unsigned. Substitute() is the place
         // that refuses loudly, and it is reached only once an exchange has been marked as signed.
         _ => null,
@@ -87,8 +91,62 @@ internal static class SignedFrame
     /// whatever signature value it carried, header and all.</summary>
     public static byte[] WithSignatureValue(byte[] frame, byte[] signatureValue)
     {
-        var (set, message) = DecodeWithSet(frame);
-        return Encode(set, Substitute(message, signatureValue));
+        var (payloadType, set, message) = DecodeWithSet(frame);
+        return Encode(payloadType, set, Substitute(message, signatureValue));
+    }
+
+    /// <summary>
+    /// Re-encodes <paramref name="frame"/> with <paramref name="donor"/>'s whole header signature —
+    /// <c>SignedInfo</c>, digest and value — in place of its own.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Why the value alone is not enough here.</b> A <c>MeteringConfirmationReq</c> is the one signed
+    /// message whose signed fragment contains <i>another</i> randomised signature: the meter's, in
+    /// <c>SignedMeteringData.MeterInfo</c>. Two recordings therefore differ inside the digested octets
+    /// as well, so the digest in <c>SignedInfo</c> differs too. Substituting only the meter signature
+    /// and the value would leave a digest that describes a body the frame no longer has, and the
+    /// comparison would fail on that rather than on anything real.
+    /// </para>
+    /// <para>
+    /// So the re-recording comparison takes the recorded <c>Signature</c> element whole, and holds each
+    /// side's digest to its <i>own</i> body with <see cref="DigestHolds"/>. Everything outside the two
+    /// signatures is still compared byte for byte. A replay never needs this: the car echoes the
+    /// reading out of the recorded response, so the meter's bytes, and with them the digest, are the
+    /// recorded ones.
+    /// </para>
+    /// </remarks>
+    public static byte[] WithSignatureFrom(byte[] frame, byte[] donor)
+    {
+        var (payloadType, set, message) = DecodeWithSet(frame);
+
+        if (message is not C.MeteringConfirmationReq r || Decode(donor) is not C.MeteringConfirmationReq { Header.Signature: { } s })
+            throw new NotSupportedException(
+                $"only a MeteringConfirmationReq carries a second signature inside its signed fragment; " +
+                $"a {message.GetType().Name} is compared with its signature value substituted.");
+
+        return Encode(payloadType, set, r with { Header = r.Header with { Signature = s } });
+    }
+
+    /// <summary>
+    /// Whether a signed -20 <c>MeteringConfirmationReq</c>'s reference digest is the digest of its own
+    /// request fragment. The half of the signature check that verifying <c>SignedInfo</c> does not do.
+    /// </summary>
+    public static bool DigestHolds(byte[] frame)
+    {
+        if (Decode(frame) is not C.MeteringConfirmationReq { Header.Signature: { } s } r ||
+            s.SignedInfo.Reference.Count != 1)
+            return false;
+
+        var reference = s.SignedInfo.Reference[0];
+        if (reference.URI != "#" + r.SignedMeteringData.Id)
+            return false;
+
+        var octets = MeteringConfirmation.SignedOctets(r.Header, r.SignedMeteringData);
+        var digest = reference.DigestMethod.Algorithm.Contains("sha256") ? SHA256.HashData(octets)
+                                                                         : SHA512.HashData(octets);
+
+        return digest.AsSpan().SequenceEqual(reference.DigestValue);
     }
 
     /// <summary>Verifies a frame's own signature against its own <c>SignedInfo</c>. This is the half
@@ -114,6 +172,13 @@ internal static class SignedFrame
 
             C.CertificateInstallationReq r when r.Header.Signature is { } s
                 => XmlDsigInteropVerify.VerifyStandaloneXmldsig(
+                       s.SignedInfo, s.SignatureValue.Value, publicKey, HashOf(s)),
+
+            // The digest as well, because for this message the byte comparison cannot be relied on to
+            // pin it: a re-recording takes the recorded SignedInfo whole (WithSignatureFrom).
+            C.MeteringConfirmationReq r when r.Header.Signature is { } s
+                => DigestHolds(frame) &&
+                   XmlDsigInteropVerify.VerifyStandaloneXmldsig(
                        s.SignedInfo, s.SignatureValue.Value, publicKey, HashOf(s)),
 
             _ => false,
@@ -159,8 +224,8 @@ internal static class SignedFrame
     /// </remarks>
     public static byte[] WithMeterSignature(byte[] frame, byte[] meterSignature)
     {
-        var (set, message) = DecodeWithSet(frame);
-        return Encode(set, SubstituteMeter(message, meterSignature));
+        var (payloadType, set, message) = DecodeWithSet(frame);
+        return Encode(payloadType, set, SubstituteMeter(message, meterSignature));
     }
 
     /// <summary>
@@ -203,6 +268,11 @@ internal static class SignedFrame
         Dc20.DC_ChargeLoopRes { MeterInfo: { } i } r => Iso20(r.Header.SessionID, i.MeterID,
                                                               i.ChargedEnergyReadingWh,
                                                               i.MeterSignature, i.MeterTimestamp),
+        // The reading the car confirms, as it echoes it back — a request, and a signed one.
+        C.MeteringConfirmationReq { SignedMeteringData.MeterInfo: var i } r
+                                                     => Iso20(r.Header.SessionID, i.MeterID,
+                                                              i.ChargedEnergyReadingWh,
+                                                              i.MeterSignature, i.MeterTimestamp),
         _ => null,
     };
 
@@ -234,6 +304,15 @@ internal static class SignedFrame
 
             case Dc20.DC_ChargeLoopRes { MeterInfo: { } i } r:
                 return r with { MeterInfo = i with { MeterSignature = meterSignature } };
+
+            case C.MeteringConfirmationReq r:
+                return r with
+                {
+                    SignedMeteringData = r.SignedMeteringData with
+                    {
+                        MeterInfo = r.SignedMeteringData.MeterInfo with { MeterSignature = meterSignature },
+                    },
+                };
 
             default:
                 throw NotModelled(message);
@@ -283,6 +362,15 @@ internal static class SignedFrame
                     },
                 };
 
+            case C.MeteringConfirmationReq r when r.Header.Signature is { } s:
+                return r with
+                {
+                    Header = r.Header with
+                    {
+                        Signature = s with { SignatureValue = new C.SignatureValueType(Id: null, Value: signatureValue) },
+                    },
+                };
+
             default:
                 throw new NotSupportedException(
                     $"the trace corpus does not model a signature on {message.GetType().Name}. " +
@@ -290,7 +378,7 @@ internal static class SignedFrame
         }
     }
 
-    private static byte[] Encode(MessageSet set, object message)
+    private static byte[] Encode(ushort payloadType, MessageSet set, object message)
     {
         // Called as plain statics rather than through the generated extension syntax: this file
         // reaches both protocols via type aliases, and a `using` alias does not bring a namespace's
@@ -305,6 +393,7 @@ internal static class SignedFrame
             I2.V2G_Message m                 => I2.Iso2Codec.TryEncode(m, buffer, out var n) ? n : -1,
             C.AuthorizationReq r             => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
             C.CertificateInstallationReq r   => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
+            C.MeteringConfirmationReq r      => C.CommonMessagesCodec.TryEncode(r, buffer, out var n) ? n : -1,
             Ac20.AC_ChargeLoopRes r          => Ac20.AcCodec.TryEncode(r, buffer, out var n) ? n : -1,
             Dc20.DC_ChargeLoopRes r          => Dc20.DcCodec.TryEncode(r, buffer, out var n) ? n : -1,
             _ => throw new NotSupportedException($"cannot re-encode a {message.GetType().Name}."),
@@ -314,6 +403,16 @@ internal static class SignedFrame
             throw new InvalidOperationException($"re-encoding a {message.GetType().Name} failed.");
 
         var frame = new byte[V2GTPCodec.HeaderSize + ok];
+
+        // A side-stream frame keeps the payload type it came with: the dispatcher frames by message
+        // set, and would put a CommonMessages document back on 0x8002.
+        if (payloadType == MeteringConfirmation.PayloadType)
+        {
+            V2GTPCodec.WriteHeader(frame, payloadType, (uint) ok);
+            buffer.AsSpan(0, ok).CopyTo(frame.AsSpan(V2GTPCodec.HeaderSize));
+            return frame;
+        }
+
         if (!V2GTPDispatcher.TryEncode(set, buffer.AsSpan(0, ok), frame, out var written))
             throw new InvalidOperationException($"re-framing a {message.GetType().Name} failed.");
 
@@ -322,10 +421,20 @@ internal static class SignedFrame
 
     private static object Decode(byte[] frame) => DecodeWithSet(frame).Message;
 
-    private static (MessageSet Set, object Message) DecodeWithSet(byte[] frame)
+    /// <summary>
+    /// One frame, decoded, with the payload type it was framed with. The dispatcher routes the main
+    /// stream only, so the side stream the -20 car confirms a reading on (0x8102, [V2G20-1084]) is read
+    /// here as the CommonMessages document it carries — the way <c>Evcc20Base</c> reads it.
+    /// </summary>
+    internal static (ushort PayloadType, MessageSet Set, object Message) DecodeWithSet(byte[] frame)
     {
+        if (V2GTPCodec.TryReadHeader(frame, out var payloadType, out _) &&
+            payloadType == MeteringConfirmation.PayloadType)
+            return (payloadType, MessageSet.Iso20CommonMessages,
+                    C.CommonMessagesCodec.DecodeAny(frame.AsSpan(V2GTPCodec.HeaderSize), out _));
+
         if (!V2GTPDispatcher.TryDecode(frame, out var set, out var message, out var error) || message is null)
             throw new InvalidDataException($"trace: {error}");
-        return (set, message);
+        return (payloadType, set, message);
     }
 }

@@ -55,7 +55,13 @@ public static class FrameLabel
                 return (sap.GetType().Name, ResponseCodeOf(sap));
             }
 
-            if (!V2GTPDispatcher.TryDecode(frame, out _, out var message, out _) || message is null)
+            // The side stream (0x8102) is not the dispatcher's, so it is read the way SignedFrame reads it.
+            object? message;
+            if (V2GTPCodec.TryReadHeader(frame, out var payloadType, out _) &&
+                payloadType == cloud.charging.open.protocols.ISO15118.StateMachines.Iso20.MeteringConfirmation.PayloadType)
+                message = SignedFrame.DecodeWithSet(frame).Message;
+
+            else if (!V2GTPDispatcher.TryDecode(frame, out _, out message, out _) || message is null)
                 return ("undecodable", null);
 
             // -2 wraps everything in V2G_Message; the interesting name is the body element. The -20 sets
