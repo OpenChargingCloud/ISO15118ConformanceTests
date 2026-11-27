@@ -10,8 +10,9 @@ a `MeteringConfirmationReq` (see [`open-work.md`](../../open-work.md), *Never ve
 **Result: every chain anchored, and both confirmations passed every check, in 3 of 3 runs. Two negative
 runs show the checks can fail. A wrong root on the car's side ends the handshake. A missing MO root on the
 station's side rejects the contract chain, but the session goes on, and the confirmations are still
-answered `OK`. That second point was a limit of our station. It is fixed on a stack branch, and with the
-fix the confirmation is refused ([below](#after-the-fix-the-untrusted-contract-is-refused)).**
+answered `OK`. That second point was a limit of our station. It was fixed the same evening
+([WWCP_ISO15118#58](https://github.com/OpenChargingCloud/WWCP_ISO15118/pull/58)), and with the fix the
+confirmation is refused ([below](#after-the-fix-the-untrusted-contract-is-refused)).**
 
 ## Setup
 
@@ -82,12 +83,11 @@ consistent. It is still a gap for a station meant to *require* a confirmation it
 
 ### After the fix: the untrusted contract is refused
 
-Fixed the same evening on stack branch `secc20-confirmation-needs-trusted-contract` (`2917c0a`,
-[WWCP_ISO15118#58](https://github.com/OpenChargingCloud/WWCP_ISO15118/pull/58), not yet merged at the
-time of writing). Each `MeteringConfirmationCheck` now carries the contract's chain verdict from
+Fixed the same evening: [WWCP_ISO15118#58](https://github.com/OpenChargingCloud/WWCP_ISO15118/pull/58)
+(`2917c0a`, merged as `0b050d3`), followed by EVSimulatorApp `664945b` and by this repository. Each `MeteringConfirmationCheck` now carries the contract's chain verdict from
 `AuthorizationReq`, and a confirmation holds only if that chain reached a configured root. A station
 with no roots behaves as before. `Auth` still grants whatever the chain verdict. The same script, on
-that branch, logs in [`sessions/after-fix/`](sessions/after-fix/):
+that commit, before the merge, logs in [`sessions/after-fix/`](sessions/after-fix/):
 
 ```
 Plug & Charge: contract CN=Contract, …; … chain REJECTED — …
@@ -114,6 +114,6 @@ without --pki-dir)`.
 - **A misleading line on the car's side, before the fix.** With `--vehicle-cert` and no `--pki-dir`,
   the car printed `WARNING: … accepting ANY station certificate`, and with `--trust-roots` that was not
   true. The next line, `TLS station: chain valid, anchored at …`, and the refusal in the wrong-root run
-  show the chain was checked. The same branch fixes the line.
+  show the chain was checked. WWCP_ISO15118#58 fixes the line.
 - **No `frames.log`.** The console output in `sessions/` is the record. The bytes of the exchange are in
   the corpus trace, recorded over plain TCP.
