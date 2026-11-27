@@ -150,7 +150,11 @@ weaker claim than it looks and worth separating from "untested".
   Swift cars sign and send the confirmation, and both replay the trace byte for byte with their own
   signatures verified against the corpus key; both also verify C#'s recorded confirmations, digest
   included, under their own encoders. The four bridges route `0x8102` and the event corpus carries
-  the session. Still ours alone, so still in this section.
+  the session. **And over TLS since 2026-11-27**: our station and car with the BouncyCastle backend,
+  TLS 1.3 and P-521 mutual, a P-521 contract, two confirmations per session, every check `OK`, 2 of 2
+  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls/notes.md)). The contract chain was not
+  validated to a root in that run, because `--pki-dir` and `--trust-roots` do not combine. Still ours
+  alone, so still in this section.
   The `-2` twin, a signed `MeteringReceiptReq` over a meter-signed reading, is still unrecorded, and
   `OnlyAMeteringConfirmationIsSignedOverAMeterSignature` fails the day somebody records one.
 
