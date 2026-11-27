@@ -13,7 +13,8 @@ it). This run puts every one of them in front of the release.
 profile against the offer, and it was right to refuse it. The car was fixed the same night
 (stack `3d99345`, below). With the fix all ten DC, MCS and IsoMux Scheduled arms complete. `-20` AC
 then meets a second wall that is new in the release: the station waits for the contactor to *open* at
-`PowerDelivery(Stop)`.
+`PowerDelivery(Stop)`. That wait is right under `[V2G20-848]`. A rig trigger that moves the SIL car to
+state B on the stop cue makes `-20` AC complete again, 5 of 5.
 
 | | |
 |---|---|
@@ -46,7 +47,7 @@ Every session's flow is in [`sessions/`](sessions/), and the one-line verdicts a
 | IsoMux `-20` / both, `-2` first | ✅ (routed `-20`) | ⛔ Scheduled · ✅ Dynamic | ✅ both |
 | IsoMux over TLS, both-offer | ✅ (TLS 1.2, routed `-20`) | ⛔ Scheduled · ✅ Dynamic | ✅ |
 | IsoMux over TLS, `-20` only | alert 70 | `AuthenticationException`: unchanged, TLS 1.2 only | — |
-| `-20` AC, AC_BPT (plain, TLS 1.3) | ✅ (window trigger) | ⛔ `FAILED_EVPowerProfileInvalid` | ⛔ **`FAILED_ContactorError` at `PowerDelivery(Stop)`**, after 3 loops |
+| `-20` AC, AC_BPT (plain, TLS 1.3) | ✅ (window trigger) | ⛔ `FAILED_EVPowerProfileInvalid` | ⛔ `FAILED_ContactorError` at `PowerDelivery(Stop)`, after 3 loops · ✅ **5 of 5 with a state-B trigger at the stop** (Finding 3) |
 | `-2` PnC over TLS 1.2 | stalls in `Ongoing`, then `FAILED` | **same**, 369 pairs, `FAILED` | — |
 | `-2` PnC without TLS | Contract stripped | **same**: 60 s of `Ongoing` | — |
 
@@ -129,17 +130,27 @@ is still holding CP at state C (`draw_power_fixed 0,0`), so their IEC layer neve
 the same in 7 of 7 AC sessions that got this far: four Scheduled after the fix (AC ×2, AC_BPT, AC over
 TLS 1.3) and three Dynamic before it.
 
-**Not yet decided whose this is.** A car is expected to stop drawing current when it stops the
-session, so the likely fix is on the rig side: a second trigger that drops CP to state B on
-`Waiting for contactor is opened`. That was not tried here. Until it is, this is a rig limitation and
-not a finding against EVerest. The 1400 ms bound itself (`#3380` made the close timeout configurable)
-was not read against the requirement text.
+**Decided: the rig's, and the station is right.** `[V2G20-848]` requires the EVCC to signal CP state B
+no later than 250 ms after sending `PowerDeliveryReq(Stop)`. A station that waits for the contactor to
+open before answering is therefore waiting for something the car owes it. Our SIL car never left state C.
+In this rig the car's CP line belongs to their simulated car, not to our EVCC, so the rig has to make
+that change.
+
+**And with it, `-20` AC is green again.** A second `carsim-on-trigger.sh` arms on
+`Waiting for contactor is opened` and sends `pause;sleep 600`, which puts their simulated car at
+`PLUGGED_IN`, state B ([`scripts/stop-2610.sh`](scripts/stop-2610.sh), `STOP_TRIGGER=1` in
+[`scripts/fwd-2610.sh`](scripts/fwd-2610.sh)). In the first session the watcher published 62 ms after
+the cue. Their IEC layer moved `Charging->StoppingCharging` about 0,6 s later, `PowerDeliveryRes`
+followed 0,75 s after the cue, then `PowerOff`, inside their 1 400 ms. **5 of 5 sessions reach
+`SessionStop`**: AC ×2, AC_BPT, Dynamic and AC over mutual TLS 1.3 (`sessions/stop-*`).
+
+The 0,6 s is their simulator's reaction to the CP change, not ours. A real car would have to fit the
+whole change into 250 ms, and nothing here measures that for our EVCC, which does not drive a CP line.
 
 ## What this run did not do
 
-- **Swift was not built**: no toolchain on this machine. The Swift port of the fix is proven only once
-  the EVSimulatorApp PR's macOS job is green.
-- **The CP drop for Finding 3** was not attempted.
+- ~~**Swift was not built**~~: the macOS CI ran it. Both Swift halves, the car's profile and the corpus
+  that follows the station, are green there.
 - **PnC is as blocked as in August**: no validator behind their SIL. `AuthorizationReq` stays at
   `Ongoing` until `FAILED` over TLS, and Contract is stripped without TLS. Not re-investigated.
 - The 13 still-present findings of the [release sweep](../2026-11-26-everest-2026.10.0-release/notes.md)
@@ -147,7 +158,6 @@ was not read against the requirement text.
 
 ## Next
 
-- Merge the stack PR (`evcc20-power-profile-anchor`, WWCP_ISO15118), then the EVSimulatorApp PR, then
-  bump the pointers.
-- Anchor `Secc20Base`'s offered schedule at the present (Finding 2). It changes the corpus again.
-- Try a state-B trigger on `Waiting for contactor is opened` for `-20` AC (Finding 3).
+All three findings are closed. The car's profile is fixed (WWCP_ISO15118#53, EVSimulatorApp#43), the
+station's anchor is fixed (#54, #44), and the AC stop is a rig trigger. With those in place, every
+forward row of the matrix except PnC runs against 2026.10.0.

@@ -312,11 +312,14 @@ backlog is that half of it turns out not to have been work.
   corpus. Every anchor is now the response's own `TimeStamp`, in the unit of its table: ms for the
   `PowerSchedule`, µs for the price schedules. Against it the car projects the slot's 100 W, and
   2026.10.0's `Ev15118` takes the offer in all three Scheduled reverse arms.
-- **`-20` AC against EVerest 2026.10.0 stops at `PowerDelivery(Stop)` with `FAILED_ContactorError`**,
-  7 of 7 sessions. The release waits 1400 ms for the AC contactor to *open*, and the SIL car holds CP at
-  state C. Probably the rig's to fix: a state-B trigger on `Waiting for contactor is opened`, the mirror
-  of `carsim-on-trigger.sh`. Not yet tried, so not yet a finding against anyone
-  ([run, finding 3](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-3---20-ac-now-waits-for-the-contactor-to-open-at-powerdeliverystop)).
+- ~~**`-20` AC against EVerest 2026.10.0 stops at `PowerDelivery(Stop)` with `FAILED_ContactorError`**~~,
+  7 of 7 sessions. The release waits 1400 ms for the AC contactor to *open*, and the SIL car held CP at
+  state C. **Resolved 2026-11-27, on the rig side.** `[V2G20-848]` makes CP state B the car's duty within
+  250 ms of `PowerDeliveryReq(Stop)`, so the station was right to wait. A second `carsim-on-trigger.sh`
+  on `Waiting for contactor is opened` with `pause;sleep 600` puts the SIL car in state B, and
+  5 of 5 AC sessions complete
+  ([run, finding 3](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-3---20-ac-now-waits-for-the-contactor-to-open-at-powerdeliverystop);
+  recipe in [`tools/interop-everest/README.md`](../tools/interop-everest/README.md#arriving-inside-a-window--carsim-on-triggersh)).
 
 - ~~**On the BouncyCastle backend our interop TLS validation never sees the peer's intermediates**, so a
   run whose trust store holds a **root alone** refuses every station — including one serving exactly the

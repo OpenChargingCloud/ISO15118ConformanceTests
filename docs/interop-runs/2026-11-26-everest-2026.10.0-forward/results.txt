@@ -51,3 +51,8 @@ mux-tls-both       s1 FAIL  54 pairs,   0 loops, last PowerDeliveryReq/FAILED_EV
 mux-tls-both-dyn   s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
 mux-tls-iso2       s1 PASS  46 pairs,   3 loops, last SessionStopReq/OK                          
 mux-tls-iso20      s1 FAIL   0 pairs,   0 loops, last -                                          System.Security.Authentication.AuthenticationException : Authentication failed, see inner exception.
+stop-ac20          s1 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
+stop-ac20          s2 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
+stop-ac20-bpt      s1 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
+stop-ac20-dyn      s1 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
+stop-ac20-tls13    s1 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
