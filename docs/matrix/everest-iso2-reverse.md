@@ -6,6 +6,11 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **On 2026.10.0 (2026-11-26):** the car is **`Ev15118`**, not `PyEvJosev`. AC EIM is ✅ over plain TCP
+> (237 loops) and ✅ over TLS 1.2 with `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, no client certificate.
+> The Plug & Charge-over-TLS half of this page was not repeated with the new car
+> ([release run](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)).
+
 **The first ISO 15118-2 reverse session against this counterparty, in any transport — and their car
 is a different car over TLS.** Same config, one variable (the SDP security byte): over plain TCP it
 authorizes by **EIM**; over **TLS 1.2** an extra `PaymentDetailsReq` appears, the `AuthorizationReq` is

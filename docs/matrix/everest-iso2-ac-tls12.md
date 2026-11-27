@@ -6,6 +6,11 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **On 2026.10.0 (2026-11-26/27):** ✅ AC EIM, two sessions over plain TCP and one over TLS 1.2 against
+> `EvseV2G`, 13 exchanges each, every response `OK`. It used the release's own test PKI, with our client
+> trusting their `V2G_ROOT_CA` alone. A `-2` DC session over TLS 1.2 through `IsoMux` is ✅ as well
+> ([forward run](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)).
+
 **The last untried cell in this counterparty's column, and it found something in ours.** Four `-2` AC
 sessions over TLS 1.2, 13 exchanges each, every response `OK`, against `EvseV2G` with one line changed
 (`tls_security: force`). Their transport is conformant where it matters: **TLS 1.2 with

@@ -8,8 +8,10 @@ Back to the [interop matrix](../../README.md).
 
 > **Released in 2026.10.0 (2026-11-25).** #3031 is in the release, every config there runs `Ev15118`,
 > and no `PyEvJosev` is left in the tree. The cells beside this one describe the 2026.02 line from now
-> on. The measurements below were taken against the PR head and have not yet been repeated against
-> the tag ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+> on. The measurements below were taken against the PR head, and **on the tag they reproduce
+> exactly**: all eight reverse arms reach `SessionStop`, the pacing is still 25,8 ms (`-20`) and
+> 100,8 ms (`-2`), and `-2` DC runs 2 of 2 with our `Valid` isolation status
+> ([release run](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)).
 
 **EVerest is replacing `PyEvJosev`.** [everest-core#3031](https://github.com/EVerest/everest-core/pull/3031)
 adds an EV side to `libiso15118` and a module around it, `Ev15118`, in every config; #3034 drops Josev

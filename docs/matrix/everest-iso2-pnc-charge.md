@@ -6,6 +6,14 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **On 2026.10.0 (2026-11-26/27):** only the PnC arms without the contract validator were re-run, and
+> the charge on this page depends on that validator.
+> - Over TLS 1.2, `AuthorizationRes` stays `Ongoing` and ends `FAILED` (369 pairs).
+> - Without TLS, the session waits in `Authorization` for 60 s (403 pairs).
+>
+> Both are the walls from before the validator existed. The charge itself has not been shown against
+> the release ([forward run](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)).
+
 **The first ISO 15118-2 Plug & Charge session here that actually charged**, and what stood in the way
 was a rig fault of ours rather than PnC or their station. Every earlier `-2` PnC run ended in
 `CableCheck`; the cause was the SIL car being plugged in **before** the manager, so its plug-in was

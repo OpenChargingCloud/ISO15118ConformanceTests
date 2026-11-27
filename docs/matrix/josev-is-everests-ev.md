@@ -6,6 +6,10 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **Ended in 2026.10.0.** The release ships `Ev15118` and no `PyEvJosev`, so a `←SECC` run against it
+> meets EVerest's own EV, on cbV2G, in both directions. This page describes the 2026.02 line and earlier
+> ([release run](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+
 **Their EV is Josev** — `PyEvJosev` wraps EVerest's fork of the same codebase the Josev column tests.
 So the codec flips with the direction (cbV2G forward, EXIficient reverse), and a `←SECC` run here is
 largely a re-run of that column — which is why the reverse direction was spent only on **MCS**, and why
