@@ -1,5 +1,12 @@
 # Draft report to EVerest (`everest-core`) — a rejected EIM authorization is never reported to the `-20` stack
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27 — with a shorter tail.** `Auth`
+> logs `REJECTED`, the `-20` station answers `OK, Ongoing` ≈550 times and then `FAILED` after
+> **54,9 s**. The release replaced `TIMEOUT_EIM_ONGOING` (180 s) with `TIMEOUT_ONGOING` (55 s,
+> commented `[V2G20-2102]`), so the *1 800 times / ≈180 s* below describe 2026.02 only. The gate is
+> unchanged (`evse_managerImpl.cpp:466`), and 55 s is still 37 × the 1,5 s of `[V2G20-2230]`. Quote
+> the release's numbers when sending. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#d20-eim-rejection-the-tail-is-55-s-now).
+
 > **Live on `main` and in the newest release, exactly as written below.** The gate this report
 > names — `} else if (pnc) {` in `EvseManager/evse/evse_managerImpl.cpp`, with its comment *"we only
 > send authorization responses to the HLC for PnC rejections"* — is in **every** tree: 2026.02.1 `:381`,

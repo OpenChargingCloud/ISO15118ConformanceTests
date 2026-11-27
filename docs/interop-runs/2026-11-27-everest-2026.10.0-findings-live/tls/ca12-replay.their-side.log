@@ -1,0 +1,60 @@
+2026-11-27 19:00:51.899838 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2326ms]
+2026-11-27 19:00:51.906790 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2324ms]
+2026-11-27 19:00:52.175624 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-27 19:00:52.219144 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-27 19:00:52.219242 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::ready() :: Evse15118D20: ISO 15118-20 is offered but no secp521r1 / Ed448 SECC leaf certificate is installed; TLS 1.3 sessions will be presented the ISO 15118-2 (secp256r1) leaf, which ISO 15118-20 EVs may reject
+2026-11-27 19:00:52.486878 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-27 19:00:52.574876 [INFO] iso15118_charge  :: debug_mode enabled: publishing v2g_messages (message id plus the raw V2GTP frame as hex and base64) and ev_app_protocol
+2026-11-27 19:00:52.883255 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-27 19:00:52.906965 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-11-27 19:00:52.970753 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-27 19:00:52.970821 [INFO] iso15118_charge  :: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-27 19:00:52.971558 [INFO] iso15118_charge  :: Network device eth0 appeared
+2026-11-27 19:00:53.020475 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-11-27 19:00:53.020596 [INFO] iso15118_charge  :: Using ethernet interface: eth0
+2026-11-27 19:00:53.127325 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-11-27 19:01:03.027840 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-11-27 19:01:03.028078 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-11-27 19:01:03.528766 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (5.0%) took 0 ms
+2026-11-27 19:01:03.671536 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-11-27 19:01:03.759331 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-11-27 19:01:03.759773 [INFO] evse_manager:Ev  :: EVSE IEC DC mode. We are in 5percent mode so we can continue without further action.
+2026-11-27 19:01:03.759838 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-11-27 19:01:05.213516 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-11-27 19:01:05.213778 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-11-27 19:01:05.259468 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+2026-11-27 19:01:05.855479 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-11-27 19:01:07.124350 [INFO] iso15118_charge  :: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-27 19:01:07.124588 [INFO] iso15118_charge  :: Start TLS server [fe80::215:5dff:fefd:8161%eth0]:50000
+2026-11-27 19:01:07.729964 [INFO] iso15118_charge  :: Incoming connection from [fe80::215:5dff:fefd:8161%eth0]:58282
+2026-11-27 19:01:07.730100 [INFO] iso15118_charge  :: Accepted connection on port 50000
+2026-11-27 19:01:07.730429 [INFO] iso15118_charge  :: V2G communication setup timeout anchored at TCP/TLS establishment
+2026-11-27 19:01:07.733294 [INFO] iso15118_charge  :: Handshake complete!
+2026-11-27 19:01:07.735510 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SupportedAppProtocolReq
+2026-11-27 19:01:07.863377 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-11-27 19:01:09.709205 [INFO] iso15118_charge  :: Received session setup with evccid: EVCC01
+2026-11-27 19:01:09.709513 [INFO] iso15118_charge  :: New session created with session_id: 0xD1, 0x93, 0x81, 0x61, 0x1B, 0x5C, 0xC3, 0x9C
+2026-11-27 19:01:09.709722 [INFO] iso15118_charge  :: V2G session established (SessionSetupReq received); communication setup timeout cancelled
+2026-11-27 19:01:09.710629 [INFO] evse_manager:Ev  ::                                     CAR ISO V2G SessionSetupReq
+2026-11-27 19:01:09.710881 [INFO] evse_manager:Ev  :: EVSE ISO V2G SessionSetupRes
+2026-11-27 19:01:22.692931 [ERRO] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: SSL_read: 0 1 error:0A000126:SSL routines::unexpected eof while reading
+2026-11-27 19:01:22.693022 [INFO] iso15118_charge  :: TCP connection closed by the peer
+2026-11-27 19:01:22.693030 [INFO] iso15118_charge  :: Closing TLS connection
+2026-11-27 19:01:22.693140 [INFO] iso15118_charge  :: TLS connection closed
+2026-11-27 19:01:22.693148 [INFO] iso15118_charge  :: Connection is closed
+2026-11-27 19:01:22.694799 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-11-27 19:01:22.694920 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 19:01:22.739277 [INFO] evse_manager:Ev  :: EVSE IEC D-LINK_ERROR with 5 percent PWM: X1, E/F for T_step_EF, then X1/nominal
+2026-11-27 19:01:22.783405 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->T_step_X1
+2026-11-27 19:01:22.783643 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_X1
+2026-11-27 19:01:22.783700 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-27 19:01:22.784723 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-11-27 19:01:22.784839 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-11-27 19:01:23.816174 [INFO] evse_manager:Ev  :: EVSE IEC Exit T_step_X1: unmatched, go to E/F
+2026-11-27 19:01:23.816403 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: T_step_X1->T_step_EF
+2026-11-27 19:01:23.816462 [INFO] evse_manager:Ev  :: EVSE IEC Enter T_step_EF
+2026-11-27 19:01:23.816501 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM F
+2026-11-27 19:01:24.330861 [INFO] evse_manager:Ev  ::                                     CAR IEC Event BCDtoEF
+2026-11-27 19:01:24.732634 [INFO] manager          :: SIGTERM of child: iso15118_charger (pid: 1692307) succeeded.
+2026-11-27 19:01:24.736387 [INFO] manager          :: Module iso15118_charger (pid 1692307) shutdown [6ms] with status: signal=15
+2026-11-27 19:01:24.738348 [WARN] manager         std::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&) :: Modules that did not shut down cleanly: api (signal=15) api_sink (signal=15) auth (signal=15) energy_manager (signal=15) error_history (signal=15) ev_manager (signal=15) ev_api (signal=15) evse_security (signal=15) grid_connection_point (signal=15) imd (signal=15) iso15118_charger (signal=15) powersupply_dc (signal=15) slac (signal=15) token_provider (signal=15) token_validator (signal=15) evse_manager (signal=15) yeti_driver (signal=15) iso15118_car (signal=15)

@@ -1,5 +1,8 @@
 # Draft report to EVerest (`EvseV2G`) — `CertificateUpdateRes` is sent from the union slot the previous response left behind
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27:** `CertificateUpdateRes = OK`
+> with a `DHpublickey` that is not a P-256 point, as on 2026.02.1. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **Live on `main` and in the newest release — the "fix" the re-sweep found does not fix it.**
 > In **2026.02.2** `handle_iso_certificate_update` is still `// TODO: implement CertificateUpdate
 > handling` with a bare `return V2G_EVENT_NO_EVENT`. On **`main`** the dispatch now sets

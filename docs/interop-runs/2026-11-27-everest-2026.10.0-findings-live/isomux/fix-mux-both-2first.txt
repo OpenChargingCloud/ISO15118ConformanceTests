@@ -1,0 +1,20 @@
+# fix-mux-both-2first — their side (IsoMux / Evse15118D20 / EvseManager), SAP and routing lines
+2026-11-27 00:25:09.166657 [INFO] iso15118_2:Evse  :: TLS server on lo is listening on port [::1%0]:64109
+2026-11-27 00:25:09.207419 [INFO] iso_mux:IsoMux   :: TLS server on eth0 is listening on port [fe80::215:5dff:fefd:8161%2]:64110
+2026-11-27 00:25:09.299683 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: no configured chain passed verification; the SSL_CTX default certificate remains chains[0] and clients may not be able to build a path 
+2026-11-27 00:25:09.418341 [INFO] iso15118_20:Evs  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-27 00:25:11.187905 [INFO] iso15118_20:Evs  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-27 00:25:11.231608 [INFO] iso15118_20:Evs  :: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-27 00:25:26.664834 [INFO] iso_mux:IsoMux   :: Handling SupportedAppProtocolReq
+2026-11-27 00:25:26.664923 [INFO] iso_mux:IsoMux   :: handshake_req: Namespace: urn:iso:15118:2:2013:MsgDef, Version: 2.0, SchemaID: 1, Priority: 1
+2026-11-27 00:25:26.664939 [INFO] iso_mux:IsoMux   :: handshake_req: Namespace: urn:iso:std:iso:15118:-20:DC, Version: 1.0, SchemaID: 2, Priority: 2
+2026-11-27 00:25:26.666403 [WARN] iso15118_20:Evs module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: Negotiated ISO 15118-20 (urn:iso:std:iso:15118:-20:DC) on an unsecured connection. ISO 15118-20 mandates
+2026-11-27 00:25:26.819460 [INFO] evse_manager:Ev  :: EVSE ISO V2G SupportedAppProtocolRes
+2026-11-27 00:25:27.372320 [INFO] iso15118_20:Evs  :: Selected DC service parameters: control mode: Scheduled, mobility needs mode: ProvidedByEvcc
+
+# fix-mux-both-2first — ours
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [9 s]
+ SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+SAP: ISO 15118-20 on a plain TCP connection — [V2G20-1237] (car) and [V2G20-2356] (station) both forbid it, Table 5 puts -20 in the TLS 1.3 row alone. This run does it anyway, deliberately; the claim it supports is not a conformance claim.
+ SAP: offered -2 (priority 1), -20 (priority 2); the station picked -20.
+SAP: offered -2 (priority 1), -20 (priority 2); the station picked -20.

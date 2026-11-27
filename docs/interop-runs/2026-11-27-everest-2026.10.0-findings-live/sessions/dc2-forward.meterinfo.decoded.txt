@@ -1,0 +1,18 @@
+frame 39 CurrentDemandReqType 33 B
+frame 39 CurrentDemandResType 84 B
+frame 40 CurrentDemandResType 85 B
+frame 41 CurrentDemandResType 68 B
+########## [39] CurrentDemandResType, 84 B on the wire ##########
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>0</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [40] CurrentDemandResType, 85 B on the wire ##########
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>1</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [41] CurrentDemandResType, 68 B on the wire ##########
+<ns5:ResponseCode>OK</ns5:ResponseCode>

@@ -1,5 +1,10 @@
 # Draft report to EVerest (`EvseV2G`) — the signed-metering path is open at both ends
 
+> **The outgoing half reproduced on the 2026.10.0 release, 2026-11-27:** `MeterInfo` with `MeterID`
+> and `MeterReading` only, decoded by V2Gdecoder. The incoming half stays a source reading: with
+> `ev_receipt_required` on, the release answered our two signed receipts `OK`, which a verifying
+> station would do too. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#the-receipt-arm-one-thing-of-ours).
+
 > **Still live — and the only one of the four `-2` findings that survives `EvseV2G`'s removal.**
 > Re-read against `main` (`5d83027`) on 2026-11-04, and against the **new C++ `d2/` path** on
 > 2026-11-05. `EvseV2G` and `IsoMux` are deprecated in 2026.10.0 with removal no earlier than

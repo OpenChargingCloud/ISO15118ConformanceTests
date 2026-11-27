@@ -1,5 +1,13 @@
 # Draft report to EVerest (`EvseManager` + `EvseV2G`) — a DC renegotiation asks for a CableCheck the station cannot pass, and leaves it `Inoperative`
 
+> **Against the 2026.10.0 release (2026-11-27) the failure reproduces and the lasting damage does not.**
+> The renegotiated `CableCheck` still ends `FAILED` with `MREC11CableCheckFault`, `Inoperative` and
+> *Initiating error shutdown*, now worded *"no measurement received from the power supply at all
+> within 10 s"*. But the release **clears both errors at the unplug** and serves the next session in
+> the same process, 2 of 2. So the lead below, *"stops serving the next one"*, is a 2026.02 statement.
+> For the release, lead with the failed renegotiation and drop the `Inoperative` argument, or say
+> which release it is about. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#evsemanager-renegotiation-supply-still-fails-no-longer-sticks).
+
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
 > live.** The `file:line` citations below are stale; the current locations, and what was
 > checked to confirm the defect by content rather than by line, are in the

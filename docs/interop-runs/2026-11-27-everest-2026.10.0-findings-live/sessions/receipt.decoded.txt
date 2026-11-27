@@ -1,0 +1,43 @@
+########## [41] MeteringReceiptReq payloadType=0x8001 bytes=325
+<ns4:DigestValue>2iZ3I/UESUWxtUZgKuKftCqYjWCCFf1dwE6JVMJycQk=</ns4:DigestValue>
+<ns4:SignatureValue>UTYzvkutuTy+L8N4Oxvi4mXgPh2RorVV4sS49SrXRsI/Yvy98IfG+ledtBS2JBrXiNrkQNbPWvji/Z3l6x1Etw==</ns4:SignatureValue>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>0</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [43] MeteringReceiptReq payloadType=0x8001 bytes=325
+<ns4:DigestValue>MzCpRINY0UZGIVS4Vg4AxUjnt6bxqJVCbM6Vk2zx4FY=</ns4:DigestValue>
+<ns4:SignatureValue>jqIfaNgSrSw3uxCDzsw7PThOL/QGVM8OHJHEsMokc40U0J8sburkP/r9KDpPzt1pHIfUAjNYx0+NfjkaVAVw0g==</ns4:SignatureValue>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>1</ns6:MeterReading>
+</ns5:MeterInfo>
+########## [40] CurrentDemandRes (OK) payloadType=0x8001 bytes=85
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>0</ns6:MeterReading>
+</ns5:MeterInfo>
+<ns5:ReceiptRequired>true</ns5:ReceiptRequired>
+########## [41] MeteringReceiptRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+########## [42] CurrentDemandRes (OK) payloadType=0x8001 bytes=86
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+<ns5:MeterInfo>
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>1</ns6:MeterReading>
+</ns5:MeterInfo>
+<ns5:ReceiptRequired>true</ns5:ReceiptRequired>
+########## [43] MeteringReceiptRes (OK) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+########## [44] CurrentDemandRes (OK) payloadType=0x8001 bytes=69
+<ns5:ResponseCode>OK</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>
+<ns5:ReceiptRequired>true</ns5:ReceiptRequired>
+########## [45] PowerDeliveryRes (FAILED_SequenceError) payloadType=0x8001 bytes=26
+<ns5:ResponseCode>FAILED_SequenceError</ns5:ResponseCode>
+<ns6:EVSENotification>None</ns6:EVSENotification>

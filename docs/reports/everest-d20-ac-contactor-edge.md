@@ -1,5 +1,9 @@
 # Draft report to EVerest — `-20` AC waits for a contactor *edge* it may already have missed
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27:** `PowerOn` 3,262 s before the
+> wait began, then *"AC contactor is not closed within 1400ms"* → `FAILED_ContactorError`. The
+> release gives up after 1,4 s where 2026.02.1 took 3 s; the missed edge is the same. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
 > live.** The `file:line` citations below are stale; the current locations, and what was
 > checked to confirm the defect by content rather than by line, are in the

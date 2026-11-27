@@ -1,0 +1,4 @@
+# core-2610 (74845c578) IsoMux, the lines §1 and §2 rest on
+129:             "handshake_req: Namespace: %s, Version: %" PRIu32 ".%" PRIu32 ", SchemaID: %" PRIu8 ", Priority: %" PRIu8,
+131:             app_proto->Priority);
+163:    return iso20 ? HandshakeResult::Iso20Offered : HandshakeResult::Iso20NotOffered;

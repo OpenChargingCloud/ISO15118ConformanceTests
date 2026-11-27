@@ -1,5 +1,8 @@
 # Draft report to EVerest — `Evse15118D20` never returns `MeterInfo`, even when the EV asks for it
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27**, with a control: our request
+> changes by one bit, their charge-loop responses never carry `MeterInfo`. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
 > live.** The `file:line` citations below are stale; the current locations, and what was
 > checked to confirm the defect by content rather than by line, are in the

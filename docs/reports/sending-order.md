@@ -36,7 +36,8 @@ decision a person makes.**
 **The forty-ninth arrived on 2026-08-16 and belongs near the front**, though it is not slotted into the
 numbering below because the numbering is a suggestion and this one has a dependency the numbers cannot
 express: [`everest-evsemanager-renegotiation-supply`](everest-evsemanager-renegotiation-supply.md) — a DC
-renegotiation leaves the charger `Inoperative` for the *following* sessions — should go out **with or
+renegotiation leaves the charger `Inoperative` for the *following* sessions (on 2026.02; 2026.10.0
+clears it at the unplug, so for the release it is the failed renegotiation alone) — should go out **with or
 after** an explicit mention that
 [`everest-evsev2g-renegotiation-cablecheck`](everest-evsev2g-renegotiation-cablecheck.md) was ours and
 was wrong. Sent cold to a maintainer who saw neither, it reads as a second complaint about the same
@@ -167,7 +168,7 @@ Their [README](everest-d20-client-auth/README.md) explains why three and why thi
 
 **9.** [`everest-d20-eim-rejection`](everest-d20-eim-rejection.md) — a rejected EIM authorization never
 reaches `Evse15118D20`, because `EvseManager` forwards verdicts for Plug & Charge only. Their station
-answers `Ongoing` for 180 s and then the wrong code, where `[V2G20-2230]` allows 1,5 s and names
+answers `Ongoing` for 180 s (55 s on 2026.10.0) and then the wrong code, where `[V2G20-2230]` allows 1,5 s and names
 `WARNING_EIMAuthorizationFailure` — a branch their own `-20` library has and cites.
 
 Placed here on **code locality**, which is the one thing that beats the batching rule: 6–8 are all
