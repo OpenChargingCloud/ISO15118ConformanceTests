@@ -6,6 +6,17 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **On 2026.10.0 (2026-11-26/27):** ✅ again, 5 of 5 sessions: AC ×2, AC_BPT, Dynamic, and AC over mutual
+> TLS 1.3. Two changes were needed first:
+> - Our car's `EVPowerProfile` now has to be anchored in SECC time and lie inside the offer. The release
+>   refuses a Scheduled profile outside it, as `[V2G20-1559]` allows
+>   ([finding 1](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-1--our-evpowerprofile-was-anchored-in-1970-and-2026100-is-the-first-to-check); fixed in WWCP_ISO15118#53).
+> - The release now also waits 1 400 ms for the contactor to *open* at `PowerDelivery(Stop)`. A second
+>   watcher therefore moves the SIL car to state B on `Waiting for contactor is opened`, which is what
+>   `[V2G20-848]` asks of a car ([finding 3](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-3---20-ac-now-waits-for-the-contactor-to-open-at-powerdeliverystop)).
+>
+> The close window described below is unchanged: `PowerOn` arrives 0,8 s into it.
+
 **Green since 2026-08-13, after four months of reading the wall wrong.** Their `-20`
 `PowerDelivery` waits for a `ClosedContactor` *event* inside a 3 s window — `power_delivery.cpp:118`,
 gated on `is_ac_charger()`, which is why `-20` DC never meets it and `-2` does not either (`EvseV2G`

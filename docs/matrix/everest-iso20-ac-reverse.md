@@ -6,6 +6,12 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **On 2026.10.0 (2026-11-26/27):** the car is **`Ev15118`**. ✅ AC Scheduled (881 loops), ✅ Dynamic
+> (922), and ✅ over mutual TLS 1.3, where it presents `CN=WMIV1234567890ABCDEX` issued by `VehicleSubCA2`
+> over `TLS_AES_256_GCM_SHA384` ([release run](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)). Scheduled AC, plain and over TLS, is ✅ again
+> with our station's schedule anchored at the present ([finding 2](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-2--our-own-secc-offers-its-schedule-at-timeanchor-0-too)). The `PyEvJosev` pacing measured below belongs to
+> the 2026.02 line.
+
 **The first AC session this project has run in the reverse direction, in either protocol** — and it
 cost two findings on the way. Ours: the reverse fixture passed no power mode to the SAP handshake, whose
 parameter *defaults* to DC, so every reverse `-20` run ever made announced a DC-only catalogue and it

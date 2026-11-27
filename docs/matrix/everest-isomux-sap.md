@@ -6,6 +6,15 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
+> **On 2026.10.0 (2026-11-26/27): unchanged.**
+> - The `-2`-only, `-20`-only and both-with-`-2`-first offers all complete ✅.
+> - The last of these is still routed to **`-20`** (`AuthorizationSetupReq`, then `DC_ChargeLoop`), so
+>   `Priority` is still not read.
+> - Over TLS, a `-20`-only offer still fails the handshake, and a both-offer completes in `-20`.
+>
+> `IsoMux` ships deprecated in the release, earliest removal 2027.04.0
+> ([forward run](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)).
+
 `IsoMux` routes on *"mentions -20 anywhere"* and never reads SAP `Priority` — confirmed on the wire
 against 2025.10.0, 2026.02.1, and a third time over TLS, with the same request and answer bytes every
 time. `[V2G2-169]` and `[V2G20-169]` make selecting by the EV's ranking a *shall*, so it is a defect and
