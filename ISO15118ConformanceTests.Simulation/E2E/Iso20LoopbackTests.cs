@@ -159,10 +159,13 @@ namespace ISO15118ConformanceTests.Simulation.E2E
                 Assert.That(evcc.AuthorizationMode, Is.EqualTo("pnc-signed"));
                 Assert.That(secc.PnCAuth, Is.Not.Null, "the SECC must have seen a PnC AuthorizationReq");
                 Assert.That(secc.PnCAuth!.ChallengeOk, Is.True, "GenChallenge must echo");
-                Assert.That(secc.PnCAuth.DigestOk, Is.True, "reference digest (SHA-256) must match");
+                Assert.That(secc.PnCAuth.DigestOk, Is.True, "reference digest (SHA-512) must match");
                 Assert.That(secc.PnCAuth.SignatureOk, Is.True, "ECDSA signature must verify");
+                Assert.That(secc.PnCAuth.SignatureMethod,
+                    Is.EqualTo("http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512"),
+                    "by default the EVCC declares -20's own SignatureMethod ([V2G20-2473])");
                 Assert.That(secc.PnCAuth.SignatureGrammar, Is.EqualTo("xmldsig-standalone"),
-                    "the EVCC signs in the Josev interop form");
+                    "the SignedInfo is encoded with the XML signature schema as entry point ([V2G20-1449])");
             });
         }
 

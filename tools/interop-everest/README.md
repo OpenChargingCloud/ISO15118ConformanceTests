@@ -347,9 +347,23 @@ doing since 2026-08-03.** Add to the `auth` module's connections:
 
 The arm refuses to start a config that lacks it. EIM tokens arrive without it, which is why the gap
 survived so long — and because an EIM-only measurement is a real use of this arm, `EIM_ONLY=1` says you
-meant it. **Every `-20` run is EIM-only**: `Evse15118D20` offers no PnC at all
+meant it. **Every `-20` run up to 2026.02 is EIM-only**: `Evse15118D20` offers no PnC at all
 (`ISO15118_chargerImpl.cpp:713`), so pair the arm with
 [`mqtt-authorize.sh`](mqtt-authorize.sh) — that supplies the token, this supplies the verdict.
+
+**From 2026.10.0 on, `-20` does offer PnC** (`ISO15118_chargerImpl.cpp:1684`). It asks
+`DummyTokenValidator` directly, so this arm is not needed for an `Accepted` verdict. Three things are:
+
+- `payment_enable_contract` on, EIM off, and the parked token provider moved away
+  ([`make-d20-pnc.py`](../../docs/interop-runs/2026-11-26-everest-2026.10.0-forward/scripts/make-d20-pnc.py)).
+- A **P-521** contract chain. Their station holds the leaf and every sub-CA to the `-20` profile, and
+  the release's own MO PKI is P-256, so it is refused with `WARNING_CertificateValidationError`.
+  [`mint-mo521.sh`](../../docs/interop-runs/2026-11-26-everest-2026.10.0-forward/scripts/mint-mo521.sh) mints one that passes.
+- That chain's root in `EvseSecurity`'s `mo_ca_bundle`, next to theirs
+  ([`config-d20-pnc521-fwd2610.yaml`](../../docs/interop-runs/2026-11-26-everest-2026.10.0-forward/configs/config-d20-pnc521-fwd2610.yaml)).
+
+Our car signs `-20` in `ecdsa-sha512` by default, which is what their verifier wants
+([finding 4](../../docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
 
 Measured on 2026-08-13 —
 [`2026-08-13-everest-contract-validator`](../../docs/interop-runs/2026-08-13-everest-contract-validator/notes.md):

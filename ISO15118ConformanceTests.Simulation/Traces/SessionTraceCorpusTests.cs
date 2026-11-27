@@ -573,6 +573,7 @@ public class SessionTraceCorpusTests
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 using var contractKey = PncMaterial.Key();
+                // -20's own suite, ecdsa-sha512, which the C#, Kotlin and Swift cars all sign by default.
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                           {
                               Pnc = new PncEvccOptions(PncMaterial.Certificate(),

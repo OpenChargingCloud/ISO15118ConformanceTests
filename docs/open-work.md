@@ -140,12 +140,11 @@ weaker claim than it looks and worth separating from "untested".
 
 The honest backlog. No counterparty defect in the way, no missing capability on our side that is known.
 
-- **`-20` Plug & Charge against EVerest 2026.10.0, forward.** Up to 2026.02 it was commented out in
-  `Evse15118D20`. The release offers it: a `Contract` payment option becomes `Authorization::PnC` in
-  `AuthorizationSetupRes` (`ISO15118_chargerImpl.cpp:1684`), with central contract validation behind an
-  OCPP-style switch. Found while updating the matrix on 2026-11-27, and not run yet. Expect the `-2`
-  structure: the SIL has no contract validator, so a first run probably ends in `Authorization`, as `-2`
-  PnC does without the validator arm.
+- ~~**`-20` Plug & Charge against EVerest 2026.10.0, forward.**~~ **Run 2026-11-27, ✅ 3 of 3** after
+  three fixes of ours (*Ours to fix*, below). The expected validator wall did not appear: `-20` asks
+  `DummyTokenValidator` directly. What it needed was a P-521 contract chain, since the release's own MO
+  test PKI is P-256 and fails its station's `-20` profile check
+  ([run, finding 4](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
 
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
 morning the `-20` AC cells were behind a wall, so nothing beyond them could be listed here at all; once
@@ -302,6 +301,20 @@ backlog is that half of it turns out not to have been work.
 | ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
 
 ## Ours to fix
+
+- ~~**The Kotlin and Swift cars still sign `-20` in Josev's `ecdsa-sha256`, and still continue past a
+  WARNING in `AuthorizationRes`.**~~ **Fixed 2026-11-27**, the same day as the C# car (below).
+  `V2GSigner` now takes the hash from its caller, and both ports have an `XmlDsigSuite` with `Iso20` as
+  the default. Both stop on the WARNING. The two signed `-20` corpus recordings, `iso20-dc-pnc` and
+  `iso20-dc-eim-certinstall`, are unpinned and declare `ecdsa-sha512`. The TypeScript test and the app
+  inspector, which verify those recordings, read the hash from the declared algorithm.
+- ~~**Our `-20` car signed `ecdsa-sha256`, continued past an `AuthorizationRes` WARNING, and sent its
+  sub-CAs in PKCS#12 bag order**~~. EVerest 2026.10.0 found all three, one after the other, on the first
+  `-20` PnC run against a release. Their station was right each time: `[V2G20-2473]`, `[V2G20-1583]`,
+  and Table B.9's pathLen per position. **Fixed 2026-11-27** in the C# car, stack branch
+  `evcc20-xmldsig-sha512` (`195c4e1`): `XmlDsigSuite` (`Iso20` by default, `JosevSha256` for Josev),
+  a stop on the WARNING, and `Credentials.OrderFromLeaf`. After the fix `-20` PnC runs 3 of 3
+  ([run, finding 4](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
 
 - ~~**Our `-20` EVCC anchored its `EVPowerProfile` at `TimeAnchor` 0, which is 1970**~~, and EVerest
   2026.10.0 refused every Scheduled `-20` session for it with `FAILED_EVPowerProfileInvalid`, 16 of 16

@@ -20,6 +20,7 @@ using System.Net;
 using NUnit.Framework;
 
 using cloud.charging.open.protocols.ISO15118.Sap;
+using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using cloud.charging.open.protocols.ISO15118.Transport;
 
 namespace ISO15118ConformanceTests.Simulation.Interop
@@ -74,7 +75,11 @@ namespace ISO15118ConformanceTests.Simulation.Interop
                 // that sets V2G_INTEROP_SILENT here used to complete a textbook charge and report it.
                 var outcome = await InteropSession.RunEvccAsync(stream, protocol, mode, cts.Token,
                                                                 InteropEnvironment.PreferDynamic(),
-                                                                InteropEnvironment.ContractCredentialsOrNull(),
+                                                                // Josev's SECC verifies ecdsa-sha256 and nothing
+                                                                // else, so its -20 PnC cell is signed in that form.
+                                                                InteropEnvironment.ContractCredentialsOrNull() is { } pnc
+                                                                    ? pnc with { Suite = XmlDsigSuite.JosevSha256 }
+                                                                    : null,
                                                                 mcs: InteropEnvironment.Mcs(),
                                                                 bptFirst: InteropEnvironment.BptFirst(),
                                                                 requestMeterInfo: InteropEnvironment.RequestMeterInfo(),
