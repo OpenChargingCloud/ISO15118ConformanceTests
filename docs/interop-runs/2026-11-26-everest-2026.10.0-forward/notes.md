@@ -51,7 +51,7 @@ Every session's flow is in [`sessions/`](sessions/), and the one-line verdicts a
 | IsoMux over TLS, both-offer | ✅ (TLS 1.2, routed `-20`) | ⛔ Scheduled · ✅ Dynamic | ✅ |
 | IsoMux over TLS, `-20` only | alert 70 | `AuthenticationException`: unchanged, TLS 1.2 only | — |
 | `-20` AC, AC_BPT (plain, TLS 1.3) | ✅ (window trigger) | ⛔ `FAILED_EVPowerProfileInvalid` | ⛔ `FAILED_ContactorError` at `PowerDelivery(Stop)`, after 3 loops · ✅ **5 of 5 with a state-B trigger at the stop** (Finding 3) |
-| `-2` PnC over TLS 1.2 | stalls in `Ongoing`, then `FAILED` | **same**, 369 pairs, `FAILED` | — |
+| `-2` PnC over TLS 1.2 | stalls in `Ongoing`, then `FAILED` | **same**, 369 pairs, `FAILED` | ✅ **with the `token_provider` hop**, 2 of 2, and 30,16 kWh with our validator ([11-27](../2026-11-27-everest-2026.10.0-iso2-pnc/notes.md)) |
 | `-2` PnC without TLS | Contract stripped | **same**: 60 s of `Ongoing` | — |
 | `-20` DC PnC over mutual TLS 1.3 | not offered | ⛔ `FAILED_SignatureError` ×3: we signed `ecdsa-sha256` | ✅ **×3** (62/65/65 pairs), Scheduled ×2 and Dynamic, P-521 contract (Finding 4) |
 
@@ -244,9 +244,11 @@ stops, 4 pairs and no ServiceDiscovery ([`sessions/pnc256-stop.s1.flow.md`](sess
 
 - ~~**Swift was not built**~~: the macOS CI ran it. Both Swift halves, the car's profile and the corpus
   that follows the station, are green there.
-- **`-2` PnC is as blocked as in August**: no validator behind their SIL. `AuthorizationReq` stays at
-  `Ongoing` until `FAILED` over TLS, and Contract is stripped without TLS. Not re-investigated. `-20`
-  PnC, which uses `DummyTokenValidator` directly, runs (Finding 4).
+- ~~**`-2` PnC is as blocked as in August**: no validator behind their SIL.~~ `AuthorizationReq` stays at
+  `Ongoing` until `FAILED` over TLS, and Contract is stripped without TLS. **Corrected the next day:** the
+  validator was there. The `-2` config lacked the `token_provider` hop that the `-20` one carried, so the
+  token never reached it. With the hop, `-2` PnC runs 2 of 2 against `DummyTokenValidator` and charges
+  30,16 kWh with our validator ([`…-2026.10.0-iso2-pnc`](../2026-11-27-everest-2026.10.0-iso2-pnc/notes.md)).
 - The 13 still-present findings of the [release sweep](../2026-11-26-everest-2026.10.0-release/notes.md)
   were not driven on the wire. This run asked only whether the matrix holds.
 
@@ -254,5 +256,6 @@ stops, 4 pairs and no ServiceDiscovery ([`sessions/pnc256-stop.s1.flow.md`](sess
 
 Findings 1 to 3 are closed. The car's profile is fixed (WWCP_ISO15118#53, EVSimulatorApp#43), the
 station's anchor is fixed (#54, #44), and the AC stop is a rig trigger. Finding 4 is fixed in the C#
-car (branch `evcc20-xmldsig-sha512`) and in the Kotlin and Swift ports, and `-20` PnC runs. Still
-open: `-2` PnC, which has the same validator wall it had in August.
+car (branch `evcc20-xmldsig-sha512`) and in the Kotlin and Swift ports, and `-20` PnC runs. ~~Still
+open: `-2` PnC, which has the same validator wall it had in August.~~ `-2` PnC runs too: the wall was
+a config hop of ours ([2026-11-27](../2026-11-27-everest-2026.10.0-iso2-pnc/notes.md)).

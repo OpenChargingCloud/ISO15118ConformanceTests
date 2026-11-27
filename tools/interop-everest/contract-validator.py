@@ -40,11 +40,14 @@ Two halves, and the first is the one worth the setup:
 
 ## What it does not test
 
-**Not the chain validation.** That already happened, locally, in `iso_server.cpp:1049`, before the token
-was ever built — and we have measured that it works (2026-08-03). By the time this script sees a token,
-the chain has been accepted. Only with their `central_contract_validation_allowed` set does a chain that
-*failed* locally get forwarded, and then the hash data is absent: `iso15118CertificateHashData` is only
-filled on the success branch (`iso_server.cpp:1108-1110`).
+**Not the chain validation.** Whether their station checks the chain at all is
+`verify_contract_cert_chain`, **default `false`** in every tree up to 2026.10.0. Off, our signature is
+checked against the leaf and the chain is forwarded unverified, with no `iso15118CertificateHashData`.
+On, the chain is checked against their MO root before the token is built, and the hash data is filled on
+the success branch only (`iso_server.cpp:1253-1318` in 2026.10.0). A chain that *failed* is then forwarded
+only with `central_contract_validation_allowed`, and without hash data. Until 2026-11-27 this docstring
+said the chain had always been checked by the time a token arrived; no config of ours had set the flag
+(docs/interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/).
 
 So what this measures is the *handover* and the *carriage of the verdict*, not their crypto. Which is
 the whole of what a backend is answerable for.
@@ -126,8 +129,8 @@ def describe(token):
     if hashes:
         parts.append(f"ocsp_hash_data={len(hashes)}")
     else:
-        # Absent for EIM, and absent for PnC whenever local verification did not succeed --
-        # in central-validation mode that is the interesting case, not a fault.
+        # Absent for EIM, and absent for PnC unless their station verified the chain itself
+        # (verify_contract_cert_chain, default false) and that succeeded.
         parts.append("ocsp_hash_data=absent")
 
     if token.get("connectors") is not None:

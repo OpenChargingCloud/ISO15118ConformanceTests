@@ -6,13 +6,16 @@ Back to the [interop matrix](../../README.md).
 
 ---
 
-> **On 2026.10.0 (2026-11-26/27):** only the PnC arms without the contract validator were re-run, and
-> the charge on this page depends on that validator.
-> - Over TLS 1.2, `AuthorizationRes` stays `Ongoing` and ends `FAILED` (369 pairs).
-> - Without TLS, the session waits in `Authorization` for 60 s (403 pairs).
->
-> Both are the walls from before the validator existed. The charge itself has not been shown against
-> the release ([forward run](../interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)).
+> **On 2026.10.0 (2026-11-27): the charge below repeats against the release**, with the same
+> numbers: 81 loops, 30,16 kWh, 20 % → 70 %, over TLS 1.2. `FAILED_CertificateRevoked` is carried 2 of 2
+> ([run](../interop-runs/2026-11-27-everest-2026.10.0-iso2-pnc/notes.md)).
+> - **The 11-26 stall was our config, not a missing validator.** The `-2` config lacked the
+>   `token_provider` hop described below. With it, their own `DummyTokenValidator` accepts, 2 of 2.
+> - **The hash data comes with local chain verification.** `verify_contract_cert_chain` defaults to
+>   `false`, so no run here had their station verify the chain. With it on, the backend gets three
+>   `iso15118CertificateHashData` entries, one per certificate. The August explanation (an empty OCSP
+>   cache) was wrong.
+> - Without TLS, `Contract` is still stripped, which is `-2`'s own rule.
 
 **The first ISO 15118-2 Plug & Charge session here that actually charged**, and what stood in the way
 was a rig fault of ours rather than PnC or their station. Every earlier `-2` PnC run ended in

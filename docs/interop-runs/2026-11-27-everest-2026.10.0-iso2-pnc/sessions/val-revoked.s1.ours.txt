@@ -1,0 +1,7 @@
+TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, their station DC=CPO, C=DE, O=EVerest, CN=SECCCert
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [1 s]
+  Error Message:
+   cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered AuthorizationResType with FAILED_CertificateRevoked; the session ends here.
+ TLS: Tls12, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, their station DC=CPO, C=DE, O=EVerest, CN=SECCCert
+Test Run Failed.
+     Failed: 1
