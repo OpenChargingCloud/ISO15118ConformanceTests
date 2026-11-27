@@ -573,14 +573,11 @@ public class SessionTraceCorpusTests
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 using var contractKey = PncMaterial.Key();
-                // Josev's form, pinned. The car's default is -20's ecdsa-sha512 since 2026-11-27; the
-                // Kotlin and Swift ports replay this recording and still sign ecdsa-sha256, so the
-                // recording moves when they do.
+                // -20's own suite, ecdsa-sha512, which the C#, Kotlin and Swift cars all sign by default.
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                           {
                               Pnc = new PncEvccOptions(PncMaterial.Certificate(),
-                                                       [PncMaterial.Certificate()], contractKey,
-                                                       XmlDsigSuite.JosevSha256),
+                                                       [PncMaterial.Certificate()], contractKey),
                           }.RunAsync(ct);
             },
             async (stream, clock, backend, ct) =>
@@ -682,10 +679,8 @@ public class SessionTraceCorpusTests
                 using var agreement = OemMaterial.Iso20KeyAgreement();
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                           {
-                              // Josev's form, pinned, for the reason the PnC scenario above gives.
                               CertInstallRequest = new CertInstallEvccOptions(
-                                                       OemMaterial.Iso20Certificate(), [], signKey, agreement,
-                                                       XmlDsigSuite.JosevSha256),
+                                                       OemMaterial.Iso20Certificate(), [], signKey, agreement),
                           }.RunAsync(ct);
             },
             async (stream, clock, backend, ct) =>

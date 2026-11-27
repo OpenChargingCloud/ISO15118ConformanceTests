@@ -302,11 +302,12 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **The Kotlin and Swift cars still sign `-20` in Josev's `ecdsa-sha256`, and still continue past a
-  WARNING in `AuthorizationRes`.** The C# car does neither since 2026-11-27 (below). The ports' `V2GSigner`
-  hashes with SHA-256 by contract, so the change reaches the keystore interface, not just the signer.
-  The two corpus recordings the ports replay, `iso20-dc-pnc` and `iso20-dc-eim-certinstall`, are pinned
-  to the Josev suite until then.
+- ~~**The Kotlin and Swift cars still sign `-20` in Josev's `ecdsa-sha256`, and still continue past a
+  WARNING in `AuthorizationRes`.**~~ **Fixed 2026-11-27**, the same day as the C# car (below).
+  `V2GSigner` now takes the hash from its caller, and both ports have an `XmlDsigSuite` with `Iso20` as
+  the default. Both stop on the WARNING. The two signed `-20` corpus recordings, `iso20-dc-pnc` and
+  `iso20-dc-eim-certinstall`, are unpinned and declare `ecdsa-sha512`. The TypeScript test and the app
+  inspector, which verify those recordings, read the hash from the declared algorithm.
 - ~~**Our `-20` car signed `ecdsa-sha256`, continued past an `AuthorizationRes` WARNING, and sent its
   sub-CAs in PKCS#12 bag order**~~. EVerest 2026.10.0 found all three, one after the other, on the first
   `-20` PnC run against a release. Their station was right each time: `[V2G20-2473]`, `[V2G20-1583]`,

@@ -234,10 +234,9 @@ stops, 4 pairs and no ServiceDiscovery ([`sessions/pnc256-stop.s1.flow.md`](sess
   `prime256v1`, so the release's own material is refused by the release's own `-20` check. This is a
   remark for upstream, not a defect in the station. August's observation that both test PKIs are P-256
   now has a concrete consequence.
-- **The Kotlin and Swift ports still sign `ecdsa-sha256`** and still continue past the WARNING. Their
-  `V2GSigner` hashes with SHA-256 by contract. The two corpus recordings they replay
-  (`iso20-dc-pnc`, `iso20-dc-eim-certinstall`) are pinned to the Josev suite until the ports move,
-  because otherwise their gates would go red.
+- ~~**The Kotlin and Swift ports still sign `ecdsa-sha256`** and still continue past the WARNING.~~
+  Fixed the same day: `V2GSigner` takes the hash from its caller, both ports default to `XmlDsigSuite`
+  `Iso20` and stop on the WARNING, and the two signed `-20` corpus recordings now declare `ecdsa-sha512`.
 - **The car's contract is ours, and so is its root.** What this shows is that their station verifies a
   conformant chain and signature. It does not show that a real eMSP chain passes.
 
@@ -255,5 +254,5 @@ stops, 4 pairs and no ServiceDiscovery ([`sessions/pnc256-stop.s1.flow.md`](sess
 
 Findings 1 to 3 are closed. The car's profile is fixed (WWCP_ISO15118#53, EVSimulatorApp#43), the
 station's anchor is fixed (#54, #44), and the AC stop is a rig trigger. Finding 4 is fixed in the C#
-car (branch `evcc20-xmldsig-sha512`), and `-20` PnC runs. Still open: the ports' signature and WARNING
-handling, and `-2` PnC, which has the same validator wall it had in August.
+car (branch `evcc20-xmldsig-sha512`) and in the Kotlin and Swift ports, and `-20` PnC runs. Still
+open: `-2` PnC, which has the same validator wall it had in August.
