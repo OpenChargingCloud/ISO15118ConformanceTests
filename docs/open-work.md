@@ -161,7 +161,8 @@ weaker claim than it looks and worth separating from "untested".
   (`bad_certificate`). A missing MO root on the station's side rejects the contract chain, but the
   station still authorizes, and still answers the confirmations `OK` under
   `--require-metering-confirmation`: it observes the chain verdict and acts on none of it
-  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls-chain/notes.md)). Still ours alone, so
+  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls-chain/notes.md); fix open as
+  WWCP_ISO15118#58, *Ours to fix*). Still ours alone, so
   still in this section.
   **The `-2` twin was recorded on 2026-11-27** as `iso2-ac-pnc-meter`. Our AC Contract session runs
   at a station with a signing meter. The `ChargingStatusRes` asking for a receipt carries the meter's
@@ -347,7 +348,12 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **Our `-20` station's `--require-metering-confirmation` does not count the contract chain.** Found
+- **Our `-20` station's `--require-metering-confirmation` does not count the contract chain.** **Fix
+  open as [WWCP_ISO15118#58](https://github.com/OpenChargingCloud/WWCP_ISO15118/pull/58)** (`2917c0a`,
+  not merged): a confirmation now holds only if the contract's chain reached a configured root. On the
+  wire, the case below is refused `FAILED_MeteringSignatureNotValid` at the first confirmation
+  ([after the fix](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls-chain/notes.md#after-the-fix-the-untrusted-contract-is-refused)).
+  Strike this once it is merged and followed. Found
   2026-11-27 with the MO root left out of `--trust-roots`. The station printed `chain REJECTED` for the
   contract, then granted authorization and answered both confirmations `OK`, all of them signed by that
   contract. `ConfirmMetering` verifies the signature against the contract leaf the car authorised with
@@ -356,7 +362,7 @@ backlog is that half of it turns out not to have been work.
   contract it rejected, at least when roots are configured
   ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls-chain/notes.md#the-station-lacks-the-mo-root)).
   The same run found a misleading line on the car's side: with `--vehicle-cert` and `--trust-roots`, the
-  EVCC still prints `accepting ANY station certificate`.
+  EVCC still printed `accepting ANY station certificate`. WWCP_ISO15118#58 fixes that too.
 
 - ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
   **Fixed 2026-11-27**: stack `8e6fd3e`, merged as `a6259a4`, followed by EVSimulatorApp `8fccda1`
