@@ -304,11 +304,15 @@ backlog is that half of it turns out not to have been work.
   Swift ports and the corpus. All three replay the same bytes, and Swift is green in macOS CI.
   The anchor is now the station's latest `TimeStamp` in µs, and the entries follow the offered schedule.
   After the fix 10 of 10 DC, MCS and IsoMux arms complete against the release.
-- **Our `-20` SECC offers its schedule at `TimeAnchor` 0 too**: `Secc20Base.ScheduleExchange`,
-  3600 s at 100 W, anchored in 1970. It is the station-side half of the item above. Under
-  `[V2G20-1811]` the offer is zero power at any present time, so the corrected car answers it with a
-  0-W profile. Anchor it at the present; the session corpus changes with it
+- ~~**Our `-20` SECC offers its schedule at `TimeAnchor` 0 too**~~: `Secc20Base.ScheduleExchange`,
+  3600 s at 100 W, anchored in 1970. It was the station-side half of the item above, and under
+  `[V2G20-1811]` the corrected car could answer it only with a 0-W profile
   ([run, finding 2](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-2--our-own-secc-offers-its-schedule-at-timeanchor-0-too)).
+  **Fixed on branch `secc20-schedule-anchor`**: stack `731d7a1`, and EVSimulatorApp `c92c3c2` for the
+  corpus. Every anchor is now the response's own `TimeStamp`, in the unit of its table: ms for the
+  `PowerSchedule`, µs for the price schedules. Against it the car projects the slot's 100 W, and
+  2026.10.0's `Ev15118` takes the offer in all three Scheduled reverse arms.
+  **Open until both PRs are merged and the pointers bumped.**
 - **`-20` AC against EVerest 2026.10.0 stops at `PowerDelivery(Stop)` with `FAILED_ContactorError`**,
   7 of 7 sessions. The release waits 1400 ms for the AC contactor to *open*, and the SIL car holds CP at
   state C. Probably the rig's to fix: a state-B trigger on `Waiting for contactor is opened`, the mirror

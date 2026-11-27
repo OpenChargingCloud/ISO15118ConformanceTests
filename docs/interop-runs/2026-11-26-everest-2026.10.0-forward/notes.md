@@ -100,6 +100,15 @@ present is the station-side half of Finding 1, and it is left for its own change
 evidently does not check the schedule's anchor: the reverse arms of the release run completed against
 this very offer.
 
+**Fixed the same night** (stack `731d7a1`, corpus in EVSimulatorApp `c92c3c2`, both on
+`secc20-schedule-anchor`). Every anchor in our `ScheduleExchangeRes` is now the `TimeStamp` that response
+carries, each in its own table's unit: ms for the `PowerSchedule` (Table 112), µs for the
+`PriceLevelSchedule` and `AbsolutePriceSchedule` (Tables 156, 143). Against our station the car now
+projects the slot's 100 W instead of zero. `OfferedScheduleAnchorTests` pins that, and fails 0/2 with
+the old anchors. Re-run against 2026.10.0, their `Ev15118` takes the anchored offer in all three
+Scheduled reverse arms, `-20` AC, DC and AC over mutual TLS 1.3, each to `SessionStop` (900, 691 and
+918 loop lines; WSL run dirs `run/2610/anchor-*`).
+
 ## Finding 3 — `-20` AC now waits for the contactor to open at `PowerDelivery(Stop)`
 
 With the profile fixed, `-20` AC passes `PowerDelivery(Start)`. The window trigger still works,
