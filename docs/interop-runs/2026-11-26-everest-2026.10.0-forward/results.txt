@@ -51,6 +51,14 @@ mux-tls-both       s1 FAIL  54 pairs,   0 loops, last PowerDeliveryReq/FAILED_EV
 mux-tls-both-dyn   s1 PASS  60 pairs,   3 loops, last SessionStopReq/OK                          
 mux-tls-iso2       s1 PASS  46 pairs,   3 loops, last SessionStopReq/OK                          
 mux-tls-iso20      s1 FAIL   0 pairs,   0 loops, last -                                          System.Security.Authentication.AuthenticationException : Authentication failed, see inner exception.
+pnc20-diag512      s1 FAIL   5 pairs,   0 loops, last ServiceDiscoveryReq/FAILED_SequenceError non-OK: AuthorizationRes=WARNING_CertificateValidationError, ServiceDiscoveryRes=FAILED_SequenceError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered ServiceDiscoveryRes with FAILED_SequenceError; the session ends here.
+pnc20-tls13        s1 FAIL   4 pairs,   0 loops, last AuthorizationReq/FAILED_SignatureError   non-OK: AuthorizationRes=FAILED_SignatureError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered AuthorizationRes with FAILED_SignatureError; the session ends here.
+pnc20-tls13        s2 FAIL   4 pairs,   0 loops, last AuthorizationReq/FAILED_SignatureError   non-OK: AuthorizationRes=FAILED_SignatureError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered AuthorizationRes with FAILED_SignatureError; the session ends here.
+pnc20-tls13-dyn    s1 FAIL   4 pairs,   0 loops, last AuthorizationReq/FAILED_SignatureError   non-OK: AuthorizationRes=FAILED_SignatureError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered AuthorizationRes with FAILED_SignatureError; the session ends here.
+pnc256-stop        s1 FAIL   4 pairs,   0 loops, last AuthorizationReq/WARNING_CertificateValidationError non-OK: AuthorizationRes=WARNING_CertificateValidationError  cloud.charging.open.protocols.ISO15118.Session.SessionAborted : the station answered AuthorizationRes with WARNING_CertificateValidationError: not authorized, so this car stops instead of continuing t
+pnc521-tls13       s1 PASS  62 pairs,   3 loops, last SessionStopReq/OK                          
+pnc521-tls13       s2 PASS  65 pairs,   3 loops, last SessionStopReq/OK                          
+pnc521-tls13-dyn   s1 PASS  65 pairs,   3 loops, last SessionStopReq/OK                          
 stop-ac20          s1 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
 stop-ac20          s2 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          
 stop-ac20-bpt      s1 PASS  15 pairs,   3 loops, last SessionStopReq/OK                          

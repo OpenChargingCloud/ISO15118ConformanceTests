@@ -659,11 +659,13 @@ internal static class InteropEnvironment
     /// Plug &amp; Charge credentials for the EVCC side: <c>V2G_INTEROP_CONTRACT_CERT</c> is a PKCS#12
     /// holding the contract leaf with its private key plus the MO sub-CAs,
     /// <c>V2G_INTEROP_CONTRACT_PASS</c> its password. Unset (the default) authorizes via EIM.
+    /// <c>V2G_INTEROP_XMLDSIG=josev</c> makes a -20 signature declare <c>ecdsa-sha256</c> instead of -20's
+    /// own <c>ecdsa-sha512</c>; the Josev fixture sets that itself.
     /// </summary>
     /// <remarks>
     /// <para>
     /// Same shape as the CLI's <c>--contract-cert</c>: the certificate that carries a private key is
-    /// the leaf, every other one goes into <c>SubCertificates</c> in file order.
+    /// the leaf, every other one goes into <c>SubCertificates</c>, the leaf's issuer first.
     /// </para>
     /// <para>
     /// <b>The credential is the counterparty's, deliberately.</b> A station verifies a contract
@@ -692,12 +694,21 @@ internal static class InteropEnvironment
                        ?? throw new InvalidOperationException(
                               "V2G_INTEROP_CONTRACT_CERT: the contract leaf's private key is not ECDSA.");
 
-        var subCertificates = collection.Where(c => !c.HasPrivateKey).Select(c => c.RawData).ToArray();
+        // Chain order, not bag order: see Credentials.OrderFromLeaf.
+        var subCertificates = Credentials.OrderFromLeaf(leaf, collection.Where(c => !c.HasPrivateKey))
+                                         .Select(c => c.RawData).ToArray();
+
+        var suite = Read("V2G_INTEROP_XMLDSIG") switch
+        {
+            null or "" or "iso20" => XmlDsigSuite.Iso20,
+            "josev"               => XmlDsigSuite.JosevSha256,
+            var v => throw new InvalidOperationException($"V2G_INTEROP_XMLDSIG expects iso20 or josev, got '{v}'."),
+        };
 
         TestContext.Out.WriteLine($"PnC: contract {leaf.Subject} (+{subCertificates.Length} sub-CA(s)), " +
-                                  $"{key.KeySize}-bit EC.");
+                                  $"{key.KeySize}-bit EC, -20 signatures as {suite}.");
 
-        return new PncEvccOptions(leaf.RawData, subCertificates, key);
+        return new PncEvccOptions(leaf.RawData, subCertificates, key, suite);
 
     }
 
@@ -813,7 +824,9 @@ internal static class InteropEnvironment
               + "so the response will not be decryptable. Recording the run anyway — the refusal or the "
               + "failure is the measurement.");
 
-        var subCertificates = collection.Where(c => !c.HasPrivateKey).Select(c => c.RawData).ToArray();
+        // Chain order, not bag order: see Credentials.OrderFromLeaf.
+        var subCertificates = Credentials.OrderFromLeaf(leaf, collection.Where(c => !c.HasPrivateKey))
+                                         .Select(c => c.RawData).ToArray();
 
         TestContext.Out.WriteLine(
             $"Provisioning: {which} with {leaf.Subject} (+{subCertificates.Length} sub-CA(s)), "

@@ -189,6 +189,91 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         }
 
 
+        /// <summary>
+        /// The one message where a WARNING does end the session: <c>AuthorizationRes</c>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// EVerest 2026.10.0 refused our P-256 contract with <c>WARNING_CertificateValidationError</c> and
+        /// <c>EVSEProcessing = Finished</c>. Our car read <c>Finished</c>, went on to ServiceDiscovery and
+        /// was answered <c>FAILED_SequenceError</c>
+        /// (<c>docs/interop-runs/2026-11-26-everest-2026.10.0-forward/</c>). [V2G20-1583] gives the car
+        /// four ways on from there. Asking for services is not one of them.
+        /// </para>
+        /// <para>
+        /// This station gives exactly that answer and records what it is asked next. The car has to stop
+        /// and name the code, and must not have sent ServiceDiscoveryReq.
+        /// </para>
+        /// </remarks>
+        [Test]
+        public async Task AWarningAtAuthorizationEndsTheSession()
+        {
+            using var contractKey = System.Security.Cryptography.ECDsa.Create(
+                                        System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+            using var contract = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+                                         "CN=DE*VAN*C*P256WARN", contractKey,
+                                         System.Security.Cryptography.HashAlgorithmName.SHA256)
+                                     .CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddHours(1));
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var listener = new TcpV2GListener(new IPEndPoint(IPAddress.Loopback, 0));
+            var station = new AuthorizationWarningStation(TimeSpan.FromSeconds(60), TimeProvider.System);
+
+            var seccTask = Task.Run(async () =>
+            {
+                using var seccStream = await listener.AcceptAsync(cts.Token);
+                await SapHandshake.RunSeccSideAsync(seccStream, ProtocolVariant.Iso15118_20, cts.Token);
+                try { await station.RunAsync(seccStream, cts.Token); }
+                catch { /* the EV hangs up on us; that is the point */ }
+            }, cts.Token);
+
+            using var evccStream = await TcpV2GClient.ConnectAsync("localhost", IPPort.Parse(listener.LocalEndpoint.Port),
+                                                                   (TlsOptions?) null, ct: cts.Token);
+            await SapHandshake.RunEvccSideAsync(evccStream, ProtocolVariant.Iso15118_20, cts.Token);
+
+            var evcc = new Evcc20Dc(evccStream, TimeProvider.System, new ImmediateAsyncDelay(),
+                                    LoopbackTimeouts.PerMessage)
+            {
+                Pnc = new PncEvccOptions(contract.RawData, [contract.RawData], contractKey),
+            };
+
+            var aborted = await Assert.ThrowsAsync<SessionAborted>(async () => await evcc.RunAsync(cts.Token));
+
+            evccStream.Dispose();
+            await seccTask;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(evcc.AuthorizationMode, Is.EqualTo("pnc-signed"));
+                Assert.That(aborted!.Message, Does.Contain("AuthorizationRes"));
+                Assert.That(aborted!.Message, Does.Contain(nameof(ResponseCode.WARNING_CertificateValidationError)));
+                Assert.That(station.Requests, Does.Not.Contain(nameof(ServiceDiscoveryReq)),
+                            "an unauthorized car does not ask for services");
+                Assert.That(station.Requests[^1], Is.EqualTo(nameof(AuthorizationReq)),
+                            "the AuthorizationReq that was refused is the last thing the car sent");
+            });
+        }
+
+
+        /// <summary>EVerest 2026.10.0's answer to a P-256 contract, and a log of what it is asked.</summary>
+        private sealed class AuthorizationWarningStation(TimeSpan sequenceTimeout, TimeProvider clock)
+            : Secc20Dc(sequenceTimeout, clock)
+        {
+            public List<String> Requests { get; } = [];
+
+            public override (MessageSet Set, object Response) Handle(MessageSet set, object request)
+            {
+                Requests.Add(request.GetType().Name);
+                var (responseSet, response) = base.Handle(set, request);
+
+                return response is AuthorizationRes res
+                           ? (responseSet, res with { ResponseCode   = ResponseCode.WARNING_CertificateValidationError,
+                                                      EVSEProcessing = Processing.Finished })
+                           : (responseSet, response);
+            }
+        }
+
+
         private sealed class WarningStation(TimeSpan sequenceTimeout, TimeProvider clock)
             : Secc20Dc(sequenceTimeout, clock)
         {

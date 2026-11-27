@@ -573,10 +573,14 @@ public class SessionTraceCorpusTests
             {
                 await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
                 using var contractKey = PncMaterial.Key();
+                // Josev's form, pinned. The car's default is -20's ecdsa-sha512 since 2026-11-27; the
+                // Kotlin and Swift ports replay this recording and still sign ecdsa-sha256, so the
+                // recording moves when they do.
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                           {
                               Pnc = new PncEvccOptions(PncMaterial.Certificate(),
-                                                       [PncMaterial.Certificate()], contractKey),
+                                                       [PncMaterial.Certificate()], contractKey,
+                                                       XmlDsigSuite.JosevSha256),
                           }.RunAsync(ct);
             },
             async (stream, clock, backend, ct) =>
@@ -678,8 +682,10 @@ public class SessionTraceCorpusTests
                 using var agreement = OemMaterial.Iso20KeyAgreement();
                 await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(), LoopbackTimeouts.PerMessage)
                           {
+                              // Josev's form, pinned, for the reason the PnC scenario above gives.
                               CertInstallRequest = new CertInstallEvccOptions(
-                                                       OemMaterial.Iso20Certificate(), [], signKey, agreement),
+                                                       OemMaterial.Iso20Certificate(), [], signKey, agreement,
+                                                       XmlDsigSuite.JosevSha256),
                           }.RunAsync(ct);
             },
             async (stream, clock, backend, ct) =>

@@ -20,6 +20,7 @@ using NUnit.Framework;
 using cloud.charging.open.protocols.ISO15118.EVCC;
 using cloud.charging.open.protocols.ISO15118.SharedCC;
 using cloud.charging.open.protocols.ISO15118.StateMachines;
+using cloud.charging.open.protocols.ISO15118.StateMachines.Iso20;
 using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 
 namespace ISO15118ConformanceTests.Simulation.Cli
@@ -250,6 +251,22 @@ namespace ISO15118ConformanceTests.Simulation.Cli
         public void UnbracketedIPv6ConnectHost_IsRefusedWithTheFormThatWorks()
             => Assert.That(() => EvccOptions.Parse(["--connect", "fe80::1%12:5555"]),
                            Throws.ArgumentException.With.Message.Contains("[fe80::1%12]:5555"));
+
+        // -20 signs what -20 prescribes unless told the station is Josev's ([V2G20-2473]).
+        [Test]
+        public void Default_XmlDsigIsIso20()
+            => Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555"]).XmlDsig, Is.EqualTo(XmlDsigSuite.Iso20));
+
+        [TestCase("iso20", XmlDsigSuite.Iso20)]
+        [TestCase("josev", XmlDsigSuite.JosevSha256)]
+        public void XmlDsig_Parses(String value, XmlDsigSuite expected)
+            => Assert.That(EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--xmldsig", value]).XmlDsig,
+                           Is.EqualTo(expected));
+
+        [Test]
+        public void XmlDsig_RejectsAnUnknownSuite()
+            => Assert.That(() => EvccOptions.Parse(["--connect", "127.0.0.1:5555", "--xmldsig", "sha1"]),
+                           Throws.ArgumentException.With.Message.Contains("--xmldsig"));
 
     }
 }
