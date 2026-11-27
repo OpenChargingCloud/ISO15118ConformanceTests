@@ -116,37 +116,73 @@ internal static class SignedFrame
     /// recorded ones.
     /// </para>
     /// </remarks>
+    /// <remarks>
+    /// <para>
+    /// <b>The -2 twin since 2026-11-27.</b> A signed -2 <c>MeteringReceiptReq</c> echoes the station's
+    /// <c>MeterInfo</c>, and with a signing meter fitted that includes <c>SigMeterReading</c>. That is
+    /// the same shape one protocol over: the meter's bytes inside the fragment the car digested.
+    /// </para>
+    /// </remarks>
     public static byte[] WithSignatureFrom(byte[] frame, byte[] donor)
     {
         var (payloadType, set, message) = DecodeWithSet(frame);
 
-        if (message is not C.MeteringConfirmationReq r || Decode(donor) is not C.MeteringConfirmationReq { Header.Signature: { } s })
-            throw new NotSupportedException(
-                $"only a MeteringConfirmationReq carries a second signature inside its signed fragment; " +
-                $"a {message.GetType().Name} is compared with its signature value substituted.");
+        switch (message, Decode(donor))
+        {
+            case (C.MeteringConfirmationReq r, C.MeteringConfirmationReq { Header.Signature: { } s }):
+                return Encode(payloadType, set, r with { Header = r.Header with { Signature = s } });
 
-        return Encode(payloadType, set, r with { Header = r.Header with { Signature = s } });
+            case (I2.V2G_Message { Body.BodyElement: I2.MeteringReceiptReqType } m,
+                  I2.V2G_Message { Body.BodyElement: I2.MeteringReceiptReqType, Header.Signature: { } s2 }):
+                return Encode(payloadType, set, m with { Header = m.Header with { Signature = s2 } });
+
+            default:
+                throw new NotSupportedException(
+                    $"only a -20 MeteringConfirmationReq and a -2 MeteringReceiptReq carry a second signature " +
+                    $"inside their signed fragment; a {message.GetType().Name} is compared with its signature " +
+                     "value substituted.");
+        }
     }
 
     /// <summary>
-    /// Whether a signed -20 <c>MeteringConfirmationReq</c>'s reference digest is the digest of its own
-    /// request fragment. The half of the signature check that verifying <c>SignedInfo</c> does not do.
+    /// Whether a signed -20 <c>MeteringConfirmationReq</c>'s, or a signed -2 <c>MeteringReceiptReq</c>'s,
+    /// reference digest is the digest of its own request fragment. The half of the signature check that
+    /// verifying <c>SignedInfo</c> does not do.
     /// </summary>
     public static bool DigestHolds(byte[] frame)
     {
-        if (Decode(frame) is not C.MeteringConfirmationReq { Header.Signature: { } s } r ||
-            s.SignedInfo.Reference.Count != 1)
-            return false;
+        switch (Decode(frame))
+        {
+            case C.MeteringConfirmationReq { Header.Signature: { } s } r when s.SignedInfo.Reference.Count == 1:
+            {
+                var reference = s.SignedInfo.Reference[0];
+                if (reference.URI != "#" + r.SignedMeteringData.Id)
+                    return false;
 
-        var reference = s.SignedInfo.Reference[0];
-        if (reference.URI != "#" + r.SignedMeteringData.Id)
-            return false;
+                var octets = MeteringConfirmation.SignedOctets(r.Header, r.SignedMeteringData);
+                var digest = reference.DigestMethod.Algorithm.Contains("sha256") ? SHA256.HashData(octets)
+                                                                                 : SHA512.HashData(octets);
 
-        var octets = MeteringConfirmation.SignedOctets(r.Header, r.SignedMeteringData);
-        var digest = reference.DigestMethod.Algorithm.Contains("sha256") ? SHA256.HashData(octets)
-                                                                         : SHA512.HashData(octets);
+                return digest.AsSpan().SequenceEqual(reference.DigestValue);
+            }
 
-        return digest.AsSpan().SequenceEqual(reference.DigestValue);
+            // -2 digests the body element's EXI fragment with SHA-256, and the reference names the
+            // element by its Id attribute.
+            case I2.V2G_Message { Header.Signature: { } s, Body.BodyElement: I2.MeteringReceiptReqType receipt }
+                when s.SignedInfo.Reference.Count == 1:
+            {
+                var reference = s.SignedInfo.Reference[0];
+                if (receipt.Id is null || reference.URI != "#" + receipt.Id)
+                    return false;
+
+                var buffer = new byte[1024];
+                return I2.Iso2Codec.EncodeFragment_MeteringReceiptReq(receipt, buffer, out var n) &&
+                       cloud.charging.open.protocols.ISO15118_2.V2GSignature.VerifyReference(reference, buffer.AsSpan(0, n));
+            }
+
+            default:
+                return false;
+        }
     }
 
     /// <summary>Verifies a frame's own signature against its own <c>SignedInfo</c>. This is the half
@@ -163,6 +199,12 @@ internal static class SignedFrame
         // is the difference between one signed -20 message type and two.
         return message switch
         {
+            // The digest too, for the reason MeteringConfirmationReq needs it below: a re-recording
+            // of a metered receipt takes the recorded SignedInfo whole.
+            I2.V2G_Message { Body.BodyElement: I2.MeteringReceiptReqType } m when m.Header.Signature is { } s
+                => DigestHolds(frame) &&
+                   XmlDsigInterop2.VerifyStandaloneXmldsig(s.SignedInfo, s.SignatureValue.Value, publicKey),
+
             I2.V2G_Message m when m.Header.Signature is { } s
                 => XmlDsigInterop2.VerifyStandaloneXmldsig(s.SignedInfo, s.SignatureValue.Value, publicKey),
 

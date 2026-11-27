@@ -157,8 +157,14 @@ weaker claim than it looks and worth separating from "untested".
   ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls/notes.md)). The contract chain was not
   validated to a root in that run, because `--pki-dir` and `--trust-roots` do not combine. Still ours
   alone, so still in this section.
-  The `-2` twin, a signed `MeteringReceiptReq` over a meter-signed reading, is still unrecorded, and
-  `OnlyAMeteringConfirmationIsSignedOverAMeterSignature` fails the day somebody records one.
+  **The `-2` twin was recorded on 2026-11-27** as `iso2-ac-pnc-meter`. Our AC Contract session runs
+  at a station with a signing meter. The `ChargingStatusRes` asking for a receipt carries the meter's
+  `SigMeterReading`, and the car's signed `MeteringReceiptReq` echoes it. `SignedFrame` handles the
+  `-2` receipt with the same digest-aware comparison as the `-20` confirmation. The limit check is
+  now `OnlyTheMeteringMessagesAreSignedOverAMeterSignature`. `TheCarsReceiptSignsTheReadingItWasShown`
+  checks the echo, both signatures, and that a swapped reading breaks the digest. The bridge event
+  corpus carries the session. **Not yet replayed by the ports**: no Kotlin or Swift test names the
+  trace, so whether their `-2` cars sign this receipt the same way is unmeasured.
 
 ## Untested, and nothing is stopping us
 
