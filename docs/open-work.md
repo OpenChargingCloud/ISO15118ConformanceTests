@@ -170,8 +170,15 @@ weaker claim than it looks and worth separating from "untested".
   `-2` receipt with the same digest-aware comparison as the `-20` confirmation. The limit check is
   now `OnlyTheMeteringMessagesAreSignedOverAMeterSignature`. `TheCarsReceiptSignsTheReadingItWasShown`
   checks the echo, both signatures, and that a swapped reading breaks the digest. The bridge event
-  corpus carries the session. **Not yet replayed by the ports**: no Kotlin or Swift test names the
-  trace, so whether their `-2` cars sign this receipt the same way is unmeasured.
+  corpus carries the session. **The ports replay it too since 2026-11-27**
+  ([EVSimulatorApp#49](https://github.com/OpenChargingCloud/EVSimulatorApp/pull/49), merged as `a331588`):
+  the Kotlin and Swift cars run the trace with their own receipt signatures verified against the corpus
+  key, and both read C#'s recorded receipt under their own decoder. The echoed `MeterInfo` matches the
+  one shown, the meter signature verifies, and the digest holds and breaks on a swapped reading. Kotlin
+  passes `port-gates.sh`; Swift passed in macOS CI, 270 tests and the three that name the trace among
+  them. **Neither port has the C# receipt fix** (`8e6fd3e`): both still sign a
+  receipt only over a `MeterInfo` the same response carried, which this trace does not exercise
+  (*Ours to fix*).
 
 ## Untested, and nothing is stopping us
 
@@ -363,6 +370,12 @@ backlog is that half of it turns out not to have been work.
   The same change stops the EVCC printing `accepting ANY station certificate` when `--trust-roots` checks
   the station's chain.
 
+- **The Kotlin and Swift `-2` cars still skip a receipt asked for without a new `MeterInfo`.** The C#
+  car was fixed for exactly this (`8e6fd3e`, next entry): `[V2G2-790]` makes the receipt unconditional
+  after `ReceiptRequired = TRUE`. `Evcc2.kt` and `Evcc2.swift` still send one only when the same
+  response carries a `MeterInfo`, so against EVerest's one-shot flag they would get
+  `FAILED_SequenceError` as the C# car did. Found 2026-11-27 while adding `iso2-ac-pnc-meter` to the
+  ports. No trace holds any car to the no-`MeterInfo` case, so the port gates cannot see it.
 - ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
   **Fixed 2026-11-27**: stack `8e6fd3e`, merged as `a6259a4`, followed by EVSimulatorApp `8fccda1`
   and by this repository the same evening. Found the same
