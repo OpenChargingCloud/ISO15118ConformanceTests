@@ -1,9 +1,20 @@
 # In what order to send them
 
+> **2026-11-27 — the live EVerest set is reproduced against the release, not only read in it.** Every
+> still-present finding a session can reach was driven on the wire against 2026.10.0, and every one
+> reproduces: (2), (3), (6), (8), (9), (10), (16) §1 and §2, (17), (19) both halves, (21), (23), and
+> the forty-ninth. Two do so with the release's own numbers, which the reports now carry:
+> - (9) ends its `Ongoing` loop at **55 s**, not 180 s.
+> - The forty-ninth **no longer leaves the station `Inoperative`** for the next session.
+>
+> The advisory amendment in slot (1) is rewritten with three asks. The fiftieth filing is placed at
+> (5a) below.
+> [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **2026-11-26 — EVerest 2026.10.0 is released, and it agrees with `main` on every finding.** Ten are
 > fixed in the release, seven of them not in 2026.02.2. Fifteen are live. `PyEvJosev` is gone, so (5)
 > and the manifest report are 2026.02-line issues at most. The advisory amendment that holds slot (1)
-> has lost its point 2 and needs a rewrite before it goes.
+> has lost its point 2 and needs a rewrite before it goes *(rewritten 2026-11-27)*.
 > [Release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md).
 
 > **Stale for EVerest as of 2026-11-04, and read this first.** Every EVerest entry below was
@@ -16,7 +27,10 @@
 > [`2026-11-04-counterparties-resweep`](../interop-runs/2026-11-04-counterparties-resweep/notes.md) — only `libcbv2g` issue C is void, and issue B
 > is half wrong and must be rewritten before it is sent.
 
-Thirty-four sendable reports carrying **forty-eight issues** across six projects, and none of them sent —
+Thirty-five sendable reports carrying **forty-nine issues** across six projects, and none of them sent.
+**Thirty-seven of those issues are live in the newest version** of their counterparty (counted
+2026-11-27; the [index](README.md) has the table). The rest are backport asks, fixed, or due for a
+rewrite —
 plus, since 2026-11-05, one **advisory amendment**, which is neither a report nor a finding of ours and
 is first in the order for a reason given at its entry. The
 [index](README.md) lists them by counterparty, which is how you find one. This file is how you work
@@ -152,6 +166,21 @@ replacement is already under review. Same-day control: `PyEvJosev` still at 535 
 212's legend sorts the two thresholds on that interval differently — and the report leads with that
 distinction. Posting it as "your EV violates a 0,25 s timeout" is the one framing that gets a correct
 finding closed in a sentence.
+
+**5a.** [`everest-ev15118-plaintext-iso20-offer`](everest-ev15118-plaintext-iso20-offer.md) — **EVerest,
+the fiftieth filing, 2026-11-27.** `Ev15118` with `tls: prefer` asks for TLS in SDP. When the station
+answers `NoTLS`, it still offers `-20` over plain TCP, which `[V2G20-1805]` and `[V2G20-1237]` forbid.
+`runs_over` in `sap_offer.cpp` narrows the offer after a TLS handshake and keeps every protocol when
+there was none. It goes here for three reasons:
+- It is one function, measured on the wire with both peers theirs.
+- It is live in the release and on `main`.
+- It lands in the module that replaced the subject of (5), so a maintainer reading one has the other's
+  code open.
+
+Unlike (5) it has no expiry: `Ev15118` *is* the replacement. **Ask its first open question first**:
+whether `prefer` is meant for production at all. If it is a bring-up mode like `off`, the issue
+shrinks to a documentation line and a warning, and the report's checklist says so. Keep the station
+out of it: `Evse15118D20` declares and warns about its own half.
 
 ### Then — client auth, in its own order
 

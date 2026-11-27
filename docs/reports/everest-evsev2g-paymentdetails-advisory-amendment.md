@@ -1,19 +1,23 @@
 # Draft amendment to a published EVerest advisory — GHSA-qg7p-grpm-cg3f understates its own consequence
 
-> **2026-11-26: point 2 below is void — rewrite before sending.** `2026.10.0` was released on
-> 2026-11-25 and carries the fix (the parse guard precedes the first use in the tag), so the advisory's
-> *`< 2026.02.0` → `2026.10.0`* row now names a released version that is patched. The advisory itself
-> is unchanged since publication: no CVE, `updated_at` still 2026-11-05. Points 1, 3 and 4 stand. Drop
-> point 2, the matching *Before sending* box, and the closing observation's "a patched version that
-> does not exist" ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)).
+> **Rewritten 2026-11-27, without its former point 2.** That point said the advisory's
+> *`< 2026.02.0` → `2026.10.0`* row named a version that did not exist yet. `2026.10.0` was released
+> on 2026-11-25 and carries the fix: the parse guard precedes the first use in the tag, and on
+> 2026-11-26 the same probe against the release drew `FAILED_CertChainError` with the station up
+> ([release sweep](../interop-runs/2026-11-26-everest-2026.10.0-release/notes.md)). So both patched
+> versions are now real, the row is right, and the point is gone, together with its *Before sending*
+> box and the closing observation's "a patched version that does not exist". The other three asks stand
+> unchanged, renumbered 1 to 3. Re-read on 2026-11-27: the advisory is unchanged since publication
+> (`updated_at` 2026-11-05, no CVE, no CVSS 4.0 vector, description still "stops charging"), and
+> EVerest still publishes 72 advisories.
 
 Status: **draft, not sent.** This is **not a new finding.** The defect is
 [GHSA-qg7p-grpm-cg3f](https://github.com/EVerest/EVerest/security/advisories/GHSA-qg7p-grpm-cg3f)
 (medium, CVSS:3.1 6.5, credited to `Mehrrun`, published 2026-11-05), and it is **fixed** — by their
-PR #3047, merged 2026-10-27, released in **2026.02.2** on 2026-11-05. What this document asks for is a
-correction to the advisory's *description*, to one of its two patched versions, and a CVSS 4.0 vector,
-on the strength of three measurements against running stations that the advisory does not have. Post it
-under your own name; see *Before sending*.
+PR #3047, merged 2026-10-27, released in **2026.02.2** on 2026-11-05 and in **2026.10.0** on
+2026-11-25. What this document asks for is a correction to the advisory's *description* and a CVSS 4.0
+vector, on the strength of measurements against running stations that the advisory does not have, plus
+one scoring question that is theirs to decide. Post it under your own name; see *Before sending*.
 
 We have held the same finding as a draft since 2026-08-11
 ([`everest-evsev2g-paymentdetails-crash`](everest-evsev2g-paymentdetails-crash.md)) — in a public
@@ -88,7 +92,7 @@ runs, both versions.
 **The three arms, and why the first and third carry the claim.** The only variable between arm 1 and
 arm 2 is whether the bytes parse:
 
-| arm | `ContractSignatureCertChain.Certificate` | 2026.02.1 / `2026.10.0-rc1` | `main` (`01f36de1`) |
+| arm | `ContractSignatureCertChain.Certificate` | 2026.02.1 / `2026.10.0-rc1` | `main` (`01f36de1`) / **2026.10.0** |
 |---|---|---|---|
 | **control** | a well-formed self-signed P-256 leaf, chaining to nothing | answered `OK`, station up | answered `OK` |
 | **probe** | 64 bytes, leading `0xFF` — cannot begin a DER `SEQUENCE` | **SIGABRT**, manager exits | answered **`FAILED_CertChainError`** |
@@ -99,10 +103,10 @@ client certificate, and the crash is during parsing — before any signature or 
 advisory's own *"A valid contract chain is not required"* is therefore right, and its PoC note
 (*"I did not send this on the wire"*) is the gap these arms close.
 
-**The `main` column is also the part that is good news for you**: it is an end-to-end confirmation
-that the fix works against the bytes, not just in review — and `FAILED_CertChainError` is the answer
-the message table provides for, which neither Josev nor our own station gets right for the
-specifically unparseable case.
+**The last column is also the part that is good news for you**: it is an end-to-end confirmation
+that the fix works against the bytes, not just in review, on `main` (2026-11-05) and on the released
+2026.10.0 (2026-11-26). And `FAILED_CertChainError` is the answer the message table provides for, which
+neither Josev nor our own station gets right for the specifically unparseable case.
 
 ## What we would ask for, in order of how much we think it is ours to ask
 
@@ -110,23 +114,16 @@ specifically unparseable case.
    terminates every remaining module and exits, and the station refuses connections until it is
    restarted. An operator triaging thirty-four advisories reads that sentence, not the vector, and
    "stops charging" is the one phrase that makes a 2026.02.1 backport look deferrable.
-2. **The `patched: 2026.10.0` row names a version that does not exist yet.** The advisory's affected
-   ranges read `< 2026.02.0 → 2026.10.0` and `>= 2026.02.0, < 2026.02.2 → 2026.02.2`. The second is
-   released. For the first, the newest 2026.10 artifact is **`2026.10.0-rc1`**, tagged 2026-10-22 —
-   **five days before** PR #3047 merged — and it is the station we measured aborting above. So an
-   operator on, say, 2025.12.1 who follows the advisory to its named fix arrives at a build that still
-   has the defect. Either the row wants a note that 2026.10.0 is not yet released, or that line's
-   readers want pointing at 2026.02.2 instead.
-3. **Add a CVSS 4.0 vector.** `cvss_v4` is empty on the advisory, and 4.0 has the metric 3.1 is
+2. **Add a CVSS 4.0 vector.** `cvss_v4` is empty on the advisory, and 4.0 has the metric 3.1 is
    missing here — **`R:U`**, recovery requires user intervention. Our reading:
    `CVSS:4.0/AV:A/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N` with `R:U`. The supplemental
    metric exists for exactly the behaviour the liveness arm measured; the base score is yours to set.
-4. **Reconsider `S:U`, knowing that it is a convention call and not ours to make.** `S:C` on the
+3. **Reconsider `S:U`, knowing that it is a convention call and not ours to make.** `S:C` on the
    existing vector gives **7.4 (high)**. The argument for it is that the vulnerable component is
    `EvseV2G` while the impacted components are `manager`, `api` and every other module. The argument
    against it is yours and we think it is a fair one: `GHSA-4c89-v794-gr7v` is described as *"crashes
    entire charging station"* and is also `S:U`, reaching 7.5 only through `AV:N`. So your batch is
-   internally consistent, and if the answer is "`S:U`, by convention" then only points 1 to 3
+   internally consistent, and if the answer is "`S:U`, by convention" then only points 1 and 2
    matter. We raise it because the global Advisory Database has **no entry for this GHSA yet** (the
    REST endpoint 404s) and no CVE is assigned, so whatever stands in the advisory now is what will
    propagate.
@@ -137,9 +134,9 @@ specifically unparseable case.
   and no path to code execution. The severity argument is entirely about scope and recovery.
 - **Not an ISO 15118 violation.** There is no *shall not crash* clause; the code's own intent for this
   case is `FAILED_CertChainError`, which it now sends.
-- **Not an exposure claim for the 2026.02 line.** 2026.02.2 carries the fix. What this affects is how
-  operators still on 2026.02.0/2026.02.1 — and on anything older, whose named fix version is not out —
-  and anyone reading the CVE record later, judge the urgency.
+- **Not an exposure claim for either line.** 2026.02.2 and 2026.10.0 carry the fix. What this affects
+  is how operators still on 2026.02.0/2026.02.1, or on anything older, and anyone reading the CVE record
+  later, judge the urgency.
 - **Not a credit request, and not a claim about anyone's route to the finding.** `Mehrrun` filed it,
   we did not, and the credit is theirs. Our own draft has been readable in a public repository since
   2026-08-11, so neither of us can establish from outside whether that mattered — and nothing here
@@ -151,11 +148,11 @@ Everything above was produced from your own published artefacts: a release, the 
 published with it, two tags read out of the object database, one `blame`, and a probe pointed at two
 builds of your own station. No privileged access, no inside knowledge, one afternoon. That interval —
 between an advisory being published and a stranger having read it, checked its claims against the tree,
-found a patched version that does not exist, and compared its consequence sentence to a measurement — is
-now short, and it is getting shorter. Which makes the *text* of an advisory part of your security
-process rather than paperwork after it: that text is what gets read, mirrored into a CVE record, and
-tested against the code within a day. The four requests above are, in that sense, measurements of the
-process and not only of this one null dereference.
+and compared its consequence sentence to a measurement — is now short, and it is getting shorter. Which
+makes the *text* of an advisory part of your security process rather than paperwork after it: that text
+is what gets read, mirrored into a CVE record, and tested against the code within a day. The three
+requests above are, in that sense, measurements of the process and not only of this one null
+dereference.
 
 ## Before sending
 
@@ -163,21 +160,24 @@ process and not only of this one null dereference.
       whether the certificate parses, and a liveness arm after the crash. Twice on 2026.02.1
       (2026-08-15) and once on `2026.10.0-rc1` (2026-11-05).
 - [x] **Verify the fix on the wire, not in review.** `main` (`01f36de1`), same probe, same machine,
-      forty minutes after the RC run: `FAILED_CertChainError`, station alive, liveness `OK`.
+      forty minutes after the RC run: `FAILED_CertChainError`, station alive, liveness `OK`. And the
+      released **2026.10.0** on 2026-11-26: the same three arms, the same answers.
 - [x] **Quote their logs, not our summary of them.** Both station logs above are verbatim, including
       the assert line moving `:775` → `:799`.
 - [x] **Check both patched versions against their own release list.** `2026.02.2` was released
-      2026-11-05 and carries the reordering — read in the tag, not inferred from the notes. There is no
-      `2026.10.0`: the newest 2026.10 tag is `2026.10.0-rc1`, a prerelease from 2026-10-22, and it is
-      the station that aborted above.
+      2026-11-05 and carries the reordering — read in the tag, not inferred from the notes.
+      `2026.10.0` was released 2026-11-25 and carries it too, read in the tag and probed on the wire.
+      Both named fixes are real, which is why this amendment no longer has a point about them.
 - [x] **Check the advisory's own claims before contradicting any.** The ordering, the pubkey `assert`,
       CWE-476 and the ranges are right; four of five CVSS metrics are at their most severe value and
       6.5 is the 3.1 ceiling for `AV:A` + availability-only. Verified in the 2026.02.2 tag:
       `if (err != 0)` precedes `getEmaidFromContractCert`, and `if (conn->pubkey != nullptr)` replaced
       the assert.
-- [x] **Separate what is measured from what is a judgement.** Points 1 to 3 are measurement or a
-      checkable fact about their own release list. Point 4 is their convention, and the
-      counter-argument from their own batch is stated in the text rather than left for them to find.
+- [x] **Separate what is measured from what is a judgement.** Points 1 and 2 rest on measurement.
+      Point 3 is their convention, and the counter-argument from their own batch is stated in the text
+      rather than left for them to find.
+- [ ] **Re-read the advisory the day it is sent.** Last read 2026-11-27, unchanged since publication.
+      If they have since edited the description or added a 4.0 vector, the matching point goes.
 - [ ] **Decide the channel.** There is no public comment box for a non-collaborator on a published
       repository advisory (the thread exists — the API reports two comments — but write access to it
       does not come with reading the page), and the global Advisory Database has no entry yet, so its

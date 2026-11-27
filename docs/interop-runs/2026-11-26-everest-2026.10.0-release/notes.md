@@ -183,7 +183,8 @@ sentence and the CVSS 4.0 vector are untouched by the release, and remain the am
 
 ## Next
 
-- Rewrite the advisory amendment without its point 2 before it is sent.
+- Rewrite the advisory amendment without its point 2 before it is sent. **Done 2026-11-27**: three
+  asks, and the advisory re-read the same day, unchanged since publication.
 - Decide `josev-iso20-evcc-charge-loop-pacing` and `pyevjosev-manifest-services`: they are now
   2026.02-line reports or nothing.
 - If any of the thirteen still-present findings is to be filed, a live reproduction against the release
