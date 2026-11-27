@@ -69,6 +69,12 @@ for s in $(seq 1 "$SESSIONS"); do
   echo "PWM on after ${i}s"
   if [ "$TRIGGER" = 1 ]; then
     setsid bash $REPO/tools/interop-everest/carsim-on-trigger.sh --watch "$LOG" > "$RUN/trigger-$s.log" 2>&1 < /dev/null &
+    # [V2G20-848]: CP state B no later than 250 ms after PowerDeliveryReq(Stop). 2026.10.0 waits for the
+    # contactor to open before it answers, so the SIL car has to leave state C on the same cue.
+    if [ "${STOP_TRIGGER:-0}" = 1 ]; then
+      TRIGGER_LINE='Waiting for contactor is opened' setsid bash $REPO/tools/interop-everest/carsim-on-trigger.sh \
+        --watch "$LOG" --commands 'pause;sleep 600' > "$RUN/stop-trigger-$s.log" 2>&1 < /dev/null &
+    fi
   fi
 
   EP=""

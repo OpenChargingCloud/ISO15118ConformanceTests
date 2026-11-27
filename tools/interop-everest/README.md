@@ -424,6 +424,22 @@ Two timing constraints, both of which cost a run: the session must start within 
 (after that the station declares `Car Paused`, and waking from it takes longer than the window), and the
 watcher must be armed **before** the session.
 
+**From 2026.10.0 on, the stop needs the mirror image.** The release also waits for the contactor to
+*open* at `PowerDelivery(Stop)`, 1 400 ms (`AC contactor is not opened within 1400ms`). A car held at
+state C never lets it open, so every `-20` AC session ended `FAILED_ContactorError` at the stop. That is
+the car's duty, not the station's fault: `[V2G20-848]` wants CP state B within 250 ms of sending
+`PowerDeliveryReq(Stop)`. Arm a second watcher on the stop cue, and have it `pause` the simulated car:
+
+```bash
+TRIGGER_LINE='Waiting for contactor is opened' \
+  bash carsim-on-trigger.sh --watch charger.log --commands 'pause;sleep 600'
+```
+
+It fires 62 ms after the cue, and `PowerOff` arrives 0,75 s in. Five of five AC sessions then reach
+`SessionStop`: plain, AC_BPT, Dynamic and mutual TLS 1.3
+([`…-2026.10.0-forward`](../../docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-3---20-ac-now-waits-for-the-contactor-to-open-at-powerdeliverystop)).
+Not yet run against 2026.02.1, which never waited for the open.
+
 ### A PKI both sides agree on  ([`tls-pki-setup.sh`](tls-pki-setup.sh), [`tls-pki-restore.sh`](tls-pki-restore.sh))
 
 **Every `-20` TLS run starts here, and it cannot be skipped or cached.** `Evse15118D20` switches to
