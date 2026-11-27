@@ -176,9 +176,11 @@ weaker claim than it looks and worth separating from "untested".
   key, and both read C#'s recorded receipt under their own decoder. The echoed `MeterInfo` matches the
   one shown, the meter signature verifies, and the digest holds and breaks on a swapped reading. Kotlin
   passes `port-gates.sh`; Swift passed in macOS CI, 270 tests and the three that name the trace among
-  them. **Neither port has the C# receipt fix** (`8e6fd3e`): both still sign a
-  receipt only over a `MeterInfo` the same response carried, which this trace does not exercise
-  (*Ours to fix*).
+  them. **And the case without a record since 2026-11-28**: `iso2-ac-pnc-norecord` asks for a second
+  receipt with no `MeterInfo`, the shape EVerest 2026.10.0's one-shot flag produces. The C# car and
+  both ports answer it over the last record the station sent (C# since `8e6fd3e`, the ports since the
+  same change was ported), and `AReceiptAskedForWithoutARecordSignsTheLastOne` checks the record and
+  that the session reaches `SessionStop`. It is recorded without a meter, see *Ours to fix*.
 
 ## Untested, and nothing is stopping us
 
@@ -370,12 +372,19 @@ backlog is that half of it turns out not to have been work.
   The same change stops the EVCC printing `accepting ANY station certificate` when `--trust-roots` checks
   the station's chain.
 
-- **The Kotlin and Swift `-2` cars still skip a receipt asked for without a new `MeterInfo`.** The C#
-  car was fixed for exactly this (`8e6fd3e`, next entry): `[V2G2-790]` makes the receipt unconditional
-  after `ReceiptRequired = TRUE`. `Evcc2.kt` and `Evcc2.swift` still send one only when the same
-  response carries a `MeterInfo`, so against EVerest's one-shot flag they would get
-  `FAILED_SequenceError` as the C# car did. Found 2026-11-27 while adding `iso2-ac-pnc-meter` to the
-  ports. No trace holds any car to the no-`MeterInfo` case, so the port gates cannot see it.
+- **`Secc2.DemandReceiptWithoutMeterInfo` has no effect when a signing meter is installed.** The switch
+  is meant to make one receipt request carry no `MeterInfo`, but `CurrentDemand()` and
+  `ChargingStatus()` report one whenever `InstalledMeter` is set, that request included. So the
+  EVerest shape it copies, a signing meter and a bare receipt request, cannot be recorded, and
+  `iso2-ac-pnc-norecord` was recorded without a meter. A test instrument only, off by default, and no
+  car is affected. Found 2026-11-28 while recording that trace.
+- ~~**The Kotlin and Swift `-2` cars still skip a receipt asked for without a new `MeterInfo`.**~~
+  **Fixed 2026-11-28**: the C# change (`8e6fd3e`, next entry) ported to `Evcc2.kt` and `Evcc2.swift`:
+  the last `MeterInfo` is kept and signed when a receipt request carries none, and an EIM session or a
+  session without any record yet aborts with a stated reason. `iso2-ac-pnc-norecord` holds all three
+  cars to it; with the old Kotlin behaviour put back, its replay fails at exchange 11, where the
+  recording has the second signed receipt. Found 2026-11-27 while adding `iso2-ac-pnc-meter` to the
+  ports.
 - ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
   **Fixed 2026-11-27**: stack `8e6fd3e`, merged as `a6259a4`, followed by EVSimulatorApp `8fccda1`
   and by this repository the same evening. Found the same

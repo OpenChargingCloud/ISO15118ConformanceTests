@@ -601,6 +601,42 @@ public class SessionTraceCorpusTests
             SignedBy: PncMaterial.Key,
             Metered:  true),
 
+        // The receipt a station asks for with nothing new to sign, recorded 2026-11-28. After the first
+        // receipt, Secc2.DemandReceiptWithoutMeterInfo makes the next ChargingStatusRes ask again with no
+        // MeterInfo, the shape EVerest 2026.10.0's one-shot meter_info_is_used flag produces.
+        // [V2G2-408] still requires the receipt, so the car signs the last MeterInfo it received (stack
+        // 8e6fd3e). Before that fix the car skipped it; the ports had the same gap until this trace.
+        //
+        // No signing meter, deliberately: with one installed, Secc2 reports a MeterInfo in every status
+        // response, the receipt request the switch means to leave bare included, so the case never
+        // arises. Without one, the station sends a MeterInfo only with a receipt request, and the
+        // switch's second request carries none.
+        new("iso2-ac-pnc-norecord", "iso15118-2", "ac",
+            "AC, Plug & Charge, and a second receipt asked for without a MeterInfo: the car answers it " +
+            "with a MeteringReceiptReq over the last record the station sent, as EVerest 2026.10.0's " +
+            "one-shot meter_info_is_used flag requires of a car.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var contractKey = PncMaterial.Key();
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          {
+                              Pnc = new PncEvccOptions(PncMaterial.Certificate(),
+                                                       [PncMaterial.Certificate()], contractKey),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId                = RecordedSessionId,
+                            FixedGenChallenge             = RecordedGenChallenge,
+                            DemandReceiptWithoutMeterInfo = true,
+                            Backend                       = backend }.RunAsync(stream, ct);
+            },
+            SignedBy: PncMaterial.Key),
+
         new("iso20-dc-pnc", "iso15118-20", "dc",
             "-20 DC, Plug & Charge: the AuthorizationReq echoes the station's GenChallenge and " +
             "carries the contract chain, signed over the PnC_AReqAuthorizationMode fragment.",
@@ -1756,6 +1792,58 @@ public class SessionTraceCorpusTests
 
     }
 
+    /// <summary>
+    /// A receipt asked for without a <c>MeterInfo</c> is still answered, over the last record the
+    /// station sent.
+    /// </summary>
+    /// <remarks>
+    /// `[V2G2-408]` makes the receipt unconditional after <c>ReceiptRequired = true</c>, and EVerest
+    /// 2026.10.0 asks without a fresh record. Before stack <c>8e6fd3e</c> the C# car skipped that receipt,
+    /// and the station answered the next <c>PowerDeliveryReq</c> <c>FAILED_SequenceError</c>. This is the
+    /// first recording of the case, so it holds the C# car and both ports to it.
+    /// </remarks>
+    [Test]
+    public void AReceiptAskedForWithoutARecordSignsTheLastOne()
+    {
+
+        var trace    = SessionTrace.ReadFrom(TracePath("iso2-ac-pnc-norecord"));
+        var receipts = trace.Exchanges.Where(e => e.Request.Message == "MeteringReceiptReqType").ToList();
+
+        Assert.That(receipts, Has.Count.EqualTo(2), "one receipt over a fresh record, one without");
+
+        using var contractKey = KeyOf(trace.SigningKey!);
+
+        static T Body<T>(byte[] frame) where T : BodyBaseType
+            => (T) ((V2G_Message) SignedFrame.DecodeWithSet(frame).Message).Body.BodyElement!;
+
+        var (withRecord, withoutRecord) = (receipts[0], receipts[1]);
+        var askedFirst = Body<ChargingStatusResType>(trace.Exchanges[withRecord.Index    - 1].Response.Bytes);
+        var askedAgain = Body<ChargingStatusResType>(trace.Exchanges[withoutRecord.Index - 1].Response.Bytes);
+        var signedOver = Body<MeteringReceiptReqType>(withoutRecord.Request.Bytes).MeterInfo;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(askedFirst.ReceiptRequired, Is.True);
+            Assert.That(askedFirst.MeterInfo,       Is.Not.Null, "the first receipt is asked for with a record");
+            Assert.That(askedAgain.ReceiptRequired, Is.True,     "[V2G2-408]: the second request is a receipt request");
+            Assert.That(askedAgain.MeterInfo,       Is.Null,
+                        "the second receipt must be asked for without a record, or this trace shows nothing new");
+
+            // The last record the station sent is the one it asked the first receipt over.
+            Assert.That(signedOver.MeterID,      Is.EqualTo(askedFirst.MeterInfo!.MeterID));
+            Assert.That(signedOver.MeterReading, Is.EqualTo(askedFirst.MeterInfo.MeterReading),
+                        "the second receipt does not sign the last record the station sent");
+            Assert.That(signedOver.TMeter,       Is.EqualTo(askedFirst.MeterInfo.TMeter));
+
+            foreach (var receipt in receipts)
+                Assert.That(SignedFrame.VerifiesWith(receipt.Request.Bytes, contractKey), Is.True,
+                            $"exchange {receipt.Index}: the receipt does not verify against the contract key");
+
+            Assert.That(trace.Exchanges[^1].Request.Message, Is.EqualTo("SessionStopReqType"),
+                        "the session ran to SessionStop rather than ending at a refused PowerDeliveryReq");
+        });
+
+    }
 
     /// <summary>
     /// The station told its backend the same signed values it showed the car.
