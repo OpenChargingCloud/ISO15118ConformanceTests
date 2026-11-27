@@ -1,5 +1,10 @@
 # Draft report to EVerest — one exception from any poll callback ends `Evse15118D20`'s V2G loop for the life of the process
 
+> **The mechanism is live in 2026.10.0 too**, read in the tag on 2026-11-27. The loop step moved into
+> `TbdController::poll_once()` (`tbd_controller.cpp`): it catches `std::runtime_error` only, logs
+> *"Shutting down poll loop because of: …"* and returns `false`, and the caller ends the loop. That is
+> the same consequence in new code. The citations below predate the move.
+
 > **Half obsolete — and the surviving half is the one this report was re-pitched around in August.**
 > Checked in the **2026.02.2** tag on 2026-11-05, not only on `main`.
 >

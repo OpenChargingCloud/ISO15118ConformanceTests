@@ -6,8 +6,9 @@
 > (credited to `Mehrrun`; whether that was independent of this public draft is not knowable from here,
 > and nothing below depends on it), so **this report is overtaken as a report**. What is still sendable is
 > [the advisory amendment](everest-evsev2g-paymentdetails-advisory-amendment.md): that advisory
-> describes the consequence as *"stops charging"*, and names a second patched version, 2026.10.0,
-> which does not exist yet. The measurements below are what the amendment is built on.
+> describes the consequence as *"stops charging"*. (It also named a patched version, 2026.10.0, that
+> did not exist yet; the release on 2026-11-25 settled that.) The measurements below are what the
+> amendment is built on.
 > PR #3047 (2026-10-27) reordered the guard in `handle_iso_payment_details` so a leaf that fails to
 > parse never reaches the helper. **Both builds below were measured, not read.** On 2026-11-05
 > the same probe, the same station config and the same machine were pointed at two from-source builds
