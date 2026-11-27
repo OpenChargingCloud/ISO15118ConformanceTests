@@ -1,0 +1,41 @@
+2026-11-27 22:22:57.605122 [WARN] iso_mux:IsoMux  void module::IsoMux::init() :: DEPRECATED MODULE
+2026-11-27 22:22:57.621945 [INFO] iso_mux:IsoMux   :: Module iso_mux initialized [2991ms]
+2026-11-27 22:22:57.765690 [INFO] iso_mux:IsoMux   :: TLS server on eth0 is listening on port [fe80::215:5dff:fefd:8161%2]:64110
+2026-11-27 22:22:57.872037 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN_B.pem"]
+2026-11-27 22:22:57.872556 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-27 22:22:57.872850 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF_B.pem"]
+2026-11-27 22:22:57.873091 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-27 22:22:57.915327 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-11-27 22:22:57.915436 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-11-27 22:22:58.026898 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-11-27 22:22:58.026997 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-11-27 22:22:58.105657 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN_B.pem"]
+2026-11-27 22:22:58.105712 [INFO] evse_security:E  :: Not requiring all valid leafs, returning
+2026-11-27 22:22:58.157295 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN_B.pem"]
+2026-11-27 22:22:58.157581 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-27 22:22:58.157757 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF_B.pem"]
+2026-11-27 22:22:58.158032 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-27 22:22:58.190291 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: <n> certificates != <n> OCSP responses
+2026-11-27 22:22:58.190342 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-11-27 22:22:58.190414 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: No trust anchors for certificate: C:DE CN:SECCCert-B DC:CPO O:EVerest
+2026-11-27 22:22:58.190418 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-11-27 22:22:58.190429 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: trusted_ca_keys support disabled
+2026-11-27 22:22:58.190437 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: no configured chain passed verification; the SSL_CTX default certificate remains chains[0] and clients may not be able to build a path for it
+2026-11-27 22:22:58.212923 [INFO] iso_mux:IsoMux   :: SDP socket setup succeeded
+2026-11-27 22:22:58.259946 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-11-27 22:22:58.260084 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-11-27 22:23:00.091545 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN_B.pem"]
+2026-11-27 22:23:00.091860 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-27 22:23:00.092137 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF_B.pem"]
+2026-11-27 22:23:00.092493 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-27 22:23:00.121314 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-11-27 22:23:00.121408 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-11-27 22:23:00.190283 [WARN] evse_security:E bool evse_security::X509CertificateHierarchy::get_certificate_hash(const evse_security::X509Wrapper&, evse_security::CertificateHashData&) :: Could not find owner for certificate: CPOSubCA-B
+2026-11-27 22:23:00.190409 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Root required for [V2G] leaf certificate, but no root could be found
+2026-11-27 22:23:13.369124 [INFO] iso_mux:IsoMux   :: Incoming TLS connection
+2026-11-27 22:23:13.432915 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: trusted_ca_keys: no configured chain matched the peer's trusted_ca_keys; serving default chain
+2026-11-27 22:23:13.433122 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: OcspCache::lookup: not in cache: 0392c16dedd33a2ad5404556a905b1e72365013c
+2026-11-27 22:23:13.556028 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_accept: -1 1 error:0A000412:SSL routines::ssl/tls alert bad certificate
+2026-11-27 22:23:19.452536 [INFO] manager          :: SIGTERM of child: iso_mux (pid: 1734204) succeeded.
+2026-11-27 22:23:19.457742 [INFO] manager          :: Module iso_mux (pid 1734204) shutdown [8ms] with status: signal=15
+2026-11-27 22:23:19.458196 [WARN] manager         std::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&) :: Modules that did not shut down cleanly: api (signal=15) auth (signal=15) energy_manager (signal=15) error_history (signal=15) ev_api (signal=15) ev_manager (signal=15) evse_security (signal=15) grid_connection_point (signal=15) iso15118_20 (signal=15) iso15118_car (signal

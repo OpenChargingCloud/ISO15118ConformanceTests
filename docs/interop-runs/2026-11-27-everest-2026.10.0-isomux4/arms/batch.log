@@ -1,0 +1,108 @@
+/home/ahzf/everest/pki-rootb/SECC_LEAF_B.pem: OK
+root A sha1 Fingerprint=28:53:7D:28:C2:D2:9C:08:E9:B9:A6:3A:81:B9:7D:4E:B3:8A:F2:AE
+root B sha1 Fingerprint=EB:80:14:8E:B9:6C:1E:72:E2:D8:C5:EA:4D:E6:EF:87:37:24:F5:A8
+### installed: /home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA_B.pem /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF_B.pem /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF_B.key /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN_B.pem
+################ a  names V2G_ROOT_CA.pem  trusts V2G_ROOT_CA.pem  2026-11-27T22:22:50+01:00
+### arm isomux4-a  config config-mux-tls-fwd2610.yaml  -2 dc  sessions 1  probe muxtls  trigger 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-27T22:22:51+01:00
+station up after 6s
+---------------- session 1
+PWM on after 8s
+endpoint [fe80::215:5dff:fefd:8161%eth0]:64110
+dotnet test exit 1
+car log 192 bytes
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [255 ms]
+  Error Message:
+manager alive at end: 1
+### their side
+2026-11-27 22:23:19.455481 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 1734203) shutdown [5ms] with status: signal=15
+2026-11-27 22:23:19.455504 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 1734216) shutdown [6ms] with status: signal=15
+2026-11-27 22:23:19.455529 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 1734217) shutdown [6ms] with status: signal=15
+2026-11-27 22:23:19.455731 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 1734156) shutdown [6ms] with status: signal=15
+2026-11-27 22:23:19.455808 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 1734180) shutdown [6ms] with status: signal=15
+2026-11-27 22:23:19.456428 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 1734205) shutdown [6ms] with status: signal=15
+2026-11-27 22:23:19.456714 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 1734222) shutdown [7ms] with status: signal=15
+2026-11-27 22:23:19.457036 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 1734238) shutdown [7ms] with status: signal=15
+2026-11-27 22:23:19.457742 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso_mux[0m (pid 1734204) shutdown [8ms] with status: signal=15
+2026-11-27 22:23:19.457902 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_2[0m (pid 1734181) shutdown [8ms] with status: signal=15
+2026-11-27 22:23:19.457941 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-27 22:23:19.458235 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+################ b  names V2G_ROOT_CA_B.pem  trusts V2G_ROOT_CA_B.pem  2026-11-27T22:23:22+01:00
+### arm isomux4-b  config config-mux-tls-fwd2610.yaml  -2 dc  sessions 1  probe muxtls  trigger 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-27T22:23:23+01:00
+station up after 4s
+---------------- session 1
+PWM on after 8s
+endpoint [fe80::215:5dff:fefd:8161%eth0]:64110
+dotnet test exit 0
+car log 192 bytes
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [10 s]
+manager alive at end: 1
+### their side
+2026-11-27 22:24:00.689093 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 1734763) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689116 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_2[0m (pid 1734772) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689138 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_20[0m (pid 1734781) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689159 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 1734787) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689181 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso_mux[0m (pid 1734792) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689202 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 1734793) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689256 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 1734798) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.689291 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 1734807) shutdown [12ms] with status: signal=15
+2026-11-27 22:24:00.690140 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 1734821) shutdown [13ms] with status: signal=15
+2026-11-27 22:24:00.690182 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 1734823) shutdown [13ms] with status: signal=15
+2026-11-27 22:24:00.690192 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-27 22:24:00.690503 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+################ c  names V2G_ROOT_CA_B.pem  trusts V2G_ROOT_CA.pem  2026-11-27T22:24:03+01:00
+### arm isomux4-c  config config-mux-tls-fwd2610.yaml  -2 dc  sessions 1  probe muxtls  trigger 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-27T22:24:04+01:00
+station up after 4s
+---------------- session 1
+PWM on after 8s
+endpoint [fe80::215:5dff:fefd:8161%eth0]:64110
+dotnet test exit 1
+car log 192 bytes
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [240 ms]
+  Error Message:
+manager alive at end: 1
+### their side
+2026-11-27 22:24:30.512335 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso_mux[0m (pid 1735200) shutdown [20ms] with status: signal=15
+2026-11-27 22:24:30.518047 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 1735190) shutdown [25ms] with status: signal=15
+2026-11-27 22:24:30.518150 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 1735207) shutdown [26ms] with status: signal=15
+2026-11-27 22:24:30.518586 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m (pid 1735164) shutdown [26ms] with status: signal=15
+2026-11-27 22:24:30.520346 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 1735219) shutdown [28ms] with status: signal=15
+2026-11-27 22:24:30.520903 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_20[0m (pid 1735185) shutdown [28ms] with status: signal=15
+2026-11-27 22:24:30.526782 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 1735221) shutdown [34ms] with status: signal=15
+2026-11-27 22:24:30.532491 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 1735213) shutdown [40ms] with status: signal=15
+2026-11-27 22:24:30.534214 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 1735209) shutdown [42ms] with status: signal=15
+2026-11-27 22:24:30.534298 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-27 22:24:30.534820 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+################ a2  names V2G_ROOT_CA.pem  trusts V2G_ROOT_CA.pem  2026-11-27T22:24:33+01:00
+### arm isomux4-a2  config config-mux-tls-fwd2610.yaml  -2 dc  sessions 1  probe muxtls  trigger 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-27T22:24:34+01:00
+station up after 4s
+---------------- session 1
+PWM on after 8s
+endpoint [fe80::215:5dff:fefd:8161%eth0]:64110
+dotnet test exit 1
+car log 192 bytes
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [315 ms]
+  Error Message:
+manager alive at end: 1
+### their side
+2026-11-27 22:25:01.689269 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 1735912) shutdown [21ms] with status: signal=15
+2026-11-27 22:25:01.689310 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 1735920) shutdown [21ms] with status: signal=15
+2026-11-27 22:25:01.690691 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 1735895) shutdown [22ms] with status: signal=15
+2026-11-27 22:25:01.697973 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 1735897) shutdown [30ms] with status: signal=15
+2026-11-27 22:25:01.698170 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 1735888) shutdown [30ms] with status: signal=15
+2026-11-27 22:25:01.698210 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m (pid 1735853) shutdown [30ms] with status: signal=15
+2026-11-27 22:25:01.701935 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m (pid 1735854) shutdown [34ms] with status: signal=15
+2026-11-27 22:25:01.702040 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_2[0m (pid 1735871) shutdown [34ms] with status: signal=15
+2026-11-27 22:25:01.708193 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 1735866) shutdown [40ms] with status: signal=15
+2026-11-27 22:25:01.708319 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 1735858) shutdown [40ms] with status: signal=15
+2026-11-27 22:25:01.708343 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-27 22:25:01.712231 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+=== ISOMUX4 ARMS DONE 2026-11-27T22:25:05+01:00
+### PKI restored: V2G_ROOT_CA.der V2G_ROOT_CA.pem  / CPO_CERT_CHAIN.pem SECC_LEAF.der SECC_LEAF.key SECC_LEAF_PASSWORD.txt SECC_LEAF.pem 

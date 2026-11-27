@@ -198,7 +198,8 @@ deprecated in this release. It stays a note unless someone wants a fifty-first f
 ## What this did not do
 
 - **`isomux` §4** (the `trusted_ca_keys` boot line) was not re-run; it is not in the release sweep's
-  still-present list either, which left it unread.
+  still-present list either, which left it unread. *Run the same evening: live in the release, the
+  car naming A and being served B's chain ([run](../2026-11-27-everest-2026.10.0-isomux4/notes.md)).*
 - **The outgoing `MeterSignature` in the C++ `d2/` path** and the two **libcbv2g** issues are source and
   codec findings. The codec files are byte-identical to `main`, so the 2026-11-06 probe carries over.
   Nothing here drove them.

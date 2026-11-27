@@ -179,7 +179,8 @@ sentence and the CVSS 4.0 vector are untouched by the release, and remain the am
   present in the source of the tag; the live run did not drive the thirteen still-present findings to
   reproduce them, which would be a session each against the release.
 - `isomux` §4 was not re-read; its mechanism against the multi-chain `trust_anchor` config is the open
-  item carried from 2026-11-04.
+  item carried from 2026-11-04. *Measured on 2026-11-27: live, and the reason is in `IsoMux`, which
+  hands the library one chain without an anchor ([run](../2026-11-27-everest-2026.10.0-isomux4/notes.md)).*
 
 ## Next
 

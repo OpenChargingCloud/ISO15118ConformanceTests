@@ -6,16 +6,16 @@
 >
 > | | issues | which |
 > |---|---:|---|
-> | **live in the newest version** | **37** | **EVerest 2026.10.0, 16:**<br>• `isomux` §1, §2<br>• client-auth §1, §2<br>• `metering-chain` (both)<br>• `d20-meter-info`, `d20-trust-anchor`, `d20-sequence-timeout`, `d20-eim-rejection`, `d20-ac-contactor-edge`<br>• `session-id-zero`, `certificate-update`<br>• `renegotiation-supply`, `ev15118-plaintext-iso20-offer`<br>• `loop-shutdown`'s mechanism<br>**SwitchEV / EVerest's Josev fork, 6.** **eVDriveFlow, 6.** **tux-evse, 6.** **V2Gdecoder, 2.** **libcbv2g A, 1.** |
+> | **live in the newest version** | **38** | **EVerest 2026.10.0, 17:**<br>• `isomux` §1, §2, §4<br>• client-auth §1, §2<br>• `metering-chain` (both)<br>• `d20-meter-info`, `d20-trust-anchor`, `d20-sequence-timeout`, `d20-eim-rejection`, `d20-ac-contactor-edge`<br>• `session-id-zero`, `certificate-update`<br>• `renegotiation-supply`, `ev15118-plaintext-iso20-offer`<br>• `loop-shutdown`'s mechanism<br>**SwitchEV / EVerest's Josev fork, 6.** **eVDriveFlow, 6.** **tux-evse, 6.** **V2Gdecoder, 2.** **libcbv2g A, 1.** |
 > | half fixed, rewrite before sending | 1 | libcbv2g B |
 > | live only in the 2026.02 line (backport asks) | 7 | **Fixed in 2026.10.0, live in 2026.02.2:** `session-log-responses`, `evse-security-ocsp-dropped`, `d20-ocsp-absent`, `d20-rng-entropy`, client-auth §3<br>**`PyEvJosev`, which 2026.10.0 removed:** `josev-iso20-evcc-charge-loop-pacing`, `pyevjosev-manifest-services` |
 > | fixed everywhere | 3 | `paymentdetails-crash` (reported by someone else, fixed, now the advisory amendment), `isomux` §3, libcbv2g C |
-> | not re-read since August | 1 | `isomux` §4 |
 >
 > Sources:
-> - **EVerest:** the release tag, and 15 of its 16 live findings reproduced on the wire on 2026-11-27
+> - **EVerest:** the release tag, and 16 of its 17 live findings reproduced on the wire on 2026-11-27
 >   ([run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md); the plaintext offer
->   in [its own](../interop-runs/2026-11-27-everest-2026.10.0-notls/notes.md)). Only `loop-shutdown`'s
+>   in [its own](../interop-runs/2026-11-27-everest-2026.10.0-notls/notes.md); `isomux` §4 in
+>   [another](../interop-runs/2026-11-27-everest-2026.10.0-isomux4/notes.md)). Only `loop-shutdown`'s
 >   mechanism was read in the tag rather than driven: `poll_once()` still catches `std::runtime_error`
 >   alone and returns `false`, and the loop ends.
 > - **The rest:** HEAD on 2026-11-27 against the 2026-11-04 re-sweep. Seven of the eight repositories

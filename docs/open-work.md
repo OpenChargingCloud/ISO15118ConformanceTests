@@ -950,10 +950,9 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
 ## Not in the matrix at all
 
 - **Forty-nine issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
-  in thirty-five sendable reports. **Thirty-seven of them are live in the newest version** of their
+  in thirty-five sendable reports. **Thirty-eight of them are live in the newest version** of their
   counterparty, counted 2026-11-27. Seven more are live only in the 2026.02 line, one wants a rewrite,
-  three are fixed everywhere, and one was not re-read since August
-  ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
+  and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin: *Ours to fix* is empty again, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.

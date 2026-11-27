@@ -1,5 +1,14 @@
 # Draft report to EVerest — four findings in `IsoMux`
 
+> **§4 is live in 2026.10.0, measured on the wire 2026-11-27.** The car named root **A** in
+> `trusted_ca_keys` and was served `SECCCert-B ← CPOSubCA-B`, a chain that verifies under root B
+> and fails under A. That is the mirror image of August, because the default chain changed and the
+> selection did not. The release's TLS library now reads the extension and logs *"no configured chain
+> matched the peer's trusted_ca_keys; serving default chain"*. `IsoMux` still hands it a single leaf
+> without a trust anchor (`connection/tls_connection.cpp:295-310`), so nothing can ever match.
+> `Evse15118D20` sets one anchor per chain (`evse_security_ssl_config.cpp:77`), which is the shape of
+> the fix. Unchanged on `main` `8abc3f2`. [Run](../interop-runs/2026-11-27-everest-2026.10.0-isomux4/notes.md).
+
 > **§1 and §2 reproduced on the wire against the 2026.10.0 release** (forward run, 2026-11-27): `-2`
 > at Priority 1 and `-20` at Priority 2 is routed to `-20`, and `-20` runs over TLS 1.2 to
 > `SessionStop`. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#the-result-finding-by-finding).

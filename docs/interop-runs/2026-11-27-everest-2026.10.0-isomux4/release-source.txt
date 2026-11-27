@@ -1,0 +1,71 @@
+# core-2610 (74845c578)
+## modules/EVSE/IsoMux/connection/tls_connection.cpp:293-311 — one leaf, no trust anchor
+    // information from libevse-security
+    const auto cert_info =
+        ctx->r_security->call_get_leaf_certificate_info(LeafCertificateType::V2G, EncodingFormat::PEM, false);
+    if (cert_info.status != GetCertificateInfoStatus::Accepted) {
+        dlog(DLOG_LEVEL_ERROR, "Failed to read cert_info! Not Accepted");
+    } else {
+        if (cert_info.info) {
+            const auto& info = cert_info.info.value();
+            const auto cert_path = info.certificate.value_or("");
+            const auto key_path = info.key;
+
+            // workaround (see above libevse-security comment)
+            const auto key_password = info.password.value_or("");
+
+            auto& ref = config.chains.emplace_back();
+            ref.certificate_chain_file = cert_path.c_str();
+            ref.private_key_file = key_path.c_str();
+            ref.private_key_password = key_password.c_str();
+
+## lib/everest/tls/src/tls.cpp:1380-1416 — anchors decide whether trusted_ca_keys runs at all
+            } else {
+                const auto subject = openssl::certificate_subject(chain.chain.leaf.get());
+                std::string msg("No trust anchors for certificate:");
+                for (const auto& item : subject) {
+                    msg += ' ';
+                    msg += item.first;
+                    msg += ':';
+                    msg += item.second;
+                }
+                log_warning(msg);
+                chains.emplace_back(std::move(chain));
+            }
+        } else {
+            const auto* file = static_cast<const char*>(i.certificate_chain_file);
+            std::string msg("certificate chain file yielded no certificates: ");
+            msg += (file != nullptr) ? file : "<not set>";
+            log_warning(msg);
+        }
+        config_index++;
+    }
+
+    if (!any_trust_anchors) {
+        // continue without trusted_ca_keys support
+        log_warning("trusted_ca_keys support disabled");
+        if (!chain_files.empty()) {
+            log_warning("no configured chain passed verification; the SSL_CTX default certificate remains "
+                        "chains[0] and clients may not be able to build a path for it");
+        }
+    } else if (m_default_chain_index != 0) {
+        std::string msg("first ");
+        msg += std::to_string(m_default_chain_index);
+        msg += " configured chain(s) unusable (see warnings above); serving chains[";
+        msg += std::to_string(m_default_chain_index);
+        msg += "] as the default certificate";
+        log_warning(msg);
+    }
+    m_server_trusted_ca_keys.update(std::move(chains));
+## modules/EVSE/Evse15118D20/charger/evse_security_ssl_config.cpp:70-80 — the -20 module sets one per chain
+        }
+
+        iso15118::config::ChainConfig chain_config{};
+        chain_config.path_certificate_chain = std::move(path_chain);
+        chain_config.path_certificate_key = chain.key;
+        chain_config.private_key_password = chain.password;
+        chain_config.ocsp_response_files = std::move(ocsp_response_files);
+        chain_config.trust_anchor_pem = chain.certificate_root; // inline PEM of the chain's V2G root
+        chain_config.tls_version = classify_secc_leaf(chain.public_key_algorithm);
+        EVLOG_info << "SECC leaf certificate " << chain_config.path_certificate_chain << " ("
+                   << chain.public_key_algorithm.value_or("unknown key algorithm") << ") is presented on "
