@@ -140,6 +140,13 @@ weaker claim than it looks and worth separating from "untested".
 
 The honest backlog. No counterparty defect in the way, no missing capability on our side that is known.
 
+- **`-20` Plug & Charge against EVerest 2026.10.0, forward.** Up to 2026.02 it was commented out in
+  `Evse15118D20`. The release offers it: a `Contract` payment option becomes `Authorization::PnC` in
+  `AuthorizationSetupRes` (`ISO15118_chargerImpl.cpp:1684`), with central contract validation behind an
+  OCPP-style switch. Found while updating the matrix on 2026-11-27, and not run yet. Expect the `-2`
+  structure: the SIL has no contract validator, so a first run probably ends in `Authorization`, as `-2`
+  PnC does without the validator arm.
+
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
 morning the `-20` AC cells were behind a wall, so nothing beyond them could be listed here at all; once
 AC and AC_BPT ran

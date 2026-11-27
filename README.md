@@ -55,9 +55,9 @@ evidence:
 | | [Josev](tools/interop-josev/README.md) | [EVerest](tools/interop-everest/README.md) | [eVDriveFlow](tools/interop-evdriveflow/README.md) | [tux-evse](tools/interop-tux-evse/README.md) |
 |---|---|---|---|---|
 | Who | SwitchEV (Python) | LF Energy — the stack on real chargers | EDF Lab | IoT.bzh (Rust) |
-| **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G** (OpenV2G in the 2023 image) ([details](docs/matrix/everest-iso2-dc-eim.md)) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
-| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | `PyEvJosev` — **EVerest's fork of Josev**, so EXIficient again ([details](docs/matrix/josev-is-everests-ev.md)) · **`Ev15118`** once [#3031](https://github.com/EVerest/everest-core/pull/3031) merges — `libiso15118`, so **cbV2G** ([details](docs/matrix/everest-ev15118-reverse.md)) | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW) ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
-| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** (source build) · PR #3031 head `35d3eda` for `Ev15118` | `60249c3` | v0.1 image · **`main` `fc51088`** (source build) |
+| **Their station**, for our `EV→` runs | their SECC — **EXIficient** | `EvseV2G` · `Evse15118D20` · `IsoMux` — **cbV2G** (OpenV2G in the 2023 image; `EvseV2G` and `IsoMux` deprecated from 2026.10.0) ([details](docs/matrix/everest-iso2-dc-eim.md)) | their SECC — **OpenEXI**/Nagasena | a responder replaying a **captured Audi** |
+| **Their EV**, for our `←SECC` runs | their EVCC — **EXIficient** | **`Ev15118`**, in the release since **2026.10.0** — `libiso15118`, so **cbV2G** ([details](docs/matrix/everest-ev15118-reverse.md)) · `PyEvJosev` up to 2026.02 — **EVerest's fork of Josev**, so EXIficient again, and gone from 2026.10.0 ([details](docs/matrix/josev-is-everests-ev.md)) | their EV — **OpenEXI** | their **injector**, replaying captured cars (an Audi, a VW) ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
+| Versions met | current | 2023.10.0 · **2025.10.0** · **2026.02.1** · **2026.10.0** (source builds) · PR #3031 head `35d3eda` for `Ev15118` | `60249c3` | v0.1 image · **`main` `fc51088`** (source build) |
 | Directions | `EV→ ←SECC` throughout | `EV→` throughout · `←SECC` only where it adds something ([details](docs/matrix/josev-is-everests-ev.md)) | `EV→ ←SECC` | `EV→ ←SECC` |
 
 The **Ours** column is our own C# stack against itself — a loopback E2E with both peers ours, which is
@@ -72,6 +72,12 @@ how to read one.
 **or** it ran through and one property is not checkable against that counterparty; the cell says which
 &nbsp;·&nbsp; ⛔ blocked by a counterparty defect or limitation &nbsp;·&nbsp; ▢ not attempted yet
 &nbsp;·&nbsp; — not applicable / not implemented on their side
+
+**EVerest by release:** a cell that names **2026.10.0** was re-run against that release, from source, on
+2026-11-26/27. The forward rows come from the
+[forward run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md) and the reverse rows from
+the [release run](docs/interop-runs/2026-11-26-everest-2026.10.0-release/notes.md). An EVerest cell
+without it was last run on 2026.02.1 or earlier.
 
 **Which side is ours** — the arrow points the way the session is driven, and the label names *our* role:
 
@@ -106,38 +112,38 @@ Our C# **EVCC** drives *their* station. `Ours` is the loopback, where the statio
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ plain TCP · ✅ over TLS 1.2 ([details](docs/matrix/everest-iso2-ac-tls12.md)) | — | — |
-| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ ([details](docs/matrix/everest-iso2-dc-eim.md)) | — | ◐ stops at `SessionSetup` ([details](docs/matrix/tux-iso2-dc-forward.md)) |
-| Plug & Charge | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ | ✅ 30,16 kWh charged, 81 loops · ▢ nothing validates the contract itself ([details](docs/matrix/everest-iso2-pnc-charge.md)) | — | — |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ plain TCP · ✅ over TLS 1.2 ([details](docs/matrix/everest-iso2-ac-tls12.md)) · **2026.10.0** ✅ both ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)) | — | — |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ ([details](docs/matrix/everest-iso2-dc-eim.md)) · **2026.10.0** ✅ two sessions in one `EvseV2G` process, plain and through `IsoMux` ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)) | — | ◐ stops at `SessionSetup` ([details](docs/matrix/tux-iso2-dc-forward.md)) |
+| Plug & Charge | ✅ `Iso2LoopbackTests` (signed auth + metering receipts) | ✅ | ✅ 30,16 kWh charged, 81 loops · ▢ nothing validates the contract itself ([details](docs/matrix/everest-iso2-pnc-charge.md)) · **2026.10.0** ◐ stalls in `Authorization` without the validator arm, which was not re-run ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)) | — | — |
 | Contract provisioning | ✅ `Iso2LoopbackTests` — Install *and* Update, key unwrapped | — not implemented | ✅ Install, with our MO backend behind their station · ⛔ Update answers `OK` from an empty handler ([details](docs/matrix/everest-iso2-cert-update.md)) | — | — |
 | Pause / Resume | ✅ `Iso2LoopbackTests` | ✅ `OK_OldSessionJoined` | — | — | — |
 | Signed tariffs (SalesTariff) | ✅ E2E | ✅ their MO-signed tariff verified by us | — | — | — |
 | Renegotiation | ✅ `Iso2RenegotiationSequenceTests` (AC + DC through `CableCheck`) | ✅ AC, `[V2G2-841]` | ⛔ their station fails its own cable check and goes `Inoperative` ([details](docs/matrix/everest-iso2-renegotiation.md)) | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ `trusted_ca_keys` on the wire, `[V2G2-651]` ([details](docs/matrix/ours-iso2-trusted-ca-keys.md)) | ✅ | ✅ the prescribed suite, their full chain against the root alone ([details](docs/matrix/everest-iso2-ac-tls12.md)) | — | — |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` · ✅ `trusted_ca_keys` on the wire, `[V2G2-651]` ([details](docs/matrix/ours-iso2-trusted-ca-keys.md)) | ✅ | ✅ the prescribed suite, their full chain against the root alone ([details](docs/matrix/everest-iso2-ac-tls12.md)) · **2026.10.0** ✅ against their V2G root, `EvseV2G` and `IsoMux` ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)) | — | — |
 
 **ISO 15118-20**
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | ✅ | ✅ 12 exchanges · ⛔ their SECC drops `DC_ChargeLoop` ([details](docs/matrix/edf-iso20-dc-scheduled.md)) | — |
-| DC, Dynamic | ✅ `Evcc20DynamicModeTests` | — | ✅ | — | — |
-| AC | ✅ `Iso20LoopbackTests` | — | ✅ plain TCP · ✅ over mutual TLS 1.3 ([details](docs/matrix/everest-iso20-ac-forward.md)) | — | — |
-| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Evcc20BptRankingTests` | — | ✅ DC_BPT and AC_BPT, plain and over mutual TLS 1.3 ([details](docs/matrix/everest-iso20-bpt-forward.md)) | — | — |
-| Plug & Charge | ✅ `Iso20LoopbackTests` | ✅ | — commented out on their side | — they implement none ([details](docs/matrix/edf-iso20-pnc.md)) | — |
+| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | ✅ · **2026.10.0** ✅ since our car anchors its `EVPowerProfile` in SECC time: before that fix, `FAILED_EVPowerProfileInvalid` 16 of 16, the station rightly enforcing `[V2G20-1559]` ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-1--our-evpowerprofile-was-anchored-in-1970-and-2026100-is-the-first-to-check)) | ✅ 12 exchanges · ⛔ their SECC drops `DC_ChargeLoop` ([details](docs/matrix/edf-iso20-dc-scheduled.md)) | — |
+| DC, Dynamic | ✅ `Evcc20DynamicModeTests` | — | ✅ · **2026.10.0** ✅ | — | — |
+| AC | ✅ `Iso20LoopbackTests` | — | ✅ plain TCP · ✅ over mutual TLS 1.3 ([details](docs/matrix/everest-iso20-ac-forward.md)) · **2026.10.0** ✅ both, once the SIL car also goes to state B at `PowerDelivery(Stop)`, `[V2G20-848]` ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-3---20-ac-now-waits-for-the-contactor-to-open-at-powerdeliverystop)) | — | — |
+| BPT, AC + DC (incl. Dynamic) | ✅ `Evcc20BidirectionalTests`, `Evcc20BptRankingTests` | — | ✅ DC_BPT and AC_BPT, plain and over mutual TLS 1.3 ([details](docs/matrix/everest-iso20-bpt-forward.md)) · **2026.10.0** ✅ DC_BPT and AC_BPT, plain | — | — |
+| Plug & Charge | ✅ `Iso20LoopbackTests` | ✅ | — commented out on their side up to 2026.02 · **2026.10.0** ▢ `Evse15118D20` now offers `PnC` (`ISO15118_chargerImpl.cpp:1684`), not yet run | — they implement none ([details](docs/matrix/edf-iso20-pnc.md)) | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` — full roundtrip, contract key unwrapped | — | — | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` | ⛔ their `-20` session context stays empty ([details](docs/matrix/josev-iso20-session-context.md)) | ✅ over mutual TLS, resuming at `DcChargeParameterDiscovery` ([details](docs/matrix/everest-iso20-pause-resume.md)) | — | — |
 | Signed tariffs (AbsolutePriceSchedule) | ✅ signature verified at the EV | — | — they send none, deliberately ([details](docs/matrix/everest-iso20-tariffs.md)) | — | — |
-| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ | ✅ our client on Windows ([details](docs/matrix/everest-iso20-mtls-forward.md)) | — | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests`, `BcMutualTlsLoopbackTests` | ✅ | ✅ our client on Windows ([details](docs/matrix/everest-iso20-mtls-forward.md)) · **2026.10.0** ✅ our client on Linux, DC and AC, their `VEHICLE_LEAF` chain ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)) | — | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` | ✅ | ✅ multicast and unicast | — | — |
-| Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ all four offer shapes · ⛔ over TLS it routes a `-20` session onto TLS 1.2 ([details](docs/matrix/everest-isomux-sap.md)) | — | — |
+| Multi-protocol SAP offer | ✅ `MultiProtocolSapTests` | — | ✅ all four offer shapes · ⛔ over TLS it routes a `-20` session onto TLS 1.2 ([details](docs/matrix/everest-isomux-sap.md)) · **2026.10.0** ✅ `-2`-only, `-20`-only and both with `-2` first · ⛔ over TLS unchanged: a `-20`-only offer fails the handshake, a both-offer completes in `-20` ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md)) | — | — |
 | WPT · ACDP | ▢ codec only, independently judged ([details](docs/matrix/ours-wpt-acdp.md)) | *no independent stack implements these state machines* | | | |
 
 **ISO 15118-20 MCS**
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| MCS | ✅ `Secc20McsTests` | — | ✅ Scheduled and Dynamic | — | — |
-| MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ service **9**, our discharge limits read back ([details](docs/matrix/everest-mcs-bpt.md)) | — | — |
+| MCS | ✅ `Secc20McsTests` | — | ✅ Scheduled and Dynamic · **2026.10.0** ✅ both | — | — |
+| MCS_BPT | ✅ `Secc20McsTests` (ranking + envelope) | — | ✅ service **9**, our discharge limits read back ([details](docs/matrix/everest-mcs-bpt.md)) · **2026.10.0** ✅ Scheduled and Dynamic | — | — |
 
 ---
 
@@ -149,27 +155,27 @@ Our C# **EVCC** drives *their* station. `Ours` is the loopback, where the statio
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ their EV, EIM plain ([details](docs/matrix/everest-iso2-reverse.md)) | — | ✅ a real VW's route · ✅ two Porsche routes ([details](docs/matrix/tux-iso2-ac-reverse.md)) |
-| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ `Ev15118` (PR #3031), since our station states the optional `EVSEIsolationStatus` this car requires ([details](docs/matrix/everest-ev15118-reverse.md)) | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
+| AC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ their EV, EIM plain ([details](docs/matrix/everest-iso2-reverse.md)) · **2026.10.0** ✅ `Ev15118`, plain and over TLS 1.2 ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)) | — | ✅ a real VW's route · ✅ two Porsche routes ([details](docs/matrix/tux-iso2-ac-reverse.md)) |
+| DC, EIM | ✅ `Iso2LoopbackTests` | ✅ | ✅ `Ev15118` (PR #3031), since our station states the optional `EVSEIsolationStatus` this car requires ([details](docs/matrix/everest-ev15118-reverse.md)) · **2026.10.0** ✅ 2 of 2, 177 loops each ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)) | — | ✅ the full captured-Audi session ([details](docs/matrix/tux-iso2-dc-reverse.md)) |
 | Plug & Charge | ✅ `Iso2LoopbackTests` | ✅ signed auth *and* signed metering receipt verified, chain at their MO root ([details](docs/matrix/josev-pnc-chains.md)) | ✅ their EV over TLS ([details](docs/matrix/everest-iso2-reverse.md)) | — | — |
 | Signed tariffs (SalesTariff) | ✅ `Secc2TariffTests` | ✅ their EV consumed ours | — | — | — |
 | Renegotiation | ✅ `Iso2RenegotiationSequenceTests` | ✅ AC, `[V2G2-841]` | — | — | — |
-| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ their EV validates our chain against their V2G root ([details](docs/matrix/josev-pnc-chains.md)) | — | — | ⛔ their configs offer neither prescribed suite · ◐ unpinned, 4 exchanges ([details](docs/matrix/tux-iso2-tls.md)) |
+| TLS 1.2 (unilateral) | ✅ `TlsLoopbackTests` | ✅ their EV validates our chain against their V2G root ([details](docs/matrix/josev-pnc-chains.md)) | **2026.10.0** ✅ `Ev15118`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, no client certificate ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)) | — | ⛔ their configs offer neither prescribed suite · ◐ unpinned, 4 exchanges ([details](docs/matrix/tux-iso2-tls.md)) |
 
 **ISO 15118-20**
 
 | Scenario | Ours (C# loopback) | Josev | EVerest | eVDriveFlow | tux-evse |
 |---|---|---|---|---|---|
-| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | — | — | — |
+| DC, Scheduled, EIM | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | **2026.10.0** ✅ `Ev15118`, 694 loops ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)) · ✅ again with our schedule anchored at the present ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-2--our-own-secc-offers-its-schedule-at-timeanchor-0-too)) | — | — |
 | DC, Dynamic | ✅ `Secc20DynamicModeTests` | ✅ their EV adopts the mode we offer ([details](docs/matrix/josev-iso20-dynamic-reverse.md)) | ✅ with a Scheduled control arm that switches with the offer ([details](docs/matrix/everest-iso20-dynamic-reverse.md)) | ✅ 15 exchanges into the charge loop ([details](docs/matrix/edf-iso20-dynamic-reverse.md)) | — |
-| AC | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | ✅ 56 exchanges, 44 charge loops — over mutual TLS 1.3 and in Dynamic ([details](docs/matrix/everest-iso20-ac-reverse.md)) | — | — |
+| AC | ✅ `Iso20LoopbackTests` | ✅ TCP + TLS | ✅ 56 exchanges, 44 charge loops — over mutual TLS 1.3 and in Dynamic ([details](docs/matrix/everest-iso20-ac-reverse.md)) · **2026.10.0** ✅ `Ev15118` Scheduled, Dynamic and over mutual TLS 1.3, and again with our anchored schedule ([run](docs/interop-runs/2026-11-26-everest-2026.10.0-release/notes.md#live-against-the-release-the-ev-charges-and-the-crash-is-fixed)) | — | — |
 | BPT, AC + DC (incl. Dynamic) | ✅ `Secc20AcBptTests` | ✅ their EV selects service 6 / 5 | ✅ AC_BPT *and* DC_BPT out of our catalogue, all four AC variants ([details](docs/matrix/everest-iso20-bpt-reverse.md)) | ✅ DC_BPT, both envelopes crossed ([details](docs/matrix/edf-iso20-bpt-reverse.md)) | — |
 | Plug & Charge | ✅ `Iso20LoopbackTests` (signed auth verified at SECC) | ✅ contract chain at their MO root, TLS client chain at their OEM root ([details](docs/matrix/josev-pnc-chains.md)) | ✅ their EV's signed `AuthorizationReq` verified, chain at their MO root ([details](docs/matrix/everest-iso20-pnc-reverse.md)) | — they implement none ([details](docs/matrix/edf-iso20-pnc.md)) | — |
 | CertificateInstallation | ✅ `Iso20LoopbackTests` | ✅ our signed response verified · ⛔ their handler ends at `NotImplementedError` | ✅ their EV's real OEM chain, built against their OEM root · ⛔ the same wall ([details](docs/matrix/everest-iso20-certinstall.md)) | — | — |
 | Pause / Resume | ✅ `Iso20LoopbackTests` | — | — | — | — |
 | Signed tariffs (AbsolutePriceSchedule) | ✅ `Iso20LoopbackTests` | ✅ their AC EVCC consumed our signed schedule · ▢ nothing external verifies it ([details](docs/matrix/josev-iso20-tariffs-reverse.md)) | — | — | — |
 | Renegotiation | ✅ `Secc20DynamicModeTests` | ✅ a real `SessionStopReq(ServiceRenegotiation)`, `[V2G20-1477]` · ⛔ then drops the link ([details](docs/matrix/josev-iso20-session-context.md)) | ✅ the same, in **DC** · ⛔ the same drop ([details](docs/matrix/everest-iso20-renegotiation.md)) | — | — |
-| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests` | ✅ their EV's client chain anchored at their OEM root · ⛔ the leaf is their OEM provisioning certificate, not a Vehicle one ([chain](docs/matrix/josev-pnc-chains.md), [credential](docs/matrix/josev-iso20-vehicle-cert.md)) | ✅ their EV presents an OEM vehicle certificate ([details](docs/matrix/everest-iso20-ac-reverse.md)) | ✅ secp521r1 both ways ([details](docs/matrix/edf-iso20-mtls.md)) | — |
+| Mutual TLS 1.3 | ✅ `MutualTlsLoopbackTests` | ✅ their EV's client chain anchored at their OEM root · ⛔ the leaf is their OEM provisioning certificate, not a Vehicle one ([chain](docs/matrix/josev-pnc-chains.md), [credential](docs/matrix/josev-iso20-vehicle-cert.md)) | ✅ their EV presents an OEM vehicle certificate ([details](docs/matrix/everest-iso20-ac-reverse.md)) · **2026.10.0** ✅ `CN=WMIV1234567890ABCDEX` from `VehicleSubCA2`, `TLS_AES_256_GCM_SHA384` | ✅ secp521r1 both ways ([details](docs/matrix/edf-iso20-mtls.md)) | — |
 | SDP discovery | ✅ `FullStackLoopbackTests` | ✅ | ✅ their EV discovers the recording fixture ([details](docs/matrix/everest-sdp-and-mcs-reverse.md)) | ✅ their EV found our SECC | — |
 
 **ISO 15118-20 MCS**
