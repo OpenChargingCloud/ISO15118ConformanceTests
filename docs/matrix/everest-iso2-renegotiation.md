@@ -40,7 +40,9 @@ The pre-fix car reproduces `FAILED_SequenceError` on the same binary; the fixed 
 `CableCheckReq` **accepted**, four `OK`s — the message that was unreachable that morning. The session
 then dies four messages later inside their `EvseManager`: its cable check waits for the DC link to fall
 below 60 V, which does not happen during a renegotiation, and it raises `MREC11CableCheckFault` →
-`Inoperative` — which costs the **following** sessions too, not just this one.
+`Inoperative` — which costs the **following** sessions too, not just this one. (That is 2026.02.1.
+**2026.10.0 clears `Inoperative` at the unplug** and serves the next session; the renegotiated
+`CableCheck` still fails — [2026-11-27](docs/interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#evsemanager-renegotiation-supply-still-fails-no-longer-sticks).)
 <br>**The deciding arm ran on 2026-08-16, and the second wall is theirs.** With `EVReady = false` in the
 isolation sequence the outcome is identical: nothing in that path reads the field. Their
 `ChargeProgress = Stop` publishes `current_demand_finished`, which `EvseManager.cpp:865` binds to

@@ -1,5 +1,8 @@
 # `everest-d20-client-auth`, split into the three issues it should be filed as
 
+> **Issues 1 and 2 reproduced on the wire against the 2026.10.0 release, 2026-11-27**
+> ([run](../../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md)); issue 3 is fixed in that release.
+
 > **All three are live in the newest release; one is fixed on `main`.** Re-read against `main`
 > (`5d83027`) on 2026-11-04 and against **2026.02.2** on 2026-11-05:
 >

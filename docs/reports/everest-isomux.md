@@ -1,5 +1,9 @@
 # Draft report to EVerest — four findings in `IsoMux`
 
+> **§1 and §2 reproduced on the wire against the 2026.10.0 release** (forward run, 2026-11-27): `-2`
+> at Priority 1 and `-20` at Priority 2 is routed to `-20`, and `-20` runs over TLS 1.2 to
+> `SessionStop`. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#the-result-finding-by-finding).
+
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — one of the four is
 > fixed, one has collapsed into another report, two are live** — corrected 2026-11-05: **one is
 > fixed and three are live**; §2 never collapsed into anything. **3** (ignored V2GTP header read) is

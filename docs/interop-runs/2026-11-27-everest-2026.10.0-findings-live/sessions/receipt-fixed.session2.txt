@@ -1,0 +1,20 @@
+## [44] CurrentDemandRes (OK) payloadType=0x8001 bytes=84
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>11</ns6:MeterReading>
+## [45] CurrentDemandRes (OK) payloadType=0x8001 bytes=85
+<ns6:MeterID>DC_POWERMETER</ns6:MeterID>
+<ns6:MeterReading>11</ns6:MeterReading>
+## [46] CurrentDemandRes (OK) payloadType=0x8001 bytes=68
+=== v2g_ctx.cpp around :329
+329:     ctx->evse_v2g_data.receipt_required = (int)0;
+=== callers
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/v2g_ctx.cpp:97:    v2g_ctx_init_charging_values(ctx);                          // Loads the internal default config
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/v2g_ctx.cpp:213:void v2g_ctx_init_charging_values(struct v2g_context* const ctx) {
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/iso_server_test.cpp:72:        v2g_ctx_init_charging_values(ctx.get());
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/iso_server_test.cpp:737:        v2g_ctx_init_charging_values(ctx.get());
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/v2g_ctx_test.cpp:97:TEST(RunFirst, v2g_ctx_init_charging_values) {
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/v2g_ctx_test.cpp:100:    // call to v2g_ctx_init_charging_values()
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/v2g_ctx_test.cpp:105:    // note v2g_ctx_init_charging_values() has a static bool so it
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/v2g_ctx_test.cpp:110:    v2g_ctx_init_charging_values(&ctx);
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/v2g_ctx_test.cpp:113:    v2g_ctx_init_charging_values(&ctx);
+/home/ahzf/everest/core-2610/modules/EVSE/EvseV2G/tests/v2g_ctx_test.cpp:403:    // calls v2g_ctx_init_charging_values

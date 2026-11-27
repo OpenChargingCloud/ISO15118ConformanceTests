@@ -1,0 +1,9 @@
+Connecting to fe80::215:5dff:fefd:8161%eth0
+Can't use SSL_get_servername
+depth=2 CN=CPOSubCA1, O=EVerest, C=DE, DC=V2G
+verify error:num=20:unable to get local issuer certificate
+verify return:1
+depth=1 CN=CPOSubCA2, O=EVerest, C=DE, DC=V2G
+verify return:1
+depth=0 CN=SECCCert, O=EVerest, C=DE, DC=CPO
+verify return:1

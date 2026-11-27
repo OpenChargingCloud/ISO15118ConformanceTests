@@ -67,7 +67,7 @@ file naming a mechanism rather than a verdict, and for re-reading one before quo
 |---|---|---|---|
 | **Pause / Resume, -20** | Josev | ⛔ `EV→` | Their `-20` `SessionSetup` compares the resumed session ID against the *live* connection instead of the preserved context, which its `-20` states never fill — so `OK_OldSessionJoined` is unreachable. Six-line fix, mirroring their own working `-2` branch. Filed: [`josev-iso20-pause-resume.md`](reports/josev-iso20-pause-resume.md). |
 | **DC Scheduled / Dynamic, -20** | eVDriveFlow | ◐ | `hasattr` used as a presence test on an `Optional[int]`, so our legally omitted `TargetSOC` overwrites theirs with `None`. Filed: [`evdriveflow-headless-session.md`](reports/evdriveflow-headless-session.md). **The forward half stopped needing a patched station on 2026-08-15** — see below — and the wall it now ends at is the same family a third time: `process_dc_charge_loop_request.py:114` dereferences the optional `DisplayParameters`, which our car legally omits, so their station raises on a request that is correct in every respect. Added to [`evdriveflow-service-discovery-filter.md`](reports/evdriveflow-service-discovery-filter.md) rather than filed separately. |
-| **Renegotiation, -2** | EVerest | ⛔ `EV→` | **Re-run 2026-08-15 with the fix, and the wall moved; the deciding arm ran 2026-08-16 and it is theirs.** Their station accepts the renegotiated `CableCheckReq` — four `OK`s — where the pre-fix car still gets `FAILED_SequenceError`; the session then dies inside their `EvseManager`, whose `cable_check()` **verifies** the DC link is below 60 V rather than establishing it, and raises `MREC11CableCheckFault` → `Inoperative`, which costs the *following* sessions too. `EVReady = false` changes nothing — nothing in that path reads it — and their `ChargeProgress = Renegotiate` publishes nothing where `Stop` publishes `current_demand_finished`, the event their manager binds to `powersupply_DC_off()`. **The forty-ninth filing**: [`everest-evsemanager-renegotiation-supply`](reports/everest-evsemanager-renegotiation-supply.md), [run](interop-runs/2026-08-16-everest-cablecheck-renegotiation/notes.md). |
+| **Renegotiation, -2** | EVerest | ⛔ `EV→` | **Re-run 2026-08-15 with the fix, and the wall moved; the deciding arm ran 2026-08-16 and it is theirs.** Their station accepts the renegotiated `CableCheckReq` — four `OK`s — where the pre-fix car still gets `FAILED_SequenceError`; the session then dies inside their `EvseManager`, whose `cable_check()` **verifies** the DC link is below 60 V rather than establishing it, and raises `MREC11CableCheckFault` → `Inoperative`, which costs the *following* sessions too (on 2026.02; **2026.10.0 clears it at the unplug and serves the next session**, 2026-11-27, [run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#evsemanager-renegotiation-supply-still-fails-no-longer-sticks)). `EVReady = false` changes nothing — nothing in that path reads it — and their `ChargeProgress = Renegotiate` publishes nothing where `Stop` publishes `current_demand_finished`, the event their manager binds to `powersupply_DC_off()`. **The forty-ninth filing**: [`everest-evsemanager-renegotiation-supply`](reports/everest-evsemanager-renegotiation-supply.md), [run](interop-runs/2026-08-16-everest-cablecheck-renegotiation/notes.md). |
 | ~~**Renegotiation, -2** (as filed)~~ | ~~EVerest~~ | ~~⛔ `EV→`~~ | **Withdrawn 2026-08-15: their station is right and ours is not.** The DC state table goes `ChargeParameterDiscovery` → *Wait for CableCheckReq* (`[V2G2-565]`, `[V2G2-582]`) with no renegotiation exception, so `FAILED_SequenceError` is the correct answer to a `PowerDeliveryReq` that skipped `CableCheck` and `PreCharge`. The report leaned on Annex I, whose diagrams are **AC**. [Withdrawn filing](reports/everest-evsev2g-renegotiation-cablecheck.md), reasoning in [`normative-basis.md`](normative-basis.md); the defect moves to *Ours to fix*, below. Nothing here is blocked on EVerest. |
 | **TLS 1.2 unilateral, -2** | tux-evse | ⛔ pinned | Their configs offer neither suite ISO 15118-2 prescribes. Filed: [`tux-evse-tls.md`](reports/tux-evse-tls.md). |
 | **CertificateInstallation, -20** | Josev · EVerest | ◐ | Both send a real signed request — SwitchEV's on 2026-07-22, EVerest's `PyEvJosev` on 2026-08-08 with its own OEM root. Our response is decoded and validated, and then each ends at the same `NotImplementedError`: the fork inherited the gap. Nothing to file that the upstream code does not already say out loud. |
@@ -140,6 +140,8 @@ weaker claim than it looks and worth separating from "untested".
   control event whatever the verdict, but `EvseManager`'s `} else if (pnc) {` gate, still present on
   `main` and in 2026.02.2, never calls it with an EIM verdict. The filing is live as written, and the
   180 s wait is still what an EV gets ([reports audit](interop-runs/2026-11-05-reports-audit/notes.md)).
+  **On 2026.10.0 the wait is 55 s** (`TIMEOUT_ONGOING`), measured 2026-11-27; the gate is unchanged
+  ([run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#d20-eim-rejection-the-tail-is-55-s-now)).
 - **Metering confirmation, -20** (nobody) — not in the matrix because no counterparty has it: no
   independent stack signs or verifies a `MeteringConfirmationReq` today, so the signed fragment is the
   reference encoder's choice (cbV2G's `iso20_exiFragment`) and has not been met on the wire. **Recorded
@@ -333,6 +335,19 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
+- ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
+  **Fixed 2026-11-27 on stack branch `evcc2-receipt-last-meterinfo` (`8e6fd3e`)**. It is not on
+  master until that branch is merged and EVSimulatorApp and this repository follow it. Found the same
+  day against EVerest 2026.10.0 with `ev_receipt_required` on. Their `CurrentDemandRes`
+  carried `ReceiptRequired = true` and no `MeterInfo` (their flag is one-shot). `Evcc2.cs:467` signed a
+  receipt only over a `MeterInfo` it was just given, so the car went on to `PowerDeliveryReq` and got
+  `FAILED_SequenceError`. `[V2G2-790]` makes the receipt unconditional after `ReceiptRequired = TRUE`,
+  so the car now signs the last `MeterInfo` it received, on both the DC and the AC branch. The same
+  commit brings `TamperMeteringReceipt` (`V2G_INTEROP_RECEIPT_TAMPER=1`), which signs a receipt over the
+  wrong bytes. Against the release, the fixed car runs to `SessionStop`, and three tampered receipts get
+  `OK`. That put the coming-back half of
+  [`everest-evsev2g-metering-chain`](reports/everest-evsev2g-metering-chain.md) on the wire
+  ([run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#after-the-fix-the-receipt-arms-again)).
 - ~~**The Kotlin and Swift cars still sign `-20` in Josev's `ecdsa-sha256`, and still continue past a
   WARNING in `AuthorizationRes`.**~~ **Fixed 2026-11-27**, the same day as the C# car (below).
   `V2GSigner` now takes the hash from its caller, and both ports have an `XmlDsigSuite` with `Iso20` as
@@ -909,8 +924,16 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
 - **Forty-nine issues across six projects** are drafted and unsent in [`reports/`](reports/README.md),
   in thirty-five sendable reports. Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin: *Ours to fix* is empty, *Open questions about our own stack* has none, and
+  and by a wide margin: *Ours to fix* holds one item, fixed and waiting for its merge, *Open questions about our own stack* has none, and
   *Untested, nothing stopping us* holds two runs that between them are an afternoon.
+  <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
+  every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
+  covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,
+  eim-rejection, ac-contactor-edge, session-id-zero, certificate-update, and both halves of
+  metering-chain. Every one reproduces. Two do so with different numbers, and their reports now say
+  so. eim-rejection's tail is 55 s, not 180 s. renegotiation-supply still fails, but the release
+  clears `Inoperative` at the unplug, so its lead sentence is a 2026.02 statement
+  ([run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md)).
   <br>**The forty-sixth was written on 2026-08-13** and came out of a question this file had been
   carrying: whether `EvseManager` re-reports a contactor it already knows is closed. It does not — the
   `-20` AC wait is edge-triggered against a level, so a contactor that closed a moment early can never

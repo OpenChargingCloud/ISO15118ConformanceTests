@@ -1,5 +1,9 @@
 # Draft report to EVerest — `Evse15118D20` trusts the MO root for TLS client authentication, so it accepts contract certificates and refuses **OEM-rooted** vehicle certificates
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27.** OEM-rooted client chain:
+> `certificate verify failed`. Contract chain: `Handshake complete!`, `Vehicle Cert is available`.
+> The release's own vehicle chain, as control: accepted. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
 > live.** The `file:line` citations below are stale; the current locations, and what was
 > checked to confirm the defect by content rather than by line, are in the

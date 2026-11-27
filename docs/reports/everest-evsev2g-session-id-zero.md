@@ -1,5 +1,9 @@
 # Draft report to EVerest (`EvseV2G`) — a SessionID of zero passes the `[V2G2-460]` check
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27, and over a whole session:** our
+> car sent eight zero bytes as SessionID in every request after `SessionSetup` and was served 44
+> exchanges to `SessionStop`, all `OK`. A wrong non-zero id got `FAILED_UnknownSession`. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **This is an incomplete fix of CVE-2025-68140, and that is how it should be sent.** Re-read on
 > 2026-11-05: live on `main` (`01f36de1`, `iso_server.cpp:107`) **and in the newest release**,
 > 2026.02.2 (`:98`) — the first time this finding was checked against a release rather than against

@@ -1,5 +1,11 @@
 # Draft report to EVerest — a `-20`-only station inherits ISO 15118-2's client-auth leniency, so the EV decides whether the EV is authenticated
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27 — issues 1 and 2.** TLS 1.2 alone, no
+> client certificate: no `CertificateRequest`, and then `supportedAppProtocolReq(-20:DC)` →
+> `OK_SuccessfulNegotiation` and a new session. TLS 1.3: a `CertificateRequest` with no CA names,
+> OpenSSL's default signature algorithms, `X25519MLKEM768`. Issue 3 is fixed in the release.
+> [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **All three are live in the newest release; one is fixed on `main`.** Re-read against `main`
 > (`5d83027`) on 2026-11-04 and against **2026.02.2** on 2026-11-05:
 >

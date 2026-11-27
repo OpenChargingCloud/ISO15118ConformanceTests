@@ -1,0 +1,15 @@
+# mux-tls-iso20 — their side (IsoMux / Evse15118D20 / EvseManager), SAP and routing lines
+2026-11-26 23:54:10.152510 [INFO] manager          :: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/configs-2610/config-mux-tls-fwd2610.yaml"
+2026-11-26 23:54:10.176581 [INFO] manager          :: Loading config file at: /home/ahzf/everest/configs-2610/config-mux-tls-fwd2610.yaml
+2026-11-26 23:54:13.534500 [INFO] iso_mux:IsoMux   :: TLS server on eth0 is listening on port [fe80::215:5dff:fefd:8161%2]:64110
+2026-11-26 23:54:13.534565 [INFO] iso15118_2:Evse  :: TLS server on lo is listening on port [::1%0]:64109
+2026-11-26 23:54:13.627984 [WARN] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: no configured chain passed verification; the SSL_CTX default certificate remains chains[0] and clients may not be able to build a path 
+2026-11-26 23:54:13.808155 [INFO] iso15118_20:Evs  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-26 23:54:15.515394 [INFO] iso15118_20:Evs  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-26 23:54:15.563296 [INFO] iso15118_20:Evs  :: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-26 23:54:29.400020 [ERRO] iso_mux:IsoMux  void {anonymous}::log_handler(openssl::log_level_t, const std::string&) :: SSL_accept: -1 1 error:0A000102:SSL routines::unsupported protocol
+
+# mux-tls-iso20 — ours
+  Failed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [132 ms]
+  ----> Interop+Crypto+OpenSslCryptographicException : error:0A00042E:SSL routines::tlsv1 alert protocol version
+   System.Security.Authentication.AuthenticationException : Authentication failed, see inner exception.

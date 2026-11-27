@@ -1,5 +1,9 @@
 # Draft report to EVerest (`libiso15118`) — one sequence timeout for every message, where the charge loop gets 0,5 s
 
+> **Reproduced on the wire against the 2026.10.0 release, 2026-11-27:** **59,992 s** (DC) and
+> **60,003 s** (AC) from the last charge-loop response to their stop, and the log line still says
+> 40 s. [Run](../interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md).
+
 > **Re-read against `everest-core` `main` (`5d83027`, 2026-11-03) on 2026-11-04 — still
 > live.** The `file:line` citations below are stale; the current locations, and what was
 > checked to confirm the defect by content rather than by line, are in the

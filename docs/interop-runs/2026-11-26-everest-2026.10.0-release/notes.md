@@ -187,4 +187,5 @@ sentence and the CVSS 4.0 vector are untouched by the release, and remain the am
 - Decide `josev-iso20-evcc-charge-loop-pacing` and `pyevjosev-manifest-services`: they are now
   2026.02-line reports or nothing.
 - If any of the thirteen still-present findings is to be filed, a live reproduction against the release
-  is now one `dist-2610` session away.
+  is now one `dist-2610` session away. **Done 2026-11-27**: every one a session can reach reproduces,
+  two with different numbers ([run](../2026-11-27-everest-2026.10.0-findings-live/notes.md)).
