@@ -14,6 +14,9 @@ set -eu
 OUT=${OUT:-/tmp/mctls}
 PORT=${PORT:-15221}
 export MSYS_NO_PATHCONV=1
+# With path conversion off, Git Bash hands /tmp/... to .NET and to its openssl verbatim, and neither
+# reads it. C:/... works for both and for the shell, so on Windows use that form throughout.
+OUT=$(cygpath -m "$OUT" 2>/dev/null || echo "$OUT")
 
 rm -rf "$OUT"; mkdir -p "$OUT/mo521" "$OUT/v2gpki"
 ( cd "$OUT/mo521"

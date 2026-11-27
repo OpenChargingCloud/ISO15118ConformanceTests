@@ -154,9 +154,15 @@ weaker claim than it looks and worth separating from "untested".
   included, under their own encoders. The four bridges route `0x8102` and the event corpus carries
   the session. **And over TLS since 2026-11-27**: our station and car with the BouncyCastle backend,
   TLS 1.3 and P-521 mutual, a P-521 contract, two confirmations per session, every check `OK`, 2 of 2
-  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls/notes.md)). The contract chain was not
-  validated to a root in that run, because `--pki-dir` and `--trust-roots` do not combine. Still ours
-  alone, so still in this section.
+  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls/notes.md)). **Every chain to a root, the
+  same evening**: a hierarchy from the stack's PKI builder with the three Annex C anchors. The car's TLS
+  chain anchored at the OEM root, the contract at the MO root, and the station's TLS chain at the V2G
+  root, with both confirmations `OK`, 3 of 3. A wrong root on the car's side ends the handshake
+  (`bad_certificate`). A missing MO root on the station's side rejects the contract chain, but the
+  station still authorizes, and still answers the confirmations `OK` under
+  `--require-metering-confirmation`: it observes the chain verdict and acts on none of it
+  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls-chain/notes.md)). Still ours alone, so
+  still in this section.
   **The `-2` twin was recorded on 2026-11-27** as `iso2-ac-pnc-meter`. Our AC Contract session runs
   at a station with a signing meter. The `ChargingStatusRes` asking for a receipt carries the meter's
   `SigMeterReading`, and the car's signed `MeteringReceiptReq` echoes it. `SignedFrame` handles the
@@ -340,6 +346,17 @@ backlog is that half of it turns out not to have been work.
 | ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
 
 ## Ours to fix
+
+- **Our `-20` station's `--require-metering-confirmation` does not count the contract chain.** Found
+  2026-11-27 with the MO root left out of `--trust-roots`. The station printed `chain REJECTED` for the
+  contract, then granted authorization and answered both confirmations `OK`, all of them signed by that
+  contract. `ConfirmMetering` verifies the signature against the contract leaf the car authorised with
+  and never asks whether that leaf chained. `Auth` always grants by design, which keeps live interop
+  sessions observable. A station told to *require* a valid confirmation should not accept one from a
+  contract it rejected, at least when roots are configured
+  ([run](interop-runs/2026-11-27-iso20-dc-pnc-meterconfirm-tls-chain/notes.md#the-station-lacks-the-mo-root)).
+  The same run found a misleading line on the car's side: with `--vehicle-cert` and `--trust-roots`, the
+  EVCC still prints `accepting ANY station certificate`.
 
 - ~~**Our `-2` car skips the metering receipt when the station asks for one without a new `MeterInfo`.**~~
   **Fixed 2026-11-27**: stack `8e6fd3e`, merged as `a6259a4`, followed by EVSimulatorApp `8fccda1`

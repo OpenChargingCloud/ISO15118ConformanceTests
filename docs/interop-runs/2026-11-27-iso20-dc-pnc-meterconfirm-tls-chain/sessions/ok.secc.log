@@ -1,0 +1,11 @@
+Trust roots: CN=MO Root CA, DC=MO, DC=V2G, O=V2G PKI, C=DE, CN=OEM Root CA, DC=OEM, DC=V2G, O=V2G PKI, C=DE
+Presenting server certificate: CN=SECC, DC=CPO, DC=V2G, O=V2G PKI, C=DE (+2 intermediate(s)); requiring a client certificate and validating its chain
+SECC listening on [::]:15241 (protocol -20, DC, TLS BouncyCastle)...
+TLS client: chain valid, anchored at CN=OEM Root CA, DC=OEM, DC=V2G, O=V2G PKI, C=DE.
+Plug & Charge: contract CN=Contract, DC=MO, DC=V2G, O=V2G PKI, C=DE; challenge OK, digest OK, signature OK (http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512, grammar=xmldsig-standalone); chain valid (anchored at CN=MO Root CA, DC=MO, DC=V2G, O=V2G PKI, C=DE).
+MeteringConfirmation: asked 2, answered 2, unanswered in time 0.
+  1600 Wh: session OK, reading OK, receipt OK, control mode OK, digest OK, signature OK (grammar=xmldsig-standalone); answered OK.
+  2400 Wh: session OK, reading OK, receipt OK, control mode OK, digest OK, signature OK (grammar=xmldsig-standalone); answered OK.
+Energy transfer service: 2 (DC).
+
+✓ Station stopped after 1417 ms.
