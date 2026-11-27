@@ -840,6 +840,25 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   reminder that "structural" is a claim about the world and deserves the same scepticism as any other.
 - **MCS and MCS_BPT beyond EVerest.** Only one counterparty implements them at all.
 - **Multi-protocol SAP offer beyond EVerest.** Same.
+- **A second `-20` AC station, forward.** Only EVerest has one today. The candidate is Chargetronic's
+  [Imatra](https://github.com/Chargetronic/imatra.iso15118_server) (Apache-2.0, Go, v0.1.0 of
+  2026-11-18), whose ROADMAP item 1 is `-20` AC with EIM and TLS 1.3. **The trigger to act is that
+  release**, not before. Looked at on 2026-11-27:
+  <br>**What it is.** A cloud SECC for residential AC. The device at the charger does CP, SLAC and
+  TLS and tunnels V2G over MQTT. It answers the charging loop from request → response pairs the
+  server pushes with a TTL, and falls back to PWM when they expire. Today: `-2` AC EIM, DIN 70121
+  for the SoC read-out only, PWM. No DC, no PnC, no TLS in the server.
+  <br>**Why not now.** The codec is libcbv2g, the same as EVerest, so nothing new for ours. The
+  state machine is independent (Go, a pure `Step(state, msg)`), but it lands on `-2` AC EIM, the
+  row we already cover best. The one new thing is the cached loop: our EVCC getting replayed answers
+  and a limit that changes as a new pair. That is worth checking in the same run, not on its own.
+  <br>**How to run it then.** The whole compose stack (Mosquitto, Valkey, Postgres, PKI) plus a bridge
+  from V2GTP to their device protocol (`spec/asyncapi-device.yaml`). The cheapest bridge is the station
+  from [`imatra.test_harness`](https://github.com/Chargetronic/imatra.test_harness), profile `own`,
+  with our EVCC in place of its Josev container. That repository is **PolyForm Internal Use**: clone it
+  locally for the run, never copy any of it here. Otherwise it offers us nothing. Its EV is an
+  unmodified Josev 0.31.2, and its "conformance" checks their MQTT contracts, not ISO 15118. An own
+  bridge built from the Apache-licensed spec is the alternative.
 
 ## Not in the matrix at all
 
