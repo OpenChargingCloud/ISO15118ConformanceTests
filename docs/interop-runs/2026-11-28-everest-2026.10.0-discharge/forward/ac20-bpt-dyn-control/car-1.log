@@ -1,0 +1,1 @@
+04:43:32 -> plug in: sleep 2;iso_wait_slac_matched;iso_wait_pwm_is_running;sleep 600

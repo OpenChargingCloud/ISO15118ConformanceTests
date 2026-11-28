@@ -1,0 +1,311 @@
+#  7 AC_ChargeParameterDiscoveryReq BPT_AC_CPDReqEnergyTransferMode  EVMaximumChargePower=22000  EVMinimumChargePower=0  EVMaximumDischargePower=-22000  EVMinimumDischargePower=0
+       frame 01fe80030000002180100450da8b7881a303dc886bca9d806288109811220000088119711220000080
+#  7 AC_ChargeParameterDiscoveryRes OK  BPT_AC_CPDResEnergyTransferMode  EVSEMaximumChargePower=22080  EVSEMinimumChargePower=4140  EVSEMaximumDischargePower=0  EVSEMinimumDischargePower=0
+       frame 01fe80030000002980140450da8b7881a303dc8b7f5cc89efa998032004408500891001584043f04413948000022000008
+#  9 PowerDeliveryReq               
+       frame 01fe80020000002380540450da8b7881a303dc886bca9d80620006059e250da405a53ad00480e041805124
+#  9 PowerDeliveryRes               OK
+       frame 01fe80020000001680580450da8b7881a303dc8a0918c8aefa9980320040
+# 10 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc887bca9d80628024070200302ec04100161d402080000041805910600244084c089100000441885110620040
+# 10 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=0
+       frame 01fe80030000001e800c0450da8b7881a303dc886ca8c8aefa998032004840850088a4000010
+       … x5 in a row
+# 15 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc887bca9d80628024070200256b40410010bb802080000041805910600244084c089100000441885110620040
+# 15 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6731
+       frame 01fe80030000001f800c0450da8b7881a303dc88ffdad8aefa998032004840850088a400659a10
+       … x5 in a row
+# 20 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc888bca9d806280240702003aa78041001b59a02080000041805910600244084c089100000441885110620040
+# 20 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6868
+       frame 01fe80030000001f800c0450da8b7881a303dc8a2c4cc8aefa998032004840850088a4006a1a90
+       … x6 in a row
+# 26 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc888bca9d8062802407020034234041001817802080000041805910600244084c089100000441885110620040
+# 26 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6986
+       frame 01fe80030000001f800c0450da8b7881a303dc8f085f18aefa998032004840850088a400651b10
+       … x4 in a row
+# 30 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc889bca9d8062802407020025208041001096202080000041805910600244084c089100000441885110620040
+# 30 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6985
+       frame 01fe80030000001f800c0450da8b7881a303dc8e6be898befa998032004840850088a400649b10
+       … x5 in a row
+# 35 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc889bca9d806280240702003a5cc1001b34402080000041805910600244084c089100000441885110620040
+# 35 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6713
+       frame 01fe80030000001f800c0450da8b7881a303dc8bffea78befa998032004840850088a4005c9a10
+       … x6 in a row
+# 41 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88abca9d8062802407020033d8810017f2202080000041805910600244084c089100000441885110620040
+# 41 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6756
+       frame 01fe80030000001f800c0450da8b7881a303dc8add5cc8befa998032004840850088a400721a10
+       … x5 in a row
+# 46 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88abca9d80628024070200291501001290602080000041805910600244084c089100000441885110620040
+# 46 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=6809
+       frame 01fe80030000001f800c0450da8b7881a303dc8b49beb8befa998032004840850088a4004c9a90
+       … x4 in a row
+# 50 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003580080450da8b7881a303dc88bbca9d806280240702003a1201001b0ee080000041805910600244084c089100000441885110620040
+# 50 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=6809
+       frame 01fe80030000001f800c0450da8b7881a303dc8f9d2838cefa9980320048400c3938a4004c9a90
+# 51 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003580080450da8b7881a303dc88bbca9d806280240702003e5141001d2e808000004180591060024400c3939100000441885110620040
+# 51 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1653
+       frame 01fe80030000001f800c0450da8b7881a303dc8aee0898cefa9980320048400c3938a4007a8610
+       … x5 in a row
+# 56 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003580080450da8b7881a303dc88bbca9d8062802407020026124100110f008000004180591060024400c3939100000441885110620040
+# 56 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1628
+       frame 01fe80030000001f800c0450da8b7881a303dc8dcb6a88cefa9980320048400c3938a4006e0610
+       … x5 in a row
+# 61 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003580080450da8b7881a303dc88cbca9d806280240702002dd3010014ef608000004180591060024400c3939100000441885110620040
+# 61 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1657
+       frame 01fe80030000001f800c0450da8b7881a303dc893fac68cefa9980320048400c3938a4007c8610
+       … x4 in a row
+# 65 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003580080450da8b7881a303dc88cbca9d8062802407020020d3c1001e6fa08000004180591060024400c3939100000441885110620040
+# 65 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1662
+       frame 01fe80030000001f800c0450da8b7881a303dc89eafdf8cefa9980320048400c3938a4007f0610
+       … x6 in a row
+# 71 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88dbca9d806280240702003d5481001cb020208000004180591060024400c3939100000441885110620040
+# 71 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1672
+       frame 01fe80030000001f800c0450da8b7881a303dc8a285848defa9980320048400c3938a400440690
+       … x5 in a row
+# 76 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88dbca9d80628024070200251581001090a0208000004180591060024400c3939100000441885110620040
+# 76 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1651
+       frame 01fe80030000001f800c0450da8b7881a303dc8a2b9a28defa9980320048400c3938a400798610
+       … x5 in a row
+# 81 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88ebca9d806280240702002cd64100147100208000004180591060024400c3939100000441885110620040
+# 81 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1666
+       frame 01fe80030000001f800c0450da8b7881a303dc8b2fdc08defa9980320048400c3938a400410690
+       … x5 in a row
+# 86 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88ebca9d8062802407020034970100185160208000004180591060024400c3939100000441885110620040
+# 86 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1649
+       frame 01fe80030000001f800c0450da8b7881a303dc8b5c2df8defa9980320048400c3938a400788610
+       … x4 in a row
+# 90 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88fbca9d806280240702002797c10011d1c0208000004180591060024400c3939100000441885110620040
+# 90 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1629
+       frame 01fe80030000001f800c0450da8b7881a303dc8bdf8f78defa9980320048400c3938a4006e8610
+       … x6 in a row
+# 96 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc88fbca9d806280240702002418c100101240208000004180591060024400c3939100000441885110620040
+# 96 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1622
+       frame 01fe80030000001f800c0450da8b7881a303dc885d09c8eefa9980320048400c3938a4006b0610
+       … x5 in a row
+#101 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc890bca9d806280240702002bd9810013f2a0208000004180591060024400c3939100000441885110620040
+#101 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1626
+       frame 01fe80030000001f800c0450da8b7881a303dc89092bb8eefa9980320048400c3938a4006d0610
+       … x5 in a row
+#106 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc890bca9d80628024070200339a410017d300208000004180591060024400c3939100000441885110620040
+#106 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1639
+       frame 01fe80030000001f800c0450da8b7881a303dc88ce9d98eefa9980320048400c3938a400738610
+       … x5 in a row
+#111 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc891bca9d806280240702003b5b01001bb360208000004180591060024400c3939100000441885110620040
+#111 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1630
+       frame 01fe80030000001f800c0450da8b7881a303dc889aef88eefa9980320048400c3938a4006f0610
+       … x10 in a row
+#121 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc892bca9d806280240702002adcc100137440208000004180591060024400c3939100000441885110620040
+#121 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1652
+       frame 01fe80030000001f800c0450da8b7881a303dc8ffb7b58fefa9980320048400c3938a4007a0610
+       … x4 in a row
+#125 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc892bca9d806280240702003ddd41001cf480208000004180591060024400c3939100000441885110620040
+#125 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1654
+       frame 01fe80030000001f800c0450da8b7881a303dc8ffedcd8fefa9980320048400c3938a4007b0610
+       … x6 in a row
+#131 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc893bca9d806280240702003a5e41001b3500208000004180591060024400c3939100000441885110620040
+#131 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1635
+       frame 01fe80030000001f800c0450da8b7881a303dc882b2f28fefa9980320048400c3938a400718610
+       … x5 in a row
+#136 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc893bca9d80628024070200221f41001f1560208000004180591060024400c3939100000441885110620040
+#136 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1630
+       frame 01fe80030000001f800c0450da8b7881a303dc88bf99090efa9980320048400c3938a4006f0610
+       … x5 in a row
+#141 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc894bca9d8062802407020029e000410012f5e0208000004180591060024400c3939100000441885110620040
+#141 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1656
+       frame 01fe80030000001f800c0450da8b7881a303dc8c6bfaf90efa9980320048400c3938a4007c0610
+       … x5 in a row
+#146 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc894bca9d8062802407020031a0c0410016d640208000004180591060024400c3939100000441885110620040
+#146 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1668
+       frame 01fe80030000001f800c0450da8b7881a303dc8bc87ce90efa9980320048400c3938a400420690
+       … x5 in a row
+#151 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc895bca9d8062802407020039618041001ab6a0208000004180591060024400c3939100000441885110620040
+#151 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1643
+       frame 01fe80030000001f800c0450da8b7881a303dc8cddeec90efa9980320048400c3938a400758610
+       … x5 in a row
+#156 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc895bca9d8062802407020021228041001e9700208000004180591060024400c3939100000441885110620040
+#156 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1653
+       frame 01fe80030000001f800c0450da8b7881a303dc8bba68b91efa9980320048400c3938a4007a8610
+       … x5 in a row
+#161 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc896bca9d8062802407020028e3404100127780208000004180591060024400c3939100000441885110620040
+#161 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1645
+       frame 01fe80030000001f800c0450da8b7881a303dc8f0eba991efa9980320048400c3938a400768610
+       … x6 in a row
+#167 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc897bca9d80628024070200256440410010b800208000004180591060024400c3939100000441885110620040
+#167 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1659
+       frame 01fe80030000001f800c0450da8b7881a303dc8b0aece91efa9980320048400c3938a4007d8610
+       … x4 in a row
+#171 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc897bca9d806280240702003864c041001a3840208000004180591060024400c3939100000441885110620040
+#171 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1672
+       frame 01fe80030000001f800c0450da8b7881a303dc8a0e6e691efa9980320048400c3938a400440690
+       … x6 in a row
+#177 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc898bca9d8062802407020034e5c041001878c0208000004180591060024400c3939100000441885110620040
+#177 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1620
+       frame 01fe80030000001f800c0450da8b7881a303dc8d1bf8b92efa9980320048400c3938a4006a0610
+       … x4 in a row
+#181 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc898bca9d8062802407020027e680410011f920208000004180591060024400c3939100000441885110620040
+#181 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1658
+       frame 01fe80030000001f800c0450da8b7881a303dc8f3f2a392efa9980320048400c3938a4007d0610
+       … x6 in a row
+#187 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc899bca9d8062802407020024678041001039a0208000004180591060024400c3939100000441885110620040
+#187 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1633
+       frame 01fe80030000001f800c0450da8b7881a303dc8cddac892efa9980320048400c3938a400708610
+       … x4 in a row
+#191 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc899bca9d80628024070200376800410019b9e0208000004180591060024400c3939100000441885110620040
+#191 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1664
+       frame 01fe80030000001f800c0450da8b7881a303dc8ea94e192efa9980320048400c3938a400400690
+       … x6 in a row
+#197 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89abca9d8062802407020033e900410017fa60208000004180591060024400c3939100000441885110620040
+#197 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1627
+       frame 01fe80030000001f800c0450da8b7881a303dc8e8ea8593efa9980320048400c3938a4006d8610
+       … x4 in a row
+#201 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89abca9d8062802407020026e9c04100117ac0208000004180591060024400c3939100000441885110620040
+#201 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1640
+       frame 01fe80030000001f800c0450da8b7881a303dc8b5919e93efa9980320048400c3938a400740610
+       … x5 in a row
+#206 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89abca9d806280240702002eaa804100155b20208000004180591060024400c3939100000441885110620040
+#206 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1664
+       frame 01fe80030000001f800c0450da8b7881a303dc8b3d7bc93efa9980320048400c3938a400400690
+       … x5 in a row
+#211 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89bbca9d80628024070200366b404100193b80208000004180591060024400c3939100000441885110620040
+#211 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1640
+       frame 01fe80030000001f800c0450da8b7881a303dc8f6a4db93efa9980320048400c3938a400740610
+       … x5 in a row
+#216 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89bbca9d806280240702003e2c0041001d1be0208000004180591060024400c3939100000441885110620040
+#216 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1655
+       frame 01fe80030000001f800c0450da8b7881a303dc8a1e7f993efa9980320048400c3938a4007b8610
+       … x5 in a row
+#221 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89cbca9d8062802407020025ed00410010fc60208000004180591060024400c3939100000441885110620040
+#221 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1663
+       frame 01fe80030000001f800c0450da8b7881a303dc8febe9894efa9980320048400c3938a4007f8610
+       … x5 in a row
+#226 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89cbca9d806280240702002dadc0410014dcc0208000004180591060024400c3939100000441885110620040
+#226 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1640
+       frame 01fe80030000001f800c0450da8b7881a303dc8db83b794efa9980320048400c3938a400740610
+       … x5 in a row
+#231 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89dbca9d80628024070200356e80410018bd20208000004180591060024400c3939100000441885110620040
+#231 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1629
+       frame 01fe80030000001f800c0450da8b7881a303dc8d6cad594efa9980320048400c3938a4006e8610
+       … x6 in a row
+#237 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89ebca9d8062802407020031ef80410016fda0208000004180591060024400c3939100000441885110620040
+#237 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1663
+       frame 01fe80030000001f800c0450da8b7881a303dc88793fa94efa9980320048400c3938a4007f8610
+       … x5 in a row
+#242 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89ebca9d8062802407020039b04041001ade00208000004180591060024400c3939100000441885110620040
+#242 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1633
+       frame 01fe80030000001f800c0450da8b7881a303dc8fdd59895efa9980320048400c3938a400708610
+       … x4 in a row
+#246 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89ebca9d806280240702002cb1004100145e60208000004180591060024400c3939100000441885110620040
+#246 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1618
+       frame 01fe80030000001f800c0450da8b7881a303dc8f08eb195efa9980320048400c3938a400690610
+       … x5 in a row
+#251 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89fbca9d806280240702003471c04100183ec0208000004180591060024400c3939100000441885110620040
+#251 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1631
+       frame 01fe80030000001f800c0450da8b7881a303dc8e3e8cf95efa9980320048400c3938a4006f8610
+       … x5 in a row
+#256 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc89fbca9d806280240702003c328041001c1f20208000004180591060024400c3939100000441885110620040
+#256 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1636
+       frame 01fe80030000001f800c0450da8b7881a303dc8afadee95efa9980320048400c3938a400720610
+       … x5 in a row
+#261 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003780080450da8b7881a303dc8a0bca9d8062802407020023f38041001fff80208000004180591060024400c3939100000441885110620040
+#261 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1651
+       frame 01fe80030000001f800c0450da8b7881a303dc8eaf08c96efa9980320048400c3938a400798610
+       … x6 in a row
+#267 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a1bca9d8062802407020020748041021b03208000004180591060024400c3939100000441885110620040
+#267 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1666
+       frame 01fe80030000001f800c0450da8b7881a303dc8a7c4b196efa9980320048400c3938a400410690
+       … x4 in a row
+#271 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a1bca9d8062802407020033750041021f23208000004180591060024400c3939100000441885110620040
+#271 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1644
+       frame 01fe80030000001f800c0450da8b7881a303dc8ddfbc996efa9980320048400c3938a400760610
+       … x6 in a row
+#277 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a2bca9d806280240702002ff60041021563408000004180591060024400c3939100000441885110620040
+#277 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1624
+       frame 01fe80030000001f800c0450da8b7881a303dc8a0bfee96efa9980320048400c3938a4006c0610
+       … x5 in a row
+#282 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a2bca9d8062802407020037b6c041021aa3408000004180591060024400c3939100000441885110620040
+#282 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1672
+       frame 01fe80030000001f800c0450da8b7881a303dc8bf848d97efa9980320048400c3938a400440690
+       … x4 in a row
+#286 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a2bca9d806280240702002ab78041021ec3408000004180591060024400c3939100000441885110620040
+#286 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1635
+       frame 01fe80030000001f800c0450da8b7881a303dc895bca597efa9980320048400c3938a400718610
+       … x5 in a row
+#291 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a3bca9d80628024070200327840410213e3608000004180591060024400c3939100000441885110620040
+#291 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1627
+       frame 01fe80030000001f800c0450da8b7881a303dc8e782c497efa9980320048400c3938a4006d8610
+       … x5 in a row
+#296 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a3bca9d806280240702003a390041021923608000004180591060024400c3939100000441885110620040
+#296 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1611
+       frame 01fe80030000001f800c0450da8b7881a303dc8eac7e297efa9980320048400c3938a400658610
+       … x5 in a row
+#301 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a4bca9d8062802407020021fa0041021e43608000004180591060024400c3939100000441885110620040
+#301 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1621
+       frame 01fe80030000001f800c0450da8b7881a303dc886a28198efa9980320048400c3938a4006a8610
+       … x5 in a row
+#306 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=-5000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe80030000003680080450da8b7881a303dc8a4bca9d8062802407020029bac041021383808000004180591060024400c3939100000441885110620040
+#306 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-5000  EVSEPresentActivePower=1614
+       frame 01fe80030000001f800c0450da8b7881a303dc8bbeb9f98efa9980320048400c3938a400670610
+       … x4 in a row
+#310 PowerDeliveryReq               
+       frame 01fe80020000001380540450da8b7881a303dc8a5bca9d80620140
+#310 PowerDeliveryRes               OK
+       frame 01fe80020000001680580450da8b7881a303dc8baace298efa9980320040

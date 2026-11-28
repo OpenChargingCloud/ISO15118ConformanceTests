@@ -1,0 +1,213 @@
+2026-11-28 05:39:05.958362 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: Idle -> Initializing
+2026-11-28 05:39:05.967527 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:   [0;1;35;95m_[0;1;31;91m__[0;1;33;93m__[0;1;32;92m__[0;1;36;96m_[0m      [0;1;31;91m_[0;1;33;93m_[0m                [0;1;36;96m_[0m   
+2026-11-28 05:39:05.967612 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;31;91m|[0m  [0;1;33;93m_[0;1;32;92m__[0;1;36;96m_\[0m [0;1;34;94m\[0m    [0;1;33;93m/[0m [0;1;32;92m/[0m               [0;1;34;94m|[0m [0;1;35;95m|[0m
+2026-11-28 05:39:05.967626 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;33;93m|[0m [0;1;32;92m|_[0;1;36;96m_[0m   [0;1;35;95m\[0m [0;1;31;91m\[0m  [0;1;33;93m/[0m [0;1;32;92m/[0;1;36;96m__[0m [0;1;34;94m_[0m [0;1;35;95m_[0;1;31;91m_[0m [0;1;33;93m__[0;1;32;92m_[0m  [0;1;36;96m_[0;1;34;94m__[0;1;35;95m|[0m [0;1;31;91m|_[0m
+2026-11-28 05:39:05.967633 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_|[0m   [0;1;31;91m\[0m [0;1;33;93m\[0;1;32;92m/[0m [0;1;36;96m/[0m [0;1;34;94m_[0m [0;1;35;95m\[0m [0;1;31;91m'_[0;1;33;93m_/[0m [0;1;32;92m_[0m [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m__[0;1;31;91m|[0m [0;1;33;93m__[0;1;32;92m|[0m
+2026-11-28 05:39:05.967640 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;36;96m|[0m [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m_[0m   [0;1;32;92m\[0m  [0;1;36;96m/[0m  [0;1;35;95m__[0;1;31;91m/[0m [0;1;33;93m|[0m [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_/[0;1;35;95m\_[0;1;31;91m_[0m [0;1;33;93m\[0m [0;1;32;92m|_[0m
+2026-11-28 05:39:05.967647 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m__[0;1;33;93m_|[0m   [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m\_[0;1;31;91m__[0;1;33;93m|_[0;1;32;92m|[0m  [0;1;36;96m\[0;1;34;94m__[0;1;35;95m_|[0;1;31;91m|_[0;1;33;93m__[0;1;32;92m/\[0;1;36;96m__[0;1;34;94m|[0m
+2026-11-28 05:39:05.967654 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-11-28 05:39:05.967660 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-framework 0.26.0-dev 2026.10.0
+2026-11-28 05:39:05.967666 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-core 2026.10.0-dev 2026.10.0
+2026-11-28 05:39:05.967671 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-11-28 05:39:05.967683 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using MQTT broker localhost:1883
+2026-11-28 05:39:05.968395 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration files to apply:
+2026-11-28 05:39:05.968420 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 1, path: /home/ahzf/everest/dist-2610/share/everest/migrations/1_up-initial.sql
+2026-11-28 05:39:05.968432 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 2, path: /home/ahzf/everest/dist-2610/share/everest/migrations/2_up-forward-exceptions.sql
+2026-11-28 05:39:05.968437 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 3, path: /home/ahzf/everest/dist-2610/share/everest/migrations/3_up-access_config.sql
+2026-11-28 05:39:05.968443 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 4, path: /home/ahzf/everest/dist-2610/share/everest/migrations/4_up-multi_config.sql
+2026-11-28 05:39:05.973758 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/run/2610-discharge/dc20-bpt-dyn-control/config-dc-bpt-dynamic-reverse-2610.yaml"
+2026-11-28 05:39:05.989071 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading config file at: /home/ahzf/everest/run/2610-discharge/dc20-bpt-dyn-control/config-dc-bpt-dynamic-reverse-2610.yaml
+2026-11-28 05:39:06.179104 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module configs written to database successfully
+2026-11-28 05:39:06.204729 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading module configs from pre-loaded database configuration
+2026-11-28 05:39:06.392683 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading module configs from pre-loaded database configuration
+2026-11-28 05:39:06.603053 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading module configs from pre-loaded database configuration
+2026-11-28 05:39:06.751805 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Config loading completed in 167ms
+2026-11-28 05:39:06.753663 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: Initializing -> StartingModules
+2026-11-28 05:39:06.754042 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Starting 18 modules
+2026-11-28 05:39:09.072202 [[1;37mINFO[0m] [1;32mapi_sink:Energy[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi_sink[0m initialized [2280ms]
+2026-11-28 05:39:09.073342 [[1;33mWARN[0m] [1;32mapi:API        [0m [1;36mvoid module::API::init()[0m [1;30m:[0m[1;32m[0m: DEPRECATED MODULE
+  component       : API
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : use the EVerest API modules (evse_manager_consumer_API and others)
+2026-11-28 05:39:09.074214 [[1;37mINFO[0m] [1;32mapi:API        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m initialized [2279ms]
+2026-11-28 05:39:09.093074 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m initialized [2286ms]
+2026-11-28 05:39:09.106937 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m initialized [2302ms]
+2026-11-28 05:39:09.107522 [[1;37mINFO[0m] [1;32menergy_manager:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m initialized [2305ms]
+2026-11-28 05:39:09.109447 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m initialized [2297ms]
+2026-11-28 05:39:09.110393 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m initialized [2291ms]
+2026-11-28 05:39:09.111017 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m initialized [2299ms]
+2026-11-28 05:39:09.111753 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using database at "/tmp/error_history.db"
+2026-11-28 05:39:09.111896 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Checking database
+2026-11-28 05:39:09.111812 [[1;37mINFO[0m] [1;32mgrid_connection[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m initialized [2304ms]
+2026-11-28 05:39:09.112351 [[1;37mINFO[0m] [1;32mslac:SlacSimula[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m initialized [2293ms]
+2026-11-28 05:39:09.114080 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34merror_history[0m initialized [2311ms]
+2026-11-28 05:39:09.150163 [[1;33mWARN[0m] [1;32mev_api:EvAPI   [0m [1;36mvoid module::EvAPI::init()[0m [1;30m:[0m[1;32m[0m: DEPRECATED MODULE
+  component       : EvAPI
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : none, the module is removed without a replacement
+2026-11-28 05:39:09.150816 [[1;37mINFO[0m] [1;32mev_api:EvAPI   [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_api[0m initialized [2345ms]
+2026-11-28 05:39:09.151282 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m initialized [2339ms]
+2026-11-28 05:39:09.151993 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m initialized [2339ms]
+2026-11-28 05:39:09.159117 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m initialized [2347ms]
+2026-11-28 05:39:09.161838 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m initialized [2347ms]
+2026-11-28 05:39:09.165690 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m initialized [2343ms]
+2026-11-28 05:39:09.167365 [[1;37mINFO[0m] [1;32myeti_driver:Yet[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m initialized [2342ms]
+2026-11-28 05:39:09.211117 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Clearing retained topics published by manager during startup
+2026-11-28 05:39:09.211556 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🚙🚙🚙 All modules are initialized. EVerest up and running [2457ms] 🚙🚙🚙[0m
+2026-11-28 05:39:09.211611 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: StartingModules -> Running
+2026-11-28 05:39:09.213526 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: using the EVCC MAC of interface eth0
+2026-11-28 05:39:09.262815 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: UNMATCHED
+2026-11-28 05:39:09.263287 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: set_dc_params
+2026-11-28 05:39:09.302239 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 05:39:09.351365 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 05:39:09.352294 [[1;33mWARN[0m] [1;32mauth:Auth      [0m [1;36mvoid module::ReservationHandler::load_reservations()[0m [1;30m:[0m[1;32m[0m: Can not load reservations because no storage was configured.
+2026-11-28 05:39:09.394963 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G
+2026-11-28 05:39:09.397260 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-28 05:39:09.397454 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-28 05:39:09.431238 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-28 05:39:09.466992 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G20
+2026-11-28 05:39:09.467738 [[1;33mWARN[0m] [1;32mevse_security:E[0m [1;36mevse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&)[0m [1;30m:[0m[1;32m[0m: Could not find valid certificate
+2026-11-28 05:39:09.475218 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mstd::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&)[0m [1;30m:[0m[1;32m[0m: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-28 05:39:09.475354 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mvirtual void module::charger::ISO15118_chargerImpl::ready()[0m [1;30m:[0m[1;32m[0m: Evse15118D20: ISO 15118-20 is offered but no secp521r1 / Ed448 SECC leaf certificate is installed; TLS 1.3 sessions will be presented the ISO 15118-2 (secp256r1) leaf, which ISO 15118-20 EVs may reject
+2026-11-28 05:39:09.838869 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-28 05:39:09.840880 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: debug_mode enabled: publishing v2g_messages (message id plus the raw V2GTP frame as hex and base64) and ev_app_protocol
+2026-11-28 05:39:09.861496 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: sleep
+2026-11-28 05:39:09.861589 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-28 05:39:09.878456 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 05:39:09.923237 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 05:39:09.967118 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 05:39:10.011452 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 05:39:10.059214 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G
+2026-11-28 05:39:10.060523 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-28 05:39:10.060754 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-28 05:39:10.087088 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Vehicle reset complete - ready for the next plug-in
+2026-11-28 05:39:10.087243 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: Disconnected -> A
+2026-11-28 05:39:10.096887 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-28 05:39:10.139035 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G20
+2026-11-28 05:39:10.140002 [[1;33mWARN[0m] [1;32mevse_security:E[0m [1;36mevse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&)[0m [1;30m:[0m[1;32m[0m: Could not find valid certificate
+2026-11-28 05:39:10.143144 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mstd::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&)[0m [1;30m:[0m[1;32m[0m: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-28 05:39:10.143277 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-28 05:39:10.144137 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Network device lo appeared
+2026-11-28 05:39:10.193177 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Starting SDP server with address: ::
+2026-11-28 05:39:10.193360 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using ethernet interface: lo
+2026-11-28 05:39:10.331058 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Cleaning up any other transaction on start up
+2026-11-28 05:39:10.463856 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🌀🌀🌀 Ready to start charging 🌀🌀🌀[0m
+2026-11-28 05:39:13.089124 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: iso_wait_slac_matched
+2026-11-28 05:39:13.267373 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: A -> B
+2026-11-28 05:39:13.655267 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: MATCHING
+2026-11-28 05:39:13.836090 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SYS  Session logging started.
+2026-11-28 05:39:13.836393 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Session Started: EVConnected[1;0m
+2026-11-28 05:39:13.838322 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Plug In event for evse#1, starting auth
+2026-11-28 05:39:13.838295 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-28 05:39:13.839811 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-28 05:39:13.842039 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-11-28 05:39:14.092409 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Returning validation status: Accepted
+2026-11-28 05:39:14.095016 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Providing authorization to evse#1
+2026-11-28 05:39:14.337380 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM On (5.0%) took 0 ms[1;0m
+2026-11-28 05:39:14.430058 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-11-28 05:39:14.483751 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC EIM Authorization received[1;0m
+2026-11-28 05:39:14.527463 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Transaction Started (0 kWh)[1;0m
+2026-11-28 05:39:14.528038 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC mode. We are in 5percent mode so we can continue without further action.[1;0m
+2026-11-28 05:39:14.528177 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: Wait for Auth->PrepareCharging[1;0m
+2026-11-28 05:39:15.970013 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: MATCHED
+2026-11-28 05:39:15.970188 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC MATCHED[1;0m
+2026-11-28 05:39:15.970440 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (true)[1;0m
+2026-11-28 05:39:16.044229 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: V2G communication setup timeout started (18000 ms)
+2026-11-28 05:39:16.199205 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: start_charging requested (DepartureTime 86400 s, EAmount 0 kWh)
+2026-11-28 05:39:16.208986 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: connected to SECC
+2026-11-28 05:39:16.243111 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: iso_wait_pwr_ready
+2026-11-28 05:39:16.246489 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: selected protocol ISO15118-20
+2026-11-28 05:39:16.285082 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: New session established by EVSE.
+2026-11-28 05:39:16.285155 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: EVSE id DE*ABC*E1
+2026-11-28 05:39:16.314299 [[1;33mWARN[0m] [1;32miso15118_car:Ev[0m [1;36mmodule::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)>[0m [1;30m:[0m[1;32m[0m: EVSE supports certificate installation service, but this is not implemented in the EV yet.
+2026-11-28 05:39:16.460968 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: DC BPT EVSE limits: max discharge power -50000 W, min discharge power 0 W
+2026-11-28 05:39:16.493357 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: iso_dc_power_on
+2026-11-28 05:39:16.543451 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: B -> C
+2026-11-28 05:39:16.838664 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: iso_wait_for_stop
+2026-11-28 05:39:16.879267 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event CarRequestedPower[1;0m
+2026-11-28 05:39:34.087031 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mmodule::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)>[0m [1;30m:[0m[1;32m[0m: V2G communication setup timeout (18s) expired before the V2G session was established
+2026-11-28 05:39:34.088995 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_ERROR.req[1;0m
+2026-11-28 05:39:34.089297 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM Off[1;0m
+2026-11-28 05:39:34.135576 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC D-LINK_ERROR with 5 percent PWM: X1, E/F for T_step_EF, then X1/nominal[1;0m
+2026-11-28 05:39:34.135967 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: PrepareCharging->T_step_X1[1;0m
+2026-11-28 05:39:34.136105 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Enter T_step_X1[1;0m
+2026-11-28 05:39:34.136213 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM Off[1;0m
+2026-11-28 05:39:34.179099 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC UNMATCHED[1;0m
+2026-11-28 05:39:34.179416 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (false)[1;0m
+2026-11-28 05:39:34.885386 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: session stopped
+2026-11-28 05:39:34.887546 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: V2G session ended - opening the contactor and returning the control pilot to state B
+2026-11-28 05:39:35.285823 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Exit T_step_X1: unmatched, go to E/F[1;0m
+2026-11-28 05:39:35.286056 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: T_step_X1->T_step_EF[1;0m
+2026-11-28 05:39:35.286149 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Enter T_step_EF[1;0m
+2026-11-28 05:39:35.286217 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM F[1;0m
+2026-11-28 05:39:35.319095 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: C -> B
+2026-11-28 05:39:35.767577 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event BCDtoEF[1;0m
+2026-11-28 05:39:36.069612 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-28 05:39:36.247339 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Vehicle reset complete - ready for the next plug-in
+2026-11-28 05:39:36.247492 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Finished simulation. The vehicle keeps its state until a stop or unplug.
+2026-11-28 05:39:36.247574 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: UNMATCHED
+2026-11-28 05:39:37.397589 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGINT/SIGTERM received
+2026-11-28 05:39:37.397723 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: Running -> ShutdownRequested
+2026-11-28 05:39:37.398119 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Shutting down modules...
+2026-11-28 05:39:37.398183 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownRequested -> ForceTerminating
+2026-11-28 05:39:37.398197 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Terminating modules (graceful shutdown not enabled)...
+2026-11-28 05:39:37.398973 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: api (pid: 2016479) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.399397 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: api_sink (pid: 2016480) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.399615 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: auth (pid: 2016481) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.399809 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: energy_manager (pid: 2016482) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.399980 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: error_history (pid: 2016483) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.400186 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: ev_api (pid: 2016484) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.400385 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: ev_manager (pid: 2016485) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.400623 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: evse_manager (pid: 2016486) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.400675 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: evse_security (pid: 2016487) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.400836 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: grid_connection_point (pid: 2016488) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.400998 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: imd (pid: 2016489) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.401171 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: iso15118_car (pid: 2016490) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.401480 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: iso15118_charger (pid: 2016491) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.401665 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: powersupply_dc (pid: 2016493) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.401831 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: slac (pid: 2016497) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.401961 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: token_provider (pid: 2016502) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.402101 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: token_validator (pid: 2016504) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.402236 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: yeti_driver (pid: 2016517) [1m[32msucceeded[0m.
+2026-11-28 05:39:37.402309 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi_sink[0m (pid 2016480) shutdown [4ms] with status: signal=15
+2026-11-28 05:39:37.402642 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m (pid 2016485) shutdown [4ms] with status: signal=15
+2026-11-28 05:39:37.403001 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m (pid 2016488) shutdown [5ms] with status: signal=15
+2026-11-28 05:39:37.403982 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 2016497) shutdown [6ms] with status: signal=15
+2026-11-28 05:39:37.404044 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 2016493) shutdown [6ms] with status: signal=15
+2026-11-28 05:39:37.404229 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m (pid 2016479) shutdown [6ms] with status: signal=15
+2026-11-28 05:39:37.404930 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34merror_history[0m (pid 2016483) shutdown [7ms] with status: signal=15
+2026-11-28 05:39:37.405013 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 2016489) shutdown [7ms] with status: signal=15
+2026-11-28 05:39:37.405501 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 2016486) shutdown [7ms] with status: signal=15
+2026-11-28 05:39:37.406125 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 2016504) shutdown [8ms] with status: signal=15
+2026-11-28 05:39:37.406790 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m (pid 2016482) shutdown [9ms] with status: signal=15
+2026-11-28 05:39:37.407914 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m (pid 2016491) shutdown [10ms] with status: signal=15
+2026-11-28 05:39:37.408133 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 2016502) shutdown [10ms] with status: signal=15
+2026-11-28 05:39:37.408189 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 2016517) shutdown [10ms] with status: signal=15
+2026-11-28 05:39:37.408250 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_api[0m (pid 2016484) shutdown [10ms] with status: signal=15
+2026-11-28 05:39:37.408531 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m (pid 2016487) shutdown [10ms] with status: signal=15
+2026-11-28 05:39:37.409193 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m (pid 2016481) shutdown [11ms] with status: signal=15
+2026-11-28 05:39:37.410011 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 2016490) shutdown [12ms] with status: signal=15
+2026-11-28 05:39:37.410051 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-28 05:39:37.410413 [[1;33mWARN[0m] [1;32mmanager        [0m [1;36mstd::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&)[0m [1;30m:[0m[1;32m[0m: Modules that did not shut down cleanly: api_sink (signal=15) ev_manager (signal=15) grid_connection_point (signal=15) slac (signal=15) powersupply_dc (signal=15) api (signal=15) error_history (signal=15) imd (signal=15) evse_manager (signal=15) token_validator (signal=15) energy_manager (signal=15) iso15118_charger (signal=15) token_provider (signal=15) yeti_driver (signal=15) ev_api (signal=15) evse_security (signal=15) auth (signal=15) iso15118_car (signal=15)
+2026-11-28 05:39:37.410440 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[31m👋👋👋 [1m[31mEVerest manager is exiting [12ms] 👋👋👋[0m[0m
+2026-11-28 05:39:37.410451 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting

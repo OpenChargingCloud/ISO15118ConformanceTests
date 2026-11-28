@@ -1,0 +1,4664 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-20-dc-forward",
+  "protocol": "iso15118-20",
+  "mode": "dc",
+  "note": "live interop: our EVCC against EVerest\u0027s EvseV2G / Evse15118D20",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupReq",
+        "frame": "01fe800200000019808c0400000000000000000fcbaa9d80620422ab21a1981880"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupRes",
+        "frame": "01fe8002000000268090044520133c3fc90dbb8a5fedac7eea998032040451114a9413960a914c4c8ccd0d4a8c40"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupReq",
+        "frame": "01fe8002000000118008044520133c3fc90dbb8fcbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupRes",
+        "frame": "01fe800200000017800c044520133c3fc90dbb891c1e0c7eea998032000400"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationReq",
+        "frame": "01fe8002000000128000044520133c3fc90dbb8fcbaa9d806200"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationRes",
+        "frame": "01fe8002000000168004044520133c3fc90dbb8fc9be6c7eea9980320000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryReq",
+        "frame": "01fe800200000012807c044520133c3fc90dbb8fcbaa9d806280"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryRes",
+        "frame": "01fe80020000001b8080044520133c3fc90dbb8b0a0ecc7eea99803200000200018050"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailReq",
+        "frame": "01fe8002000000138074044520133c3fc90dbb8fcbaa9d80620300"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailRes",
+        "frame": "01fe8002000000c88078044520133c3fc90dbb892edf2c7eea9980320001800002d0dbdb9b9958dd1bdc980400d436f6e74726f6c4d6f6465601004d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e6760000310941510da185b9b995b180200f47656e657261746f724d6f6465600880080b436f6e6e6563746f7260100350dbdb9d1c9bdb135bd91958020134d6f62696c6974794e656564734d6f6465600802541c9a58da5b99d80000c4250544368616e6e656c600803d1d95b995c985d1bdc935bd9195802280"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionReq",
+        "frame": "01fe8002000000158084044520133c3fc90dbb8fcbaa9d806201800080"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionRes",
+        "frame": "01fe8002000000168088044520133c3fc90dbb8accaf8c7eea9980320000"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryReq",
+        "frame": "01fe800400000037803c044520133c3fc90dbb8fcbaa9d8062081088270400000200320041000000800f40304001902d0408c393820000010038e020800000"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryRes",
+        "frame": "01fe80040000003f8040044520133c3fc90dbb8b3e6fec7eea9980320004106e0581fc3403c0fe1a01e07d0e80703f8542301fc3403c4821db0b03f8e78781fc73c3c0fa3ce0e0"
+      }
+    },
+    {
+      "index": 8,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ScheduleExchangeReq",
+        "frame": "01fe800200000025806c044520133c3fc90dbb8fcbaa9d80620000901c2b410018176020800b0ea01040000100"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ScheduleExchangeRes",
+        "frame": "01fe8002000000288070044520133c3fc90dbb8e8fc84c8eea9980320003176fe42647754cc018012000405182800100"
+      }
+    },
+    {
+      "index": 9,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fcbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8f5878bc8eea9980320010"
+      }
+    },
+    {
+      "index": 10,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8959094c8eea9980320010"
+      }
+    },
+    {
+      "index": 11,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8f5fc99c8eea9980320010"
+      }
+    },
+    {
+      "index": 12,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8d3ffa0c8eea9980320010"
+      }
+    },
+    {
+      "index": 13,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8f9bfa6c8eea9980320010"
+      }
+    },
+    {
+      "index": 14,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8b0a8acc8eea9980320010"
+      }
+    },
+    {
+      "index": 15,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8ffb5b2c8eea9980320010"
+      }
+    },
+    {
+      "index": 16,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8e9c5b8c8eea9980320010"
+      }
+    },
+    {
+      "index": 17,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb89ce4bec8eea9980320010"
+      }
+    },
+    {
+      "index": 18,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb89df2c4c8eea9980320010"
+      }
+    },
+    {
+      "index": 19,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8fdbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8c881cbc8eea9980320010"
+      }
+    },
+    {
+      "index": 20,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb89d90d1c8eea9980320010"
+      }
+    },
+    {
+      "index": 21,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8b29dd7c8eea9980320010"
+      }
+    },
+    {
+      "index": 22,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8a0acddc8eea9980320010"
+      }
+    },
+    {
+      "index": 23,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb885bbe3c8eea9980320010"
+      }
+    },
+    {
+      "index": 24,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8edc6e9c8eea9980320010"
+      }
+    },
+    {
+      "index": 25,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8d6d2efc8eea9980320010"
+      }
+    },
+    {
+      "index": 26,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8d1e5f5c8eea9980320010"
+      }
+    },
+    {
+      "index": 27,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb89de4fbc8eea9980320010"
+      }
+    },
+    {
+      "index": 28,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8d7f481c9eea9980320010"
+      }
+    },
+    {
+      "index": 29,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8febaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8bf9d88c9eea9980320010"
+      }
+    },
+    {
+      "index": 30,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8ab8d8ec9eea9980320010"
+      }
+    },
+    {
+      "index": 31,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8ff9a94c9eea9980320010"
+      }
+    },
+    {
+      "index": 32,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8c9d29ac9eea9980320010"
+      }
+    },
+    {
+      "index": 33,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8bde0a0c9eea9980320010"
+      }
+    },
+    {
+      "index": 34,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb88deea6c9eea9980320010"
+      }
+    },
+    {
+      "index": 35,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8eaf3acc9eea9980320010"
+      }
+    },
+    {
+      "index": 36,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8d28ab3c9eea9980320010"
+      }
+    },
+    {
+      "index": 37,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8b6a8b9c9eea9980320010"
+      }
+    },
+    {
+      "index": 38,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb88796bfc9eea9980320010"
+      }
+    },
+    {
+      "index": 39,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb8ffbaa9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb892c6c5c9eea9980320010"
+      }
+    },
+    {
+      "index": 40,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb898d5cbc9eea9980320010"
+      }
+    },
+    {
+      "index": 41,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb889e2d1c9eea9980320010"
+      }
+    },
+    {
+      "index": 42,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8e8eed7c9eea9980320010"
+      }
+    },
+    {
+      "index": 43,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8a7feddc9eea9980320010"
+      }
+    },
+    {
+      "index": 44,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8b28ae4c9eea9980320010"
+      }
+    },
+    {
+      "index": 45,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8f698eac9eea9980320010"
+      }
+    },
+    {
+      "index": 46,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8daa6f0c9eea9980320010"
+      }
+    },
+    {
+      "index": 47,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8c2b5f6c9eea9980320010"
+      }
+    },
+    {
+      "index": 48,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb88bc2fcc9eea9980320010"
+      }
+    },
+    {
+      "index": 49,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb880bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb88ad182caeea9980320010"
+      }
+    },
+    {
+      "index": 50,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb881bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8fdde88caeea9980320010"
+      }
+    },
+    {
+      "index": 51,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb881bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb888ec8ecaeea9980320010"
+      }
+    },
+    {
+      "index": 52,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c044520133c3fc90dbb881bba9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe8004000000168030044520133c3fc90dbb8def994caeea9980320000"
+      }
+    },
+    {
+      "index": 53,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeReq",
+        "frame": "01fe8004000000198044044520133c3fc90dbb881bba9d80620100000080090030"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeRes",
+        "frame": "01fe8004000000198048044520133c3fc90dbb8caf497caeea9980320010000000"
+      }
+    },
+    {
+      "index": 54,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000238054044520133c3fc90dbb881bba9d80620004066f759406fcad3ad00480e041805124"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000168058044520133c3fc90dbb8d19f9ecaeea9980320040"
+      }
+    },
+    {
+      "index": 55,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb881bba9d806281001200601203810018176020800b0ea01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000003f8038044520133c3fc90dbb8dbafa4caeea99803200640000020000000010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 56,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb881bba9d806281001200601203810018176020800b0ea01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000003f8038044520133c3fc90dbb8c7c5adcaeea99803200640000020000000010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 57,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb881bba9d806281001200601203810018176020800b0ea01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ddb1b3caeea9980320063f8710481fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 58,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb881bba9d80628100120060120381001ff68020800efe301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bfc2b9caeea9980320063f8710481fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 59,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb881bba9d806281001200601203810017d5c020800aedd01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d2d2bfcaeea9980320063f8710481fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 60,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001fb4e020800edd601040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e1dec5caeea9980320063f8710481fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 61,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d806281001200601203810017942020800acd001040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a2eccbcaeea9980320063f8710481fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 62,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001f734020800ebc901040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb887fbd1caeea9980320063f8740381fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 63,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001c12a020800d0c401040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89789d8caeea9980320063f8740381fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 64,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d806281001200601203810018b20020800b5bf01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a298decaeea9980320063f8740381fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 65,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d8062810012006012038100155160208009aba01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c3a5e4caeea9980320063f8740381fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 66,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d806281001200601203810011f0c020800ffb401040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb881b4eacaeea9980320063f8740381fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 67,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001e900020800e4af01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d8c0f0caeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 68,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d806281001200601203810016f02020800a7b001040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e1cef6caeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 69,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001f502020800eab001040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8caddfccaeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 70,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810017b04020800adb101040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fcdf82cbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 71,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810010106020800f0b101040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d78c89cbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 72,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810018706020800b3b201040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e5988fcbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 73,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810010d08020800f6b201040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f3a495cbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0"
+      }
+    },
+    {
+      "index": 74,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810019308020800b9b301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb896b29bcbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 75,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d80628100120060120381001190a020800fcb301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aecba1cbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 76,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810019f0a020800bfb401040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb896cfa7cbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 77,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d80628100120060120381001250c02080082b501040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8faddadcbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 78,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d80628100120060120381001730e020800a9b601040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8eaecb3cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 79,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb883bba9d80628100120060120381001c110020800d0b701040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88ffbb9cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 80,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d806281001200601203810010f14020800f7b801040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ee89c0cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 81,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d806281001200601203810015d160208009eba01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89596c6cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 82,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d80628100120060120381001ab18020800c5bb01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88aa3cccbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 83,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d80628100120060120381001f91a020800ecbc01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c4b1d2cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 84,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d80628100120060120381001471e02080093be01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb888c0d8cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 85,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d806281001200601203810019520020800babf01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a6d1decbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 86,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d80628100120060120381001e322020800e1c001040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ffdbe4cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 87,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d80628100120060120381001312602080088c201040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a0eceacbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 88,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d806281001200601203810017f28020800afc301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cbe8f0cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 89,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb884bba9d80628100120060120381001cd2a020800d6c401040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b9f7f6cbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 90,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d806281001200601203810011b2e020800fdc501040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88487fdcbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 91,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d806281001200601203810016930020800a4c701040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c89283cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 92,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d80628100120060120381001b732020800cbc801040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb882a289cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 93,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d806281001200601203810010536020800f2c901040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a1af8fcceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 94,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d80628100120060120381001533802080099cb01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c8bc95cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 95,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d80628100120060120381001a13a020800c0cc01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88ccb9bcceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 96,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d80628100120060120381001ef3c020800e7cd01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c7d9a1cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 97,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d806281001200601203810013d400208008ecf01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88ee0a7cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 98,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d806281001200601203810018b42020800b5d001040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bbf4adcceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 99,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb885bba9d80628100120060120381001d944020800dcd101040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c784b4cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 100,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001274802080083d301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8df94bacceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 101,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001754a020800aad401040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fca3c0cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 102,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001c34c020800d1d501040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b7b0c6cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 103,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d806281001200601203810011150020800f8d601040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fabdcccceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 104,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d806281001200601203810015f520208009fd801040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d5cad2cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 105,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001ad54020800c6d901040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b5dbd8cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 106,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001fb56020800edda01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d1e7decceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 107,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001495a02080094dc01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8efe5e4cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 108,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001975c020800bbdd01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e894ebcceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 109,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb886bba9d80628100120060120381001e55e020800e2de01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8eca2f1cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 110,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d80628100120060120381001336202080089e001040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d6b5f7cceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 111,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d806281001200601203810018164020800b0e101040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89ac3fdcceea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 112,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d80628100120060120381001cf66020800d7e201040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb897d183cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 113,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d806281001200601203810011d6a020800fee301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a1de89cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 114,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d806281001200601203810016b6c020800a5e501040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c2ec8fcdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 115,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d80628100120060120381001b96e020800cce601040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89bfe95cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 116,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d806281001200601203810010772020800f3e701040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b3889ccdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 117,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d8062810012006012038100155740208009ae901040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89f94a2cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 118,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d80628100120060120381001a376020800c1ea01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88aa3a8cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 119,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb887bba9d80628100120060120381001f178020800e8eb01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bfb3aecdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 120,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d806281001200601203810013f7c0208008fed01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8deaeb4cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 121,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d806281001200601203810018d7e020800b6ee01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb889cdbacdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 122,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001db80020800ddef01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fbdbc0cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 123,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001298402080084f101040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89cd9c6cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 124,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d806281001200601203810017786020800abf201040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e7e6cccdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 125,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001c588020800d2f301040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88cf4d2cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 126,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001138c020800f9f401040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88181d9cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 127,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001618e020800a0f601040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fc8ddfcdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 128,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001af90020800c7f701040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8879de5cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 129,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb888bba9d80628100120060120381001fd92020800eef801040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b7aaebcdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 130,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb889bba9d806281001200601203810014b9602080095fa01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a2bcf1cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 131,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb889bba9d806281001200601203810019998020800bcfb01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a8c6f7cdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 132,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb889bba9d80628100120060120381001e79a020800e3fc01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a6d5fdcdeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 133,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb889bba9d80628100120060120381001359e0208008afe01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aee383ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 134,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000428034044520133c3fc90dbb889bba9d8062810012006012038100183a0020800b1ff01040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb886f389ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 135,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb889bba9d80628100120060120381001d1a2020810d619040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8afff8fceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 136,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb889bba9d806281001200601203810011fa6020810e619040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89d8b96ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 137,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb889bba9d806281001200601203810016da8020810f719040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8af9b9cceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 138,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb889bba9d80628100120060120381001bbaa020810881a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f9aba2ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 139,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb889bba9d8062810012006012038100109ae020810981a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e2b8a8ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 140,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d8062810012006012038100157b0020810a91a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bbc4aeceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 141,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d80628100120060120381001a5b2020810ba1a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e4d3b4ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 142,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d80628100120060120381001f3b4020810ca1a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88fe0baceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 143,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d8062810012006012038100141b8020810db1a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ddedc0ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 144,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d806281001200601203810018fba020810ec1a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c7fcc6ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 145,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d80628100120060120381001ddbc020810fd1a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fafdccceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 146,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d806281001200601203810012bc00208108d1b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bf97d3ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 147,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d8062810012006012038100179c20208109e1b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8de99d9ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 148,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d80628100120060120381001c7c4020810af1b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f4c5dfceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 149,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88abba9d8062810012006012038100115c8020810bf1b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88ad4e5ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 150,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d8062810012006012038100163ca020810d01b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aee2ebceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 151,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d80628100120060120381001b1cc020810e11b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bbf2f1ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 152,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d80628100120060120381001ffce020810f21b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8dcfcf7ceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 153,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d806281001200601203810014dd2020810821c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d58afeceeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 154,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d806281001200601203810019bd4020810931c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88f9984cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 155,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d80628100120060120381001e9d6020810a41c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c4a88acfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 156,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d8062810012006012038100137da020810b41c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e1b490cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 157,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d8062810012006012038100185dc020810c51c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb887c396cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 158,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d80628100120060120381001d3de020810d61c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89fd09ccfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 159,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88bbba9d8062810012006012038100121e2020810e61c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb894dfa2cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 160,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d806281001200601203810016fe4020810f71c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b6f2a8cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 161,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d80628100120060120381001bde6020810881d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8edfaaecfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 162,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d806281001200601203810010bea020810981d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88389b5cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 163,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d8062810012006012038100159ec020810a91d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bd99bbcfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 164,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d80628100120060120381001a7ee020810ba1d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b8a4c1cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 165,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d80628100120060120381001f5f0020810cb1d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88cb4c7cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 166,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d8062810012006012038100143f4020810db1d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b2c0cdcfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 167,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d8062810012006012038100191f6020810ec1d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ccbed3cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 168,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d80628100120060120381001dff8020810fd1d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8efcbd9cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 169,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88cbba9d806281001200601203810012dfc0208108d1e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d5dadfcfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 170,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000418034044520133c3fc90dbb88dbba9d806281001200601203810017bfe0208109e1e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b1e7e5cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 171,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d80628100120060120381021ae320810af1e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b7f4ebcfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 172,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d80628100120060120381021d0320810c01e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aa81f2cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 173,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d80628100120060120381021f0320810d01e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d293f8cfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 174,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d8062810012006012038102112340810e11e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89da1fecfeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 175,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d8062810012006012038102134340810f21e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e9b484d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 176,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d8062810012006012038102154340810821f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cabb8ad0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 177,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d8062810012006012038102176340810931f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb892ca90d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 178,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d8062810012006012038102198340810a41f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cbd696d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 179,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88dbba9d80628100120060120381021b8340810b41f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ece69cd0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 180,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021da340810c51f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d9f7a2d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 181,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021fc340810d61f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89384a9d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 182,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d806281001200601203810211c360810e61f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b191afd0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 183,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d806281001200601203810213e360810f71f040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8839fb5d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 184,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021603608108820040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8daadbbd0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 185,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021823608109920040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb886bcc1d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 186,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021a2360810a920040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b1cac7d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 187,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021c4360810ba20040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c2cacdd0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 188,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d80628100120060120381021e6360810cb20040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e1f7d3d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 189,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88ebba9d8062810012006012038102106380810db20040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89886dad0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 190,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d8062810012006012038102128380810ec20040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8df95e0d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 191,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d806281001200601203810214a380810fd20040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8faa2e6d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 192,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d806281001200601203810216c3808108e21040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89eb1ecd0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 193,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d806281001200601203810218c3808109e21040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f1bef2d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 194,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d80628100120060120381021ae380810af21040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c7ccf8d0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 195,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d80628100120060120381021d0380810c021040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88ddafed0eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 196,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d80628100120060120381021f0380810d021040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb886e984d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 197,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d80628100120060120381021123a0810e121040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8eff68ad1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 198,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d80628100120060120381021343a0810f221040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8888391d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 199,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb88fbba9d80628100120060120381021543a08108222040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d79297d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 200,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021763a08109322040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d8a09dd1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 201,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021983a0810a422040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb883afa3d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 202,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021b83a0810b422040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8babca9d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 203,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021da3a0810c522040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb899cbafd1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 204,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021fc3a0810d622040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c2c8b5d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 205,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d806281001200601203810211e3c0810e722040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d6d6bbd1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 206,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d806281001200601203810213e3c0810f722040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb898e3c1d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 207,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021603c08108823040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bbf1c7d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 208,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021823c08109923040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bbfecdd1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 209,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb890bba9d80628100120060120381021a23c0810a923040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ac8dd4d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 210,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021c43c0810ba23040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cb99dad1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 211,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021e63c0810cb23040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f1a9e0d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 212,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021083e0810dc23040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a2b6e6d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 213,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021283e0810ec23040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f4c5ecd1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 214,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d806281001200601203810214a3e0810fd23040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b9d3f2d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 215,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d806281001200601203810216c3e08108e24040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8dde0f8d1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 216,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d806281001200601203810218c3e08109e24040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bceefed1eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 217,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021ae3e0810af24040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c9fc84d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 218,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021d03e0810c024040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a58a8bd2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 219,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb891bba9d80628100120060120381021f03e0810d024040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f59791d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 220,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d8062810012006012038102112400810e124040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8eca797d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 221,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d8062810012006012038102134400810f224040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88fb49dd2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 222,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d80628100120060120381021544008108225040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f9c2a3d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 223,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d80628100120060120381021764008109325040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b2d1a9d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 224,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d8062810012006012038102198400810a425040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a1dfafd2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 225,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d80628100120060120381021ba400810b525040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ddecb5d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 226,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d80628100120060120381021da400810c525040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f8fabbd2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 227,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d80628100120060120381021fc400810d625040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d599c2d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 228,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d806281001200601203810211e420810e725040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d3a9c8d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 229,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb892bba9d806281001200601203810213e420810f725040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aab7ced2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 230,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d80628100120060120381021604208108826040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cec3d4d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 231,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d80628100120060120381021824208109926040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8dad1dad2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 232,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d80628100120060120381021a4420810aa26040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb887e3e0d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 233,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d80628100120060120381021c4420810ba26040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f5ede6d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 234,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d80628100120060120381021e6420810cb26040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e7fdecd2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 235,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d8062810012006012038102108440810dc26040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88b8ef3d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 236,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d8062810012006012038102128440810ec26040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c597f9d2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 237,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d806281001200601203810214a440810fd26040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d4a7ffd2eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 238,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d806281001200601203810216c4408108e27040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8dfb685d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 239,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb893bba9d806281001200601203810218c4408109e27040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d9c48bd3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 240,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021ae440810af27040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d8d491d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 241,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021d0440810c027040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ace297d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 242,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021f0440810d027040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e5ee9dd3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 243,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d8062810012006012038102112460810e127040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb889eca3d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 244,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d8062810012006012038102134460810f227040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a1faa9d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 245,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021564608108328040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f388b0d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 246,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021764608109328040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a199b6d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 247,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d8062810012006012038102198460810a428040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb883a3bcd3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 248,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021ba460810b528040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f0b1c2d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 249,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb894bba9d80628100120060120381021da460810c528040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a2c1c8d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 250,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021fc460810d628040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f2d2ced3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 251,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d806281001200601203810211e480810e728040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a1dcd4d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 252,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d8062810012006012038102140480810f828040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb897ecdad3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 253,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021604808108829040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb889f9e0d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 254,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021824808109929040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89887e7d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 255,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021a4480810aa29040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b695edd3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 256,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021c4480810ba29040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8eda3f3d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 257,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021e6480810cb29040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb882b0f9d3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 258,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021084a0810dc29040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb881c0ffd3eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 259,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb895bba9d80628100120060120381021284a0810ec29040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c2cd85d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 260,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d806281001200601203810214a4a0810fd29040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c1d98bd4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 261,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d806281001200601203810216c4a08108e2a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e1e791d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 262,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d806281001200601203810218c4a08109e2a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b0f697d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 263,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021ae4a0810af2a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e9849ed4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 264,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021d04a0810c02a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ea83a4d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 265,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021f24a0810d12a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b7b6aad4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 266,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021124c0810e12a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b3c0b0d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 267,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021344c0810f22a040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a0ceb6d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 268,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021564c0810832b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f0dfbcd4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 269,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb896bba9d80628100120060120381021764c0810932b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b2ecc2d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 270,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021984c0810a42b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e7f8c8d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 271,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021ba4c0810b52b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d287cfd4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 272,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021dc4c0810c62b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89395d5d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 273,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021fc4c0810d62b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f3a2dbd4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 274,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d806281001200601203810211e4e0810e72b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c3b0e1d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 275,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021404e0810f82b040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8acbee7d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 276,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021604e0810882c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c5cbedd4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 277,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021824e0810992c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88fd2f3d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 278,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021a44e0810aa2c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb894eaf9d4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 279,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb897bba9d80628100120060120381021c44e0810ba2c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fcf7ffd4eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 280,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d80628100120060120381021e64e0810cb2c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d9f785d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 281,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d8062810012006012038102108500810dc2c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d2848cd5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 282,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d8062810012006012038102128500810ec2c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c79192d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 283,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d806281001200601203810214a500810fd2c040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bea198d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 284,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d806281001200601203810216c5008108e2d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d8ae9ed5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 285,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d806281001200601203810218e5008109f2d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cfbca4d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 286,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d80628100120060120381021ae500810af2d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a1cfaad5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 287,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d80628100120060120381021d0500810c02d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c1deb0d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 288,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d80628100120060120381021f2500810d12d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f4e7b6d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 289,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb898bba9d8062810012006012038102112520810e12d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d3f5bcd5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 290,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d8062810012006012038102134520810f22d040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fe97c5d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 291,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d8062810012006012038102156520810832e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e3a4cbd5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 292,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d8062810012006012038102178520810942e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a7b8d1d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 293,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d8062810012006012038102198520810a42e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f1b9d7d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 294,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d80628100120060120381021ba520810b52e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d4d2ddd5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 295,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d80628100120060120381021dc520810c62e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c5dbe3d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 296,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d80628100120060120381021fc520810d62e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a0ece9d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 297,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d806281001200601203810211e540810e72e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bbfaefd5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 298,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c4fef5d5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 299,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb899bba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88a98fcd5eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 300,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c7a682d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 301,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89ab588d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 302,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f2b58ed6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 303,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c8c494d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 304,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e9d29ad6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 305,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d2fda0d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 306,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a38ba7d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 307,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a39fadd6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 308,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8cea0b3d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 309,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89abba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d8b9b9d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 310,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e8c7bfd6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 311,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d9c9c5d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 312,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb884e3cbd6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 313,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d5e4d1d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 314,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aff9d7d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 315,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a9feddd6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 316,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bb81e4d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 317,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f4a3ead6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 318,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8959bf0d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 319,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89bbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f9b5f6d6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 320,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c6c6fcd6eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 321,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c4d982d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 322,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb899e088d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 323,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89bf28ed7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 324,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb885fd94d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 325,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c68e9bd7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 326,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89c98a1d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 327,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a8a6a7d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 328,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8e0b9add7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 329,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89cbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8ecc3b3d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 330,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89ed0b9d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 331,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8eddfbfd7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 332,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b2e5c5d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 333,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b3fdcbd7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 334,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb88ffed1d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 335,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8808dd8d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 336,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b3beded7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 337,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a6c4e4d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 338,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89dbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d5d4ead7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 339,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb897e4f0d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 340,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d7e9f6d7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 341,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8be81fdd7eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 342,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8f58583d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 343,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bf9f89d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 344,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8b7a48fd8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 345,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8a4b995d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 346,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d9b99bd8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 347,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8bcc9a1d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 348,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89ebba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8d1d6a7d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 349,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89fbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fae2add8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 350,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89fbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c2f3b3d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 351,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89fbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb89f8abad8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 352,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89fbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8c590c0d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 353,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89fbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8fd9fc6d8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 354,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe8004000000408034044520133c3fc90dbb89fbba9d8062810012006012038102130540810f02e040000020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe8004000000418038044520133c3fc90dbb8aab2ccd8eea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0"
+      }
+    },
+    {
+      "index": 355,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe8002000000138054044520133c3fc90dbb89fbba9d80620140"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe8002000000168058044520133c3fc90dbb8fcb8d2d8eea9980320040"
+      }
+    },
+    {
+      "index": 356,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c044520133c3fc90dbb8a1bba9d806200"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe8004000000198050044520133c3fc90dbb8b1c9d6d9eea9980320010000000"
+      }
+    },
+    {
+      "index": 357,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionStopReq",
+        "frame": "01fe8002000000128094044520133c3fc90dbb8a1bba9d806228"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionStopRes",
+        "frame": "01fe8002000000168098044520133c3fc90dbb88edbd6d9eea9980320000"
+      }
+    }
+  ]
+}

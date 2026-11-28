@@ -66,6 +66,9 @@ namespace ISO15118ConformanceTests.Simulation.Interop;
 ///         over TLS at all (see <see cref="ServerTlsOrNull"/>). <c>V2G_INTEROP_TLS_REQUIRE_CLIENT=1</c>
 ///         additionally demands the car's.</description></item>
 ///   <item><term><c>V2G_INTEROP_NO_PNC</c></term><description><c>1</c> to advertise EIM only (-20).</description></item>
+///   <item><term><c>V2G_INTEROP_DISCHARGE</c></term><description>a magnitude — our station discharges
+///         their car in a -20 BPT Dynamic session, amperes for DC and watts for AC (see
+///         <see cref="Discharge"/>).</description></item>
 ///   <item><term><c>V2G_INTEROP_RECORD</c></term><description>a directory for the artifacts — see
 ///         <see cref="InteropRecording"/>. Unset means a run that leaves nothing behind.</description></item>
 /// </list>
@@ -200,6 +203,30 @@ internal static class InteropEnvironment
     /// <c>V2G_INTEROP_DYNAMIC=1</c>.</summary>
     public static Boolean PreferDynamic()
         => Read("V2G_INTEROP_DYNAMIC") == "1";
+
+
+    /// <summary>-20 only: our <b>station</b> moves energy back out of their car, in amperes for DC
+    /// (<see cref="Secc20Dc.DischargeCurrent_A"/>) and in watts for AC (<see cref="Secc20Ac.DischargePowerW"/>).
+    /// <c>V2G_INTEROP_DISCHARGE=&lt;magnitude&gt;</c>, positive; unset, the station only charges.</summary>
+    /// <remarks>
+    /// <para>
+    /// A reverse-run knob, and one that only acts in a bidirectional <b>Dynamic</b> session: there the
+    /// station sets the operating point, so it serves a negative <c>EVSEPresentCurrent</c> (DC) or asks
+    /// with a negative <c>EVSETargetActivePower</c> (AC), each held inside the car's own maximum
+    /// discharge limit, taken by its size. In Scheduled mode the car names the setpoint and this changes
+    /// nothing, so a run that means to discharge also wants <c>V2G_INTEROP_DYNAMIC=1</c> and a car
+    /// that picks a BPT service.
+    /// </para>
+    /// <para>
+    /// Added 2026-11-28 for the first discharge against a foreign car. The station half had existed
+    /// since that morning and was reachable only from the stack's own tests.
+    /// </para>
+    /// </remarks>
+    public static Double? Discharge()
+        => Double.TryParse(Read("V2G_INTEROP_DISCHARGE"), System.Globalization.NumberStyles.Float,
+                           System.Globalization.CultureInfo.InvariantCulture, out var magnitude) && magnitude > 0
+               ? magnitude
+               : null;
 
 
     /// <summary>Our <b>station</b> asks the EV to renegotiate, once, mid-charge — `[V2G2-841]` for -2,

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Built against our own codec as the WSL rig built it: ARTIFACTS=<dotnet build artifacts path>. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ArtifactsDir Condition="'$(ARTIFACTS)' != ''">$(ARTIFACTS)/bin/ISO15118ConformanceTests.Simulation/release</ArtifactsDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(ArtifactsDir)/WWCP_ISO15118*.dll" />
+    <Reference Include="$(ArtifactsDir)/cloud.charging.open.protocols.ISO15118.*.dll" />
+    <Reference Include="$(ArtifactsDir)/org.GraphDefined*.dll" />
+  </ItemGroup>
+</Project>

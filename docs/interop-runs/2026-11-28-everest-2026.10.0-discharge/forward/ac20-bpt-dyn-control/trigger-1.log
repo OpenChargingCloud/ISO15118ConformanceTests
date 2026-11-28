@@ -1,0 +1,3 @@
+04:43:36.087 watching /home/ahzf/everest/run/2610-discharge/fwd-ac20-bpt-dyn-control/their-side.log for: Waiting for contactor is closed
+04:43:42.244 -> draw_power_fixed 0,0;sleep 600
+04:43:42.250 published

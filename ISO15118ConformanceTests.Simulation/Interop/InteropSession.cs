@@ -329,14 +329,26 @@ internal static class InteropSession
         evcc20.GoSilentInChargeLoop      = silentInChargeLoop;
         evcc20.SendSessionId             = sendSessionId;
         evcc20.SupportedServiceIds       = supportedServiceIds;
+        // The same opt-in as the -2 car above, which until 2026-11-28 was the only one that got it: a -20
+        // run asking for a battery kept its three iterations while the variable counted as consulted, so
+        // nothing said the knob had done nothing. The first forward discharge against EVerest was too short
+        // to see their station's current settle for exactly that reason. -20 has no interval knob; its
+        // loop keeps Evcc20Base's own pacing.
+        evcc20.Battery                   = InteropEnvironment.Battery();
 
         if (ongoingTimeout is { } iso20Ongoing)
             evcc20.OngoingTimeout = iso20Ongoing;
 
         await evcc20.RunAsync(ct);
+
+        if (evcc20.Battery is { } pack20)
+            TestContext.Out.WriteLine(pack20.Describe(evcc20.BatteryStop ?? ChargeStop.Running));
+
         return new EvccOutcome(evcc20.Exchanges, evcc20.AuthorizationMode, MeteringReceiptsSent: 0,
                                evcc20.SelectedEnergyServiceId, evcc20.MeterInfoResponses,
-                               evcc20.SilenceEndedAfter);
+                               evcc20.SilenceEndedAfter,
+                               BatteryStop: evcc20.BatteryStop,
+                               DeliveredWh: evcc20.Battery?.DeliveredWh);
 
     }
 
@@ -426,15 +438,18 @@ internal static class InteropSession
         // construction. Unset, every arm keeps Secc20Base's own 500 ms — the Tables 216/217 value, and
         // the one a conformance claim rests on. See InteropEnvironment.ChargeLoopTimeout.
         var chargeLoop = InteropEnvironment.ChargeLoopTimeout();
+        // Init-only too, for DC and AC alike. MCS takes none, and leaving the variable unread there means
+        // the run reports it as ignored instead of filing a charge as a discharge.
+        var discharge  = mcs ? null : InteropEnvironment.Discharge();
 
         Secc20Base secc20 = (mode, mcs) switch
         {
             (PowerMode.Dc, true ) => chargeLoop is { } m ? new Secc20Mcs(SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = m }
                                                         : new Secc20Mcs(SequenceTimeout, TimeProvider.System),
-            (PowerMode.Dc, false) => chargeLoop is { } d ? new Secc20Dc (SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = d }
-                                                        : new Secc20Dc (SequenceTimeout, TimeProvider.System),
-            _                     => chargeLoop is { } a ? new Secc20Ac (SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = a }
-                                                        : new Secc20Ac (SequenceTimeout, TimeProvider.System),
+            (PowerMode.Dc, false) => chargeLoop is { } d ? new Secc20Dc (SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = d, DischargeCurrent_A = discharge }
+                                                        : new Secc20Dc (SequenceTimeout, TimeProvider.System) { DischargeCurrent_A = discharge },
+            _                     => chargeLoop is { } a ? new Secc20Ac (SequenceTimeout, TimeProvider.System) { ChargeLoopSequenceTimeout = a, DischargePowerW = discharge }
+                                                        : new Secc20Ac (SequenceTimeout, TimeProvider.System) { DischargePowerW = discharge },
         };
 
         secc20.PreferDynamicControlMode = preferDynamic;

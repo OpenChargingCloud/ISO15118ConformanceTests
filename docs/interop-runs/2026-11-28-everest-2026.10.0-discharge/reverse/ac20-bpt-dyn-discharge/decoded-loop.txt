@@ -1,0 +1,22 @@
+#  7 AC_ChargeParameterDiscoveryReq BPT_AC_CPDReqEnergyTransferMode  EVMaximumChargePower=3680  EVMinimumChargePower=1380  EVMaximumDischargePower=-3680  EVMinimumDischargePower=-1380
+       frame 01fe8003000000238010040356f312136418c68bea3b2d80628800e01c2200390288801df1c220078c2880
+#  7 AC_ChargeParameterDiscoveryRes OK  BPT_AC_CPDResEnergyTransferMode  EVSEMaximumChargePower=22000  EVSEMinimumChargePower=0  EVSEMaximumDischargePower=-22000  EVSEMinimumDischargePower=0
+       frame 01fe8003000000258014040356f312136418c68c8b5a9d80620044084c08910000044001914811971122000008
+#  9 PowerDeliveryReq               
+       frame 01fe8002000000218054040356f312136418c68d589b6d806200064c4db6c03004051828400700e124
+#  9 PowerDeliveryRes               OK
+       frame 01fe8002000000138058040356f312136418c68c8b5a9d80620040
+# 10 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=3680  EVMinimumChargePower=1380  EVPresentActivePower=0  EVPresentReactivePower=0  EVMaximumDischargePower=-3680  EVMinimumDischargePower=-1380
+       frame 01fe8003000000398008040356f312136418c6890edb7d8062803fe88142043c0b81021e05c0800000400700e11001c81444000011000004400ef8e11003c61440
+# 10 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-3000
+       frame 01fe800300000018800c040356f312136418c68c8b5a9d80620048408d581100
+       … x18 in a row
+# 28 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=3680  EVMinimumChargePower=1380  EVPresentActivePower=11040  EVPresentReactivePower=0  EVMaximumDischargePower=-3680  EVMinimumDischargePower=-1380
+       frame 01fe80030000003a8008040356f312136418c68c1b1d5d8062803fe88142043c0b81021e05c0800000400700e11001c8144408680411000004400ef8e11003c61440
+# 28 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=-3000
+       frame 01fe800300000018800c040356f312136418c68c8b5a9d80620048408d581100
+       … x895 in a row
+#923 PowerDeliveryReq               
+       frame 01fe8002000000208054040356f312136418c6891a0ebe3062010445075f18300405182840000124
+#923 PowerDeliveryRes               OK
+       frame 01fe8002000000138058040356f312136418c68e0b5a9d80620040

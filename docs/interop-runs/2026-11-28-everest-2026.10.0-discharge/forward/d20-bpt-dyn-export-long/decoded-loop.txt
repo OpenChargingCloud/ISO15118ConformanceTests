@@ -1,0 +1,42 @@
+#  7 DC_ChargeParameterDiscoveryReq BPT_DC_CPDReqEnergyTransferMode  EVMaximumChargePower=50000  EVMinimumChargePower=0  EVMaximumChargeCurrent=200  EVMinimumChargeCurrent=0  EVMaximumVoltage=500  EVMinimumVoltage=50  EVMaximumDischargePower=-50000  EVMinimumDischargePower=0  EVMaximumDischargeCurrent=-200  EVMinimumDischargeCurrent=0
+       frame 01fe800400000037803c044520133c3fc90dbb8fcbaa9d8062081088270400000200320041000000800f40304001902d0408c393820000010038e020800000
+#  7 DC_ChargeParameterDiscoveryRes OK  BPT_DC_CPDResEnergyTransferMode  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMinimumChargeCurrent=1  EVSEMaximumVoltage=900  EVSEMinimumVoltage=200  EVSEMaximumDischargePower=-150000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-200  EVSEMinimumDischargeCurrent=-1
+       frame 01fe80040000003f8040044520133c3fc90dbb8b3e6fec7eea9980320004106e0581fc3403c0fe1a01e07d0e80703f8542301fc3403c4821db0b03f8e78781fc73c3c0fa3ce0e0
+# 54 PowerDeliveryReq               
+       frame 01fe8002000000238054044520133c3fc90dbb881bba9d80620004066f759406fcad3ad00480e041805124
+# 54 PowerDeliveryRes               OK
+       frame 01fe8002000000168058044520133c3fc90dbb8d19f9ecaeea9980320040
+# 55 DC_ChargeLoopReq               BPT_Dynamic_DC_CLReqControlMode  EVPresentVoltage=400  EVMaximumChargePower=50000  EVMinimumChargePower=1000  EVMaximumChargeCurrent=125  EVMaximumVoltage=500  EVMinimumVoltage=200  EVMaximumDischargePower=-50000  EVMinimumDischargePower=-1000  EVMaximumDischargeCurrent=-125
+       frame 01fe8004000000428034044520133c3fc90dbb881bba9d806281001200601203810018176020800b0ea01040000020c0c810600208007d04007a018200320041062620831000400be100
+# 55 DC_ChargeLoopRes               OK  BPT_Dynamic_DC_CLResControlMode  EVSEPresentCurrent=0  EVSEPresentVoltage=0  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMaximumVoltage=900  EVSEMaximumDischargePower=-5000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-200  EVSEMinimumVoltage=200
+       frame 01fe80040000003f8038044520133c3fc90dbb8dbafa4caeea99803200640000020000000010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0
+       … x2 in a row
+# 57 DC_ChargeLoopReq               BPT_Dynamic_DC_CLReqControlMode  EVPresentVoltage=400  EVMaximumChargePower=50000  EVMinimumChargePower=1000  EVMaximumChargeCurrent=125  EVMaximumVoltage=500  EVMinimumVoltage=200  EVMaximumDischargePower=-50000  EVMinimumDischargePower=-1000  EVMaximumDischargeCurrent=-125
+       frame 01fe8004000000428034044520133c3fc90dbb881bba9d806281001200601203810018176020800b0ea01040000020c0c810600208007d04007a018200320041062620831000400be100
+# 57 DC_ChargeLoopRes               OK  BPT_Dynamic_DC_CLResControlMode  EVSEPresentCurrent=125  EVSEPresentVoltage=500  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMaximumVoltage=900  EVSEMaximumDischargePower=-5000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-200  EVSEMinimumVoltage=200
+       frame 01fe8004000000418038044520133c3fc90dbb8ddb1b3caeea9980320063f8710481fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781fc73c3c0fe1a01e0
+       … x5 in a row
+# 62 DC_ChargeLoopReq               BPT_Dynamic_DC_CLReqControlMode  EVPresentVoltage=400  EVMaximumChargePower=50000  EVMinimumChargePower=1000  EVMaximumChargeCurrent=125  EVMaximumVoltage=500  EVMinimumVoltage=200  EVMaximumDischargePower=-50000  EVMinimumDischargePower=-1000  EVMaximumDischargeCurrent=-125
+       frame 01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001f734020800ebc901040000020c0c810600208007d04007a018200320041062620831000400be100
+# 62 DC_ChargeLoopRes               OK  BPT_Dynamic_DC_CLResControlMode  EVSEPresentCurrent=100  EVSEPresentVoltage=500  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMaximumVoltage=900  EVSEMaximumDischargePower=-5000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-10  EVSEMinimumVoltage=200
+       frame 01fe8004000000418038044520133c3fc90dbb887fbd1caeea9980320063f8740381fc2209c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0
+       … x5 in a row
+# 67 DC_ChargeLoopReq               BPT_Dynamic_DC_CLReqControlMode  EVPresentVoltage=400  EVMaximumChargePower=50000  EVMinimumChargePower=1000  EVMaximumChargeCurrent=125  EVMaximumVoltage=500  EVMinimumVoltage=200  EVMaximumDischargePower=-50000  EVMinimumDischargePower=-1000  EVMaximumDischargeCurrent=-125
+       frame 01fe8004000000428034044520133c3fc90dbb882bba9d80628100120060120381001e900020800e4af01040000020c0c810600208007d04007a018200320041062620831000400be100
+# 67 DC_ChargeLoopRes               OK  BPT_Dynamic_DC_CLResControlMode  EVSEPresentCurrent=-10  EVSEPresentVoltage=200  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMaximumVoltage=900  EVSEMaximumDischargePower=-5000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-10  EVSEMinimumVoltage=200
+       frame 01fe8004000000418038044520133c3fc90dbb8d8c0f0caeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f879c1c0fe1a01e0
+       … x7 in a row
+# 74 DC_ChargeLoopReq               BPT_Dynamic_DC_CLReqControlMode  EVPresentVoltage=400  EVMaximumChargePower=50000  EVMinimumChargePower=1000  EVMaximumChargeCurrent=125  EVMaximumVoltage=500  EVMinimumVoltage=200  EVMaximumDischargePower=-50000  EVMinimumDischargePower=-1000  EVMaximumDischargeCurrent=-125
+       frame 01fe8004000000428034044520133c3fc90dbb883bba9d806281001200601203810019308020800b9b301040000020c0c810600208007d04007a018200320041062620831000400be100
+# 74 DC_ChargeLoopRes               OK  BPT_Dynamic_DC_CLResControlMode  EVSEPresentCurrent=-10  EVSEPresentVoltage=200  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMaximumVoltage=900  EVSEMaximumDischargePower=-5000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-25  EVSEMinimumVoltage=200
+       frame 01fe8004000000418038044520133c3fc90dbb896b29bcbeea9980320063f0f38381fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0
+       … x3 in a row
+# 77 DC_ChargeLoopReq               BPT_Dynamic_DC_CLReqControlMode  EVPresentVoltage=400  EVMaximumChargePower=50000  EVMinimumChargePower=1000  EVMaximumChargeCurrent=125  EVMaximumVoltage=500  EVMinimumVoltage=200  EVMaximumDischargePower=-50000  EVMinimumDischargePower=-1000  EVMaximumDischargeCurrent=-125
+       frame 01fe8004000000428034044520133c3fc90dbb883bba9d80628100120060120381001250c02080082b501040000020c0c810600208007d04007a018200320041062620831000400be100
+# 77 DC_ChargeLoopRes               OK  BPT_Dynamic_DC_CLResControlMode  EVSEPresentCurrent=-25  EVSEPresentVoltage=200  EVSEMaximumChargePower=150000  EVSEMinimumChargePower=200  EVSEMaximumChargeCurrent=200  EVSEMaximumVoltage=900  EVSEMaximumDischargePower=-5000  EVSEMinimumDischargePower=-200  EVSEMaximumDischargeCurrent=-25  EVSEMinimumVoltage=200
+       frame 01fe8004000000418038044520133c3fc90dbb8faddadcbeea9980320063f0e18981fc3403c00010820dc0b03f8680781fc3403c0fe1508c0801872703f8e78781f870c4c0fe1a01e0
+       … x278 in a row
+#355 PowerDeliveryReq               
+       frame 01fe8002000000138054044520133c3fc90dbb89fbba9d80620140
+#355 PowerDeliveryRes               OK
+       frame 01fe8002000000168058044520133c3fc90dbb8fcb8d2d8eea9980320040
