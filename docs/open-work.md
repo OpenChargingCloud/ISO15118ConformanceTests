@@ -203,6 +203,14 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   What it needed was a P-521 contract chain, since the release's own MO
   test PKI is P-256 and fails its station's `-20` profile check
   ([run, finding 4](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
+- **Energy that actually flows back, `-20` BPT.** All three of our cars now negotiate the
+  bidirectional services (the ports since 2026-11-28), and four recorded sessions hold the `BPT_*`
+  types (`iso20-*-eim-bpt*`). But in every one of them the energy flows into the car: our station answers
+  `+120 A` and never asks for a discharge. `Secc20Base` offers no `DischargingSchedule`, and no charge-loop
+  response carries `BPT_DischargedEnergyReadingWh`. So the discharge half has never run anywhere in our
+  stack: a negative current or power, the cars' counters running backwards, and a signed reading of
+  discharged energy. That is the half the *Chargy in the Vehicle* paper calls the seller's delivery
+  note (its Section 7). Ours to build, station first; nothing outside is in the way.
 
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
 morning the `-20` AC cells were behind a wall, so nothing beyond them could be listed here at all; once
@@ -993,7 +1001,7 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin: *Ours to fix* is empty again, *Open questions about our own stack* has none, and
-  *Untested, nothing stopping us* holds two runs that between them are an afternoon.
+  *Untested, nothing stopping us* holds one item, the BPT discharge (counted 2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
   covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,
