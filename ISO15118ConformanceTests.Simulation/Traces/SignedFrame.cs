@@ -251,7 +251,8 @@ internal static class SignedFrame
     /// as a -2 one. It never appears on the wire, which is why only a session-level check can catch
     /// it being wrong.</param>
     private sealed record MeterReading(int Protocol, byte[] SessionId, string MeterId,
-                                       ulong Reading, long? Timestamp, byte[]? Signature);
+                                       ulong Reading, long? Timestamp, byte[]? Signature,
+                                       ulong? Discharged = null);
 
     /// <summary>The raw <c>r‖s</c> meter signature a frame carries, or <c>null</c> for the frames —
     /// most of them — whose message type has no <c>MeterInfo</c> at all.</summary>
@@ -286,8 +287,10 @@ internal static class SignedFrame
         if (ReadingOf(Decode(frame)) is not { Signature: { } signature } reading)
             return false;
 
+        // A reading that carries the discharge register is signed over both (layout 2): stripping the
+        // register from a frame must not leave a reading that still verifies.
         return SigningMeter.Verify(meterKey, reading.Protocol, reading.SessionId, reading.MeterId,
-                                   reading.Reading, reading.Timestamp, signature);
+                                   reading.Reading, reading.Discharged, reading.Timestamp, signature);
     }
 
 
@@ -306,15 +309,18 @@ internal static class SignedFrame
         // -20 has one per message set, because each set generates its own MeterInfoType.
         Ac20.AC_ChargeLoopRes { MeterInfo: { } i } r => Iso20(r.Header.SessionID, i.MeterID,
                                                               i.ChargedEnergyReadingWh,
-                                                              i.MeterSignature, i.MeterTimestamp),
+                                                              i.MeterSignature, i.MeterTimestamp,
+                                                              i.BPT_DischargedEnergyReadingWh),
         Dc20.DC_ChargeLoopRes { MeterInfo: { } i } r => Iso20(r.Header.SessionID, i.MeterID,
                                                               i.ChargedEnergyReadingWh,
-                                                              i.MeterSignature, i.MeterTimestamp),
+                                                              i.MeterSignature, i.MeterTimestamp,
+                                                              i.BPT_DischargedEnergyReadingWh),
         // The reading the car confirms, as it echoes it back — a request, and a signed one.
         C.MeteringConfirmationReq { SignedMeteringData.MeterInfo: var i } r
                                                      => Iso20(r.Header.SessionID, i.MeterID,
                                                               i.ChargedEnergyReadingWh,
-                                                              i.MeterSignature, i.MeterTimestamp),
+                                                              i.MeterSignature, i.MeterTimestamp,
+                                                              i.BPT_DischargedEnergyReadingWh),
         _ => null,
     };
 
@@ -323,8 +329,8 @@ internal static class SignedFrame
             info.SigMeterReading);
 
     private static MeterReading Iso20(byte[] sessionId, string meterId, ulong reading,
-                                      byte[]? signature, ulong? timestamp) =>
-        new(20, sessionId, meterId, reading, (long?) timestamp, signature);
+                                      byte[]? signature, ulong? timestamp, ulong? discharged) =>
+        new(20, sessionId, meterId, reading, (long?) timestamp, signature, discharged);
 
 
     private static object SubstituteMeter(object message, byte[] meterSignature)

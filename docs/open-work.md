@@ -203,14 +203,18 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   What it needed was a P-521 contract chain, since the release's own MO
   test PKI is P-256 and fails its station's `-20` profile check
   ([run, finding 4](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
-- **Energy that actually flows back, `-20` BPT.** All three of our cars now negotiate the
-  bidirectional services (the ports since 2026-11-28), and four recorded sessions hold the `BPT_*`
-  types (`iso20-*-eim-bpt*`). But in every one of them the energy flows into the car: our station answers
-  `+120 A` and never asks for a discharge. `Secc20Base` offers no `DischargingSchedule`, and no charge-loop
-  response carries `BPT_DischargedEnergyReadingWh`. So the discharge half has never run anywhere in our
-  stack: a negative current or power, the cars' counters running backwards, and a signed reading of
-  discharged energy. That is the half the *Chargy in the Vehicle* paper calls the seller's delivery
-  note (its Section 7). Ours to build, station first; nothing outside is in the way.
+- ~~**Energy that actually flows back, `-20` BPT.**~~ **Done 2026-11-28, the same day it was written**
+  (WWCP_ISO15118#60 and EVSimulatorApp#77). In a bidirectional Dynamic session our DC station serves a
+  negative current (`Secc20Dc.DischargeCurrent_A`), and our AC station asks with a negative
+  `EVSETargetActivePower` (`Secc20Ac.DischargePowerW`), which all three cars follow from the next
+  loop on (`[V2G20-1825]`). Negative is the direction from the vehicle (`[V2G20-1034]`, `[V2G20-1035]`).
+  The meter's discharge register rides in `BPT_DischargedEnergyReadingWh` and is signed with the charged
+  one under a second layout, `V2G-METER-2`, in C#, Kotlin, Swift, the app and the OCPP record. Two
+  traces hold it, `iso20-dc-eim-bpt-discharge` and `iso20-ac-eim-bpt-discharge`, and in both every car's
+  count equals charged minus discharged. Still not covered: Scheduled mode, where the EV names the
+  setpoint and the station would offer a `DischargingSchedule`, and any counterparty, since none has
+  discharged against us.
+
 
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
 morning the `-20` AC cells were behind a wall, so nothing beyond them could be listed here at all; once
@@ -374,6 +378,11 @@ backlog is that half of it turns out not to have been work.
 | ~~**Plug & Charge, -20**~~ | ~~eVDriveFlow~~ | **Closed 2026-08-11 by answering the condition: they implement none.** Moved to *Structural*, below. |
 
 ## Ours to fix
+
+- **The car's transparency comparison in a bidirectional session.** `StationReading` (C#, and the
+  ports' and app's counterparts) pairs the vehicle's own count with `ChargedEnergyReadingWh` alone. In
+  a discharge session the right station figure is charged minus discharged, so EVCLI's Transparency
+  section would show a difference where there is none. Spans the stack, both ports, the app and EVCLI.
 
 - ~~**Our `-20` station's `--require-metering-confirmation` did not count the contract chain.**~~
   **Fixed 2026-11-27**: [WWCP_ISO15118#58](https://github.com/OpenChargingCloud/WWCP_ISO15118/pull/58)
@@ -907,7 +916,18 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
 
 Not gaps in coverage — things a counterparty's behaviour raised about us, which are not settled.
 
-**Currently none.** The latest was raised on 2026-11-06 by EVerest's next EV, `Ev15118` (PR #3031):
+**One, since 2026-11-28.**
+
+- **The sign of the discharge *limits*.** `[V2G20-1213]` reads as if parameters used for discharging,
+  limits included, are to be negative. Our cars and station send `EVMaximumDischargePower` and its
+  siblings as positive magnitudes, and so does eVDriveFlow's car (48 000 W,
+  [run](interop-runs/2026-08-07-edf-dc-bpt/bpt-envelope.txt)). EVerest accepted ours in every BPT run.
+  The flows themselves are negative as required. Left unchanged on purpose: no reference encoder or
+  counterparty says otherwise, and changing the sign would break the one convention the field seems to
+  share. To decide against the requirement text in `normative-basis.md`, then against EVerest's and
+  Josev's code, before anything moves.
+
+**Before it, none.** The previous one was raised on 2026-11-06 by EVerest's next EV, `Ev15118` (PR #3031):
 *should our `-2` station state the result of the isolation test it claims to have run?* It never had,
 and that car stopped after `CableCheck` without one. Neither side was in defect: ISO 15118-2 makes
 `EVSEIsolationStatus` optional and defers its handling to IEC 61851-23, which is not in
@@ -1000,8 +1020,9 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   counterparty, counted 2026-11-27. Seven more are live only in the 2026.02 line, one wants a rewrite,
   and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin: *Ours to fix* is empty again, *Open questions about our own stack* has none, and
-  *Untested, nothing stopping us* holds one item, the BPT discharge (counted 2026-11-28).
+  and by a wide margin: *Ours to fix* and *Open questions about our own stack* hold one item each, both
+  left by the BPT discharge work, and *Untested, nothing stopping us* is empty again (counted
+  2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
   covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,
