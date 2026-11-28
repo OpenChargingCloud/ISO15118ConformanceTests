@@ -411,6 +411,9 @@ backlog is that half of it turns out not to have been work.
   `OK`. That put the coming-back half of
   [`everest-evsev2g-metering-chain`](reports/everest-evsev2g-metering-chain.md) on the wire
   ([run](interop-runs/2026-11-27-everest-2026.10.0-findings-live/notes.md#after-the-fix-the-receipt-arms-again)).
+  Held offline since 2026-11-28 by two recorded sessions that the C#, Kotlin and Swift cars all replay:
+  `iso2-ac-pnc-norecord` without a meter, and `iso2-ac-pnc-meter-norecord`, EVerest's shape with a
+  signing meter (both in *Never verified by anything but us*, above).
 - ~~**The Kotlin and Swift cars still sign `-20` in Josev's `ecdsa-sha256`, and still continue past a
   WARNING in `AuthorizationRes`.**~~ **Fixed 2026-11-27**, the same day as the C# car (below).
   `V2GSigner` now takes the hash from its caller, and both ports have an `XmlDsigSuite` with `Iso20` as
