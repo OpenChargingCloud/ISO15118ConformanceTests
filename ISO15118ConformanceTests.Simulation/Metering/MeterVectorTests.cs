@@ -62,17 +62,24 @@ public class MeterVectorTests
     private const string PrivateKeyD =
         "c9afa9d845ba75166b5c215767b1d6934e50c3db36e89b127b8a622b120f6721";
 
-    private static readonly (string MeterId, int Protocol, string SessionId, ulong Reading, long? Timestamp)[]
+    private static readonly (string MeterId, int Protocol, string SessionId, ulong Reading, long? Timestamp, ulong? Discharged)[]
         Cases =
         [
-            ("VAN*M1",  2, "0102030405060708",       4200, 1_700_000_000),
-            ("VAN*M1", 20, "0102030405060708",       4200, 1_700_000_000),
-            ("VAN*M1",  2, "0102030405060709",       4200, 1_700_000_000),   // session binding
-            ("A1",      2, "0000000000000000",         23, 0),               // length-prefix collision pair
-            ("A",       2, "0000000000000000",        123, 0),
-            ("",        2, "0000000000000000",          0, null),            // empty id, absent timestamp
-            ("VAN*M1",  2, "ffffffffffffffff", ulong.MaxValue, long.MaxValue),
-            ("Zähler-Ü", 2, "0102030405060708",       999, 1),               // non-ASCII id, UTF-8
+            ("VAN*M1",  2, "0102030405060708",       4200, 1_700_000_000, null),
+            ("VAN*M1", 20, "0102030405060708",       4200, 1_700_000_000, null),
+            ("VAN*M1",  2, "0102030405060709",       4200, 1_700_000_000, null),   // session binding
+            ("A1",      2, "0000000000000000",         23, 0,             null),   // length-prefix collision pair
+            ("A",       2, "0000000000000000",        123, 0,             null),
+            ("",        2, "0000000000000000",          0, null,          null),   // empty id, absent timestamp
+            ("VAN*M1",  2, "ffffffffffffffff", ulong.MaxValue, long.MaxValue, null),
+            ("Zähler-Ü", 2, "0102030405060708",       999, 1,             null),   // non-ASCII id, UTF-8
+
+            // Layout 2, since 2026-11-28: a bidirectional meter signs both registers. The first is the
+            // layout-1 case above with a discharge register beside it, so the two payloads differ in the
+            // separator and the extra eight bytes, and a register of 0 is still signed rather than left out.
+            ("VAN*M1", 20, "0102030405060708",       4200, 1_700_000_000, 1300),
+            ("VAN*M1", 20, "0102030405060708",       4200, 1_700_000_000, 0),
+            ("VAN*M1", 20, "ffffffffffffffff", ulong.MaxValue, null,  ulong.MaxValue),
         ];
 
     private static ECDsa Key()
@@ -131,19 +138,26 @@ public class MeterVectorTests
         var vectors = Cases.Select(c =>
         {
             var session = Convert.FromHexString(c.SessionId);
-            var payload = MeterSigningPayload.Build(c.Protocol, session, c.MeterId, c.Reading, c.Timestamp);
+            var payload = MeterSigningPayload.Build(c.Protocol, session, c.MeterId, c.Reading, c.Discharged, c.Timestamp);
             var signature = key.SignData(payload, HashAlgorithmName.SHA256,
                                          DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-            return new
+
+            // `discharged` is written only for the layout-2 cases, so the layout-1 entries stay exactly
+            // what the Swift and Kotlin readers were written against, and `timestamp: null` keeps its
+            // meaning of "absent".
+            var vector = new Dictionary<string, object?>
             {
-                meterId   = c.MeterId,
-                protocol  = c.Protocol,
-                sessionId = c.SessionId,
-                reading   = c.Reading.ToString(CultureInfo.InvariantCulture),
-                timestamp = c.Timestamp?.ToString(CultureInfo.InvariantCulture),
-                payload   = Convert.ToHexString(payload).ToLowerInvariant(),
-                signature = Convert.ToHexString(signature).ToLowerInvariant(),
+                ["meterId"]   = c.MeterId,
+                ["protocol"]  = c.Protocol,
+                ["sessionId"] = c.SessionId,
+                ["reading"]   = c.Reading.ToString(CultureInfo.InvariantCulture),
+                ["timestamp"] = c.Timestamp?.ToString(CultureInfo.InvariantCulture),
             };
+            if (c.Discharged is { } discharged)
+                vector["discharged"] = discharged.ToString(CultureInfo.InvariantCulture);
+            vector["payload"]   = Convert.ToHexString(payload).ToLowerInvariant();
+            vector["signature"] = Convert.ToHexString(signature).ToLowerInvariant();
+            return vector;
         }).ToArray();
 
         var json = JsonSerializer.Serialize(new
@@ -201,14 +215,17 @@ public class MeterVectorTests
                                 ? null
                                 : long.Parse(v.GetProperty("timestamp").GetString()!, CultureInfo.InvariantCulture);
             var signature = Convert.FromHexString(v.GetProperty("signature").GetString()!);
+            ulong? discharged = v.TryGetProperty("discharged", out var d)
+                                    ? ulong.Parse(d.GetString()!, CultureInfo.InvariantCulture)
+                                    : null;
 
-            var payload = MeterSigningPayload.Build(protocol, session, meterId, reading, stamp);
+            var payload = MeterSigningPayload.Build(protocol, session, meterId, reading, discharged, stamp);
             var actual  = Convert.ToHexString(payload).ToLowerInvariant();
 
             if (actual != v.GetProperty("payload").GetString())
                 failures.Add($"{meterId}/{protocol}: payload differs\n  corpus {v.GetProperty("payload").GetString()}\n  actual {actual}");
 
-            if (!SigningMeter.Verify(key, protocol, session, meterId, reading, stamp, signature))
+            if (!SigningMeter.Verify(key, protocol, session, meterId, reading, discharged, stamp, signature))
                 failures.Add($"{meterId}/{protocol}: signature does not verify");
         }
 
@@ -239,6 +256,15 @@ public class MeterVectorTests
             var a  = vectors.Single(v => v.GetProperty("meterId").GetString() is "A");
             Assert.That(a1.GetProperty("payload").GetString(),
                         Is.Not.EqualTo(a.GetProperty("payload").GetString()));
+
+            // Layout 2, and the case that tells the two layouts apart: the same reading with and
+            // without a discharge register must not share a payload.
+            var bidirectional = vectors.Where(v => v.TryGetProperty("discharged", out _)).ToList();
+            Assert.That(bidirectional, Is.Not.Empty, "no layout-2 vector, so a bidirectional meter's signature is unpinned");
+            Assert.That(bidirectional.Select(v => v.GetProperty("payload").GetString()),
+                        Has.None.EqualTo(vectors.First(v => v.GetProperty("protocol").GetInt32() == 20
+                                                         && !v.TryGetProperty("discharged", out _))
+                                                .GetProperty("payload").GetString()));
         });
     }
 }

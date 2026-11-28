@@ -37,6 +37,8 @@ using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 using I2ChargingSession  = cloud.charging.open.protocols.ISO15118_2.Generated.ChargingSession;
 using C20ChargingSession = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.ChargingSession;
 using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
+using Ac20Msg = cloud.charging.open.protocols.ISO15118_20.AC.Generated;
+using Dc20Msg = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
 
 namespace ISO15118ConformanceTests.Simulation.Traces;
 
@@ -490,6 +492,63 @@ public class SessionTraceCorpusTests
                             FixedGenChallenge = RecordedGenChallenge,
                             Backend           = backend }.RunAsync(stream, ct);
             }),
+
+        // ── energy that flows back ────────────────────────────────────────
+        //
+        // Recorded 2026-11-28: the first sessions of this project in which energy goes from the vehicle
+        // to the station. Both are bidirectional and Dynamic, because there the station sets the operating
+        // point. Negative is the direction from the vehicle ([V2G20-1034], [V2G20-1035]). Both stations
+        // have a signing meter, whose discharge register rides in BPT_DischargedEnergyReadingWh, and
+        // in a bidirectional session the meter signs both registers (layout 2 of MeterSigningPayload).
+        // DC: the station serves the current, so EVSEPresentCurrent goes out negative and the car counts
+        // its own voltage times it. AC: the station asks with a negative EVSETargetActivePower, the car
+        // follows from the next iteration on ([V2G20-1825]), and the station meters what the car reports.
+
+        new("iso20-dc-eim-bpt-discharge", "iso15118-20", "dc",
+            "-20 DC, EIM, bidirectional in Dynamic mode, at a station that discharges the vehicle at 100 A: " +
+            "EVSEPresentCurrent is negative in every charge loop, the meter's discharge register rises, " +
+            "and each reading is signed over both registers.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage)
+                          { PreferBidirectionalService = true, PreferDynamicControlMode = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId     = RecordedSessionId,
+                            FixedGenChallenge  = RecordedGenChallenge,
+                            InstalledMeter     = Meter(clock),
+                            DischargeCurrent_A = 100,
+                            Backend            = backend }.RunAsync(stream, ct);
+            },
+            Metered: true),
+
+        new("iso20-ac-eim-bpt-discharge", "iso15118-20", "ac",
+            "-20 AC, EIM, bidirectional in Dynamic mode, at a station that asks for 11 kW back: " +
+            "EVSETargetActivePower is negative, the car reports that figure as its EVPresentActivePower " +
+            "from the second charge loop on, and the meter's discharge register rises with it.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Evcc20Ac(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage)
+                          { PreferBidirectionalService = true, PreferDynamicControlMode = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Secc20Ac(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            InstalledMeter    = Meter(clock),
+                            DischargePowerW   = 11_000,
+                            Backend           = backend }.RunAsync(stream, ct);
+            },
+            Metered: true),
 
         // ── the multi-protocol offer ──────────────────────────────────────
         //
@@ -1702,7 +1761,8 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public void EveryRecordedMeterReadingVerifies(
-        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso2-ac-pnc-meter-norecord", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm")] string name)
+        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso2-ac-pnc-meter-norecord", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm",
+                "iso20-dc-eim-bpt-discharge", "iso20-ac-eim-bpt-discharge")] string name)
     {
 
         var trace   = SessionTrace.ReadFrom(TracePath(name));
@@ -2044,6 +2104,94 @@ public class SessionTraceCorpusTests
     }
 
     /// <summary>
+    /// The station discharges the vehicle, and the meter signs what went back.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The first recordings of this project in which energy flows from the vehicle to the station.
+    /// Negative is that direction (`[V2G20-1034]`, `[V2G20-1035]`). DC: the station serves the current,
+    /// so every <c>EVSEPresentCurrent</c> is negative. AC: the station asks with a negative
+    /// <c>EVSETargetActivePower</c>, and the vehicle reports that figure from the next charge loop on
+    /// (`[V2G20-1825]`).
+    /// </para>
+    /// <para>
+    /// The meter's discharge register rises, rides in <c>BPT_DischargedEnergyReadingWh</c>, and is signed
+    /// with the charged one (layout 2 of <see cref="MeterSigningPayload"/>). The half worth having is the
+    /// negative: the recorded signature must not verify with the register stripped, or the discharged
+    /// figure would be an unsigned number that looks signed.
+    /// </para>
+    /// </remarks>
+    [Test]
+    public void TheStationDischargesAndTheMeterSignsWhatWentBack(
+        [Values("iso20-dc-eim-bpt-discharge", "iso20-ac-eim-bpt-discharge")] string name)
+    {
+
+        var trace = SessionTrace.ReadFrom(TracePath(name));
+        using var meterKey = KeyOf(trace.MeterKey!);
+
+        static double Amount(short value, sbyte exponent) => value * Math.Pow(10, exponent);
+
+        var loops = trace.Exchanges.Where(e => e.Response.Message is "DC_ChargeLoopRes" or "AC_ChargeLoopRes").ToList();
+        Assert.That(loops, Has.Count.EqualTo(3), "three charge loops, as in every -20 session of the corpus");
+
+        var discharged = new List<ulong>();
+
+        Assert.Multiple(() =>
+        {
+            for (var i = 0; i < loops.Count; i++)
+            {
+                var (request, response) = (SignedFrame.DecodeWithSet(loops[i].Request.Bytes).Message,
+                                           SignedFrame.DecodeWithSet(loops[i].Response.Bytes).Message);
+
+                (string MeterID, ulong Charged, ulong? Discharged, byte[]? Signature, ulong? Timestamp, byte[] Session) reading;
+
+                if (response is Dc20Msg.DC_ChargeLoopRes dc)
+                {
+                    Assert.That(Amount(dc.EVSEPresentCurrent.Value, dc.EVSEPresentCurrent.Exponent), Is.Negative,
+                                $"loop {i + 1}: the station serves a positive current, so nothing went back");
+                    var m = dc.MeterInfo!;
+                    reading = (m.MeterID, m.ChargedEnergyReadingWh, m.BPT_DischargedEnergyReadingWh, m.MeterSignature,
+                               m.MeterTimestamp, dc.Header.SessionID);
+                }
+                else
+                {
+                    var ac  = (Ac20Msg.AC_ChargeLoopRes) response;
+                    var ask = (Ac20Msg.Dynamic_AC_CLResControlModeType) ac.CLResControlMode;
+                    Assert.That(Amount(ask.EVSETargetActivePower.Value, ask.EVSETargetActivePower.Exponent), Is.Negative,
+                                $"loop {i + 1}: the station does not ask for energy back");
+
+                    // The vehicle follows from the loop after the first ask on.
+                    var said = ((Ac20Msg.Dynamic_AC_CLReqControlModeType) ((Ac20Msg.AC_ChargeLoopReq) request).CLReqControlMode)
+                                   .EVPresentActivePower;
+                    if (i > 0)
+                        Assert.That(Amount(said.Value, said.Exponent), Is.EqualTo(Amount(ask.EVSETargetActivePower.Value,
+                                                                                          ask.EVSETargetActivePower.Exponent)),
+                                    $"loop {i + 1}: the vehicle did not follow the station's ask ([V2G20-1825])");
+
+                    var m = ac.MeterInfo!;
+                    reading = (m.MeterID, m.ChargedEnergyReadingWh, m.BPT_DischargedEnergyReadingWh, m.MeterSignature,
+                               m.MeterTimestamp, ac.Header.SessionID);
+                }
+
+                Assert.That(reading.Discharged, Is.Not.Null,
+                            $"loop {i + 1}: a bidirectional session's reading carries no discharge register");
+                discharged.Add(reading.Discharged ?? 0);
+
+                Assert.That(SigningMeter.Verify(meterKey, 20, reading.Session, reading.MeterID, reading.Charged,
+                                                reading.Discharged, (long?) reading.Timestamp, reading.Signature!),
+                            Is.True, $"loop {i + 1}: the reading does not verify over both registers");
+                Assert.That(SigningMeter.Verify(meterKey, 20, reading.Session, reading.MeterID, reading.Charged,
+                                                (long?) reading.Timestamp, reading.Signature!),
+                            Is.False, $"loop {i + 1}: the reading verifies with the discharge register stripped");
+            }
+
+            Assert.That(discharged, Is.Ordered.Ascending, "the discharge register went backwards");
+            Assert.That(discharged[^1], Is.GreaterThan(0), "nothing was discharged");
+        });
+
+    }
+
+    /// <summary>
     /// The station told its backend the same signed values it showed the car.
     /// </summary>
     /// <remarks>
@@ -2065,7 +2213,8 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public async Task TheBackendRecordCarriesTheSameSignedValuesTheCarSaw(
-        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm")] string name)
+        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm",
+                "iso20-dc-eim-bpt-discharge", "iso20-ac-eim-bpt-discharge")] string name)
     {
 
         var (trace, ocpp) = await RecordWithBackendAsync(Scenarios.Single(s => s.Name == name));
@@ -2075,8 +2224,11 @@ public class SessionTraceCorpusTests
                              .Select(e => e.Response.MeterSignature!)
                              .ToList();
 
+        // One signature per reading, on the import register; a bidirectional session's export register
+        // rides beside it unsigned, because the one signature covers both (V2G-METER-2).
         var reported = ocpp.MeterValues
                            .SelectMany(v => v.SampledValue)
+                           .Where(v => v.Measurand == "Energy.Active.Import.Register")
                            .Select(v => v.SignedMeterValue?.SignedMeterData)
                            .ToList();
 
