@@ -1,0 +1,17 @@
+#  7 AC_ChargeParameterDiscoveryReq BPT_AC_CPDReqEnergyTransferMode  EVMaximumChargePower=22000  EVMinimumChargePower=0  EVMaximumDischargePower=-22000  EVMinimumDischargePower=0
+       frame 01fe8003000000218010041a718b6a591313ae8feb7a9d806288109811220000088119711220000080
+#  7 AC_ChargeParameterDiscoveryRes OK  BPT_AC_CPDResEnergyTransferMode  EVSEMaximumChargePower=22080  EVSEMinimumChargePower=4140  EVSEMaximumDischargePower=0  EVSEMinimumDischargePower=0
+       frame 01fe8003000000298014041a718b6a591313ae8c1d8c391eda998032004408500891001584043f04413948000022000008
+#  9 PowerDeliveryReq               
+       frame 01fe8002000000238054041a718b6a591313ae8feb7a9d8062000404373f8576dded32d00480e041805124
+#  9 PowerDeliveryRes               OK
+       frame 01fe8002000000168058041a718b6a591313ae880888692eda9980320040
+# 10 AC_ChargeLoopReq               BPT_Dynamic_AC_CLReqControlMode  EVMaximumChargePower=11000  EVMinimumChargePower=1000  EVPresentActivePower=22000  EVPresentReactivePower=0  EVMaximumDischargePower=-11000  EVMinimumDischargePower=-1000
+       frame 01fe8003000000338008041a718b6a591313ae8ffb7a9d8062802407020c07810607808300a041805910600244084c089100000441885110620040
+# 10 AC_ChargeLoopRes               OK  BPT_Dynamic_AC_CLResControlMode  EVSETargetActivePower=22080  EVSEPresentActivePower=0
+       frame 01fe80030000001e800c041a718b6a591313ae8f5c48692eda998032004840850088a4000010
+       … x3 in a row
+# 13 PowerDeliveryReq               
+       frame 01fe8002000000138054041a718b6a591313ae8ffb7a9d80620140
+# 13 PowerDeliveryRes               OK
+       frame 01fe8002000000168058041a718b6a591313ae8d6d3c892eda9980320040

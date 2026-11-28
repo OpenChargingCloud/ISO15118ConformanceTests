@@ -1,0 +1,77 @@
+### arm d20-bpt-dyn-export-long  config config-d20-fwd2610.yaml  -20 dc  sessions 1  probe sdp  trigger 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-28T05:49:39+01:00
+station up after 4s
+published set_limit_watts -5000
+---------------- session 1
+PWM on after 8s
+probe 1: no SDP response (got '')
+endpoint [fe80:0000:0000:0000:0215:5dff:fefd:8161%eth0]:50000
+dotnet test exit 0
+car log 192 bytes
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [37 s]
+manager alive at end: 1
+### their side
+2026-11-28 05:50:47.167665 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m (pid 2023000) shutdown [16ms] with status: signal=15
+2026-11-28 05:50:47.168015 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 2023043) shutdown [16ms] with status: signal=15
+2026-11-28 05:50:47.168816 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m (pid 2022991) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.168941 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 2022998) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.169048 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 2023057) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.169154 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m (pid 2022999) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.169743 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 2023038) shutdown [18ms] with status: signal=15
+2026-11-28 05:50:47.170667 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 2023001) shutdown [19ms] with status: signal=15
+2026-11-28 05:50:47.170936 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m (pid 2023035) shutdown [19ms] with status: signal=15
+2026-11-28 05:50:47.171782 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 2023050) shutdown [20ms] with status: signal=15
+2026-11-28 05:50:47.171807 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-28 05:50:47.172368 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+### arm d20-bpt-dyn-export-late  config config-d20-fwd2610.yaml  -20 dc  sessions 1  probe sdp  trigger 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-28T05:50:51+01:00
+station up after 4s
+---------------- session 1
+PWM on after 8s
+probe 1: no SDP response (got '')
+endpoint [fe80:0000:0000:0000:0215:5dff:fefd:8161%eth0]:50000
+dotnet test exit 0
+car log 192 bytes
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [37 s]
+manager alive at end: 1
+### their side
+2026-11-28 05:51:56.489054 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 2023461) shutdown [6ms] with status: signal=15
+2026-11-28 05:51:56.489319 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 2023454) shutdown [7ms] with status: signal=15
+2026-11-28 05:51:56.489415 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m (pid 2023460) shutdown [7ms] with status: signal=15
+2026-11-28 05:51:56.492087 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m (pid 2023447) shutdown [9ms] with status: signal=15
+2026-11-28 05:51:56.492257 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 2023468) shutdown [9ms] with status: signal=15
+2026-11-28 05:51:56.492644 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m (pid 2023459) shutdown [10ms] with status: signal=15
+2026-11-28 05:51:56.492806 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m (pid 2023469) shutdown [10ms] with status: signal=15
+2026-11-28 05:51:56.492895 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 2023474) shutdown [10ms] with status: signal=15
+2026-11-28 05:51:56.493388 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 2023506) shutdown [11ms] with status: signal=15
+2026-11-28 05:51:56.494210 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 2023518) shutdown [11ms] with status: signal=15
+2026-11-28 05:51:56.494258 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-28 05:51:56.494671 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+### arm ac20-bpt-dyn-export-late  config config-ac20-fwd2610.yaml  -20 ac  sessions 1  probe sdp  trigger 1
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-28T05:52:00+01:00
+station up after 3s
+---------------- session 1
+PWM on after 8s
+probe 1: no SDP response (got '')
+endpoint [fe80:0000:0000:0000:0215:5dff:fefd:8161%eth0]:50000
+dotnet test exit 0
+car log 85 bytes
+  Passed OurEvcc_AgainstTheirEvseV2G_RunsToCompletion [32 s]
+manager alive at end: 1
+### their side
+2026-11-28 05:52:59.480406 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mconnector_1_powerpath[0m (pid 2024139) shutdown [6ms] with status: signal=15
+2026-11-28 05:52:59.480454 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m (pid 2024142) shutdown [7ms] with status: signal=15
+2026-11-28 05:52:59.480496 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m (pid 2024144) shutdown [7ms] with status: signal=15
+2026-11-28 05:52:59.480805 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 2024143) shutdown [7ms] with status: signal=15
+2026-11-28 05:52:59.481312 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 2024146) shutdown [7ms] with status: signal=15
+2026-11-28 05:52:59.481871 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m (pid 2024145) shutdown [8ms] with status: signal=15
+2026-11-28 05:52:59.482241 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 2024168) shutdown [8ms] with status: signal=15
+2026-11-28 05:52:59.482410 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m (pid 2024151) shutdown [9ms] with status: signal=15
+2026-11-28 05:52:59.482608 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 2024162) shutdown [9ms] with status: signal=15
+2026-11-28 05:52:59.483840 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 2024170) shutdown [10ms] with status: signal=15
+2026-11-28 05:52:59.483871 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-28 05:52:59.484179 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting
+=== SECOND PASS DONE 2026-11-28T05:53:02+01:00

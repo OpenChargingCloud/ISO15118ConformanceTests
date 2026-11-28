@@ -213,13 +213,18 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   traces hold it, `iso20-dc-eim-bpt-discharge` and `iso20-ac-eim-bpt-discharge`, and in both every car's
   count equals charged minus discharged. Still not covered: Scheduled mode, where the EV names the
   setpoint and the station would offer a `DischargingSchedule`, and any counterparty (next entry).
-- **Discharge against EVerest, both directions.** Nothing stands in the way: their EV already chose our
-  bidirectional services in reverse, AC_BPT and DC_BPT, and drove the whole DC sequence
-  ([`…-d20-dc-bpt-reverse`](interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md)). But our station
-  only charged then. The run to make: our station with `DischargeCurrent_A` or `DischargePowerW` against
-  their EV in Dynamic mode, to see whether it accepts a negative current and follows a negative target;
-  and their station against our car, to see whether it ever asks for one. Their stations send no meter
-  signature, so the signed discharge register stays ours alone either way.
+- ~~**Discharge against EVerest, both directions.**~~ **Run 2026-11-28 against 2026.10.0, `-20` Dynamic**
+  ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md)).
+  - **DC goes both ways.** Their car took our −100 A for 692 loops. Their station, told to export by one
+    negative `set_limit_watts` to their API module, settled at −25 A at 200 V, which is exactly the
+    −5 000 W asked for, for 278 loops.
+  - **AC forward goes too.** Their station asked for −5 000 W and our car followed from the next loop.
+  - **AC reverse does not discharge.** Their SIL car reports a fixed +11 040 W whatever the target. Its
+    simulator never reads the target, so it is not their protocol stack.
+  - Every session reached `SessionStop` with every response `OK`. The run left one item of ours (*Ours to
+    fix*, below) and two fixture changes: `V2G_INTEROP_DISCHARGE`, and the battery reaching the `-20` car.
+  - Still not covered against anybody: Scheduled-mode discharge, and an AC car of theirs that follows a
+    target.
 
 
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
@@ -385,6 +390,17 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
+- **Our DC car discharges past empty, and counts what it never had.** Found 2026-11-28 against EVerest's
+  exporting station ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md#seen-on-our-side-not-changed-by-this-run)).
+  A pack starting at 50 % of 60 kWh ended at `0.0 %`, `-38.86 kWh delivered`.
+  - `EvBattery.Add` stops the pack at empty but adds the whole negative amount to `DeliveredWh`. The
+    charging side counts only what the pack took, so the two directions disagree.
+  - `Evcc20Dc` keeps stating −125 A as its maximum discharge current at 0 %, so nothing ends the export.
+  - Its meter samples the car's own fixed 400 V times the station's current, while their station
+    reported 200 V, so the car's figure is twice the station's.
+
+  Nothing on the wire is wrong, and our own station never discharges long enough to reach it. The
+  corpus is unaffected, because no recorded trace drains a pack.
 - ~~**Our cars and stations send the `-20` discharge limits positive; `[V2G20-1213]` and EVerest send them
   negative.**~~ **Fixed 2026-11-28**: every discharge power and current our cars (C#, Kotlin, Swift) and
   stations (`Secc20Ac`, `Secc20Dc`, and MCS through it) put on the wire is now negative, in
@@ -1044,9 +1060,9 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   counterparty, counted 2026-11-27. Seven more are live only in the 2026.02 line, one wants a rewrite,
   and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin: *Ours to fix* holds one item left by the BPT discharge work, the sign of the
-  discharge limits, *Open questions about our own stack* has none again, and *Untested, nothing stopping us* holds one run, the discharge against
-  EVerest (counted 2026-11-28).
+  and by a wide margin. *Ours to fix* holds one item, left by the discharge run against EVerest: our
+  DC car's battery past empty. *Open questions about our own stack* has none again. *Untested, nothing
+  stopping us* holds only what that run could not reach, Scheduled-mode discharge (counted 2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
   covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,

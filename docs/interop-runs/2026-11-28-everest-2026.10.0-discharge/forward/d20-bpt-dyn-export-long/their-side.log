@@ -1,0 +1,1028 @@
+2026-11-28 05:49:39.575565 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: Idle -> Initializing
+2026-11-28 05:49:39.583679 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:   [0;1;35;95m_[0;1;31;91m__[0;1;33;93m__[0;1;32;92m__[0;1;36;96m_[0m      [0;1;31;91m_[0;1;33;93m_[0m                [0;1;36;96m_[0m   
+2026-11-28 05:49:39.583743 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;31;91m|[0m  [0;1;33;93m_[0;1;32;92m__[0;1;36;96m_\[0m [0;1;34;94m\[0m    [0;1;33;93m/[0m [0;1;32;92m/[0m               [0;1;34;94m|[0m [0;1;35;95m|[0m
+2026-11-28 05:49:39.583749 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;33;93m|[0m [0;1;32;92m|_[0;1;36;96m_[0m   [0;1;35;95m\[0m [0;1;31;91m\[0m  [0;1;33;93m/[0m [0;1;32;92m/[0;1;36;96m__[0m [0;1;34;94m_[0m [0;1;35;95m_[0;1;31;91m_[0m [0;1;33;93m__[0;1;32;92m_[0m  [0;1;36;96m_[0;1;34;94m__[0;1;35;95m|[0m [0;1;31;91m|_[0m
+2026-11-28 05:49:39.583754 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_|[0m   [0;1;31;91m\[0m [0;1;33;93m\[0;1;32;92m/[0m [0;1;36;96m/[0m [0;1;34;94m_[0m [0;1;35;95m\[0m [0;1;31;91m'_[0;1;33;93m_/[0m [0;1;32;92m_[0m [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m__[0;1;31;91m|[0m [0;1;33;93m__[0;1;32;92m|[0m
+2026-11-28 05:49:39.583760 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;36;96m|[0m [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m_[0m   [0;1;32;92m\[0m  [0;1;36;96m/[0m  [0;1;35;95m__[0;1;31;91m/[0m [0;1;33;93m|[0m [0;1;32;92m|[0m  [0;1;36;96m_[0;1;34;94m_/[0;1;35;95m\_[0;1;31;91m_[0m [0;1;33;93m\[0m [0;1;32;92m|_[0m
+2026-11-28 05:49:39.583765 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m:  [0;1;34;94m|_[0;1;35;95m__[0;1;31;91m__[0;1;33;93m_|[0m   [0;1;36;96m\[0;1;34;94m/[0m [0;1;35;95m\_[0;1;31;91m__[0;1;33;93m|_[0;1;32;92m|[0m  [0;1;36;96m\[0;1;34;94m__[0;1;35;95m_|[0;1;31;91m|_[0;1;33;93m__[0;1;32;92m/\[0;1;36;96m__[0;1;34;94m|[0m
+2026-11-28 05:49:39.583770 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-11-28 05:49:39.583775 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-framework 0.26.0-dev 2026.10.0
+2026-11-28 05:49:39.583781 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: everest-core 2026.10.0-dev 2026.10.0
+2026-11-28 05:49:39.583785 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: 
+2026-11-28 05:49:39.583793 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using MQTT broker localhost:1883
+2026-11-28 05:49:39.584444 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration files to apply:
+2026-11-28 05:49:39.584464 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 1, path: /home/ahzf/everest/dist-2610/share/everest/migrations/1_up-initial.sql
+2026-11-28 05:49:39.584475 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 2, path: /home/ahzf/everest/dist-2610/share/everest/migrations/2_up-forward-exceptions.sql
+2026-11-28 05:49:39.584481 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 3, path: /home/ahzf/everest/dist-2610/share/everest/migrations/3_up-access_config.sql
+2026-11-28 05:49:39.584486 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Migration file [up] version 4, path: /home/ahzf/everest/dist-2610/share/everest/migrations/4_up-multi_config.sql
+2026-11-28 05:49:39.590002 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/configs-2610/config-d20-fwd2610.yaml"
+2026-11-28 05:49:39.605976 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading config file at: /home/ahzf/everest/configs-2610/config-d20-fwd2610.yaml
+2026-11-28 05:49:39.754973 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module configs written to database successfully
+2026-11-28 05:49:39.778940 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading module configs from pre-loaded database configuration
+2026-11-28 05:49:39.948407 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading module configs from pre-loaded database configuration
+2026-11-28 05:49:40.125544 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Loading module configs from pre-loaded database configuration
+2026-11-28 05:49:40.259751 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Config loading completed in 149ms
+2026-11-28 05:49:40.260811 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: Initializing -> StartingModules
+2026-11-28 05:49:40.261070 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Starting 18 modules
+2026-11-28 05:49:42.581586 [[1;37mINFO[0m] [1;32mapi_sink:Energy[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi_sink[0m initialized [2281ms]
+2026-11-28 05:49:42.585712 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using database at "/tmp/error_history.db"
+2026-11-28 05:49:42.586022 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Checking database
+2026-11-28 05:49:42.588294 [[1;37mINFO[0m] [1;32merror_history:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34merror_history[0m initialized [2286ms]
+2026-11-28 05:49:42.592918 [[1;33mWARN[0m] [1;32mev_api:EvAPI   [0m [1;36mvoid module::EvAPI::init()[0m [1;30m:[0m[1;32m[0m: DEPRECATED MODULE
+  component       : EvAPI
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : none, the module is removed without a replacement
+2026-11-28 05:49:42.593507 [[1;37mINFO[0m] [1;32mev_api:EvAPI   [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_api[0m initialized [2283ms]
+2026-11-28 05:49:42.594788 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m initialized [2286ms]
+2026-11-28 05:49:42.611880 [[1;37mINFO[0m] [1;32menergy_manager:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m initialized [2295ms]
+2026-11-28 05:49:42.614062 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m initialized [2295ms]
+2026-11-28 05:49:42.629671 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m initialized [2293ms]
+2026-11-28 05:49:42.633120 [[1;37mINFO[0m] [1;32mslac:SlacSimula[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m initialized [2300ms]
+2026-11-28 05:49:42.633528 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m initialized [2297ms]
+2026-11-28 05:49:42.639969 [[1;33mWARN[0m] [1;32mapi:API        [0m [1;36mvoid module::API::init()[0m [1;30m:[0m[1;32m[0m: DEPRECATED MODULE
+  component       : API
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : use the EVerest API modules (evse_manager_consumer_API and others)
+2026-11-28 05:49:42.641275 [[1;37mINFO[0m] [1;32mapi:API        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m initialized [2340ms]
+2026-11-28 05:49:42.653215 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m initialized [2338ms]
+2026-11-28 05:49:42.654020 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m initialized [2348ms]
+2026-11-28 05:49:42.655561 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m initialized [2346ms]
+2026-11-28 05:49:42.676266 [[1;37mINFO[0m] [1;32mgrid_connection[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m initialized [2350ms]
+2026-11-28 05:49:42.724019 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m initialized [2379ms]
+2026-11-28 05:49:42.725288 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m initialized [2396ms]
+2026-11-28 05:49:42.727248 [[1;37mINFO[0m] [1;32myeti_driver:Yet[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m initialized [2381ms]
+2026-11-28 05:49:42.768151 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m initialized [2425ms]
+2026-11-28 05:49:42.775284 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Clearing retained topics published by manager during startup
+2026-11-28 05:49:42.776021 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🚙🚙🚙 All modules are initialized. EVerest up and running [2515ms] 🚙🚙🚙[0m
+2026-11-28 05:49:42.776196 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: StartingModules -> Running
+2026-11-28 05:49:42.811306 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: using the EVCC MAC of interface lo
+2026-11-28 05:49:42.823502 [[1;37mINFO[0m] [1;32miso15118_car:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ev15118: set_dc_params
+2026-11-28 05:49:42.825652 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 05:49:42.867191 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: UNMATCHED
+2026-11-28 05:49:42.875133 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 05:49:42.918998 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G
+2026-11-28 05:49:42.920756 [[1;33mWARN[0m] [1;32mauth:Auth      [0m [1;36mvoid module::ReservationHandler::load_reservations()[0m [1;30m:[0m[1;32m[0m: Can not load reservations because no storage was configured.
+2026-11-28 05:49:42.921633 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-28 05:49:42.921977 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-28 05:49:42.955564 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-28 05:49:42.995285 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G20
+2026-11-28 05:49:42.996328 [[1;33mWARN[0m] [1;32mevse_security:E[0m [1;36mevse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&)[0m [1;30m:[0m[1;32m[0m: Could not find valid certificate
+2026-11-28 05:49:43.003405 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mstd::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&)[0m [1;30m:[0m[1;32m[0m: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-28 05:49:43.003516 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mvirtual void module::charger::ISO15118_chargerImpl::ready()[0m [1;30m:[0m[1;32m[0m: Evse15118D20: ISO 15118-20 is offered but no secp521r1 / Ed448 SECC leaf certificate is installed; TLS 1.3 sessions will be presented the ISO 15118-2 (secp256r1) leaf, which ISO 15118-20 EVs may reject
+2026-11-28 05:49:43.363109 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-28 05:49:43.364742 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: debug_mode enabled: publishing v2g_messages (message id plus the raw V2GTP frame as hex and base64) and ev_app_protocol
+2026-11-28 05:49:43.406683 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 05:49:43.453668 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 05:49:43.548159 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 05:49:43.593310 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 05:49:43.641109 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G
+2026-11-28 05:49:43.642424 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-28 05:49:43.642712 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-28 05:49:43.683794 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-28 05:49:43.731322 [[1;37mINFO[0m] [1;32mevse_security:E[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requesting leaf certificate info: V2G20
+2026-11-28 05:49:43.732488 [[1;33mWARN[0m] [1;32mevse_security:E[0m [1;36mevse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&)[0m [1;30m:[0m[1;32m[0m: Could not find valid certificate
+2026-11-28 05:49:43.775044 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mstd::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&)[0m [1;30m:[0m[1;32m[0m: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-28 05:49:43.775121 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-28 05:49:43.775166 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Cleaning up any other transaction on start up
+2026-11-28 05:49:43.776010 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Network device eth0 appeared
+2026-11-28 05:49:43.824858 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Starting SDP server with address: ::
+2026-11-28 05:49:43.830247 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Using ethernet interface: eth0
+2026-11-28 05:49:43.995712 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[32m🌀🌀🌀 Ready to start charging 🌀🌀🌀[0m
+2026-11-28 05:49:50.849719 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-28 05:49:51.115462 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Vehicle reset complete - ready for the next plug-in
+2026-11-28 05:49:51.115601 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Finished simulation. The vehicle keeps its state until a stop or unplug.
+2026-11-28 05:49:51.115737 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: Disconnected -> A
+2026-11-28 05:49:54.868296 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: sleep
+2026-11-28 05:49:54.868387 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-28 05:49:55.043152 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Vehicle reset complete - ready for the next plug-in
+2026-11-28 05:49:57.044925 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: iso_wait_slac_matched
+2026-11-28 05:49:57.223380 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: A -> B
+2026-11-28 05:49:57.606993 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: MATCHING
+2026-11-28 05:49:57.740077 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SYS  Session logging started.
+2026-11-28 05:49:57.740370 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Session Started: EVConnected[1;0m
+2026-11-28 05:49:57.742051 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Plug In event for evse#1, starting auth
+2026-11-28 05:49:57.742043 [[1;37mINFO[0m] [1;32mtoken_provider:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-28 05:49:57.743322 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: CE55F71752B68164"
+    }
+}
+2026-11-28 05:49:57.790247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC MATCHING[1;0m
+2026-11-28 05:49:57.791039 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got validation request for token: [redacted] hash: CE55F71752B68164
+2026-11-28 05:49:58.041303 [[1;37mINFO[0m] [1;32mtoken_validator[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Returning validation status: Accepted
+2026-11-28 05:49:58.043436 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Providing authorization to evse#1
+2026-11-28 05:49:58.241277 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM On (5.0%) took 0 ms[1;0m
+2026-11-28 05:49:58.375219 [[1;37mINFO[0m] [1;32mauth:Auth      [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Result for token: [redacted] hash: CE55F71752B68164: USED_TO_START_TRANSACTION
+2026-11-28 05:49:58.701842 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-28 05:49:58.701938 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Ignoring SDP request because dlink is not ready
+2026-11-28 05:50:00.041999 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC MATCHED[1;0m2026-11-28 05:50:00.042002 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: SLAC state: MATCHED
+
+2026-11-28 05:50:00.042267 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (true)[1;0m
+2026-11-28 05:50:00.127538 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: V2G communication setup timeout started (18000 ms)
+2026-11-28 05:50:00.194975 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Simulation waiting on: sleep
+2026-11-28 05:50:00.282839 [[1;37mINFO[0m] [1;32mev_manager:EvMa[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CP measured at the vehicle inlet: B -> C
+2026-11-28 05:50:00.743183 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR IEC Event CarRequestedPower[1;0m
+2026-11-28 05:50:01.214492 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Got SDP request from fe80::215:5dff:fefd:8161%eth0
+2026-11-28 05:50:02.646640 [[1;33mWARN[0m] [1;32mevse_manager:Ev[0m [1;36mvoid module::Charger::run_state_machine()[0m [1;30m:[0m[1;32m[0m: No energy available, still retrying... Some EVs dont like 0W and/or 0A in ChargingParameterDiscoveryRes message
+2026-11-28 05:50:02.646749 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: HLC module wont perform a pause. Even when there is no energy available.
+2026-11-28 05:50:02.646824 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC EIM Authorization received[1;0m
+2026-11-28 05:50:02.691241 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Transaction Started (0 kWh)[1;0m
+2026-11-28 05:50:02.691768 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC mode. We are in 5percent mode so we can continue without further action.[1;0m
+2026-11-28 05:50:02.691853 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: Wait for Auth->PrepareCharging[1;0m
+2026-11-28 05:50:02.692070 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: HLC module wont perform a pause. Even when there is no energy available.
+2026-11-28 05:50:03.957766 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Incoming connection from [fe80::215:5dff:fefd:8161%eth0]:54496
+2026-11-28 05:50:03.958032 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Accepted connection on port 50000
+2026-11-28 05:50:03.958072 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: V2G communication setup timeout anchored at TCP/TLS establishment
+2026-11-28 05:50:03.971806 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mmodule::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)>[0m [1;30m:[0m[1;32m[0m: Negotiated ISO 15118-20 (urn:iso:std:iso:15118:-20:DC) on an unsecured connection. ISO 15118-20 mandates TLS [V2G20-2356], so this session is not standard-conformant
+2026-11-28 05:50:03.973221 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SupportedAppProtocolReq[1;0m
+2026-11-28 05:50:04.073171 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SupportedAppProtocolRes[1;0m
+2026-11-28 05:50:04.091728 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received session setup with evccid: EVCC01
+2026-11-28 05:50:04.092175 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: New session created with session_id: 0x8A, 0x40, 0x26, 0x78, 0x7F, 0x92, 0x1B, 0x77
+2026-11-28 05:50:04.092249 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: V2G session established (SessionSetupReq received); communication setup timeout cancelled
+2026-11-28 05:50:04.115423 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionSetupReq[1;0m
+2026-11-28 05:50:04.182695 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Timestamp: 1795841404
+2026-11-28 05:50:04.247033 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionSetupRes[1;0m
+2026-11-28 05:50:04.247516 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationSetupReq[1;0m
+2026-11-28 05:50:04.276287 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mmodule::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)>[0m [1;30m:[0m[1;32m[0m: Timeout 2 is not started
+2026-11-28 05:50:04.291828 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationSetupRes[1;0m
+2026-11-28 05:50:04.292224 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G AuthorizationReq[1;0m
+2026-11-28 05:50:04.373853 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G AuthorizationRes[1;0m
+2026-11-28 05:50:04.419328 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ServiceDiscoveryReq[1;0m
+2026-11-28 05:50:04.473578 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ServiceDiscoveryRes[1;0m
+2026-11-28 05:50:04.482977 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Requested info about ServiceID: 6
+2026-11-28 05:50:04.519376 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ServiceDetailReq[1;0m
+2026-11-28 05:50:04.574036 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ServiceDetailRes[1;0m
+2026-11-28 05:50:04.577091 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Selected DC_BPT service parameters: control mode: Dynamic, mobility needs mode: ProvidedByEvcc
+2026-11-28 05:50:04.614300 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ServiceSelectionReq[1;0m
+2026-11-28 05:50:04.614612 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO EV selected service: DC_BPT[1;0m
+2026-11-28 05:50:04.678869 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Max charge current 200.000000A
+2026-11-28 05:50:04.678950 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Max discharge current -200.000000A
+2026-11-28 05:50:04.703592 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ServiceSelectionRes[1;0m
+2026-11-28 05:50:04.703955 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Received EV maximum limits: {
+    "dc_ev_maximum_current_limit": 200.0,
+    "dc_ev_maximum_power_limit": 50000.0,
+    "dc_ev_maximum_voltage_limit": 500.0
+}
+2026-11-28 05:50:04.704160 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeParameterDiscoveryReq[1;0m
+2026-11-28 05:50:04.835059 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeParameterDiscoveryRes[1;0m
+2026-11-28 05:50:04.835365 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G ScheduleExchangeReq[1;0m
+2026-11-28 05:50:04.879300 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G ScheduleExchangeRes[1;0m
+2026-11-28 05:50:04.923413 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:04.923830 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Start cable check...[1;0m
+2026-11-28 05:50:04.924003 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO DC HLC Close contactor (in CableCheck)[1;0m
+2026-11-28 05:50:04.974567 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:04.995968 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: IEC allow_power_on requested: true (reason DCCableCheck)
+2026-11-28 05:50:04.996098 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: IEC allow_power_on forwarded to BSP: true
+2026-11-28 05:50:05.043652 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.087861 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.131210 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.175242 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOn[1;0m
+2026-11-28 05:50:05.175484 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.243759 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: EV reports 500 V as maximum voltage
+2026-11-28 05:50:05.244021 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 500.00V/2.00A, requested was 500.00V/2.00A.[1;0m
+2026-11-28 05:50:05.246000 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.247036 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck: Using 500 V
+2026-11-28 05:50:05.247145 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON called, ChargingPhase: CableCheck[1;0m
+2026-11-28 05:50:05.307502 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: CableCheck
+2026-11-28 05:50:05.355081 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.355752 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.399284 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.443195 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.487482 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.534900 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.583322 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.663041 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.707139 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck: IMD self test started.
+2026-11-28 05:50:05.751319 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.751770 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.839003 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.839382 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.887566 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:05.888126 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 150000W/200A, target_voltage 0, actual_voltage 500, bpt_active false[1;0m
+2026-11-28 05:50:05.931393 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:05.975486 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.029432 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.076037 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.129256 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.259135 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.259758 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.303670 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.347196 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.391289 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.439391 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.483149 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.529267 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.576685 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.659152 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.703889 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.791353 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.791720 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.835321 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:06.879142 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:06.967202 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.011360 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.060677 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.105915 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.151320 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.198180 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.287177 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.287513 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.333980 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.383018 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.471121 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.515200 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.559377 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.603003 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.659247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.703248 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.791149 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.791576 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.834989 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:07.883635 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:07.971017 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.015085 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.059041 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.103497 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.146789 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.191050 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.236970 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.284071 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.337235 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.387009 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.475087 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.518834 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.562930 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.607228 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.663123 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.707538 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation monitor self test result: true[1;0m
+2026-11-28 05:50:08.707773 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.715139 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Started simulated isolation monitoring with 1000 ms interval
+2026-11-28 05:50:08.751247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck: Waiting for 1 isolation measurement sample(s)
+2026-11-28 05:50:08.751524 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:08.795111 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.795421 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.795557 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply OFF[1;0m
+2026-11-28 05:50:08.839031 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Off ChargingPhase: CableCheck
+2026-11-28 05:50:08.882967 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:08.926743 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:08.971190 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:09.015360 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:09.059299 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:09.103628 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:09.146892 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:09.191203 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck done, output is below 60V
+2026-11-28 05:50:09.191449 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:09.279430 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcCableCheckReq[1;0m
+2026-11-28 05:50:09.323159 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcCableCheckRes[1;0m
+2026-11-28 05:50:09.323436 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcPreChargeReq[1;0m
+2026-11-28 05:50:09.323688 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/2.00A, requested was 400.00V/0.00A.[1;0m
+2026-11-28 05:50:09.367276 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON called, ChargingPhase: PreCharge[1;0m
+2026-11-28 05:50:09.368907 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: PreCharge
+2026-11-28 05:50:09.411143 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcPreChargeRes[1;0m
+2026-11-28 05:50:09.411420 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-11-28 05:50:09.499270 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-11-28 05:50:09.499542 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:09.499694 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON in export mode[1;0m
+2026-11-28 05:50:09.501137 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Export ChargingPhase: Charging
+2026-11-28 05:50:09.542998 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 400.00V/1.00A, requested was 400.00V/0.00A.[1;0m
+2026-11-28 05:50:09.587020 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, start monitoring
+2026-11-28 05:50:09.587135 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 500.00V/125.00A, requested was 500.00V/125.00A.[1;0m
+2026-11-28 05:50:09.587362 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:09.663137 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:09.685183 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Charger state: PrepareCharging->Charging[1;0m
+2026-11-28 05:50:09.685644 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Timing statistics (Plugin to CurrentDemand)
+2026-11-28 05:50:09.685659 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: -------------------------------------------
+2026-11-28 05:50:09.685665 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: ConnSetup | HLC_PWM_5%_ON: 683 ms | D-LINK_READY: 1843 ms | Auth EIM Done: 4160 ms | Total: 7320 ms
+2026-11-28 05:50:09.685671 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: CableCheck | <60V: 0 ms | Relay On: 319 ms | EVInfo: 0 ms | VRampUp: 419 ms | Self test: 3044 ms | Measure: 43 ms | VRampDown: 439 ms | Total: 4355 ms
+2026-11-28 05:50:09.685676 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: PrepareCharging | Charging started: 406 ms | Total: 406 ms
+2026-11-28 05:50:09.685682 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Total duration all phases: 12082 ms
+2026-11-28 05:50:09.686518 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:09.774904 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:09.775210 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 500.00V/100.00A, requested was 500.00V/100.00A.[1;0m
+2026-11-28 05:50:09.775380 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:09.819066 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:09.863210 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:09.907236 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:09.951489 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:09.995200 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.038832 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.086317 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.136796 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.183801 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 150000W/200A, target_voltage 500, actual_voltage 500, bpt_active true[1;0m
+2026-11-28 05:50:10.227201 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.271392 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply: switch ON in import mode[1;0m
+2026-11-28 05:50:10.271703 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.272983 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Import ChargingPhase: Charging
+2026-11-28 05:50:10.315546 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 500.00V/100.00A, requested was 500.00V/100.00A.[1;0m
+2026-11-28 05:50:10.315841 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.359232 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.359542 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 200.00V/10.00A, requested was 200.00V/10.00A.[1;0m
+2026-11-28 05:50:10.446893 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.447640 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.490954 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.537844 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.587209 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.663372 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.707103 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, spread: 300 V > threshold: 50 V -> arming timer
+2026-11-28 05:50:10.707471 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.707661 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, spread: 0 V <= threshold: 50 V -> cancelling timer
+2026-11-28 05:50:10.751214 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.751464 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:10.843202 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.843575 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:10.891319 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:10.938130 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.027020 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.071245 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.115095 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.163224 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.207358 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.251448 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.295352 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.340121 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.384407 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 150000W/200A, target_voltage 200, actual_voltage 200, bpt_active true[1;0m
+2026-11-28 05:50:11.427509 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.471457 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.471769 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 200.00V/25.00A, requested was 200.00V/25.00A.[1;0m
+2026-11-28 05:50:11.515247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.559127 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.602624 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.662966 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.707315 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.751611 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:11.751866 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.831422 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.875234 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:11.919333 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:11.963314 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.051035 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.051392 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.095382 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.142874 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.187711 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.275517 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.319074 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.363287 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.407157 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.451336 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.495655 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.542295 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.588977 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.663121 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.707126 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.751518 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:12.751845 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.838844 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.839561 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:12.889045 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:12.979169 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.023268 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.067233 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.111315 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.159012 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.203435 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.247650 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.291560 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.340611 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.390008 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.483145 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.527124 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.571414 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.615142 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.667431 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.711543 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.799114 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:13.799346 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.800142 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.843726 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:13.890061 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:13.983483 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.027107 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.071406 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.115386 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.159043 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.203485 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.290765 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.291220 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.341570 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.391156 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.441855 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.491293 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.542308 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.590901 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.711082 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.711874 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.799022 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:14.799268 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.800083 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.847420 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.891512 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:14.944296 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:14.992480 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.045376 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.092176 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.145469 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.191894 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.279638 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.323290 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.367248 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.411263 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.455587 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.535405 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.579178 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.623271 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.667233 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.711310 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.755215 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:15.755444 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.835189 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.878966 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:15.922800 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:15.967098 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.011103 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.055104 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.098934 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.146968 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.235213 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.279514 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.323394 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.367625 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.411101 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.454977 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.499128 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.544261 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.593342 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.667450 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.711408 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.755810 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:16.756137 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.835421 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.879171 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:16.923187 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:16.967244 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.010927 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.055088 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.098906 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.144542 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.274934 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.275240 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.319293 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.362970 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.407221 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.451153 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.499093 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.547024 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.594305 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.667047 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.711036 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.798885 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:17.799160 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.800115 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.845706 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:17.894614 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:17.945936 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.035127 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.079090 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.123186 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.167202 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.211129 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.255315 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.299044 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.345504 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.394972 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.445755 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.534896 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.579202 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.623152 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.671021 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.715391 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.759519 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:18.759830 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.878930 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.879239 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:18.923218 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:18.967238 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.011520 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.055182 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.099251 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.149268 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.195368 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.283119 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.326995 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.370738 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.414971 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.458714 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.502737 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.549342 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.595872 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.671159 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.715240 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.759019 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:19.759317 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.847050 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.891240 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:19.935170 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:19.983322 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.027230 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.071327 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.115065 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.159071 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.203376 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.291546 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.378838 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.379069 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.423236 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.467129 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.515414 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.559294 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.602923 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.671260 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.714866 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.759069 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:20.759299 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.839734 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.883496 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:20.927171 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:20.971584 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.058965 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.059526 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.103070 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.147702 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.235565 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.279240 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.323243 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.367223 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.411081 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.454936 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.503346 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.549844 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.597883 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.671274 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.715691 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.759171 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:21.759442 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.846805 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.891287 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:21.935207 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:21.979362 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.023261 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.067545 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.111140 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.155420 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.199186 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.287281 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.331086 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.374693 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.419482 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.463188 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.507415 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.551085 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.599286 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.671119 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.715452 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.759370 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:22.759676 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.851250 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.852577 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:22.899654 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:22.952773 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.039247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.083127 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.127118 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.171068 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.215663 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.259565 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.303524 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.353323 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.400211 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.453410 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.499792 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.553367 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.600246 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.675184 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.719556 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.763417 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:23.763768 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.851277 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.895223 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:23.939166 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:23.983474 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.027281 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.071073 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.115246 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.159525 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.207396 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.295214 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.339190 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.383502 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.426948 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.471412 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.515096 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.559004 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.602796 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.675013 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.719485 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.763407 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:24.763671 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.851282 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.851865 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:24.901338 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:24.952474 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.038987 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.083257 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.126956 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.170920 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.215295 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.259210 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.302999 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.352748 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.401905 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.452853 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.538980 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.583000 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.626851 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.674885 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.719044 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.762984 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:25.763205 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.843002 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.886820 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:25.930751 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:25.974905 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.019014 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.062931 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.107371 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.153244 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.282995 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.283358 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.327217 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.371235 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.414919 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.459057 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.502930 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.553768 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.603420 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.675118 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.723102 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.767198 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:26.767500 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.855258 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.856457 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:26.903344 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:26.956912 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.042840 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.087063 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.130990 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.175118 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.219227 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.263193 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.307271 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.356860 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.404033 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.457182 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.543073 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.587424 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.631219 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.675284 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.719671 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.763327 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:27.763586 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.851102 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.895311 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:27.939321 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:27.983308 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.027379 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.071134 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.115310 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.163331 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.207329 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.295379 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.338984 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.383817 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.427271 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.470986 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.515378 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.602923 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.634805 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.679285 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.723147 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.810754 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:28.811034 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.811522 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.856218 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:28.905715 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:28.956838 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.043367 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.087141 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.131267 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.175054 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.219445 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.263556 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.311295 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.357148 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.447199 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.491130 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.535617 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.579166 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.623087 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.679267 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.723236 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.767411 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:29.767783 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.815383 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.859049 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:29.907028 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:29.957835 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.047386 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.091276 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.135056 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.179174 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.223139 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.267776 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.311192 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.358609 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.407477 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.456506 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.543340 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.587495 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.631247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.679229 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.723368 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.767151 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:30.767484 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.851480 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.895292 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:30.939331 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:30.983222 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.027432 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.071278 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.115237 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.161368 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.207872 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.295622 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.339594 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.383426 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.427343 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.471141 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.514924 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.603202 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.637714 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.683174 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.727372 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.771234 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:31.771488 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.851406 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.894835 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:31.939596 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:31.983267 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.031510 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.075247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.119467 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.163419 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.209769 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.299180 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.343215 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.387218 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.431179 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.475245 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.519493 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.606898 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.639072 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.685574 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.731455 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.819544 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.820076 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.831700 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:32.875662 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:32.919319 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:32.963371 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.087314 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.131160 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.175322 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.219406 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.311186 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.311928 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.355373 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.399255 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.445920 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.497470 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.587180 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.631230 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.683084 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.727423 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.815091 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.815385 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:33.815782 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.887527 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:33.931315 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:33.975015 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.019146 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.107046 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.107518 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.151222 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.198116 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.331127 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.331540 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.418999 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.419435 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.463233 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.507286 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.551416 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.600593 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.683453 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.727097 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.772009 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.772246 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:34.815537 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.891170 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:34.935295 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:34.979217 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.023142 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.067489 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.111298 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.155645 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.200117 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.331071 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.331445 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.375152 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.419318 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.463131 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.507313 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.551138 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.600405 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.683170 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.727306 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.771707 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.772514 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:35.815706 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.859307 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:35.902985 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:35.949432 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.000776 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.087304 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.131416 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.175165 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.219128 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.306965 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.307546 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.351189 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.401389 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.450046 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.501254 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.590868 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.635244 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.686937 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.731113 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.775355 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:36.819301 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.819630 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.863306 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:36.907344 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:36.950993 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.001908 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.091286 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.134987 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.179327 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.223314 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.310937 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.311323 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.355355 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.402433 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.451287 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.501102 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.591670 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.635635 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.687308 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.731541 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.819176 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:37.819510 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.819976 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.895494 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:37.939388 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:37.983365 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.026790 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.071104 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.115232 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.159149 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.207493 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.303214 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.304154 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.391261 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.435322 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.479293 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.523395 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.567423 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.611258 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.687224 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.735485 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.823044 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Isolation measurement Ok R_F 900000.[1;0m
+2026-11-28 05:50:38.823325 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.823787 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.895418 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:38.939414 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:38.983119 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.027233 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:39.071625 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.115691 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:39.159209 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.206248 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:39.295247 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.339253 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:39.383476 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.427273 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:39.471450 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.515425 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcChargeLoopReq[1;0m
+2026-11-28 05:50:39.559596 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcChargeLoopRes[1;0m
+2026-11-28 05:50:39.605705 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G PowerDeliveryReq[1;0m
+2026-11-28 05:50:39.605731 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: VoltagePlausibilityMonitor, stop monitoring
+2026-11-28 05:50:39.606029 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Welding detection Started[1;0m
+2026-11-28 05:50:39.606225 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply OFF[1;0m
+2026-11-28 05:50:39.607271 [[1;37mINFO[0m] [1;32mimd:IMDSimulato[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Stopped simulated isolation monitoring
+2026-11-28 05:50:39.607563 [[1;37mINFO[0m] [1;32mpowersupply_dc:[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Set mode: Off ChargingPhase: Charging
+2026-11-28 05:50:39.644951 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO DC HLC Open contactor[1;0m
+2026-11-28 05:50:39.645132 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: IEC allow_power_on requested: false (reason PowerOff)
+2026-11-28 05:50:39.645149 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: IEC allow_power_on forwarded to BSP: false
+2026-11-28 05:50:40.013438 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 150000W/200A, target_voltage 200, actual_voltage 0, bpt_active true[1;0m
+2026-11-28 05:50:40.103053 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 200.00V/25.00A, requested was 200.00V/25.00A.[1;0m
+2026-11-28 05:50:41.029274 [[1;33mWARN[0m] [1;32miso15118_charge[0m [1;36mmodule::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)>[0m [1;30m:[0m[1;32m[0m: Power path not reported off within 1400ms, sending PowerDeliveryRes anyway
+2026-11-28 05:50:41.031105 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G PowerDeliveryRes[1;0m
+2026-11-28 05:50:41.074846 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G DcWeldingDetectionReq[1;0m
+2026-11-28 05:50:41.799305 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Welding detection Finished[1;0m
+2026-11-28 05:50:41.799547 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G DcWeldingDetectionRes[1;0m
+2026-11-28 05:50:41.843015 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m:                                     [1;33mCAR ISO V2G SessionStopReq[1;0m
+2026-11-28 05:50:41.887048 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO V2G SessionStopRes[1;0m
+2026-11-28 05:50:41.887337 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SessionStopRes sent, arming CP oscillator retain timer [V2G-DC-968][1;0m
+2026-11-28 05:50:41.918846 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TCP connection closed by the peer
+2026-11-28 05:50:41.918918 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Closing TCP connection
+2026-11-28 05:50:41.919067 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: TCP connection closed gracefully
+2026-11-28 05:50:41.919087 [[1;37mINFO[0m] [1;32miso15118_charge[0m [1;36m[0m [1;30m:[0m[1;32m[0m: Connection is closed
+2026-11-28 05:50:41.930882 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_TERMINATE.req[1;0m
+2026-11-28 05:50:42.027059 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO SLAC UNMATCHED[1;0m
+2026-11-28 05:50:42.027345 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO D-LINK_READY (false)[1;0m
+2026-11-28 05:50:43.351326 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE ISO Change HLC Limits: 0W/0A, target_voltage 200, actual_voltage 0, bpt_active false[1;0m
+2026-11-28 05:50:43.439112 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC DC power supply set: 200.00V/25.00A, requested was 200.00V/25.00A.[1;0m
+2026-11-28 05:50:43.443417 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC CP oscillator retain time expired -> X1 [V2G-DC-968][1;0m
+2026-11-28 05:50:43.443679 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Set PWM Off[1;0m
+2026-11-28 05:50:43.486992 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC No energy available, starting ISO charge loop timeout of 5 seconds[1;0m
+2026-11-28 05:50:43.546448 [[1;37mINFO[0m] [1;32mevse_manager:Ev[0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1;34mEVSE IEC Event PowerOff[1;0m
+2026-11-28 05:50:47.151211 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGINT/SIGTERM received
+2026-11-28 05:50:47.151329 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: Running -> ShutdownRequested
+2026-11-28 05:50:47.151831 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Shutting down modules...
+2026-11-28 05:50:47.151989 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownRequested -> ForceTerminating
+2026-11-28 05:50:47.152008 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Terminating modules (graceful shutdown not enabled)...
+2026-11-28 05:50:47.152915 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: api (pid: 2022991) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.153379 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: api_sink (pid: 2022992) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.153545 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: auth (pid: 2022993) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.153597 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: energy_manager (pid: 2022994) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.153638 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: error_history (pid: 2022995) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.153768 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: ev_api (pid: 2022996) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.153935 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: ev_manager (pid: 2022997) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.154306 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: evse_manager (pid: 2022998) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.154383 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: evse_security (pid: 2022999) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.154511 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: grid_connection_point (pid: 2023000) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.156515 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: imd (pid: 2023001) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.156755 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: iso15118_car (pid: 2023002) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.156911 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: iso15118_charger (pid: 2023035) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.157035 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: powersupply_dc (pid: 2023038) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.157184 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: slac (pid: 2023043) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.157292 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: token_provider (pid: 2023050) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.157396 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: token_validator (pid: 2023057) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.157512 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: SIGTERM of child: yeti_driver (pid: 2023058) [1m[32msucceeded[0m.
+2026-11-28 05:50:47.157618 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi_sink[0m (pid 2022992) shutdown [6ms] with status: signal=15
+2026-11-28 05:50:47.157680 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mauth[0m (pid 2022993) shutdown [6ms] with status: signal=15
+2026-11-28 05:50:47.158851 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34menergy_manager[0m (pid 2022994) shutdown [7ms] with status: signal=15
+2026-11-28 05:50:47.159628 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_api[0m (pid 2022996) shutdown [8ms] with status: signal=15
+2026-11-28 05:50:47.161892 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mev_manager[0m (pid 2022997) shutdown [10ms] with status: signal=15
+2026-11-28 05:50:47.162440 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_car[0m (pid 2023002) shutdown [11ms] with status: signal=15
+2026-11-28 05:50:47.164699 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34myeti_driver[0m (pid 2023058) shutdown [13ms] with status: signal=15
+2026-11-28 05:50:47.167665 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mgrid_connection_point[0m (pid 2023000) shutdown [16ms] with status: signal=15
+2026-11-28 05:50:47.168015 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mslac[0m (pid 2023043) shutdown [16ms] with status: signal=15
+2026-11-28 05:50:47.168816 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mapi[0m (pid 2022991) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.168891 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34merror_history[0m (pid 2022995) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.168941 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_manager[0m (pid 2022998) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.169048 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_validator[0m (pid 2023057) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.169154 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mevse_security[0m (pid 2022999) shutdown [17ms] with status: signal=15
+2026-11-28 05:50:47.169743 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mpowersupply_dc[0m (pid 2023038) shutdown [18ms] with status: signal=15
+2026-11-28 05:50:47.170667 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mimd[0m (pid 2023001) shutdown [19ms] with status: signal=15
+2026-11-28 05:50:47.170936 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34miso15118_charger[0m (pid 2023035) shutdown [19ms] with status: signal=15
+2026-11-28 05:50:47.171782 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Module [1m[34mtoken_provider[0m (pid 2023050) shutdown [20ms] with status: signal=15
+2026-11-28 05:50:47.171807 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-28 05:50:47.172252 [[1;33mWARN[0m] [1;32mmanager        [0m [1;36mstd::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&)[0m [1;30m:[0m[1;32m[0m: Modules that did not shut down cleanly: api_sink (signal=15) auth (signal=15) energy_manager (signal=15) ev_api (signal=15) ev_manager (signal=15) iso15118_car (signal=15) yeti_driver (signal=15) grid_connection_point (signal=15) slac (signal=15) api (signal=15) error_history (signal=15) evse_manager (signal=15) token_validator (signal=15) evse_security (signal=15) powersupply_dc (signal=15) imd (signal=15) iso15118_charger (signal=15) token_provider (signal=15)
+2026-11-28 05:50:47.172353 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: [1m[31m👋👋👋 [1m[31mEVerest manager is exiting [21ms] 👋👋👋[0m[0m
+2026-11-28 05:50:47.172368 [[1;37mINFO[0m] [1;32mmanager        [0m [1;36m[0m [1;30m:[0m[1;32m[0m: Manager state transition: ShutdownFinalizing -> Exiting

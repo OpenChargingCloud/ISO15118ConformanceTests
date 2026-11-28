@@ -1,0 +1,894 @@
+{
+  "schemaVersion": 3,
+  "generator": "ISO15118ConformanceTests.Simulation.Traces.SessionTraceCorpusTests.RegenerateTheCorpus",
+  "name": "everest-iso15118-20-dc-forward",
+  "protocol": "iso15118-20",
+  "mode": "dc",
+  "note": "live interop: our EVCC against EVerest\u0027s EvseV2G / Evse15118D20",
+  "exchanges": [
+    {
+      "index": 0,
+      "request": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolReq",
+        "frame": "01fe8001000000258000f3ab9371d34b9b79d39ba321d34b9b79d189a98989c1d1699181d22218010000040040"
+      },
+      "response": {
+        "payloadType": "0x8001",
+        "message": "SupportedAppProtocolRes",
+        "frame": "01fe80010000000480400040"
+      }
+    },
+    {
+      "index": 1,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupReq",
+        "frame": "01fe800200000019808c040000000000000000098b7a9d80620422ab21a1981880"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionSetupRes",
+        "frame": "01fe800200000026809004581bec6724057e5708ba4f6e0eca998032040451114a9413960a914c4c8ccd0d4a8c40"
+      }
+    },
+    {
+      "index": 2,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupReq",
+        "frame": "01fe800200000011800804581bec6724057e57098b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationSetupRes",
+        "frame": "01fe800200000017800c04581bec6724057e570e8e2fbe0eca998032000400"
+      }
+    },
+    {
+      "index": 3,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationReq",
+        "frame": "01fe800200000012800004581bec6724057e57098b7a9d806200"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "AuthorizationRes",
+        "frame": "01fe800200000016800404581bec6724057e570c4d181e1eca9980320000"
+      }
+    },
+    {
+      "index": 4,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryReq",
+        "frame": "01fe800200000012807c04581bec6724057e57098b7a9d806280"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDiscoveryRes",
+        "frame": "01fe80020000001b808004581bec6724057e570b9da87e1eca99803200000200018050"
+      }
+    },
+    {
+      "index": 5,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailReq",
+        "frame": "01fe800200000013807404581bec6724057e57098b7a9d80620300"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceDetailRes",
+        "frame": "01fe8002000000c8807804581bec6724057e570a1a98ee1eca9980320001800002d0dbdb9b9958dd1bdc980400d436f6e74726f6c4d6f6465601004d35bd89a5b1a5d1e539959591cd35bd919580200950726963696e6760000310941510da185b9b995b180200f47656e657261746f724d6f6465600880080b436f6e6e6563746f7260100350dbdb9d1c9bdb135bd91958020134d6f62696c6974794e656564734d6f6465600802541c9a58da5b99d80000c4250544368616e6e656c600803d1d95b995c985d1bdc935bd9195802280"
+      }
+    },
+    {
+      "index": 6,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionReq",
+        "frame": "01fe800200000015808404581bec6724057e57098b7a9d806201800080"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ServiceSelectionRes",
+        "frame": "01fe800200000016808804581bec6724057e570988494e1eca9980320000"
+      }
+    },
+    {
+      "index": 7,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryReq",
+        "frame": "01fe800400000037803c04581bec6724057e57098b7a9d8062081088270400000200320041000000800f4030400190280408c393820000010038e020800000"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeParameterDiscoveryRes",
+        "frame": "01fe80040000003f804004581bec6724057e5709d9d9ae1eca9980320004106e0581fc3403c0fe1a01e07d0e80703f8542301fc3403c4821db0b03f8e78781fc73c3c0fa3ce0e0"
+      }
+    },
+    {
+      "index": 8,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "ScheduleExchangeReq",
+        "frame": "01fe800200000022806c04581bec6724057e57098b7a9d80620000901c03c14020c07810607808300a20"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "ScheduleExchangeRes",
+        "frame": "01fe800200000028807004581bec6724057e57098a7a0e1eca998032000314ed3d070f654cc018012000405182800100"
+      }
+    },
+    {
+      "index": 9,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57098b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e57083ada6e1eca9980320010"
+      }
+    },
+    {
+      "index": 10,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570dacfafe1eca9980320010"
+      }
+    },
+    {
+      "index": 11,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570c1b7b5e1eca9980320010"
+      }
+    },
+    {
+      "index": 12,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570eac5bbe1eca9980320010"
+      }
+    },
+    {
+      "index": 13,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e57081d4c1e1eca9980320010"
+      }
+    },
+    {
+      "index": 14,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b2e2c7e1eca9980320010"
+      }
+    },
+    {
+      "index": 15,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e5709af2cde1eca9980320010"
+      }
+    },
+    {
+      "index": 16,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b3fed3e1eca9980320010"
+      }
+    },
+    {
+      "index": 17,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e68cdae1eca9980320010"
+      }
+    },
+    {
+      "index": 18,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570949ae0e1eca9980320010"
+      }
+    },
+    {
+      "index": 19,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e57099b7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e5bbe6e1eca9980320010"
+      }
+    },
+    {
+      "index": 20,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e4b8ece1eca9980320010"
+      }
+    },
+    {
+      "index": 21,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570f8c5f2e1eca9980320010"
+      }
+    },
+    {
+      "index": 22,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e57083e6f8e1eca9980320010"
+      }
+    },
+    {
+      "index": 23,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570d7f2fee1eca9980320010"
+      }
+    },
+    {
+      "index": 24,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570fc8085e2eca9980320010"
+      }
+    },
+    {
+      "index": 25,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e5709e938be2eca9980320010"
+      }
+    },
+    {
+      "index": 26,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570c29e91e2eca9980320010"
+      }
+    },
+    {
+      "index": 27,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b49a97e2eca9980320010"
+      }
+    },
+    {
+      "index": 28,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e9db9de2eca9980320010"
+      }
+    },
+    {
+      "index": 29,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709ab7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b3c5a3e2eca9980320010"
+      }
+    },
+    {
+      "index": 30,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570cbd5a9e2eca9980320010"
+      }
+    },
+    {
+      "index": 31,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570de83b0e2eca9980320010"
+      }
+    },
+    {
+      "index": 32,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570fcf1b5e2eca9980320010"
+      }
+    },
+    {
+      "index": 33,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570fdfcbbe2eca9980320010"
+      }
+    },
+    {
+      "index": 34,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e38ec2e2eca9980320010"
+      }
+    },
+    {
+      "index": 35,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570ef88c8e2eca9980320010"
+      }
+    },
+    {
+      "index": 36,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570a2a8cee2eca9980320010"
+      }
+    },
+    {
+      "index": 37,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570a0a5d4e2eca9980320010"
+      }
+    },
+    {
+      "index": 38,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e9b2dae2eca9980320010"
+      }
+    },
+    {
+      "index": 39,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709bb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570f8bfe0e2eca9980320010"
+      }
+    },
+    {
+      "index": 40,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570fad1e6e2eca9980320010"
+      }
+    },
+    {
+      "index": 41,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e8e0ece2eca9980320010"
+      }
+    },
+    {
+      "index": 42,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b5eaf2e2eca9980320010"
+      }
+    },
+    {
+      "index": 43,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570aef7f8e2eca9980320010"
+      }
+    },
+    {
+      "index": 44,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570ff83ffe2eca9980320010"
+      }
+    },
+    {
+      "index": 45,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b99385e3eca9980320010"
+      }
+    },
+    {
+      "index": 46,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570f7a18be3eca9980320010"
+      }
+    },
+    {
+      "index": 47,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570fcad91e3eca9980320010"
+      }
+    },
+    {
+      "index": 48,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b6bd97e3eca9980320010"
+      }
+    },
+    {
+      "index": 49,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709cb7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e5709dcd9de3eca9980320010"
+      }
+    },
+    {
+      "index": 50,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570bfd9a3e3eca9980320010"
+      }
+    },
+    {
+      "index": 51,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b8e8a9e3eca9980320010"
+      }
+    },
+    {
+      "index": 52,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570bdf5afe3eca9980320010"
+      }
+    },
+    {
+      "index": 53,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570be84b6e3eca9980320010"
+      }
+    },
+    {
+      "index": 54,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570f98fbce3eca9980320010"
+      }
+    },
+    {
+      "index": 55,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570df9ec2e3eca9980320010"
+      }
+    },
+    {
+      "index": 56,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570e0adc8e3eca9980320010"
+      }
+    },
+    {
+      "index": 57,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e57090bacee3eca9980320010"
+      }
+    },
+    {
+      "index": 58,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570d9c9d4e3eca9980320010"
+      }
+    },
+    {
+      "index": 59,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckReq",
+        "frame": "01fe800400000011802c04581bec6724057e5709db7a9d8062"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_CableCheckRes",
+        "frame": "01fe800400000016803004581bec6724057e570b2d6dae3eca9980320000"
+      }
+    },
+    {
+      "index": 60,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeReq",
+        "frame": "01fe800400000019804404581bec6724057e5709db7a9d80620100000080090030"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_PreChargeRes",
+        "frame": "01fe800400000019804804581bec6724057e5708ce2dde3eca9980320010000000"
+      }
+    },
+    {
+      "index": 61,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe800200000023805404581bec6724057e5709eb7a9d8062000405b6ae2cc76d3d32d00480e041805124"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe800200000016805804581bec6724057e570bc81e4e3eca9980320040"
+      }
+    },
+    {
+      "index": 62,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe80040000003e803404581bec6724057e5709eb7a9d806281001200601203810603c08303c041805020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000003f803804581bec6724057e5709198eae3eca99803200640000020000000010810a01103f8680781fc3403c0fe1508c0821db0b03f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 63,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe80040000003e803404581bec6724057e5709eb7a9d806281001200601203810603c08303c041805020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe80040000003f803804581bec6724057e570b1a7f3e3eca99803200640000020000000010810a01103f8680781fc3403c0fe1508c0821db0b03f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 64,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopReq",
+        "frame": "01fe80040000003e803404581bec6724057e5709eb7a9d806281001200601203810603c08303c041805020c0c810600208007d04007a018200320041062620831000400be100"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_ChargeLoopRes",
+        "frame": "01fe800400000041803804581bec6724057e570d3aef9e3eca9980320063f8710481fc2209c00010810a01103f8680781fc3403c0fe1508c0821db0b03f8e78781fc73c3c0fe1a01e0"
+      }
+    },
+    {
+      "index": 65,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryReq",
+        "frame": "01fe800200000013805404581bec6724057e5709eb7a9d80620140"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "PowerDeliveryRes",
+        "frame": "01fe800200000016805804581bec6724057e570c5c1ffe3eca9980320040"
+      }
+    },
+    {
+      "index": 66,
+      "request": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionReq",
+        "frame": "01fe800400000012804c04581bec6724057e5709fb7a9d806200"
+      },
+      "response": {
+        "payloadType": "0x8004",
+        "message": "DC_WeldingDetectionRes",
+        "frame": "01fe800400000019805004581bec6724057e5708bdb8ce5eca9980320010000000"
+      }
+    },
+    {
+      "index": 67,
+      "request": {
+        "payloadType": "0x8002",
+        "message": "SessionStopReq",
+        "frame": "01fe800200000012809404581bec6724057e570a0b7a9d806228"
+      },
+      "response": {
+        "payloadType": "0x8002",
+        "message": "SessionStopRes",
+        "frame": "01fe800200000016809804581bec6724057e570b1f28ce5eca9980320000"
+      }
+    }
+  ]
+}

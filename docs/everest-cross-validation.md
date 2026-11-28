@@ -183,6 +183,17 @@ Everything below was unblocked by it.
   once the wall turned out to be a 3 s window we were arriving five seconds early for
   ([`…-d20-ac-contactor-window`](interop-runs/2026-08-13-everest-d20-ac-contactor-window/notes.md)).
 
+- **Energy back, both directions (2026-11-28, 2026.10.0).** This was the first time a BPT session against
+  them moved energy from the car, rather than selecting the service and charging.
+  - **Reverse:** their `Ev15118` took our station's −100 A for 692 DC loops.
+  - **Forward:** their station was given an export limit by one negative `set_limit_watts` to their API
+    module. It settled at −25 A at 200 V, which is the −5 000 W asked for, and on AC asked our car for
+    −5 000 W, which our car followed.
+  - **The one gap is AC reverse.** Their SIL car's simulator reports a fixed draw whatever the target.
+  - **Both sides read the other's negative limits correctly**, their station by magnitude.
+
+  ([`…-discharge`](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md)).
+
 - **Reverse, `PyEvJosev` → our SECC (2026-08-06).** Lower information in general — their car *is* Josev —
   with one exception that made it worth doing: it is the only run that puts **our** service catalogue in
   front of a foreign chooser. It also produced, unasked, the first **-20 Plug & Charge** result against

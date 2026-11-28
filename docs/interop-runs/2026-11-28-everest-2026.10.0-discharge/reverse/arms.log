@@ -1,0 +1,59 @@
+1:# 2026-11-28: config-dc20-reverse-ev15118.yaml with the session started as dc_bpt and control_mode Dynamic (Ev15118's default), run on dist-2610 (2026.10.0).
+8:#   - control_mode: Scheduled (the module's default is Dynamic)
+27:      control_mode: Dynamic
+80:      auto_exec_commands: sleep 3;iso_wait_slac_matched;iso_start_v2g_session dc_bpt;iso_wait_pwr_ready;iso_dc_power_on;iso_wait_for_stop 15;iso_wait_v2g_session_stopped;unplug;
+rsync exit 0
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-28T05:34:13+01:00
+build exit 0
+our SECC listening after 3s
+dotnet test exit 0
+Control mode: Dynamic — read off their ScheduleExchangeReq, not off our offer.
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [30 s]
+ Control mode: Dynamic — read off their ScheduleExchangeReq, not off our offer.
+Total tests: 1
+     Passed: 1
+ Total time: 30.9317 Seconds
+everest-iso15118-20-dc-reverse.ev-to-station.bin
+everest-iso15118-20-dc-reverse.flow.md
+everest-iso15118-20-dc-reverse.frames.log
+everest-iso15118-20-dc-reverse.station-to-ev.bin
+everest-iso15118-20-dc-reverse.trace.json
+1:# 2026-11-28: config-ac20-reverse-ev15118.yaml with the session started as ac_bpt and control_mode Dynamic (Ev15118's default), run on dist-2610 (2026.10.0).
+8:#   - control_mode: Scheduled (the module's default is Dynamic)
+27:      control_mode: Dynamic
+88:      auto_exec_commands: sleep 3;iso_wait_slac_matched;iso_start_v2g_session ac_bpt;iso_wait_pwr_ready;iso_draw_power_regulated 16,3;iso_wait_for_stop 20;iso_wait_v2g_session_stopped;unplug
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-28T05:38:18+01:00
+our SECC listening after 4s
+dotnet test exit 0
+Control mode: Dynamic — read off their ScheduleExchangeReq, not off our offer.
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [35 s]
+ Control mode: Dynamic — read off their ScheduleExchangeReq, not off our offer.
+Total tests: 1
+     Passed: 1
+ Total time: 36.4860 Seconds
+everest-iso15118-20-ac-reverse.ev-to-station.bin
+everest-iso15118-20-ac-reverse.flow.md
+everest-iso15118-20-ac-reverse.frames.log
+everest-iso15118-20-ac-reverse.station-to-ev.bin
+everest-iso15118-20-ac-reverse.trace.json
+1:# 2026-11-28: config-dc20-reverse-ev15118.yaml with the session started as dc_bpt and control_mode Dynamic (Ev15118's default), run on dist-2610 (2026.10.0).
+8:#   - control_mode: Scheduled (the module's default is Dynamic)
+27:      control_mode: Dynamic
+80:      auto_exec_commands: sleep 3;iso_wait_slac_matched;iso_start_v2g_session dc_bpt;iso_wait_pwr_ready;iso_dc_power_on;iso_wait_for_stop 15;iso_wait_v2g_session_stopped;unplug;
+core-2610 at 74845c578 2026-11-26 08:31:06 +0100
+2026-11-28T05:39:03+01:00
+our SECC listening after 2s
+dotnet test exit 0
+Control mode: Dynamic — read off their ScheduleExchangeReq, not off our offer.
+  Passed TheirPyEvJosev_AgainstOurSecc_RunsToCompletion [29 s]
+ Control mode: Dynamic — read off their ScheduleExchangeReq, not off our offer.
+Total tests: 1
+     Passed: 1
+ Total time: 30.1351 Seconds
+everest-iso15118-20-dc-reverse.ev-to-station.bin
+everest-iso15118-20-dc-reverse.flow.md
+everest-iso15118-20-dc-reverse.frames.log
+everest-iso15118-20-dc-reverse.station-to-ev.bin
+everest-iso15118-20-dc-reverse.trace.json
