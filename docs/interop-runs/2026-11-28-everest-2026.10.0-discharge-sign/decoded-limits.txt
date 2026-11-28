@@ -1,0 +1,148 @@
+===== fwd-ac20-bpt-dyn-trigger
+#6 ServiceSelectionReq (Iso20CommonMessages)
+    (no limit fields) ServiceSelectionReq { Header = MessageHeaderType { SessionID = System.Byte[], TimeStamp = 1795733278, Signature =  }, SelectedEnergyTransferService = SelectedServiceType { ServiceID = 5, ParameterSetID = 0 }, SelectedVASList =  }
+    frame 01fe8002000000158084042e4a89327703a96389eeea2d806201400080
+#7 AC_ChargeParameterDiscoveryReq (Iso20AC)
+    EVMaximumChargePower = 22000 (value 2200, exp 1)
+    EVMinimumChargePower = 0 (value 0, exp 0)
+    EVMaximumDischargePower = 22000 (value 2200, exp 1)
+    EVMinimumDischargePower = 0 (value 0, exp 0)
+    frame 01fe8003000000218010042e4a89327703a96389eeea2d806288109811220000088109811220000080
+#7 AC_ChargeParameterDiscoveryRes (Iso20AC)
+    EVSEMaximumChargePower = 22080 (value 2208, exp 1)
+    EVSEMinimumChargePower = 4140 (value 4140, exp 0)
+    EVSEMaximumDischargePower = 0 (value 0, exp 0)
+    EVSEMinimumDischargePower = 0 (value 0, exp 0)
+    frame 01fe8003000000298014042e4a89327703a9638f1bcc0e1dba698032004408500891001584043f04413948000022000008
+#10 AC_ChargeLoopReq (Iso20AC)
+    EVMaximumChargePower = 11000 (value 11, exp 3)
+    EVMinimumChargePower = 1000 (value 1, exp 3)
+    EVMaximumDischargePower = 11000 (value 11, exp 3)
+    EVMinimumDischargePower = 1000 (value 1, exp 3)
+    frame 01fe8003000000338008042e4a89327703a96389feea2d8062802407020c07810607808300a041805910600244084c089100000441805910600240
+===== fwd-ac20-bpt-trigger
+#6 ServiceSelectionReq (Iso20CommonMessages)
+    (no limit fields) ServiceSelectionReq { Header = MessageHeaderType { SessionID = System.Byte[], TimeStamp = 1795732558, Signature =  }, SelectedEnergyTransferService = SelectedServiceType { ServiceID = 5, ParameterSetID = 2 }, SelectedVASList =  }
+    frame 01fe800200000015808404336608dac791a4098cee8a2d806201401080
+#7 AC_ChargeParameterDiscoveryReq (Iso20AC)
+    EVMaximumChargePower = 22000 (value 2200, exp 1)
+    EVMinimumChargePower = 0 (value 0, exp 0)
+    EVMaximumDischargePower = 22000 (value 2200, exp 1)
+    EVMinimumDischargePower = 0 (value 0, exp 0)
+    frame 01fe800300000021801004336608dac791a4098cee8a2d806288109811220000088109811220000080
+#7 AC_ChargeParameterDiscoveryRes (Iso20AC)
+    EVSEMaximumChargePower = 22080 (value 2208, exp 1)
+    EVSEMinimumChargePower = 4140 (value 4140, exp 0)
+    EVSEMaximumDischargePower = 0 (value 0, exp 0)
+    EVSEMinimumDischargePower = 0 (value 0, exp 0)
+    frame 01fe800300000029801404336608dac791a4098c08df489d9a698032004408500891001584043f04413948000022000008
+===== fwd-d20-bpt-dyn
+#7 ServiceSelectionReq (Iso20CommonMessages)
+    (no limit fields) ServiceSelectionReq { Header = MessageHeaderType { SessionID = System.Byte[], TimeStamp = 1795733195, Signature =  }, SelectedEnergyTransferService = SelectedServiceType { ServiceID = 6, ParameterSetID = 0 }, SelectedVASList =  }
+    frame 01fe8002000000158084040774fa61f11994f30cbeda2d806201800080
+#8 DC_ChargeParameterDiscoveryReq (Iso20DC)
+    EVMaximumChargePower = 50000 (value 5000, exp 1)
+    EVMinimumChargePower = 0 (value 0, exp 0)
+    EVMaximumChargeCurrent = 200 (value 200, exp 0)
+    EVMinimumChargeCurrent = 0 (value 0, exp 0)
+    EVMaximumDischargePower = 50000 (value 5000, exp 1)
+    EVMinimumDischargePower = 0 (value 0, exp 0)
+    EVMaximumDischargeCurrent = 200 (value 200, exp 0)
+    EVMinimumDischargeCurrent = 0 (value 0, exp 0)
+    frame 01fe800400000037803c040774fa61f11994f30cbeda2d8062081088270400000200320041000000800f403040019028040844138200000100190020800000
+#8 DC_ChargeParameterDiscoveryRes (Iso20DC)
+    EVSEMaximumChargePower = 150000 (value 1500, exp 2)
+    EVSEMinimumChargePower = 200 (value 2000, exp -1)
+    EVSEMaximumChargeCurrent = 200 (value 2000, exp -1)
+    EVSEMinimumChargeCurrent = 1 (value 1000, exp -3)
+    EVSEMaximumDischargePower = -150000 (value -1500, exp 2)
+    EVSEMinimumDischargePower = -200 (value -2000, exp -1)
+    EVSEMaximumDischargeCurrent = -200 (value -2000, exp -1)
+    EVSEMinimumDischargeCurrent = -1 (value -1000, exp -3)
+    frame 01fe80040000003f8040040774fa61f11994f30a48ce0b9dba6980320004106e0581fc3403c0fe1a01e07d0e80703f8542301fc3403c4821db0b03f8e78781fc73c3c0fa3ce0e0
+#54 DC_ChargeLoopReq (Iso20DC)
+    EVMaximumChargePower = 50000 (value 50, exp 3)
+    EVMinimumChargePower = 1000 (value 1, exp 3)
+    EVMaximumChargeCurrent = 125 (value 125, exp 0)
+    EVMaximumDischargePower = 50000 (value 50, exp 3)
+    EVMinimumDischargePower = 1000 (value 1, exp 3)
+    EVMaximumDischargeCurrent = 125 (value 125, exp 0)
+    frame 01fe80040000003e8034040774fa61f11994f30cfeda2d806281001200601203810603c08303c041805020c0c810600208007d04007a0182003200410606408300104003e900
+===== fwd-d20-bpt
+#6 ServiceSelectionReq (Iso20CommonMessages)
+    (no limit fields) ServiceSelectionReq { Header = MessageHeaderType { SessionID = System.Byte[], TimeStamp = 1795732423, Signature =  }, SelectedEnergyTransferService = SelectedServiceType { ServiceID = 6, ParameterSetID = 1 }, SelectedVASList =  }
+    frame 01fe8002000000158084045fc096f743b3deb20c7e7a2d806201800880
+#7 DC_ChargeParameterDiscoveryReq (Iso20DC)
+    EVMaximumChargePower = 50000 (value 5000, exp 1)
+    EVMinimumChargePower = 0 (value 0, exp 0)
+    EVMaximumChargeCurrent = 200 (value 200, exp 0)
+    EVMinimumChargeCurrent = 0 (value 0, exp 0)
+    EVMaximumDischargePower = 50000 (value 5000, exp 1)
+    EVMinimumDischargePower = 0 (value 0, exp 0)
+    EVMaximumDischargeCurrent = 200 (value 200, exp 0)
+    EVMinimumDischargeCurrent = 0 (value 0, exp 0)
+    frame 01fe800400000037803c045fc096f743b3deb20c7e7a2d8062081088270400000200320041000000800f403040019028040844138200000100190020800000
+#7 DC_ChargeParameterDiscoveryRes (Iso20DC)
+    EVSEMaximumChargePower = 150000 (value 1500, exp 2)
+    EVSEMinimumChargePower = 200 (value 2000, exp -1)
+    EVSEMaximumChargeCurrent = 200 (value 2000, exp -1)
+    EVSEMinimumChargeCurrent = 1 (value 1000, exp -3)
+    EVSEMaximumDischargePower = -150000 (value -1500, exp 2)
+    EVSEMinimumDischargePower = -200 (value -2000, exp -1)
+    EVSEMaximumDischargeCurrent = -200 (value -2000, exp -1)
+    EVSEMinimumDischargeCurrent = -1 (value -1000, exp -3)
+    frame 01fe80040000003f8040045fc096f743b3deb20bb82fac9d8a6980320004106e0581fc3403c0fe1a01e07d0e80703f8542301fc3403c4821db0b03f8e78781fc73c3c0fa3ce0e0
+===== rev-ac20-bpt
+#6 ServiceSelectionReq (Iso20CommonMessages)
+    (no limit fields) ServiceSelectionReq { Header = MessageHeaderType { SessionID = System.Byte[], TimeStamp = 1795947366, Signature =  }, SelectedEnergyTransferService = SelectedServiceType { ServiceID = 5, ParameterSetID = 1 }, SelectedVASList =  }
+    frame 01fe80020000001580840459dd11e60df94a8f8e6f6afd806201400880
+#7 AC_ChargeParameterDiscoveryReq (Iso20AC)
+    EVMaximumChargePower = 3680 (value 3680, exp 0)
+    EVMinimumChargePower = 1380 (value 1380, exp 0)
+    EVMaximumDischargePower = -3680 (value -3680, exp 0)
+    EVMinimumDischargePower = -1380 (value -1380, exp 0)
+    frame 01fe80030000002380100459dd11e60df94a8f89dd1b1d80628800e01c2200390288801df1c220078c2880
+#7 AC_ChargeParameterDiscoveryRes (Iso20AC)
+    EVSEMaximumChargePower = 22000 (value 2200, exp 1)
+    EVSEMinimumChargePower = 0 (value 0, exp 0)
+    EVSEMaximumDischargePower = 22000 (value 2200, exp 1)
+    EVSEMinimumDischargePower = 0 (value 0, exp 0)
+    frame 01fe80030000002580140459dd11e60df94a8f8b6f6a8d80620044084c08910000044001914810981122000008
+#10 AC_ChargeLoopReq (Iso20AC)
+    EVMaximumChargePower = 3680 (value 3680, exp 0)
+    EVMinimumChargePower = 1380 (value 1380, exp 0)
+    EVMaximumDischargePower = -3680 (value -3680, exp 0)
+    EVMinimumDischargePower = -1380 (value -1380, exp 0)
+    frame 01fe80030000002b80080459dd11e60df94a8f8839bb7d8062826400700e08800e40a22000002200000220077c704400f18510
+===== rev-dc20-bpt
+#6 ServiceSelectionReq (Iso20CommonMessages)
+    (no limit fields) ServiceSelectionReq { Header = MessageHeaderType { SessionID = System.Byte[], TimeStamp = 1795946234, Signature =  }, SelectedEnergyTransferService = SelectedServiceType { ServiceID = 6, ParameterSetID = 1 }, SelectedVASList =  }
+    frame 01fe8002000000158084045b5ba962e1e1f9e90faedafd806201800880
+#7 DC_ChargeParameterDiscoveryReq (Iso20DC)
+    EVMaximumChargePower = 150000 (value 1500, exp 2)
+    EVMinimumChargePower = 0 (value 0, exp 0)
+    EVMaximumChargeCurrent = 300 (value 3000, exp -1)
+    EVMinimumChargeCurrent = 0 (value 0, exp 0)
+    EVMaximumDischargePower = -150000 (value -1500, exp 2)
+    EVMinimumDischargePower = 0 (value 0, exp 0)
+    EVMaximumDischargeCurrent = -300 (value -3000, exp -1)
+    EVMinimumDischargeCurrent = 0 (value 0, exp 0)
+    frame 01fe800400000037803c045b5ba962e1e1f9e90a3c8b1d80620820dc0b04000001fc2e05c10000007f0a84603f86e0589043b61608000003f8db8b82000000
+#7 DC_ChargeParameterDiscoveryRes (Iso20DC)
+    EVSEMaximumChargePower = 50000 (value 5000, exp 1)
+    EVSEMinimumChargePower = 0 (value 0, exp 0)
+    EVSEMaximumChargeCurrent = 200 (value 200, exp 0)
+    EVSEMinimumChargeCurrent = 0 (value 0, exp 0)
+    EVSEMaximumDischargePower = 50000 (value 5000, exp 1)
+    EVSEMinimumDischargePower = 0 (value 0, exp 0)
+    EVSEMaximumDischargeCurrent = 200 (value 200, exp 0)
+    EVSEMinimumDischargeCurrent = 0 (value 0, exp 0)
+    frame 01fe8004000000378040045b5ba962e1e1f9e90fdf5a8d8062000408441382000001001900208000004007a0182000c8481088270400000200320041000000
+#13 DC_ChargeLoopReq (Iso20DC)
+    EVMaximumChargePower = 150000 (value 1500, exp 2)
+    EVMinimumChargePower = 0 (value 0, exp 0)
+    EVMaximumChargeCurrent = 300 (value 3000, exp -1)
+    EVMaximumDischargePower = -150000 (value -1500, exp 2)
+    EVMinimumDischargePower = 0 (value 0, exp 0)
+    EVMaximumDischargeCurrent = -300 (value -3000, exp -1)
+    frame 01fe80040000003f8034045b5ba962e1e1f9e90b29abfd80628100000163f0680781fc2807c02083702c020000003f85c0b807f0a84600fe1b816020876c2c08000001fc6dc5c0

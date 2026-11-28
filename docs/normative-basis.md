@@ -892,3 +892,36 @@ why eVDriveFlow's unguarded read ends every session by a car that has not opted 
 The element is reachable from here since the same day (`Evcc20Base.SupportedServiceIds`,
 `V2G_INTEROP_SERVICE_IDS`), and what our station made of one is recorded rather than acted on —
 `Secc20Base.SupportedServiceIdsRequestedByEv`, four tests in `Iso20ServiceFilterTests`.
+
+### The sign of the `-20` discharge limits
+
+Read on 2026-11-28 in the FDIS, because our cars and stations send `EVMaximumDischargePower` and its
+siblings as positive magnitudes and the question was whether that is a convention or a defect. **It is a
+defect.** The text points one way throughout, and EVerest's 2026.10.0 EV and station send these limits
+negative ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/notes.md)).
+
+- **`[V2G20-1034]` / `[V2G20-1035]`**, the common rules for physical values: for W, Wh and A, positive
+  means transfer from the EVSE to the EV, and negative values define transfer from the EV to the EVSE.
+  These rules are stated for all applications and are not limited to measured flows.
+- **`[V2G20-1213]`**, in the AC BPT clause and extended there to DC BPT (8.3.5.5.7): parameters used for
+  discharging are to be set negative, parameters used for charging positive. It names parameters
+  generally, not only targets or present values, so the `EV…Discharge…` and `EVSE…Discharge…` limits fall
+  under it.
+- **`[V2G20-1415]`** is the one stated exception: `DischargedEnergyReadingWh` is always positive. A
+  register needed an explicit exemption, so the rule was meant to reach discharge values generally. No
+  such exemption exists for the limits.
+- **The comparisons between limits are all written on absolute values**: `[V2G20-1810]` and
+  `[V2G20-1812]` (AC loop against CPD), `[V2G20-2198]`, `[V2G20-2199]`, `[V2G20-2654]` and `[V2G20-2655]`
+  (DC loop against CPD, EV and EVSE), `[V2G20-1813]` (maximum above minimum), and `[V2G20-1829]` (ramp
+  limitation against the maximum charge or discharge power). They would need no absolute value if the
+  discharge limits were magnitudes already.
+- A note to the `PowerScheduleEntryType` says, by `[V2G20-1035]`, that all power values in a
+  `DischargingSchedule` are negative or zero. The same reasoning applied to schedules.
+
+**What is not checked here**: EVerest's code cites Table 94 of **Amendment 1** as bounding every EV
+discharge power and current at ≤ 0. The FDIS's Table 94 lists units only, and the amendment is not in
+`onlyLocalDoNotCommit/`. If their reading is right, the amendment states outright what the FDIS implies.
+
+**Reading incoming limits**: nothing in the text tells a receiver to reject a positive discharge limit,
+and Josev and eVDriveFlow send them positive. EVerest's station reads them by magnitude. That is the
+tolerant reading for ours too.
