@@ -1195,8 +1195,19 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   ([measurement](interop-runs/2026-08-08-everest-oem-provisioning-chain/notes.md)). The requirement side
   — `[V2G20-2674]`, `[V2G20-2319]`, `[V2G20-2320]`, Tables 6 to 8 — is in
   [`normative-basis.md`](normative-basis.md), which is what made it filable at all.
-- **Kotlin and Swift parity** — Dynamic control mode and energy-transfer-mode selection exist in the C#
-  EVCC and not in the ports. That is app-side work, in `libs/EVSimulatorApp`, not here.
+- ~~**Kotlin and Swift parity** — Dynamic control mode and energy-transfer-mode selection exist in the C#
+  EVCC and not in the ports.~~ **Closed 2026-11-28.** Checked that day, the entry was half stale: both
+  ports had long had Dynamic control mode (held to `iso20-*-eim-dynamic`) and the `-2` choice of
+  energy-transfer mode. What they lacked was the `-20` bidirectional service and the
+  `SupportedServiceIDs` filter, both of which the C# car uses against EVerest and eVDriveFlow. Worse
+  than missing: the ports' rankings already listed 5 and 6, so a station offering only a BPT service
+  got it selected and then charge-only `CPD` and charge-loop types, the shape EVerest refuses
+  `FAILED_WrongChargeParameter`. And their service choice walked the station's catalogue rather
+  than their own ranking, the defect the C# car lost after the 2026-08-05 MCS_BPT run. Now both ports
+  have `preferBidirectionalService` and `supportedServiceIds`, build the `BPT_*` types under a BPT
+  service, and rank as C# does. Five new traces hold them: `iso20-dc-eim-bpt`, `iso20-ac-eim-bpt`,
+  their `-dynamic` twins, and `iso20-dc-eim-filter`, each with a negative that diverges without the
+  option.
 
 ## Where the codec stands, for contrast
 
