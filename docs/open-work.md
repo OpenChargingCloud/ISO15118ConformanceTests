@@ -232,8 +232,8 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   The meter's discharge register rides in `BPT_DischargedEnergyReadingWh` and is signed with the charged
   one under a second layout, `V2G-METER-2`, in C#, Kotlin, Swift, the app and the OCPP record. Two
   traces hold it, `iso20-dc-eim-bpt-discharge` and `iso20-ac-eim-bpt-discharge`, and in both every car's
-  count equals charged minus discharged. Still not covered: Scheduled mode, where the EV names the
-  setpoint and the station would offer a `DischargingSchedule`, and any counterparty (next entry).
+  count equals charged minus discharged. Scheduled mode, where the EV names the setpoint, followed the
+  same day in loopback (two entries down); a counterparty, the next entry.
 - ~~**Discharge against EVerest, both directions.**~~ **Run 2026-11-28 against 2026.10.0, `-20` Dynamic**
   ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md)).
   - **DC goes both ways.** Their car took our −100 A for 692 loops. Their station, told to export by one
@@ -246,6 +246,24 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
     fix*, below) and two fixture changes: `V2G_INTEROP_DISCHARGE`, and the battery reaching the `-20` car.
   - Still not covered against anybody: Scheduled-mode discharge, and an AC car of theirs that follows a
     target.
+- **Scheduled-mode discharge.** ~~Untested~~ **In the stack and in loopback since 2026-11-28
+  (WWCP_ISO15118#64); not yet in the corpus, the ports, or against anybody.**
+  - **What exists.** In a bidirectional Scheduled session our stations put a `DischargingSchedule` beside
+    the charging one in the tuple (`[V2G20-1319]`): one hour at minus `Secc20Dc.DischargeCurrent_A` × 400 V
+    or `Secc20Ac.DischargePowerW`, with a flat `PriceLevelSchedule` (`[V2G20-2176]`, `[V2G20-2168]`).
+    Our C# cars give back inside it when `Evcc20Base.ScheduledDischargePowerW` says so, since in this
+    mode the car chooses (`[V2G20-1547]`, `[V2G20-1559]`). The discharge is granted once, at
+    `PowerDelivery`, as the smaller of what the car wants and the slot active then. The `EVPowerProfile`
+    projects it as negative entries following the discharging schedule. DC asks for a negative
+    `EVTargetCurrent`, AC reports a negative `EVPresentActivePower`, and both go to zero at an empty pack.
+  - **A hole it closed.** `Secc20Dc` had served any negative Scheduled `EVTargetCurrent` as asked, BPT or
+    not, at a station that had offered nothing. Now it serves one only inside an offered schedule, and
+    as zero otherwise.
+  - **Open, ours:** a recorded trace (`iso20-*-eim-bpt-sched-discharge`). It needs the Kotlin and
+    Swift cars to give back in Scheduled mode too, because the ports replay the corpus, and it means
+    regenerating `Bridge.events.json` and the OCPP record.
+  - **Open, against a counterparty:** EVerest's station would have to offer a `DischargingSchedule`, and
+    their SIL car would have to choose one. Neither has been looked at.
 
 
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
@@ -1093,7 +1111,8 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin. *Ours to fix* is empty again: the one item the discharge run against EVerest
   left, our car's battery past empty, is fixed. *Open questions about our own stack* has none again. *Untested, nothing
-  stopping us* holds only what that run could not reach, Scheduled-mode discharge (counted 2026-11-28).
+  stopping us* holds only Scheduled-mode discharge, now in the stack and in loopback but not yet in the
+  corpus, the ports or against a counterparty (counted 2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
   covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,
