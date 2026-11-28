@@ -31,6 +31,8 @@ using cloud.charging.open.protocols.ISO15118.EXI.Dispatch;
 
 using Ac20 = cloud.charging.open.protocols.ISO15118_20.AC.Generated;
 using Dc20 = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
+using Ac20Rational = cloud.charging.open.protocols.ISO15118_20.AC.RationalNumber;
+using Dc20Rational = cloud.charging.open.protocols.ISO15118_20.DC.RationalNumber;
 
 // System.Net (for IPEndPoint) brings its own Authorization; name the one we mean.
 using Authorization = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated.Authorization;
@@ -76,24 +78,30 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
         private class RecordingSecc20Dc(TimeSpan sequenceTimeout, TimeProvider clock)
             : Secc20Dc(sequenceTimeout, clock)
         {
-            public List<object> Requests { get; } = [];
+            public List<object> Requests  { get; } = [];
+            public List<object> Responses { get; } = [];
 
             public override (MessageSet Set, object Response) Handle(MessageSet set, object request)
             {
                 Requests.Add(request);
-                return base.Handle(set, request);
+                var answer = base.Handle(set, request);
+                Responses.Add(answer.Response);
+                return answer;
             }
         }
 
         private class RecordingSecc20Ac(TimeSpan sequenceTimeout, TimeProvider clock)
             : Secc20Ac(sequenceTimeout, clock)
         {
-            public List<object> Requests { get; } = [];
+            public List<object> Requests  { get; } = [];
+            public List<object> Responses { get; } = [];
 
             public override (MessageSet Set, object Response) Handle(MessageSet set, object request)
             {
                 Requests.Add(request);
-                return base.Handle(set, request);
+                var answer = base.Handle(set, request);
+                Responses.Add(answer.Response);
+                return answer;
             }
         }
 
@@ -306,6 +314,142 @@ namespace ISO15118ConformanceTests.Simulation.StateMachines
                 Assert.That(loops.Select(l => l.CLReqControlMode),
                             Is.All.Not.InstanceOf<Dc20.BPT_Scheduled_DC_CLReqControlModeType>(),
                             "no charge loop may turn bidirectional mid-session either");
+            });
+        }
+
+        #endregion
+
+        #region Discharge limits go out negative, from both ends
+
+        // [V2G20-1213]: parameters used for discharging are negative, in AC and DC BPT alike, under the
+        // [V2G20-1035] rule that negative is energy from the vehicle; the one exemption is the
+        // DischargedEnergyReadingWh register ([V2G20-1415]). EVerest 2026.10.0's EV and station send their
+        // limits that way (docs/interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/). Ours sent
+        // magnitudes until 2026-11-28. A maximum must be strictly negative, a minimum may be zero.
+
+        private static void Maximum(string what, decimal? value)
+            => Assert.That(value, Is.Not.Null.And.LessThan(0m), $"{what} is a discharge maximum, so negative");
+
+        private static void Minimum(string what, decimal? value)
+            => Assert.That(value, Is.Not.Null.And.LessThanOrEqualTo(0m), $"{what} is a discharge minimum, so not positive");
+
+        private static decimal? V(Dc20.RationalNumberType? value) => value is null ? null : Dc20Rational.ToDecimal(value);
+        private static decimal? V(Ac20.RationalNumberType? value) => value is null ? null : Ac20Rational.ToDecimal(value);
+
+        /// <summary>DC Scheduled: the vehicle's discovery and every loop request, and the station's
+        /// discovery answer.</summary>
+        [Test]
+        public async Task Dc_Scheduled_DischargeLimitsAreNegative()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+            var secc = await RunSessionAsync(
+                (t, c) => new DcBptOnlySecc(t, c),
+                stream => new Evcc20Dc(stream, TimeProvider.System, new ImmediateAsyncDelay(),
+                                       LoopbackTimeouts.PerMessage),
+                cts.Token);
+
+            var cpd    = (Dc20.BPT_DC_CPDReqEnergyTransferModeType) secc.Requests.OfType<Dc20.DC_ChargeParameterDiscoveryReq>().Single().DC_CPDReqEnergyTransferMode;
+            var answer = (Dc20.BPT_DC_CPDResEnergyTransferModeType) secc.Responses.OfType<Dc20.DC_ChargeParameterDiscoveryRes>().Single().DC_CPDResEnergyTransferMode;
+            var loops  = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().Select(l => (Dc20.BPT_Scheduled_DC_CLReqControlModeType) l.CLReqControlMode).ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Maximum("EVMaximumDischargePower (discovery)",    V(cpd.EVMaximumDischargePower));
+                Maximum("EVMaximumDischargeCurrent (discovery)",  V(cpd.EVMaximumDischargeCurrent));
+                Minimum("EVMinimumDischargePower (discovery)",    V(cpd.EVMinimumDischargePower));
+                Minimum("EVMinimumDischargeCurrent (discovery)",  V(cpd.EVMinimumDischargeCurrent));
+                Maximum("EVSEMaximumDischargePower (discovery)",  V(answer.EVSEMaximumDischargePower));
+                Maximum("EVSEMaximumDischargeCurrent (discovery)", V(answer.EVSEMaximumDischargeCurrent));
+                Minimum("EVSEMinimumDischargePower (discovery)",  V(answer.EVSEMinimumDischargePower));
+                Minimum("EVSEMinimumDischargeCurrent (discovery)", V(answer.EVSEMinimumDischargeCurrent));
+                Assert.That(loops, Is.Not.Empty);
+                foreach (var loop in loops)
+                {
+                    Maximum("EVMaximumDischargePower (loop)",   V(loop.EVMaximumDischargePower));
+                    Maximum("EVMaximumDischargeCurrent (loop)", V(loop.EVMaximumDischargeCurrent));
+                    Minimum("EVMinimumDischargePower (loop)",   V(loop.EVMinimumDischargePower));
+                }
+            });
+        }
+
+        /// <summary>DC Dynamic: the vehicle's loop requests, and the station's loop answers, whose discharge
+        /// limits are mandatory there.</summary>
+        [Test]
+        public async Task Dc_Dynamic_DischargeLimitsAreNegative()
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+            var secc = await RunSessionAsync(
+                (t, c) => new DcBptOnlySecc(t, c),
+                stream => new Evcc20Dc(stream, TimeProvider.System, new ImmediateAsyncDelay(),
+                                       LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = true },
+                cts.Token);
+
+            var loops   = secc.Requests.OfType<Dc20.DC_ChargeLoopReq>().Select(l => (Dc20.BPT_Dynamic_DC_CLReqControlModeType) l.CLReqControlMode).ToArray();
+            var answers = secc.Responses.OfType<Dc20.DC_ChargeLoopRes>().Select(r => (Dc20.BPT_Dynamic_DC_CLResControlModeType) r.CLResControlMode).ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Assert.That(loops, Is.Not.Empty);
+                foreach (var loop in loops)
+                {
+                    Maximum("EVMaximumDischargePower (loop)",   V(loop.EVMaximumDischargePower));
+                    Maximum("EVMaximumDischargeCurrent (loop)", V(loop.EVMaximumDischargeCurrent));
+                    Minimum("EVMinimumDischargePower (loop)",   V(loop.EVMinimumDischargePower));
+                }
+                foreach (var res in answers)
+                {
+                    Maximum("EVSEMaximumDischargePower (loop)",   V(res.EVSEMaximumDischargePower));
+                    Maximum("EVSEMaximumDischargeCurrent (loop)", V(res.EVSEMaximumDischargeCurrent));
+                    Minimum("EVSEMinimumDischargePower (loop)",   V(res.EVSEMinimumDischargePower));
+                }
+            });
+        }
+
+        /// <summary>AC, Scheduled and Dynamic: the vehicle's discovery and loop requests, and the station's
+        /// discovery answer. AC has discharge powers only.</summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task Ac_DischargeLimitsAreNegative(bool dynamic)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+            var secc = await RunSessionAsync(
+                (t, c) => new AcBptOnlySecc(t, c),
+                stream => new Evcc20Ac(stream, TimeProvider.System, new ImmediateAsyncDelay(),
+                                       LoopbackTimeouts.PerMessage) { PreferDynamicControlMode = dynamic },
+                cts.Token);
+
+            var cpd    = (Ac20.BPT_AC_CPDReqEnergyTransferModeType) secc.Requests.OfType<Ac20.AC_ChargeParameterDiscoveryReq>().Single().AC_CPDReqEnergyTransferMode;
+            var answer = (Ac20.BPT_AC_CPDResEnergyTransferModeType) secc.Responses.OfType<Ac20.AC_ChargeParameterDiscoveryRes>().Single().AC_CPDResEnergyTransferMode;
+            var loops  = secc.Requests.OfType<Ac20.AC_ChargeLoopReq>().Select(l => l.CLReqControlMode).ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(secc.IsDone, Is.True);
+                Maximum("EVMaximumDischargePower (discovery)",   V(cpd.EVMaximumDischargePower));
+                Minimum("EVMinimumDischargePower (discovery)",   V(cpd.EVMinimumDischargePower));
+                Maximum("EVSEMaximumDischargePower (discovery)", V(answer.EVSEMaximumDischargePower));
+                Minimum("EVSEMinimumDischargePower (discovery)", V(answer.EVSEMinimumDischargePower));
+                Assert.That(loops, Is.Not.Empty);
+                foreach (var mode in loops)
+                    switch (mode)
+                    {
+                        case Ac20.BPT_Dynamic_AC_CLReqControlModeType d:
+                            Maximum("EVMaximumDischargePower (Dynamic loop)", V(d.EVMaximumDischargePower));
+                            Minimum("EVMinimumDischargePower (Dynamic loop)", V(d.EVMinimumDischargePower));
+                            break;
+                        case Ac20.BPT_Scheduled_AC_CLReqControlModeType s:
+                            Maximum("EVMaximumDischargePower (Scheduled loop)", V(s.EVMaximumDischargePower));
+                            Minimum("EVMinimumDischargePower (Scheduled loop)", V(s.EVMinimumDischargePower));
+                            break;
+                        default:
+                            Assert.Fail($"a {mode.GetType().Name} in a bidirectional session");
+                            break;
+                    }
             });
         }
 

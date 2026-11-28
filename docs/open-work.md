@@ -385,18 +385,16 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **Our cars and stations send the `-20` discharge limits positive; `[V2G20-1213]` and EVerest send them
-  negative.** `Evcc20Ac`, `Evcc20Dc`, `Secc20Ac` and `Secc20Dc` put `EV…Discharge…` and `EVSE…Discharge…`
-  powers and currents on the wire as magnitudes. EVerest 2026.10.0's EV sends −150 kW / −300 A (DC) and
-  −3 680 W / −1 380 W (AC), in charge-parameter discovery and every charge loop. Its station sends its own
-  limits negative by default (`negative_bidirectional_limits: true`) and reads the EV's by magnitude
+- ~~**Our cars and stations send the `-20` discharge limits positive; `[V2G20-1213]` and EVerest send them
+  negative.**~~ **Fixed 2026-11-28**: every discharge power and current our cars (C#, Kotlin, Swift) and
+  stations (`Secc20Ac`, `Secc20Dc`, and MCS through it) put on the wire is now negative, in
+  charge-parameter discovery and in every charge loop, Scheduled and Dynamic. Incoming limits are still
+  read by magnitude, so Josev's and eVDriveFlow's positive ones keep working. The six `iso20-*-eim-bpt*`
+  traces changed in exactly those frames (decoded, negated, re-encoded; every other byte and every
+  meter signature is unchanged), and `Evcc20BidirectionalTests` holds both ends to the sign in all four
+  BPT arms. With the old Kotlin car put back, its gate fails four trace replays. Found 2026-11-28
   ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/notes.md),
-  [requirement](normative-basis.md#the-sign-of-the--20-discharge-limits)). The fix: send negative and read
-  incoming limits by magnitude, since Josev and eVDriveFlow keep sending positive. It spans the stack, both
-  ports, the app and every `BPT_*` trace in the corpus. The reading half is partly there: our discharging
-  stations already take the EV's maximum by magnitude (`Math.Abs` in `Secc20Dc` and `Secc20Ac`), so the
-  discharge run against their EV, which sends it negative, is not blocked by this. Found 2026-11-28,
-  deciding the open question below.
+  [requirement](normative-basis.md#the-sign-of-the--20-discharge-limits)).
 - **The car's transparency comparison in a bidirectional session.** `StationReading` paired the
   vehicle's own count with `ChargedEnergyReadingWh` alone, so in a discharge session it showed a
   difference of everything that went back. **Fixed 2026-11-28 in the stack and the app**: the reading
