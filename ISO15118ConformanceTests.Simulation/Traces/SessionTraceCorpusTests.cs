@@ -39,6 +39,7 @@ using C20ChargingSession = cloud.charging.open.protocols.ISO15118_20.CommonMessa
 using IPPort = org.GraphDefined.Vanaheimr.Hermod.IPPort;
 using Ac20Msg = cloud.charging.open.protocols.ISO15118_20.AC.Generated;
 using Dc20Msg = cloud.charging.open.protocols.ISO15118_20.DC.Generated;
+using Common20Msg = cloud.charging.open.protocols.ISO15118_20.CommonMessages.Generated;
 
 namespace ISO15118ConformanceTests.Simulation.Traces;
 
@@ -188,8 +189,12 @@ public class SessionTraceCorpusTests
     /// nothing. Now both sides count the same <see cref="ChargeLoopSample.Period"/> at the same power,
     /// so the reading climbs through the session and lands where the EV's does.
     /// </remarks>
-    private static SigningMeter Meter(TimeProvider clock) =>
-        new("VAN*M*4711", MeterKeyPair(), clock);
+    /// <remarks>
+    /// <paramref name="scale"/> is the meter's fault switch (<see cref="SigningMeter.Scale"/>): 1 for every
+    /// session but the one recorded to show a vehicle ending the charging over a meter that misreads.
+    /// </remarks>
+    private static SigningMeter Meter(TimeProvider clock, double scale = 1d) =>
+        new("VAN*M*4711", MeterKeyPair(), clock) { Scale = scale };
 
 
     private static readonly Scenario[] Scenarios =
@@ -693,6 +698,38 @@ public class SessionTraceCorpusTests
                           { FixedSessionId    = RecordedSessionId,
                             FixedGenChallenge = RecordedGenChallenge,
                             InstalledMeter    = Meter(clock),
+                            Backend           = backend }.RunAsync(stream, ct);
+            },
+            Metered: true),
+
+        // The vehicle's verdict on the meter, recorded 2026-11-28. The same station, but its meter counts
+        // 10 % too much and signs what it misread, so the signature holds and only the car's own count
+        // can catch it. The car is set to 5 % (never under 10 Wh, the command line's default floor) and
+        // ends the charging after the first reading, which already shows 880 Wh against its 800. It keeps
+        // to everything else the standard asks, and gives its reason in the one place ISO 15118-20 has
+        // for one: EVTerminationCode and EVTerminationExplanation in the SessionStopReq. No code is
+        // defined for that yet, so the URN is ours (MeteringDeviation.TerminationCode).
+        new("iso20-dc-eim-meter-deviation", "iso15118-20", "dc",
+            "-20 DC, EIM, at a station whose meter counts 10 % too much and signs what it misread. The " +
+            "car compares every reading with its own count and, set to 5 %, ends the charging after the " +
+            "first one, 880 Wh against 800. Its SessionStopReq says why: EVTerminationCode " +
+            "urn:openchargingcloud:EVTerminationCode:MeteringDeviation, and the four figures in " +
+            "EVTerminationExplanation. The first recorded message in which a vehicle tells the station " +
+            "its meter is wrong.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage)
+                          { StopOnMeteringDeviation = MeteringDeviationLimit.Parse("5") }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            InstalledMeter    = Meter(clock, scale: 1.10),
                             Backend           = backend }.RunAsync(stream, ct);
             },
             Metered: true),
@@ -1761,7 +1798,7 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public void EveryRecordedMeterReadingVerifies(
-        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso2-ac-pnc-meter-norecord", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm",
+        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso2-ac-pnc-meter-norecord", "iso20-dc-eim-meter", "iso20-dc-eim-meter-deviation", "iso20-dc-pnc-meterconfirm",
                 "iso20-dc-eim-bpt-discharge", "iso20-ac-eim-bpt-discharge")] string name)
     {
 
@@ -2192,6 +2229,57 @@ public class SessionTraceCorpusTests
     }
 
     /// <summary>
+    /// The recorded vehicle that found the meter wrong ends the charging after that reading, and its
+    /// <c>SessionStopReq</c> says why. No other recorded -20 session gives a reason.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The explanation is pinned to the byte. A recorded session holds the vehicle's bytes and the Kotlin
+    /// and Swift cars replay them, so this text is the cross-language contract, rounding included
+    /// (<see cref="MeteringDeviation.Explain"/>). Its first figure is checked against the reading the
+    /// station actually sent; the vehicle's own count is not on the wire, so the 800 Wh is what one
+    /// 48 kW iteration is worth (<see cref="ChargeLoopSample"/>).
+    /// </para>
+    /// <para>
+    /// Still confirmed and still conformant: nothing in the session but its length and its last request
+    /// differs from <c>iso20-dc-eim-meter</c>. Both end with <c>Terminate</c>; only one says why.
+    /// </para>
+    /// </remarks>
+    [Test]
+    public void TheVehicleThatStoppedOverTheMeterSaysSoInItsSessionStopReq()
+    {
+
+        var trace = SessionTrace.ReadFrom(TracePath("iso20-dc-eim-meter-deviation"));
+        var loops = trace.Exchanges.Where(e => e.Request.Message == "DC_ChargeLoopReq").ToList();
+        var stop  = (Common20Msg.SessionStopReq) SignedFrame.DecodeWithSet(
+                        trace.Exchanges.Single(e => e.Request.Message == "SessionStopReq").Request.Bytes).Message;
+        var shown = ((Dc20Msg.DC_ChargeLoopRes) SignedFrame.DecodeWithSet(loops[^1].Response.Bytes).Message).MeterInfo!;
+
+        Assert.Multiple(() => {
+
+            Assert.That(loops,                         Has.Count.EqualTo(1), "stopped after the first reading");
+            Assert.That(shown.ChargedEnergyReadingWh,  Is.EqualTo(880), "800 Wh delivered, read 10 % high");
+            Assert.That(stop.ChargingSession,          Is.EqualTo(C20ChargingSession.Terminate));
+            Assert.That(stop.EVTerminationCode,        Is.EqualTo(MeteringDeviation.TerminationCode));
+            Assert.That(stop.EVTerminationExplanation, Is.EqualTo("meter 880 Wh, vehicle 800 Wh, difference 80 Wh, beyond 44 Wh"));
+            Assert.That(stop.EVTerminationExplanation, Does.StartWith($"meter {shown.ChargedEnergyReadingWh} Wh, "));
+
+            foreach (var other in Scenarios.Where(s => s.Protocol == "iso15118-20" && s.Name != "iso20-dc-eim-meter-deviation"))
+            {
+                var otherTrace = SessionTrace.ReadFrom(TracePath(other.Name));
+                foreach (var exchange in otherTrace.Exchanges.Where(e => e.Request.Message == "SessionStopReq"))
+                {
+                    var req = (Common20Msg.SessionStopReq) SignedFrame.DecodeWithSet(exchange.Request.Bytes).Message;
+                    Assert.That(req.EVTerminationCode is null && req.EVTerminationExplanation is null, Is.True,
+                                $"{other.Name}: a session that did not stop over the meter gave a reason");
+                }
+            }
+
+        });
+
+    }
+
+    /// <summary>
     /// Every discharge limit on the wire is negative, the vehicle's and the station's.
     /// </summary>
     /// <remarks>
@@ -2287,7 +2375,7 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public async Task TheBackendRecordCarriesTheSameSignedValuesTheCarSaw(
-        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm",
+        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso20-dc-eim-meter", "iso20-dc-eim-meter-deviation", "iso20-dc-pnc-meterconfirm",
                 "iso20-dc-eim-bpt-discharge", "iso20-ac-eim-bpt-discharge")] string name)
     {
 
