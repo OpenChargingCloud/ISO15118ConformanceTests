@@ -2192,6 +2192,80 @@ public class SessionTraceCorpusTests
     }
 
     /// <summary>
+    /// Every discharge limit on the wire is negative, the vehicle's and the station's.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// `[V2G20-1213]` sets every parameter used for discharging negative, limits included, and negative
+    /// is the direction from the vehicle (`[V2G20-1035]`). Until 2026-11-28 our cars and stations sent
+    /// these limits as positive magnitudes. EVerest 2026.10.0 sends them negative on both sides
+    /// (<c>docs/interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/</c>).
+    /// </para>
+    /// <para>
+    /// Walked by reflection over every decoded frame, so a message type added later is covered without
+    /// being named here: any <c>…Maximum…Discharge…</c> power or current must be below zero, and any
+    /// <c>…Minimum…Discharge…</c> one at or below. The register <c>BPT_DischargedEnergyReadingWh</c> is the
+    /// one value that stays positive (`[V2G20-1415]`), and it is no limit, so the walk leaves it alone.
+    /// </para>
+    /// </remarks>
+    [Test]
+    public void EveryDischargeLimitOnTheWireIsNegative(
+        [Values("iso20-dc-eim-bpt", "iso20-dc-eim-bpt-dynamic", "iso20-ac-eim-bpt", "iso20-ac-eim-bpt-dynamic",
+                "iso20-dc-eim-bpt-discharge", "iso20-ac-eim-bpt-discharge")] string name)
+    {
+
+        var trace    = SessionTrace.ReadFrom(TracePath(name));
+        var limits   = new List<(int Exchange, string Path, double Value)>();
+
+        static double Amount(object rational)
+        {
+            var type = rational.GetType();
+            var v    = Convert.ToDouble(type.GetProperty("Value")!.GetValue(rational));
+            var e    = Convert.ToDouble(type.GetProperty("Exponent")!.GetValue(rational));
+            return v * Math.Pow(10, e);
+        }
+
+        void Walk(object? node, string path, int exchange, int depth)
+        {
+            if (node is null || depth > 8) return;
+            var type = node.GetType();
+            if (type.IsPrimitive || node is string || node is byte[] || type.IsEnum) return;
+
+            foreach (var property in type.GetProperties())
+            {
+                if (property.GetIndexParameters().Length > 0) continue;
+                var value = property.GetValue(node);
+                if (value is null) continue;
+
+                var isRational = value.GetType().Name == "RationalNumberType";
+                if (isRational && property.Name.Contains("Discharge") &&
+                    (property.Name.Contains("Power") || property.Name.Contains("Current")))
+                    limits.Add((exchange, $"{path}.{property.Name}", Amount(value)));
+                else if (!isRational && value is not System.Collections.IEnumerable)
+                    Walk(value, $"{path}.{property.Name}", exchange, depth + 1);
+            }
+        }
+
+        foreach (var exchange in trace.Exchanges)
+            foreach (var frame in new[] { exchange.Request, exchange.Response })
+                if (frame.Message.Contains("ChargeParameterDiscovery") || frame.Message.Contains("ChargeLoop"))
+                    Walk(SignedFrame.DecodeWithSet(frame.Bytes).Message, frame.Message, exchange.Index, 0);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(limits.Select(l => l.Path), Has.Some.Contains("Req").And.Some.Contains("Res"),
+                        "the walk found discharge limits on one side only");
+
+            foreach (var (exchange, path, value) in limits)
+                if (path.Contains("Maximum"))
+                    Assert.That(value, Is.Negative, $"exchange {exchange}: {path} = {value}");
+                else
+                    Assert.That(value, Is.LessThanOrEqualTo(0), $"exchange {exchange}: {path} = {value}");
+        });
+
+    }
+
+    /// <summary>
     /// The station told its backend the same signed values it showed the car.
     /// </summary>
     /// <remarks>
