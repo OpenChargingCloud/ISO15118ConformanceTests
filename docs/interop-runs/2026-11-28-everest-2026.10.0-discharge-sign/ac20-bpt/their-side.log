@@ -1,0 +1,216 @@
+2026-11-28 03:23:40.933286 [INFO] manager          :: Manager state transition: Idle -> Initializing
+2026-11-28 03:23:40.940409 [INFO] manager          ::   ________      __                _   
+2026-11-28 03:23:40.940449 [INFO] manager          ::  |  ____\ \    / /               | |
+2026-11-28 03:23:40.940455 [INFO] manager          ::  | |__   \ \  / /__ _ __ ___  ___| |_
+2026-11-28 03:23:40.940460 [INFO] manager          ::  |  __|   \ \/ / _ \ '__/ _ \/ __| __|
+2026-11-28 03:23:40.940466 [INFO] manager          ::  | |____   \  /  __/ | |  __/\__ \ |_
+2026-11-28 03:23:40.940471 [INFO] manager          ::  |______|   \/ \___|_|  \___||___/\__|
+2026-11-28 03:23:40.940476 [INFO] manager          :: 
+2026-11-28 03:23:40.940481 [INFO] manager          :: everest-framework 0.26.0-dev 2026.10.0
+2026-11-28 03:23:40.940486 [INFO] manager          :: everest-core 2026.10.0-dev 2026.10.0
+2026-11-28 03:23:40.940491 [INFO] manager          :: 
+2026-11-28 03:23:40.940498 [INFO] manager          :: Using MQTT broker localhost:1883
+2026-11-28 03:23:40.940989 [INFO] manager          :: Migration files to apply:
+2026-11-28 03:23:40.941007 [INFO] manager          :: Migration file [up] version 1, path: /home/ahzf/everest/dist-2610/share/everest/migrations/1_up-initial.sql
+2026-11-28 03:23:40.941017 [INFO] manager          :: Migration file [up] version 2, path: /home/ahzf/everest/dist-2610/share/everest/migrations/2_up-forward-exceptions.sql
+2026-11-28 03:23:40.941022 [INFO] manager          :: Migration file [up] version 3, path: /home/ahzf/everest/dist-2610/share/everest/migrations/3_up-access_config.sql
+2026-11-28 03:23:40.941027 [INFO] manager          :: Migration file [up] version 4, path: /home/ahzf/everest/dist-2610/share/everest/migrations/4_up-multi_config.sql
+2026-11-28 03:23:40.946404 [INFO] manager          :: Database not initialized, seeding from YAML config file: "/home/ahzf/everest/run/2610-dsign/ac20-bpt/config-ac-bpt-reverse-2610.yaml"
+2026-11-28 03:23:40.960302 [INFO] manager          :: Loading config file at: /home/ahzf/everest/run/2610-dsign/ac20-bpt/config-ac-bpt-reverse-2610.yaml
+2026-11-28 03:23:41.084955 [INFO] manager          :: Module configs written to database successfully
+2026-11-28 03:23:41.102023 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-28 03:23:41.235214 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-28 03:23:41.387876 [INFO] manager          :: Loading module configs from pre-loaded database configuration
+2026-11-28 03:23:41.500454 [INFO] manager          :: Config loading completed in 128ms
+2026-11-28 03:23:41.501350 [INFO] manager          :: Manager state transition: Initializing -> StartingModules
+2026-11-28 03:23:41.501544 [INFO] manager          :: Starting 15 modules
+2026-11-28 03:23:43.598365 [INFO] api_sink:Energy  :: Module api_sink initialized [2064ms]
+2026-11-28 03:23:43.598508 [INFO] ev_manager:EvMa  :: Module ev_manager initialized [2057ms]
+2026-11-28 03:23:43.599595 [WARN] api:API         void module::API::init() :: DEPRECATED MODULE
+  component       : API
+  deprecated      : 2026.10.0, earliest removal 2027.04.0
+  migration guide : use the EVerest API modules (evse_manager_consumer_API and others)
+2026-11-28 03:23:43.600366 [INFO] api:API          :: Module api initialized [2069ms]
+2026-11-28 03:23:43.600493 [INFO] auth:Auth        :: Module auth initialized [2064ms]
+2026-11-28 03:23:43.640009 [INFO] energy_manager:  :: Module energy_manager initialized [2099ms]
+2026-11-28 03:23:43.643554 [INFO] error_history:E  :: Using database at "/tmp/error_history.db"
+2026-11-28 03:23:43.643820 [INFO] error_history:E  :: Checking database
+2026-11-28 03:23:43.643818 [INFO] connector_1_pow  :: Module connector_1_powerpath initialized [2112ms]
+2026-11-28 03:23:43.647911 [INFO] error_history:E  :: Module error_history initialized [2108ms]
+2026-11-28 03:23:43.650757 [INFO] token_validator  :: Module token_validator initialized [2090ms]
+2026-11-28 03:23:43.653001 [INFO] grid_connection  :: Module grid_connection_point initialized [2103ms]
+2026-11-28 03:23:43.653209 [INFO] iso15118_car:Ev  :: Module iso15118_car initialized [2102ms]
+2026-11-28 03:23:43.653894 [INFO] slac:SlacSimula  :: Module slac initialized [2103ms]2026-11-28 03:23:43.653919 [INFO] token_provider:  :: Module token_provider initialized [2091ms]
+
+2026-11-28 03:23:43.654833 [INFO] evse_security:E  :: Module evse_security initialized [2107ms]
+2026-11-28 03:23:43.658796 [INFO] iso15118_charge  :: Module iso15118_charger initialized [2109ms]
+2026-11-28 03:23:43.665549 [INFO] evse_manager:Ev  :: Module evse_manager initialized [2125ms]
+2026-11-28 03:23:43.710931 [INFO] manager          :: Clearing retained topics published by manager during startup
+2026-11-28 03:23:43.711438 [INFO] manager          :: 🚙🚙🚙 All modules are initialized. EVerest up and running [2210ms] 🚙🚙🚙
+2026-11-28 03:23:43.711525 [INFO] manager          :: Manager state transition: StartingModules -> Running
+2026-11-28 03:23:43.739125 [INFO] iso15118_car:Ev  :: Ev15118: using the EVCC MAC of interface eth0
+2026-11-28 03:23:43.755412 [INFO] iso15118_car:Ev  :: Ev15118: set_dc_params
+2026-11-28 03:23:43.797257 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 03:23:43.802629 [INFO] ev_manager:EvMa  :: SLAC state: UNMATCHED
+2026-11-28 03:23:43.844586 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 03:23:43.851294 [WARN] auth:Auth       void module::ReservationHandler::load_reservations() :: Can not load reservations because no storage was configured.
+2026-11-28 03:23:43.889051 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-28 03:23:43.891625 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-28 03:23:43.891899 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-28 03:23:43.931846 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-28 03:23:43.970868 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G20
+2026-11-28 03:23:43.971727 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Could not find valid certificate
+2026-11-28 03:23:43.979392 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-28 03:23:43.979491 [WARN] iso15118_charge virtual void module::charger::ISO15118_chargerImpl::ready() :: Evse15118D20: ISO 15118-20 is offered but no secp521r1 / Ed448 SECC leaf certificate is installed; TLS 1.3 sessions will be presented the ISO 15118-2 (secp256r1) leaf, which ISO 15118-20 EVs may reject
+2026-11-28 03:23:44.047393 [INFO] iso15118_charge  :: debug_mode enabled: publishing v2g_messages (message id plus the raw V2GTP frame as hex and base64) and ev_app_protocol
+2026-11-28 03:23:44.099094 [INFO] ev_manager:EvMa  :: Simulation waiting on: sleep
+2026-11-28 03:23:44.099187 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-28 03:23:44.181706 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 03:23:44.224514 [INFO] evse_manager:Ev  :: AC HLC mode enabled.
+2026-11-28 03:23:44.268373 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 03:23:44.310571 [INFO] evse_manager:Ev  :: Ignoring BSP Event, BSP is not enabled yet.
+2026-11-28 03:23:44.355552 [INFO] evse_security:E  :: Requesting certificate file: [V2G] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/v2g/V2G_ROOT_CA.pem"
+2026-11-28 03:23:44.363189 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-28 03:23:44.363319 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: Disconnected -> A
+2026-11-28 03:23:44.400669 [INFO] evse_security:E  :: Requesting certificate file: [MO] file:"/home/ahzf/everest/dist-2610/etc/everest/certs/ca/mo/MO_ROOT_CA.pem"
+2026-11-28 03:23:44.442818 [INFO] evse_manager:Ev  :: Cleaning up any other transaction on start up
+2026-11-28 03:23:44.444478 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G
+2026-11-28 03:23:44.445545 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem"]
+2026-11-28 03:23:44.445763 [INFO] evse_security:E  :: Found valid leaf: ["/home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/SECC_LEAF.pem"]
+2026-11-28 03:23:44.487141 [INFO] iso15118_charge  :: SECC leaf certificate /home/ahzf/everest/dist-2610/etc/everest/certs/client/cso/CPO_CERT_CHAIN.pem (prime256v1) is presented on TLS 1.2 (ISO 15118-2)
+2026-11-28 03:23:44.515131 [INFO] evse_security:E  :: Requesting leaf certificate info: V2G20
+2026-11-28 03:23:44.515853 [WARN] evse_security:E evse_security::GetCertificateFullInfoResult evse_security::EvseSecurity::get_full_leaf_certificate_info_internal(const evse_security::CertificateQueryParams&) :: Could not find valid certificate
+2026-11-28 03:23:44.530963 [WARN] iso15118_charge std::vector<iso15118::config::ChainConfig> module::charger::map_valid_chains(const types::evse_security::GetCertificateFullInfoResult&) :: get_all_valid_certificates_info returned non-Accepted status: NotFoundValid
+2026-11-28 03:23:44.531050 [INFO] iso15118_charge  :: SSL config refresh: applying SSL config with 1 chain(s)
+2026-11-28 03:23:44.531692 [INFO] iso15118_charge  :: Network device lo appeared
+2026-11-28 03:23:44.580684 [INFO] iso15118_charge  :: Starting SDP server with address: ::
+2026-11-28 03:23:44.580874 [INFO] iso15118_charge  :: Using ethernet interface: lo
+2026-11-28 03:23:44.619618 [INFO] evse_manager:Ev  :: 🌀🌀🌀 Ready to start charging 🌀🌀🌀
+2026-11-28 03:23:47.364964 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_slac_matched
+2026-11-28 03:23:47.547125 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: A -> B
+2026-11-28 03:23:47.794768 [INFO] connector_1_pow  :: Lock connector
+2026-11-28 03:23:47.931225 [INFO] ev_manager:EvMa  :: SLAC state: MATCHING
+2026-11-28 03:23:48.230735 [INFO] evse_manager:Ev  :: SYS  Session logging started.
+2026-11-28 03:23:48.230971 [INFO] evse_manager:Ev  :: EVSE IEC Session Started: EVConnected
+2026-11-28 03:23:48.232652 [INFO] auth:Auth        :: Plug In event for evse#1, starting auth
+2026-11-28 03:23:48.232633 [INFO] token_provider:  :: Publishing new dummy token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-11-28 03:23:48.234020 [INFO] auth:Auth        :: Received new token: {
+    "authorization_type": "RFID",
+    "id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    },
+    "parent_id_token": {
+        "type": "ISO14443",
+        "value": "[redacted] hash: 29F2679CA504908"
+    }
+}
+2026-11-28 03:23:48.279529 [INFO] token_validator  :: Got validation request for token: [redacted] hash: 29F2679CA504908
+2026-11-28 03:23:48.322782 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHING
+2026-11-28 03:23:48.529855 [INFO] token_validator  :: Returning validation status: Accepted
+2026-11-28 03:23:48.532255 [INFO] auth:Auth        :: Providing authorization to evse#1
+2026-11-28 03:23:48.620850 [INFO] auth:Auth        :: Result for token: [redacted] hash: 29F2679CA504908: USED_TO_START_TRANSACTION
+2026-11-28 03:23:48.632213 [INFO] evse_manager:Ev  :: EVSE IEC EIM Authorization received
+2026-11-28 03:23:48.719007 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Started (0 kWh)
+2026-11-28 03:23:48.719580 [INFO] evse_manager:Ev  :: EVSE IEC AC mode, HLC enabled(X1), matching already started. We are in X1 so we can go directly to nominal PWM.
+2026-11-28 03:23:48.719691 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Wait for Auth->PrepareCharging
+2026-11-28 03:23:48.720026 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM On (53.3%) took 0 ms
+2026-11-28 03:23:50.502188 [INFO] ev_manager:EvMa  :: SLAC state: MATCHED
+2026-11-28 03:23:50.502670 [INFO] evse_manager:Ev  :: EVSE ISO SLAC MATCHED
+2026-11-28 03:23:50.502843 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (true)
+2026-11-28 03:23:50.525562 [INFO] iso15118_charge  :: V2G communication setup timeout started (18000 ms)
+2026-11-28 03:23:50.726970 [INFO] iso15118_car:Ev  :: Ev15118: start_charging requested (DepartureTime 86400 s, EAmount 0 kWh)
+2026-11-28 03:23:50.736600 [INFO] iso15118_car:Ev  :: Ev15118: connected to SECC
+2026-11-28 03:23:50.771124 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_pwr_ready
+2026-11-28 03:23:50.773452 [INFO] iso15118_car:Ev  :: Ev15118: selected protocol ISO15118-20
+2026-11-28 03:23:50.809331 [INFO] iso15118_car:Ev  :: New session established by EVSE.
+2026-11-28 03:23:50.809391 [INFO] iso15118_car:Ev  :: Ev15118: EVSE id DE*ABC*E1
+2026-11-28 03:23:50.837413 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: EVSE supports certificate installation service, but this is not implemented in the EV yet.
+2026-11-28 03:23:50.924046 [WARN] iso15118_car:Ev module::ev::ISO15118_evImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: No Scheduled parameter set offers the preferred ThreePhase connector; selecting SinglePhase, and the advertised limits are split for that connector
+2026-11-28 03:23:50.983355 [INFO] iso15118_car:Ev  :: Ev15118: AC BPT EVSE limits: max discharge power 22000 W, min discharge power 0 W
+2026-11-28 03:23:51.110699 [INFO] ev_manager:EvMa  :: Simulation waiting on: iso_wait_for_stop
+2026-11-28 03:23:51.202968 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: B -> C
+2026-11-28 03:23:51.642766 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedPower
+2026-11-28 03:23:51.642925 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: PrepareCharging->Charging
+2026-11-28 03:23:51.643275 [INFO] evse_manager:Ev  :: IEC allow_power_on requested: true (reason FullPowerCharging)
+2026-11-28 03:23:51.643293 [INFO] evse_manager:Ev  :: IEC allow_power_on forwarded to BSP: true
+2026-11-28 03:23:51.766165 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOn
+2026-11-28 03:24:08.556665 [WARN] iso15118_charge module::charger::ISO15118_chargerImpl::init()::<lambda(const iso15118::LogLevel&, const std::string&)> :: V2G communication setup timeout (18s) expired before the V2G session was established
+2026-11-28 03:24:08.602690 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_ERROR.req
+2026-11-28 03:24:08.647082 [INFO] evse_manager:Ev  :: EVSE ISO SLAC UNMATCHED
+2026-11-28 03:24:08.647387 [INFO] evse_manager:Ev  :: EVSE ISO D-LINK_READY (false)
+2026-11-28 03:24:14.962287 [INFO] iso15118_car:Ev  :: Ev15118: session stopped
+2026-11-28 03:24:14.964129 [INFO] ev_manager:EvMa  :: V2G session ended - opening the contactor and returning the control pilot to state B
+2026-11-28 03:24:15.399038 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: C -> B
+2026-11-28 03:24:15.586180 [INFO] evse_manager:Ev  :: IEC allow_power_on forwarded to BSP: false
+2026-11-28 03:24:15.674926 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarRequestedStopPower
+2026-11-28 03:24:15.675138 [INFO] evse_manager:Ev  :: EVSE IEC Stop in Charging: [IEC stop]
+2026-11-28 03:24:15.675223 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Charging->StoppingCharging
+2026-11-28 03:24:15.675408 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-28 03:24:15.718995 [INFO] evse_manager:Ev  :: EVSE IEC Event PowerOff
+2026-11-28 03:24:15.719148 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Car Paused
+2026-11-28 03:24:15.719492 [INFO] evse_manager:Ev  :: EVSE IEC Soft overcurrent event (L1:15.972475, L2:15.972475, L3:15.972475, limit 0.55), starting timer.
+2026-11-28 03:24:15.719547 [INFO] evse_manager:Ev  :: EVSE IEC Stay in X1 for another 2956 ms before enabling PWM again (IEC 61851-1 Table A.6 seq. 9.2)
+2026-11-28 03:24:16.149548 [INFO] ev_manager:EvMa  :: <<< UNPLUGGED: resetting the vehicle - CP state A (resistor released), power off, SLAC unmatched, charging stopped
+2026-11-28 03:24:16.326667 [INFO] ev_manager:EvMa  :: Vehicle reset complete - ready for the next plug-in
+2026-11-28 03:24:16.326757 [INFO] ev_manager:EvMa  :: Finished simulation. The vehicle keeps its state until a stop or unplug.
+2026-11-28 03:24:16.326816 [INFO] ev_manager:EvMa  :: SLAC state: UNMATCHED
+2026-11-28 03:24:16.326888 [INFO] ev_manager:EvMa  :: CP measured at the vehicle inlet: B -> A
+2026-11-28 03:24:16.718826 [INFO] connector_1_pow  :: Unlock connector
+2026-11-28 03:24:16.895550 [INFO] evse_manager:Ev  ::                                     CAR IEC Event CarUnplugged
+2026-11-28 03:24:16.895707 [INFO] evse_manager:Ev  :: EVSE IEC Stop in ChargingPausedEV: [EV unplugged]
+2026-11-28 03:24:16.895802 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: Car Paused->StoppingCharging
+2026-11-28 03:24:16.895975 [INFO] evse_manager:Ev  :: EVSE IEC Set PWM Off
+2026-11-28 03:24:16.939283 [INFO] evse_manager:Ev  :: EVSE IEC Charger state: StoppingCharging->Finished
+2026-11-28 03:24:17.071116 [INFO] evse_manager:Ev  :: EVSE IEC Transaction Finished: EVDisconnected (0.07 kWh)
+2026-11-28 03:24:17.114991 [INFO] evse_manager:Ev  :: EVSE IEC Session Finished
+2026-11-28 03:24:17.115193 [INFO] evse_manager:Ev  :: SYS  Session logging stopped.
+2026-11-28 03:24:17.200036 [INFO] manager          :: SIGINT/SIGTERM received
+2026-11-28 03:24:17.200107 [INFO] manager          :: Manager state transition: Running -> ShutdownRequested
+2026-11-28 03:24:17.200427 [INFO] manager          :: Shutting down modules...
+2026-11-28 03:24:17.200448 [INFO] manager          :: Manager state transition: ShutdownRequested -> ForceTerminating
+2026-11-28 03:24:17.200458 [INFO] manager          :: Terminating modules (graceful shutdown not enabled)...
+2026-11-28 03:24:17.200968 [INFO] manager          :: SIGTERM of child: api (pid: 1979646) succeeded.
+2026-11-28 03:24:17.201167 [INFO] manager          :: SIGTERM of child: api_sink (pid: 1979647) succeeded.
+2026-11-28 03:24:17.201353 [INFO] manager          :: SIGTERM of child: auth (pid: 1979648) succeeded.
+2026-11-28 03:24:17.201517 [INFO] manager          :: SIGTERM of child: connector_1_powerpath (pid: 1979649) succeeded.
+2026-11-28 03:24:17.201663 [INFO] manager          :: SIGTERM of child: energy_manager (pid: 1979650) succeeded.
+2026-11-28 03:24:17.201818 [INFO] manager          :: SIGTERM of child: error_history (pid: 1979651) succeeded.
+2026-11-28 03:24:17.202013 [INFO] manager          :: SIGTERM of child: ev_manager (pid: 1979652) succeeded.
+2026-11-28 03:24:17.202224 [INFO] manager          :: SIGTERM of child: evse_manager (pid: 1979653) succeeded.
+2026-11-28 03:24:17.202277 [INFO] manager          :: SIGTERM of child: evse_security (pid: 1979654) succeeded.
+2026-11-28 03:24:17.202307 [INFO] manager          :: SIGTERM of child: grid_connection_point (pid: 1979655) succeeded.
+2026-11-28 03:24:17.202336 [INFO] manager          :: SIGTERM of child: iso15118_car (pid: 1979656) succeeded.
+2026-11-28 03:24:17.202372 [INFO] manager          :: SIGTERM of child: iso15118_charger (pid: 1979665) succeeded.
+2026-11-28 03:24:17.202402 [INFO] manager          :: SIGTERM of child: slac (pid: 1979669) succeeded.
+2026-11-28 03:24:17.202436 [INFO] manager          :: SIGTERM of child: token_provider (pid: 1979679) succeeded.
+2026-11-28 03:24:17.202466 [INFO] manager          :: SIGTERM of child: token_validator (pid: 1979691) succeeded.
+2026-11-28 03:24:17.202911 [INFO] manager          :: Module api_sink (pid 1979647) shutdown [2ms] with status: signal=15
+2026-11-28 03:24:17.203265 [INFO] manager          :: Module auth (pid 1979648) shutdown [3ms] with status: signal=15
+2026-11-28 03:24:17.203677 [INFO] manager          :: Module api (pid 1979646) shutdown [3ms] with status: signal=15
+2026-11-28 03:24:17.203752 [INFO] manager          :: Module error_history (pid 1979651) shutdown [3ms] with status: signal=15
+2026-11-28 03:24:17.203793 [INFO] manager          :: Module connector_1_powerpath (pid 1979649) shutdown [3ms] with status: signal=15
+2026-11-28 03:24:17.203955 [INFO] manager          :: Module energy_manager (pid 1979650) shutdown [3ms] with status: signal=15
+2026-11-28 03:24:17.204022 [INFO] manager          :: Module ev_manager (pid 1979652) shutdown [3ms] with status: signal=15
+2026-11-28 03:24:17.204998 [INFO] manager          :: Module slac (pid 1979669) shutdown [4ms] with status: signal=15
+2026-11-28 03:24:17.206010 [INFO] manager          :: Module evse_security (pid 1979654) shutdown [5ms] with status: signal=15
+2026-11-28 03:24:17.206184 [INFO] manager          :: Module evse_manager (pid 1979653) shutdown [6ms] with status: signal=15
+2026-11-28 03:24:17.206452 [INFO] manager          :: Module token_validator (pid 1979691) shutdown [6ms] with status: signal=15
+2026-11-28 03:24:17.207500 [INFO] manager          :: Module grid_connection_point (pid 1979655) shutdown [7ms] with status: signal=15
+2026-11-28 03:24:17.207624 [INFO] manager          :: Module iso15118_car (pid 1979656) shutdown [7ms] with status: signal=15
+2026-11-28 03:24:17.207660 [INFO] manager          :: Module token_provider (pid 1979679) shutdown [7ms] with status: signal=15
+2026-11-28 03:24:17.209249 [INFO] manager          :: Module iso15118_charger (pid 1979665) shutdown [9ms] with status: signal=15
+2026-11-28 03:24:17.209268 [INFO] manager          :: Manager state transition: ForceTerminating -> ShutdownFinalizing
+2026-11-28 03:24:17.209588 [WARN] manager         std::optional<int> Manager::handle_finish_normal_shutdown(RuntimeContext&) :: Modules that did not shut down cleanly: api_sink (signal=15) auth (signal=15) api (signal=15) error_history (signal=15) connector_1_powerpath (signal=15) energy_manager (signal=15) ev_manager (signal=15) slac (signal=15) evse_security (signal=15) evse_manager (signal=15) token_validator (signal=15) grid_connection_point (signal=15) iso15118_car (signal=15) token_provider (signal=15) iso15118_charger (signal=15)
+2026-11-28 03:24:17.209618 [INFO] manager          :: 👋👋👋 EVerest manager is exiting [9ms] 👋👋👋
+2026-11-28 03:24:17.209628 [INFO] manager          :: Manager state transition: ShutdownFinalizing -> Exiting

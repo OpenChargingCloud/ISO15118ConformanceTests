@@ -385,6 +385,18 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
+- **Our cars and stations send the `-20` discharge limits positive; `[V2G20-1213]` and EVerest send them
+  negative.** `Evcc20Ac`, `Evcc20Dc`, `Secc20Ac` and `Secc20Dc` put `EV…Discharge…` and `EVSE…Discharge…`
+  powers and currents on the wire as magnitudes. EVerest 2026.10.0's EV sends −150 kW / −300 A (DC) and
+  −3 680 W / −1 380 W (AC), in charge-parameter discovery and every charge loop. Its station sends its own
+  limits negative by default (`negative_bidirectional_limits: true`) and reads the EV's by magnitude
+  ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/notes.md),
+  [requirement](normative-basis.md#the-sign-of-the--20-discharge-limits)). The fix: send negative and read
+  incoming limits by magnitude, since Josev and eVDriveFlow keep sending positive. It spans the stack, both
+  ports, the app and every `BPT_*` trace in the corpus. The reading half is partly there: our discharging
+  stations already take the EV's maximum by magnitude (`Math.Abs` in `Secc20Dc` and `Secc20Ac`), so the
+  discharge run against their EV, which sends it negative, is not blocked by this. Found 2026-11-28,
+  deciding the open question below.
 - **The car's transparency comparison in a bidirectional session.** `StationReading` (C#, and the
   ports' and app's counterparts) pairs the vehicle's own count with `ChargedEnergyReadingWh` alone. In
   a discharge session the right station figure is charged minus discharged, so EVCLI's Transparency
@@ -922,16 +934,18 @@ dropped a behaviour `-2` requires. Settled against the requirement text on 2026-
 
 Not gaps in coverage — things a counterparty's behaviour raised about us, which are not settled.
 
-**One, since 2026-11-28.**
+**None again since later on 2026-11-28.**
 
-- **The sign of the discharge *limits*.** `[V2G20-1213]` reads as if parameters used for discharging,
-  limits included, are to be negative. Our cars and station send `EVMaximumDischargePower` and its
-  siblings as positive magnitudes, and so does eVDriveFlow's car (48 000 W,
-  [run](interop-runs/2026-08-07-edf-dc-bpt/bpt-envelope.txt)). EVerest accepted ours in every BPT run.
-  The flows themselves are negative as required. Left unchanged on purpose: no reference encoder or
-  counterparty says otherwise, and changing the sign would break the one convention the field seems to
-  share. To decide against the requirement text in `normative-basis.md`, then against EVerest's and
-  Josev's code, before anything moves.
+- ~~**The sign of the discharge *limits*.**~~ **Decided 2026-11-28, the same day it was raised: negative.**
+  The entry left our positive limits unchanged because no reference encoder or counterparty said
+  otherwise. EVerest 2026.10.0 does, on both sides: its EV sends every discharge limit negative, and its
+  station sends its own negative by default. "EVerest accepted ours" said nothing, because their station
+  reads the EV's limits by magnitude. The text agrees: `[V2G20-1213]` covers discharge parameters
+  generally, the one exemption (`[V2G20-1415]`) is the discharged-energy register, and every comparison
+  between limits is written on absolute values
+  ([requirement](normative-basis.md#the-sign-of-the--20-discharge-limits),
+  [run](interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/notes.md)). Josev and eVDriveFlow send
+  positive, so the field is split rather than agreed. Moved to *Ours to fix*, above.
 
 **Before it, none.** The previous one was raised on 2026-11-06 by EVerest's next EV, `Ev15118` (PR #3031):
 *should our `-2` station state the result of the isolation test it claims to have run?* It never had,
