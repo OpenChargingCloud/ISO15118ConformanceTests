@@ -387,6 +387,110 @@ public class SessionTraceCorpusTests
                             Backend           = backend }.RunAsync(stream, ct);
             }),
 
+        // ── bidirectional services, and the service filter ──────────────
+        //
+        // Recorded 2026-11-28 for the ports, as the Dynamic traces were: Evcc20Base.PreferBidirectionalService
+        // ranks the BPT entry of the station's catalogue first, and selecting it is what makes the session
+        // bidirectional. ChargeParameterDiscovery then carries the BPT_ subtype and every charge loop a
+        // BPT_ control mode, Scheduled or Dynamic. A station enforces that coupling (EVerest refused a
+        // charge-only request under service 9, 2026-08-05-everest-mcs-bpt), so a port that selects 5 or 6
+        // and still sends the plain types fails against a real station. Four traces, because each pairs
+        // one message set with one control mode, and each pair is its own arm in Evcc20Ac / Evcc20Dc.
+        // The fifth holds the SupportedServiceIDs filter, which until now only the C# car could send.
+
+        new("iso20-dc-eim-bpt", "iso15118-20", "dc",
+            "-20 DC, EIM, bidirectional: the EV ranks DC_BPT (6) ahead of DC (2), so the session " +
+            "selects 6 and sends BPT_DC_CPDReqEnergyTransferMode and BPT_Scheduled_DC_CLReqControlMode.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage) { PreferBidirectionalService = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-dc-eim-bpt-dynamic", "iso15118-20", "dc",
+            "-20 DC, EIM, bidirectional in Dynamic control mode: service 6 and " +
+            "BPT_Dynamic_DC_CLReqControlMode, whose discharge limits are mandatory.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage)
+                          { PreferBidirectionalService = true, PreferDynamicControlMode = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-ac-eim-bpt", "iso15118-20", "ac",
+            "-20 AC, EIM, bidirectional: the EV ranks AC_BPT (5) ahead of AC (1), so the session " +
+            "selects 5 and sends BPT_AC_CPDReqEnergyTransferMode and BPT_Scheduled_AC_CLReqControlMode.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Evcc20Ac(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage) { PreferBidirectionalService = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Secc20Ac(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-ac-eim-bpt-dynamic", "iso15118-20", "ac",
+            "-20 AC, EIM, bidirectional in Dynamic control mode: service 5 and " +
+            "BPT_Dynamic_AC_CLReqControlMode, whose discharge limits are mandatory.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Evcc20Ac(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage)
+                          { PreferBidirectionalService = true, PreferDynamicControlMode = true }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Ac);
+                await new Secc20Ac(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
+        new("iso20-dc-eim-filter", "iso15118-20", "dc",
+            "-20 DC, EIM, with the SupportedServiceIDs filter: the ServiceDiscoveryReq names services 2 " +
+            "and 6 (Table 38 of [V2G20-1248]). Our station still answers with its whole catalogue, so " +
+            "the rest of the session is iso20-dc-eim's.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Evcc20Dc(stream, clock, new ImmediateAsyncDelay(),
+                                   LoopbackTimeouts.PerMessage) { SupportedServiceIds = [2, 6] }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_20, ct, PowerMode.Dc);
+                await new Secc20Dc(SeccSequenceTimeout, clock)
+                          { FixedSessionId    = RecordedSessionId,
+                            FixedGenChallenge = RecordedGenChallenge,
+                            Backend           = backend }.RunAsync(stream, ct);
+            }),
+
         // ── the multi-protocol offer ──────────────────────────────────────
         //
         // Both protocols in ONE SupportedAppProtocol request, the state machine chosen after the
