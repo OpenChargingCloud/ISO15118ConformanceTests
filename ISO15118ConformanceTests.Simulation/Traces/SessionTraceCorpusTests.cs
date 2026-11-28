@@ -607,10 +607,10 @@ public class SessionTraceCorpusTests
         // [V2G2-408] still requires the receipt, so the car signs the last MeterInfo it received (stack
         // 8e6fd3e). Before that fix the car skipped it; the ports had the same gap until this trace.
         //
-        // No signing meter, deliberately: with one installed, Secc2 reports a MeterInfo in every status
-        // response, the receipt request the switch means to leave bare included, so the case never
-        // arises. Without one, the station sends a MeterInfo only with a receipt request, and the
-        // switch's second request carries none.
+        // No signing meter: the station sends a MeterInfo only with a receipt request, so the last record
+        // is the first receipt's. Recorded without one because, until stack 1eedd64, an installed meter
+        // put a MeterInfo into the switch's second request too. The metered shape is
+        // iso2-ac-pnc-meter-norecord, below.
         new("iso2-ac-pnc-norecord", "iso15118-2", "ac",
             "AC, Plug & Charge, and a second receipt asked for without a MeterInfo: the car answers it " +
             "with a MeteringReceiptReq over the last record the station sent, as EVerest 2026.10.0's " +
@@ -636,6 +636,39 @@ public class SessionTraceCorpusTests
                             Backend                       = backend }.RunAsync(stream, ct);
             },
             SignedBy: PncMaterial.Key),
+
+        // The EVerest shape itself, recorded 2026-11-28: a signing meter, whose reading the station
+        // reports in every ChargingStatusRes, and a receipt request that still carries none (stack
+        // 1eedd64; before it, the meter filled that request too). The car signs the last reading it
+        // received, so its second MeteringReceiptReq carries that reading's SigMeterReading and is
+        // signed by two parties, like the first.
+        new("iso2-ac-pnc-meter-norecord", "iso15118-2", "ac",
+            "AC, Plug & Charge, at a station with a signing meter that asks for a second receipt without " +
+            "a MeterInfo, as EVerest 2026.10.0 does: the car signs the last reading it was shown, the " +
+            "meter's SigMeterReading included.",
+            async (stream, clock, ct) =>
+            {
+                await SapHandshake.RunEvccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                using var contractKey = PncMaterial.Key();
+                await new Evcc2(stream, PowerMode.Ac, clock, new ImmediateAsyncDelay(),
+                                LoopbackTimeouts.PerMessage)
+                          {
+                              Pnc = new PncEvccOptions(PncMaterial.Certificate(),
+                                                       [PncMaterial.Certificate()], contractKey),
+                          }.RunAsync(ct);
+            },
+            async (stream, clock, backend, ct) =>
+            {
+                await SapHandshake.RunSeccSideAsync(stream, ProtocolVariant.Iso15118_2, ct, PowerMode.Ac);
+                await new Secc2(PowerMode.Ac, SeccSequenceTimeout, clock)
+                          { FixedSessionId                = RecordedSessionId,
+                            FixedGenChallenge             = RecordedGenChallenge,
+                            InstalledMeter                = Meter(clock),
+                            DemandReceiptWithoutMeterInfo = true,
+                            Backend                       = backend }.RunAsync(stream, ct);
+            },
+            SignedBy: PncMaterial.Key,
+            Metered:  true),
 
         new("iso20-dc-pnc", "iso15118-20", "dc",
             "-20 DC, Plug & Charge: the AuthorizationReq echoes the station's GenChallenge and " +
@@ -1565,7 +1598,7 @@ public class SessionTraceCorpusTests
     /// </remarks>
     [Test]
     public void EveryRecordedMeterReadingVerifies(
-        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm")] string name)
+        [Values("iso2-ac-eim-meter", "iso2-ac-pnc-meter", "iso2-ac-pnc-meter-norecord", "iso20-dc-eim-meter", "iso20-dc-pnc-meterconfirm")] string name)
     {
 
         var trace   = SessionTrace.ReadFrom(TracePath(name));
@@ -1846,6 +1879,67 @@ public class SessionTraceCorpusTests
     }
 
     /// <summary>
+    /// At a metered station, a receipt asked for without a <c>MeterInfo</c> signs the last reading the
+    /// station reported, the meter's signature included.
+    /// </summary>
+    /// <remarks>
+    /// The EVerest 2026.10.0 shape, which <see cref="AReceiptAskedForWithoutARecordSignsTheLastOne"/>
+    /// covers only without a meter: here the station reports a signed reading in every status
+    /// response, and the bare request is the exception. So the second receipt carries a meter
+    /// signature of its own, and two parties must still verify over it.
+    /// </remarks>
+    [Test]
+    public void AMeteredStationsBareReceiptRequestSignsTheLastReading()
+    {
+
+        var trace    = SessionTrace.ReadFrom(TracePath("iso2-ac-pnc-meter-norecord"));
+        var receipts = trace.Exchanges.Where(e => e.Request.Message == "MeteringReceiptReqType").ToList();
+
+        Assert.That(receipts, Has.Count.EqualTo(2), "one receipt over a fresh reading, one without");
+
+        using var contractKey = KeyOf(trace.SigningKey!);
+        using var meterKey    = KeyOf(trace.MeterKey!);
+
+        static T Body<T>(byte[] frame) where T : BodyBaseType
+            => (T) ((V2G_Message) SignedFrame.DecodeWithSet(frame).Message).Body.BodyElement!;
+
+        var (withRecord, withoutRecord) = (receipts[0], receipts[1]);
+        var askedFirst  = Body<ChargingStatusResType>(trace.Exchanges[withRecord.Index    - 1].Response.Bytes);
+        var askedAgain  = Body<ChargingStatusResType>(trace.Exchanges[withoutRecord.Index - 1].Response.Bytes);
+        var lastReading = trace.Exchanges.Take(withoutRecord.Index).Last(e => e.Response.CarriesMeterSignature).Response;
+
+        var unasked = trace.Exchanges.Where(e => e.Response.Message == "ChargingStatusResType"
+                                              && Body<ChargingStatusResType>(e.Response.Bytes).ReceiptRequired != true)
+                                     .ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(askedFirst.MeterInfo?.SigMeterReading, Is.Not.Null,
+                        "the first receipt is asked for with a signed reading");
+            Assert.That(askedAgain.ReceiptRequired, Is.True, "[V2G2-408]: the second request is a receipt request");
+            Assert.That(askedAgain.MeterInfo,       Is.Null,
+                        "the second receipt must be asked for without a reading, or this trace shows nothing new");
+            Assert.That(unasked, Is.Not.Empty.And.All.Matches<TraceExchange>(e => e.Response.CarriesMeterSignature),
+                        "a metered station reports its reading in every status response that asks for no receipt");
+
+            Assert.That(withoutRecord.Request.MeterSignature, Is.EqualTo(lastReading.MeterSignature),
+                        "the second receipt does not sign the last reading the station reported");
+
+            foreach (var receipt in receipts)
+            {
+                Assert.That(SignedFrame.VerifiesWith(receipt.Request.Bytes, contractKey), Is.True,
+                            $"exchange {receipt.Index}: the receipt does not verify against the contract key");
+                Assert.That(SignedFrame.MeterReadingVerifiesWith(receipt.Request.Bytes, meterKey), Is.True,
+                            $"exchange {receipt.Index}: the reading inside the receipt does not verify");
+            }
+
+            Assert.That(trace.Exchanges[^1].Request.Message, Is.EqualTo("SessionStopReqType"),
+                        "the session ran to SessionStop rather than ending at a refused PowerDeliveryReq");
+        });
+
+    }
+
+    /// <summary>
     /// The station told its backend the same signed values it showed the car.
     /// </summary>
     /// <remarks>
@@ -1896,6 +1990,51 @@ public class SessionTraceCorpusTests
 
             Assert.That(ocpp.MeterValues[^1].SampledValue[0].Context, Is.EqualTo("Transaction.End"),
                         "the billed reading has to be identifiable as the final one");
+        });
+
+    }
+
+    /// <summary>
+    /// The bare receipt request withholds one reading from the car, and only from the car.
+    /// </summary>
+    /// <remarks>
+    /// The one metered scenario <see cref="TheBackendRecordCarriesTheSameSignedValuesTheCarSaw"/> cannot
+    /// hold to equality. The station books every iteration with its backend, the one whose response
+    /// asks for a receipt without a <c>MeterInfo</c> included, so the backend holds one signed reading
+    /// more than the car was shown. That is what EVerest's shape means in the field: a reading that is
+    /// billed, but that the car never saw and so never signed a receipt over. Every other reading must
+    /// still be the same 64 bytes on both sides.
+    /// </remarks>
+    [Test]
+    public async Task TheBareReceiptRequestWithholdsOneReadingFromTheCarOnly()
+    {
+
+        var (trace, ocpp) = await RecordWithBackendAsync(Scenarios.Single(s => s.Name == "iso2-ac-pnc-meter-norecord"));
+
+        var loop      = trace.Exchanges.Where(e => e.Response.Message == "ChargingStatusResType").ToList();
+        var bare      = loop.FindIndex(e => !e.Response.CarriesMeterSignature);
+        var onTheWire = loop.Where(e => e.Response.CarriesMeterSignature).Select(e => e.Response.MeterSignature!).ToList();
+
+        var reported  = ocpp.MeterValues
+                            .SelectMany(v => v.SampledValue)
+                            .Select(v => v.SignedMeterValue?.SignedMeterData)
+                            .ToList();
+
+        Assert.That(bare, Is.Not.Negative, "no status response went without a reading");
+
+        var withheld  = reported[bare];
+        var shown     = reported.Where((_, i) => i != bare).ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(loop.Count(e => !e.Response.CarriesMeterSignature), Is.EqualTo(1),
+                        "exactly one status response carries no reading");
+            Assert.That(reported, Has.Count.EqualTo(onTheWire.Count + 1),
+                        "the backend holds the shown readings and the withheld one, nothing else");
+            Assert.That(shown,    Is.EqualTo(onTheWire),
+                        "apart from the withheld one, the backend got different signed values than the car saw");
+            Assert.That(withheld,  Is.Not.Null, "the withheld reading is signed like the others");
+            Assert.That(onTheWire, Does.Not.Contain(withheld), "the car was shown the withheld reading after all");
         });
 
     }

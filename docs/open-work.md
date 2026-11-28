@@ -181,6 +181,16 @@ weaker claim than it looks and worth separating from "untested".
   both ports answer it over the last record the station sent (C# since `8e6fd3e`, the ports since the
   same change was ported), and `AReceiptAskedForWithoutARecordSignsTheLastOne` checks the record and
   that the session reaches `SessionStop`. It is recorded without a meter, see *Ours to fix*.
+  **The metered shape since 2026-11-28 as well**: `iso2-ac-pnc-meter-norecord` is EVerest's case
+  itself, a signing meter whose reading every other `ChargingStatusRes` carries, and one receipt
+  request without it. The car's second receipt echoes the last reading, the meter's `SigMeterReading`
+  included, and `AMeteredStationsBareReceiptRequestSignsTheLastReading` checks that echo and both
+  signatures. Recording it showed what that shape means for the backend: the station books the
+  withheld iteration too, so its OCPP record holds one signed reading the car never saw and never
+  signed a receipt over. `TheBareReceiptRequestWithholdsOneReadingFromTheCarOnly` holds it to exactly
+  that one; every other reading is the same 64 bytes on both sides. The Kotlin car replays the trace
+  and verifies C#'s two receipts under its own encoder in `port-gates.sh`; the Swift twin of both
+  checks runs only in macOS CI.
 
 ## Untested, and nothing is stopping us
 
@@ -378,8 +388,9 @@ backlog is that half of it turns out not to have been work.
   meter's reading. `Iso2ReceiptRequestTests` in the stack holds it for AC and DC, with a control
   without the switch; with the old line put back, the two cases with the switch fail. No recorded
   trace changed: `iso2-ac-pnc-norecord` has no meter, and no other scenario sets the switch. The
-  EVerest shape, a signing meter and a bare receipt request, can now be recorded; that trace is still
-  the meterless one. Found 2026-11-28 while recording it.
+  EVerest shape, a signing meter and a bare receipt request, is now recorded as
+  `iso2-ac-pnc-meter-norecord`; with the old line put back, re-recording it fails. Found 2026-11-28
+  while recording `iso2-ac-pnc-norecord`.
 - ~~**The Kotlin and Swift `-2` cars still skip a receipt asked for without a new `MeterInfo`.**~~
   **Fixed 2026-11-28**: the C# change (`8e6fd3e`, next entry) ported to `Evcc2.kt` and `Evcc2.swift`:
   the last `MeterInfo` is kept and signed when a receipt request carries none, and an EIM session or a
