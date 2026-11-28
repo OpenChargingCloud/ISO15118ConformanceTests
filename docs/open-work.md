@@ -204,7 +204,7 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   test PKI is P-256 and fails its station's `-20` profile check
   ([run, finding 4](interop-runs/2026-11-26-everest-2026.10.0-forward/notes.md#finding-4---20-plug--charge-three-defects-of-ours-and-a-test-pki-that-cannot-pass-its-own-check)).
 - ~~**Energy that actually flows back, `-20` BPT.**~~ **Done 2026-11-28, the same day it was written**
-  (WWCP_ISO15118#60 and EVSimulatorApp#77). In a bidirectional Dynamic session our DC station serves a
+  (WWCP_ISO15118#60, EVSimulatorApp#77, and the recorder in #180). In a bidirectional Dynamic session our DC station serves a
   negative current (`Secc20Dc.DischargeCurrent_A`), and our AC station asks with a negative
   `EVSETargetActivePower` (`Secc20Ac.DischargePowerW`), which all three cars follow from the next
   loop on (`[V2G20-1825]`). Negative is the direction from the vehicle (`[V2G20-1034]`, `[V2G20-1035]`).
@@ -212,8 +212,14 @@ The honest backlog. No counterparty defect in the way, no missing capability on 
   one under a second layout, `V2G-METER-2`, in C#, Kotlin, Swift, the app and the OCPP record. Two
   traces hold it, `iso20-dc-eim-bpt-discharge` and `iso20-ac-eim-bpt-discharge`, and in both every car's
   count equals charged minus discharged. Still not covered: Scheduled mode, where the EV names the
-  setpoint and the station would offer a `DischargingSchedule`, and any counterparty, since none has
-  discharged against us.
+  setpoint and the station would offer a `DischargingSchedule`, and any counterparty (next entry).
+- **Discharge against EVerest, both directions.** Nothing stands in the way: their EV already chose our
+  bidirectional services in reverse, AC_BPT and DC_BPT, and drove the whole DC sequence
+  ([`…-d20-dc-bpt-reverse`](interop-runs/2026-08-14-everest-d20-dc-bpt-reverse/notes.md)). But our station
+  only charged then. The run to make: our station with `DischargeCurrent_A` or `DischargePowerW` against
+  their EV in Dynamic mode, to see whether it accepts a negative current and follows a negative target;
+  and their station against our car, to see whether it ever asks for one. Their stations send no meter
+  signature, so the signed discharge register stays ours alone either way.
 
 
 **Two rows opened on 2026-08-13 by closing something else, and one closed the same evening.** Until that
@@ -1021,8 +1027,8 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
   and by a wide margin: *Ours to fix* and *Open questions about our own stack* hold one item each, both
-  left by the BPT discharge work, and *Untested, nothing stopping us* is empty again (counted
-  2026-11-28).
+  left by the BPT discharge work, and *Untested, nothing stopping us* holds one run, the discharge
+  against EVerest (counted 2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
   covers client-auth §1 and §2, trust-anchor, `isomux` §1 and §2, meter-info, sequence-timeout,
