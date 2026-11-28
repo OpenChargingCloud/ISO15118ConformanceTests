@@ -395,18 +395,16 @@ backlog is that half of it turns out not to have been work.
   BPT arms. With the old Kotlin car put back, its gate fails four trace replays. Found 2026-11-28
   ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge-sign/notes.md),
   [requirement](normative-basis.md#the-sign-of-the--20-discharge-limits)).
-- **The car's transparency comparison in a bidirectional session.** `StationReading` paired the
-  vehicle's own count with `ChargedEnergyReadingWh` alone, so in a discharge session it showed a
-  difference of everything that went back. **Fixed 2026-11-28 in the stack and the app**: the reading
-  carries the discharge register, and the vehicle's count is held to charged minus discharged
-  (`StationReading.StationNetWh`, and `energyFor` in the app, which shows both registers). In both
-  discharge sessions every reading now agrees to the watt-hour; with the old figure put back, the stack
-  tests and the app test fail. The app's backend check compares register against register, import with
-  charged and export with discharged. The Kotlin and Swift cars have no such comparison, so nothing
-  there. **Still open: EVCLI.** It pins the stack 11 commits back (`3ced457`, #55), and its log line,
-  JSON and Charging page print `StationWh` as "the meter reads". Once it follows the stack, the
-  difference is right, but the figure beside it is the charged register alone, so the page has to
-  show the discharge register as well.
+- ~~**The car's transparency comparison in a bidirectional session.**~~ **Fixed 2026-11-28 in all
+  four places.** `StationReading` paired the vehicle's own count with `ChargedEnergyReadingWh` alone, so
+  in a discharge session it showed a difference of everything that went back. Now the reading carries
+  the discharge register, and the vehicle's count is held to charged minus discharged:
+  `StationReading.StationNetWh` in the stack (WWCP_ISO15118#61), `energyFor` in the app, which shows both
+  registers (EVSimulatorApp#79), and EVCLI's log line, JSON and Charging page (EV#4, pinned by EVCLI
+  `f2f0dd4` together with the stack). In both discharge sessions every reading agrees to the watt-hour;
+  with the old figure put back, the stack tests and the app test fail. The app's backend check compares
+  register against register, import with charged and export with discharged. The Kotlin and Swift cars
+  have no such comparison.
 
 - ~~**Our `-20` station's `--require-metering-confirmation` did not count the contract chain.**~~
   **Fixed 2026-11-27**: [WWCP_ISO15118#58](https://github.com/OpenChargingCloud/WWCP_ISO15118/pull/58)
@@ -1046,9 +1044,8 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   counterparty, counted 2026-11-27. Seven more are live only in the 2026.02 line, one wants a rewrite,
   and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin: *Ours to fix* holds two items, both left by the BPT discharge work (the sign of
-  the discharge limits, and EVCLI's half of the transparency comparison), *Open questions about our own
-  stack* has none again, and *Untested, nothing stopping us* holds one run, the discharge against
+  and by a wide margin: *Ours to fix* holds one item left by the BPT discharge work, the sign of the
+  discharge limits, *Open questions about our own stack* has none again, and *Untested, nothing stopping us* holds one run, the discharge against
   EVerest (counted 2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
