@@ -191,6 +191,27 @@ weaker claim than it looks and worth separating from "untested".
   that one; every other reading is the same 64 bytes on both sides. The Kotlin car replays the trace
   and verifies C#'s two receipts under its own encoder in `port-gates.sh`; the Swift twin of both
   checks runs only in macOS CI.
+- **A vehicle that stops over the meter, -20** (nobody) — not in the matrix for the same reason: no
+  counterparty sends a reason in `SessionStopReq` or reads one. **Built and recorded 2026-11-28.**
+  With `--stop-on-meter-deviation 5`, our cars compare every station reading with their own count.
+  Once one strays further than 5 % (never under 10 Wh), the car ends the charging after that iteration.
+  In -20 it gives the reason in the one place ISO 15118-20 has for one: `EVTerminationCode`
+  `urn:openchargingcloud:EVTerminationCode:MeteringDeviation` and the four figures in
+  `EVTerminationExplanation`. No code is defined yet, so the URN is ours. A -2 car stops the same way and
+  keeps the reason itself, because its `SessionStopReq` has no field for one.
+  It keeps confirming what the station asks it to confirm (`[V2G20-1084]`).
+  The station's fault switch is `--meter-scale`: the meter misreads by that factor and signs what it
+  misread.
+  - **Recorded as** `iso20-dc-eim-meter-deviation`: a meter reading 10 % high, 880 Wh against the car's
+    800. The C#, Kotlin and Swift cars replay it byte for byte, the explanation text included, which is
+    therefore the cross-language contract.
+  - **The tests:** `TheVehicleThatStoppedOverTheMeterSaysSoInItsSessionStopReq` pins the text and checks
+    that no other -20 trace gives a reason. With the stop removed, the stack tests and the Kotlin
+    replay fail.
+  - **Open:**
+    - how a foreign station takes a reason it has no code for;
+    - whether any station keeps it. OCPP 2.1's device model has `ConnectedEV.ChargingState`, described as
+      the `EVTerminationCode` to signal an error condition, and no station we know fills it.
 
 ## Untested, and nothing is stopping us
 
