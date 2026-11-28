@@ -191,6 +191,13 @@ Everything below was unblocked by it.
     −5 000 W, which our car followed.
   - **The one gap is AC reverse.** Their SIL car's simulator reports a fixed draw whatever the target.
   - **Both sides read the other's negative limits correctly**, their station by magnitude.
+  - **What it found in us:** our car's battery drained past empty. It counted the station's whole ask
+    and kept offering its full discharge limits at 0 %. Fixed the same day (WWCP_ISO15118#63): the pack
+    counts what it gave, and an empty car states zero.
+  - **Their simulated DC supply sits at the edges of our voltage window**: 500 V while charging and
+    200 V while discharging, our `EVMaximumVoltage` and `EVMinimumVoltage`, never the 400 V our car
+    states for its pack. Our car's count therefore comes out at twice the station's, and that is the
+    transparency comparison catching a simulator, not a meter of ours to fix.
 
   ([`…-discharge`](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md)).
 

@@ -390,17 +390,27 @@ backlog is that half of it turns out not to have been work.
 
 ## Ours to fix
 
-- **Our DC car discharges past empty, and counts what it never had.** Found 2026-11-28 against EVerest's
-  exporting station ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md#seen-on-our-side-not-changed-by-this-run)).
-  A pack starting at 50 % of 60 kWh ended at `0.0 %`, `-38.86 kWh delivered`.
-  - `EvBattery.Add` stops the pack at empty but adds the whole negative amount to `DeliveredWh`. The
-    charging side counts only what the pack took, so the two directions disagree.
-  - `Evcc20Dc` keeps stating −125 A as its maximum discharge current at 0 %, so nothing ends the export.
-  - Its meter samples the car's own fixed 400 V times the station's current, while their station
-    reported 200 V, so the car's figure is twice the station's.
+- ~~**Our DC car discharges past empty, and counts what it never had.**~~ **Fixed 2026-11-28, two of
+  three; the third was not ours.** Found the same day against EVerest's exporting station: a pack
+  starting at 50 % of 60 kWh ended at `0.0 %`, `-38.86 kWh delivered`
+  ([run](interop-runs/2026-11-28-everest-2026.10.0-discharge/notes.md#seen-on-our-side-not-changed-by-this-run)).
+  - **The count.** `EvBattery.Add` now counts what the pack released, as the charging side counts what
+    it took, so `DeliveredWh` never goes below what the pack held at the start. The Kotlin and Swift
+    batteries had the same line and follow, although no discharging session reaches theirs yet.
+  - **The stop.** Once the pack is empty, the `-20` cars state zero as every charge-loop discharge limit,
+    DC and AC, Dynamic and Scheduled, and the AC car holds a negative target at 0 W instead of following
+    it. Discovery still declares the hardware. Our stations already hold a discharge to the car's limits,
+    so in loopback the station's discharge register now stops at exactly what the pack held
+    (`Iso20DischargeTests`, WWCP_ISO15118#63).
+  - **The voltage was their simulator, not our meter.** Their station reported **500 V** while charging
+    and **200 V** while discharging. Those are exactly our loop's `EVMaximumVoltage` and
+    `EVMinimumVoltage`, the two edges of the window our car declares, while our car states its pack at
+    400 V. On a DC bus both ends see one voltage, and it is the pack's. Their power-supply simulator does
+    not model one. So our car's 400 V × their current is the consistent figure, and the factor of two is
+    the transparency comparison catching it. The meter is unchanged.
 
-  Nothing on the wire is wrong, and our own station never discharges long enough to reach it. The
-  corpus is unaffected, because no recorded trace drains a pack.
+  The stop changes what a car sends once its pack is empty, and nothing before. No recorded trace drains
+  a pack, so the corpus is unchanged.
 - ~~**Our cars and stations send the `-20` discharge limits positive; `[V2G20-1213]` and EVerest send them
   negative.**~~ **Fixed 2026-11-28**: every discharge power and current our cars (C#, Kotlin, Swift) and
   stations (`Secc20Ac`, `Secc20Dc`, and MCS through it) put on the wire is now negative, in
@@ -1060,8 +1070,8 @@ open from the 2026-08-08 EVerest run until the requirement text settled it, and 
   counterparty, counted 2026-11-27. Seven more are live only in the 2026.02 line, one wants a rewrite,
   and three are fixed everywhere ([table](reports/README.md)). Each ends with a *Before sending* checklist whose unticked items are
   the parts only a person can do. This is the largest single block of finished work waiting on a human,
-  and by a wide margin. *Ours to fix* holds one item, left by the discharge run against EVerest: our
-  DC car's battery past empty. *Open questions about our own stack* has none again. *Untested, nothing
+  and by a wide margin. *Ours to fix* is empty again: the one item the discharge run against EVerest
+  left, our car's battery past empty, is fixed. *Open questions about our own stack* has none again. *Untested, nothing
   stopping us* holds only what that run could not reach, Scheduled-mode discharge (counted 2026-11-28).
   <br>**The EVerest ones are now reproduced against the release, not only read in it.** On 2026-11-27
   every still-present finding that a session can reach was driven on the wire against 2026.10.0. That
